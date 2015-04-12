@@ -12,7 +12,7 @@ BreezeJS 1.0.0 Beta
 6、减少了重复创建对象来访问元素造成的效率问题;<br/>
    比如:<br/>
    
-   //为元素设置属性
+   //为元素设置属性<br/>
    JQuery('div').each(function(){
    
       //这里会创建一个新的JQuery对象
