@@ -418,21 +418,6 @@
         }
         return val || 0;
     }
-    ,scrollPosition=function(elem,prop,val)
-    {
-        if( Breeze.isHTMLElement(elem) || Breeze.isDocument(elem) || Breeze.isWindow(elem) )
-        {
-            var iswin=Breeze.isWindow(elem);
-            if(val===undefined)
-            {
-                var p=prop==='scrollLeft' ? 'pageXOffset' : 'pageXOffset',
-                    val= iswin ? ( p in elem) ? elem[ p ] :
-                        elem.document.documentElement[ prop ] : elem[ prop ];
-                return val;
-            }
-            ( (iswin && elem.document.documentElement) || elem)[ prop ]=val;
-        }
-    }
     ,getChildNodes=function(element,selector,flag)
     {
         var ret=[]
@@ -580,6 +565,33 @@
                 return true;
             }
         };
+    }
+
+    /**
+     * 获取或者设置滚动条的位置
+     * @param element
+     * @param prop
+     * @param val
+     * @returns {number|void}
+     */
+    Breeze.scroll=function(element,prop,val)
+    {
+        var is=Breeze.isWindow( element );
+        if( Breeze.isHTMLContainer( element) || is  )
+        {
+            var win= is ? element : element.nodeType===9 ? elem.defaultView || elem.parentWindow : null;
+            var p= /left/i.test(prop) ? 'pageXOffset' : 'pageYOffset'
+            if( val===undefined )
+            {
+                return win ? p in win ? win[ p ] : win.document.documentElement[ prop ] :  element[ prop ];
+            }
+            if( win ){
+                win.scrollTo( p==='pageXOffset' ? val : Breeze.scroll(element,'scrollLeft'),
+                              p==='pageYOffset' ? val : Breeze.scroll(element,'scrollTop') );
+            }else{
+                element[ prop ] = val;
+            }
+        }
     }
 
 
@@ -2460,14 +2472,15 @@
         },prop.toLowerCase());
     }
 
-    var __scroll__=function(prop,val)
+    var __scroll__=function(prop,value)
     {
         return access.call(this,prop, value,{
             get:function(prop){
-                return scrollPosition(this,'scroll'+prop);
+
+                return Breeze.scroll(this,'scroll'+prop);
             },
             set:function(prop,newValue){
-                scrollPosition(this,'scroll'+prop,newValue);
+                Breeze.scroll(this,'scroll'+prop,newValue);
             }
         },'scroll'+prop );
     }
