@@ -1,6 +1,6 @@
 /*
  * TouchEvent : BreezeJS plugin for managing touch events
- * version: 1.0 Bate
+ * version: 1.0 Bete
  * Copyright © 2015 BreezeJS All rights reserved.
  * Released under the MIT license
  * https://github.com/51breeze/breezejs

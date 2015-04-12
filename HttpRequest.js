@@ -1,7 +1,10 @@
-/**
- * Created by Administrator on 15-1-2.
+/*
+ * BreezeJS HttpRequest components.
+ * version: 1.0 Bete
+ * Copyright © 2015 BreezeJS All rights reserved.
+ * Released under the MIT license
+ * https://github.com/51breeze/breezejs
  */
-
 
 /**
  * Http 请求类
