@@ -105,8 +105,8 @@
         if( !(rootLayout instanceof Layout) )
         {
             rootLayout = new Layout( window.document.body );
-            rootLayout.measureWidth=function(){ return  Breeze.getWidth(window); }
-            rootLayout.measureHeight=function(){return  Breeze.getHeight(window); }
+            rootLayout.measureWidth=function(){ return this.current(window).width(); }
+            rootLayout.measureHeight=function(){return this.current(window).height(); }
             rootLayout.addEventListener('resize',function(event)
             {
                 rootLayout.updateDisplayList( rootLayout.measureWidth(), rootLayout.measureHeight() );
@@ -131,7 +131,7 @@
     Layout.prototype.measureWidth=function()
     {
         var margin=this.getMargin( this[0] );
-        return this.getWidth() + margin.left + margin.right;
+        return this.width() + margin.left + margin.right;
     }
 
     /**
@@ -141,7 +141,7 @@
     Layout.prototype.measureHeight=function()
     {
         var margin=this.getMargin( this[0] )
-        return this.getHeight()+margin.top + margin.bottom;
+        return this.height()+margin.top + margin.bottom;
     }
 
     /**
@@ -255,8 +255,8 @@
         this.children(':not([includeLayout=false])').each(function(child,index)
         {
             this.setStyle('position','absolute')
-            var childWidth=Breeze.getWidth(child)
-                ,childHeight=Breeze.getHeight(child)
+            var childWidth=this.width()
+                ,childHeight=this.height()
                 ,margin=this.getMargin( child )
 
             childWidth+=margin.left + margin.right;
@@ -323,8 +323,8 @@
                }
             }
         }
-        this.setWidth( realWidth );
-        this.setHeight( realHeight );
+        this.width( realWidth );
+        this.height( realHeight );
     }
 
     /**

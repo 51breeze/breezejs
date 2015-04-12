@@ -366,7 +366,7 @@
             value = ( +( ret[1] + 1 ) * +ret[2] ) + increase;
         return value;
     }
-    ,getWidthOrHeight=function( elem, name, extra )
+    ,getWidthOrHeight=function( elem, name, border )
     {
         name=name.toLowerCase();
         var doc= elem.document || elem.ownerDocument || elem,
@@ -403,7 +403,7 @@
             {
                 //val -= parseFloat( Breeze.getStyle( elem, "padding" + cssExpand[ i ] ) ) || 0;
                 //如果没有指定带border 宽，默认不带边框的宽
-                if( extra !== "border" )
+                if( border )
                   val -= parseFloat( Breeze.getStyle( elem, "border" + cssExpand[ i ] + "Width" ) ) || 0;
 
                 //ie9 以下 offsetWidth 会包括 margin 边距。
@@ -639,48 +639,6 @@
            style[name]=value;
        }catch( e ){}
        return true;
-    }
-
-    /**
-     * 获取元素的宽度
-     * @param elem   节点元素
-     * @param border 是否括边框的宽度，默认包括。
-     * @returns {number}
-     */
-    Breeze.getWidth=function(elem,border)
-    {
-        return getWidthOrHeight(elem,'width', border===undefined || border ? 'border' : '' )
-    }
-
-    /**
-     * 获取元素的高度
-     * @param elem   节点元素
-     * @param border 是否括边框的宽度，默认包括。
-     * @returns {number}
-     */
-    Breeze.getHeight=function(elem,border)
-    {
-        return getWidthOrHeight(elem, 'height', border===undefined || border ? 'border' : '' )
-    }
-
-    /**
-     * 设置元素的宽度
-     * @param elem
-     * @param value
-     */
-    Breeze.setWidth=function(elem,value)
-    {
-        Breeze.setStyle(elem,'width',value);
-    }
-
-    /**
-     * 设置元素的高度
-     * @param elem
-     * @param value
-     */
-    Breeze.setHeight=function(elem,value)
-    {
-        Breeze.setStyle(elem,'height',value);
     }
 
     /**
@@ -1289,6 +1247,9 @@
      */
     Breeze.forEach=function( object ,fn ,refObj )
     {
+
+
+
         var index= 0, result;
         if( this instanceof Breeze && Breeze.isFunction(object) )
         {
@@ -1305,6 +1266,12 @@
         {
             refObj=refObj || object;
             fn=fn;
+
+            if( object.__current__ )
+            {
+                object.forEachCurrentItem=undefined;
+                object.__current__=false;
+            }
 
             if( object.forEachCurrentItem !== undefined )
             {
@@ -1755,6 +1722,7 @@
            return this.forEachCurrentItem || this[0];
         if( element.nodeType===1 || element.nodeType===9 || element===window || element===null )
         {
+            this.__current__= this.forEachCurrentItem !== element;
             this.forEachCurrentItem=element;
         }
         return this;
@@ -2464,10 +2432,10 @@
         value = (value===undefined || value==='border' || typeof value==='boolean') ? undefined : parseFloat( value );
         return access.call(this,prop, value,{
             get:function(prop){
-                return Breeze['get'+prop](this, border );
+                return getWidthOrHeight(this, prop, border );
             },
             set:function(prop,newValue){
-                Breeze['set'+prop](this,newValue)
+                Breeze.setStyle(this,prop,newValue);
             }
         },prop.toLowerCase());
     }
@@ -2492,7 +2460,7 @@
      */
     Breeze.prototype.width=function( value )
     {
-        return __size__.call(this,'Width',value);
+        return __size__.call(this,'width',value);
     }
 
     /**
@@ -2502,7 +2470,7 @@
      */
     Breeze.prototype.height=function( value )
     {
-        return __size__.call(this,'Height',value);
+        return __size__.call(this,'height',value);
     }
 
     /**
