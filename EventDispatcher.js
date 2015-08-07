@@ -25,7 +25,11 @@
      function(type,listener,useCapture){this.removeEventListener(type,listener,useCapture)} :function(type,listener,useCapture){this.detachEvent(type,listener)}
 
      ,dispather=document.dispatchEvent ?
-          function(type){this.dispatchEvent(type)} :function(type){this.fireEvent(type,listener)}
+          function(type){
+              var evt = document.createEvent('Event');
+                  evt.initEvent(type,true,true);
+              this.dispatchEvent(evt)
+          } :function(type){this.fireEvent(type)}
 
    ,msie=navigator.userAgent.match(/msie ([\d.]+)/i)
 
@@ -40,6 +44,8 @@
      * @type {propertychange: string}
      */
     ,mapeventname= onPrefix==='' ? {'propertychange':'input','ready':'readystatechange'} :{'ready':'readystatechange'}
+
+    ,agreed=new RegExp( 'webkitAnimationEnd|webkitAnimationIteration','i')
 
    /**
     * 特定的一些事件类型。
@@ -56,7 +62,7 @@
      * @param useCapture
      * @param handle
      */
-    ,forEachAddListener=function( proxyType,type,useCapture,handle )
+    ,forEachAddListener=function( proxyType,type,useCapture,handle,dataItem, dataGroup )
     {
         if( typeof proxyType !=='string' )
            return;
@@ -67,26 +73,39 @@
             ,win
             ,index=0;
 
-        proxyType=proxyType.toLowerCase();
+        if( !agreed.test( proxyType ) )
+           proxyType=proxyType.toLowerCase();
 
         do{
+
             element=target[ index ] || target;
             win=element.document && element.document.nodeType===9 ? element : element.defaultView || element.contentWindow || element.parentWindow;
-
             if( (element.nodeType && element.nodeType===1) || element===win || (win && element===win.document) )
             {
-                handle=handle || this.__dispatchHandle__;
-                proxyType=onPrefix+( mapeventname[proxyType] || proxyType );
-
-                if( !bind[type] || !bind[type].call(this,element,handle,proxyType,useCapture)  )
+                if(  indexByElement(dataGroup,element) < 0  )
                 {
-                   addListener.call( element, proxyType, handle ,useCapture);
+                    handle=handle || this.__dispatchHandle__;
+                    proxyType= mapeventname[proxyType] || proxyType ;
+                    dataGroup.push( Breeze.extend({},dataItem, {'target': element } ) );
+                    if( !bind[type] || !bind[type].call(this,element,handle,onPrefix+proxyType,useCapture)  )
+                    {
+                        addListener.call( element, onPrefix+proxyType, handle ,useCapture);
+                    }
                 }
             }
             index++;
+
         }while( index < len );
     }
 
+   ,indexByElement=function(dataGroup,element)
+   {
+       for( var j in dataGroup ) if( dataGroup[j].target === element )
+       {
+         return j;
+       }
+       return -1;
+   }
    ,getMapType=function( type )
    {
        if( typeof mapeventname === 'object') for( var i in mapeventname)
@@ -111,17 +130,17 @@
             ,breezeEvent={}
             ,target=event.target || event.srcElement
             ,currentTarget=event.currentTarget
-            ,type=onPrefix==='on' && event.type ? event.type.replace(/^on/i,'') : event.type || type;
+            ,type=onPrefix==='on' && event.type ? event.type.replace(/^on/i,'') : event.type || event;
 
         type=getMapType( type );
 
-        if( PropertyEvent && type === PropertyEvent.PROPERTY_CHANGE )
+        if( typeof PropertyEvent !=='undefined' && type === PropertyEvent.PROPERTY_CHANGE )
         {
             breezeEvent=new Breeze.PropertyEvent( event );
             breezeEvent.property= Breeze.isFormElement(target) ? 'value' : 'innerHTML';
             breezeEvent.newValue=target[ breezeEvent.property ];
 
-        }else if( /^mouse|click$/i.test(type) && MouseEvent )
+        }else if( /^mouse|click$/i.test(type) && typeof MouseEvent !=='undefined' )
         {
             breezeEvent=new MouseEvent( event );
             breezeEvent.pageX= event.x || event.clientX || event.pageX;
@@ -129,7 +148,7 @@
 
             if( event.offsetX===undefined && target && Breeze )
             {
-                var offset=Breeze.getPosition(target);
+                var offset=Breeze.position(target);
                 event.offsetX=breezeEvent.pageX-offset.left;
                 event.offsetY=breezeEvent.pageY-offset.top;
             }
@@ -139,7 +158,7 @@
             breezeEvent.screenX= event.screenX;
             breezeEvent.screenY= event.screenY;
 
-        }else if(BreezeEvent)
+        }else if( typeof BreezeEvent !=='undefined' )
         {
             breezeEvent=new BreezeEvent( event );
             breezeEvent.altkey= !!event.altkey;
@@ -169,10 +188,9 @@
         if( !(this instanceof EventDispatcher) )
             return new EventDispatcher(element);
         var self=this;
-        if( element===undefined )
-            element= typeof this.toArray === 'function' ? this.toArray() : [];
 
-        this.__dispatchTarget__=  element instanceof Array ?  element : [ element ];
+        this.__dispatchTarget__=[].concat( element || [] );
+
         this.__dispatchHandle__=function(event)
         {
             self.dispatchEvent( createEvent( event ) );
@@ -190,9 +208,16 @@
      */
     EventDispatcher.prototype.dispatchTargets=function( index )
     {
-        if( typeof index ==='number' )
-           return this.__dispatchTarget__[ index ];
-        return this.__dispatchTarget__;
+        var target=[];
+        if( this.__dispatchTarget__.length > 0  )
+        {
+            target=this.__dispatchTarget__;
+
+        }else if( typeof this.toArray === 'function' )
+        {
+            target = this.toArray();
+        }
+        return typeof index ==='number' ? target[ index ] : this.forEachCurrentItem ? [ this.forEachCurrentItem ] : target;
     }
 
     /**
@@ -223,45 +248,48 @@
         if( typeof listener !=='function' )
             return false;
 
-        var data =this[dataName] || (this[dataName]={})
-            ,specialEvent=specialEvents[ type ]
-            ,index;
-        data[ type ] || (data[ type ]=[]);
-        priority = parseInt( priority || 0 );
-        priority = isNaN( priority ) ? 0 : priority;
-        data[type].push({fn:listener,pri:priority,capture:useCapture});
-        data[type].sort(function(a,b)
-        {
-            //按权重排序，值大的在前面
-            return a.pri=== b.pri ? 0 : (a.pri > b.pri ? 1 : -1);
-        })
+        var specialEvent=specialEvents[ type ]
+            ,index
+            ,dataGroup = this[dataName] || ( this[dataName]={} )
+            ,item = {fn:listener,pri:parseInt( priority ) || 0,capture:!!useCapture,target:this};
 
-        if( data[ type ].length <=1 )
+        dataGroup = dataGroup[type] || ( dataGroup[type]=[] );
+
+        //特定事件
+        if( specialEvent )
         {
-            //特定事件
-            if( specialEvent )
+            var handle=type+'Handle',
+                self=this;
+            if( this[ handle ]===undefined )
             {
-                var handle=type+'Handle',
-                    self=this;
-                if( this[ handle ]===undefined )
-                {
-                    this[ handle ]= function(event){
-                        event=event || window.event
-                        if( event ){
-                            specialEvent.handle.call(self,event);
-                        }
-                    };
-                }
-               var proxyType=specialEvent.proxyEvents instanceof Array  ? specialEvent.proxyEvents : [ specialEvent.proxyEvents ];
-               for( index in proxyType )forEachAddListener.call(this, proxyType[ index ] ,type , useCapture,this[ handle ] );
+                this[ handle ]= function(event){
+                    event=event || window.event
+                    if( event ){
+                        specialEvent.handle.call(self, createEvent(event) );
+                    }
+                };
             }
-            //普通事件
-            else
-            {
-                forEachAddListener.call(this,type,type,useCapture);
-            }
+           var proxyType=specialEvent.proxyEvents instanceof Array  ? specialEvent.proxyEvents : [ specialEvent.proxyEvents ];
+           for( index in proxyType )forEachAddListener.call(this, proxyType[ index ] ,type , useCapture,this[ handle ] , item, dataGroup );
+        }
+        //普通事件
+        else
+        {
+            forEachAddListener.call(this,type,type,useCapture,null,item, dataGroup );
         }
 
+        if( dataGroup.length < 1 )
+        {
+            dataGroup.push( item );
+
+        }else if( priority > 0 )
+        {
+            dataGroup.sort(function(a,b)
+            {
+                //按权重排序，值大的在前面
+                return a.pri=== b.pri ? 0 : (a.pri > b.pri ? 1 : -1);
+            })
+        }
         return this;
     }
 
@@ -370,19 +398,47 @@
     {
         var type=event.type || event,
             length,
-            listener,
-            data = this[dataName] || (this[dataName]={});
+            data = this[dataName] || (this[dataName]={})
+
         if( data[ type ] === undefined )
             return false;
-        length=data[ type ].length;
+
+        data=data[ type ];
+        length=data.length;
+
+        event= typeof event === 'string'  ? new BreezeEvent(type) : event;
+        if( !Breeze.isHTMLContainer( event.target ) && !Breeze.isWindow(event.target) )
+        {
+            event.target=this;
+            event.currentTarget=this;
+            if( this.forEachCurrentItem )
+            {
+                dispather.call( this.forEachCurrentItem, type );
+
+            }else for(var b in data ) if( data[b].target !==this )
+            {
+               dispather.call( data[b].target, type );
+            }
+        }
 
         while( length >0 )
         {
             --length;
-            listener = data[ type ][ length ];
-            listener.fn.call( this ,event );
-            if( event.isPropagationStopped===true )
-                return false;
+            var item = data[ length ]
+            if( event.target === item.target )
+            {
+                if( typeof item.fn ==='function' )
+                {
+                    event.target = item.target;
+                    if( typeof this.current ==='function' )
+                    {
+                        this.current( item.target );
+                    }
+                    item.fn.call( this , event );
+                    if( event.isPropagationStopped===true )
+                        return false;
+                }
+            }
         }
         return true;
     }

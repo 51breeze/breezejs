@@ -222,8 +222,6 @@
         return margin;
     }
 
-
-
     /**
      * 更新布局视图
      * @returns {Layout}
@@ -480,7 +478,6 @@
             }
         })
         rootLayout.updateDisplayList( rootLayout.measureWidth(), rootLayout.measureHeight() );
-
     })
 
 })( window )

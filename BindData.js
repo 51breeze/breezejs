@@ -10,6 +10,7 @@
 
     /**
      * 数据双向绑定器
+     * @param target 需要监听的对象。在这些对象上所做出的任何属性变化都会影响到通过 bind 方法所绑定到的数据源
      * @constructor
      */
     function BindData( target )
@@ -17,14 +18,11 @@
         if( !(this instanceof BindData) )
             return new BindData( target );
 
-        //初始化父类
-        Breeze.EventDispatcher.call(this);
-
         /**
          * @private
          * @type {Breeze.Dictionary}
          */
-        var subscription= new Breeze.Dictionary()
+        var subscription= new Dictionary()
             ,dataset={}
             ,self=this
 
@@ -53,16 +51,16 @@
 
                         }else if( property in properties || '*' in properties )
                         {
-                            if( Breeze.isHTMLElement(object) )
+                            if( object && object.nodeType === 1 && typeof object.nodeName ==='string'  )
                             {
-                                property=Breeze.isFormElement( object ) ? 'value' : 'innerHTML' ;
-                                setAttr(object,property,newValue);
+                                property=object.hasOwnProperty('value') ? 'value' : 'innerHTML' ;
+                                object[ property ]= newValue;
 
-                            }else if( object instanceof Breeze.BindData || object instanceof Breeze )
+                            }else if( object instanceof BindData || object instanceof Breeze )
                             {
                                 object.setProperty(property,newValue)
 
-                            } else if( Breeze.isObject(object,true) )
+                            } else if( typeof object === 'object' && !object.nodeType && object != object.window )
                             {
                                 object[ property ]= newValue;
                             }
@@ -72,13 +70,16 @@
             }
         }
 
-        //监听当前绑定对象的属性。
-        if( !(target instanceof Breeze.EventDispatcher) )
-            target=Breeze.EventDispatcher.call( this,target );
+        //初始化父类
+        EventDispatcher.call(this);
 
-        target.addEventListener(Breeze.PropertyEvent.PROPERTY_CHANGE,function(event)
+        //监听当前绑定对象的属性。
+        if( !(target instanceof EventDispatcher) )
+            target=EventDispatcher.call( this, target );
+
+        target.addEventListener(PropertyEvent.PROPERTY_CHANGE,function(event)
         {
-            if( event instanceof Breeze.PropertyEvent )
+            if( event instanceof PropertyEvent )
                 self.setProperty(event.property,event.newValue );
         });
 
@@ -91,13 +92,7 @@
         this.bind=function(target,property,callback)
         {
             property = property || 'value';
-            if( Breeze.isString( target ) )
-            {
-                var i,items=Sizzle(target);
-                for( i in items )
-                    this.bind(items[i],property,callback);
-
-            }else if( Breeze.isObject(target,true) )
+            if( (typeof target === 'object' || target instanceof Array) && !target.nodeType && target != target.window )
             {
                 var obj = subscription.get(target)
                 if( !obj )subscription.set(target, (obj={}) );
@@ -118,7 +113,7 @@
             var obj;
             if( target && ( obj=subscription.get( target ) ) )
             {
-                Breeze.isDefined(property) ? delete obj[ property ] : subscription.remove(target);
+                typeof property ==='string' ? delete obj[ property ] : subscription.remove(target);
                 return true;
             }
             return false;
@@ -131,7 +126,7 @@
          */
         this.data=function(name,value)
         {
-            Breeze.isObject(name,true) ?  dataset=name : dataset[name]=value;
+            typeof name === 'string' ? dataset[name]=value : dataset=name ;
         }
 
         /**
@@ -145,7 +140,7 @@
             {
                 dataset[ name ] = value;
                 commit(name,value);
-                var ev=new Breeze.PropertyEvent(Breeze.PropertyEvent.PROPERTY_CHANGE)
+                var ev=new PropertyEvent(PropertyEvent.PROPERTY_CHANGE)
                 ev.property=name;
                 ev.newValue=value;
                 this.dispatchEvent(ev);
@@ -172,8 +167,8 @@
             return dataset.hasOwnProperty(name);
         }
     }
-    BindData.prototype=new Breeze.EventDispatcher();
+    BindData.prototype=new EventDispatcher();
     BindData.prototype.constructor=BindData;
-    Breeze.BindData=BindData;
+    window.BindData=BindData;
 
 })()

@@ -1,6 +1,6 @@
 /*
  * BreezeJS BreezeEvent class.
- * version: 1.0 Beta
+ * version: 1.0 Bete
  * Copyright © 2015 BreezeJS All rights reserved.
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
@@ -40,12 +40,11 @@
 
         preventDefault: function()
         {
-            var e = this.originalEvent;
+             var e = this.originalEvent;
             this.isDefaultPrevented = true;
-            if ( e && e.preventDefault ) {
-                e.preventDefault();
-            } else {
-                e.returnValue = false;
+            if ( e )
+            {
+                e.preventDefault ? e.preventDefault() : e.returnValue = false
             }
         },
 

@@ -8,7 +8,6 @@
 
 (function(){
 
-
     /**
      * 可以使用非字符串作为键值的存储表
      * @constructor
@@ -21,7 +20,7 @@
         var map=new Array()
             ,indexByKey=function(key)
             {
-                var i = 0,len=map.length,isscalar=Breeze.isScalar(key);
+                var i = 0,len=map.length,isscalar=( typeof key==='string' );
                 for(; i<len ; i++) if( ( isscalar && i===key ) || ( !isscalar && map[i] && map[i].key===key ) )
                     return i;
                 return -1;
@@ -35,8 +34,8 @@
          */
         this.set=function(key,value)
         {
-            if( Breeze.isScalar( key ) )
-                return map[ key.toString() ]=value;
+            if( typeof key==='string' )
+                return map[ key ]=value;
             this.remove( key );
             map.push({'key':key,'value':value})
             return value;
@@ -49,8 +48,8 @@
          */
         this.get=function( key )
         {
-            if( Breeze.isScalar(key) )
-                return map[ key.toString() ];
+            if( typeof key==='string' )
+                return map[ key ];
             var index=indexByKey(key);
             return index >=0 ?  map[ index ].value : null ;
         }
@@ -84,9 +83,8 @@
         this.remove=function( key )
         {
             var value=null;
-            if( Breeze.isScalar(key) )
+            if( typeof key==='string' )
             {
-                key=key.toString();
                 value=map[ key ];
                 delete map[ key ];
             }else
@@ -109,5 +107,5 @@
             return map.length;
         }
     }
-    Breeze.Dictionary=Dictionary;
+    window.Dictionary=Dictionary;
 })()

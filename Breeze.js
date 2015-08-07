@@ -9,7 +9,7 @@
 (function(window,undefined ){ "use strict";
 
     if( typeof Sizzle==='undefined' )
-        throw new Error('Breeze Sizzle engine require');
+        throw new Error('Breeze require Sizzle engine ');
 
     /**
      * @private
@@ -61,9 +61,9 @@
         else if( selector instanceof Breeze )
             return selector;
 
-        selector=selector === "body" && document.body && !context ? document.body  :  selector === "document" ? document : selector;
-        this.context = context === "body" && document.body ? document.body : context === "document" ? document : this.getContext( context );
-        this.selector= selector;
+        EventDispatcher.call( this );
+
+        this.context = this.getContext( context );
 
         if( Breeze.isString( selector ) )
         {
@@ -76,13 +76,19 @@
             }else if( context instanceof Breeze )
             {
                 doMake( this, context.find( selector ).toArray() );
+                this.context = context.getContext();
 
-            }else doMake( this, Sizzle( selector,this.context ) );
+            }else
+            {
+                doMake( this, Sizzle( selector, this.context ) );
+            }
 
         }else if( selector && Breeze.isHTMLContainer(selector) || Breeze.isWindow(selector) )
         {
             doMake( this ,[selector] );
         }
+
+        this.__rootElement__= this[0];
         this.__COUNTER__=++breezeCounter;
     }
 
@@ -206,7 +212,6 @@
                return doMake(target,ret,true,true,false);
             }
         }
-        EventDispatcher.call( target );
         return target;
     }
 
@@ -494,11 +499,13 @@
             if( name === undefined || name==='cssText')
                 return (elem.style || {} ).cssText || '';
 
-            var ret='',computedStyle;
             name=Breeze.styleName( name );
-            if( name==='' )return '';
-            computedStyle=document.defaultView.getComputedStyle( elem, null )
+            if( cssHooks[name] && cssHooks[name].get )return cssHooks[name].get.call(elem) || '';
 
+            var ret='',computedStyle;
+            if( name==='' )return '';
+
+            computedStyle=document.defaultView.getComputedStyle( elem, null )
             if( computedStyle )
             {
                 ret = computedStyle.getPropertyValue( name );
@@ -555,6 +562,9 @@
             }
         };
     }
+
+    cssHooks.width={get: function( style ){return getWidthOrHeight(this,'width',true);}}
+    cssHooks.height={get: function( style ){return getWidthOrHeight(this,'height',true);}}
 
     /**
      * 设置元素的样式
@@ -947,9 +957,7 @@
      */
     Breeze.hasAttribute=function(element,name)
     {
-        if( Breeze.isHTMLElement(element) )
-            return element.hasAttributes ? element.hasAttributes( name ) : !!element[name];
-        return false;
+       return typeof element.hasAttributes === 'function' ? element.hasAttributes( name ) : !!element[name];
     }
 
     /**
@@ -1315,6 +1323,8 @@
             target = {};
         }
 
+
+
         for ( ; i < length; i++ ) {
             // Only deal with non-null/undefined values
             if ( (options = arguments[ i ]) != null ) {
@@ -1468,39 +1478,17 @@
         return Math.abs( crc ^ (-1) );
     };
 
-    var __trace__;
-    Breeze.trace=function( message ,options )
-    {
-        if( !__trace__ )
-        {
-            __trace__=Breeze('<div />')
-            __trace__.setWidth(300)
-            __trace__.setHeight(60)
-
-            __trace__.setStyle('position',Breeze.isBrowser(Breeze.BROWSER_IE) && Breeze.isBrowser(Breeze.BROWSER_IE) < 9 ? 'absolute' : 'fixed')
-            __trace__.setStyle('top','0px')
-            __trace__.setStyle('left','40%')
-            __trace__.setStyle('backgroundColor','#ffffff')
-            __trace__.setStyle('border','solid #666666 2px')
-            __trace__.setStyle('zIndex',9999)
-            __trace__.setProperty('includeLayout','false')
-            Breeze(document.body).addChildAt( __trace__ , 0 )
-        }
-        __trace__.text( message );
-        return __trace__;
-    }
-
-    var __breezeRoot__;
+    var __rootEvent__;
 
     /**
      * 全局事件调度器
      * @returns {EventDispatcher}
      */
-    Breeze.breezeRoot=function()
+    Breeze.rootEvent=function()
     {
-        if( !__breezeRoot__ )
-            __breezeRoot__=new EventDispatcher( window );
-        return __breezeRoot__;
+        if( !__rootEvent__ )
+            __rootEvent__=new EventDispatcher( document );
+        return __rootEvent__;
     }
 
     /**
@@ -1510,7 +1498,7 @@
      */
     Breeze.ready=function( callback )
     {
-        return Breeze.breezeRoot().addEventListener( BreezeEvent.READY , callback );
+        return Breeze.rootEvent().addEventListener( BreezeEvent.READY , callback );
     }
 
     /**
@@ -1608,6 +1596,10 @@
     // 选择器已获取到的DOM个数
     Breeze.prototype.length=0;
 
+    Breeze.prototype.forEachCurrentItem= undefined ;
+
+    Breeze.prototype.forEachCurrentIndex=undefined;
+
     //============================================================
     //  Defined Public Method
     //============================================================
@@ -1696,12 +1688,19 @@
      */
     Breeze.prototype.current=function( element )
     {
-        if( element === undefined )
-           return this.forEachCurrentItem || this[0];
-        if( element.nodeType===1 || element.nodeType===9 || element===window || element===null )
+        if( element===true )
         {
-            this.__current__= this.forEachCurrentItem !== element;
-            this.forEachCurrentItem=element;
+            element=this.forEachCurrentItem || this[0];
+
+        }else if( element === undefined )
+        {
+            return this.forEachCurrentItem || this[0];
+        }
+        if( element.nodeType===1 || element.nodeType===9 || Breeze.isWindow(element) || element===null )
+        {
+            //如果当前指定的是同一个对象则清空
+             this.__current__= this.forEachCurrentItem === element;
+             this.forEachCurrentItem=element;
         }
         return this;
     }
@@ -1793,8 +1792,8 @@
     }
 
     /**
-     * 获取上下文
-     * @returns {}
+     * 获取上下文。
+     * @returns {HTMLElement}
      */
     Breeze.prototype.getContext=function( context )
     {
@@ -2075,7 +2074,8 @@
     {
         if( childElemnet instanceof Breeze )
         {
-            return childElemnet.each(function(child){
+            var target =[].concat( childElemnet.__rootElement__ )
+            return Breeze.forEach(target,function(child){
                 this.addChildAt(child,index)
             },this)
         }
@@ -2232,13 +2232,21 @@
             {
                 var nodes=elem.childNodes;
                 var len=nodes.length,b=0;
-                for( ; b < len ; b++ ) if( nodes[b].nodeType===1 )
+                for( ; b < len ; b++ ) if( nodes[b] && nodes[b].nodeType===1 )
                 {
                    if( !removeChild( this, elem, nodes[b] ) )
                      return this;
                 }
             }
-            elem.innerHTML=html;
+
+            if( Breeze.isString(html) )
+            {
+                elem.innerHTML = html;
+
+            }else
+            {
+                this.addChild( html );
+            }
         });
     }
 
@@ -2300,7 +2308,7 @@
             set:function(prop,newValue){
                 Breeze.style(this,prop,newValue);
             }
-        },'style',PropertyEvent.PROPERTY_STYLE_CHANGE);
+        },name,PropertyEvent.PROPERTY_STYLE_CHANGE);
     }
 
     /**
@@ -2346,6 +2354,11 @@
                 return ( __property__[ prop ] ? this[ prop ] : this.getAttribute( prop ) ) || '';
             },
             set:function(prop,newValue){
+                if( newValue === null )
+                {
+                    __property__[ prop ] ? delete this[ prop ] : this.removeAttribute( prop );
+                    return;
+                }
                 __property__[ prop ] ? this[ prop ]=newValue : this.setAttribute( prop,newValue );
             }
         },name);
@@ -2562,6 +2575,67 @@
     Breeze.prototype.globalToLocal=function( left,top )
     {
         return __point__.call(this,left,top,false);
+    }
+
+    /**
+     * 设置当前元素的显示或者隐藏
+     * @param flag false 为隐藏
+     * @returns {Breeze}
+     */
+    Breeze.prototype.display=function( flag )
+    {
+        flag= Breeze.isBoolean(flag) ? flag : true;
+        return this.current(true).style('display',flag ? 'block' : 'none');
+    }
+
+    /**
+     * 执行一个动画
+     * @param options
+     * @param callback
+     * @returns {*}
+     */
+    Breeze.prototype.animation=function( options ,callback )
+    {
+        var tl=  new Timeline().bind( this.toArray() )
+        options=[].concat( options );
+        for( var i in options )
+        {
+            var d = options[i].duration;
+            delete options[i].duration
+            tl.addFrame( options[i] , d );
+        }
+        if( typeof callback === 'function' )
+        {
+           tl.addEventListener(TimelineEvent.FINISH,callback);
+        }
+        tl.play();
+        return tl;
+    }
+
+    /**
+     * 将一个元素淡入
+     * @param duration
+     * @param callback
+     * @returns {Breeze}
+     */
+    Breeze.prototype.fadeIn=function(duration,callback)
+    {
+        this.style('opacity',0);
+        this.animation({'opacity':1,'duration':duration},callback);
+        return this;
+    }
+
+    /**
+     * 将一个元素淡出
+     * @param duration
+     * @param callback
+     * @returns {Breeze}
+     */
+    Breeze.prototype.fadeOut=function(duration,callback)
+    {
+        this.style('opacity',1);
+        this.animation({'opacity':0,'duration':duration},callback);
+        return this;
     }
 
     window.Breeze=Breeze;
