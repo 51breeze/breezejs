@@ -4,10 +4,8 @@
 
 (function(window,undefined )
 {
-
     function makeData(data,template,forIndex)
     {
-
         var html=[];
         var tpl = template;
         if( Breeze.isObject(data,true)  && !Breeze.isEmpty(data) )
@@ -27,6 +25,7 @@
                }else
                {
                     tpl = tpl.replace(new RegExp('{'+ i.replace(/\s+/,'')+'}','ig'),data[i]);
+                    tpl = tpl.replace(/\{column\}/ig,i);
                }
             }
             if( !flag  )
@@ -51,7 +50,7 @@
 
             }else if( Breeze.isObject(option) )
             {
-                opt=Breeze.isObject(option);
+                opt=option;
             }
 
         }else if( Breeze.isObject(column) )
@@ -60,8 +59,6 @@
         }
         return Breeze.extend( target, opt  );
     }
-
-
 
     function DataGrid( target )
     {
@@ -74,26 +71,11 @@
         var body="<td>{value}</td>";
         var container="<table style='width: 100%'>\r\n<thead>{columns}</thead>\r\n<tbody>{contents}</tbody>\r\n</table>";
         var columnItem={};
-
-        var plus_config_item={
-            'edit':{
-                'enabled':true,
-                'template':'<a>编辑</a>',
-                'callback':null,
-                'eventType':MouseEvent.CLICK,
-                'cursor':'pointer',
-                'column':''
-            },
-            'remove':{
-                'enabled':true,
-                'template':'<a>删除</a>',
-                'callback':null,
-                'eventType':MouseEvent.CLICK,
-                'cursor':'pointer',
-                'column':''
-            }
+        var bindData=[];
+        var plus_data={
+            'template':{},
+            'option':{}
         }
-        var plus_template={}
 
         /**
          * 根据数据项编译成html
@@ -105,18 +87,23 @@
                 if( target instanceof Breeze )
                 {
                     var html=  container.replace('{columns}', theadTemplate )
-                    html = html.replace('{contents}', makeData(dataRender.getData(),tbodyTemplate).join("\r\n") );
+                    html = html.replace('{contents}', makeData(dataRender.toArray(),tbodyTemplate).join("\r\n") );
                     html = Breeze( html );
                     target.html( html )
 
                     // 为每行绑定动作行为
                     html.find('[data-action]').each(function(elem,index){
 
-                        var key = this.property('data-action');
-                        if( plus_config_item[key] && plus_config_item[key].enabled )
+                        var action = this.property('data-action');
+                        if( plus_data.option[ action ] )
                         {
-                            var option = plus_config_item[key];
-                            this.style('cursor',option.cursor );
+                            var option = plus_data.option[ action ];
+
+                            if( option.cursor )
+                              this.style('cursor', option.cursor );
+
+                           // new BindData( elem )
+
                             this.addEventListener( option.eventType , function(event)
                             {
                                 var index =  this.property('data-index');
@@ -125,12 +112,43 @@
                                     option.callback.call(this,index, dataRender, event );
                                 }
                             })
+
                         }
 
                     })
 
                 }
             }
+        }
+
+        this.plus=function(action,column,defualt,option)
+        {
+            option = merge_option(defualt,column,option || {} );
+            option.template=option.template.replace(/(\<\s*(\w+))/ig,function(){
+
+                var attr = [];
+                var tag = RegExp.$2.toLowerCase();
+                if( option.bindable )
+                {
+                    attr.push('data-bind="{column}"');
+                }
+                if( tag==='input' )
+                {
+                    attr.push('value="{'+column+'}" name="{column}"');
+
+                }else if( tag==='select' || tag==='textarea' )
+                {
+                    attr.push('name="{column}"');
+                }
+                return RegExp.$1+' data-index="{forIndex}" data-action="'+action+'" '+attr.join(' ');
+            });
+
+            if( !plus_data.template[ column ] )
+            {
+                plus_data.template[ column ]=[];
+            }
+            plus_data.template[ column ].push( option.template );
+            plus_data.option[ action ]=option;
         }
 
         /**
@@ -144,21 +162,6 @@
         {
             if( Breeze.isObject(columns,true) && theadTemplate==='' )
             {
-                //附加一些定义的内容
-                for( var j in plus_config_item )
-                {
-                    var column = plus_config_item[j]['column'];
-                    if( plus_config_item[j].enabled && !Breeze.isEmpty( column ) && plus_config_item[j].template )
-                    {
-                        plus_config_item[j].template=plus_config_item[j].template.replace(/(\<\s*\w+)/ig,'$1 data-index="{forIndex}" data-action="'+j+'"');
-                        if( !plus_template[ column ] )
-                        {
-                            plus_template[ column ]=[];
-                        }
-                        plus_template[ column ].push( plus_config_item[j].template );
-                    }
-                }
-
                 theadTemplate='<tr>';
                 tbodyTemplate='<tr>';
                 for( var i in  columns )
@@ -171,9 +174,9 @@
                     }
 
                    theadTemplate += header.replace('{value}', field )
-                   if( plus_template[ i ] )
+                   if( plus_data.template[ i ] )
                    {
-                       tbodyTemplate += body.replace('{value}', plus_template[ i ].join('\r\n') );
+                       tbodyTemplate += body.replace('{value}', plus_data.template[ i ].join('\r\n') );
                    }else
                    {
                        tbodyTemplate += body.replace('{value}', '{'+ i.replace(/\s+/,'')+'}' );
@@ -214,7 +217,12 @@
          */
         this.edit=function(column,option)
         {
-            plus_config_item['edit'] = merge_option( plus_config_item['edit'],column,option);
+            this.plus('edit',column,{
+                'template':'<a>编辑</a>',
+                'callback':null,
+                'eventType':MouseEvent.CLICK,
+                'cursor':'pointer'
+            }, option );
             return this;
         }
 
@@ -225,7 +233,12 @@
          */
         this.remove=function(column,option)
         {
-            plus_config_item['remove'] = merge_option( plus_config_item['remove'],column,option);
+            this.plus('remove',column,{
+                'template':'<a>删除</a>',
+                'callback':null,
+                'eventType':MouseEvent.CLICK,
+                'cursor':'pointer'
+            },option);
             return this;
         }
 
@@ -241,6 +254,35 @@
             {
                 columnItem = columns.split(',')
             }
+            return this;
+        }
+
+        /**
+         * 绑定数据
+         * @param column
+         * @returns {DataGrid}
+         */
+        this.bind=function( column )
+        {
+            this.component(column,{bindable:true})
+            return this;
+        }
+
+        /**
+         * 设置指定列中需要设置的组件
+         * @param column
+         * @param option
+         * @returns {DataGrid}
+         */
+        this.component=function(column,option)
+        {
+            this.plus('component',column,{
+                'eventType':[MouseEvent.CLICK],
+                'template':'<input />',
+                'dataGroup':[],
+                'property':{},
+                'callback':null
+            }, option );
             return this;
         }
 

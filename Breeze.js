@@ -33,6 +33,7 @@
        }
        return Array.prototype.slice.call(this,start,end);
     }
+    ,splice= Array.prototype.splice
     ,indexOf=Array.prototype.indexOf ? Array.prototype.indexOf : function(searchElement)
     {
        var len=this.length,i=0;
@@ -182,19 +183,23 @@
         if( clear===true )
         {
             var revers=[]
-            while( i > 0 )
+            target.each(function(item,index)
             {
-                removeBreezeInstance( target[ --i ] , target  );
-                target.cleanEventListener( null, target[ i ] );
-                revers.unshift( target[ i ] );
-                delete target[ i ];
-            }
+                //target.removeEventListener('*');
+                if( reverted !== true )
+                {
+                    revers.unshift( item );
+                }
+                splice.call(target,index,1)
+            })
+
             if( reverted !== true )
             {
                 if( !target['__REVERTS__'] )
                     target['__REVERTS__']=[];
-                target['__REVERTS__'].push( revers );
+                target['__REVERTS__'].concat( revers );
             }
+            i = target.length
         }
 
         while ( elems[j] !== undefined )
@@ -1039,11 +1044,16 @@
      */
     Breeze.isEmpty=function( val )
     {
-        if( val===null || val==='' || val===false || val===0 || val===undefined )
+        if( val===null || val==='' || val===false || val==0 || val===undefined )
             return true;
-        var ret;
-        for( ret in val )break;
-        return ret===undefined;
+
+        if( Breeze.isObject(val,true) )
+        {
+            var ret;
+            for( ret in val )break;
+            return ret===undefined;
+        }
+        return false;
     }
 
     /**
@@ -1081,8 +1091,12 @@
      */
     Breeze.isFormElement=function(element,exclude)
     {
-        var ret=formPatternReg.test( element.nodeName );
-        return ret && exclude !== undefined ? exclude !== Breeze.nodeName( element )  : ret;
+        if( element && typeof element.nodeName ==='string' )
+        {
+            var ret=formPatternReg.test( element.nodeName );
+            return ret && exclude !== undefined ? exclude !== Breeze.nodeName( element )  : ret;
+        }
+        return false;
     }
 
     /**
@@ -1816,7 +1830,7 @@
      */
     Breeze.prototype.find=function( selector )
     {
-        return doMake( this, Sizzle(selector, this.getContext() ) , true );
+        return doMake( this, Sizzle(selector, this.context ) , true );
     }
 
     /**
@@ -1950,7 +1964,7 @@
      * @param index 是否添加到元素的前面
      * @returns {Breeze}
      */
-    Breeze.prototype.addElement=function( element,index )
+    Breeze.prototype.addTarget=function( element,index )
     {
         var before = !!index;
         if( typeof index === 'number' )
@@ -2016,7 +2030,7 @@
     Breeze.prototype.removeChildAt=function( index )
     {
         var is=false;
-        if(  index !== undefined && index.parentNode && index.parentNode.nodeType===1 ){
+        if(  index !== undefined && index.parentNode ){
             this.current( index.parentNode )
             is=true;
         }else if( !Breeze.isNumber( index ) )
@@ -2044,7 +2058,7 @@
                 var bz= getBreezeInstance(child),len=bz.length,b=0;
                 for(  ;b<len; b++ ) if( bz[b] instanceof Breeze )
                 {
-                    bz[b].cleanEventListener(null,child);
+                    bz[b].removeEventListener('*');
                     bz[b].not( child );
                 }
             }
@@ -2102,7 +2116,7 @@
                 var refChild=index !== undefined && index.parentNode && index.parentNode===parent ? index : null;
                     !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
                     refChild && (refChild=index.nextSibling);
-                parent.insertBefore( child , refChild );
+                parent.insertBefore( child , refChild || null );
                 dispatchElementEvent(this,parent,child,ElementEvent.ADDED );
             }
             if( isElement ) return this;
@@ -2228,6 +2242,7 @@
                 html=html===true ? outerHtml(elem) : elem.innerHTML;
                 return html.replace( defaultCacheName ,'');
             }
+
             if( elem.hasChildNodes() )
             {
                 var nodes=elem.childNodes;
@@ -2239,6 +2254,7 @@
                 }
             }
 
+            elem.innerHTML='';
             if( Breeze.isString(html) )
             {
                 elem.innerHTML = html;

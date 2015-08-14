@@ -12,7 +12,6 @@
             return new DataRender( data );
         }
         EventDispatcher.call(this);
-
         var items=[].concat( data || [] );
         this.length = items.length;
 
@@ -46,7 +45,7 @@
             index = index < 0 ? index+items.length : index;
             if( index < items.length )
             {
-                item=items.splice(index,1);
+                var item=items.splice(index,1);
                 this.length = items.length;
                 dispatch.call(this,item,DataRenderEvent.ITEM_REMOVE);
                 dispatch.call(this,item,DataRenderEvent.ITEM_CHANGED);

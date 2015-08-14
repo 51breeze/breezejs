@@ -144,14 +144,16 @@ var tl= new Timeline(60).addFrame(function(){
 
     if( animationSupport )
     {
-
-        EventDispatcher.expandHandle(TimelineEvent.FINISH,'webkitAnimationEnd',function(event){
-            event.type=TimelineEvent.FINISH;
-            this.dispatchEvent( event )
+        EventDispatcher.SpecialEvent(TimelineEvent.FINISH,function(element,listener,type,useCapture,dispatcher)
+        {
+            EventDispatcher.addListener(element,listener,'webkitAnimationEnd',useCapture,TimelineEvent.FINISH,function(event)
+            {
+                event = new BreezeEvent(event);
+                event.type= TimelineEvent.FINISH;
+                EventDispatcher.dispatchEvent(event);
+            })
         })
-
     }
-
 
     Timeline.prototype.bind=function( elements )
     {
