@@ -5,26 +5,39 @@
 
 (function(window,undefined){
 
-    function DataRender( data )
+    function DataRender()
     {
         if( !(this instanceof DataRender) )
         {
-            return new DataRender( data );
+            return new DataRender();
         }
-        EventDispatcher.call(this);
-        var items=[].concat( data || [] );
-        this.length = items.length;
 
-        var dispatch=function(item,type)
+        EventDispatcher.call(this);
+        var items=[];
+        this.length = 0;
+
+        /**
+         * 调度事件
+         * @param item
+         * @param type
+         */
+        var dispatch=function(item,type,index)
         {
             if( this.hasEventListener(type) )
             {
                 var event = new DataRenderEvent(type)
                 event.item=item;
+                event.index = index;
                 this.dispatchEvent( event );
             }
         }
 
+        /**
+         * 添加数据项到指定的索引位置
+         * @param item
+         * @param index
+         * @returns {DataRender}
+         */
         this.addItem=function(item,index)
         {
             if( item )
@@ -34,12 +47,17 @@
                 index = Math.min( items.length, Math.max( index, 0 ) )
                 items.splice(index,0,item);
                 this.length = items.length;
-                dispatch.call(this,item,DataRenderEvent.ITEM_ADD);
-                dispatch.call(this,item,DataRenderEvent.ITEM_CHANGED);
+                dispatch.call(this,item,DataRenderEvent.ITEM_ADD,index);
+                dispatch.call(this,item,DataRenderEvent.ITEM_CHANGED,index);
             }
             return this;
         }
 
+        /**
+         * 移除指定索引下的数据项
+         * @param index
+         * @returns {boolean}
+         */
         this.removeItem=function( index )
         {
             index = index < 0 ? index+items.length : index;
@@ -47,15 +65,21 @@
             {
                 var item=items.splice(index,1);
                 this.length = items.length;
-                dispatch.call(this,item,DataRenderEvent.ITEM_REMOVE);
-                dispatch.call(this,item,DataRenderEvent.ITEM_CHANGED);
+                dispatch.call(this,item,DataRenderEvent.ITEM_REMOVE,index);
+                dispatch.call(this,item,DataRenderEvent.ITEM_CHANGED,index);
                 return true;
             }
             return false;
         }
 
+        /**
+         * 根据索引位置返回数据项
+         * @param index
+         * @returns {*}
+         */
         this.indexToItem=function( index )
         {
+            index = parseInt( index )
             if( typeof index === 'number' )
             {
                 index = index < 0 ? index+ items.length : index;
@@ -65,11 +89,20 @@
             return null;
         }
 
+        /**
+         * 根据数据项返回对应的索引
+         * @param item
+         * @returns {number}
+         */
         this.itemToIndex=function( item )
         {
             return items.indexOf( item );
         }
 
+        /**
+         * 复制数据源
+         * @returns {Array}
+         */
         this.toArray=function()
         {
             return items.slice(0);
@@ -106,8 +139,9 @@
 
             }else
             {
-                items.concat( data );
-                dispatch.call(this,data,DataRenderEvent.ITEM_CHANGED);
+                items=items.concat( data );
+                dispatch.call(this,items,DataRenderEvent.ITEM_ADD,NaN);
+                dispatch.call(this,items,DataRenderEvent.ITEM_CHANGED,NaN);
             }
         }
     }
@@ -118,6 +152,7 @@
     function DataRenderEvent( src, props ){ BreezeEvent.call(this, src, props);}
     DataRenderEvent.prototype=new BreezeEvent();
     DataRenderEvent.prototype.item=null;
+    DataRenderEvent.prototype.index=NaN;
     DataRenderEvent.prototype.constructor=DataRenderEvent;
     DataRenderEvent.ITEM_ADD='itemAdd';
     DataRenderEvent.ITEM_REMOVE='itemRemove';

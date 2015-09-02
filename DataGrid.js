@@ -72,6 +72,7 @@
         var container="<table style='width: 100%'>\r\n<thead>{columns}</thead>\r\n<tbody>{contents}</tbody>\r\n</table>";
         var columnItem={};
         var bindData=[];
+        var ismaked=false;
         var plus_data={
             'template':{},
             'option':{}
@@ -90,35 +91,49 @@
                     html = html.replace('{contents}', makeData(dataRender.toArray(),tbodyTemplate).join("\r\n") );
                     html = Breeze( html );
                     target.html( html )
+                    bindAction( html );
 
-                    // 为每行绑定动作行为
-                    html.find('[data-action]').each(function(elem,index){
+                    target.find('[data-bind]').each(function(elem){
 
-                        var action = this.property('data-action');
-                        if( plus_data.option[ action ] )
-                        {
-                            var option = plus_data.option[ action ];
+                        var index = this.property('data-index');
+                        var name = this.property('data-bind');
+                        var item = dataRender.indexToItem( index );
+                        var bind = new BindData()
+                            bind.bind(item,name);
+                          this.addEventListener(BreezeEvent.BLUR,function(event){
 
-                            if( option.cursor )
-                              this.style('cursor', option.cursor );
-
-                           // new BindData( elem )
-
-                            this.addEventListener( option.eventType , function(event)
-                            {
-                                var index =  this.property('data-index');
-                                if( typeof option.callback ==='function' )
-                                {
-                                    option.callback.call(this,index, dataRender, event );
-                                }
-                            })
-
-                        }
-
+                              var name = this.property('data-bind');
+                              var value = this.property('value')
+                                  bind.setProperty(name,value)
+                          })
                     })
 
                 }
             }
+        }
+
+        // 为每行绑定动作行为
+        var bindAction=function( target )
+        {
+            target.find('[data-action]').each(function(elem,index){
+
+                var action = this.property('data-action');
+                if( plus_data.option[ action ] )
+                {
+                    var option = plus_data.option[ action ];
+                    if( option.cursor )
+                        this.style('cursor', option.cursor );
+
+                    this.addEventListener( option.eventType , function(event)
+                    {
+                        var index =  this.property('data-index');
+                        if( typeof option.callback ==='function' )
+                        {
+                            option.callback.call(this,index, dataRender, event );
+                        }
+                    })
+                }
+            })
         }
 
         this.plus=function(action,column,defualt,option)
@@ -148,7 +163,7 @@
                 plus_data.template[ column ]=[];
             }
             plus_data.template[ column ].push( option.template );
-            plus_data.option[ action ]=option;
+            plus_data.option[ action ]= option;
         }
 
         /**
@@ -163,7 +178,7 @@
             if( Breeze.isObject(columns,true) && theadTemplate==='' )
             {
                 theadTemplate='<tr>';
-                tbodyTemplate='<tr>';
+                tbodyTemplate='<tr data-row="{forIndex}">';
                 for( var i in  columns )
                 {
                     var field = columns[i];
@@ -258,17 +273,6 @@
         }
 
         /**
-         * 绑定数据
-         * @param column
-         * @returns {DataGrid}
-         */
-        this.bind=function( column )
-        {
-            this.component(column,{bindable:true})
-            return this;
-        }
-
-        /**
          * 设置指定列中需要设置的组件
          * @param column
          * @param option
@@ -281,7 +285,8 @@
                 'template':'<input />',
                 'dataGroup':[],
                 'property':{},
-                'callback':null
+                'callback':null,
+                'bindable':false
             }, option );
             return this;
         }
@@ -294,12 +299,7 @@
         this.dataProfile=function(data)
         {
             this.makeTemplate(columnItem, header, body);
-            if( !dataRender )
-            {
-                dataRender=new DataRender( data );
-                dataRender.addEventListener(DataRenderEvent.ITEM_CHANGED,doMake);
-                doMake();
-            }
+            this.dataRender().source( data );
             return this;
         }
 
@@ -307,8 +307,29 @@
          * 获取数据渲染项
          * @returns {DataRender}
          */
-        this.getDataRender=function()
+        this.dataRender=function()
         {
+            if( !dataRender )
+            {
+                dataRender=new DataRender();
+                dataRender.addEventListener(DataRenderEvent.ITEM_CHANGED,function(event){
+
+                    if( !isNaN(event.index) )
+                    {
+                        var list = Breeze('[data-row]:gt('+event.index+')', target )
+                        Breeze('[data-row="'+event.index+'"]',target).removeElement();
+                        list.each(function(elem){
+                            var val= this.property('data-row');
+                            this.property('data-row', val-1 );
+                            Breeze('[data-index]', elem ).property('data-index',  val-1 )
+                        })
+
+                    }else
+                    {
+                        doMake();
+                    }
+                });
+            }
             return dataRender
         }
 

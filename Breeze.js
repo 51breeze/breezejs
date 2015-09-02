@@ -1830,7 +1830,7 @@
      */
     Breeze.prototype.find=function( selector )
     {
-        return doMake( this, Sizzle(selector, this.context ) , true );
+        return doMake( this, Sizzle(selector ) , true );
     }
 
     /**
@@ -1987,8 +1987,8 @@
     {
         if( typeof index==='number' )
             this.index( index );
-        this.each(function(parent){
-            this.current( parent.parentNode ).removeChildAt( parent );
+        this.each(function(element){
+            this.removeChildAt( element );
         })
         return this;
     }
@@ -2046,6 +2046,7 @@
 
     var removeChild= function(target,parent,child)
     {
+
         if( child && parent.hasChildNodes() && child.parentNode === parent &&
             dispatchElementEvent(target,parent,child,ElementEvent.BEFORE_REMOVE ) )
         {

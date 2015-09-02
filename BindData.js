@@ -8,9 +8,11 @@
 
 (function(){
 
+
     /**
      * 数据双向绑定器
-     * @param target 需要监听的对象。在这些对象上所做出的任何属性变化都会影响到通过 bind 方法所绑定到的数据源
+     * @param target 需要监听的对象,可以是一个元素选择器。在这些对象上所做出的任何属性变化都会影响到通过 bind 方法所绑定到的数据源
+     *               [发布内容的对象]
      * @constructor
      */
     function BindData( target )
@@ -20,7 +22,7 @@
 
         /**
          * @private
-         * @type {Breeze.Dictionary}
+         * @type {Dictionary}
          */
         var subscription= new Dictionary()
             ,dataset={}
@@ -47,44 +49,34 @@
                         var callback=properties[property] || properties['*'];
                         if( Breeze.isFunction( callback ) )
                         {
-                            callback.call(object,property,newValue);
+                              callback.call(object,property,newValue);
 
                         }else if( property in properties || '*' in properties )
                         {
-                            if( object && object.nodeType === 1 && typeof object.nodeName ==='string'  )
+                            if( (object.nodeType && typeof object.nodeName ==='string' && object != object.window) || typeof object === 'object' )
                             {
-                                property=object.hasOwnProperty('value') ? 'value' : 'innerHTML' ;
-                                object[ property ]= newValue;
+                               object[ property ]= newValue;
 
                             }else if( object instanceof BindData || object instanceof Breeze )
                             {
-                                object.setProperty(property,newValue)
-
-                            } else if( typeof object === 'object' && !object.nodeType && object != object.window )
-                            {
-                                object[ property ]= newValue;
+                                return object.setProperty(property,newValue);
                             }
                         }
                     }
                 }
             }
+            return true;
         }
 
-        //初始化父类
-        EventDispatcher.call(this);
-
-        //监听当前绑定对象的属性。
-        if( !(target instanceof EventDispatcher) )
-            target=EventDispatcher.call( this, target );
-
-        target.addEventListener(PropertyEvent.PROPERTY_CHANGE,function(event)
+        EventDispatcher.call(this, target );
+        this.addEventListener(PropertyEvent.PROPERTY_CHANGE,function(event)
         {
             if( event instanceof PropertyEvent )
                 self.setProperty(event.property,event.newValue );
         });
 
         /**
-         * 绑定需要动态改变属性的对象
+         * 绑定需要动态改变属性的对象(相当于订阅内容)
          * @param target
          * @param property
          * @returns {boolean}
@@ -92,8 +84,9 @@
         this.bind=function(target,property,callback)
         {
             property = property || 'value';
-            if( (typeof target === 'object' || target instanceof Array) && !target.nodeType && target != target.window )
+            if( (typeof target === 'object' || target instanceof Array) || (target.nodeType && typeof target.nodeName === 'string' && target !== target.window ) )
             {
+                dataset[ property ]=null;
                 var obj = subscription.get(target)
                 if( !obj )subscription.set(target, (obj={}) );
                 obj[property]=callback;
@@ -103,7 +96,7 @@
         }
 
         /**
-         * 解除绑定
+         * 解除绑定(取消订阅)
          * @param target
          * @param property
          * @returns {boolean}
@@ -114,19 +107,19 @@
             if( target && ( obj=subscription.get( target ) ) )
             {
                 typeof property ==='string' ? delete obj[ property ] : subscription.remove(target);
+                var data = subscription.getAll();
+                for( i in data )
+                {
+                    var item=data[i];
+                    if( item && item.value && typeof item.value[ property ] !== 'undefined' )
+                    {
+                       return true;
+                    }
+                }
+                delete dataset[ property ];
                 return true;
             }
             return false;
-        }
-
-        /**
-         * 设置数据源
-         * @param name
-         * @param value
-         */
-        this.data=function(name,value)
-        {
-            typeof name === 'string' ? dataset[name]=value : dataset=name ;
         }
 
         /**
@@ -136,14 +129,14 @@
          */
         this.setProperty=function(name,value)
         {
-            if( this.getProperty( name ) !== value )
+            if( dataset[ name ] !== value )
             {
                 dataset[ name ] = value;
                 commit(name,value);
                 var ev=new PropertyEvent(PropertyEvent.PROPERTY_CHANGE)
                 ev.property=name;
                 ev.newValue=value;
-                this.dispatchEvent(ev);
+                self.dispatchEvent(ev);
             }
         }
 
@@ -164,9 +157,10 @@
          */
         this.hasProperty=function(name)
         {
-            return dataset.hasOwnProperty(name);
+            return typeof dataset[name] !== 'undefined';
         }
     }
+
     BindData.prototype=new EventDispatcher();
     BindData.prototype.constructor=BindData;
     window.BindData=BindData;

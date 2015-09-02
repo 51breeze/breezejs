@@ -389,7 +389,7 @@
             ,element
             ,index=0;
 
-        this.__bindType__[type]=true;
+        var oldtype = type;
         type= !agreed.test( type ) ? type.toLowerCase() : type;
         var proxytype=mapeventname[type] || type;
         var special = bindBeforeProxy[type];
@@ -397,8 +397,14 @@
         do{
 
             element=target[ index ] || this;
-            if( !special || !special.callback(element,listener,type,useCapture,this)  )
+            if( target[ index ] instanceof EventDispatcher )
             {
+                this.__bindType__[ oldtype ]=true;
+                target[ index ].addEventListener(oldtype,listener,useCapture,priority);
+
+            }else if( !special || !special.callback(element,listener,type,useCapture,this)  )
+            {
+                this.__bindType__[ oldtype ]=true;
                 EventDispatcher.addListener.call(this, element, listener, proxytype, useCapture);
             }
             index++;
@@ -429,27 +435,33 @@
 
         for( var b=0 ; b<target.length; b++ )
         {
-            var data = getData( target[b],type);
-            var item=data.items;
-            var length =  item.length;
-            if( typeof listener ==='function' || use !==null ) while( length > 0 )
+            if( target[b] instanceof EventDispatcher )
             {
-                --length;
-                if( ( !listener || item[ length ].callback===listener ) && ( use===null || use===item[ length ].capture ) )
-                    item.splice(length,1);
-
+                target[b].removeEventListener(type,listener,useCapture);
             }else
             {
-                item.splice(0,length);
-            }
+                var data = getData( target[b],type);
+                var item=data.items;
+                var length =  item.length;
+                if( typeof listener ==='function' || use !==null ) while( length > 0 )
+                {
+                    --length;
+                    if( ( !listener || item[ length ].callback===listener ) && ( use===null || use===item[ length ].capture ) )
+                        item.splice(length,1);
 
-            if( item.length < 1 )
-            {
-                removeListener.call( target[b], data.type , data.handle , data.capture  );
-                if( onPrefix==='on' ){
-                    removeListener.call( target[b], 'onpropertychange', data.handle , data.capture );
+                }else
+                {
+                    item.splice(0,length);
                 }
-                this.__bindType__[type]=null;
+
+                if( item.length < 1 )
+                {
+                    removeListener.call( target[b], data.type , data.handle , data.capture  );
+                    if( onPrefix==='on' ){
+                        removeListener.call( target[b], 'onpropertychange', data.handle , data.capture );
+                    }
+                    this.__bindType__[type]=null;
+                }
             }
         }
         return true;
@@ -469,20 +481,28 @@
             if( event.isPropagationStopped===true  || !target[i] )
                return false;
 
-            target[i].dispatched=false;
-
-            //通过浏览器来发送
-            if( target[i] && ( (typeof target[i].nodeName === 'string' && (target[i].nodeType===1 || target[i].nodeType===9 )) || target[i].window )  )
+            if( target[i] instanceof EventDispatcher )
             {
-                dispather.call( target[i], event.type );
-            }
+              if( !target[i].dispatchEvent(event) )
+                return false;
 
-            //没有派发的事件需要手动派发
-            if( target[i].dispatched===false )
+            }else
             {
-                event.currentTarget=target[i];
-                event.target=target[i];
-                EventDispatcher.dispatchEvent( event );
+                target[i].dispatched=false;
+
+                //通过浏览器来发送
+                if( target[i] && ( (typeof target[i].nodeName === 'string' && (target[i].nodeType===1 || target[i].nodeType===9 )) || target[i].window )  )
+                {
+                    dispather.call( target[i], event.type );
+                }
+
+                //没有派发的事件需要手动派发
+                if( target[i].dispatched===false )
+                {
+                    event.currentTarget=target[i];
+                    event.target=target[i];
+                    EventDispatcher.dispatchEvent( event );
+                }
             }
 
         }
