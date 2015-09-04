@@ -115,6 +115,7 @@
             'callback':null,
             'param':''
         };
+
         this.source=function( data , option )
         {
             if( typeof data==='string' )

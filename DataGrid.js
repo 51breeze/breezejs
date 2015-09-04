@@ -312,7 +312,7 @@
             if( !dataRender )
             {
                 dataRender=new DataRender();
-                dataRender.addEventListener(DataRenderEvent.ITEM_CHANGED,function(event){
+                dataRender.addEventListener(DataRenderEvent.ITEM_ADD,function(event){
 
                     if( !isNaN(event.index) )
                     {

@@ -2232,15 +2232,16 @@
      * @param html
      * @returns {string | Breeze}
      */
-    Breeze.prototype.html=function( html )
+    Breeze.prototype.html=function( html , outerHtml )
     {
+        outerHtml = !!outerHtml;
         var write= html !== undefined || Breeze.isBoolean(html);
         if( !write && this.length < 1 ) return '';
         return this.each(function(elem)
         {
             if( !write )
             {
-                html=html===true ? outerHtml(elem) : elem.innerHTML;
+                html = html===true ? outerHtml(elem) : elem.innerHTML;
                 return html.replace( defaultCacheName ,'');
             }
 
@@ -2258,10 +2259,18 @@
             elem.innerHTML='';
             if( Breeze.isString(html) )
             {
-                elem.innerHTML = html;
-
+                if( outerHtml ) {
+                    elem.outerHTML = html;
+                }else
+                {
+                    elem.innerHTML = html;
+                }
             }else
             {
+                if( outerHtml && elem.parentNode && elem.parentNode.ownerDocument && Breeze.isContains(elem.parentNode.ownerDocument.body, elem.parentNode) )
+                {
+                    this.current( elem.parentNode );
+                }
                 this.addChild( html );
             }
         });
