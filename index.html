@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <script src="sizzle.js" ></script>
+    <script src="BreezeEvent.js" ></script>
+    <script src="EventDispatcher.js" ></script>
+    <script src="Dictionary.js" ></script>
+    <script src="HttpRequest.js" ></script>
+    <script src="Breeze.js" ></script>
+    <script src="DataGrid.js" ></script>
+    <script src="BindData.js" ></script>
+    <script src="DataRender.js" ></script>
+    <script src="Template.js" ></script>
+    <title></title>
+</head>
+
+<script>
+
+    Breeze(function(){
+
+       var datagrid = new DataGrid( Breeze('.container') );
+        datagrid.columns({'name':'姓名','phone':'手机'});
+
+        datagrid.component('name',{'bindable':true});
+
+        var item = [{'name':'张三','phone':'15302662136'},{'name':'王五','phone':'15302662179'}];
+        datagrid.dataProfile( item );
+
+
+         var tpls="<div><ul><? for(var i=0; i< data.length; i++){ ?> <li forIndex='{i}'>{  data[i].name   }</li> <? } ?></ul></div>";
+         var tpl = new Template()
+             tpl.assign('data', [{'name':'yejun'},{'name':'999999'}] );
+
+        var html =  tpl.render(tpls,true);
+
+        console.log( html )
+
+
+
+
+       /* match = reg.exec(html)
+
+          while( match )
+          {
+
+                var part = html.slice(index,match.index)
+                index+=match.index + match[0].length;
+                console.log( part, index , match, html  );
+          }*/
+
+
+
+       /* var tplEngine = function(tpl, data){
+            var reg = /<%([^%>]+)?%>/g,
+                    code = 'var r=[];\n',
+                    cursor = 0;  //主要的作用是定位代码最后一截
+            var add = function(line) {
+                code += 'r.push("' + line.replace(/"/g, '\\"') + '");\n';
+            };
+
+            while(match = reg.exec(tpl)) {
+                add(tpl.slice(cursor, match.index)); //添加非逻辑部分
+                add(match[1]);  //添加逻辑部分 match[0] = "<%" + match[1] + "%>";
+                cursor = match.index + match[0].length;
+
+                console.log( match )
+            }
+
+            add(tpl.substr(cursor, tpl.length - cursor)); //代码的最后一截 如:" years old."
+
+            code += 'return r.join("");'; // 返回结果，在这里我们就拿到了装入数组后的代码
+            console.log(code);
+
+            return tpl;
+        };*/
+
+
+       /* var tpl = '<% for(var i = 0; i < this.posts.length; i++) {' +
+        'var post = posts[i]; %>' +
+        '<% if(!post.expert){ %>' +
+        '<span>post is null</span>' +
+        '<% } else { %>' +
+        '<a href="#"><% post.expert %> at <% post.time %></a>' +
+        '<% } %>' +
+        '<% } %>';
+
+         tplEngine(tpl, {});*/
+
+
+
+    })
+
+
+</script>
+
+<body>
+
+<div>
+    Hello word!
+</div>
+
+<div class="container">
+
+</div>
+
+</body>
+</html>
