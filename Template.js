@@ -1,28 +1,100 @@
 (function(window,undefined)
 {
 
-    function Template( context )
+    /**
+     * 模板变量构造器
+     * @param data
+     * @constructor
+     */
+    function Variable(data)
+    {
+        data = data || {};
+        var keys=[];
+
+        this.length = 0;
+        function setKey( data )
+        {
+            if( typeof data ==='object' ) for(var key in data )
+            {
+                keys.push( key );
+            }
+            this.length = keys.length;
+        }
+
+        /**
+         * 获取所有变量名
+         * @returns {Array}
+         */
+        this.toKeys=function()
+        {
+            return keys;
+        }
+
+        /**
+         * 获取变量
+         * @param name
+         * @param val
+         * @returns {Variable}
+         */
+       this.set=function(name,val)
+       {
+           var t = typeof name;
+           if( t === 'string' )
+           {
+               data[name]=val;
+               keys.push( name );
+               this.length = keys.length;
+
+           }else if( t === 'object' && typeof val === 'undefined' )
+           {
+               data=name;
+               setKey( data );
+           }
+           return this;
+       }
+
+        /**
+         * 获取数据
+         * @param name
+         * @returns {*}
+         */
+       this.get=function(name)
+       {
+          return typeof name === 'undefined' ? data : data[name];
+       }
+
+    }
+    Variable.prototype.constructor = Variable;
+    Variable.prototype.length=0;
+    Variable.prototype.error=function()
+    {
+        console.log('error')
+        return '';
+    }
+
+    var template_contents={};
+
+    function Template( target , cache )
     {
         if( !(this instanceof Template) )
            return  new Template(context);
 
-        context = context || window.document.body;
-
-        if( typeof context === 'string' )
+        var  context = null;
+        var  cacheEnable = (cache!==false);
+        if( typeof target === 'string' )
         {
-            context= Breeze.trim( context );
-            if( context.charAt(0) !== '<' )
-                context=Breeze( context );
+            target= Breeze.trim( target );
+            if( target.charAt(0) !== '<' )
+                context=Breeze( target );
+
+        }else if( Breeze.isHTMLElement(target) )
+        {
+            context=Breeze( target );
         }
 
-        if( !( context instanceof Breeze ) )
+        if( context instanceof Breeze && context.length < 1 )
         {
-            context=Breeze( context );
-        }
-
-        if(  context.length < 1  )
-        {
-            throw new Error('context invalid');
+            throw new Error('invalid context.')
         }
 
         var left="<\\?",
@@ -31,10 +103,11 @@
             shortRight="\\}",
             splitReg= new RegExp(left+'([^'+right+']+)'+right+'|'+shortLeft+'([^'+shortRight+']+)'+shortRight,'gi'),
             jscodeReg = /(^\s*(if|for|else|do|switch|case|break|{|}))(.*)?/g,
-            variable={},
+            funReg = /^([\w\.]+)\s*\(/,
+            variable=null,
             replace = function( code , flag )
             {
-                code=code.replace(/(^\s+|\s+$)/g,'');
+                code=code.replace(/(^\s+|\s+$)/g,'').replace(/[\r\n\t\s]+/g,' ');
                 if( code == "" )
                   return "";
                 if( flag===true && code.match(jscodeReg) )
@@ -43,21 +116,35 @@
                 }
                 return '___code___+="' + code.replace(/"/g, '\\"') + '";\n';
             },
-            make = function(template, variable)
+            make = function(template, variable )
             {
                  var code = 'var ___code___="";\n',
                      match,cursor = 0;
-                 for( var v in variable )
+
+                 if( variable instanceof Variable && variable.length > 0)
                  {
-                     code+='var '+v+'= this["'+v+'"];\n';
+                     var keys = variable.toKeys();
+                     for( var v in keys )
+                     {
+                        code+='var '+keys[v]+'= this.get("'+keys[v]+'");\n';
+                     }
                  }
 
                 while( match = splitReg.exec(template) )
                 {
+
                     code+=replace( template.slice(cursor, match.index) );
+
                     if( match[2] !==undefined )
                     {
-                        code +='___code___+='+match[2].replace(/(^\s+|\s+$)/g,'') +';\n';
+                        var val=match[2].replace(/(^\s+|\s+$)/g,'');
+                        if( val.match( funReg ) )
+                        {
+                            code +='___code___+= typeof '+RegExp.$1+' === "function" ? '+val+' : this.error();\n';
+                        }else{
+                           code +='___code___+= typeof '+val+' !== "undefined" ? '+val+' : this.error();\n';
+                        }
+
                     }else
                     {
                         code += replace(match[1], true);
@@ -66,7 +153,11 @@
                 }
                 code += replace( template.substr(cursor, template.length - cursor) );
                 code += 'return ___code___;';
-                return new Function( code ).call( variable );
+
+               console.log( code )
+
+
+                return new Function( code ).call( variable , template );
             }
 
         /**
@@ -77,93 +168,116 @@
          */
         this.assign=function(name,value)
         {
-            var t = typeof name;
-            if( t === 'string' )
-            {
-                variable[name] = value;
-
-            }else if( t === 'object' )
-            {
-                variable=name;
-            }
+            this.variable().set(name,value)
             return this;
         }
 
+        /**
+         * 获取变量构造器
+         * @returns {*}
+         */
+        this.variable=function()
+        {
+            if( variable=== null )
+            {
+                variable = new Variable()
+            }
+            return variable;
+        }
+
+        var template,
+        container,
+        content=function( source )
+        {
+            template = container = source;
+            if( typeof source === 'string' )
+            {
+                source= Breeze.trim( source );
+                if( source.charAt(0) !== '<' )
+                {
+                    container = Breeze( source );
+                }
+
+            }else if( Breeze.isHTMLElement(source) )
+            {
+                container = Breeze( source );
+            }
+            if( container instanceof Breeze )
+            {
+                if( container.length > 1 || !Breeze.nodeName(container[0]).match(/noscript|textarea/) )
+                {
+                    throw new Error('invalid template.')
+                }
+
+                if( template_contents[ container.toString() ] )
+                {
+                    template=template_contents[ container.toString() ];
+
+                }else
+                {
+                    template = container.content();
+                    if( cacheEnable )
+                        template_contents[ container.toString() ]=template;
+                }
+
+            }else if(  typeof template !== 'string' )
+            {
+                throw  new Error('invalid template.')
+            }
+            return Breeze.trim( template );
+        }
 
         /**
          * 渲染模板视图
          * @param template
-         * @param variable
+         * @param data
          * @param flag
          * @returns {*}
          */
-        this.render=function(template, data , flag )
+        this.render=function(source,flag )
         {
-              var container = context;
-
-              if( typeof data === 'boolean' )
-              {
-                  flag=data;
-                  data = variable;
-              }
-
-              if( typeof data === 'string' )
-              {
-                  throw new Error('data invalid in Template.render');
-              }
-
               flag = !!flag;
-              if( typeof template === 'string' )
-              {
-                  template= Breeze.trim( template );
-                  if( template.charAt(0) !== '<' )
-                  {
-                      template = Breeze( template , context || document);
-                  }
-              }
+              var template = content( source );
 
-              if( template instanceof Breeze )
-              {
-                  container = template.parent();
-                  template  = container.html();
-              }
-
-              template= Breeze.trim( template );
               if( template.charAt(0) === '<' )
               {
-                  template=make(template, data );
+                 if( this.hasEventListener( TemplateEvent.COMPILE_START ) )
+                 {
+                     var event =  new TemplateEvent( TemplateEvent.COMPILE_START )
+                         event.data = template;
+                     this.dispatchEvent( event )
+                 }
+                 template=make(template, variable );
               }
 
-              if( !flag ) {
-                  container.html( template );
+              if( !flag )
+              {
+                  if( context instanceof Breeze )
+                  {
+                      context.addElementAt( template );
+
+                  }else if(container instanceof Breeze )
+                  {
+                      container.addElementAt(template, container[0] );
+                  }
                   return true;
               }
               return template;
         }
-
-
     }
 
+    Template.prototype = new EventDispatcher()
+    Template.prototype.constructor = Template;
 
-
-
-    /**
-     *
-     * <div>
-     *     {foreach data key=>item}
-     *         {if key==0}
-     *            <li data-key='{key}'>{item}</li>
-     *         {/if}
-     *     {/foreach}
-     * </div>
-     *
-     *
-     *
-     */
-
+    function TemplateEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    TemplateEvent.prototype=new BreezeEvent();
+    TemplateEvent.prototype.constructor=TemplateEvent;
+    TemplateEvent.COMPILE_READY='compileReady';
+    TemplateEvent.COMPILE_START='compileStart';
+    TemplateEvent.COMPILE_END='compileEnd';
 
     window.Template = Template;
+    window.TemplateEvent = TemplateEvent;
 
 
 })(window)
-

@@ -64,6 +64,7 @@
 
         EventDispatcher.call( this );
 
+        var result;
         this.context = this.getContext( context );
 
         if( Breeze.isString( selector ) )
@@ -71,24 +72,31 @@
             selector=Breeze.trim(selector);
             if( selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 )
             {
-                var result=Breeze.createElement( selector )
-                doMake( this, [result] );
+                result=[ Breeze.createElement( selector ) ]
 
             }else if( context instanceof Breeze )
             {
-                doMake( this, context.find( selector ).toArray() );
+                result=context.find( selector ).toArray();
                 this.context = context.getContext();
 
             }else
             {
-                doMake( this, Sizzle( selector, this.context ) );
+                result= Sizzle( selector, this.context )
             }
 
         }else if( selector && Breeze.isHTMLContainer(selector) || Breeze.isWindow(selector) )
         {
-            doMake( this ,[selector] );
+            result=[selector];
         }
 
+        //get self instance of elements
+        if( result.length === 1 )
+        {
+            var old = Breeze.getInstance(result[0]);
+            if( old )return old;
+        }
+
+        doMake( this , result );
         this.__rootElement__= this[0];
         this.__COUNTER__=++breezeCounter;
     }
@@ -145,27 +153,6 @@
             return !( typeof object[ name ] === 'undefined' );
         }
     }
-    ,breezeInstance='__BREEZE_INSTANCE__'
-    ,addBreezeInstance=function(element,instance)
-    {
-        var data = CacheProxy.get.call( element );
-        removeBreezeInstance(element,instance);
-        data[breezeInstance]===undefined && ( data[breezeInstance]=[] );
-        data[ breezeInstance ].push( instance );
-    }
-    ,getBreezeInstance=function(element)
-    {
-        return CacheProxy.get.call( element , breezeInstance ) || [];
-    }
-    ,removeBreezeInstance=function(element,instance)
-    {
-        var data=CacheProxy.get.call( element, breezeInstance );
-        if( Breeze.isArray( data ) )
-        {
-             var index = indexOf.call(data, instance );
-             index >=0 && data.splice(index,1);
-        }
-    }
 
     /**
      * 重新编译元素到Breeze对象上
@@ -185,7 +172,6 @@
             var revers=[]
             target.each(function(item,index)
             {
-                //target.removeEventListener('*');
                 if( reverted !== true )
                 {
                     revers.unshift( item );
@@ -204,7 +190,7 @@
 
         while ( elems[j] !== undefined )
         {
-            addBreezeInstance( elems[j], target );
+            addInstance( elems[j], target );
             target[ i++ ] = elems[ j++ ];
         }
 
@@ -297,13 +283,10 @@
 
     ,dispatchEventAll=function(target,element,event)
     {
-        var bz=getBreezeInstance( element ),i=0, len= bz.length,old=target ;
-        do{
-            if( target instanceof EventDispatcher && target.hasEventListener( event.type ) && !target.dispatchEvent( event ) )
-               return false;
-            target=bz[ i ];
-            target === old && ( target=null );
-        }while( i<len && (++i) );
+        var bz=Breeze.getInstance( element );
+        target= bz || target;
+        if( target instanceof EventDispatcher && target.hasEventListener( event.type ) && !target.dispatchEvent( event ) )
+          return false;
         return true;
     }
    ,dispatchElementEvent=function( target, parent, child , type )
@@ -483,12 +466,30 @@
         }
         return { 'top': top, 'left': left ,'right' : stageWidth-width-left,'bottom':stageHeight-height-top};
     };
-    ; // end private variable
+
+    var breezeInstance='__BREEZE_INSTANCE__'
+    var addInstance=function(element,instance)
+    {
+        if( element )
+        {
+            var data = CacheProxy.get.call( element );
+            if( !data[breezeInstance] )
+            {
+                data[ breezeInstance ]= instance;
+            }
+        }
+    }
+    // end private variable
 
 
     //======================================================================
-    //  Define Breeze Constant
+    //  Define Breeze static method
     //======================================================================
+
+    Breeze.getInstance=function(element)
+    {
+        return element ? CacheProxy.get.call( element , breezeInstance ) : null;
+    }
 
     /**
      * 获取元素的样式
@@ -1624,7 +1625,7 @@
      */
     Breeze.prototype.toString=function()
     {
-        return 'Breeze Object '+this.__COUNTER__;
+        return 'breeze_'+this.__COUNTER__;
     }
 
     /**
@@ -1957,14 +1958,13 @@
     //=================================================
 
     // 外部操作
-
     /**
      * 为当前所匹配每个项的位置添加元素
      * @param element 要添加的元素
      * @param index 是否添加到元素的前面
      * @returns {Breeze}
      */
-    Breeze.prototype.addTarget=function( element,index )
+    Breeze.prototype.addElementAt=function( element,index )
     {
         var before = !!index;
         if( typeof index === 'number' )
@@ -2056,8 +2056,8 @@
             // 从 Breeze 实例中移除
             if( child && child.nodeType===1 )
             {
-                var bz= getBreezeInstance(child),len=bz.length,b=0;
-                for(  ;b<len; b++ ) if( bz[b] instanceof Breeze )
+                var bz= Breeze.getInstance(child)
+                if( bz instanceof Breeze )
                 {
                     bz[b].removeEventListener('*');
                     bz[b].not( child );
@@ -2232,14 +2232,15 @@
      * @param html
      * @returns {string | Breeze}
      */
-    Breeze.prototype.html=function( html , outerHtml )
+    Breeze.prototype.html=function( html , outer )
     {
-        outerHtml = !!outerHtml;
-        var write= html !== undefined || Breeze.isBoolean(html);
+        outer = !!outer;
+        var write= html !== undefined;
         if( !write && this.length < 1 ) return '';
+
         return this.each(function(elem)
         {
-            if( !write )
+            if( !write || Breeze.isBoolean(html) )
             {
                 html = html===true ? outerHtml(elem) : elem.innerHTML;
                 return html.replace( defaultCacheName ,'');
@@ -2259,7 +2260,7 @@
             elem.innerHTML='';
             if( Breeze.isString(html) )
             {
-                if( outerHtml ) {
+                if( outer ) {
                     elem.outerHTML = html;
                 }else
                 {
@@ -2267,7 +2268,7 @@
                 }
             }else
             {
-                if( outerHtml && elem.parentNode && elem.parentNode.ownerDocument && Breeze.isContains(elem.parentNode.ownerDocument.body, elem.parentNode) )
+                if( outer && elem.parentNode && elem.parentNode.ownerDocument && Breeze.isContains(elem.parentNode.ownerDocument.body, elem.parentNode) )
                 {
                     this.current( elem.parentNode );
                 }
@@ -2662,6 +2663,19 @@
         this.style('opacity',1);
         this.animation({'opacity':0,'duration':duration},callback);
         return this;
+    }
+
+    /**
+     * 获取当前元素的内容值
+     * @returns {*}
+     */
+    Breeze.prototype.content=function()
+    {
+        if( Breeze.isFormElement( this.current() ) )
+        {
+            return this.property('value');
+        }
+        return this.text();
     }
 
     window.Breeze=Breeze;

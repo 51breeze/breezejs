@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <script src="sizzle.js" ></script>
     <script src="BreezeEvent.js" ></script>
+    <script src="DataArray.js" ></script>
+    <script src="Cache.js" ></script>
+    <script src="Factory.js" ></script>
     <script src="EventDispatcher.js" ></script>
     <script src="Dictionary.js" ></script>
     <script src="HttpRequest.js" ></script>
@@ -17,7 +20,10 @@
 
 <script>
 
+
     Breeze(function(){
+
+
 
        var datagrid = new DataGrid( Breeze('.container') );
         datagrid.columns({'name':'姓名','phone':'手机'});
@@ -28,11 +34,10 @@
         datagrid.dataProfile( item );
 
 
-         var tpls="<div><ul><? for(var i=0; i< data.length; i++){ ?> <li forIndex='{i}'>{  data[i].name   }</li> <? } ?></ul></div>";
          var tpl = new Template()
              tpl.assign('data', [{'name':'yejun'},{'name':'999999'}] );
 
-        var html =  tpl.render(tpls,true);
+        var html =  tpl.render('#template');
 
         console.log( html )
 
@@ -48,7 +53,22 @@
 </div>
 
 <div class="container">
+</div>
 
+<noscript id="template">
+    <div>
+        <ul          data-bind="sss">
+            <? for(var i=0; i< data.length; i++){ ?>
+                <li forIndex='{this.is("sss")}'>{data[i].name}</li>
+            <? } ?>
+        </ul>
+    </div>
+</noscript>
+
+
+<div>
+
+    99999999
 </div>
 
 </body>
