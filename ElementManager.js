@@ -11,13 +11,11 @@
 
    function ElementManager(element)
    {
-       if( !( this instanceof ElementManager) )
-         return new ElementManager( element );
-
        DataArray.call(this,element);
 
        var name = 'instance';
-       var cache = new CacheProxy('__factory__');
+       var reverts = [];
+       var cache = new CacheProxy('__elements__');
 
        this.getInstance=function( element )
        {
@@ -30,8 +28,23 @@
        }
    }
 
-   ElementManager.prototype=new DataArray();
-   ElementManager.prototype.constructor= ElementManager;
-   window.ElementManager=ElementManager;
+    ElementManager.prototype=new DataArray();
+    ElementManager.prototype.constructor= ElementManager;
+
+    /**
+     * 删除替换压入操作
+     * @param {Number} [start]
+     * @param {Number} [deleteCount]
+     * @param {...*} [items]
+     * @return {Array}
+     */
+    ElementManager.prototype.splice=function()
+    {
+        var items = DataArray.prototype.splice.apply(this, arguments );
+        reverts.push( items );
+        return items;
+    }
+
+    window.ElementManager=ElementManager;
 
 })(window)

@@ -62,8 +62,6 @@
         else if( selector instanceof Breeze )
             return selector;
 
-        EventDispatcher.call( this );
-
         var result;
         this.context = this.getContext( context );
 
@@ -92,66 +90,15 @@
         //get self instance of elements
         if( result.length === 1 )
         {
-            var old = Breeze.getInstance(result[0]);
+            var old = this.getInstance( result[0] );
             if( old )return old;
         }
+        EventDispatcher.call(this, result );
 
-        doMake( this , result );
-        this.__rootElement__= this[0];
+        if( result.length > 0 )
+          this.__rootElement__= this[0];
+
         this.__COUNTER__=++breezeCounter;
-    }
-
-    /**
-     * 缓存数据代理类。
-     * 此缓存的数据都是在对象本身进行存储，所以此类只是一个对于中间层的封装，提供一个简便的操作。
-     * @private
-     */
-    ,defaultCacheName='__CACHE_PROXY_DATA__'
-    ,getCacheRef=function( namespace ){
-        var object= this[ defaultCacheName ] || ( this[ defaultCacheName ]={} );
-        return namespace===undefined ? object :  object[ namespace ] || ( object[ namespace ]={} )
-    }
-    ,CacheProxy={
-        set:function(name,value,namespace)
-        {
-            var object= getCacheRef.call(this,namespace)
-            return  name ? object[name]=value : object;
-        },
-        get:function(name,namespace)
-        {
-            var object= getCacheRef.call(this,namespace)
-            return name ? object[ name ] : object;
-        },
-        remove:function(name,namespace)
-        {
-            var object= getCacheRef.call(this,namespace)
-            var value = object[name];
-            delete object[name];
-            return value;
-        },
-        removeAll:function(namespace)
-        {
-            if( namespace===undefined )
-            {
-                delete this[ defaultCacheName ];
-            }else if( this[ defaultCacheName ] && this[ defaultCacheName ][namespace] )
-            {
-                delete this[ defaultCacheName ][namespace]
-            }
-        },
-        getAll:function(namespace)
-        {
-            return Breeze.extend( {}, getCacheRef.call(this,namespace) );
-        },
-        hasNamespace:function(namespace)
-        {
-            return this[defaultCacheName] && !( typeof this[defaultCacheName][ namespace ] === 'undefined' );
-        },
-        hasProperty:function(name,namespace)
-        {
-            var object= getCacheRef.call(this,namespace)
-            return !( typeof object[ name ] === 'undefined' );
-        }
     }
 
     /**
@@ -190,7 +137,6 @@
 
         while ( elems[j] !== undefined )
         {
-            addInstance( elems[j], target );
             target[ i++ ] = elems[ j++ ];
         }
 
@@ -283,7 +229,7 @@
 
     ,dispatchEventAll=function(target,element,event)
     {
-        var bz=Breeze.getInstance( element );
+        var bz=target.getInstance( element );
         target= bz || target;
         if( target instanceof EventDispatcher && target.hasEventListener( event.type ) && !target.dispatchEvent( event ) )
           return false;
@@ -466,19 +412,6 @@
         }
         return { 'top': top, 'left': left ,'right' : stageWidth-width-left,'bottom':stageHeight-height-top};
     };
-
-    var breezeInstance='__BREEZE_INSTANCE__'
-    var addInstance=function(element,instance)
-    {
-        if( element )
-        {
-            var data = CacheProxy.get.call( element );
-            if( !data[breezeInstance] )
-            {
-                data[ breezeInstance ]= instance;
-            }
-        }
-    }
     // end private variable
 
 
@@ -486,10 +419,7 @@
     //  Define Breeze static method
     //======================================================================
 
-    Breeze.getInstance=function(element)
-    {
-        return element ? CacheProxy.get.call( element , breezeInstance ) : null;
-    }
+
 
     /**
      * 获取元素的样式

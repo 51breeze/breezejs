@@ -45,6 +45,26 @@
         return items;
     }
 
+    /**
+     * 将元素数据转换成数组并返回
+     * @returns {Array}
+     */
+    DataArray.prototype.toArray=function()
+    {
+        return this.slice();
+    }
+
+    /**
+     * 删除替换压入操作
+     * @param {Number} [start]
+     * @param {Number} [deleteCount]
+     * @param {...*} [items]
+     * @return {Array}
+     */
+    DataArray.prototype.splice=function()
+    {
+        return Array.prototype.splice.apply(this, arguments );
+    }
 
     /**
      * 合并元素到对象中

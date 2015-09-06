@@ -224,13 +224,13 @@
     {
         if( !(this instanceof EventDispatcher) )
             return new EventDispatcher(element);
-        Single.call(this,element);
+        ElementManager.call(this,element);
         this.__bindType__={};
         return this;
     };
 
     //Constructor
-    EventDispatcher.prototype=new Single();
+    EventDispatcher.prototype=new ElementManager();
     EventDispatcher.prototype.constructor=EventDispatcher;
 
     /**

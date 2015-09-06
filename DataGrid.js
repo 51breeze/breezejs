@@ -90,6 +90,9 @@
                     var html=  container.replace('{columns}', theadTemplate )
                     html = html.replace('{contents}', makeData(dataRender.toArray(),tbodyTemplate).join("\r\n") );
                     html = Breeze( html );
+
+                    console.log( html[0] )
+
                     target.html( html )
                     bindAction( html );
 
