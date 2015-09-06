@@ -5,8 +5,8 @@
     <script src="sizzle.js" ></script>
     <script src="BreezeEvent.js" ></script>
     <script src="DataArray.js" ></script>
-    <script src="Cache.js" ></script>
-    <script src="Factory.js" ></script>
+    <script src="CacheProxy.js" ></script>
+    <script src="Single.js" ></script>
     <script src="EventDispatcher.js" ></script>
     <script src="Dictionary.js" ></script>
     <script src="HttpRequest.js" ></script>
@@ -21,11 +21,10 @@
 <script>
 
 
+
     Breeze(function(){
 
-
-
-       var datagrid = new DataGrid( Breeze('.container') );
+        var datagrid = new DataGrid( Breeze('.container') );
         datagrid.columns({'name':'姓名','phone':'手机'});
 
         datagrid.component('name',{'bindable':true});
@@ -49,7 +48,7 @@
 <body>
 
 <div>
-    Hello word!
+   开呗养车运营端
 </div>
 
 <div class="container">

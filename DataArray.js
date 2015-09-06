@@ -8,17 +8,24 @@
 
 (function(window,undefined){
 
-    function DataArray( items )
+    function DataArray()
     {
+        if( !(this instanceof DataArray) )
+           return new DataArray();
         this.length = 0;
-        items = items && !(items instanceof Array) ? [items] : null;
-        while( items && typeof items[ this.length ] !=='undefined' )
-        {
-            this[ this.length ]=items[ this.length ];
-            this.length++;
-        }
+        this.concat.apply(this,arguments);
     }
 
+    DataArray.prototype=new Array();
+    DataArray.prototype.length=0;
+    DataArray.prototype.constructor = DataArray;
+
+    /**
+     * 获取指定开始和结束位置的元素
+     * @param start
+     * @param end
+     * @returns {Array}
+     */
     DataArray.prototype.slice=function(start,end)
     {
         start=start || 0;
@@ -38,20 +45,34 @@
         return items;
     }
 
-    if( typeof Array.prototype.indexOf !=='function'  )
+
+    /**
+     * 合并元素到对象中
+     * @returns {DataArray}
+     */
+    DataArray.prototype.concat=function()
     {
-        DataArray.prototype.indexOf=function(searchElement)
+        var items = Array.prototype.concat.apply( [] , arguments );
+        var len = this.length + items.length;
+        for( var i=0; this.length<len; this.length++, i++ )if( typeof items[ i ] !== 'undefined' )
         {
-            var i=0;
-            for( ; i<this.length; i++ )if( this[i]===searchElement )
-                return i;
-            return -1;
+            this[ this.length ] = items[ i ];
         }
+        return this;
     }
 
-    DataArray.prototype=new Array();
-    DataArray.prototype.length=0;
-    DataArray.prototype.constructor = DataArray;
+    /**
+     * 返回指定元素的索引位置
+     * @param searchElement
+     * @returns {number}
+     */
+    DataArray.prototype.indexOf=function(searchElement)
+    {
+        var i=0;
+        for( ; i<this.length; i++ )if( this[i]===searchElement )
+            return i;
+        return -1;
+    }
     window.DataArray=DataArray;
 
 })(window)

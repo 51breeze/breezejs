@@ -224,14 +224,13 @@
     {
         if( !(this instanceof EventDispatcher) )
             return new EventDispatcher(element);
-        DataArray.call(this,element);
-        Factory.call(this,element);
+        Single.call(this,element);
         this.__bindType__={};
         return this;
     };
 
     //Constructor
-    EventDispatcher.prototype=new DataArray();
+    EventDispatcher.prototype=new Single();
     EventDispatcher.prototype.constructor=EventDispatcher;
 
     /**
@@ -399,7 +398,7 @@
             element=target[ index ] || this;
 
             //add to EventDispatcher object
-            if( target[ index ] && ( instance=this.getInstance( target[ index ] ) ) && instance instanceof EventDispatcher )
+            if( target[ index ] && ( instance=this.getInstance( target[ index ] ) ) && instance instanceof EventDispatcher && instance !== this )
             {
                 instance.addEventListener(type,listener,useCapture,priority);
 
@@ -446,7 +445,7 @@
         for( var b=0 ; b<target.length; b++ )
         {
 
-            if( target[ b ] && ( instance=this.getInstance( target[ b ] ) ) && instance instanceof EventDispatcher )
+            if( target[ b ] && ( instance=this.getInstance( target[ b ] ) ) && instance instanceof EventDispatcher && instance !==this )
             {
                 instance.removeEventListener(type,listener,useCapture);
                 continue;
@@ -500,7 +499,7 @@
             if( event.isPropagationStopped===true  || !target[i] )
                 return false;
 
-            if( target[ i ] && ( instance=this.getInstance( target[ i ] ) ) && instance instanceof EventDispatcher )
+            if( target[ i ] && ( instance=this.getInstance( target[ i ] ) ) && instance instanceof EventDispatcher && instance !==this )
             {
                if( !instance.dispatchEvent( event ) )
                   return false;
