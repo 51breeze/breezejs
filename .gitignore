@@ -1,3 +1,6 @@
 *.name
-.idea/breezejs.iml
+.idea/*
+*.xml
+*.xml
+.idea/workspace.xml
 *.xml
