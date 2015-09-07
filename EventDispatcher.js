@@ -496,7 +496,6 @@
                     EventDispatcher.dispatchEvent( event );
                 }
             }
-
         }
 
         //本身事件对象

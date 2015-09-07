@@ -68,19 +68,19 @@
     Variable.prototype.length=0;
     Variable.prototype.error=function()
     {
-        console.log('error')
         return '';
     }
 
     var template_contents={};
 
-    function Template( target , cache )
+    function Template( target )
     {
         if( !(this instanceof Template) )
-           return  new Template(context);
+           return  new Template(target);
 
         var  context = null;
-        var  cacheEnable = (cache!==false);
+        var  cacheEnable = true;
+
         if( typeof target === 'string' )
         {
             target= Breeze.trim( target );
@@ -102,7 +102,7 @@
             shortLeft="\\{",
             shortRight="\\}",
             splitReg= new RegExp(left+'([^'+right+']+)'+right+'|'+shortLeft+'([^'+shortRight+']+)'+shortRight,'gi'),
-            jscodeReg = /(^\s*(if|for|else|do|switch|case|break|{|}))(.*)?/g,
+            jscodeReg = /(^\s*(if|for|else|do|switch|case|break|var|function|while|{|}))(.*)?/g,
             funReg = /^([\w\.]+)\s*\(/,
             variable=null,
             replace = function( code , flag )
@@ -132,9 +132,7 @@
 
                 while( match = splitReg.exec(template) )
                 {
-
                     code+=replace( template.slice(cursor, match.index) );
-
                     if( match[2] !==undefined )
                     {
                         var val=match[2].replace(/(^\s+|\s+$)/g,'');
@@ -154,9 +152,7 @@
                 code += replace( template.substr(cursor, template.length - cursor) );
                 code += 'return ___code___;';
 
-               console.log( code )
-
-
+                console.log( code )
                 return new Function( code ).call( variable , template );
             }
 
@@ -168,15 +164,15 @@
          */
         this.assign=function(name,value)
         {
-            this.variable().set(name,value)
+            this.scope().set(name,value)
             return this;
         }
 
         /**
-         * 获取变量构造器
+         * 获取此模板的作用域
          * @returns {*}
          */
-        this.variable=function()
+        this.scope=function()
         {
             if( variable=== null )
             {
@@ -237,20 +233,37 @@
         this.render=function(source,flag )
         {
               flag = !!flag;
-              var template = content( source );
 
+              var template = content( source );
               if( template.charAt(0) === '<' )
               {
+                 var event;
                  if( this.hasEventListener( TemplateEvent.COMPILE_START ) )
                  {
-                     var event =  new TemplateEvent( TemplateEvent.COMPILE_START )
-                         event.data = template;
-                     this.dispatchEvent( event )
+                     event =  new TemplateEvent( TemplateEvent.COMPILE_START )
+                     event.template = template;
+                     event.data     = variable;
+
                  }
-                 template=make(template, variable );
+                  if( !event || this.dispatchEvent( event ) )
+                  {
+                     template =event ?  event.template : template;
+                     template=make(template, variable );
+
+                      if( this.hasEventListener( TemplateEvent.COMPILE_DONE ) )
+                      {
+                          event =  new TemplateEvent( TemplateEvent.COMPILE_DONE )
+                          event.html = template;
+                          if( !this.dispatchEvent( event ) )
+                          {
+                              return false;
+                          }
+                          template=event.html;
+                      }
+                  }
               }
 
-              if( !flag )
+              if( !flag && typeof Breeze !== 'undefined' )
               {
                   if( context instanceof Breeze )
                   {
@@ -271,10 +284,12 @@
 
     function TemplateEvent( src, props ){ BreezeEvent.call(this, src, props);}
     TemplateEvent.prototype=new BreezeEvent();
+    TemplateEvent.prototype.template=null;
+    TemplateEvent.prototype.data=null;
+    TemplateEvent.prototype.html='';
     TemplateEvent.prototype.constructor=TemplateEvent;
-    TemplateEvent.COMPILE_READY='compileReady';
     TemplateEvent.COMPILE_START='compileStart';
-    TemplateEvent.COMPILE_END='compileEnd';
+    TemplateEvent.COMPILE_DONE='compileDone';
 
     window.Template = Template;
     window.TemplateEvent = TemplateEvent;

@@ -21,8 +21,11 @@
         */
        this.cacheProxy=function( element )
        {
+           if( !element )
+              return cacheProxy
            return cacheProxy.proxy( element );
        }
+
        this.setInstance(this);
    }
 

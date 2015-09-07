@@ -1925,7 +1925,7 @@
             // 从 Breeze 实例中移除
             if( child && child.nodeType===1 )
             {
-                var bz= Breeze.getInstance(child)
+                var bz= target.getInstance(child)
                 if( bz instanceof Breeze )
                 {
                     bz[b].removeEventListener('*');

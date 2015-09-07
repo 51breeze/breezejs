@@ -38,9 +38,12 @@
          var tpl = new Template()
              tpl.assign('data', [{'name':'yejun'},{'name':'999999'}] );
 
+        tpl.assign('is',function(val){
+            return val+'_9999===9'
+        })
+
         var html =  tpl.render('#template');
 
-        console.log( html )
 
     })
 
@@ -58,9 +61,15 @@
 
 <noscript id="template">
     <div>
-        <ul          data-bind="sss">
+        <ul data-bind="sss">
+            <? function test(){
+
+             return '6955555'
+
+             } ?>
+
             <? for(var i=0; i< data.length; i++){ ?>
-                <li forIndex="{this.is('sss')}">{data[i].name}</li>
+                <li forIndex="{test()}">{data[i].name}</li>
             <? } ?>
         </ul>
     </div>
