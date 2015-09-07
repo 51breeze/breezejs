@@ -15,32 +15,6 @@
      * @private
      */
     var version='1.0.0'
-    ,slice =function(start,end)
-    {
-        if( typeof this.length !=='number' )
-           return [];
-       start=start || 0;
-       end=this.length;
-       if( Breeze.isBrowser( Breeze.BROWSER_IE , 9 ) )
-       {
-           var index=0,len=this.length,items=[];
-           while( index < len && len > 0 )
-           {
-             items[index]=this[ index ];
-             ++index;
-           }
-           return items.slice(start,end);
-       }
-       return Array.prototype.slice.call(this,start,end);
-    }
-    ,splice= Array.prototype.splice
-    ,indexOf=Array.prototype.indexOf ? Array.prototype.indexOf : function(searchElement)
-    {
-       var len=this.length,i=0;
-       for( ; i<len; i++ )if( this[i]===searchElement )
-            return i;
-        return -1;
-    }
     ,isSimple = /^.[^:#\[\.,]*$/
     ,breezeCounter=0
 
@@ -55,12 +29,13 @@
         if( typeof selector === 'function' )
             return Breeze.ready( selector );
 
+        if( selector instanceof Breeze )
+            return selector;
+
         if( !(this instanceof Breeze) )
             return new Breeze( selector,context );
         else if( !Breeze.isDefined(selector) && !Breeze.isDefined(context) )
             return this;
-        else if( selector instanceof Breeze )
-            return selector;
 
         var result;
         this.context = this.getContext( context );
@@ -86,18 +61,9 @@
         {
             result=[selector];
         }
-
-        //get self instance of elements
-        if( result.length === 1 )
-        {
-            var old = this.getInstance( result[0] );
-            if( old )return old;
-        }
         EventDispatcher.call(this, result );
-
         if( result.length > 0 )
           this.__rootElement__= this[0];
-
         this.__COUNTER__=++breezeCounter;
     }
 
@@ -113,34 +79,16 @@
         if( target.__internal_return__ )
            return elems;
 
-        var j = 0, i = target.length ;
         if( clear===true )
         {
-            var revers=[]
-            target.each(function(item,index)
-            {
-                if( reverted !== true )
-                {
-                    revers.unshift( item );
-                }
-                splice.call(target,index,1)
-            })
-
+            var revers=target.splice(0,target.length,elems);
             if( reverted !== true )
             {
-                if( !target['__REVERTS__'] )
-                    target['__REVERTS__']=[];
-                target['__REVERTS__'].concat( revers );
+                if( !target['__reverts__'] )
+                    target['__reverts__']=[];
+                target['__reverts__'].push( revers );
             }
-            i = target.length
         }
-
-        while ( elems[j] !== undefined )
-        {
-            target[ i++ ] = elems[ j++ ];
-        }
-
-        target.length = i;
 
         if( uniqueSort && target.length > 1 )
         {
@@ -1209,7 +1157,7 @@
                 result=fn.call( refObj ,object.forEachCurrentItem,object.forEachCurrentIndex);
             }else
             {
-                var items=slice.call(object,0),len=items.length;
+                var items=Breeze.prototype.slice.call(object,0),len=items.length;
                 for( ; index < len ; index++ )
                 {
                     object.forEachCurrentItem=items[ index ];
@@ -1559,15 +1507,6 @@
     }
 
     /**
-     * 以数组的形式返回已选择的所有元素集
-     * @returns {Array}
-     */
-    Breeze.prototype.toArray=function()
-    {
-        return slice.call( this );
-    }
-
-    /**
      * 判断指定的选择器是否在于当前匹配的项中。
      * @param selector
      * @returns {*}
@@ -1592,13 +1531,13 @@
      */
     Breeze.prototype.revert=function( step )
     {
-        var len= this['__REVERTS__'] ? this['__REVERTS__'].length : 0;
-        step = step === undefined ? (this['__REVERT_STEP__'] || len)-1 : ( step=parseInt( step ) ) < 0 ? step+len : step ;
+        var len= this['__reverts__'] ? this['__reverts__'].length : 0;
+        step = step === undefined ? (this['__revert_step__'] || len)-1 : ( step=parseInt( step ) ) < 0 ? step+len : step ;
         step=Math.min(Math.max(step,0),len-1);
-        if( len > 0 && this['__REVERTS__'][ step ] )
+        if( len > 0 && this['__reverts__'][ step ] )
         {
-            this['__REVERT_STEP__']=step;
-            doMake( this, this['__REVERTS__'][ step ],true , true );
+            this['__revert_step__']=step;
+            doMake( this, this['__reverts__'][ step ],true , true );
         }
         return this;
     }
@@ -1671,7 +1610,7 @@
      */
     Breeze.prototype.range=function(startIndex,endIndex)
     {
-        return doMake( this, slice.call( this ,startIndex,endIndex),true);
+        return doMake( this, this.slice(startIndex,endIndex),true);
     }
 
     /**

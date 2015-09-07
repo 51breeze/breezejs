@@ -63,7 +63,12 @@
      */
     DataArray.prototype.splice=function()
     {
-        return Array.prototype.splice.apply(this, arguments );
+        var arg=[arguments[0],arguments[1]];
+        for(var i=2; i<arguments.length; i++)
+        {
+            arg=arg.concat( arguments[i] );
+        }
+        return Array.prototype.splice.apply(this, arg );
     }
 
     /**

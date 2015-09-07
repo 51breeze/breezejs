@@ -38,7 +38,8 @@
             {
                 if( value === null )
                 {
-                    delete object[ name ];
+                    if( typeof object[ name ] !== 'undefined' )
+                       delete object[ name ];
                     return true;
                 }
 

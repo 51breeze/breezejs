@@ -59,39 +59,6 @@
      */
         ,specialEvents={}
         ,bindBeforeProxy={}
-
-    /**
-     * 为每个节点元素绑定事件。
-     * 通过这些节点元素事件在设备上的响应来触发用户注册的事件。
-     * @param type
-     * @param useCapture
-     * @param handle
-     */
-        ,forEachAddListener=function( proxyType,type,useCapture,dataItem )
-        {
-            if( typeof proxyType !=='string' )
-                return;
-
-            var target= this.dispatchTargets()
-                ,len= target.length || 0
-                ,element
-                ,index=0;
-
-            if( !agreed.test( proxyType ) )
-                proxyType=proxyType.toLowerCase();
-
-            proxyType=mapeventname[proxyType] || proxyType;
-
-            do{
-                element=target[ index ] || this;
-                if( !bindBeforeProxy[type] || !bindBeforeProxy[type].call(this,element,dataItem,proxyType,useCapture)  )
-                {
-                    EventDispatcher.addListener.call(this,element, dataItem, type,useCapture);
-                }
-                index++;
-            }while( index < len );
-        }
-
         ,addItem=function(target,type,listener )
         {
             var  data = getData(target,type);

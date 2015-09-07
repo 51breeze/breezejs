@@ -9,40 +9,49 @@
 {  "use strict";
 
 
+
    function ElementManager(element)
    {
        DataArray.call(this,element);
+       var cacheProxy = new CacheProxy('__data__');
 
-       var name = 'instance';
-       var reverts = [];
-       var cache = new CacheProxy('__elements__');
-
-       this.getInstance=function( element )
+       /**
+        *
+        * @returns {Window.CacheProxy}
+        */
+       this.cacheProxy=function( element )
        {
-            return element ? cache.proxy( element ).get( name ) : null;
+           return cacheProxy.proxy( element );
        }
-
-       if( this.length > 0 ) for(var i=0; i<this.length; i++)if( this[i] )
-       {
-           if( !cache.proxy( this[i] ).has(name) )cache.set(name,this);
-       }
+       this.setInstance(this);
    }
 
     ElementManager.prototype=new DataArray();
     ElementManager.prototype.constructor= ElementManager;
 
+
     /**
-     * 删除替换压入操作
-     * @param {Number} [start]
-     * @param {Number} [deleteCount]
-     * @param {...*} [items]
-     * @return {Array}
+     * 获取指定元素的实例对象
+     * @param element
+     * @returns {*}
      */
-    ElementManager.prototype.splice=function()
+    ElementManager.prototype.getInstance=function( element )
     {
-        var items = DataArray.prototype.splice.apply(this, arguments );
-        reverts.push( items );
-        return items;
+        return element ? this.cacheProxy(element).get( 'instance' ) : null;
+    }
+
+    /**
+     * 为指定的元素设置一个实例对象
+     * @param elements
+     * @param instance
+     */
+    ElementManager.prototype.setInstance=function(elements, instance )
+    {
+        elements = elements instanceof Array ? elements : [elements];
+        instance = instance === null ? null : instance || this;
+        if (elements.length > 0) for (var i = 0; i < elements.length; i++)if (elements[i]) {
+            if (!this.cacheProxy(elements[i]).has('instance'))this.cacheProxy().set('instance', instance );
+        }
     }
 
     window.ElementManager=ElementManager;
