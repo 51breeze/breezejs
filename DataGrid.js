@@ -69,7 +69,7 @@
         var dataRender = null;
         var header="<th>{value}</th>";
         var body="<td>{value}</td>";
-        var container="<table style='width: 100%'>\r\n<thead>{columns}</thead>\r\n<tbody>{contents}</tbody>\r\n</table>";
+        var container="<table style='width: 100%'>\r\n<thead><tr>{columns}</tr></thead>\r\n<tbody><tr>{contents}</tr></tbody>\r\n</table>";
         var columnItem={};
         var bindData=[];
         var ismaked=false;
@@ -177,7 +177,6 @@
         {
             if( Breeze.isObject(columns,true) && theadTemplate==='' )
             {
-                theadTemplate='<tr>';
                 tbodyTemplate='<tr data-row="{forIndex}">';
                 for( var i in  columns )
                 {
@@ -198,7 +197,6 @@
                    }
                 }
                 theadTemplate+="</tr>";
-                tbodyTemplate+="</tr>";
             }
             return this;
         }

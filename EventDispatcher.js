@@ -9,9 +9,9 @@
 (function(window,undefined)
 { "use strict";
 
-    var dataName='__DISPATCHS_DATA__'
-        , globlaEvent=null
+    var globlaEvent=null
         ,msie=navigator.userAgent.match(/msie ([\d.]+)/i)
+        ,cacheProxy = new CacheProxy('__event__')
 
     /**
      * 事件名是否需要加 on
@@ -63,7 +63,6 @@
         {
             var  data = getData(target,type);
             data.items.push( listener );
-
             if(  data.items.length > 1 )
             {
                 data.items.sort(function(a,b)
@@ -77,17 +76,18 @@
         ,getData=function(target,type)
         {
             type=type.toLowerCase();
-            var  dataGroup = target[dataName] || ( target[dataName]={} );
-            return dataGroup[ type ] || ( dataGroup[ type ]={'items':[],'handle':null,'capture':true,'type':''} );
+            var data = cacheProxy.proxy(target).get(type);
+            if( !data )
+            {
+                data={'items':[],'handle':null,'capture':true,'type':''};
+                cacheProxy.proxy(target).set(type,data);
+            }
+            return data;
         }
         ,removeData=function(target,type)
         {
-            if( target[dataName] )
-            {
-                delete target[dataName][type];
-                return true;
-            }
-            return false
+            cacheProxy.proxy(target).set(type,null);
+            return true
         }
 
         ,indexByElement=function(dataGroup,element)
@@ -268,11 +268,6 @@
 
         if( !event || listeners.length < 1 )return false;
 
-        if( event.type === 'click' )
-        {
-            removeListener.call(  event.currentTarget, 'click', EventDispatcher.dispatchEvent , true );
-        }
-
         //初始化一个全局事件
         globlaEvent = event= globlaEvent ? Breeze.extend(globlaEvent,event) : event;
         if( !globlaEvent.currentTarget )
@@ -284,7 +279,7 @@
         var length=0;
         while(  length < listeners.length )
         {
-            var item = listeners[ length ]
+            var item = listeners[ length ];
 
             if( item instanceof EventDispatcher.Listener )
             {
@@ -358,29 +353,19 @@
         type= !agreed.test( type ) ? type.toLowerCase() : type;
         var proxytype=mapeventname[type] || type;
         var special = bindBeforeProxy[type];
-        var instance;
 
         do{
 
             element=target[ index ] || this;
-
-            //add to EventDispatcher object
-            if( target[ index ] && ( instance=this.getInstance( target[ index ] ) ) && instance instanceof EventDispatcher && instance !== this )
+            if( target[ index ] instanceof EventDispatcher )
             {
-                instance.addEventListener(type,listener,useCapture,priority);
+                this.__bindType__[ oldtype ]=true;
+                target[ index ].addEventListener(oldtype,listener,useCapture,priority);
 
-            }else
+            }else if( !special || !special.callback(element,listener,type,useCapture,this)  )
             {
-                if( target[ index ] instanceof EventDispatcher )
-                {
-                    this.__bindType__[ oldtype ]=true;
-                    target[ index ].addEventListener(oldtype,listener,useCapture,priority);
-
-                }else if( !special || !special.callback(element,listener,type,useCapture,this)  )
-                {
-                    this.__bindType__[ oldtype ]=true;
-                    EventDispatcher.addListener.call(this, element, listener, proxytype, useCapture);
-                }
+                this.__bindType__[ oldtype ]=true;
+                EventDispatcher.addListener.call(this, element, listener, proxytype, useCapture );
             }
             index++;
 
@@ -407,17 +392,9 @@
 
         var target= this.dispatchTargets();
         var use = typeof useCapture ==='undefined' ? null : useCapture;
-        var instance;
 
         for( var b=0 ; b<target.length; b++ )
         {
-
-            if( target[ b ] && ( instance=this.getInstance( target[ b ] ) ) && instance instanceof EventDispatcher && instance !==this )
-            {
-                instance.removeEventListener(type,listener,useCapture);
-                continue;
-            }
-
             if( target[b] instanceof EventDispatcher )
             {
                 target[b].removeEventListener(type,listener,useCapture);
@@ -460,18 +437,10 @@
     {
         globlaEvent=event= typeof event === 'string'  ? new BreezeEvent(event) :  event;
         var target = this.dispatchTargets()
-        var instance;
         if( target )for( var i=0; i < target.length ; i++ )
         {
             if( event.isPropagationStopped===true  || !target[i] )
                 return false;
-
-            if( target[ i ] && ( instance=this.getInstance( target[ i ] ) ) && instance instanceof EventDispatcher && instance !==this )
-            {
-               if( !instance.dispatchEvent( event ) )
-                  return false;
-                continue;
-            }
 
             if( target[i] instanceof EventDispatcher )
             {
