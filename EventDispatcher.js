@@ -305,7 +305,11 @@
      */
     EventDispatcher.prototype.dispatchTargets=function( index )
     {
-        var target=this;
+        if( typeof DataRender !== 'undefined' && this instanceof DataRender )
+        {
+            return [];
+        }
+        var target=[];
         if( this.forEachCurrentItem )
         {
             target=[ this.forEachCurrentItem ];
@@ -355,7 +359,6 @@
         var special = bindBeforeProxy[type];
 
         do{
-
             element=target[ index ] || this;
             if( target[ index ] instanceof EventDispatcher )
             {
@@ -392,19 +395,21 @@
 
         var target= this.dispatchTargets();
         var use = typeof useCapture ==='undefined' ? null : useCapture;
+        var b=0;
+        var elem;
 
-        for( var b=0 ; b<target.length; b++ )
-        {
+        do{
+            elem = target[b] || this;
             if( target[b] instanceof EventDispatcher )
             {
                 target[b].removeEventListener(type,listener,useCapture);
 
             }else
             {
-                var data = getData( target[b],type);
+                var data = getData(elem,type);
                 var item=data.items;
                 var length =  item.length;
-                if( typeof listener ==='function' || use !==null ) while( length > 0 )
+                if( typeof listener ==='function' || use !==null )while( length > 0 )
                 {
                     --length;
                     if( ( !listener || item[ length ].callback===listener ) && ( use===null || use===item[ length ].capture ) )
@@ -415,16 +420,17 @@
                     item.splice(0,length);
                 }
 
-                if( item.length < 1 )
+                if( item.length < 1 && elem !== this )
                 {
-                    removeListener.call( target[b], data.type , data.handle , data.capture  );
+                    removeListener.call( elem, data.type , data.handle , data.capture  );
                     if( onPrefix==='on' ){
-                        removeListener.call( target[b], 'onpropertychange', data.handle , data.capture );
+                        removeListener.call( elem, 'onpropertychange', data.handle , data.capture );
                     }
                     this.__bindType__[type]=null;
                 }
             }
-        }
+
+        }while( b < target.length , b++ )
         return true;
     }
 
@@ -436,36 +442,40 @@
     EventDispatcher.prototype.dispatchEvent=function( event )
     {
         globlaEvent=event= typeof event === 'string'  ? new BreezeEvent(event) :  event;
-        var target = this.dispatchTargets()
-        if( target )for( var i=0; i < target.length ; i++ )
-        {
-            if( event.isPropagationStopped===true  || !target[i] )
+        var target = this.dispatchTargets();
+        var i=0;
+        var element;
+        do{
+
+            element = target[i] || this;
+            if( event.isPropagationStopped===true)
                 return false;
 
-            if( target[i] instanceof EventDispatcher )
+            if( target[i] instanceof EventDispatcher && target[i] !==this )
             {
                 if( !target[i].dispatchEvent(event) )
                     return false;
 
             }else
             {
-                target[i].dispatched=false;
+                element.dispatched=false;
 
                 //通过浏览器来发送
-                if( target[i] && ( (typeof target[i].nodeName === 'string' && (target[i].nodeType===1 || target[i].nodeType===9 )) || target[i].window )  )
+                if( element && ( (typeof element.nodeName === 'string' && (element.nodeType===1 || element.nodeType===9 )) || element.window )  )
                 {
-                    dispather.call( target[i], event.type );
+                    dispather.call( element, event.type );
                 }
 
                 //没有派发的事件需要手动派发
-                if( target[i].dispatched===false )
+                if( element.dispatched===false )
                 {
-                    event.currentTarget=target[i];
-                    event.target=target[i];
+                    event.currentTarget=this;
+                    event.target=element;
                     EventDispatcher.dispatchEvent( event );
                 }
             }
-        }
+
+        }while( i < target.length, i++ )
 
         //本身事件对象
         event.currentTarget=this;
@@ -620,7 +630,6 @@
             this.___loading___=false;
             EventDispatcher.dispatchEvent( event );
             dispatcher.removeEventListener( BreezeEvent.READY );
-
         }
     }
 
@@ -656,9 +665,9 @@
     EventDispatcher.SpecialEvent(BreezeEvent.READY,function(element,listener,type,useCapture,dispatcher)
     {
         var doc = element.contentWindow ?  element.contentWindow.document : element.ownerDocument || element.document || element,
-            win= doc &&  doc.nodeType===9 ? doc.defaultView || doc.parentWindow : null;
-        if( !win || !doc )return;
+            win= doc && doc.nodeType===9 ? doc.defaultView || doc.parentWindow : window;
 
+        if( !win || !doc )return;
         var self =  this;
         var handle=function(event)
         {
@@ -668,6 +677,8 @@
                 readyState.call(self,event,BreezeEvent.READY,dispatcher);
             }
         }
+
+
 
         EventDispatcher.addListener(win, listener, onPrefix=='' ? 'DOMContentLoaded' : 'load' , useCapture , BreezeEvent.READY,handle );
         EventDispatcher.addListener(doc, listener, 'readystatechange', useCapture, BreezeEvent.READY,handle );

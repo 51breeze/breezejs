@@ -89,9 +89,6 @@
                     var html=  template.replace('{theadTemplate}', theadTemplate )
                     html = html.replace('{tbodyTemplate}',  tbodyTemplate );
 
-
-
-
                     html = Breeze( html );
                     target.html( html )
                     bindAction( html );
@@ -337,10 +334,13 @@
                     {
                         var html =  template.replace('{theadTemplate}', theadTemplate ).replace('{tbodyTemplate}',tbodyTemplate );
                         var  TPL = new Template();
+                        TPL.assign('data', dataRender.toArray() )
+                        html = TPL.render( html , true )
 
-                        TPL.assign('data', dataRender )
+                        html = Breeze( html );
+                        target.html( html )
+                        bindAction( html );
 
-                        console.log( html )
                     }
                 });
             }

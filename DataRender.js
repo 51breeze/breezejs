@@ -5,16 +5,13 @@
 
 (function(window,undefined){
 
-    function DataRender()
+    function DataRender(data)
     {
         if( !(this instanceof DataRender) )
         {
-            return new DataRender();
+            return new DataRender(data);
         }
-
-        EventDispatcher.call(this);
-        var items=[];
-        this.length = 0;
+        EventDispatcher.call(this,data);
 
         /**
          * 调度事件
@@ -131,9 +128,9 @@
 
             }else
             {
-                items=items.concat( data );
-                dispatch.call(this,items,DataRenderEvent.ITEM_ADD,NaN);
-                dispatch.call(this,items,DataRenderEvent.ITEM_CHANGED,NaN);
+                this.splice(0,0,data);
+                dispatch.call(this,this,DataRenderEvent.ITEM_ADD,NaN);
+                dispatch.call(this,this,DataRenderEvent.ITEM_CHANGED,NaN);
             }
         }
     }

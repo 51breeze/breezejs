@@ -1928,8 +1928,8 @@
                 var bz= target.getInstance(child)
                 if( bz instanceof Breeze )
                 {
-                    bz[b].removeEventListener('*');
-                    bz[b].not( child );
+                    bz.removeEventListener('*');
+                    bz.not( child );
                 }
             }
             return !!result;
