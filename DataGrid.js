@@ -67,12 +67,11 @@
         var tbodyTemplate='';
         var makeHtml=[];
         var dataRender = null;
-        var header="<th>{value}</th>";
-        var body="<td>{value}</td>";
-        var container="<table style='width: 100%'>\r\n<thead><tr>{columns}</tr></thead>\r\n<tbody><tr>{contents}</tr></tbody>\r\n</table>";
+        var thead="<th>{value}</th>";
+        var tbody="<td>{value}</td>";
+        var container="<tr>{value}</tr>";
+        var template="<table style='width: 100%'>\r\n<thead>{theadTemplate}</thead>\r\n<tbody>{tbodyTemplate}</tbody>\r\n</table>";
         var columnItem={};
-        var bindData=[];
-        var ismaked=false;
         var plus_data={
             'template':{},
             'option':{}
@@ -87,8 +86,12 @@
             {
                 if( target instanceof Breeze )
                 {
-                    var html=  container.replace('{columns}', theadTemplate )
-                    html = html.replace('{contents}', makeData(dataRender.toArray(),tbodyTemplate).join("\r\n") );
+                    var html=  template.replace('{theadTemplate}', theadTemplate )
+                    html = html.replace('{tbodyTemplate}',  tbodyTemplate );
+
+
+
+
                     html = Breeze( html );
                     target.html( html )
                     bindAction( html );
@@ -149,13 +152,13 @@
                 }
                 if( tag==='input' )
                 {
-                    attr.push('value="{'+column+'}" name="{column}"');
+                    attr.push('value="{value}" name="{column}"');
 
                 }else if( tag==='select' || tag==='textarea' )
                 {
                     attr.push('name="{column}"');
                 }
-                return RegExp.$1+' data-index="{forIndex}" data-action="'+action+'" '+attr.join(' ');
+                return RegExp.$1+' data-index="{key}" data-action="'+action+'" '+attr.join(' ');
             });
 
             if( !plus_data.template[ column ] )
@@ -169,34 +172,42 @@
         /**
          * 编译一个显示列名行的模板
          * @param columns
-         * @param header
-         * @param body
+         * @param thead
+         * @param tbody
          * @returns {DataGrid}
          */
-        this.makeTemplate= function(columns,header,body)
+        this.makeTemplate= function(columns,thead,tbody)
         {
-            if( Breeze.isObject(columns,true) && theadTemplate==='' )
+            if( Breeze.isObject(columns,true) && ( theadTemplate==='' || tbodyTemplate==='' ) )
             {
-                tbodyTemplate='<tr data-row="{forIndex}">';
+                theadTemplate='';
+                tbodyTemplate='';
+
                 for( var i in  columns )
                 {
                     var field = columns[i];
+                    i = i.replace(/\s+/,'');
+
                     if( Breeze.isObject( field ) && ( item.icon || item.label ) )
                     {
                         field='<i class="'+( item.icon || '' )+'"></i>';
                         field+='<span>'+( item.label || '' )+'</span>';
                     }
 
-                   theadTemplate += header.replace('{value}', field )
+                   var tb=tbody;
                    if( plus_data.template[ i ] )
                    {
-                       tbodyTemplate += body.replace('{value}', plus_data.template[ i ].join('\r\n') );
-                   }else
-                   {
-                       tbodyTemplate += body.replace('{value}', '{'+ i.replace(/\s+/,'')+'}' );
+                       tb = tbody.replace('{value}', plus_data.template[ i ].join('\r\n') );
                    }
+
+                   tb = tb.replace('{value}', '{item.'+ i.replace(/\s+/,'')+'}' );
+                   tbodyTemplate += tb.replace(/\{column\}/g, i );
+                   theadTemplate += thead.replace('{value}', field ).replace(/\{column\}/g, i );
                 }
-                theadTemplate+="</tr>";
+
+                theadTemplate = container.replace('{value}', theadTemplate );
+                tbodyTemplate = container.replace('{value}', tbodyTemplate );
+                tbodyTemplate='<? foreach(data as key item){ ?>'+tbodyTemplate+'<? } ?>';
             }
             return this;
         }
@@ -296,7 +307,7 @@
          */
         this.dataProfile=function(data)
         {
-            this.makeTemplate(columnItem, header, body);
+            this.makeTemplate(columnItem, thead, tbody);
             this.dataRender().source( data );
             return this;
         }
@@ -324,7 +335,12 @@
 
                     }else
                     {
-                        doMake();
+                        var html =  template.replace('{theadTemplate}', theadTemplate ).replace('{tbodyTemplate}',tbodyTemplate );
+                        var  TPL = new Template();
+
+                        TPL.assign('data', dataRender )
+
+                        console.log( html )
                     }
                 });
             }

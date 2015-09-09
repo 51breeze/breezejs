@@ -63,6 +63,16 @@
           return typeof name === 'undefined' ? data : data[name];
        }
 
+       this.isObject=function( object )
+       {
+           if( object instanceof Array )
+             return true;
+           var prop = typeof object;
+           if( prop === 'undefined' ||  prop !=='object' )
+                return false;
+           return true;
+       }
+
     }
     Variable.prototype.constructor = Variable;
     Variable.prototype.length=0;
@@ -102,16 +112,36 @@
             shortLeft="\\{",
             shortRight="\\}",
             splitReg= new RegExp(left+'([^'+right+']+)'+right+'|'+shortLeft+'([^'+shortRight+']+)'+shortRight,'gi'),
-            jscodeReg = /(^\s*(if|for|else|do|switch|case|break|var|function|while|{|}))(.*)?/g,
+            jscodeReg = /^(if|for\s*\(|else|do|switch|case|break|var|function|while|foreach|{|})(.*)?/g,
             funReg = /^([\w\.]+)\s*\(/,
+            foreachReg  = /(\w+)\s+as\s+(\w+)(\s+(\w+))?/i,
             variable=null,
             replace = function( code , flag )
             {
                 code=code.replace(/(^\s+|\s+$)/g,'').replace(/[\r\n\t\s]+/g,' ');
                 if( code == "" )
                   return "";
+
                 if( flag===true && code.match(jscodeReg) )
                 {
+                    if( RegExp.$1 === 'foreach' )
+                    {
+                        if( typeof RegExp.$2 ==='string' && RegExp.$2.match(foreachReg) )
+                        {
+                             var data = RegExp.$1;
+                             var key  ='key';
+                             var item = RegExp.$2;
+                             if(  typeof RegExp.$3 === 'string' )
+                             {
+                                 key=RegExp.$2;
+                                 item=RegExp.$3;
+                             }
+                             code = 'if( this.isObject('+data+') )for(var '+key+' in '+data+'){\n';
+                             code += 'var '+item+'='+data+'['+key+'];\n';
+                             return code;
+                        }
+                        code='\n';
+                    }
                     return code+'\n';
                 }
                 return '___code___+="' + code.replace(/"/g, '\\"') + '";\n';

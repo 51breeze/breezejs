@@ -25,7 +25,6 @@
     Breeze(function(){
 
 
-
         var datagrid = new DataGrid( Breeze('.container') );
         datagrid.columns({'name':'姓名','phone':'手机'});
 
@@ -71,9 +70,14 @@
 
              } ?>
 
-            <? for(var i=0; i< data.length; i++){ ?>
-                <li forIndex="{test()}">{data[i].name}</li>
+            <? foreach( data as key item ){ ?>
+                <li forIndex="{test()}">{item.name}</li>
             <? } ?>
+
+            <? for( var i in data ){ ?>
+            <li forIndex="{test()}">{data[i]}</li>
+            <? } ?>
+
         </ul>
     </div>
 </noscript>

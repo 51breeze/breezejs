@@ -99,15 +99,6 @@
             return items.indexOf( item );
         }
 
-        /**
-         * 复制数据源
-         * @returns {Array}
-         */
-        this.toArray=function()
-        {
-            return items.slice(0);
-        }
-
         var httpRequest=null;
         var defaultOption={
             'method': HttpRequest.METHOD.GET,
