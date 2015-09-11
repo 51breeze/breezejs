@@ -4,39 +4,6 @@
 
 (function(window,undefined )
 {
-    function makeData(data,template,forIndex)
-    {
-        var html=[];
-        var tpl = template;
-        if( Breeze.isObject(data,true)  && !Breeze.isEmpty(data) )
-        {
-            var flag=false;
-            for(var i in data )
-            {
-               if( Breeze.isObject(data[i],true)  )
-               {
-                   var val = makeData(data[i],template,i);
-                   if( val.length > 0 )
-                   {
-                       html.push( val ) ;
-                   }
-                   flag=true;
-
-               }else
-               {
-                    tpl = tpl.replace(new RegExp('{'+ i.replace(/\s+/,'')+'}','ig'),data[i]);
-                    tpl = tpl.replace(/\{column\}/ig,i);
-               }
-            }
-            if( !flag  )
-            {
-                tpl=tpl.replace(/\{forIndex\}/ig,forIndex);
-                tpl=tpl.replace(/\{.*?\}/,'');
-                html.push( tpl )
-            }
-        }
-        return html;
-    }
 
     function merge_option(target,column,option)
     {
@@ -65,7 +32,6 @@
 
         var theadTemplate='';
         var tbodyTemplate='';
-        var makeHtml=[];
         var dataRender = null;
         var thead="<th>{value}</th>";
         var tbody="<td>{value}</td>";
@@ -75,41 +41,6 @@
         var plus_data={
             'template':{},
             'option':{}
-        }
-
-        /**
-         * 根据数据项编译成html
-         */
-        var doMake=function()
-        {
-            if( dataRender )
-            {
-                if( target instanceof Breeze )
-                {
-                    var html=  template.replace('{theadTemplate}', theadTemplate )
-                    html = html.replace('{tbodyTemplate}',  tbodyTemplate );
-
-                    html = Breeze( html );
-                    target.html( html )
-                    bindAction( html );
-
-                    target.find('[data-bind]').each(function(elem){
-
-                        var index = this.property('data-index');
-                        var name = this.property('data-bind');
-                        var item = dataRender.indexToItem( index );
-                        var bind = new BindData()
-                            bind.bind(item,name);
-                          this.addEventListener(BreezeEvent.BLUR,function(event){
-
-                              var name = this.property('data-bind');
-                              var value = this.property('value')
-                                  bind.setProperty(name,value)
-                          })
-                    })
-
-                }
-            }
         }
 
         // 为每行绑定动作行为
@@ -133,6 +64,21 @@
                         }
                     })
                 }
+            })
+
+            target.find('[data-bind]').each(function(elem){
+
+                var index = this.property('data-index');
+                var name = this.property('data-bind');
+                var item = dataRender.indexToItem( index );
+                var bind = new BindData()
+                bind.bind(item,name);
+                this.addEventListener(BreezeEvent.BLUR,function(event){
+
+                    var name = this.property('data-bind');
+                    var value = this.property('value')
+                    bind.setProperty(name,value)
+                })
             })
         }
 
@@ -214,9 +160,10 @@
          * @param template
          * @returns {DataGrid}
          */
-        this.theadTemplate=function( template )
+        this.theadTag=function( tag )
         {
-            theadTemplate = template;
+            var match =  tag.match(/<?(\w+)(\s+[^>])\/?>?/);
+            thead = '<'+match[1]+match[2]+'>{value}</'+match[1]+'>';
             return this;
         }
 
@@ -225,9 +172,10 @@
          * @param template
          * @returns {DataGrid}
          */
-        this.tbodyTemplate=function( template )
+        this.tbodyTag=function( tag )
         {
-            tbodyTemplate = template;
+            var match =  tag.match(/<?(\w+)(\s+[^>])\/?>?/);
+            tbody = '<'+match[1]+match[2]+'>{value}</'+match[1]+'>';
             return this;
         }
 
@@ -336,11 +284,9 @@
                         var  TPL = new Template();
                         TPL.assign('data', dataRender.toArray() )
                         html = TPL.render( html , true )
-
                         html = Breeze( html );
                         target.html( html )
                         bindAction( html );
-
                     }
                 });
             }
