@@ -305,11 +305,9 @@
      */
     EventDispatcher.prototype.dispatchTargets=function( index )
     {
-        var target=this;
-        if( this.forEachCurrentItem )
-        {
-            target=[ this.forEachCurrentItem ];
-        }
+        if( typeof DataRender === 'undefined' && this instanceof DataRender )
+           return [];
+        var target= this.forEachCurrentItem ? [ this.forEachCurrentItem ] : this.slice();
         return typeof index ==='number' ? target[ index ] : target;
     }
 
@@ -392,16 +390,17 @@
 
         var target= this.dispatchTargets();
         var use = typeof useCapture ==='undefined' ? null : useCapture;
+        var b=0 ;
 
-        for( var b=0 ; b<target.length; b++ )
-        {
-            if( target[b] instanceof EventDispatcher )
+        do{
+
+            if( target[b] instanceof EventDispatcher && target[b] !== this )
             {
                 target[b].removeEventListener(type,listener,useCapture);
 
             }else
             {
-                var data = getData( target[b],type);
+                var data = getData( target[b] || this ,type );
                 var item=data.items;
                 var length =  item.length;
                 if( typeof listener ==='function' || use !==null ) while( length > 0 )
@@ -417,14 +416,18 @@
 
                 if( item.length < 1 )
                 {
-                    removeListener.call( target[b], data.type , data.handle , data.capture  );
-                    if( onPrefix==='on' ){
-                        removeListener.call( target[b], 'onpropertychange', data.handle , data.capture );
+                    if( target[b] !== this )
+                    {
+                        removeListener.call(target[b], data.type, data.handle, data.capture);
+                        if (onPrefix === 'on') {
+                            removeListener.call(target[b], 'onpropertychange', data.handle, data.capture);
+                        }
                     }
                     this.__bindType__[type]=null;
                 }
             }
-        }
+
+        }while(  b < target.length,  b++ )
         return true;
     }
 
@@ -437,9 +440,12 @@
     {
         globlaEvent=event= typeof event === 'string'  ? new BreezeEvent(event) :  event;
         var target = this.dispatchTargets()
-        if( target )for( var i=0; i < target.length ; i++ )
-        {
-            if( event.isPropagationStopped===true  || !target[i] )
+        var i=0;
+        var element;
+        do{
+
+            element= target[i] || this;
+            if( event.isPropagationStopped===true )
                 return false;
 
             if( target[i] instanceof EventDispatcher )
@@ -449,28 +455,24 @@
 
             }else
             {
-                target[i].dispatched=false;
+                element.dispatched=false;
 
                 //通过浏览器来发送
-                if( target[i] && ( (typeof target[i].nodeName === 'string' && (target[i].nodeType===1 || target[i].nodeType===9 )) || target[i].window )  )
+                if( element && ( (typeof element.nodeName === 'string' && (element.nodeType===1 || element.nodeType===9 )) || element.window )  )
                 {
-                    dispather.call( target[i], event.type );
+                    dispather.call( element, event.type );
                 }
 
                 //没有派发的事件需要手动派发
-                if( target[i].dispatched===false )
+                if( element.dispatched===false )
                 {
-                    event.currentTarget=target[i];
-                    event.target=target[i];
+                    event.currentTarget=this;
+                    event.target=element;
                     EventDispatcher.dispatchEvent( event );
                 }
             }
-        }
 
-        //本身事件对象
-        event.currentTarget=this;
-        event.target=this;
-        EventDispatcher.dispatchEvent( event );
+        }while(  i < target.length ,  i++ )
 
         var result = event.isPropagationStopped;
         globlaEvent=null;

@@ -336,11 +336,14 @@
                     }else
                     {
                         var html =  template.replace('{theadTemplate}', theadTemplate ).replace('{tbodyTemplate}',tbodyTemplate );
-                        var  TPL = new Template();
+                        var TPL = new Template();
 
-                        TPL.assign('data', dataRender )
+                        TPL.assign('data', dataRender.toArray() )
+                        html= TPL.render( html ,true )
+                        html = Breeze( html );
+                        target.html( html )
+                        bindAction( html );
 
-                        console.log( html )
                     }
                 });
             }

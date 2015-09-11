@@ -8,15 +8,12 @@
 (function(window,undefined)
 {  "use strict";
 
-
-
    function ElementManager(element)
    {
        DataArray.call(this,element);
        var cacheProxy = new CacheProxy('__data__');
 
        /**
-        *
         * @returns {Window.CacheProxy}
         */
        this.cacheProxy=function( element )
