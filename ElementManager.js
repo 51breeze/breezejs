@@ -9,54 +9,56 @@
 {  "use strict";
 
 
-
    function ElementManager(element)
    {
        DataArray.call(this,element);
-       var cacheProxy = new CacheProxy('__data__');
-
-       /**
-        *
-        * @returns {Window.CacheProxy}
-        */
-       this.cacheProxy=function( element )
-       {
-           if( !element )
-              return cacheProxy
-           return cacheProxy.proxy( element );
-       }
-
-       this.setInstance(this);
    }
 
     ElementManager.prototype=new DataArray();
     ElementManager.prototype.constructor= ElementManager;
 
+    ElementManager.prototype.forEachCurrentItem=undefined;
+    ElementManager.prototype.forEachCurrentIndex=NaN;
 
     /**
-     * 获取指定元素的实例对象
+     * 返回设置当前元素
      * @param element
      * @returns {*}
      */
-    ElementManager.prototype.getInstance=function( element )
+    ElementManager.prototype.current=function( element )
     {
-        return element ? this.cacheProxy(element).get( 'instance' ) : null;
+        if( element )
+        {
+            var index =  this.indexOf( element );
+            if( index >= 0 )
+            {
+                this.forEachCurrentItem=element;
+                this.forEachCurrentIndex= index;
+            }else
+            {
+                this.forEachCurrentItem = element;
+                this.forEachCurrentIndex = NaN;
+            }
+            return this.forEachCurrentIndex;
+        }
+        return this.forEachCurrentItem || this[0];
     }
 
     /**
-     * 为指定的元素设置一个实例对象
-     * @param elements
-     * @param instance
+     * 设置获取指定索引下的元素
+     * @param index
+     * @returns {*}
      */
-    ElementManager.prototype.setInstance=function(elements, instance )
+    ElementManager.prototype.index=function( index )
     {
-        elements = elements instanceof Array ? elements : [elements];
-        instance = instance === null ? null : instance || this;
-        if (elements.length > 0) for (var i = 0; i < elements.length; i++)if (elements[i]) {
-            if (!this.cacheProxy(elements[i]).has('instance'))this.cacheProxy().set('instance', instance );
+        if( index >= 0 && index < this.length )
+        {
+            this.forEachCurrentItem= this[ index ] ;
+            this.forEachCurrentIndex= index;
+            return this.forEachCurrentItem;
         }
+        return this.forEachCurrentIndex;
     }
-
     window.ElementManager=ElementManager;
 
 })(window)

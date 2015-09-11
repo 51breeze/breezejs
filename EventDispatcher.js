@@ -10,175 +10,148 @@
 { "use strict";
 
     var globlaEvent=null
-        ,msie=navigator.userAgent.match(/msie ([\d.]+)/i)
-        ,cacheProxy = new CacheProxy('__event__')
+    ,msie=navigator.userAgent.match(/msie ([\d.]+)/i)
+    ,cacheProxy = new CacheProxy('__event__')
 
     /**
      * 事件名是否需要加 on
      * @type {string}
      */
-        ,onPrefix= msie && msie[1] < 9 ? 'on' : ''
+    ,onPrefix= msie && msie[1] < 9 ? 'on' : ''
 
     /**
      * 添加节点元素事件
      * @type {Function}
      */
-        ,addListener=document.addEventListener ?
-            function(type,listener,useCapture){this.addEventListener(type,listener,useCapture)} : function(type,listener,useCapture){this.attachEvent(type,listener)}
+    ,addListener=document.addEventListener ?
+        function(type,listener,useCapture){this.addEventListener(type,listener,useCapture)} : function(type,listener,useCapture){this.attachEvent(type,listener)}
 
     /**
      * 手动移除节点元素事件
      * @type {Function}
      */
-        ,removeListener=document.removeEventListener ?
-            function(type,listener,useCapture){this.removeEventListener(type,listener,useCapture)} :function(type,listener,useCapture){this.detachEvent(type,listener)}
+    ,removeListener=document.removeEventListener ?
+        function(type,listener,useCapture){this.removeEventListener(type,listener,useCapture)} :function(type,listener,useCapture){this.detachEvent(type,listener)}
 
-        ,dispather=document.dispatchEvent ?
-            function(type){
-                var evt = document.createEvent('Event');
-                evt.initEvent(type,true,true);
-                this.dispatchEvent(evt)
-            } : onPrefix==='on' ?
-            function(type){
-                this['data-event-'+type]=Math.random();
-            } :
-            function(type){this.fireEvent(type)}
+    ,dispather=document.dispatchEvent ?
+        function(type){
+            var evt = document.createEvent('Event');
+            evt.initEvent(type,true,true);
+            this.dispatchEvent(evt)
+        } : onPrefix==='on' ?
+        function(type){
+            this['data-event-'+type]=Math.random();
+        } :
+        function(type){this.fireEvent(type)}
 
     /**
      * 统一事件名
      * @type {propertychange: string}
      */
-        ,mapeventname= onPrefix==='' ? {'propertychange':'input','ready':'readystatechange'} :{'ready':'readystatechange'}
-
-        ,agreed=new RegExp( 'webkitAnimationEnd|webkitAnimationIteration','i')
+    ,mapeventname= onPrefix==='' ? {'propertychange':'input','ready':'readystatechange'} :{'ready':'readystatechange'}
+    ,agreed=new RegExp( 'webkitAnimationEnd|webkitAnimationIteration','i')
 
     /**
      * 特定的一些事件类型。
      * 这些事件类型在设备上不被支持，只有通过其它的事件来模拟这些事件的实现。
      * @type {}
      */
-        ,specialEvents={}
-        ,bindBeforeProxy={}
-        ,addItem=function(target,type,listener )
+    ,bindBeforeProxy={}
+    ,addItem=function(target,type,listener )
+    {
+        var  data = getData(target,type);
+        data.items.push( listener );
+        if(  data.items.length > 1 )
         {
-            var  data = getData(target,type);
-            data.items.push( listener );
-            if(  data.items.length > 1 )
+            data.items.sort(function(a,b)
             {
-                data.items.sort(function(a,b)
-                {
-                    //按权重排序，值大的在前面
-                    return a.priority=== b.priority ? 0 : (a.priority < b.priority ? 1 : -1);
-                })
-            }
-            return true;
+                //按权重排序，值大的在前面
+                return a.priority=== b.priority ? 0 : (a.priority < b.priority ? 1 : -1);
+            })
         }
-        ,getData=function(target,type)
+        return true;
+    }
+    ,getData=function(target,type)
+    {
+        type=type.toLowerCase();
+        var data = cacheProxy.proxy(target).get(type);
+        if( !data )
         {
-            type=type.toLowerCase();
-            var data = cacheProxy.proxy(target).get(type);
-            if( !data )
-            {
-                data={'items':[],'handle':null,'capture':true,'type':''};
-                cacheProxy.proxy(target).set(type,data);
-            }
-            return data;
+            data={'items':[],'handle':null,'capture':true,'type':type};
+            cacheProxy.proxy(target).set(type,data);
         }
-        ,removeData=function(target,type)
-        {
-            cacheProxy.proxy(target).set(type,null);
-            return true
-        }
-
-        ,indexByElement=function(dataGroup,element)
-        {
-            for( var j in dataGroup ) if( dataGroup[j].target === element )
-            {
-                return j;
-            }
-            return -1;
-        }
-        ,getMapType=function( type )
-        {
-            if( typeof mapeventname === 'object') for( var i in mapeventname)
-                if( mapeventname[i] === type ){
-                    type=i
-                    break;
-                }
-            return type;
-        }
+        return data;
+    }
 
     /**
      * 根据原型事件创建一个Breeze BreezeEvent
      * @param event
      * @returns {*}
      */
-        ,createEvent=function( event )
+    ,createEvent=function( event )
+    {
+        if( event instanceof BreezeEvent )
+            return event;
+
+        var event=event || window.event;
+        if( !event )
+            return null;
+
+        var breezeEvent={}
+            ,target=event.target || event.srcElement
+            ,currentTarget=event.currentTarget || target
+            ,type=onPrefix==='on' && event.type ? event.type.replace(/^on/i,'') : event.type;
+
+        //ie9 以下 如果不是自定义事件
+        if( onPrefix==='on' && typeof event.propertyName==='string' && event.propertyName !=="" )
         {
-            if( event instanceof BreezeEvent )
-                return event;
-
-            var event=event || window.event;
-            if( !event )
+            if( event.propertyName.match(/data-event-(\w+)/i) )
+                type=RegExp.$1;
+            else if(event.propertyName==='activeElement')
                 return null;
-
-            var breezeEvent={}
-                ,target=event.target || event.srcElement
-                ,currentTarget=event.currentTarget || target
-                ,type=onPrefix==='on' && event.type ? event.type.replace(/^on/i,'') : event.type;
-
-            //ie9 以下 如果不是自定义事件
-            if( onPrefix==='on' && typeof event.propertyName==='string' && event.propertyName !=="" )
-            {
-                if( event.propertyName.match(/data-event-(\w+)/i) )
-                    type=RegExp.$1;
-                else if(event.propertyName==='activeElement')
-                    return null;
-            }
-
-            // type=getMapType( type );
-
-            if( typeof PropertyEvent !=='undefined' && type === PropertyEvent.PROPERTY_CHANGE )
-            {
-                breezeEvent=new PropertyEvent( event );
-                breezeEvent.property= Breeze.isFormElement(target) ? 'value' : 'innerHTML';
-                breezeEvent.newValue=target[ breezeEvent.property ];
-
-            }else if( /^mouse|click$/i.test(type) && typeof MouseEvent !=='undefined' )
-            {
-                breezeEvent=new MouseEvent( event );
-                breezeEvent.pageX= event.x || event.clientX || event.pageX;
-                breezeEvent.pageY= event.y || event.clientY || event.pageY;
-
-                if( event.offsetX===undefined && target && Breeze )
-                {
-                    var offset=Breeze.position(target);
-                    event.offsetX=breezeEvent.pageX-offset.left;
-                    event.offsetY=breezeEvent.pageY-offset.top;
-                }
-
-                breezeEvent.offsetX = event.offsetX;
-                breezeEvent.offsetY = event.offsetY;
-                breezeEvent.screenX= event.screenX;
-                breezeEvent.screenY= event.screenY;
-
-            }else if( typeof BreezeEvent !=='undefined' )
-            {
-                breezeEvent=new BreezeEvent( event );
-                breezeEvent.altkey= !!event.altkey;
-                breezeEvent.button= event.button;
-                breezeEvent.ctrlKey= !!event.ctrlKey;
-                breezeEvent.shiftKey= !!event.shiftKey;
-                breezeEvent.metaKey= !!event.metaKey;
-            }
-
-            breezeEvent.type=type;
-            breezeEvent.target=target || this;
-            breezeEvent.currentTarget=currentTarget || this;
-            breezeEvent.timeStamp = event.timeStamp;
-            breezeEvent.relatedTarget= event.relatedTarget;
-            return breezeEvent;
         }
+
+        if( typeof PropertyEvent !=='undefined' && type === PropertyEvent.PROPERTY_CHANGE )
+        {
+            breezeEvent=new PropertyEvent( event );
+            breezeEvent.property= Breeze.isFormElement(target) ? 'value' : 'innerHTML';
+            breezeEvent.newValue=target[ breezeEvent.property ];
+
+        }else if( /^mouse|click$/i.test(type) && typeof MouseEvent !=='undefined' )
+        {
+            breezeEvent=new MouseEvent( event );
+            breezeEvent.pageX= event.x || event.clientX || event.pageX;
+            breezeEvent.pageY= event.y || event.clientY || event.pageY;
+
+            if( event.offsetX===undefined && target && Breeze )
+            {
+                var offset=Breeze.position(target);
+                event.offsetX=breezeEvent.pageX-offset.left;
+                event.offsetY=breezeEvent.pageY-offset.top;
+            }
+
+            breezeEvent.offsetX = event.offsetX;
+            breezeEvent.offsetY = event.offsetY;
+            breezeEvent.screenX= event.screenX;
+            breezeEvent.screenY= event.screenY;
+
+        }else if( typeof BreezeEvent !=='undefined' )
+        {
+            breezeEvent=new BreezeEvent( event );
+            breezeEvent.altkey= !!event.altkey;
+            breezeEvent.button= event.button;
+            breezeEvent.ctrlKey= !!event.ctrlKey;
+            breezeEvent.shiftKey= !!event.shiftKey;
+            breezeEvent.metaKey= !!event.metaKey;
+        }
+
+        breezeEvent.type=type;
+        breezeEvent.target=target || this;
+        breezeEvent.currentTarget=currentTarget || this;
+        breezeEvent.timeStamp = event.timeStamp;
+        breezeEvent.relatedTarget= event.relatedTarget;
+        return breezeEvent;
+    }
 
     /**
      * EventDispatcher Class
@@ -187,17 +160,17 @@
      * @returns {EventDispatcher}
      * @constructor
      */
-    function EventDispatcher( element )
+    function EventDispatcher( elements )
     {
         if( !(this instanceof EventDispatcher) )
-            return new EventDispatcher(element);
-        ElementManager.call(this,element);
+            return new EventDispatcher(elements);
+        DataArray.call(this,elements || [] );
         this.__bindType__={};
         return this;
     };
 
     //Constructor
-    EventDispatcher.prototype=new ElementManager();
+    EventDispatcher.prototype=new DataArray();
     EventDispatcher.prototype.constructor=EventDispatcher;
 
     /**
@@ -261,17 +234,15 @@
      */
     EventDispatcher.dispatchEvent=function(event, listeners )
     {
-        event=createEvent( event );
+        //初始化一个全局事件
+        event= globlaEvent = createEvent( event );
+        if( !globlaEvent.currentTarget )
+            return false;
 
         //获取需要调度的侦听器
         listeners = listeners || getData( event.currentTarget, event.type).items;
 
         if( !event || listeners.length < 1 )return false;
-
-        //初始化一个全局事件
-        globlaEvent = event= globlaEvent ? Breeze.extend(globlaEvent,event) : event;
-        if( !globlaEvent.currentTarget )
-            return false;
 
         //标记这个事件的对象已调度
         globlaEvent.currentTarget.dispatched=true;
@@ -286,7 +257,7 @@
                 //设置Breeze 对象的当前对象
                 if( typeof item.currentTarget.current ==='function' )
                 {
-                    item.currentTarget.current( event.currentTarget );
+                    item.currentTarget.current( item.target );
                 }
                 //调度侦听项
                 item.callback.call( item.currentTarget , event );
@@ -309,12 +280,11 @@
         {
             return [];
         }
-        var target=[];
         if( this.forEachCurrentItem )
         {
-            target=[ this.forEachCurrentItem ];
+            return [ this.forEachCurrentItem ];
         }
-        return typeof index ==='number' ? target[ index ] : target;
+        return typeof index ==='number' ? this[ index ] : this;
     }
 
     /**
@@ -360,7 +330,7 @@
 
         do{
             element=target[ index ] || this;
-            if( target[ index ] instanceof EventDispatcher )
+            if( target[ index ] instanceof EventDispatcher &&  target[ index ] !== this )
             {
                 this.__bindType__[ oldtype ]=true;
                 target[ index ].addEventListener(oldtype,listener,useCapture,priority);
@@ -400,7 +370,7 @@
 
         do{
             elem = target[b] || this;
-            if( target[b] instanceof EventDispatcher )
+            if( target[b] instanceof EventDispatcher && this !==target[b]  )
             {
                 target[b].removeEventListener(type,listener,useCapture);
 

@@ -177,8 +177,6 @@
 
     ,dispatchEventAll=function(target,element,event)
     {
-        var bz=target.getInstance( element );
-        target= bz || target;
         if( target instanceof EventDispatcher && target.hasEventListener( event.type ) && !target.dispatchEvent( event ) )
           return false;
         return true;
@@ -1915,23 +1913,11 @@
 
     var removeChild= function(target,parent,child)
     {
-
         if( child && parent.hasChildNodes() && child.parentNode === parent &&
             dispatchElementEvent(target,parent,child,ElementEvent.BEFORE_REMOVE ) )
         {
             var result=parent.removeChild( child );
             dispatchElementEvent(target,parent,child,ElementEvent.REMOVED );
-
-            // 从 Breeze 实例中移除
-            if( child && child.nodeType===1 )
-            {
-                var bz= target.getInstance(child)
-                if( bz instanceof Breeze )
-                {
-                    bz.removeEventListener('*');
-                    bz.not( child );
-                }
-            }
             return !!result;
         }
         return false;
