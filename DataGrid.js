@@ -5,7 +5,7 @@
 (function(window,undefined )
 {
 
-    function merge_option(target,column,option)
+    function mergeOption(target,column,option)
     {
         var opt={}
         if( typeof column === 'string' )
@@ -43,9 +43,12 @@
             'option':{}
         }
 
+
+
         // 为每行绑定动作行为
         var bindAction=function( target )
         {
+
             target.find('[data-action]').each(function(elem,index){
 
                 var action = this.property('data-action');
@@ -70,21 +73,26 @@
 
                 var index = this.property('data-index');
                 var name = this.property('data-bind');
-                var item = dataRender.indexToItem( index );
-                var bind = new BindData()
+                var item = dataRender[index];
+                var bind = new Bindable()
+                this.data('__binder__', bind );
                 bind.bind(item,name);
-                this.addEventListener(BreezeEvent.BLUR,function(event){
 
-                    var name = this.property('data-bind');
-                    var value = this.property('value')
-                    bind.setProperty(name,value)
+                this.addEventListener(BreezeEvent.BLUR,function(event)
+                {
+                    var name =  this.property('data-bind');
+                    var value = this.property('value');
+                    var binder =  this.data('__binder__');
+                    if( binder ){
+                        binder.property(name,value)
+                    }
                 })
             })
         }
 
         this.plus=function(action,column,defualt,option)
         {
-            option = merge_option(defualt,column,option || {} );
+            option = mergeOption(defualt,column,option || {} );
             option.template=option.template.replace(/(\<\s*(\w+))/ig,function(){
 
                 var attr = [];
@@ -253,9 +261,13 @@
         this.dataProfile=function(data)
         {
             this.makeTemplate(columnItem, thead, tbody);
+            templateContent =  template.replace('{theadTemplate}', theadTemplate ).replace('{tbodyTemplate}',tbodyTemplate );
             this.dataRender().source( data );
             return this;
         }
+
+        var templateContent;
+        var tpl = new Template( target );
 
         /**
          * 获取数据渲染项
@@ -280,13 +292,10 @@
 
                     }else
                     {
-                        var html =  template.replace('{theadTemplate}', theadTemplate ).replace('{tbodyTemplate}',tbodyTemplate );
-                        var  TPL = new Template();
-                        TPL.assign('data', dataRender.toArray() )
-                        html = TPL.render( html , true )
-                        html = Breeze( html );
-                        target.html( html )
-                        bindAction( html );
+
+                        tpl.assign('data', dataRender.toArray() )
+                        tpl.render( templateContent )
+                        bindAction( target );
                     }
                 });
             }

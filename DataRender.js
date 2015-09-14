@@ -29,73 +29,6 @@
             }
         }
 
-        /**
-         * 添加数据项到指定的索引位置
-         * @param item
-         * @param index
-         * @returns {DataRender}
-         */
-        this.addItem=function(item,index)
-        {
-            if( item )
-            {
-                index = typeof index === 'number' ? index : items.length;
-                index = index < 0 ? index + items.length+1 : index;
-                index = Math.min( items.length, Math.max( index, 0 ) )
-                items.splice(index,0,item);
-                this.length = items.length;
-                dispatch.call(this,item,DataRenderEvent.ITEM_ADD,index);
-                dispatch.call(this,item,DataRenderEvent.ITEM_CHANGED,index);
-            }
-            return this;
-        }
-
-        /**
-         * 移除指定索引下的数据项
-         * @param index
-         * @returns {boolean}
-         */
-        this.removeItem=function( index )
-        {
-            index = index < 0 ? index+items.length : index;
-            if( index < items.length )
-            {
-                var item=items.splice(index,1);
-                this.length = items.length;
-                dispatch.call(this,item,DataRenderEvent.ITEM_REMOVE,index);
-                dispatch.call(this,item,DataRenderEvent.ITEM_CHANGED,index);
-                return true;
-            }
-            return false;
-        }
-
-        /**
-         * 根据索引位置返回数据项
-         * @param index
-         * @returns {*}
-         */
-        this.indexToItem=function( index )
-        {
-            index = parseInt( index )
-            if( typeof index === 'number' )
-            {
-                index = index < 0 ? index+ items.length : index;
-                index = Math.min( items.length-1, Math.max( index, 0 ) )
-                return items[ index ];
-            }
-            return null;
-        }
-
-        /**
-         * 根据数据项返回对应的索引
-         * @param item
-         * @returns {number}
-         */
-        this.itemToIndex=function( item )
-        {
-            return items.indexOf( item );
-        }
-
         var httpRequest=null;
         var defaultOption={
             'method': HttpRequest.METHOD.GET,
@@ -137,6 +70,47 @@
 
     DataRender.prototype = new EventDispatcher()
     DataRender.prototype.constructor=DataRender;
+
+
+    /**
+     * 添加数据项到指定的索引位置
+     * @param item
+     * @param index
+     * @returns {DataRender}
+     */
+    DataRender.prototype.addItem=function(item,index)
+    {
+        if( item )
+        {
+            index = typeof index === 'number' ? index : this.length;
+            index = index < 0 ? index + this.length+1 : index;
+            index = Math.min( this.length, Math.max( index, 0 ) )
+            this.splice(index,0,item);
+            dispatch.call(this,item,DataRenderEvent.ITEM_ADD,index);
+            dispatch.call(this,item,DataRenderEvent.ITEM_CHANGED,index);
+        }
+        return this;
+    }
+
+    /**
+     * 移除指定索引下的数据项
+     * @param index
+     * @returns {boolean}
+     */
+    DataRender.prototype.removeItem=function( index )
+    {
+        index = index < 0 ? index+this.length : index;
+        if( index < this.length )
+        {
+            var item=this.splice(index,1);
+            dispatch.call(this,item,DataRenderEvent.ITEM_REMOVE,index);
+            dispatch.call(this,item,DataRenderEvent.ITEM_CHANGED,index);
+            return true;
+        }
+        return false;
+    }
+
+
 
     function DataRenderEvent( src, props ){ BreezeEvent.call(this, src, props);}
     DataRenderEvent.prototype=new BreezeEvent();

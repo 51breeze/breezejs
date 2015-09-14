@@ -8,16 +8,18 @@
 (function(window,undefined)
 {  "use strict";
 
-
-   function ElementManager(element)
+   function ElementManager(elements)
    {
-       DataArray.call(this,element);
+       if( !(this instanceof ElementManager) )
+          return new ElementManager()
+       EventDispatcher.call(this,elements);
    }
 
-    ElementManager.prototype=new DataArray();
+    ElementManager.prototype=new EventDispatcher();
     ElementManager.prototype.constructor= ElementManager;
-
     ElementManager.prototype.forEachCurrentItem=undefined;
+    ElementManager.prototype.forEachPrevItem=undefined;
+    ElementManager.prototype.forEachNextItem=undefined;
     ElementManager.prototype.forEachCurrentIndex=NaN;
 
     /**
@@ -25,7 +27,7 @@
      * @param element
      * @returns {*}
      */
-    ElementManager.prototype.current=function( element )
+    ElementManager.prototype.current=function( element , flag )
     {
         if( element )
         {
@@ -39,7 +41,7 @@
                 this.forEachCurrentItem = element;
                 this.forEachCurrentIndex = NaN;
             }
-            return this.forEachCurrentIndex;
+            return flag===true ? this.forEachCurrentIndex : this;
         }
         return this.forEachCurrentItem || this[0];
     }
@@ -49,16 +51,51 @@
      * @param index
      * @returns {*}
      */
-    ElementManager.prototype.index=function( index )
+    ElementManager.prototype.index=function( index , flag)
     {
         if( index >= 0 && index < this.length )
         {
             this.forEachCurrentItem= this[ index ] ;
             this.forEachCurrentIndex= index;
-            return this.forEachCurrentItem;
+            return flag===true ? this.forEachCurrentItem : this;
         }
         return this.forEachCurrentIndex;
     }
+
+    /**
+     * 遍历元素
+     * @param callback
+     * @param proxyTarget
+     * @returns {*}
+     */
+    ElementManager.prototype.forEach=function(callback , proxyTarget )
+    {
+        var  proxyTarget=proxyTarget || this;
+        var  result;
+
+        if( this.forEachCurrentItem !== undefined && this.forEachPrevItem !== this.forEachCurrentItem )
+        {
+            result=callback.call( proxyTarget ,this.forEachCurrentItem,this.forEachCurrentIndex);
+        }else
+        {
+            var items=this.slice(0),
+                index = 0,
+                len=items.length;
+            for( ; index < len ; index++ )
+            {
+                this.forEachCurrentItem=items[ index ];
+                this.forEachCurrentIndex=index;
+                this.forEachNextItem=items[ index+1 ] === 'undefined' ? undefined : items[ index+1 ] ;
+                result=callback.call( proxyTarget,this.forEachCurrentItem,index);
+                this.forEachPrevItem=this.forEachCurrentItem;
+                if( result !== undefined )
+                    break;
+            }
+            this.forEachCurrentItem=undefined;
+        }
+        return result;
+    }
+
     window.ElementManager=ElementManager;
 
 })(window)

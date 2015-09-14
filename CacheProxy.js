@@ -31,8 +31,11 @@
         var data=function(name,value)
         {
             var target = proxyTarget || this;
-            var object= target[ name ] || ( target[ name ]={} );
-                object = partition===undefined ? object :  object[ partition ] || ( object[ partition ]={} );
+            var object = target;
+            if( typeof partition === 'string' || typeof partition === 'number' )
+            {
+                object=object[ partition ] || ( object[ partition ]={} )
+            }
 
             if( typeof name === 'string' )
             {

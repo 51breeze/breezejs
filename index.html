@@ -6,13 +6,13 @@
     <script src="BreezeEvent.js" ></script>
     <script src="DataArray.js" ></script>
     <script src="CacheProxy.js" ></script>
-    <script src="ElementManager.js" ></script>
     <script src="EventDispatcher.js" ></script>
+    <script src="ElementManager.js" ></script>
     <script src="Dictionary.js" ></script>
     <script src="HttpRequest.js" ></script>
     <script src="Breeze.js" ></script>
     <script src="DataGrid.js" ></script>
-    <script src="BindData.js" ></script>
+    <script src="Bindable.js" ></script>
     <script src="DataRender.js" ></script>
     <script src="Template.js" ></script>
     <title></title>
@@ -25,6 +25,8 @@
     Breeze(function(){
 
 
+
+
         var datagrid = new DataGrid( Breeze('.container') );
         datagrid.columns({'name':'姓名','phone':'手机'});
 
@@ -32,7 +34,6 @@
 
         var item = [{'name':'张三','phone':'15302662136'},{'name':'王五','phone':'15302662179'}];
         datagrid.dataProfile( item );
-
 
       /*   var tpl = new Template()
              tpl.assign('data', [{'name':'yejun'},{'name':'999999'}] );
@@ -42,6 +43,8 @@
         })
 
         var html =  tpl.render('#template');*/
+
+
 
 
     })
@@ -55,7 +58,7 @@
    开呗养车运营端
 </div>
 
-<div class="container">
+<div class="container" style="width: 300px; height: 300px; border: solid #ff0000 1px;">
 </div>
 
 

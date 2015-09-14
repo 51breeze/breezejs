@@ -17,6 +17,7 @@
     var version='1.0.0'
     ,isSimple = /^.[^:#\[\.,]*$/
     ,breezeCounter=0
+    ,cacheProxy=new CacheProxy('__dataset__')
 
     /**
      * Breeze Class
@@ -61,7 +62,7 @@
         {
             result=[selector];
         }
-        EventDispatcher.call(this, result );
+        ElementManager.call(this, result );
         if( result.length > 0 )
           this.__rootElement__= this[0];
         this.__COUNTER__=++breezeCounter;
@@ -1128,7 +1129,7 @@
     Breeze.forEach=function( object ,fn ,refObj )
     {
         var index= 0, result;
-        if( this instanceof Breeze && Breeze.isFunction(object) )
+        if( this instanceof ElementManager && Breeze.isFunction(object) )
         {
             refObj=fn;
             fn=object;
@@ -1139,33 +1140,9 @@
         if( !Breeze.isFunction( fn ) )
            return refObj;
 
-        if( object instanceof Breeze )
+        if( object instanceof ElementManager )
         {
-            refObj=refObj || object;
-            fn=fn;
-
-            if( object.__current__ )
-            {
-                object.forEachCurrentItem=undefined;
-                object.__current__=false;
-            }
-
-            if( object.forEachCurrentItem !== undefined )
-            {
-                result=fn.call( refObj ,object.forEachCurrentItem,object.forEachCurrentIndex);
-            }else
-            {
-                var items=Breeze.prototype.slice.call(object,0),len=items.length;
-                for( ; index < len ; index++ )
-                {
-                    object.forEachCurrentItem=items[ index ];
-                    object.forEachCurrentIndex=index;
-                    result=fn.call( refObj,object.forEachCurrentItem,index);
-                    if( result !== undefined )
-                        break;
-                }
-                object.forEachCurrentItem=undefined;
-            }
+            result=object.forEach( fn , refObj );
 
         }else if( Breeze.isHTMLContainer(object) || Breeze.isWindow(object) )
         {
@@ -1469,7 +1446,7 @@
      * Extends EventDispatcher Class
      * @type {EventDispatcher}
      */
-    Breeze.prototype=new EventDispatcher();
+    Breeze.prototype=new ElementManager()
 
     //============================================================
     //  Defined Instance Propertys
@@ -1536,53 +1513,6 @@
         {
             this['__revert_step__']=step;
             doMake( this, this['__reverts__'][ step ],true , true );
-        }
-        return this;
-    }
-
-
-    //==================================================
-    // 指定元素进行操作
-    //==================================================
-
-
-    /**
-     * 指定操作位于索引处的元素。
-     * 此操作不会筛选，也不会保存到恢复的队列中。
-     * @param index
-     * @returns {Breeze}
-     */
-    Breeze.prototype.index=function( index )
-    {
-        if( index === undefined )
-           return this.forEachCurrentIndex;
-        if( index >= this.length || !this[index] )
-           throw new Error('Index out range')
-        this.forEachCurrentItem=this[index];
-        this.forEachCurrentIndex=index;
-        return this;
-    }
-
-    /**
-     * 获取或者指定当前要操作的节点元素
-     * @param element
-     * @returns {Breeze|nodeElement}
-     */
-    Breeze.prototype.current=function( element )
-    {
-        if( element===true )
-        {
-            element=this.forEachCurrentItem || this[0];
-
-        }else if( element === undefined )
-        {
-            return this.forEachCurrentItem || this[0];
-        }
-        if( element.nodeType===1 || element.nodeType===9 || Breeze.isWindow(element) || element===null )
-        {
-            //如果当前指定的是同一个对象则清空
-             this.__current__= this.forEachCurrentItem === element;
-             this.forEachCurrentItem=element;
         }
         return this;
     }
@@ -1969,7 +1899,7 @@
                    this.current(parent);
                 }
 
-                var refChild=index !== undefined && index.parentNode && index.parentNode===parent ? index : null;
+                var refChild=index && index.parentNode && index.parentNode===parent ? index : null;
                     !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
                     refChild && (refChild=index.nextSibling);
                 parent.insertBefore( child , refChild || null );
@@ -2203,10 +2133,10 @@
     {
         return access.call(this,name,value,{
             get:function(prop){
-                return CacheProxy.get.call( this ,prop,'__DATASET__') || '';
+                return cacheProxy.proxy(this).get(prop);
             },
             set:function(prop,newValue){
-                CacheProxy.set.call( this ,prop,newValue,'__DATASET__')
+                cacheProxy.proxy(this).set(prop,newValue);
             }
         });
     }
@@ -2233,7 +2163,7 @@
           throw new Error('the style property names only use style method to operate in property');
         return access.call(this,name,value,{
             get:function(prop){
-                return ( __property__[ prop ] ? this[ prop ] : this.getAttribute( prop ) ) || '';
+                return ( __property__[ prop ] ? this[ prop ] : this.getAttribute( prop ) ) || null;
             },
             set:function(prop,newValue){
                 if( newValue === null )

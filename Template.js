@@ -88,7 +88,7 @@
         if( !(this instanceof Template) )
            return  new Template(target);
 
-        var  context = null;
+        var  context = target || null;
         var  cacheEnable = true;
 
         if( typeof target === 'string' )
@@ -297,7 +297,7 @@
               {
                   if( context instanceof Breeze )
                   {
-                      context.addElementAt( template );
+                      context.html( template );
 
                   }else if(container instanceof Breeze )
                   {

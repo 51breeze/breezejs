@@ -69,6 +69,9 @@
                 return a.priority=== b.priority ? 0 : (a.priority < b.priority ? 1 : -1);
             })
         }
+
+
+
         return true;
     }
     ,getData=function(target,type)
@@ -236,6 +239,7 @@
     {
         //初始化一个全局事件
         event= globlaEvent = createEvent( event );
+
         if( !globlaEvent.currentTarget )
             return false;
 
@@ -276,7 +280,7 @@
      */
     EventDispatcher.prototype.dispatchTargets=function( index )
     {
-        if( typeof DataRender !== 'undefined' && this instanceof DataRender )
+        if( typeof ElementManager !== 'undefined' && !(this instanceof ElementManager) )
         {
             return [];
         }
@@ -306,6 +310,7 @@
      */
     EventDispatcher.prototype.addEventListener=function(type,listener,useCapture,priority)
     {
+
         if( !(listener instanceof EventDispatcher.Listener) )
         {
             listener=new EventDispatcher.Listener(listener,priority,useCapture,this);
@@ -318,13 +323,18 @@
             return this;
         }
 
+       if( typeof type !== 'string' )
+         return this;
+
         var target= this.dispatchTargets()
             ,len= target.length || 0
             ,element
             ,index=0;
 
+
+
         var oldtype = type;
-        type= !agreed.test( type ) ? type.toLowerCase() : type;
+        type= type && !agreed.test( type ) ? type.toLowerCase() : type;
         var proxytype=mapeventname[type] || type;
         var special = bindBeforeProxy[type];
 

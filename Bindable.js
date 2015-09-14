@@ -15,10 +15,12 @@
      *               [发布内容的对象]
      * @constructor
      */
-    function BindData( target )
+    function Bindable( target )
     {
-        if( !(this instanceof BindData) )
-            return new BindData( target );
+        if( !(this instanceof Bindable) )
+            return new Bindable( target );
+
+        target = target || [];
 
         /**
          * @private
@@ -26,7 +28,6 @@
          */
         var subscription= new Dictionary()
             ,dataset={}
-            ,self=this
 
         /**
          * 提交属性到每个绑定的对象
@@ -57,9 +58,9 @@
                             {
                                object[ property ]= newValue;
 
-                            }else if( object instanceof BindData || object instanceof Breeze )
+                            }else if( object instanceof Bindable || object instanceof Breeze )
                             {
-                                return object.setProperty(property,newValue);
+                                return object.property(property,newValue);
                             }
                         }
                     }
@@ -72,7 +73,7 @@
         this.addEventListener(PropertyEvent.PROPERTY_CHANGE,function(event)
         {
             if( event instanceof PropertyEvent )
-                self.setProperty(event.property,event.newValue );
+                this.property(event.property,event.newValue );
         });
 
         /**
@@ -86,7 +87,6 @@
             property = property || 'value';
             if( (typeof target === 'object' || target instanceof Array) || (target.nodeType && typeof target.nodeName === 'string' && target !== target.window ) )
             {
-                dataset[ property ]=null;
                 var obj = subscription.get(target)
                 if( !obj )subscription.set(target, (obj={}) );
                 obj[property]=callback;
@@ -107,16 +107,6 @@
             if( target && ( obj=subscription.get( target ) ) )
             {
                 typeof property ==='string' ? delete obj[ property ] : subscription.remove(target);
-                var data = subscription.getAll();
-                for( i in data )
-                {
-                    var item=data[i];
-                    if( item && item.value && typeof item.value[ property ] !== 'undefined' )
-                    {
-                       return true;
-                    }
-                }
-                delete dataset[ property ];
                 return true;
             }
             return false;
@@ -127,8 +117,11 @@
          * @param name
          * @param value
          */
-        this.setProperty=function(name,value)
+        this.property=function(name,value)
         {
+            if( typeof value === 'undefined' )
+              return dataset[ name ];
+
             if( dataset[ name ] !== value )
             {
                 dataset[ name ] = value;
@@ -136,18 +129,8 @@
                 var ev=new PropertyEvent(PropertyEvent.PROPERTY_CHANGE)
                 ev.property=name;
                 ev.newValue=value;
-                self.dispatchEvent(ev);
+                this.dispatchEvent(ev);
             }
-        }
-
-        /**
-         * 获取属性
-         * @param name
-         * @returns {*}
-         */
-        this.getProperty=function(name)
-        {
-            return dataset[ name ];
         }
 
         /**
@@ -161,8 +144,8 @@
         }
     }
 
-    BindData.prototype=new EventDispatcher();
-    BindData.prototype.constructor=BindData;
-    window.BindData=BindData;
+    Bindable.prototype=new EventDispatcher();
+    Bindable.prototype.constructor=Bindable;
+    window.Bindable=Bindable;
 
 })()
