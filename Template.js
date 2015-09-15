@@ -265,43 +265,55 @@
               flag = !!flag;
 
               var template = content( source );
-              if( template.charAt(0) === '<' )
+              if( template.charAt(0) !== '<' )
+                return false;
+
+             var event;
+             if( this.hasEventListener( TemplateEvent.COMPILE_START ) )
+             {
+                 event =  new TemplateEvent( TemplateEvent.COMPILE_START )
+                 event.template = template;
+                 event.data     = variable;
+
+             }
+              if( !event || this.dispatchEvent( event ) )
               {
-                 var event;
-                 if( this.hasEventListener( TemplateEvent.COMPILE_START ) )
-                 {
-                     event =  new TemplateEvent( TemplateEvent.COMPILE_START )
-                     event.template = template;
-                     event.data     = variable;
+                 template =event ?  event.template : template;
+                 template=make(template, variable );
 
-                 }
-                  if( !event || this.dispatchEvent( event ) )
+                  if( this.hasEventListener( TemplateEvent.COMPILE_DONE ) )
                   {
-                     template =event ?  event.template : template;
-                     template=make(template, variable );
-
-                      if( this.hasEventListener( TemplateEvent.COMPILE_DONE ) )
+                      event =  new TemplateEvent( TemplateEvent.COMPILE_DONE )
+                      event.html = template;
+                      if( !this.dispatchEvent( event ) )
                       {
-                          event =  new TemplateEvent( TemplateEvent.COMPILE_DONE )
-                          event.html = template;
-                          if( !this.dispatchEvent( event ) )
-                          {
-                              return false;
-                          }
-                          template=event.html;
+                          return false;
                       }
+                      template=event.html;
                   }
               }
 
-              if( !flag && typeof Breeze !== 'undefined' )
+              if( !flag )
               {
+                  var target;
                   if( context instanceof Breeze )
                   {
+                      target=context;
                       context.html( template );
 
                   }else if(container instanceof Breeze )
                   {
+                      target=container;
                       container.addElementAt(template, container[0] );
+                  }
+
+                  if( target && this.hasEventListener(TemplateEvent.ADD_TO_CONTAINER) )
+                  {
+                      event =  new TemplateEvent( TemplateEvent.ADD_TO_CONTAINER )
+                      event.template = template;
+                      event.data     = variable;
+                      event.container= target;
+                      this.dispatchEvent( event );
                   }
                   return true;
               }
@@ -316,10 +328,12 @@
     TemplateEvent.prototype=new BreezeEvent();
     TemplateEvent.prototype.template=null;
     TemplateEvent.prototype.data=null;
+    TemplateEvent.prototype.container=null;
     TemplateEvent.prototype.html='';
     TemplateEvent.prototype.constructor=TemplateEvent;
     TemplateEvent.COMPILE_START='compileStart';
     TemplateEvent.COMPILE_DONE='compileDone';
+    TemplateEvent.ADD_TO_CONTAINER='addToContainer';
 
     window.Template = Template;
     window.TemplateEvent = TemplateEvent;

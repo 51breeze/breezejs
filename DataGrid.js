@@ -43,12 +43,14 @@
             'option':{}
         }
 
-
+        if( target && !(target instanceof Breeze) )
+        {
+           throw new Error('target invalid');
+        }
 
         // 为每行绑定动作行为
         var bindAction=function( target )
         {
-
             target.find('[data-action]').each(function(elem,index){
 
                 var action = this.property('data-action');
@@ -158,6 +160,9 @@
 
                 theadTemplate = container.replace('{value}', theadTemplate );
                 tbodyTemplate = container.replace('{value}', tbodyTemplate );
+                tbodyTemplate = tbodyTemplate.replace(/(\<\s*(\w+))/i,function(){
+                    return RegExp.$1+' data-row="{key}"';
+                });
                 tbodyTemplate='<? foreach(data as key item){ ?>'+tbodyTemplate+'<? } ?>';
             }
             return this;
@@ -267,7 +272,16 @@
         }
 
         var templateContent;
-        var tpl = new Template( target );
+        var tpl;
+
+        /**
+         * 返回模板编译器
+         * @returns {*|Window.Template}
+         */
+        this.compiler=function()
+        {
+           return ( tpl || ( tpl=new Template( target ) ) );
+        }
 
         /**
          * 获取数据渲染项
@@ -277,6 +291,7 @@
         {
             if( !dataRender )
             {
+                var tpl = this.compiler();
                 dataRender=new DataRender();
                 dataRender.addEventListener(DataRenderEvent.ITEM_ADD,function(event){
 
@@ -292,16 +307,18 @@
 
                     }else
                     {
-
-                        tpl.assign('data', dataRender.toArray() )
-                        tpl.render( templateContent )
-                        bindAction( target );
+                        tpl.assign('data', dataRender.toArray() );
+                        tpl.render( templateContent );
+                        tpl.addEventListener( TemplateEvent.ADD_TO_CONTAINER,function(event){
+                            if( event.container ) {
+                                bindAction(event.container);
+                            }
+                        })
                     }
                 });
             }
             return dataRender
         }
-
     }
 
    window.DataGrid= DataGrid;
