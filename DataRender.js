@@ -41,18 +41,6 @@
         var pageRows= 20;
         var totalRows = NaN;
         var pageIndex = 1;
-        var requestUrl;
-        var defaultOption={
-            'method': HttpRequest.METHOD.GET,
-            'dataType':HttpRequest.TYPE.JSON,
-            'callback':null,
-            'param':'',
-            'response':{  //响应的数据包字段
-                'dataProfile':'data',  //主体数据
-                'totalProfile':'total', //请求条件的数据总数
-                'rowsProfile':100       //每批限制拉取的数据量
-            }
-        };
 
         this.addEventListener(DataRenderEvent.ITEM_ADD,function(event){
 
@@ -144,98 +132,109 @@
 
         this.http=function()
         {
-            if( !httpRequest )
-            {
-                var self=this;
-                httpRequest = new HttpRequest();
-                httpRequest.addEventListener(HttpEvent.SUCCESS, function (event)
-                {
-                    var data = null;
-                    if (typeof option.callback === 'function') {
-                        data = option.callback.call(self, event);
-                    } else {
-                        data = event.data;
-                    }
-                    if( data && isNaN(totalRows) )
-                    {
-                        if (typeof data[option['response']['totalProfile']] === 'number')
-                        {
-                            totalRows = data[option['response']['totalProfile']];
-                        }
-                        data = data[option['response']['dataProfile']] || data;
-                    }
-                    self.splice(this.length,0,data);
-                    self.display();
-                })
-            }
-            return httpRequest;
-        }
-
-        /**
-         * 请求加载数据源
-         * @param data
-         * @param option
-         * @returns {DataRender}
-         */
-        this.source=function( data , option )
-        {
-            if( typeof data==='string' && /^https?:\/\/[\w\.]+$/.test( data ) )
-            {
-                requestUrl = data ;
-                if( option ) {
-                    option = Breeze.extend(defaultOption, option);
-                }
-
-                var http = this.http();
-                if( !this.hasEventListener( DataRenderEvent.LOAD_START ) )
-                {
-                    this.addEventListener(DataRenderEvent.LOAD_START, function (event)
-                    {
-                        var url = requestUrl;
-                        if (this.pageEnable()) {
-                            var rows = Math.max(defaultOption.response.rowsProfile, this.rows());
-                            url = url.replace('%page%', this.page()).replace('%rows%', rows);
-                        }
-                        http.open(url, option.method);
-                        http.send(option.param);
-                    })
-                }
-                this.dispatchEvent( new DataRenderEvent(DataRenderEvent.LOAD_START) );
-
-            }else
-            {
-                this.splice(0,this.length,data);
-                this.display();
-            }
-            return this;
-        }
-
-        this.display=function()
-        {
-            var data;
-            if( this.pageEnable() )
-            {
-                var page = this.page()-1;
-                var rows = this.rows();
-                var start = page * rows;
-
-                //预加载 1 个分页的数据
-                if( this.length - (start+rows) * 1 <= rows && requestUrl && httpRequest )
-                {
-                    this.dispatchEvent( new DataRenderEvent(DataRenderEvent.LOAD_START) );
-                }
-                data = this.slice( start,  start+rows );
-
-            }else
-            {
-                data = this.slice( start,  this.length )
-            }
-
+            return httpRequest || ( httpRequest = new HttpRequest() );
         }
     }
 
     DataRender.prototype = new EventDispatcher()
     DataRender.prototype.constructor=DataRender;
+
+
+    var defaultOption={
+        'method': HttpRequest.METHOD.GET,
+        'dataType':HttpRequest.TYPE.JSON,
+        'callback':null,
+        'param':'',
+        'response':{  //响应的数据包字段
+            'dataProfile':'data',  //主体数据
+            'totalProfile':'total', //请求条件的数据总数
+            'rowsProfile':100       //每批限制拉取的数据量
+        }
+    };
+
+    /**
+     * 请求加载数据源
+     * @param source
+     * @param option
+     * @returns {DataRender}
+     */
+    DataRender.prototype.source=function( source , option )
+    {
+        if( typeof source==='string' && /^https?:\/\/[\w\.]+$/.test( source ) )
+        {
+            option = option ? Breeze.extend(true,{},defaultOption, option) : option;
+            var http = this.http();
+            var load = function (event)
+            {
+                var rows = Math.max(option.response.rowsProfile, this.rows() );
+                var url = source.replace('%page%', this.page() ).replace('%rows%', rows);
+                option.param = option.param.replace('%page%', this.page()).replace('%rows%', rows);
+                http.open(url, option.method);
+                http.send(option.param);
+            }
+
+            http.addEventListener(HttpEvent.SUCCESS, function (event)
+            {
+                var data = null;
+                if (typeof option.callback === 'function') {
+                    data = option.callback.call(self, event);
+                } else {
+                    data = event.data;
+                }
+                if( data && isNaN(totalRows) )
+                {
+                    var totalProfile = option['response']['totalProfile'];
+                    var dataProfile = option['response']['dataProfile'];
+                    if( typeof data[ totalProfile ] === 'number')
+                    {
+                        totalRows = data[ totalProfile ];
+                    }
+                }
+                data = typeof dataProfile === 'string' && typeof data[ dataProfile ] !== 'undefined' ? data[ dataProfile ] : data;
+                var len = self.length;
+                self.splice(len,0,data);
+                dispatch.call(self,data,DataRenderEvent.ITEM_CHANGED,len);
+            })
+
+            this.addEventListener( DataRenderEvent.LOAD_START, load );
+            load();
+
+        }else if( Breeze.isObject(source,true) )
+        {
+            var len = this.length;
+            this.splice(0,len,source);
+            dispatch.call(this,source,DataRenderEvent.ITEM_CHANGED,len);
+        }
+        return this;
+    }
+
+
+    /**
+     * 显示数据
+     * @returns {DataRender}
+     */
+    DataRender.prototype.display=function()
+    {
+        var data;
+        if( this.pageEnable() )
+        {
+            var page = this.page()-1;
+            var rows = this.rows();
+            var start = page * rows;
+
+            //预加载 1 个分页的数据
+            if( this.length - start * 1 <= rows && this.hasEventListener( DataRenderEvent.LOAD_START ) )
+            {
+                this.dispatchEvent( new DataRenderEvent(DataRenderEvent.LOAD_START) );
+            }
+            data = this.slice( start,rows );
+
+        }else
+        {
+            data = this.slice( start,  this.length )
+        }
+        return this;
+    }
 
     /**
      * 添加数据项到指定的索引位置

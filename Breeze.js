@@ -944,7 +944,7 @@
     {
         if( !val || val.nodeType || Breeze.isWindow(val) )
            return false;
-        return typeof val === 'object' || ( flag===true && Breeze.isArray(val) ) ;
+        return ( flag===true && Breeze.isArray(val) ) || typeof val === 'object';
     }
 
     /**
