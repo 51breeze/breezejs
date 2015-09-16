@@ -1230,7 +1230,7 @@
         return target;
     }
 
-    var singleTagExp=/^<(\w+)(.*?)\/?>(?:<\/\1>|)$/;
+    var singleTagExp=/^<(\w+)(.*?)\/\s*>$/;
 
     /**
      * 创建HTML元素
