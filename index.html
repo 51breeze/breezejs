@@ -21,8 +21,9 @@
 <script>
 
 
-    Breeze(function(){
 
+
+    Breeze(function(){
 
 
         var container = Breeze('.container')
@@ -30,7 +31,7 @@
         var tr= Breeze('<tr/>');
 
 
-        var td = Breeze('<td id="sssss" data="{{}}" />');
+        var td = Breeze('<td></td>');
 
         td.data('uuu',{'name':'sdfdsf'});
 
@@ -52,13 +53,6 @@
         td.text('999999')
 
         console.log( tr.html(true) )
-
-
-
-        console.log(  Breeze('#sssss').data('uuu') )
-        console.log(  Breeze('#sssss').html(true) )
-
-
 
 
 
@@ -97,7 +91,7 @@
    开呗养车运营端
 </div>
 
-<div class="container" style="width: 300px; height: 300px; ">
+<div class="container" data-bind style="width: 300px; height: 300px; ">
 </div>
 
 

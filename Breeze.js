@@ -1231,6 +1231,8 @@
     }
 
     var singleTagExp=/^<(\w+)(.*?)\/\s*>$/;
+    var getAttrExp = /(\w+)(\s*=\s*([\"\'])([^\3]*?)[^\\]\3)?/g;
+    var lr = /^[\'\"]|[\'\"]$/g;
 
     /**
      * 创建HTML元素
@@ -1243,16 +1245,28 @@
         {
             html=Breeze.trim( html );
             var match;
-            if( html.charAt(0) === "<" && html.charAt( html.length - 1 ) === ">" && html.length >= 3 && ( match=singleTagExp.exec(html) ) )
+            if( html.charAt(0) !== "<" && html.charAt( html.length - 1 ) !== ">" )
+            {
+                return document.createElement( html );
+
+            }else if( html.length >= 3 && ( match=singleTagExp.exec(html) ) )
             {
                 var elem = document.createElement(match[1]);
-                if( match[2]=="" )return elem;
-                match[2]=match[2].replace(/\\'/g, '&#39;').replace(/\\"/g,'&quot;');
-                var attr = "<div "+match[2]+'></div>';
-                elem.innerHTML= attr;
-                attr=elem.childNodes.item(0);
-                Breeze.cloneAttr(elem,attr)
-                elem.innerHTML='';
+                var attr;
+                if( match[2] && match[2] !="" && (attr=match[2].replace(/=\s*(\w+)/g,'="$1"').match( getAttrExp )) )
+                {
+                    var i= 0,item;
+                    while( item=attr[i++] )
+                    {
+                        var val  =  item.split('=');
+                        if( val.length > 0 )
+                        {
+                            var prop = Breeze.trim( val[0] );
+                            var val = typeof val[1] === "string" ?  val[1].replace( lr ,'').replace(/\\([\'\"])/g,'$1') : '';
+                            elem.setAttribute( prop , val );
+                        }
+                    }
+                }
                 return elem;
             }
 
