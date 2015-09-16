@@ -42,6 +42,8 @@
         var totalRows = NaN;
         var pageIndex = 1;
 
+        this.__changed__=false;
+
         this.addEventListener(DataRenderEvent.ITEM_ADD,function(event){
 
             if( !isNaN(event.index) )
@@ -65,6 +67,20 @@
                 })
             }
         });
+
+
+
+
+        var compiler;
+
+        /**
+         * 返回模板编译器
+         * @returns {*|Window.Template}
+         */
+        this.compiler=function()
+        {
+            return ( compiler || ( compiler=new Template() ) );
+        }
 
 
         var pageEnable = false;
@@ -109,8 +125,7 @@
             if( num > 0 && pageIndex !== num )
             {
                 pageIndex = num;
-                var event = new DataRenderEvent( DataRenderEvent.DATA_DISPLAY );
-                this.dispatchEvent( event );
+                this.__changed__=true;
                 return this;
             }
             return pageIndex;
@@ -164,9 +179,11 @@
         {
             option = option ? Breeze.extend(true,{},defaultOption, option) : option;
             var http = this.http();
+            var rows = Math.max(option.response.rowsProfile, this.rows() );
+            var beforehand = false;
             var load = function (event)
             {
-                var rows = Math.max(option.response.rowsProfile, this.rows() );
+                beforehand = !!event.beforehand;
                 var url = source.replace('%page%', this.page() ).replace('%rows%', rows);
                 option.param = option.param.replace('%page%', this.page()).replace('%rows%', rows);
                 http.open(url, option.method);
@@ -190,10 +207,21 @@
                         totalRows = data[ totalProfile ];
                     }
                 }
+
+                //没有可加载的数据，直接删除事件侦听
+                if( data instanceof Array && data.length<rows )
+                {
+                    self.removeEventListener( DataRenderEvent.LOAD_START );
+                }
+
                 data = typeof dataProfile === 'string' && typeof data[ dataProfile ] !== 'undefined' ? data[ dataProfile ] : data;
                 var len = self.length;
                 self.splice(len,0,data);
-                dispatch.call(self,data,DataRenderEvent.ITEM_CHANGED,len);
+
+                //如果不是预加载数据
+                if( !beforehand ) {
+                    dispatch.call(self, data, DataRenderEvent.ITEM_CHANGED, len);
+                }
             })
 
             this.addEventListener( DataRenderEvent.LOAD_START, load );
@@ -215,24 +243,49 @@
      */
     DataRender.prototype.display=function()
     {
-        var data;
+        if( this.__changed__ !== true )
+            return this;
+
+        var rows=this.length,start=0;
+
+        //如果有开启分页功能
         if( this.pageEnable() )
         {
             var page = this.page()-1;
-            var rows = this.rows();
-            var start = page * rows;
+                rows = this.rows();
+                start = page * rows;
 
             //预加载 1 个分页的数据
-            if( this.length - start * 1 <= rows && this.hasEventListener( DataRenderEvent.LOAD_START ) )
+            if( this.length - start <= rows*1 && this.hasEventListener( DataRenderEvent.LOAD_START ) )
             {
-                this.dispatchEvent( new DataRenderEvent(DataRenderEvent.LOAD_START) );
-            }
-            data = this.slice( start,rows );
+                var data= {'beforehand': (this.length > start+rows) };
+                this.dispatchEvent( new DataRenderEvent(DataRenderEvent.LOAD_START,data) );
 
-        }else
-        {
-            data = this.slice( start,  this.length )
+                //如果不是预加载数据，等待数据加载完成才能渲染
+                if( !data.beforehand )
+                {
+                    return this;
+                }
+            }
         }
+
+        //需要分页的数据
+        var data = this.slice( start, start+rows );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        this.__changed__=false;
         return this;
     }
 

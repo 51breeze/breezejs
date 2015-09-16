@@ -21,12 +21,41 @@
 <script>
 
 
-
     Breeze(function(){
 
 
 
+        var container = Breeze('.container')
 
+        var tr= Breeze('<tr/>');
+
+
+        var td = Breeze('<td id="sssss" data="{{}}" />');
+
+        td.data('uuu',{'name':'sdfdsf'});
+
+        td.text('123')
+
+        tr.addChild(td);
+
+
+        container.addChild( tr )
+
+
+        td.text('999999')
+
+        console.log( tr.html(true) )
+
+
+
+        console.log(  Breeze('#sssss').data('uuu') )
+        console.log(  Breeze('#sssss').html(true) )
+
+
+
+
+
+/*
         var datagrid = new DataGrid( Breeze('.container') );
         datagrid.columns({'name':'姓名','phone':'手机'});
 
@@ -34,6 +63,7 @@
 
         var item = [{'name':'张三','phone':'15302662136'},{'name':'王五','phone':'15302662179'}];
         datagrid.dataProfile( item );
+*/
 
       /*   var tpl = new Template()
              tpl.assign('data', [{'name':'yejun'},{'name':'999999'}] );
@@ -50,6 +80,7 @@
     })
 
 
+
 </script>
 
 <body>
@@ -62,6 +93,7 @@
 </div>
 
 
+&quot;sdfds&quot;   ""   &apos;  '
 
 
 <noscript id="template">

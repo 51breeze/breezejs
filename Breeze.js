@@ -1230,7 +1230,7 @@
         return target;
     }
 
-    var singleTagExp=/^<(\w+)\s*\/?>(?:<\/\1>|)$/;
+    var singleTagExp=/^<(\w+)(.*?)\/?>(?:<\/\1>|)$/;
 
     /**
      * 创建HTML元素
@@ -1243,13 +1243,23 @@
         {
             html=Breeze.trim( html );
             var match;
-            if( html.charAt(0) === "<" && html.charAt( html.length - 1 ) === ">" && html.length >= 3
-                && ( match=singleTagExp.exec(html) ) )
-                return document.createElement( match[1] );
+            if( html.charAt(0) === "<" && html.charAt( html.length - 1 ) === ">" && html.length >= 3 && ( match=singleTagExp.exec(html) ) )
+            {
+                var elem = document.createElement(match[1]);
+                if( match[2]=="" )return elem;
+                match[2]=match[2].replace(/\\'/g, '&#39;').replace(/\\"/g,'&quot;');
+                var attr = "<div "+match[2]+'></div>';
+                elem.innerHTML= attr;
+                attr=elem.childNodes.item(0);
+                Breeze.cloneAttr(elem,attr)
+                elem.innerHTML='';
+                return elem;
+            }
 
             var div = document.createElement( "div")
                 div.innerHTML =  html;
             var len=div.childNodes.length;
+
             if(  len > 1 )
             {
                 var fragment= document.createDocumentFragment();
@@ -1260,6 +1270,7 @@
                 }
                 return fragment;
             }
+
             div=div.childNodes.item(0);
             return div.parentNode.removeChild( div );
 
@@ -2028,7 +2039,7 @@
             if( !write || Breeze.isBoolean(html) )
             {
                 html = html===true ? outerHtml(elem) : elem.innerHTML;
-                return html.replace( defaultCacheName ,'');
+                return html;
             }
 
             if( elem.hasChildNodes() )
