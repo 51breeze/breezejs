@@ -810,26 +810,62 @@
         return null;
     }
 
+    var getAttrExp = /(\w+)(\s*=\s*([\"\'])([^\3]*?)[^\\]\3)?/g;
+    var lrQuoteExp = /^[\'\"]|[\'\"]$/g;
+
+
     /**
      * 克隆元素的属性
-     * @param targetElement
-     * @param srcElement
+     * @param targetAttr
+     * @param refAttr
      * @returns {*}
      */
-    Breeze.cloneAttr=function(targetElement,srcElement)
+    Breeze.cloneAttr=function(targetAttr,refAttr)
     {
-        if( Breeze.isHTMLElement(targetElement) && Breeze.isHTMLElement(srcElement) )
+        if( typeof refAttr === "string" && /[\S]*/.test(refAttr) )
         {
-            if( targetElement.mergeAttributes )
-                targetElement.mergeAttributes( srcElement )
-            else
+            var attr=refAttr.replace(/=\s*(\w+)/g,'="$1"').match( getAttrExp );
+            refAttr={};
+            if( attr && attr.length > 0 )
             {
-                var i= 0,item;
-                while( item=srcElement.attributes.item( i++ ) )
-                    targetElement.setAttribute(item.nodeName,item.nodeValue )
+                var i= 0, item;
+                while( item=attr[i++] )
+                {
+                    var val  =  item.split('=');
+                    if( val.length > 0 )
+                    {
+                        var prop = Breeze.trim( val[0] );
+                        refAttr[ prop ]='';
+                        if( typeof val[1] === "string" )
+                        {
+                            refAttr[ prop ]=val[1].replace( lrQuoteExp ,'').replace(/\\([\'\"])/g,'$1');
+                        }
+                    }
+                }
             }
         }
-        return targetElement;
+
+        if( !refAttr )
+          return targetAttr;
+
+        var flag=  (typeof targetAttr.setAttribute === "function") ;
+        if( typeof targetAttr.mergeAttributes === "function" )
+        {
+            targetAttr.mergeAttributes(refAttr)
+
+        }else if( refAttr.attributes && refAttr.attributes.length > 0 )
+        {
+            var i=0, item;
+            while( item = refAttr.attributes.item(i++) )
+            {
+               flag ? targetAttr.setAttribute(item.nodeName, item.nodeValue) : targetAttr[item.nodeName]=item.nodeValue;
+            }
+
+        }else for( var key in refAttr )
+        {
+            flag ?  targetAttr.setAttribute(key, refAttr[key] ) : targetAttr[key]=refAttr[key];
+        }
+        return targetAttr;
     }
 
     /**
@@ -1231,8 +1267,8 @@
     }
 
     var singleTagExp=/^<(\w+)(.*?)\/\s*>$/;
-    var getAttrExp = /(\w+)(\s*=\s*([\"\'])([^\3]*?)[^\\]\3)?/g;
-    var lr = /^[\'\"]|[\'\"]$/g;
+
+
 
     /**
      * 创建HTML元素
@@ -1261,14 +1297,19 @@
                         var val  =  item.split('=');
                         if( val.length > 0 )
                         {
-                            var prop = Breeze.trim( val[0] );
-                            var val = typeof val[1] === "string" ?  val[1].replace( lr ,'').replace(/\\([\'\"])/g,'$1') : '';
-                            elem.setAttribute( prop , val );
+                            var attrNode = document.createAttribute( Breeze.trim( val[0] ) );
+                            if( typeof val[1] === "string" )
+                            {
+                                attrNode.nodeValue=val[1].replace( lr ,'').replace(/\\([\'\"])/g,'$1');
+                            }
+                            elem.setAttributeNode( attrNode )
                         }
                     }
                 }
                 return elem;
             }
+
+            Breeze.cloneAttr()
 
             var div = document.createElement( "div")
                 div.innerHTML =  html;

@@ -26,6 +26,43 @@
     Breeze(function(){
 
 
+        var tr =  document.createElement('tr');
+
+        tr.setAttribute('name',123)
+
+
+        var tta = document.createAttribute('tttt')
+
+        tr.setAttributeNode( tta )
+
+        tta.nodeValue=999999
+
+
+        console.log(  tr.outerHTML )
+
+
+         tr.innerHTML="<td class='sdf' dddd>{sssss}</td>"
+
+        var fragment= document.createDocumentFragment();
+        fragment.innerHTML="<td class='sdf' dddd>{sssss}</td>"
+
+        console.log(  fragment.childNodes.length )
+
+
+       /* while( len > 0 )
+        {
+            --len;
+            fragment.appendChild( div.childNodes.item(0) );
+        }*/
+        return fragment;
+
+
+        console.log(   tr.innerHTML )
+
+        return;
+
+
+
         var container = Breeze('.container')
 
         var tr= Breeze('<tr/>');
