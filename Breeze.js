@@ -790,6 +790,43 @@
         return object;
     }
 
+    var getAttrExp = /(\w+)(\s*=\s*([\"\'])([^\3]*?)[^\\]\3)?/g;
+    var lrQuoteExp = /^[\'\"]|[\'\"]$/g;
+
+    /**
+     * 匹配字符串中的属性
+     * @param strAttr
+     * @return {}
+     */
+    Breeze.matchAttr=function(strAttr)
+    {
+        if( typeof strAttr === "string" && /[\S]*/.test(strAttr) )
+        {
+            var attr=strAttr.replace(/=\s*(\w+)/g,'="$1"').match( getAttrExp );
+            strAttr={};
+            if( attr && attr.length > 0 )
+            {
+                var i= 0, item;
+                while( item=attr[i++] )
+                {
+                    var val  =  item.split('=');
+                    if( val.length > 0 )
+                    {
+                        var prop = Breeze.trim( val[0] );
+                        strAttr[ prop ]='';
+                        if( typeof val[1] === "string" )
+                        {
+                            strAttr[ prop ]=val[1].replace( lrQuoteExp ,'').replace(/\\([\'\"])/g,'$1');
+                        }
+                    }
+                }
+            }
+            return strAttr;
+        }
+        return null;
+    }
+
+
     /**
      * 克隆节点元素
      * @param nodeElement
@@ -810,10 +847,6 @@
         return null;
     }
 
-    var getAttrExp = /(\w+)(\s*=\s*([\"\'])([^\3]*?)[^\\]\3)?/g;
-    var lrQuoteExp = /^[\'\"]|[\'\"]$/g;
-
-
     /**
      * 克隆元素的属性
      * @param targetAttr
@@ -822,38 +855,13 @@
      */
     Breeze.cloneAttr=function(targetAttr,refAttr)
     {
-        if( typeof refAttr === "string" && /[\S]*/.test(refAttr) )
-        {
-            var attr=refAttr.replace(/=\s*(\w+)/g,'="$1"').match( getAttrExp );
-            refAttr={};
-            if( attr && attr.length > 0 )
-            {
-                var i= 0, item;
-                while( item=attr[i++] )
-                {
-                    var val  =  item.split('=');
-                    if( val.length > 0 )
-                    {
-                        var prop = Breeze.trim( val[0] );
-                        refAttr[ prop ]='';
-                        if( typeof val[1] === "string" )
-                        {
-                            refAttr[ prop ]=val[1].replace( lrQuoteExp ,'').replace(/\\([\'\"])/g,'$1');
-                        }
-                    }
-                }
-            }
-        }
-
-        if( !refAttr )
-          return targetAttr;
-
         var flag=  (typeof targetAttr.setAttribute === "function") ;
+
         if( typeof targetAttr.mergeAttributes === "function" )
         {
             targetAttr.mergeAttributes(refAttr)
 
-        }else if( refAttr.attributes && refAttr.attributes.length > 0 )
+        }else if( refAttr.attributes )
         {
             var i=0, item;
             while( item = refAttr.attributes.item(i++) )
@@ -861,7 +869,7 @@
                flag ? targetAttr.setAttribute(item.nodeName, item.nodeValue) : targetAttr[item.nodeName]=item.nodeValue;
             }
 
-        }else for( var key in refAttr )
+        }else if( Breeze.isObject(refAttr,true) ) for( var key in refAttr )
         {
             flag ?  targetAttr.setAttribute(key, refAttr[key] ) : targetAttr[key]=refAttr[key];
         }

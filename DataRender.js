@@ -1,5 +1,9 @@
-/**
- * Created by Administrator on 15-8-7.
+/*
+ * BreezeJS HttpRequest class.
+ * version: 1.0 Beta
+ * Copyright © 2015 BreezeJS All rights reserved.
+ * Released under the MIT license
+ * https://github.com/51breeze/breezejs
  */
 
 
@@ -37,11 +41,6 @@
 
         EventDispatcher.call(this);
 
-        var httpRequest=null;
-        var pageRows= 20;
-        var totalRows = NaN;
-        var pageIndex = 1;
-
         this.__changed__=false;
 
         this.addEventListener(DataRenderEvent.ITEM_ADD,function(event){
@@ -68,10 +67,8 @@
             }
         });
 
-
-
-
         var compiler;
+        var storage;
 
         /**
          * 返回模板编译器
@@ -82,159 +79,14 @@
             return ( compiler || ( compiler=new Template() ) );
         }
 
-
-        var pageEnable = false;
-
-        /**
-         * 启用分页开关
-         * @param val
-         * @returns {DataRender}
-         */
-        this.pageEnable=function(val)
+        this.storage=function()
         {
-            if( val !== undefined )
-            {
-                pageEnable = !!val;
-                return this;
-            }
-            return pageEnable;
-        }
-
-
-        /**
-         * 每页显示数据行数
-         * @param number rows
-         * @returns {DataRender}
-         */
-        this.rows=function( rows )
-        {
-            if( rows >= 0 ) {
-                pageRows = rows;
-                return this;
-            }
-            return pageRows;
-        }
-
-        /**
-         * 显示第几页的数据
-         * @param number num
-         * @returns {DataRender}
-         */
-        this.page=function( num )
-        {
-            if( num > 0 && pageIndex !== num )
-            {
-                pageIndex = num;
-                this.__changed__=true;
-                return this;
-            }
-            return pageIndex;
-        }
-
-        /**
-         * 数据总计
-         * @param number num
-         * @returns {DataRender}
-         */
-        this.total=function( num )
-        {
-            if( num >= 0 ) {
-                totalRows = num;
-                return this;
-            }
-            return totalRows || this.length;
-        }
-
-        this.http=function()
-        {
-            return httpRequest || ( httpRequest = new HttpRequest() );
+            return ( storage || ( storage=new Storage() ) );
         }
     }
 
     DataRender.prototype = new EventDispatcher()
     DataRender.prototype.constructor=DataRender;
-
-
-    var defaultOption={
-        'method': HttpRequest.METHOD.GET,
-        'dataType':HttpRequest.TYPE.JSON,
-        'callback':null,
-        'param':'',
-        'response':{  //响应的数据包字段
-            'dataProfile':'data',  //主体数据
-            'totalProfile':'total', //请求条件的数据总数
-            'rowsProfile':100       //每批限制拉取的数据量
-        }
-    };
-
-    /**
-     * 请求加载数据源
-     * @param source
-     * @param option
-     * @returns {DataRender}
-     */
-    DataRender.prototype.source=function( source , option )
-    {
-        if( typeof source==='string' && /^https?:\/\/[\w\.]+$/.test( source ) )
-        {
-            option = option ? Breeze.extend(true,{},defaultOption, option) : option;
-            var http = this.http();
-            var rows = Math.max(option.response.rowsProfile, this.rows() );
-            var beforehand = false;
-            var load = function (event)
-            {
-                beforehand = !!event.beforehand;
-                var url = source.replace('%page%', this.page() ).replace('%rows%', rows);
-                option.param = option.param.replace('%page%', this.page()).replace('%rows%', rows);
-                http.open(url, option.method);
-                http.send(option.param);
-            }
-
-            http.addEventListener(HttpEvent.SUCCESS, function (event)
-            {
-                var data = null;
-                if (typeof option.callback === 'function') {
-                    data = option.callback.call(self, event);
-                } else {
-                    data = event.data;
-                }
-                if( data && isNaN(totalRows) )
-                {
-                    var totalProfile = option['response']['totalProfile'];
-                    var dataProfile = option['response']['dataProfile'];
-                    if( typeof data[ totalProfile ] === 'number')
-                    {
-                        totalRows = data[ totalProfile ];
-                    }
-                }
-
-                //没有可加载的数据，直接删除事件侦听
-                if( data instanceof Array && data.length<rows )
-                {
-                    self.removeEventListener( DataRenderEvent.LOAD_START );
-                }
-
-                data = typeof dataProfile === 'string' && typeof data[ dataProfile ] !== 'undefined' ? data[ dataProfile ] : data;
-                var len = self.length;
-                self.splice(len,0,data);
-
-                //如果不是预加载数据
-                if( !beforehand ) {
-                    dispatch.call(self, data, DataRenderEvent.ITEM_CHANGED, len);
-                }
-            })
-
-            this.addEventListener( DataRenderEvent.LOAD_START, load );
-            load();
-
-        }else if( Breeze.isObject(source,true) )
-        {
-            var len = this.length;
-            this.splice(0,len,source);
-            dispatch.call(this,source,DataRenderEvent.ITEM_CHANGED,len);
-        }
-        return this;
-    }
 
 
     /**
@@ -243,89 +95,10 @@
      */
     DataRender.prototype.display=function()
     {
-        if( this.__changed__ !== true )
-            return this;
-
-        var rows=this.length,start=0;
-
-        //如果有开启分页功能
-        if( this.pageEnable() )
-        {
-            var page = this.page()-1;
-                rows = this.rows();
-                start = page * rows;
-
-            //预加载 1 个分页的数据
-            if( this.length - start <= rows*1 && this.hasEventListener( DataRenderEvent.LOAD_START ) )
-            {
-                var data= {'beforehand': (this.length > start+rows) };
-                this.dispatchEvent( new DataRenderEvent(DataRenderEvent.LOAD_START,data) );
-
-                //如果不是预加载数据，等待数据加载完成才能渲染
-                if( !data.beforehand )
-                {
-                    return this;
-                }
-            }
-        }
-
-        //需要分页的数据
-        var data = this.slice( start, start+rows );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        this.__changed__=false;
-        return this;
+         this.storage().fetch()
     }
 
-    /**
-     * 添加数据项到指定的索引位置
-     * @param item
-     * @param index
-     * @returns {DataRender}
-     */
-    DataRender.prototype.addItem=function(item,index)
-    {
-        if( item )
-        {
-            index = typeof index === 'number' ? index : this.length;
-            index = index < 0 ? index + this.length+1 : index;
-            index = Math.min( this.length, Math.max( index, 0 ) )
-            this.splice(index,0,item);
-            dispatch.call(this,item,DataRenderEvent.ITEM_ADD,index);
-            dispatch.call(this,item,DataRenderEvent.ITEM_CHANGED,index);
-        }
-        return this;
-    }
 
-    /**
-     * 移除指定索引下的数据项
-     * @param index
-     * @returns {boolean}
-     */
-    DataRender.prototype.removeItem=function( index )
-    {
-        index = index < 0 ? index+this.length : index;
-        if( index < this.length )
-        {
-            var item=this.splice(index,1);
-            dispatch.call(this,item,DataRenderEvent.ITEM_REMOVE,index);
-            dispatch.call(this,item,DataRenderEvent.ITEM_CHANGED,index);
-            return true;
-        }
-        return false;
-    }
 
     function DataRenderEvent( src, props ){ BreezeEvent.call(this, src, props);}
     DataRenderEvent.prototype=new BreezeEvent();
