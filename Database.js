@@ -18,7 +18,7 @@
     {
         if( this.hasEventListener(type) )
         {
-            var event = new StorageEvent(type)
+            var event = new DatabaseEvent(type)
             event.item=item;
             event.index = index;
             this.dispatchEvent( event );
@@ -81,13 +81,13 @@
                     start = page * rows;
 
                     //预加载 1 个分页的数据
-                    if( !this.__changed__ && this.length - start <= rows*1 && this.hasEventListener( StorageEvent.LOAD_START ) )
+                    if( !this.__changed__ && this.length - start <= rows*1 && this.hasEventListener( DatabaseEvent.LOAD_START ) )
                     {
-                        var  event = new StorageEvent( DataRenderEvent.LOAD_START);
+                        var  event = new DatabaseEvent( DataRenderEvent.LOAD_START);
                         event.beforehand = (this.length > start+rows);
                         !event.beforehand && (this.__changed__=true);
 
-                        this.dispatchEvent( new StorageEvent( event ) );
+                        this.dispatchEvent( new DatabaseEvent( event ) );
 
                         //如果不是预加载数据，等待数据加载完成才能渲染
                         if( !event.beforehand )
@@ -98,7 +98,7 @@
                 }
 
                 //需要分页的数据
-                var event = new StorageEvent( DataRenderEvent.PAGE_CHANGED )
+                var event = new DatabaseEvent( DataRenderEvent.PAGE_CHANGED )
                 event.data =  this.slice( start, start+rows );
                 this.dispatchEvent( event );
             }
@@ -214,7 +214,7 @@
                 //没有可加载的数据，直接删除事件侦听
                 if( data instanceof Array && data.length<rows )
                 {
-                    self.removeEventListener( StorageEvent.LOAD_START );
+                    self.removeEventListener( DatabaseEvent.LOAD_START );
                 }
 
                 data = typeof dataProfile === 'string' && typeof data[ dataProfile ] !== 'undefined' ? data[ dataProfile ] : data;
@@ -223,20 +223,20 @@
 
                 //如果不是预加载数据
                 if( !beforehand ) {
-                    dispatch.call(self, data, StorageEvent.ITEM_CHANGED, len);
+                    dispatch.call(self, data, DatabaseEvent.ITEM_CHANGED, len);
                 }
 
                 if( self.__changed__ )self.fetch();
             })
 
-            this.addEventListener( StorageEvent.LOAD_START, load );
+            this.addEventListener( DatabaseEvent.LOAD_START, load );
             load();
 
         }else if( Breeze.isObject(source,true) )
         {
             var len = this.length;
             this.splice(0,len,source);
-            dispatch.call(this,source,StorageEvent.ITEM_CHANGED,len);
+            dispatch.call(this,source,DatabaseEvent.ITEM_CHANGED,len);
         }
         return this;
     }
@@ -247,7 +247,7 @@
      * @param index
      * @returns {Database}
      */
-    Database.prototype.addItem=function(item,index)
+    Database.prototype.insert=function(item,index)
     {
         if( item )
         {
@@ -255,8 +255,8 @@
             index = index < 0 ? index + this.length+1 : index;
             index = Math.min( this.length, Math.max( index, 0 ) )
             this.splice(index,0,item);
-            dispatch.call(this,item,StorageEvent.ITEM_ADD,index);
-            dispatch.call(this,item,StorageEvent.ITEM_CHANGED,index);
+            dispatch.call(this,item,DatabaseEvent.ITEM_ADD,index);
+            dispatch.call(this,item,DatabaseEvent.ITEM_CHANGED,index);
         }
         return this;
     }
@@ -266,38 +266,84 @@
      * @param index
      * @returns {boolean}
      */
-    Database.prototype.removeItem=function( index )
+    Database.prototype.delete=function( index )
     {
         index = index < 0 ? index+this.length : index;
         if( index < this.length )
         {
             var item=this.splice(index,1);
-            dispatch.call(this,item,StorageEvent.ITEM_REMOVE,index);
-            dispatch.call(this,item,StorageEvent.ITEM_CHANGED,index);
+            dispatch.call(this,item,DatabaseEvent.ITEM_REMOVE,index);
+            dispatch.call(this,item,DatabaseEvent.ITEM_CHANGED,index);
             return true;
         }
         return false;
     }
 
 
-    function StorageEvent( src, props ){ BreezeEvent.call(this, src, props);}
-    StorageEvent.prototype=new BreezeEvent();
-    StorageEvent.prototype.item=null;
-    StorageEvent.prototype.index=NaN;
-    StorageEvent.prototype.beforehand=false;
-    StorageEvent.prototype.data=null;
+    Database.prototype.where=function( column , value, logic )
+    {
+        logic = logic || 'and';
+        this.__where__ =  this.__where__ || [];
+    }
 
-    StorageEvent.prototype.constructor=DataRenderEvent;
-    StorageEvent.ITEM_ADD='itemAdd';
-    StorageEvent.ITEM_REMOVE='itemRemove';
-    StorageEvent.ITEM_CHANGED='itemChanged';
-    StorageEvent.LOAD_START='loadStart';
-    StorageEvent.LOAD_COMPLETE='loadComplete';
-    StorageEvent.PAGE_CHANGED='pageChanged';
+
+    function Grep()
+    {
+        var dataset={};
+        var where=function( column , value, condition, logic )
+        {
+            logic = logic || 'and';
+            var data = dataset[ column ] || ( dataset[ column ] = [] );
+            data.push({'logic':logic,'value':value,'condition':condition});
+        }
+
+        this.eq(column,value,logic)
+        {
+            where(column,value,'==',logic);
+            return this;
+        }
+
+        this.not(column,value,logic)
+        {
+            where(column,value,'!=',logic);
+            return this;
+        }
+
+        this.like=function(column,value,logic)
+        {
+            where(column,value,'like',logic)
+            return this;
+        }
+
+        this.notlike=function(column,value,logic)
+        {
+            where(column,value,'not like',logic)
+            return this;
+        }
+
+
+    }
+
+
+
+
+    function DatabaseEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    DatabaseEvent.prototype=new BreezeEvent();
+    DatabaseEvent.prototype.item=null;
+    DatabaseEvent.prototype.index=NaN;
+    DatabaseEvent.prototype.beforehand=false;
+    DatabaseEvent.prototype.data=null;
+
+    DatabaseEvent.prototype.constructor=DataRenderEvent;
+    DatabaseEvent.ITEM_ADD='itemAdd';
+    DatabaseEvent.ITEM_REMOVE='itemRemove';
+    DatabaseEvent.ITEM_CHANGED='itemChanged';
+    DatabaseEvent.LOAD_START='loadStart';
+    DatabaseEvent.LOAD_COMPLETE='loadComplete';
+    DatabaseEvent.PAGE_CHANGED='pageChanged';
 
     window.Storage=Database
-    window.StorageEvent=StorageEvent
-
+    window.DatabaseEvent=DatabaseEvent
 
 
 })(window)
