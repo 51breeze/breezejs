@@ -315,12 +315,51 @@
             return this;
         }
 
-        this.notlike=function(column,value,logic)
+        this.notLike=function(column,value,logic)
         {
             where(column,value,'not like',logic)
             return this;
         }
 
+        this.create=function()
+        {
+            var where = []
+            for(var column in dataset )
+            {
+               var item =  dataset[ column ];
+               for( var i in item )
+               {
+                   var val = item[ i ];
+
+                   if( i > 0 )
+                   {
+                       where.push( val.logic );
+                   }
+
+                   if( typeof val.value === "function" )
+                   {
+                       where.push(column+val.condition+'dataset["'+column+'"]['+i+'].value.call(this,item)')
+
+                   }else if( val.value instanceof Grep )
+                   {
+                       where.push(column+val.condition + '('+ val.value.create()+')' )
+
+                   }else if( typeof  val.value === "string" )
+                   {
+                       where.push( column+ val.condition +  val.value )
+                   }
+               }
+            }
+
+
+        }
+
+        this.exec=function( data )
+        {
+
+
+
+        }
 
     }
 
