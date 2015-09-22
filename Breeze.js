@@ -859,7 +859,7 @@
 
         if( typeof targetAttr.mergeAttributes === "function" )
         {
-            targetAttr.mergeAttributes(refAttr)
+            targetAttr.mergeAttributes(refAttr);
 
         }else if( refAttr.attributes )
         {
