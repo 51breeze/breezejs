@@ -279,87 +279,8 @@
         return false;
     }
 
-
-    Database.prototype.where=function( column , value, logic )
+    Database.prototype.where=function( query )
     {
-        logic = logic || 'and';
-        this.__where__ =  this.__where__ || [];
-    }
-
-
-    function Grep()
-    {
-        var dataset={};
-        var where=function( column , value, condition, logic )
-        {
-            logic = logic || 'and';
-            var data = dataset[ column ] || ( dataset[ column ] = [] );
-            data.push({'logic':logic,'value':value,'condition':condition});
-        }
-
-        this.eq(column,value,logic)
-        {
-            where(column,value,'==',logic);
-            return this;
-        }
-
-        this.not(column,value,logic)
-        {
-            where(column,value,'!=',logic);
-            return this;
-        }
-
-        this.like=function(column,value,logic)
-        {
-            where(column,value,'like',logic)
-            return this;
-        }
-
-        this.notLike=function(column,value,logic)
-        {
-            where(column,value,'not like',logic)
-            return this;
-        }
-
-        this.create=function()
-        {
-            var where = []
-            for(var column in dataset )
-            {
-               var item =  dataset[ column ];
-               for( var i in item )
-               {
-                   var val = item[ i ];
-
-                   if( i > 0 )
-                   {
-                       where.push( val.logic );
-                   }
-
-                   if( typeof val.value === "function" )
-                   {
-                       where.push(column+val.condition+'dataset["'+column+'"]['+i+'].value.call(this,item)')
-
-                   }else if( val.value instanceof Grep )
-                   {
-                       where.push(column+val.condition + '('+ val.value.create()+')' )
-
-                   }else if( typeof  val.value === "string" )
-                   {
-                       where.push( column+ val.condition +  val.value )
-                   }
-               }
-            }
-
-
-        }
-
-        this.exec=function( data )
-        {
-
-
-
-        }
 
     }
 
