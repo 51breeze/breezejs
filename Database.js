@@ -280,48 +280,144 @@
     }
 
 
-    Database.prototype.where=function( column , value, logic )
+    Database.prototype.where=function( query )
     {
-        logic = logic || 'and';
-        this.__where__ =  this.__where__ || [];
+
     }
 
 
-    function Grep()
+    function Grep( data )
     {
-        var dataset={};
-        var where=function( column , value, condition, logic )
+        var whereData=[];
+
+
+
+
+        this.where=function( column , value, condition, logic )
         {
-            logic = logic || 'and';
-            var data = dataset[ column ] || ( dataset[ column ] = [] );
-            data.push({'logic':logic,'value':value,'condition':condition});
+            whereData.push({'logic':logic || 'and','column':column,'value':value,'condition':condition});
+            return this;
+        }
+
+        this.filter=function()
+        {
+
+        }
+
+        this.create=function()
+        {
+            var i, item,type,command=[];
+            for( i in whereData )
+            {
+                item =  whereData[i];
+                if( command.length>0 )command.push(item.logic);
+                type = typeof item.value;
+
+                var value;
+
+             //  type === "string" ? '"'+item.value+'"';
+
+                if(  type === "function" )
+                {
+                    value='where[' + i + '].value.call(item)';
+
+
+                }else{
+
+                    value='where[' + i + '].value';
+
+                }
+                command.push('item["' + item.column + '"] ' + item.condition + value);
+
+
+
+            }
+            return command.join(' ');
+        }
+
+        this.query=function()
+        {
+            var command = [];
+            if( data instanceof Array )
+            {
+                command.push('var len=data.length;');
+                command.push('var i=0;');
+                command.push('var item;');
+                command.push('for(; i< len ; i++){');
+                command.push('item=data[i];');
+            }
+
+            for(var i in whereData )
+            {
+                var item =  whereData[i];
+                if( command.length>0 )
+                    command.push(item.logic);
+                var type = typeof item.value;
+                if( type === "string" )
+                {
+                    command.push('item["' + item.column + '"] ' + item.condition + ' "'+item.value+'"');
+
+                }else if(  type === "function" )
+                {
+                    command.push('item["' + item.column + '"] ' + item.condition + ' this[' + i + '].value.call(item)');
+
+                }else{
+                    command.push('item["' + item.column + '"] ' + item.condition + ' this[' + i + '].value');
+                }
+            }
+            command='if('+ command.join(' ') +')';
+
+           return new Function( command ).call(whereData);
+
         }
 
         this.eq(column,value,logic)
         {
-            where(column,value,'==',logic);
+            this.where(column,value,'==',logic);
             return this;
         }
 
         this.not(column,value,logic)
         {
-            where(column,value,'!=',logic);
+            this.where(column,value,'!=',logic);
+            return this;
+        }
+
+        this.gt=function(column,value,logic)
+        {
+            this.where(column,value,'>',logic);
+            return this;
+        }
+
+        this.lt=function(column,value,logic)
+        {
+            this.where(column,value,'<',logic);
+            return this;
+        }
+
+        this.gteq=function(column,value,logic)
+        {
+            this.where(column,value,'>=',logic);
+            return this;
+        }
+
+        this.lteq=function(column,value,logic)
+        {
+            this.where(column,value,'<=',logic);
             return this;
         }
 
         this.like=function(column,value,logic)
         {
-            where(column,value,'like',logic)
+            this.where(column,value,'like',logic)
             return this;
         }
 
-        this.notlike=function(column,value,logic)
+        this.notLike=function(column,value,logic)
         {
-            where(column,value,'not like',logic)
+            this.where(column,value,'notlike',logic)
             return this;
         }
-
-
     }
 
 
