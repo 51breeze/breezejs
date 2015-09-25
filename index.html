@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <script src="sizzle.js" ></script>
     <script src="BreezeEvent.js" ></script>
+    <script src="Grep.js" ></script>
     <script src="DataArray.js" ></script>
     <script src="CacheProxy.js" ></script>
     <script src="EventDispatcher.js" ></script>
@@ -19,6 +20,18 @@
 </head>
 
 <script>
+
+
+    var grep = new Grep();
+
+    var data=[{name:'123'},{name:'456'}]
+
+   var re= grep.exec( data )
+
+    console.log( grep, re  )
+
+
+
 
 
 

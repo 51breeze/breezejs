@@ -22,10 +22,10 @@
             if( filter!==null && changed === false )
                 return filter;
 
-            var i, item,type,value,command=['var item=arguments[0];'];
-            for( i in whereData )
+            var i=0, item,type,value,command=[];
+            for( ; i < this.length ; i++ )
             {
-                item =  whereData[i];
+                item =  this[i];
                 command.length===0 || command.push(item.logic);
                 type = typeof item.value;
                 value = type === "string" ? '"'+item.value+'"' : ( type === "function" ? 'this[' + i + '].value.call(item)' : 'this[' + i + '].value' );
@@ -48,7 +48,13 @@
                    command.push('item["' + item.column + '"] ' + item.condition + value);
                 }
             }
-            filter = new Function( 'if( '+command.join(' ')+' ){return true;}else{return false;}' );
+
+            console.log( command.join(' ') )
+
+            filter = new Function( 'var item=arguments[0];\n if( '+command.join(' ')+' ){return true;}else{return false;}' );
+
+            console.log( filter )
+
             changed=false;
             return filter;
         }
@@ -208,4 +214,4 @@
 
     window.Grep = Grep;
 
-})()
+})(window)
