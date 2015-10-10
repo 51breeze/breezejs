@@ -24,13 +24,15 @@
 
     var grep = new Grep();
 
-    var data=[{name:'123'},{name:'456'}]
+    var data=[{name:'123'},{name:'456中国人民解放军'}]
+
+    grep.eq('name',123);
+
+    grep.like('name','56', Grep.LIKE_BOTH,'or');
 
    var re= grep.exec( data )
 
     console.log( grep, re  )
-
-
 
 
 

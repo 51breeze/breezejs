@@ -14,9 +14,8 @@
             return new Grep();
 
         this.length=0;
-
         var filter=null;
-        var changed=false;
+        var changed=true;
         var getFilter = function()
         {
             if( filter!==null && changed === false )
@@ -29,32 +28,28 @@
                 command.length===0 || command.push(item.logic);
                 type = typeof item.value;
                 value = type === "string" ? '"'+item.value+'"' : ( type === "function" ? 'this[' + i + '].value.call(item)' : 'this[' + i + '].value' );
-
-                if( item.condition==='like' || item.condition==='notlike' )
+                if( item.operational==='like' || item.operational==='notlike' )
                 {
-                    var flag = item.condition === 'notlike' ? '!' : '';
+                    var flag = item.operational === 'notlike' ? '!' : '';
                     if( item.type === 'left' )
                     {
-                        command.push(flag+"new RegExp('^'+ value ).test( item[\"" + item.column + "\"] )");
+                        command.push(flag+"new RegExp('^'+this[" + i + "].value ).test( item[\"" + item.column + "\"] )");
                     }else if( item.type === 'right' )
                     {
-                        command.push(flag+"new RegExp( value+'$' ).test( item[\"" + item.column + "\"] )");
+                        command.push(flag+"new RegExp( this[" + i + "].value+'$' ).test( item[\"" + item.column + "\"] )");
                     }else
                     {
-                        command.push(flag+"new RegExp( value ).test( item[\"" + item.column + "\"] )");
+                        command.push(flag+"new RegExp( this[" + i + "].value ).test( item[\"" + item.column + "\"] )");
                     }
                 }else
                 {
-                   command.push('item["' + item.column + '"] ' + item.condition + value);
+                   command.push('item["' + item.column + '"] ' + item.operational + value);
                 }
             }
-
-            console.log( command.join(' ') )
-
+            if( command.length === 0 )
+              return null;
             filter = new Function( 'var item=arguments[0];\n if( '+command.join(' ')+' ){return true;}else{return false;}' );
-
             console.log( filter )
-
             changed=false;
             return filter;
         }
@@ -63,13 +58,14 @@
          * 筛选条件组合
          * @param column
          * @param value
-         * @param condition
+         * @param operational
          * @param logic
          * @returns {Grep}
          */
-        this.where=function( column , value, condition, logic ,type )
+        this.where=function( column , value, operational, logic ,type )
         {
-            this[ this.length ]={'logic':logic || 'and','column':column,'value': ( value instanceof Grep ? value.exec : value ) ,'condition':condition,'type':type};
+            logic = logic==='or' ? '||' : '&&';
+            this[ this.length ]={'logic':logic || '&&','column':column,'value': ( value instanceof Grep ? value.exec : value ) ,'operational':operational,'type':type};
             this.length++;
             return this;
         }
@@ -84,8 +80,10 @@
         {
             if( typeof filter !=="function" )
             {
-                filter = getFilter();
+                filter = getFilter.call(this);
+                if( !filter )return null;
             }
+
             if( data instanceof Array )
             {
                 var result=[];
@@ -208,9 +206,9 @@
         return this;
     }
 
-    Grep.TYPE_LEFT='left';
-    Grep.TYPE_RIGHT='right';
-    Grep.TYPE_BOTH='both';
+    Grep.LIKE_LEFT='left';
+    Grep.LIKE_RIGHT='right';
+    Grep.LIKE_BOTH='both';
 
     window.Grep = Grep;
 
