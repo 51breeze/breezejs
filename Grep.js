@@ -1,5 +1,5 @@
 /*
- * BreezeJS HttpRequest class.
+ * BreezeJS Grep class.
  * version: 1.0 Beta
  * Copyright © 2015 BreezeJS All rights reserved.
  * Released under the MIT license
@@ -26,6 +26,14 @@
             {
                 item =  this[i];
                 command.length===0 || command.push(item.logic);
+
+                if( item.value instanceof Grep )
+                {
+                    item.value=getFilter.call( item.value );
+                    command.push( 'this[' + i + '].value.call(item)' );
+                    continue;
+                }
+
                 type = typeof item.value;
                 value = type === "string" ? '"'+item.value+'"' : ( type === "function" ? 'this[' + i + '].value.call(item)' : 'this[' + i + '].value' );
                 if( item.operational==='like' || item.operational==='notlike' )
@@ -65,7 +73,7 @@
         this.where=function( column , value, operational, logic ,type )
         {
             logic = logic==='or' ? '||' : '&&';
-            this[ this.length ]={'logic':logic || '&&','column':column,'value': ( value instanceof Grep ? value.exec : value ) ,'operational':operational,'type':type};
+            this[ this.length ]={'logic':logic || '&&','column':column,'value': value ,'operational':operational,'type':type};
             this.length++;
             return this;
         }
