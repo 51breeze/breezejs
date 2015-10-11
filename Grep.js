@@ -8,107 +8,180 @@
 
 (function(window,undefined){
 
-    function Grep()
+    /**
+     * 筛选条件组合
+     * @param column
+     * @param value
+     * @param operational
+     * @param logic
+     * @returns {Grep}
+     */
+    var where=function( column , value, operational, logic ,type )
     {
-        if( !(this instanceof Grep) )
-            return new Grep();
+        logic = logic==='or' ? '||' : '&&';
+        this[ this.length ]= {'logic':logic,'column':column,'value':value,'operational':operational,'type':type};
+        this.length++;
+        return this;
+    }
 
-        this.length=0;
-        var filter=null;
-        var changed=true;
-        var getFilter = function()
+    /**
+     * 根据据指定的条件生成筛选器
+     * @returns {Function|*}
+     */
+    var createFilter = function()
+    {
+        var i=0, item,type,value,refvalue,command=[];
+        for( ; i < this.length ; i++ )
         {
-            if( filter!==null && changed === false )
-                return filter;
+            item =  this[i];
+            command.length===0 || command.push(item.logic);
+            type = typeof item.value;
+            value = 'this[' + i + '].value';
 
-            var i=0, item,type,value,command=[];
-            for( ; i < this.length ; i++ )
+            if( item.value instanceof Grep )
             {
-                item =  this[i];
-                command.length===0 || command.push(item.logic);
+                command.push( 'this[' + i + '].value.exec(arguments[0])' );
 
-                if( item.value instanceof Grep )
-                {
-                    item.value=getFilter.call( item.value );
-                    command.push( 'this[' + i + '].value.call(item)' );
-                    continue;
-                }
+            }else if( type === "function" )
+            {
+                command.push( 'this[' + i + '].value.call(this,arguments[0])' );
 
-                type = typeof item.value;
-                value = type === "string" ? '"'+item.value+'"' : ( type === "function" ? 'this[' + i + '].value.call(item)' : 'this[' + i + '].value' );
+            }else
+            {
+                refvalue= "arguments[0][\"" + item.column + "\"]";
                 if( item.operational==='like' || item.operational==='notlike' )
                 {
                     var flag = item.operational === 'notlike' ? '!' : '';
-                    if( item.type === 'left' )
+                    if( item.type === 'right' )
                     {
-                        command.push(flag+"new RegExp('^'+this[" + i + "].value ).test( item[\"" + item.column + "\"] )");
-                    }else if( item.type === 'right' )
+                        command.push(flag+"new RegExp('^'+"+value+" ).test("+refvalue+")");
+                    }else if( item.type === 'left' )
                     {
-                        command.push(flag+"new RegExp( this[" + i + "].value+'$' ).test( item[\"" + item.column + "\"] )");
+                        command.push(flag+"new RegExp("+value+"+'$' ).test("+refvalue+")");
                     }else
                     {
-                        command.push(flag+"new RegExp( this[" + i + "].value ).test( item[\"" + item.column + "\"] )");
+                        command.push(flag+"new RegExp( "+value+" ).test("+refvalue+")");
                     }
+
                 }else
                 {
-                   command.push('item["' + item.column + '"] ' + item.operational + value);
+                    command.push( refvalue + item.operational + value);
                 }
             }
-            if( command.length === 0 )
-              return null;
-            filter = new Function( 'var item=arguments[0];\n if( '+command.join(' ')+' ){return true;}else{return false;}' );
-            console.log( filter )
-            changed=false;
-            return filter;
+        }
+        filter=command.length === 0 ? function(){return true} : new Function('return ( '+command.join(' ')+' )' );
+        return filter;
+    }
+
+
+    /**
+     * @returns {Grep}
+     * @constructor
+     */
+    function Grep( data )
+    {
+        if( !(this instanceof Grep) )
+            return new Grep( data );
+
+        if( !(data instanceof Array) && typeof data !== 'object' )
+        {
+            throw new Error('invalid param.');
         }
 
+        var _filter=null;
+
         /**
-         * 筛选条件组合
-         * @param column
-         * @param value
-         * @param operational
-         * @param logic
-         * @returns {Grep}
+         * 获取设置过滤器
+         * @param filter
+         * @returns {*}
          */
-        this.where=function( column , value, operational, logic ,type )
+        this.filter=function(filter)
         {
-            logic = logic==='or' ? '||' : '&&';
-            this[ this.length ]={'logic':logic || '&&','column':column,'value': value ,'operational':operational,'type':type};
-            this.length++;
+            if( typeof filter === "undefined" )
+            {
+                return _filter || ( _filter=createFilter.call(this) );
+            }
+
+            if( typeof filter === 'string' )
+            {
+                filter = filter.replace(/(\w+)\s*(?=[\=\!\<\>]+)/g,function(a,b){
+                    return "arguments[0]['"+b+"']";
+                }).replace(/(\w+)\s+(notlike|like)\s+([\'\"])([^\3]*)\3/g,function(a,b,c,d,e){
+
+                    e= e.replace(/(%)?([^%]*)(%)?/,function(a,b,c,d){
+                        return typeof b==='undefined' ? '^'+c : typeof d==='undefined' ? c+'$' : c;
+                    });
+                    return "new RegExp('"+e+"').test(arguments[0]['"+b+"'])";
+                }).replace(/\s+(or|and)\s+/gi,function(a,b){
+                    return b.toLowerCase()=='or' ? ' || ' : ' && ';
+                }).replace(/([\!\>\<]?[\=]+)/g,function(a,b){
+                    return b.length === 1 ? '==' : b;
+                });
+                filter=new Function('return !!('+filter+')');
+            }
+
+            _filter=filter;
             return this;
         }
 
         /**
-         * 执行筛选操作
-         * @param data
-         * @param filter
          * @returns {*}
          */
-        this.exec=function( data ,filter )
-        {
-            if( typeof filter !=="function" )
-            {
-                filter = getFilter.call(this);
-                if( !filter )return null;
-            }
+        this.data=function(){return data;}
 
-            if( data instanceof Array )
-            {
-                var result=[];
-                for(var i in data ) if( filter.call(this,data[i]) )
-                {
-                    result.push( data[i] );
-                }
-                return result;
-
-            }else if( filter.call(this,data) )
-            {
-                return data;
-            }
-            return null;
-        }
     }
 
+    /**
+     * constructor.
+     * @type {Grep}
+     */
+    Grep.prototype.constructor=Grep;
+
+    /**
+     * @type {number}
+     */
+    Grep.prototype.length=0;
+
+    /**
+     * 执行筛选操作
+     * @param data
+     * @param filter
+     * @returns {boolean}
+     */
+    Grep.prototype.exec=function( item )
+    {
+        return !!this.filter().call(this,item);
+    }
+
+    /**
+     * 查询数据
+     * @param data
+     * @param filter
+     * @returns {*}
+     */
+    Grep.prototype.query=function( filter )
+    {
+        if( typeof filter !== "undefined" )
+        {
+           this.filter( filter );
+        }
+
+        var data=this.data();
+        if( data instanceof Array )
+        {
+            var result=[];
+            for(var i in data ) if( this.exec( data[i] ) )
+            {
+                result.push( data[i] );
+            }
+            return result;
+
+        }else if( this.exec( data ) )
+        {
+            return data;
+        }
+        return null;
+    }
 
     /**
      * 筛选等于指定列的值
@@ -119,7 +192,7 @@
      */
     Grep.prototype.eq=function(column,value,logic)
     {
-        this.where(column,value,'==',logic);
+        where.call(this,column,value,'==',logic);
         return this;
     }
 
@@ -132,7 +205,7 @@
      */
     Grep.prototype.not=function(column,value,logic)
     {
-        this.where(column,value,'!=',logic);
+        where.call(this,column,value,'!=',logic);
         return this;
     }
 
@@ -145,7 +218,7 @@
      */
     Grep.prototype.gt=function(column,value,logic)
     {
-        this.where(column,value,'>',logic);
+        where.call(this,column,value,'>',logic);
         return this;
     }
 
@@ -158,7 +231,7 @@
      */
     Grep.prototype.lt=function(column,value,logic)
     {
-        this.where(column,value,'<',logic);
+        where.call(this,column,value,'<',logic);
         return this;
     }
 
@@ -171,7 +244,7 @@
      */
     Grep.prototype.gteq=function(column,value,logic)
     {
-        this.where(column,value,'>=',logic);
+        where.call(this,column,value,'>=',logic);
         return this;
     }
 
@@ -184,7 +257,7 @@
      */
     Grep.prototype.lteq=function(column,value,logic)
     {
-        this.where(column,value,'<=',logic);
+        where.call(this,column,value,'<=',logic);
         return this;
     }
 
@@ -197,7 +270,7 @@
      */
     Grep.prototype.like=function(column,value,type,logic)
     {
-        this.where(column,value,'like',logic,type);
+        where.call(this,column,value,'like',logic,type);
         return this;
     }
 
@@ -210,7 +283,7 @@
      */
     Grep.prototype.notLike=function(column,value,type,logic)
     {
-        this.where(column,value,'notlike',logic,type);
+        where.call(this,column,value,'notlike',logic,type);
         return this;
     }
 

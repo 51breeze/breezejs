@@ -98,6 +98,28 @@
             return i;
         return -1;
     }
+
+    /**
+     * 根据指定的列进行排序
+     * @param column
+     * @param type
+     * @returns {DataArray}
+     */
+    DataArray.prototype.orderBy=function(column,type)
+    {
+        type =type && DataArray.DESC === type.toLowerCase() ?  DataArray.DESC :  DataArray.ASC;
+        this.sort(function(a,b){
+            if( typeof a[ column ] === "undefined" )
+               return 0;
+           return type === DataArray.ASC ? a[ column ].localeCompare( b[ column ] ):b[ column ].localeCompare( a[ column ] );
+        })
+        return this;
+    }
+
+    DataArray.DESC='desc';
+    DataArray.ASC='asc';
+
+
     window.DataArray=DataArray;
 
 })(window)

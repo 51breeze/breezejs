@@ -22,20 +22,28 @@
 <script>
 
 
-    var grep = new Grep();
+    var data=[
+        {name:'a','phone':'1'},
+        {name:'c','phone':'3'},
+        {name:'c','phone':'4'},
+        {name:'c','phone':'2'},
+        {name:'b','phone':'8'}
+    ]
 
-    var data=[{name:'123'},{name:'456中国人民解放军'}]
+  var da = new DataArray( data );
 
-    grep.eq('name',123);
+    da.orderBy('phone','desc')
+   da.orderBy('name','asc')
 
-    grep.like('name','56', Grep.LIKE_BOTH,'or');
 
-   var re= grep.exec( data )
-
-    console.log( grep, re  )
+    console.log( da );
 
 
 
+    var grep = new Grep( data );
+       // grep.like('name','中国');
+
+    console.log( grep.query('name like "中国%" ')  )
 
 
     Breeze(function(){
