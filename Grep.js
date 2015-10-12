@@ -97,7 +97,7 @@
          */
         this.filter=function(filter)
         {
-            if( typeof filter === "undefined" )
+            if( !filter )
             {
                 return _filter || ( _filter=createFilter.call(this) );
             }
@@ -161,26 +161,28 @@
      */
     Grep.prototype.query=function( filter )
     {
-        if( typeof filter !== "undefined" )
+        if( filter )
         {
            this.filter( filter );
         }
 
         var data=this.data();
+        var result=null;
+
         if( data instanceof Array )
         {
-            var result=[];
-            for(var i in data ) if( this.exec( data[i] ) )
+            result=[]
+            for(var i=0; i<data.length; i++ ) if( this.exec( data[i] ) )
             {
                 result.push( data[i] );
             }
-            return result;
 
         }else if( this.exec( data ) )
         {
-            return data;
+            result=data;
         }
-        return null;
+        this.filter( null );
+        return result;
     }
 
     /**

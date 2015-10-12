@@ -106,12 +106,23 @@
             return this;
         }
 
-        this.limit=function(rows,offset)
+        /**
+         * @private
+         */
+        var limit=null;
+
+
+        /**
+         * 限制数据集
+         * @returns {*}
+         */
+        this.limit=function()
         {
-
+           if( arguments.length === 0 )
+              return limit;
+           limit=[arguments[0],arguments[1]]
+           return this;
         }
-
-
 
         /**
          * 数据总计
@@ -151,6 +162,25 @@
         this.http=function()
         {
             return httpRequest || ( httpRequest = new HttpRequest() );
+        }
+
+        var grep=null;
+        this.grep=function()
+        {
+            return grep || ( grep=new Grep( this ) );
+        }
+
+        var where=null;
+
+        /**
+         * 从指定条件中查询
+         * @param query
+         */
+        this.where=function( condition )
+        {
+            if( typeof condition === "string" )
+               where=condition;
+            return where;
         }
 
     }
@@ -266,26 +296,46 @@
      * @param index
      * @returns {boolean}
      */
-    Database.prototype.delete=function( index )
+    Database.prototype.delete=function()
     {
-        index = index < 0 ? index+this.length : index;
-        if( index < this.length )
+        var index,item;
+        if( this.grep().length > 0 )
         {
-            var item=this.splice(index,1);
-            dispatch.call(this,item,DatabaseEvent.ITEM_REMOVE,index);
-            dispatch.call(this,item,DatabaseEvent.ITEM_CHANGED,index);
-            return true;
+            var result = this.select();
+            for(var i=0; i<result.length ; i++)
+            {
+                index = this.indexOf( result[i] )
+                if( index >=0 && index < this.length )
+                {
+                    item=this.splice(index,1);
+                    dispatch.call(this,item,DatabaseEvent.ITEM_REMOVE,index);
+                    dispatch.call(this,item,DatabaseEvent.ITEM_CHANGED,index);
+                }
+            }
+
+        }else
+        {
+            item=this.splice(0,this.length);
+            dispatch.call(this,item,DatabaseEvent.ITEM_REMOVE,0);
+            dispatch.call(this,item,DatabaseEvent.ITEM_CHANGED,0);
         }
-        return false;
+        return true;
     }
 
-    Database.prototype.where=function( query )
+    /**
+     * 选择数据集
+     * @returns {array}
+     */
+    Database.prototype.select=function()
     {
-
+        var result = this.grep().length > 0 ?  this.grep().query( this.where() ) : this.toArray();
+        var limit = this.limit();
+        if( limit )
+        {
+           return result.slice( limit[0], limit[0]+limit[1] )
+        }
+        return result;
     }
-
-
-
 
     function DatabaseEvent( src, props ){ BreezeEvent.call(this, src, props);}
     DatabaseEvent.prototype=new BreezeEvent();
