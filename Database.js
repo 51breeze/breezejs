@@ -9,6 +9,23 @@
 (function(window,undefined){
 
 
+    var defaultOption={
+        'method': HttpRequest.METHOD.GET,
+        'dataType':HttpRequest.TYPE.JSON,
+        'callback':null,
+        'param':'',
+        'profile':{
+            'data':'data',     //数据集
+            'total':'total',   //数据总数
+            'offset':'offset', //数据偏移量
+            'rows'  : 'rows' , //每次摘取多少行数据
+            'status': 'code'  //请求状态
+        },
+        'successStatus' : 0 , //成功时的状态值
+        'preloadRows':100         //每次摘取的数据量
+    };
+
+
     /**
      * 调度事件
      * @param item
@@ -25,13 +42,16 @@
         }
     }
 
-    function Database()
+    function Database(source,option)
     {
         if( !(this instanceof Database) )
         {
-            return new Database();
+            return new Database(source,option);
         }
         EventDispatcher.call(this);
+
+
+
 
         var httpRequest=null;
         var pageRows= 20;
@@ -188,43 +208,34 @@
     Database.prototype = new EventDispatcher()
     Database.prototype.constructor=Database;
 
-    var defaultOption={
-        'method': HttpRequest.METHOD.GET,
-        'dataType':HttpRequest.TYPE.JSON,
-        'callback':null,
-        'param':'',
-        'response':{  //响应的数据包字段
-            'dataProfile':'data',  //主体数据
-            'totalProfile':'total', //请求条件的数据总数
-            'rowsProfile':100       //每批限制拉取的数据量
-        }
-    };
-
     /**
      * 请求加载数据源
      * @param source
      * @param option
      * @returns {DataRender}
      */
-    Database.prototype.source=function( source , option )
+    Database.prototype.source=function(source , option )
     {
         if( typeof source==='string' && /^https?:\/\/[\w\.]+$/.test( source ) )
         {
             option = option ? Breeze.extend(true,{},defaultOption, option) : option;
-            var http = this.http();
-            var rows = Math.max(option.response.rowsProfile, this.rows() );
+            var http = new HttpRequest();
+            var rows = option.preloadRows;
             var beforehand = false;
+            var loadNum=0;
             var load = function (event)
             {
                 beforehand = !!event.beforehand;
-                var url = source.replace('%page%', this.page() ).replace('%rows%', rows);
-                option.param = option.param.replace('%page%', this.page()).replace('%rows%', rows);
+                var offset = loadNum * rows;
+                var url = source.replace('%'+option.profile.offset+'%', offset ).replace('%'+option.profile.rows+'%', rows);
+                option.param = option.param.replace('%'+option.profile.offset+'%', offset).replace('%'+option.profile.rows+'%', rows);
                 http.open(url, option.method);
                 http.send(option.param);
             }
 
             http.addEventListener(HttpEvent.SUCCESS, function (event)
             {
+                loadNum++
                 var data = null;
                 if (typeof option.callback === 'function') {
                     data = option.callback.call(self, event);
@@ -255,8 +266,6 @@
                 if( !beforehand ) {
                     dispatch.call(self, data, DatabaseEvent.ITEM_CHANGED, len);
                 }
-
-                if( self.__changed__ )self.fetch();
             })
 
             this.addEventListener( DatabaseEvent.LOAD_START, load );
