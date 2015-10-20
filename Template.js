@@ -68,7 +68,7 @@
            if( object instanceof Array )
              return true;
            var prop = typeof object;
-           if( prop === 'undefined' ||  prop !=='object' )
+           if( object === null || prop === 'undefined' ||  prop !=='object' )
                 return false;
            return true;
        }
@@ -181,8 +181,6 @@
                 }
                 code += replace( template.substr(cursor, template.length - cursor) );
                 code += 'return ___code___;';
-
-                console.log( code )
                 return new Function( code ).call( variable , template );
             }
 
@@ -196,6 +194,15 @@
         {
             this.scope().set(name,value)
             return this;
+        }
+
+        /**
+         * 指定的上下文
+         * @returns {*|null}
+         */
+        this.context=function()
+        {
+            return context;
         }
 
         /**
@@ -337,6 +344,7 @@
 
     window.Template = Template;
     window.TemplateEvent = TemplateEvent;
+    window.Variable=Variable;
 
 
 })(window)

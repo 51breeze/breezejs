@@ -123,8 +123,9 @@
                         var data = event.data;
                         var totalProfile = options.profile.total;
                         var dataProfile = options.profile.data;
-                        if (typeof data[totalProfile] === 'number') {
-                            self.predicts(data[totalProfile]);
+                        var total = parseInt( data[totalProfile] ) || 0;
+                        if ( total > 0 ) {
+                            self.predicts( total );
                         }
 
                         data = typeof data[dataProfile] !== 'undefined' ? data[dataProfile] : data;
@@ -136,6 +137,7 @@
 
                         var len = self.length;
                         self.splice(len, 0, data);
+
                         dispatch.call(self, data, DataSourceEvent.LOAD_COMPLETE, len, event);
                         if (typeof self.__fetched__ === "number") {
                             self.fetch(self.__fetched__);
@@ -268,6 +270,15 @@
         }
 
         /**
+         * 总分页数
+         * @return number
+         */
+        this.totalPages=function()
+        {
+           return Math.ceil( this.predicts() / this.rows() );
+        }
+
+        /**
          * 初始化数据源
          */
         this.source( source, option );
@@ -343,7 +354,8 @@
         var rows=this.rows(),start=( page-1 ) * rows;
         this.__fetched__ = page;
 
-        if( ( start+rows < this.length || this.isRemote() !==true ) && this.hasEventListener(DataSourceEvent.FETCH_DATA) )
+        if( ( start+rows < this.length || this.isRemote() !==true || !this.hasEventListener(DataSourceEvent.LOAD_START) ) &&
+            this.hasEventListener(DataSourceEvent.FETCH_DATA) )
         {
             this.__fetched__=null;
             var offset  =  start;

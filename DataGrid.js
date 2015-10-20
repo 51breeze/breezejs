@@ -7,7 +7,6 @@
  */
 (function(window,undefined )
 {
-
     function mergeOption(target,column,option)
     {
         var opt={}
@@ -32,7 +31,6 @@
 
     function DataGrid( target )
     {
-
         var theadTemplate='';
         var tbodyTemplate='';
         var dataRender = null;
@@ -49,50 +47,6 @@
         if( target && !(target instanceof Breeze) )
         {
            throw new Error('target invalid');
-        }
-
-        // 为每行绑定动作行为
-        var bindAction=function( target )
-        {
-            target.find('[data-action]').each(function(elem,index){
-
-                var action = this.property('data-action');
-                if( plus_data.option[ action ] )
-                {
-                    var option = plus_data.option[ action ];
-                    if( option.cursor )
-                        this.style('cursor', option.cursor );
-
-                    this.addEventListener( option.eventType , function(event)
-                    {
-                        var index =  this.property('data-index');
-                        if( typeof option.callback ==='function' )
-                        {
-                            option.callback.call(this,index, dataRender, event );
-                        }
-                    })
-                }
-            })
-
-            target.find('[data-bind]').each(function(elem){
-
-                var index = this.property('data-index');
-                var name = this.property('data-bind');
-                var item = dataRender[index];
-                var bind = new Bindable()
-                this.data('__binder__', bind );
-                bind.bind(item,name);
-
-                this.addEventListener(BreezeEvent.BLUR,function(event)
-                {
-                    var name =  this.property('data-bind');
-                    var value = this.property('value');
-                    var binder =  this.data('__binder__');
-                    if( binder ){
-                        binder.property(name,value)
-                    }
-                })
-            })
         }
 
         this.plus=function(action,column,defualt,option)
@@ -266,15 +220,15 @@
          * @param data
          * @returns {DataGrid}
          */
-        this.dataProfile=function(data)
+        this.dataProfile=function( data )
         {
             this.makeTemplate(columnItem, thead, tbody);
-            templateContent =  template.replace('{theadTemplate}', theadTemplate ).replace('{tbodyTemplate}',tbodyTemplate );
-            this.dataRender().source( data );
+            var templateContent =  template.replace('{theadTemplate}', theadTemplate ).replace('{tbodyTemplate}',tbodyTemplate );
+            this.dataRender().source( data )
+            this.dataRender().display( templateContent );
             return this;
         }
 
-        var templateContent;
         var tpl;
 
         /**
@@ -294,33 +248,32 @@
         {
             if( !dataRender )
             {
-                var tpl = this.compiler();
-                dataRender=new DataRender();
-                dataRender.addEventListener(DataRenderEvent.ITEM_ADD,function(event){
+                dataRender=new DataRender( this.compiler() );
+                this.compiler().addEventListener(TemplateEvent.ADD_TO_CONTAINER,function()
+                {
+                    target.find('[data-action]').each(function(elem,index){
 
-                    if( !isNaN(event.index) )
-                    {
-                        var list = Breeze('[data-row]:gt('+event.index+')', target )
-                        Breeze('[data-row="'+event.index+'"]',target).removeElement();
-                        list.each(function(elem){
-                            var val= this.property('data-row');
-                            this.property('data-row', val-1 );
-                            Breeze('[data-index]', elem ).property('data-index',  val-1 )
-                        })
+                        var action = this.property('data-action');
+                        if( plus_data.option[ action ] )
+                        {
+                            var option = plus_data.option[ action ];
+                            if( option.cursor )
+                                this.style('cursor', option.cursor );
 
-                    }else
-                    {
-                        tpl.assign('data', dataRender.toArray() );
-                        tpl.render( templateContent );
-                        tpl.addEventListener( TemplateEvent.ADD_TO_CONTAINER,function(event){
-                            if( event.container ) {
-                                bindAction(event.container);
-                            }
-                        })
-                    }
-                });
+                            this.addEventListener( option.eventType , function(event)
+                            {
+                                var index =  this.property('data-index');
+                                if( typeof option.callback ==='function' )
+                                {
+                                    option.callback.call(this,index, dataRender, event );
+                                }
+                            })
+                        }
+                    })
+
+                })
             }
-            return dataRender
+            return dataRender;
         }
     }
 

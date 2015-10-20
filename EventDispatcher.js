@@ -310,7 +310,6 @@
      */
     EventDispatcher.prototype.addEventListener=function(type,listener,useCapture,priority)
     {
-
         if( !(listener instanceof EventDispatcher.Listener) )
         {
             listener=new EventDispatcher.Listener(listener,priority,useCapture,this);
@@ -330,8 +329,6 @@
             ,len= target.length || 0
             ,element
             ,index=0;
-
-
 
         var oldtype = type;
         type= type && !agreed.test( type ) ? type.toLowerCase() : type;
@@ -400,11 +397,14 @@
                     item.splice(0,length);
                 }
 
-                if( item.length < 1 && elem !== this )
+                if( item.length < 1  )
                 {
-                    removeListener.call( elem, data.type , data.handle , data.capture  );
-                    if( onPrefix==='on' ){
-                        removeListener.call( elem, 'onpropertychange', data.handle , data.capture );
+                    if( elem !== this )
+                    {
+                        removeListener.call( elem, data.type , data.handle , data.capture  );
+                        if( onPrefix==='on' ){
+                            removeListener.call( elem, 'onpropertychange', data.handle , data.capture );
+                        }
                     }
                     this.__bindType__[type]=null;
                 }
@@ -426,7 +426,6 @@
         var i=0;
         var element;
         do{
-
             element = target[i] || this;
             if( event.isPropagationStopped===true)
                 return false;

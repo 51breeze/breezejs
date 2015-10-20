@@ -84,6 +84,8 @@
          */
         this.bind=function(target,property,callback)
         {
+            if( !target )
+              return false;
             property = property || 'value';
             if( (typeof target === 'object' || target instanceof Array) || (target.nodeType && typeof target.nodeName === 'string' && target !== target.window ) )
             {

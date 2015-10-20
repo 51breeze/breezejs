@@ -10,20 +10,30 @@
 (function(window,undefined){
 
 
-    /**
-     * 调度事件
-     * @param item
-     * @param type
-     */
-    var dispatch=function(item,type,index)
+    // 为每行绑定动作行为
+    var bindAction=function( target )
     {
-        if( this.hasEventListener(type) )
-        {
-            var event = new DataRenderEvent(type)
-            event.item=item;
-            event.index = index;
-            this.dispatchEvent( event );
-        }
+        var dataRender = this;
+        target.find('[data-bind]').each(function(elem){
+
+            var index = this.property('data-index');
+            var name = this.property('data-bind');
+            var item = dataRender[index];
+            var bind = new Bindable()
+            this.data('__binder__', bind );
+            bind.bind(item,name);
+
+            this.addEventListener(BreezeEvent.BLUR,function(event)
+            {
+                var name =  this.property('data-bind');
+                var value = this.property('value');
+                var binder =  this.data('__binder__');
+                if( binder ){
+                    binder.property(name,value)
+                }
+            })
+
+        })
     }
 
     function DataRender( template )
@@ -36,17 +46,45 @@
         if( !(template instanceof Template) )
         {
             throw new Error('template instance invalid');
+        }
+
+        DataSource.call(this);
+
+        var self= this;
+
+        //模板渲染成功后
+        template.addEventListener( TemplateEvent.ADD_TO_CONTAINER,function(event)
+        {
+            if( event.container instanceof Breeze )
+            {
+                bindAction.call( self, event.container );
+            }
+        })
+
+        var templateContent='';
+
+        /**
+         * 显示数据
+         * @returns {DataRender}
+         */
+        this.display=function( template )
+        {
+            templateContent=template
+            this.fetch();
             return this;
         }
 
-        EventDispatcher.call(this);
+        //选择数据
+        this.addEventListener(DataSourceEvent.FETCH_DATA,function(event){
 
-        this.__changed__=false;
+            template.assign('data', event.data );
+            template.render( templateContent );
 
-        this.addEventListener(DataRenderEvent.ITEM_ADD,function(event){
+        }).addEventListener(DataRenderEvent.ITEM_ADD,function(event){
 
             if( !isNaN(event.index) )
             {
+                var target = template.context();
                 var list = Breeze('[data-row]:gt('+event.index+')', target )
                 Breeze('[data-row="'+event.index+'"]',target).removeElement();
                 list.each(function(elem){
@@ -54,66 +92,14 @@
                     this.property('data-row', val-1 );
                     Breeze('[data-index]', elem ).property('data-index',  val-1 )
                 })
-
-            }else
-            {
-                tpl.assign('data', dataRender.toArray() );
-                tpl.render( templateContent );
-                tpl.addEventListener( TemplateEvent.ADD_TO_CONTAINER,function(event){
-                    if( event.container ) {
-                        bindAction(event.container);
-                    }
-                })
             }
         });
-
-        var compiler;
-        var storage;
-
-        /**
-         * 返回模板编译器
-         * @returns {*|Window.Template}
-         */
-        this.compiler=function()
-        {
-            return ( compiler || ( compiler=new Template() ) );
-        }
-
-        this.storage=function()
-        {
-            return ( storage || ( storage=new Storage() ) );
-        }
     }
 
-    DataRender.prototype = new EventDispatcher()
+    DataRender.prototype = new DataSource()
     DataRender.prototype.constructor=DataRender;
 
-
-    /**
-     * 显示数据
-     * @returns {DataRender}
-     */
-    DataRender.prototype.display=function()
-    {
-         this.storage().fetch()
-    }
-
-
-
-    function DataRenderEvent( src, props ){ BreezeEvent.call(this, src, props);}
-    DataRenderEvent.prototype=new BreezeEvent();
-    DataRenderEvent.prototype.item=null;
-    DataRenderEvent.prototype.index=NaN;
-    DataRenderEvent.prototype.constructor=DataRenderEvent;
-    DataRenderEvent.ITEM_ADD='itemAdd';
-    DataRenderEvent.ITEM_REMOVE='itemRemove';
-    DataRenderEvent.ITEM_CHANGED='itemChanged';
-    DataRenderEvent.LOAD_START='loadStart';
-    DataRenderEvent.DATA_AFTER='dataAfter';
-    DataRenderEvent.DATA_BEFORE='dataBefore';
-
-
-    window.DataRender=DataRender
-    window.DataRenderEvent=DataRenderEvent
+    window.DataRender=DataRender;
+    window.DataRenderEvent=DataSourceEvent;
 
 })(window)
