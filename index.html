@@ -28,6 +28,23 @@
         {name:'c','phone':'3'},
         {name:'c','phone':'4'},
         {name:'c','phone':'2'},
+        {name:'a','phone':'1'},
+        {name:'c','phone':'3'},
+        {name:'c','phone':'4'},
+        {name:'c','phone':'2'},
+        {name:'a','phone':'1'},
+        {name:'c','phone':'3'},
+        {name:'c','phone':'4'},
+        {name:'c','phone':'2'},
+        {name:'a','phone':'1'},
+        {name:'c','phone':'3'},
+        {name:'c','phone':'4'},
+        {name:'c','phone':'2'},
+        {name:'a','phone':'1'},
+        {name:'c','phone':'3'},
+        {name:'c','phone':'4'},
+        {name:'c','phone':'2'},
+        {name:'c','phone':'2'},
         {name:'b','phone':'8'}
     ]
 
@@ -36,13 +53,14 @@
 
 
 
-       var dataSource =  new DataSource('http://breeze.com/json.php');
+       var dataSource =  new DataSource( 'http://breeze.com/json.php' );
         dataSource.addEventListener(DataSourceEvent.FETCH_DATA,function(event){
 
             console.log( event.data ,'====')
 
         })
-        dataSource.fetch(2)
+       // dataSource.where('name="ppppp"')
+        dataSource.page(1)
 
 
     })

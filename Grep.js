@@ -40,7 +40,7 @@
 
             if( item.value instanceof Grep )
             {
-                command.push( 'this[' + i + '].value.exec(arguments[0])' );
+                command.push( '!!this[' + i + '].value.filter().call(this[' + i + '].value,arguments[0])' );
 
             }else if( type === "function" )
             {
@@ -69,8 +69,11 @@
                 }
             }
         }
-        filter=command.length === 0 ? function(){return true} : new Function('return ( '+command.join(' ')+' )' );
-        return filter;
+        if( command.length === 0 )
+        {
+            return null;
+        }
+        return new Function('return ( '+command.join(' ')+' )' );
     }
 
 
@@ -95,14 +98,13 @@
          * @param filter
          * @returns {*}
          */
-        this.filter=function(filter)
+        this.filter=function( filter )
         {
-            if( !filter )
+            if( typeof filter === "undefined" )
             {
-                return _filter || ( _filter=createFilter.call(this) );
-            }
+                filter = _filter || ( _filter = createFilter.call(this) )
 
-            if( typeof filter === 'string' )
+            }else if ( typeof filter === 'string' )
             {
                 filter = filter.replace(/(\w+)\s*(?=[\=\!\<\>]+)/g,function(a,b){
                     return "arguments[0]['"+b+"']";
@@ -117,11 +119,13 @@
                 }).replace(/([\!\>\<]?[\=]+)/g,function(a,b){
                     return b.length === 1 ? '==' : b;
                 });
-                filter=new Function('return !!('+filter+')');
-            }
+                filter=_filter=new Function('return !!('+filter+')');
 
-            _filter=filter;
-            return this;
+            }else if( filter === null )
+            {
+                _filter=null;
+            }
+            return filter;
         }
 
         /**
@@ -143,45 +147,30 @@
     Grep.prototype.length=0;
 
     /**
-     * 执行筛选操作
-     * @param data
-     * @param filter
-     * @returns {boolean}
-     */
-    Grep.prototype.exec=function( item )
-    {
-        return !!this.filter().call(this,item);
-    }
-
-    /**
      * 查询数据
      * @param data
      * @param filter
      * @returns {*}
      */
-    Grep.prototype.query=function( filter )
+    Grep.prototype.execute=function( filter )
     {
-        if( filter )
-        {
-           this.filter( filter );
-        }
-
         var data=this.data();
         var result=null;
+        filter = this.filter( filter );
+        if( typeof  filter !== "function" )return data;
 
         if( data instanceof Array )
         {
-            result=[]
-            for(var i=0; i<data.length; i++ ) if( this.exec( data[i] ) )
+            result=[];
+            for(var i=0; i<data.length; i++ ) if( !!filter.call( this,data[i] ) )
             {
                 result.push( data[i] );
             }
 
-        }else if( this.exec( data ) )
+        }else if( !!filter.call( this,data ) )
         {
             result=data;
         }
-        this.filter( null );
         return result;
     }
 

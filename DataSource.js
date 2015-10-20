@@ -12,7 +12,6 @@
     var defaultOption={
         'method': HttpRequest.METHOD.GET,
         'dataType':HttpRequest.TYPE.JSON,
-        'callback':null,
         'param':'',
         'profile':{
             'data':'data',     //数据集
@@ -22,7 +21,7 @@
             'status': 'code'  //请求状态
         },
         'successStatus' : 0 , //成功时的状态值
-        'preloadRows':100         //每次拉取的数据量
+        'preloadRows':100     //每次拉取的数据量
     };
 
     /**
@@ -154,6 +153,7 @@
                         source.send(options.param);
 
                     });
+
                     return source;
                 }
             }
@@ -232,19 +232,39 @@
         }
 
         /**
-         * @private
-         */
-        var _where=null;
-
-        /**
          * 从指定条件中查询
          * @param condition
          */
-        this.where=function( condition )
+        this.where=function( filter )
         {
-            if( typeof condition === "string" )
-                _where=condition;
-            return _where;
+            if( typeof filter === "string" ) {
+                this.grep().filter( filter )
+            }
+            return this;
+        }
+
+        /**
+         * @private
+         */
+        var _page = 0;
+
+        /**
+         * 获取设置当前分页数
+         * @param num
+         * @returns {*}
+         */
+        this.page=function( num )
+        {
+           if( num > 0 ) {
+
+               if(  _page !== num )
+               {
+                   _page = num;
+                   this.fetch();
+               }
+               return this;
+           }
+           return Math.max(_page,1);
         }
 
         /**
@@ -253,7 +273,7 @@
         this.source( source, option );
     }
 
-    DataSource.prototype = new EventDispatcher()
+    DataSource.prototype = new EventDispatcher();
     DataSource.prototype.constructor=DataSource;
 
 
@@ -283,12 +303,12 @@
      * @param index
      * @returns {boolean}
      */
-    DataSource.prototype.remove=function()
+    DataSource.prototype.remove=function( filter )
     {
         var index,item;
         if( this.grep().length > 0 )
         {
-            var result = this.select();
+            var result = this.grep().execute( filter );
             for(var i=0; i<result.length ; i++)
             {
                 index = this.indexOf( result[i] )
@@ -297,6 +317,10 @@
                     item=this.splice(index,1);
                     dispatch.call(this,item,DataSourceEvent.ITEM_REMOVE,index);
                     dispatch.call(this,item,DataSourceEvent.ITEM_CHANGED,index);
+
+                }else
+                {
+                    throw new Error('index invalid');
                 }
             }
 
@@ -306,25 +330,32 @@
             dispatch.call(this,item,DataSourceEvent.ITEM_REMOVE,0);
             dispatch.call(this,item,DataSourceEvent.ITEM_CHANGED,0);
         }
-        return true;
+        return this;
     }
 
     /**
      * 选择数据集
-     * @returns {array}
+     * @returns {DataSource}
      */
-    DataSource.prototype.fetch=function( page )
+    DataSource.prototype.fetch=function( filter )
     {
-        page =  Math.max( parseInt(page) || 1 , 1 );
-        var result = this.grep().length > 0 ?  this.grep().query( this.where() ) : this.toArray();
+        var page =   this.page();
         var rows=this.rows(),start=( page-1 ) * rows;
-        var data=this;
-
         this.__fetched__ = page;
+
         if( ( start+rows < this.length || this.isRemote() !==true ) && this.hasEventListener(DataSourceEvent.FETCH_DATA) )
         {
             this.__fetched__=null;
-            data = result.slice( start, start+rows );
+            var offset  =  start;
+            var end     = start+rows;
+            var result = this.grep().execute( filter );
+            if( end > this.length )
+            {
+                offset= Math.max(this.length-rows, 0);
+                end = this.length;
+            }
+            result = result === this ? this.toArray() : result;
+            var data = result.slice( offset, end );
             this.dispatchEvent( new DataSourceEvent( DataSourceEvent.FETCH_DATA, {'data': data} ) );
         }
 
