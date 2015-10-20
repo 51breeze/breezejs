@@ -16,6 +16,7 @@
     <script src="Bindable.js" ></script>
     <script src="DataRender.js" ></script>
     <script src="Template.js" ></script>
+    <script src="DataSource.js" ></script>
     <title></title>
 </head>
 
@@ -30,113 +31,18 @@
         {name:'b','phone':'8'}
     ]
 
-  var da = new DataArray( data );
-
-    da.orderBy('phone','desc')
-   da.orderBy('name','asc')
-
-
-    console.log( da );
-
-
-
-    var grep = new Grep( data );
-       // grep.like('name','中国');
-
-    console.log( grep.query('name like "中国%" ')  )
-
 
     Breeze(function(){
 
 
-        var tr =  document.createElement('tr');
 
-        tr.setAttribute('name',123)
+       var dataSource =  new DataSource('http://breeze.com/json.php');
+        dataSource.addEventListener(DataSourceEvent.FETCH_DATA,function(event){
 
+            console.log( event.data ,'====')
 
-        var tta = document.createAttribute('tttt')
-
-        tr.setAttributeNode( tta )
-
-        tta.nodeValue=999999
-
-
-        console.log(  tr.outerHTML )
-
-
-         tr.innerHTML="<td class='sdf' dddd>{sssss}</td>"
-
-        var fragment= document.createDocumentFragment();
-        fragment.innerHTML="<td class='sdf' dddd>{sssss}</td>"
-
-        console.log(  fragment.childNodes.length )
-
-
-       /* while( len > 0 )
-        {
-            --len;
-            fragment.appendChild( div.childNodes.item(0) );
-        }*/
-        return fragment;
-
-
-        console.log(   tr.innerHTML )
-
-        return;
-
-
-
-        var container = Breeze('.container')
-
-        var tr= Breeze('<tr/>');
-
-
-        var td = Breeze('<td></td>');
-
-        td.data('uuu',{'name':'sdfdsf'});
-
-        td.text('123')
-
-        tr.addChild(td);
-
-       var html =  Breeze.createElement('<div id="sdfdsf"><ul>555555</ul></div>')
-
-
-
-       console.log( Breeze('ul', html).length )
-
-
-
-        container.addChild( tr )
-
-
-        td.text('999999')
-
-        console.log( tr.html(true) )
-
-
-
-
-/*
-        var datagrid = new DataGrid( Breeze('.container') );
-        datagrid.columns({'name':'姓名','phone':'手机'});
-
-        datagrid.component('name',{'bindable':true});
-
-        var item = [{'name':'张三','phone':'15302662136'},{'name':'王五','phone':'15302662179'}];
-        datagrid.dataProfile( item );
-*/
-
-      /*   var tpl = new Template()
-             tpl.assign('data', [{'name':'yejun'},{'name':'999999'}] );
-
-        tpl.assign('is',function(val){
-            return val+'_9999===9'
         })
-
-        var html =  tpl.render('#template');*/
-
-
+        dataSource.fetch(2)
 
 
     })

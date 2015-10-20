@@ -50,6 +50,115 @@
         }
         EventDispatcher.call(this);
 
+        /**
+         * @private
+         */
+        var options;
+
+        /**
+         * @private
+         */
+        var _isRemote=false;
+
+        this.isRemote=function()
+        {
+            return _isRemote;
+        }
+
+        /**
+         * @private
+         */
+        var _source;
+
+        /**
+         * 数据源
+         * @returns {DataSource|window.HttpRequest}
+         */
+        this.source=function( source , option )
+        {
+            if( typeof source !== "undefined" )
+            {
+                options = Breeze.extend(true, {}, defaultOption, option || options || {} );
+
+                if( Breeze.isObject(source, true) )
+                {
+                    var len = this.length;
+                    this.splice(0, len, source);
+                    if( _source )
+                    {
+                        this.removeEventListener(DataSourceEvent.LOAD_START);
+                    }
+                    return this;
+                }
+
+                if( typeof source === 'string' )
+                {
+                    options.url = source;
+                    if( _source )
+                    {
+                        _source.setting({'url':source});
+                        source=_source;
+
+                    }else {
+
+                        source = new HttpRequest(options);
+                    }
+                }
+
+                if ( source instanceof HttpRequest && _source !== source )
+                {
+                    _source=source;
+                    _isRemote=true;
+                    var rows = options.preloadRows;
+                    var beforehand = false;
+                    var loadNum = 0;
+                    var self = this;
+
+                    source.addEventListener( HttpEvent.SUCCESS, function (event)
+                    {
+                        if (event.data[options.profile.status] != options.successStatus) {
+                            throw new Error('加载数据失败');
+                        }
+
+                        loadNum++;
+                        var data = event.data;
+                        var totalProfile = options.profile.total;
+                        var dataProfile = options.profile.data;
+                        if (typeof data[totalProfile] === 'number') {
+                            self.predicts(data[totalProfile]);
+                        }
+
+                        data = typeof data[dataProfile] !== 'undefined' ? data[dataProfile] : data;
+
+                        //没有可加载的数据，直接删除事件侦听
+                        if (!(data instanceof Array) || data.length < rows) {
+                            self.removeEventListener(DataSourceEvent.LOAD_START);
+                        }
+
+                        var len = self.length;
+                        self.splice(len, 0, data);
+                        dispatch.call(self, data, DataSourceEvent.LOAD_COMPLETE, len, event);
+                        if (typeof self.__fetched__ === "number") {
+                            self.fetch(self.__fetched__);
+                        }
+
+                    },true,0);
+
+                    this.addEventListener(DataSourceEvent.LOAD_START, function (event)
+                    {
+                        beforehand = !!event.beforehand;
+                        var offset = loadNum * rows;
+                        var url =  options.url.replace(options.profile.offset, offset).replace(options.profile.rows, rows);
+                        options.param = options.param.replace(options.profile.offset, offset).replace(options.profile.rows, rows);
+                        source.open(url, options.method);
+                        source.send(options.param);
+
+                    });
+                    return source;
+                }
+            }
+            return this;
+        }
 
         /**
          * @private
@@ -70,7 +179,6 @@
             return _preloadPages;
         }
 
-
         /**
          * @private
          */
@@ -90,7 +198,6 @@
             return _pageRows;
         }
 
-
         /**
          * @private
          */
@@ -108,20 +215,6 @@
                 return this;
             }
             return _predicts || this.length;
-        }
-
-        /**
-         * @private
-         */
-        var _http=null;
-
-        /**
-         * 远程请求对象
-         * @returns {*|window.HttpRequest}
-         */
-        this.http=function()
-        {
-            return _http || ( _http = new HttpRequest() );
         }
 
         /**
@@ -154,79 +247,15 @@
             return _where;
         }
 
+        /**
+         * 初始化数据源
+         */
+        this.source( source, option );
     }
 
     DataSource.prototype = new EventDispatcher()
     DataSource.prototype.constructor=DataSource;
 
-
-    /**
-     * 数据源
-     * @param source
-     * @param option
-     */
-    DataSource.prototype.source=function(source,option)
-    {
-        if( typeof source==='string' && /^https?:\/\/[\w\.]+$/.test( source ) )
-        {
-            option = option ? Breeze.extend(true,{},defaultOption, option) : option;
-            var http = this.http();
-            var rows = option.preloadRows;
-            var beforehand = false;
-            var loadNum=0;
-            var load = function (event)
-            {
-                beforehand = !!event.beforehand;
-                var offset = loadNum * rows;
-                var url = source.replace(option.profile.offset, offset ).replace(option.profile.rows, rows);
-                option.param = option.param.replace(option.profile.offset, offset).replace(option.profile.rows, rows);
-                http.open(url, option.method);
-                http.send(option.param);
-            }
-
-            http.addEventListener(HttpEvent.SUCCESS, function (event)
-            {
-                if( event.data[ option.profile.status ] != option.successStatus )
-                {
-                    throw new Error('加载数据失败');
-                }
-
-                loadNum++;
-                var data = event.data;
-                var totalProfile = option.profile.total;
-                var dataProfile = option.profile.data;
-                if( typeof data[ totalProfile ] === 'number')
-                {
-                    self.predicts( data[ totalProfile ] );
-                }
-
-                data = typeof data[ dataProfile ] !== 'undefined' ? data[ dataProfile ] : data;
-
-                //没有可加载的数据，直接删除事件侦听
-                if(  !(data instanceof Array) || data.length < rows  )
-                {
-                    self.removeEventListener( DataSourceEvent.LOAD_START );
-                }
-
-                var len = self.length;
-                self.splice(len,0,data);
-                dispatch.call(self, data, DataSourceEvent.LOAD_COMPLETE, len,event);
-                if( typeof self.__fetched__ === "number" )
-                {
-                    self.fetch( self.__fetched__ , true );
-                }
-            });
-
-            this.addEventListener( DataSourceEvent.LOAD_START, load );
-            dispatch.call(this, null, DataSourceEvent.LOAD_START, NaN);
-
-        }else if( Breeze.isObject(source,true) )
-        {
-            var len = this.length;
-            this.splice(0,len,source);
-            dispatch.call(this, source, DataSourceEvent.LOAD_COMPLETE,len);
-        }
-    }
 
 
     /**
@@ -284,22 +313,23 @@
      * 选择数据集
      * @returns {array}
      */
-    DataSource.prototype.fetch=function( page, flag )
+    DataSource.prototype.fetch=function( page )
     {
         page =  Math.max( parseInt(page) || 1 , 1 );
         var result = this.grep().length > 0 ?  this.grep().query( this.where() ) : this.toArray();
         var rows=this.rows(),start=( page-1 ) * rows;
+        var data=this;
 
         this.__fetched__ = page;
-        if( ( start+rows < this.length || flag ===true ) && this.hasEventListener(DataSourceEvent.FETCH_DATA) )
+        if( ( start+rows < this.length || this.isRemote() !==true ) && this.hasEventListener(DataSourceEvent.FETCH_DATA) )
         {
             this.__fetched__=null;
-            var data = result.slice( start, start+rows );
+            data = result.slice( start, start+rows );
             this.dispatchEvent( new DataSourceEvent( DataSourceEvent.FETCH_DATA, {'data': data} ) );
         }
 
         //预加载数据
-        if( (this.length - start) <= rows*this.preloadPages() && this.hasEventListener( DataSourceEvent.LOAD_START ) )
+        if( this.isRemote() === true && (this.length - start) <= rows*this.preloadPages() && this.hasEventListener( DataSourceEvent.LOAD_START ) )
         {
             var  event = new DataSourceEvent( DataRenderEvent.LOAD_START );
             event.beforehand = ( this.length > start+rows );
@@ -307,7 +337,6 @@
         }
         return this;
     }
-
 
     function DataSourceEvent( src, props ){ BreezeEvent.call(this, src, props);}
     DataSourceEvent.prototype=new BreezeEvent();

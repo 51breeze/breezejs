@@ -98,6 +98,7 @@
                 ,method:'GET'
                 ,timeout:30
                 ,charset:'UTF-8'
+                ,url:null
                 ,header:{
                     'contentType':  HttpRequest.FORMAT.X_WWW_FORM_URLENCODED
                     ,'Accept':HttpRequest.ACCEPT.HTML
@@ -107,13 +108,29 @@
 
             EventDispatcher.call(this);
 
-            if( typeof setting ==='object')for( var key in setting )
-                options[ key ]=setting[key];
-            else if ( typeof setting ==='string' && setting.toUpperCase() in HttpRequest.TYPE  )
-                options.dataType=setting;
+            /**
+             * 获取设置配置参数
+             * @param setting
+             * @returns {*}
+             */
+            this.setting=function( setting )
+            {
+                if( typeof setting === "undefined" )
+                {
+                    return options;
+                }
 
-            if( !options.url && this.target )
-                options.url=this.target.src || this.target.href || null;
+                if( typeof setting ==='object' )for( var key in setting )
+                    options[ key ]=setting[key];
+                else if ( typeof setting ==='string' && setting.toUpperCase() in HttpRequest.TYPE  )
+                    options.dataType=setting;
+
+                if( !options.url && this.target )
+                    options.url=this.target.src || this.target.href || null;
+
+                return this;
+            }
+            this.setting( setting );
 
             var responseHeaders=null
                 ,dataType=options.dataType.toLowerCase()
@@ -167,14 +184,13 @@
                 }
                 ,stateChange=function( event )
                 {
-                    if( httpRequest.readyState==4  && isSend )
+                    if( httpRequest.readyState==4 && isSend )
                     {
-                        if ( timeoutTimer )
+                        if( timeoutTimer )
                         {
                             clearTimeout( timeoutTimer );
                             timeoutTimer=null;
                         }
-
                         if( !self.hasEventListener( HttpEvent.DONE ) ||
                           self.dispatchEvent( new HttpEvent( HttpEvent.DONE,{status:httpRequest.status,data:response(),target:target} ) ) )
                           done( httpRequest.status ,event );
@@ -236,7 +252,6 @@
             this.open=function( url, method, async  )
             {
                 typeof url ==='string' && ( options.url=url );
-
                 if( typeof method==='string' )
                 {
                     method=method.toUpperCase()
@@ -264,16 +279,19 @@
                     throw new Error('HttpRequest url cannot for empty and url must is a string');
                 }
 
-                try{
-                    httpRequest = dataType === 'jsonp' ? new ScriptRequest() : new XMLHttpRequest("Microsoft.XMLHTTP");
-                }catch (error)
+                if( !httpRequest )
                 {
-                    throw new Error('HttpRequest the client does not support')
+                    try{
+                        httpRequest = dataType === 'jsonp' ? new ScriptRequest() : new XMLHttpRequest("Microsoft.XMLHTTP");
+                    }catch (error)
+                    {
+                        throw new Error('HttpRequest the client does not support')
+                    }
+                    httpRequest.onreadystatechange=stateChange;
                 }
 
-                httpRequest.onreadystatechange=stateChange;
                 if( !this.hasEventListener(HttpEvent.OPEN) ||
-                    this.dispatchEvent( new HttpEvent( HttpEvent.OPEN ,{'target':this,'options':options}) ) )
+                    this.dispatchEvent( new HttpEvent( HttpEvent.OPEN ,{'options':options}) ) )
                     httpRequest.open(options.method,options.url,options.async );
                 return this;
             }

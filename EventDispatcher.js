@@ -457,11 +457,6 @@
 
         }while( i < target.length, i++ )
 
-        //本身事件对象
-        event.currentTarget=this;
-        event.target=this;
-        EventDispatcher.dispatchEvent( event );
-
         var result = event.isPropagationStopped;
         globlaEvent=null;
         return !result;
