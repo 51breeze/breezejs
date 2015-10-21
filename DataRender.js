@@ -36,55 +36,69 @@
         })
     }
 
-    function DataRender( template )
+
+    /**
+     * 数据渲染器
+     * @param template
+     * @returns {DataRender}
+     * @constructor
+     */
+
+    function DataRender( target )
     {
         if( !(this instanceof DataRender) )
         {
-            return new DataRender( template );
-        }
-
-        if( !(template instanceof Template) )
-        {
-            throw new Error('template instance invalid');
+            return new DataRender( target );
         }
 
         DataSource.call(this);
 
-        var self= this;
-
-        //模板渲染成功后
-        template.addEventListener( TemplateEvent.ADD_TO_CONTAINER,function(event)
-        {
-            if( event.container instanceof Breeze )
-            {
-                bindAction.call( self, event.container );
-            }
-        })
-
-        var templateContent='';
+        var _view=null;
 
         /**
-         * 显示数据
+         * 显示视图
          * @returns {DataRender}
          */
-        this.display=function( template )
+        this.display=function( view )
         {
-            templateContent=template
+            _view=view;
             this.fetch();
             return this;
+        }
+
+        /**
+         * @private
+         */
+        var _tpl=null;
+
+        /**
+         * 返回模板编译器
+         * @returns {*|Window.Template}
+         */
+        this.template=function()
+        {
+            if( _tpl === null )
+            {
+                _tpl=new Template( target );
+                _tpl.addEventListener(TemplateEvent.ADD_TO_CONTAINER, function (event) {
+                    if (event.container instanceof Breeze) {
+                        bindAction.call(self, event.container);
+                    }
+                })
+            }
+            return _tpl ;
         }
 
         //选择数据
         this.addEventListener(DataSourceEvent.FETCH_DATA,function(event){
 
-            template.assign('data', event.data );
-            template.render( templateContent );
+            this.template().variable('data', event.data ).render( _view );
 
         }).addEventListener(DataRenderEvent.ITEM_ADD,function(event){
 
             if( !isNaN(event.index) )
             {
-                var target = template.context();
+                var target = template.target();
                 var list = Breeze('[data-row]:gt('+event.index+')', target )
                 Breeze('[data-row="'+event.index+'"]',target).removeElement();
                 list.each(function(elem){

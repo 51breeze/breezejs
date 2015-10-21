@@ -287,8 +287,6 @@
     DataSource.prototype = new EventDispatcher();
     DataSource.prototype.constructor=DataSource;
 
-
-
     /**
      * 添加数据项到指定的索引位置
      * @param item
@@ -317,30 +315,57 @@
     DataSource.prototype.remove=function( filter )
     {
         var index,item;
-        if( this.grep().length > 0 )
+        var result = this.grep().execute( filter );
+        for(var i=0; i<result.length ; i++)
         {
-            var result = this.grep().execute( filter );
-            for(var i=0; i<result.length ; i++)
+            index = this.indexOf( result[i] )
+            if( index >=0 && index < this.length )
             {
-                index = this.indexOf( result[i] )
-                if( index >=0 && index < this.length )
-                {
-                    item=this.splice(index,1);
-                    dispatch.call(this,item,DataSourceEvent.ITEM_REMOVE,index);
-                    dispatch.call(this,item,DataSourceEvent.ITEM_CHANGED,index);
+                item=this.splice(index,1);
+            }else
+            {
+                throw new Error('index invalid');
+            }
+        }
 
+        if( result.length > 1  )
+        {
+            index = NaN;
+        }
+
+        dispatch.call(this,result,DataSourceEvent.ITEM_REMOVE,index);
+        dispatch.call(this,result,DataSourceEvent.ITEM_CHANGED,index);
+        return this;
+    }
+
+    /**
+     * 修改数据
+     * @param index
+     * @returns {boolean}
+     */
+    DataSource.prototype.alter=function( data, filter )
+    {
+        var result = this.grep().execute(filter);
+        for(var i=0; i<result.length ; i++)
+        {
+            for( var c in data )
+            {
+                if( typeof result[i][c] !== "undefined" )
+                {
+                    result[i][c] = data[c];
                 }else
                 {
-                    throw new Error('index invalid');
+                    throw new Error('unknown column this '+c );
                 }
             }
-
-        }else
-        {
-            item=this.splice(0,this.length);
-            dispatch.call(this,item,DataSourceEvent.ITEM_REMOVE,0);
-            dispatch.call(this,item,DataSourceEvent.ITEM_CHANGED,0);
         }
+        var index = NaN;
+        if( result.length ===1 )
+        {
+            index = this.indexOf( result[0] );
+        }
+        dispatch.call(this,result,DataSourceEvent.ITEM_ALTER,index);
+        dispatch.call(this,result,DataSourceEvent.ITEM_CHANGED,index);
         return this;
     }
 
@@ -366,7 +391,6 @@
                 offset= Math.max(this.length-rows, 0);
                 end = this.length;
             }
-            result = result === this ? this.toArray() : result;
             var data = result.slice( offset, end );
             this.dispatchEvent( new DataSourceEvent( DataSourceEvent.FETCH_DATA, {'data': data} ) );
         }
@@ -392,6 +416,7 @@
     DataSourceEvent.ITEM_ADD='itemAdd';
     DataSourceEvent.ITEM_REMOVE='itemRemove';
     DataSourceEvent.ITEM_CHANGED='itemChanged';
+    DataSourceEvent.ITEM_ALTER='itemAlter';
     DataSourceEvent.LOAD_START='loadStart';
     DataSourceEvent.LOAD_COMPLETE='loadComplete';
     DataSourceEvent.FETCH_DATA = 'fetchData';

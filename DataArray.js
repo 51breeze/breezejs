@@ -31,12 +31,7 @@
         start=start || 0;
         start = start < 0 ? this.length+start : start;
         end= typeof end ==='number' ? end : this.length;
-
-        var index=0,items=[];
-        if( start === end && typeof this[start] !=='undefined' )
-        {
-            items.push( this[start] );
-        }
+        var index=start,items=[];
         for( ; index < end ; index++ )
         {
             if( typeof this[index] !=='undefined' )

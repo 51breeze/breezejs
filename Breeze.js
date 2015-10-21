@@ -39,7 +39,7 @@
             return this;
 
         var result;
-        this.context = this.getContext( context );
+        this.target = this.getContext( context );
 
         if( Breeze.isString( selector ) )
         {
@@ -51,11 +51,11 @@
             }else if( context instanceof Breeze )
             {
                 result=context.find( selector ).toArray();
-                this.context = context.getContext();
+                this.target = context.getContext();
 
             }else
             {
-                result= Sizzle( selector, this.context )
+                result= Sizzle( selector, this.target )
             }
 
         }else if( selector && Breeze.isHTMLContainer(selector) || Breeze.isWindow(selector) )
@@ -1533,7 +1533,7 @@
     Breeze.prototype.owner=null;
 
     //每个Breeze对象的DOM元素的作用域
-    Breeze.prototype.context=null;
+    Breeze.prototype.target=null;
 
     // 选择器已获取到的DOM个数
     Breeze.prototype.length=0;
@@ -1601,7 +1601,7 @@
      */
     Breeze.prototype.add=function( selector )
     {
-       var ret=Breeze.sizzle(selector,this.context);
+       var ret=Breeze.sizzle(selector,this.target);
        if( ret.length > 0 )doMake( this, ret , false );
        return this;
     }
@@ -1689,7 +1689,7 @@
               return context.getContext();
             context = Breeze.isString(context) ? Sizzle(context,document)[0] : context;
         }
-        var target = context || this.forEachCurrentItem || this[0] || this.context;
+        var target = context || this.forEachCurrentItem || this[0] || this.target;
         if( Breeze.isFrame( target ) && target.contentWindow )
             return target.contentWindow.document;
         return Breeze.isHTMLContainer( target ) ? target :  document ;

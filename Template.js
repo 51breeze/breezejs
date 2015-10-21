@@ -81,183 +81,235 @@
         return '';
     }
 
-    var template_contents={};
 
+
+
+    var template_contents={};
+    var getTemplateContent=function( source )
+    {
+        var template,container;
+        template = container = source;
+
+        if( typeof source === 'string' )
+        {
+            source= Breeze.trim( source );
+            if( source.charAt(0) !== '<' )
+            {
+                container = Breeze( source );
+            }
+
+        }else if( Breeze.isHTMLElement(source) )
+        {
+            container = Breeze( source );
+        }
+
+        if( container instanceof Breeze )
+        {
+            if( !Breeze.nodeName(container[0]).match(/noscript|textarea/) )
+            {
+                throw new Error('invalid template.')
+            }
+            template = container.content();
+
+        }else if( typeof template !== 'string' )
+        {
+            throw new Error('invalid template.')
+        }
+        return {'content':Breeze.trim( template ) ,'context':container};
+    },
+    jscodeReg = /^(if|for\s*\(|else|do|switch|case|break|var|function|while|foreach|{|})(.*)?/g,
+    funReg = /^([\w\.]+)\s*\(/,
+    foreachReg  = /(\w+)\s+as\s+(\w+)(\s+(\w+))?/i,
+    replace = function( code , flag )
+    {
+        code=code.replace(/(^\s+|\s+$)/g,'').replace(/[\r\n\t\s]+/g,' ');
+        if( code == "" )
+            return "";
+
+        if( flag===true && code.match(jscodeReg) )
+        {
+            if( RegExp.$1 === 'foreach' )
+            {
+                if( typeof RegExp.$2 ==='string' && RegExp.$2.match(foreachReg) )
+                {
+                    var data = RegExp.$1;
+                    var key  ='key';
+                    var item = RegExp.$2;
+                    if(  typeof RegExp.$3 === 'string' )
+                    {
+                        key=RegExp.$2;
+                        item=RegExp.$3;
+                    }
+                    code = 'if( this.isObject('+data+') )for(var '+key+' in '+data+'){\n';
+                    code += 'var '+item+'='+data+'['+key+'];\n';
+                    return code;
+                }
+                code='\n';
+            }
+            return code+'\n';
+        }
+        return '___code___+="' + code.replace(/"/g, '\\"') + '";\n';
+    },
+    make = function(template, variable, split )
+    {
+        var code = 'var ___code___="";\n',
+            match,cursor = 0;
+
+        if( variable instanceof Variable && variable.length > 0)
+        {
+            var keys = variable.toKeys();
+            for( var v in keys )
+            {
+                code+='var '+keys[v]+'= this.get("'+keys[v]+'");\n';
+            }
+        }
+
+        while( match = split.exec(template) )
+        {
+            code+=replace( template.slice(cursor, match.index) );
+            if( match[2] !==undefined )
+            {
+                var val=match[2].replace(/(^\s+|\s+$)/g,'');
+                if( val.match( funReg ) )
+                {
+                    code +='___code___+= typeof '+RegExp.$1+' === "function" ? '+val+' : this.error();\n';
+                }else{
+                    code +='___code___+= typeof '+val+' !== "undefined" ? '+val+' : this.error();\n';
+                }
+
+            }else
+            {
+                code += replace(match[1], true);
+            }
+            cursor = match.index + match[0].length;
+        }
+        code += replace( template.substr(cursor, template.length - cursor) );
+        code += 'return ___code___;';
+        return new Function( code ).call( variable , template );
+    }
+
+
+    /**
+     * 模板编译器
+     * @param target
+     * @returns {Template}
+     * @constructor
+     */
     function Template( target )
     {
         if( !(this instanceof Template) )
-           return  new Template(target);
-
-        var  context = target || null;
-        var  cacheEnable = true;
-
-        if( typeof target === 'string' )
         {
-            target= Breeze.trim( target );
-            if( target.charAt(0) !== '<' )
-                context=Breeze( target );
-
-        }else if( Breeze.isHTMLElement(target) )
-        {
-            context=Breeze( target );
+           return new Template(target);
         }
 
-        if( context instanceof Breeze && context.length < 1 )
+        /**
+         * @private
+         */
+        var _options={
+            'left':"<\\?",
+            'right':"\\?>",
+            'shortLeft':"\\{",
+            'shortRight':"\\}"
+        };
+
+        /**
+         * 获取设置模板选项
+         * @param options
+         * @returns {{left: string, right: string, shortLeft: string, shortRight: string}}
+         */
+        this.options=function( options )
         {
-            throw new Error('invalid context.')
-        }
-
-        var left="<\\?",
-            right="\\?>",
-            shortLeft="\\{",
-            shortRight="\\}",
-            splitReg= new RegExp(left+'([^'+right+']+)'+right+'|'+shortLeft+'([^'+shortRight+']+)'+shortRight,'gi'),
-            jscodeReg = /^(if|for\s*\(|else|do|switch|case|break|var|function|while|foreach|{|})(.*)?/g,
-            funReg = /^([\w\.]+)\s*\(/,
-            foreachReg  = /(\w+)\s+as\s+(\w+)(\s+(\w+))?/i,
-            variable=null,
-            replace = function( code , flag )
+            if( typeof options === "undefined" )
             {
-                code=code.replace(/(^\s+|\s+$)/g,'').replace(/[\r\n\t\s]+/g,' ');
-                if( code == "" )
-                  return "";
-
-                if( flag===true && code.match(jscodeReg) )
-                {
-                    if( RegExp.$1 === 'foreach' )
-                    {
-                        if( typeof RegExp.$2 ==='string' && RegExp.$2.match(foreachReg) )
-                        {
-                             var data = RegExp.$1;
-                             var key  ='key';
-                             var item = RegExp.$2;
-                             if(  typeof RegExp.$3 === 'string' )
-                             {
-                                 key=RegExp.$2;
-                                 item=RegExp.$3;
-                             }
-                             code = 'if( this.isObject('+data+') )for(var '+key+' in '+data+'){\n';
-                             code += 'var '+item+'='+data+'['+key+'];\n';
-                             return code;
-                        }
-                        code='\n';
-                    }
-                    return code+'\n';
-                }
-                return '___code___+="' + code.replace(/"/g, '\\"') + '";\n';
-            },
-            make = function(template, variable )
-            {
-                 var code = 'var ___code___="";\n',
-                     match,cursor = 0;
-
-                 if( variable instanceof Variable && variable.length > 0)
-                 {
-                     var keys = variable.toKeys();
-                     for( var v in keys )
-                     {
-                        code+='var '+keys[v]+'= this.get("'+keys[v]+'");\n';
-                     }
-                 }
-
-                while( match = splitReg.exec(template) )
-                {
-                    code+=replace( template.slice(cursor, match.index) );
-                    if( match[2] !==undefined )
-                    {
-                        var val=match[2].replace(/(^\s+|\s+$)/g,'');
-                        if( val.match( funReg ) )
-                        {
-                            code +='___code___+= typeof '+RegExp.$1+' === "function" ? '+val+' : this.error();\n';
-                        }else{
-                           code +='___code___+= typeof '+val+' !== "undefined" ? '+val+' : this.error();\n';
-                        }
-
-                    }else
-                    {
-                        code += replace(match[1], true);
-                    }
-                    cursor = match.index + match[0].length;
-                }
-                code += replace( template.substr(cursor, template.length - cursor) );
-                code += 'return ___code___;';
-                return new Function( code ).call( variable , template );
+                return _options;
             }
-
-        /**
-         * 指定一个变量名的值
-         * @param name
-         * @param value
-         * @returns {Template}
-         */
-        this.assign=function(name,value)
-        {
-            this.scope().set(name,value)
-            return this;
+            _options=Breeze.extend( _options, options || {} );
         }
 
         /**
-         * 指定的上下文
-         * @returns {*|null}
+         * @private
          */
-        this.context=function()
+        var _split=null;
+
+        /**
+         * @private
+         * @returns {RegExp}
+         */
+        var getSplit=function()
         {
-            return context;
+            if( _split === null )
+            {
+                var o = this.options();
+                _split=new RegExp(o.left+'([^'+o.right+']+)'+o.right+'|'+o.shortLeft+'([^'+o.shortRight+']+)'+o.shortRight,'gi');
+            }
+            return _split;
         }
+
+        /**
+         * @private
+         */
+        var _target=null;
+
+        /**
+         * 获取设置目标容器
+         * @param target
+         * @returns {*}
+         */
+        this.target=function( target )
+        {
+            if( target )
+            {
+                if (typeof target === 'string')
+                {
+                    target = Breeze.trim(target);
+                    if (target.charAt(0) !== '<')
+                        target = Breeze(target);
+
+                } else if (Breeze.isHTMLElement(target))
+                {
+                    target = Breeze( target );
+                }
+
+                if (target instanceof Breeze && target.length < 1) {
+                    throw new Error('invalid target.')
+                }
+                _target = target;
+                return null;
+            }
+            return _target;
+        }
+
+        if( target )
+          this.target( target );
+
+        /**
+         * @private
+         */
+        var _variable=null;
 
         /**
          * 获取此模板的作用域
          * @returns {*}
          */
-        this.scope=function()
+        this.variable=function(name,value)
         {
-            if( variable=== null )
+            if( name instanceof Variable )
             {
-                variable = new Variable()
+                _variable=name;
+                return this;
             }
-            return variable;
-        }
 
-        var template,
-        container,
-        content=function( source )
-        {
-            template = container = source;
-            if( typeof source === 'string' )
+            if (_variable === null)
             {
-                source= Breeze.trim( source );
-                if( source.charAt(0) !== '<' )
-                {
-                    container = Breeze( source );
-                }
-
-            }else if( Breeze.isHTMLElement(source) )
-            {
-                container = Breeze( source );
+                _variable = new Variable();
             }
-            if( container instanceof Breeze )
+
+            if( typeof name === "undefined" )
             {
-                if( container.length > 1 || !Breeze.nodeName(container[0]).match(/noscript|textarea/) )
-                {
-                    throw new Error('invalid template.')
-                }
-
-                if( template_contents[ container.toString() ] )
-                {
-                    template=template_contents[ container.toString() ];
-
-                }else
-                {
-                    template = container.content();
-                    if( cacheEnable )
-                        template_contents[ container.toString() ]=template;
-                }
-
-            }else if(  typeof template !== 'string' )
-            {
-                throw  new Error('invalid template.')
+                return _variable;
             }
-            return Breeze.trim( template );
+            _variable.set(name, value);
+            return this;
         }
 
         /**
@@ -270,24 +322,20 @@
         this.render=function(source,flag )
         {
               flag = !!flag;
+              var template = getTemplateContent( source );
+              var context = template.target;
+                  template= template.content;
 
-              var template = content( source );
               if( template.charAt(0) !== '<' )
                 return false;
 
-             var event;
-             if( this.hasEventListener( TemplateEvent.COMPILE_START ) )
-             {
-                 event =  new TemplateEvent( TemplateEvent.COMPILE_START )
+             var event=new TemplateEvent( TemplateEvent.COMPILE_START );
                  event.template = template;
-                 event.data     = variable;
+                 event.data     =  this.variable();
 
-             }
-              if( !event || this.dispatchEvent( event ) )
+              if( !this.hasEventListener( TemplateEvent.COMPILE_START ) || this.dispatchEvent( event ) )
               {
-                 template =event ?  event.template : template;
-                 template=make(template, variable );
-
+                  template=make.call(this, event.template , event.data , getSplit.call(this) );
                   if( this.hasEventListener( TemplateEvent.COMPILE_DONE ) )
                   {
                       event =  new TemplateEvent( TemplateEvent.COMPILE_DONE )
@@ -302,23 +350,23 @@
 
               if( !flag )
               {
-                  var target;
-                  if( context instanceof Breeze )
+                  var target= this.target();
+
+                  console.log( target )
+
+                  if( target instanceof Breeze )
+                  {
+                      target.html( template );
+
+                  }else if( context instanceof Breeze )
                   {
                       target=context;
-                      context.html( template );
-
-                  }else if(container instanceof Breeze )
-                  {
-                      target=container;
-                      container.addElementAt(template, container[0] );
+                      context.addElementAt(template, context[0] );
                   }
 
                   if( target && this.hasEventListener(TemplateEvent.ADD_TO_CONTAINER) )
                   {
-                      event =  new TemplateEvent( TemplateEvent.ADD_TO_CONTAINER )
-                      event.template = template;
-                      event.data     = variable;
+                      event.type=TemplateEvent.ADD_TO_CONTAINER;
                       event.container= target;
                       this.dispatchEvent( event );
                   }
