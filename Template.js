@@ -115,7 +115,7 @@
         {
             throw new Error('invalid template.')
         }
-        return {'content':Breeze.trim( template ) ,'context':container};
+        return Breeze.trim( template );
     },
     jscodeReg = /^(if|for\s*\(|else|do|switch|case|break|var|function|while|foreach|{|})(.*)?/g,
     funReg = /^([\w\.]+)\s*\(/,
@@ -195,12 +195,13 @@
      * @returns {Template}
      * @constructor
      */
-    function Template( target )
+    function Template()
     {
         if( !(this instanceof Template) )
         {
-           return new Template(target);
+           return new Template();
         }
+
 
         /**
          * @private
@@ -248,39 +249,35 @@
         /**
          * @private
          */
-        var _target=null;
+        var _viewport=null;
 
         /**
          * 获取设置目标容器
          * @param target
          * @returns {*}
          */
-        this.target=function( target )
+        this.viewport=function( viewport )
         {
-            if( target )
+            if( typeof viewport === "undefined" )
             {
-                if (typeof target === 'string')
+                if (typeof viewport === 'string')
                 {
-                    target = Breeze.trim(target);
-                    if (target.charAt(0) !== '<')
-                        target = Breeze(target);
+                    viewport = Breeze.trim(viewport);
+                    if (viewport.charAt(0) !== '<')
+                        viewport = Breeze(viewport);
 
-                } else if (Breeze.isHTMLElement(target))
+                } else if (Breeze.isHTMLElement(viewport))
                 {
-                    target = Breeze( target );
+                    viewport = Breeze( viewport );
                 }
 
-                if (target instanceof Breeze && target.length < 1) {
-                    throw new Error('invalid target.')
+                if (viewport instanceof Breeze && viewport.length < 1) {
+                    throw new Error('invalid viewport.')
                 }
-                _target = target;
-                return null;
+                _viewport = viewport;
             }
-            return _target;
+            return _viewport;
         }
-
-        if( target )
-          this.target( target );
 
         /**
          * @private
@@ -323,9 +320,6 @@
         {
               flag = !!flag;
               var template = getTemplateContent( source );
-              var context = template.target;
-                  template= template.content;
-
               if( template.charAt(0) !== '<' )
                 return false;
 
@@ -346,33 +340,19 @@
                       }
                       template=event.html;
                   }
-              }
 
-              if( !flag )
-              {
-                  var target= this.target();
-
-                  console.log( target )
-
-                  if( target instanceof Breeze )
+                  var viewport= this.viewport();
+                  if( !flag && viewport )
                   {
-                      target.html( template );
-
-                  }else if( context instanceof Breeze )
-                  {
-                      target=context;
-                      context.addElementAt(template, context[0] );
+                      if( viewport instanceof Breeze )
+                      {
+                          target.html( template );
+                      }
+                      return true;
                   }
-
-                  if( target && this.hasEventListener(TemplateEvent.ADD_TO_CONTAINER) )
-                  {
-                      event.type=TemplateEvent.ADD_TO_CONTAINER;
-                      event.container= target;
-                      this.dispatchEvent( event );
-                  }
-                  return true;
+                  return template;
               }
-              return template;
+            return false;
         }
     }
 

@@ -29,7 +29,7 @@
         return Breeze.extend( target, opt  );
     }
 
-    function DataGrid( target )
+    function DataGrid( viewport )
     {
         var theadTemplate='';
         var tbodyTemplate='';
@@ -44,7 +44,7 @@
             'option':{}
         }
 
-        if( target && !(target instanceof Breeze) )
+        if( viewport && !(viewport instanceof Breeze) )
         {
            throw new Error('target invalid');
         }
@@ -229,17 +229,6 @@
             return this;
         }
 
-        var tpl;
-
-        /**
-         * 返回模板编译器
-         * @returns {*|Window.Template}
-         */
-        this.compiler=function()
-        {
-           return ( tpl || ( tpl=new Template( target ) ) );
-        }
-
         /**
          * 获取数据渲染项
          * @returns {DataRender}
@@ -248,8 +237,8 @@
         {
             if( !dataRender )
             {
-                dataRender=new DataRender( this.compiler() );
-                this.compiler().addEventListener(TemplateEvent.ADD_TO_CONTAINER,function()
+                dataRender=new DataRender( viewport );
+                viewport.addEventListener(TemplateEvent.ADD_TO_CONTAINER,function()
                 {
                     target.find('[data-action]').each(function(elem,index){
 
@@ -270,7 +259,6 @@
                             })
                         }
                     })
-
                 })
             }
             return dataRender;

@@ -44,15 +44,21 @@
      * @constructor
      */
 
-    function DataRender( target )
+    function DataRender( viewport )
     {
         if( !(this instanceof DataRender) )
         {
-            return new DataRender( target );
+            return new DataRender( viewport );
         }
 
-        DataSource.call(this);
+        /**
+         * initializing parent class
+         */
+        EventDispatcher.call(this);
 
+        /**
+         * @private
+         */
         var _view=null;
 
         /**
@@ -62,7 +68,30 @@
         this.display=function( view )
         {
             _view=view;
-            this.fetch();
+            this.dataSource().fetch();
+            return this;
+        }
+
+        /**
+         * 视口元素
+         * @param viewport
+         * @returns {DataRender}
+         */
+        this.viewport=function( viewport )
+        {
+            this.template().viewport( viewport );
+            return this;
+        }
+
+        /**
+         * 设置数据源
+         * @param source
+         * @param option
+         * @returns {DataRender}
+         */
+        this.source=function( source,option )
+        {
+            this.dataSource().source(source,option);
             return this;
         }
 
@@ -77,40 +106,51 @@
          */
         this.template=function()
         {
-            if( _tpl === null )
-            {
-                _tpl=new Template( target );
-                _tpl.addEventListener(TemplateEvent.ADD_TO_CONTAINER, function (event) {
-                    if (event.container instanceof Breeze) {
-                        bindAction.call(self, event.container);
-                    }
-                })
-            }
-            return _tpl ;
+            return _tpl || ( _tpl=new Template() );
         }
 
-        //选择数据
-        this.addEventListener(DataSourceEvent.FETCH_DATA,function(event){
 
-            this.template().variable('data', event.data ).render( _view );
+        /**
+         * @private
+         */
+        var _dataSource=null;
 
-        }).addEventListener(DataRenderEvent.ITEM_ADD,function(event){
-
-            if( !isNaN(event.index) )
+        /**
+         * 获取数据源对象
+         * @returns {*|Window.DataSource}
+         */
+        this.dataSource=function()
+        {
+            if( _dataSource === null  )
             {
-                var target = template.target();
-                var list = Breeze('[data-row]:gt('+event.index+')', target )
-                Breeze('[data-row="'+event.index+'"]',target).removeElement();
-                list.each(function(elem){
-                    var val= this.property('data-row');
-                    this.property('data-row', val-1 );
-                    Breeze('[data-index]', elem ).property('data-index',  val-1 )
-                })
+                _dataSource=new DataSource();
+                var tpl=this.template();
+                _dataSource.addEventListener(DataSourceEvent.FETCH_DATA,function(event){
+
+                    tpl.variable('data', event.data ).render( _view );
+
+                }).addEventListener(DataRenderEvent.ITEM_ADD,function(event){
+
+                    if( !isNaN(event.index) )
+                    {
+                        var target = template.target();
+                        var list = Breeze('[data-row]:gt('+event.index+')', target )
+                        Breeze('[data-row="'+event.index+'"]',target).removeElement();
+                        list.each(function(elem){
+                            var val= this.property('data-row');
+                            this.property('data-row', val-1 );
+                            Breeze('[data-index]', elem ).property('data-index',  val-1 )
+                        })
+                    }
+                });
+
             }
-        });
+            return _dataSource || ( _dataSource=new DataSource() );
+        }
+        this.viewport( viewport );
     }
 
-    DataRender.prototype = new DataSource()
+    DataRender.prototype = new EventDispatcher()
     DataRender.prototype.constructor=DataRender;
 
     window.DataRender=DataRender;
