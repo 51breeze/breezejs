@@ -258,7 +258,7 @@
          */
         this.viewport=function( viewport )
         {
-            if( typeof viewport === "undefined" )
+            if( typeof viewport !== "undefined" )
             {
                 if (typeof viewport === 'string')
                 {
@@ -346,7 +346,7 @@
                   {
                       if( viewport instanceof Breeze )
                       {
-                          target.html( template );
+                          viewport.html( template );
                       }
                       return true;
                   }

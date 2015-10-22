@@ -38,6 +38,7 @@
         var tbody="<td>{value}</td>";
         var container="<tr>{value}</tr>";
         var template="<table style='width: 100%'>\r\n<thead>{theadTemplate}</thead>\r\n<tbody>{tbodyTemplate}</tbody>\r\n</table>";
+        var page="<div class='pagination'><a data-index='{firstPages}'>首页</a><? for(var i=1; i<=totalPages ;i++){  ?><a data-index='{i}'>{i}</a><? } ?><a data-index='{lastPages}'>尾页</a></div>";
         var columnItem={};
         var plus_data={
             'template':{},
@@ -220,12 +221,12 @@
          * @param data
          * @returns {DataGrid}
          */
-        this.dataProfile=function( data )
+        this.dataProfile=function( data,option )
         {
             this.makeTemplate(columnItem, thead, tbody);
             var templateContent =  template.replace('{theadTemplate}', theadTemplate ).replace('{tbodyTemplate}',tbodyTemplate );
-            this.dataRender().source( data )
-            this.dataRender().display( templateContent );
+            this.dataRender().source( data , option )
+            this.dataRender().display( templateContent+page );
             return this;
         }
 
@@ -238,9 +239,17 @@
             if( !dataRender )
             {
                 dataRender=new DataRender( viewport );
-                viewport.addEventListener(TemplateEvent.ADD_TO_CONTAINER,function()
+
+                dataRender.dataSource().addEventListener(DataSourceEvent.FETCH_DATA,function(event){
+                    var totalPages = Math.ceil( this.predicts() / this.rows() );
+                    dataRender.template().variable('totalPages', totalPages );
+                    dataRender.template().variable('firstPages', 1 );
+                    dataRender.template().variable('lastPages', totalPages );
+                },true,100)
+
+                viewport.addEventListener(ElementEvent.ADDED,function(event)
                 {
-                    target.find('[data-action]').each(function(elem,index){
+                    this.find('[data-action]').each(function(elem,index){
 
                         var action = this.property('data-action');
                         if( plus_data.option[ action ] )
@@ -259,6 +268,15 @@
                             })
                         }
                     })
+
+                    Breeze('.pagination > a', this ).addEventListener(MouseEvent.CLICK,function(event){
+
+                        console.log( this.property('data-index') )
+                        //dataRender.page(  )
+
+                    }).style('width:80px;')
+
+
                 })
             }
             return dataRender;

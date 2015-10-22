@@ -259,9 +259,9 @@
             if( item instanceof EventDispatcher.Listener )
             {
                 //设置Breeze 对象的当前对象
-                if( typeof item.currentTarget.current ==='function' )
+                if( item.currentTarget && typeof item.currentTarget.current ==='function' )
                 {
-                    item.currentTarget.current( item.target );
+                    item.currentTarget.current( event.currentTarget );
                 }
                 //调度侦听项
                 item.callback.call( item.currentTarget , event );

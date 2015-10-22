@@ -1276,8 +1276,6 @@
 
     var singleTagExp=/^<(\w+)(.*?)\/\s*>$/;
 
-
-
     /**
      * 创建HTML元素
      * @param html 一个html字符串
@@ -1316,8 +1314,6 @@
                 }
                 return elem;
             }
-
-            Breeze.cloneAttr()
 
             var div = document.createElement( "div")
                 div.innerHTML =  html;
@@ -2117,22 +2113,12 @@
             }
 
             elem.innerHTML='';
-            if( Breeze.isString(html) )
+            if( outer && elem.parentNode && elem.parentNode.ownerDocument && Breeze.isContains(elem.parentNode.ownerDocument.body, elem.parentNode) )
             {
-                if( outer ) {
-                    elem.outerHTML = html;
-                }else
-                {
-                    elem.innerHTML = html;
-                }
-            }else
-            {
-                if( outer && elem.parentNode && elem.parentNode.ownerDocument && Breeze.isContains(elem.parentNode.ownerDocument.body, elem.parentNode) )
-                {
-                    this.current( elem.parentNode );
-                }
-                this.addChild( html );
+                this.current( elem.parentNode );
             }
+            this.addChild( html );
+
         });
     }
 
@@ -2187,6 +2173,7 @@
             value=Breeze.serialize(name,'style');
             name='cssText';
         }
+
         return access.call(this,name,value,{
             get:function(prop){
                 return Breeze.style(this,prop) || '';

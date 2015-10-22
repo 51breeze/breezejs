@@ -96,6 +96,16 @@
         }
 
         /**
+         * @param num
+         * @returns {DataRender}
+         */
+        this.page=function(num)
+        {
+            this.dataSource().page(num);
+            return this;
+        }
+
+        /**
          * @private
          */
         var _tpl=null;
@@ -126,9 +136,7 @@
                 _dataSource=new DataSource();
                 var tpl=this.template();
                 _dataSource.addEventListener(DataSourceEvent.FETCH_DATA,function(event){
-
                     tpl.variable('data', event.data ).render( _view );
-
                 }).addEventListener(DataRenderEvent.ITEM_ADD,function(event){
 
                     if( !isNaN(event.index) )
