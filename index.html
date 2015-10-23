@@ -54,20 +54,33 @@
 
 
 
-       /*var dataSource =  new DataSource( 'http://breezejs.com/json.php' );
-        dataSource.addEventListener(DataSourceEvent.FETCH_DATA,function(event){
-
-            console.log( event.data ,'====')
-
-        })
-       // dataSource.where('name="ppppp"')
-        dataSource.page(1)*/
 
 
-      var grid = new DataGrid( Breeze('.container') );
-        grid.columns({'id':'序号','name':'名称','phone':'手机'})
-        grid.component('name',{'bindable':true})
-        grid.dataProfile( 'http://breezejs.com/json.php' )
+        var links = 6;
+        var current = 14 ;
+        var totalPages= 13;
+
+
+          var o =  Math.max( current - Math.ceil( links / 2 ), 0);
+              o =  o+links > totalPages ? o-(o+links - totalPages) : o;
+
+        var but =[];
+
+            for( var b=1 ; b <= links; b++ )
+            {
+                but.push( o+b );
+
+            }
+
+        console.log( but )
+
+
+
+      var grid = new DataGrid();
+          grid.viewport( '.container' );
+          grid.columns({'id':'序号','name':'名称','phone':'手机'})
+          grid.component('name',{'bindable':true})
+          grid.dataProfile( 'http://breeze.com/json.php?offset=%offset%&rows=%rows%' )
 
     })
 

@@ -2,7 +2,13 @@
 
 $data =  array();
 
-for($i=0; $i<98; $i++)
+$total = 167;
+
+$offset = intval($_GET['offset']);
+$rows   = intval($_GET['rows']);
+
+
+for( $i=0; $i< $total; $i++ )
 {
     $data[]=array(
         'id'=>$i+1,
@@ -11,7 +17,10 @@ for($i=0; $i<98; $i++)
     );
 }
 
+$data=array_slice($data,$offset,$rows);
+
+
 header("Content-type: application/json; charset=utf-8");
-echo json_encode(array('code'=>0,'data'=>$data,'msg'=>'ok','total'=>count($data)));
+echo json_encode(array('code'=>0,'data'=>$data,'msg'=>'ok','total'=>$total ));
 
 ?>

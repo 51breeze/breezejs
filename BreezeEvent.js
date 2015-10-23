@@ -101,6 +101,7 @@
     function ElementEvent( src, props ){ BreezeEvent.call(this, src, props);}
     ElementEvent.prototype=new BreezeEvent();
     ElementEvent.prototype.parent=null;
+    ElementEvent.prototype.child=null;
     ElementEvent.prototype.constructor=ElementEvent;
     ElementEvent.ADDED='added';
     ElementEvent.REMOVED='removed';

@@ -29,7 +29,7 @@
         return Breeze.extend( target, opt  );
     }
 
-    function DataGrid( viewport )
+    function DataGrid()
     {
         var theadTemplate='';
         var tbodyTemplate='';
@@ -38,16 +38,11 @@
         var tbody="<td>{value}</td>";
         var container="<tr>{value}</tr>";
         var template="<table style='width: 100%'>\r\n<thead>{theadTemplate}</thead>\r\n<tbody>{tbodyTemplate}</tbody>\r\n</table>";
-        var page="<div class='pagination'><a data-index='{firstPages}'>首页</a><? for(var i=1; i<=totalPages ;i++){  ?><a data-index='{i}'>{i}</a><? } ?><a data-index='{lastPages}'>尾页</a></div>";
+        var page="<div class='pagination' style='width: 100%'><a data-index='{firstPages}'>首页</a><? for(var i=1; i<=totalPages ;i++){  ?> <? if(currentPages===i){ ?> <a class='current' style='background-color: aqua'>{i}</a><? }else{ ?><a data-index='{i}'>{i}</a><? }} ?><a data-index='{lastPages}'>尾页</a></div>";
         var columnItem={};
         var plus_data={
             'template':{},
             'option':{}
-        }
-
-        if( viewport && !(viewport instanceof Breeze) )
-        {
-           throw new Error('target invalid');
         }
 
         this.plus=function(action,column,defualt,option)
@@ -216,6 +211,11 @@
             return this;
         }
 
+        this.links=function()
+        {
+
+        }
+
         /**
          * 设置数据属性
          * @param data
@@ -231,6 +231,58 @@
         }
 
         /**
+         * @private
+         */
+        var _viewport=false;
+
+        /**
+         * @private
+         */
+        this.viewport=function( viewport )
+        {
+            if( typeof viewport === "undefined")
+                return  this.dataRender().viewport();
+
+            if( _viewport === false )
+            {
+                this.dataRender().viewport( viewport );
+                _viewport=true;
+                this.dataRender().viewport().addEventListener(ElementEvent.ADDED, function (event)
+                {
+                    Breeze('[data-action]', this).each(function (elem, index) {
+
+                        var action = this.property('data-action');
+                        if (plus_data.option[action]) {
+                            var option = plus_data.option[action];
+                            if (option.cursor)
+                                this.style('cursor', option.cursor);
+
+                            this.addEventListener(option.eventType, function (event) {
+                                var index = this.property('data-index');
+                                if (typeof option.callback === 'function') {
+                                    option.callback.call(this, index, dataRender, event);
+                                }
+                            })
+                        }
+                    })
+
+                    Breeze('.pagination > a', this).addEventListener(MouseEvent.CLICK, function (event) {
+
+                        console.log(this.property('data-index'))
+                        dataRender.page(this.property('data-index'))
+
+                    }).style('width:auto; height:25px; line-height:25px; padding:0px 10px; display:block;float:left;margin:0px 5px;')
+
+                    Breeze('.pagination > .current', this).style('background-color','red')
+
+
+
+                })
+            }
+            return this;
+        }
+
+        /**
          * 获取数据渲染项
          * @returns {DataRender}
          */
@@ -238,46 +290,32 @@
         {
             if( !dataRender )
             {
-                dataRender=new DataRender( viewport );
-
+                dataRender=new DataRender();
                 dataRender.dataSource().addEventListener(DataSourceEvent.FETCH_DATA,function(event){
+
                     var totalPages = Math.ceil( this.predicts() / this.rows() );
                     dataRender.template().variable('totalPages', totalPages );
                     dataRender.template().variable('firstPages', 1 );
                     dataRender.template().variable('lastPages', totalPages );
-                },true,100)
-
-                viewport.addEventListener(ElementEvent.ADDED,function(event)
-                {
-                    this.find('[data-action]').each(function(elem,index){
-
-                        var action = this.property('data-action');
-                        if( plus_data.option[ action ] )
-                        {
-                            var option = plus_data.option[ action ];
-                            if( option.cursor )
-                                this.style('cursor', option.cursor );
-
-                            this.addEventListener( option.eventType , function(event)
-                            {
-                                var index =  this.property('data-index');
-                                if( typeof option.callback ==='function' )
-                                {
-                                    option.callback.call(this,index, dataRender, event );
-                                }
-                            })
-                        }
-                    })
-
-                    Breeze('.pagination > a', this ).addEventListener(MouseEvent.CLICK,function(event){
-
-                        console.log( this.property('data-index') )
-                        //dataRender.page(  )
-
-                    }).style('width:80px;')
+                    dataRender.template().variable('currentPages', this.page() );
 
 
-                })
+                    var links = 6;
+                    var current = 14 ;
+                    var totalPages= 13;
+
+                    var offset =  Math.max( current - Math.ceil( links / 2 ), 0);
+                        offset = offset+links > totalPages ? offset-(offset+links - totalPages) : offset;
+
+                    var but =[];
+                    for( var b=1 ; b <= links; b++ )
+                    {
+                        but.push( offset+b );
+                    }
+
+                    console.log( but )
+
+                },true,100);
             }
             return dataRender;
         }

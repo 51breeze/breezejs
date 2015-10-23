@@ -44,11 +44,11 @@
      * @constructor
      */
 
-    function DataRender( viewport )
+    function DataRender()
     {
         if( !(this instanceof DataRender) )
         {
-            return new DataRender( viewport );
+            return new DataRender();
         }
 
         /**
@@ -79,6 +79,8 @@
          */
         this.viewport=function( viewport )
         {
+            if( typeof viewport === "undefined")
+               return this.template().viewport();
             this.template().viewport( viewport );
             return this;
         }
@@ -119,7 +121,6 @@
             return _tpl || ( _tpl=new Template() );
         }
 
-
         /**
          * @private
          */
@@ -155,7 +156,6 @@
             }
             return _dataSource || ( _dataSource=new DataSource() );
         }
-        this.viewport( viewport );
     }
 
     DataRender.prototype = new EventDispatcher()

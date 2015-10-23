@@ -384,13 +384,8 @@
         {
             this.__fetched__=null;
             var offset  =  start;
-            var end     = start+rows;
+            var end     = Math.min( start+rows, this.length );
             var result = this.grep().execute( filter );
-            if( end > this.length )
-            {
-                offset= Math.max(this.length-rows, 0);
-                end = this.length;
-            }
             var data = result.slice( offset, end );
             this.dispatchEvent( new DataSourceEvent( DataSourceEvent.FETCH_DATA, {'data': data} ) );
         }

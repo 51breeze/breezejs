@@ -39,23 +39,20 @@
             return this;
 
         var result;
-        this.target = this.getContext( context );
+        this.context = this.getContext( context );
+        this.selector = selector;
 
         if( Breeze.isString( selector ) )
         {
             selector=Breeze.trim(selector);
+
             if( selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 )
             {
-                result=[ Breeze.createElement( selector ) ]
-
-            }else if( context instanceof Breeze )
-            {
-                result=context.find( selector ).toArray();
-                this.target = context.getContext();
+                result = [ Breeze.createElement(selector) ]
 
             }else
             {
-                result= Sizzle( selector, this.target )
+                result= Sizzle( selector, this.context )
             }
 
         }else if( selector && Breeze.isHTMLContainer(selector) || Breeze.isWindow(selector) )
@@ -186,9 +183,9 @@
     {
         var event=new ElementEvent( type )
         event.parent=parent;
-        event.target=child
+        event.child=child
         event.currentTarget=target;
-        return dispatchEventAll(target, /add/i.test(type) ? parent : child , event );
+        return dispatchEventAll(target, parent , event );
     }
     ,dispatchPropertyEvent=function(target,newValue,oldValue,property,element,type)
     {
@@ -460,21 +457,26 @@
         if ( !Breeze.hasStyle(elem) )
             return false;
 
-        var flag=false;
+        var flag=true;
+        if( name !=='cssText' )
+        {
+            flag=false;
 
-        //清空样式
-        if( typeof name==='string' && /\w+[\-\_]\s*:.*?(?=;|$)/.test(name) )
-        {
-            value=name;
-            name='cssText';
-            flag=true;
-        }
-        //在现有样式的基础上合并。
-        else if( Breeze.isObject(name) )
-        {
-            value=getStyle( elem )+' '+Breeze.serialize(name,'style');
-            name='cssText';
-            flag=true;
+            //清空样式
+            if( typeof name === 'string' &&  /^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/.test(name)  )
+            {
+                value=name;
+                name='cssText';
+                flag=true;
+
+            }
+            //在现有样式的基础上合并。
+            else if( Breeze.isObject(name) )
+            {
+                value=getStyle( elem )+' '+Breeze.serialize(name,'style');
+                name='cssText';
+                flag=true;
+            }
         }
 
         name = Breeze.styleName( name );
@@ -623,6 +625,12 @@
     {
         if( typeof name !=='string' )
           return name;
+
+        if( name === 'cssText')
+        {
+            return name;
+        }
+
         name=name.replace( cssPrefix, "ms-" ).replace( cssDashAlpha, cssCamelCase );
         name = fix.cssMap[name] || name;
         return name.replace( cssUpperProp, "-$1" ).toLowerCase();
@@ -1529,13 +1537,18 @@
     Breeze.prototype.owner=null;
 
     //每个Breeze对象的DOM元素的作用域
-    Breeze.prototype.target=null;
+    Breeze.prototype.context=null;
+
+    //使用的选择器
+    Breeze.prototype.selector=null;
 
     // 选择器已获取到的DOM个数
     Breeze.prototype.length=0;
 
+    //当前遍历的元素
     Breeze.prototype.forEachCurrentItem= undefined ;
 
+    //当前遍历的索引
     Breeze.prototype.forEachCurrentIndex=undefined;
 
     //============================================================
@@ -1685,7 +1698,7 @@
               return context.getContext();
             context = Breeze.isString(context) ? Sizzle(context,document)[0] : context;
         }
-        var target = context || this.forEachCurrentItem || this[0] || this.target;
+        var target = context || this.forEachCurrentItem || this[0] || this.context;
         if( Breeze.isFrame( target ) && target.contentWindow )
             return target.contentWindow.document;
         return Breeze.isHTMLContainer( target ) ? target :  document ;
@@ -1956,24 +1969,37 @@
         var isElement= childElemnet && childElemnet.nodeType && typeof childElemnet.nodeName === 'string';
         return this.each(function(parent)
         {
+            if( !parent || parent.nodeType!=1 || typeof parent.nodeName !== "string" )
+            {
+                throw new Error('not is a container type in addChildAt');
+            }
+
             try{
                 var child=isElement ? childElemnet : Breeze.createElement( childElemnet );
             }catch(e){
                 throw new Error('not is a HTMLElement type the childElemnet in addChildAt');
             }
+
             if( dispatchElementEvent(this,parent,child,ElementEvent.BEFORE_ADD ) )
             {
                 if( child.parentNode )
                 {
                    this.removeChildAt( child );
-                   this.current(parent);
                 }
 
                 var refChild=index && index.parentNode && index.parentNode===parent ? index : null;
                     !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
                     refChild && (refChild=index.nextSibling);
+
                 parent.insertBefore( child , refChild || null );
                 dispatchElementEvent(this,parent,child,ElementEvent.ADDED );
+
+                if( isElement )
+                {
+                    //为子级元素触发添加元素
+                    this.current( child );
+                    dispatchElementEvent(this,parent,child,ElementEvent.ADDED );
+                }
             }
             if( isElement ) return this;
         })
@@ -2164,13 +2190,14 @@
      */
     Breeze.prototype.style=function( name,value )
     {
-        if( typeof name === 'string' && /^\s*\w+[\-\_]\s*:.*?(?=;|$)/.test(name)  )
+        if( typeof name === 'string' &&  /^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/.test(name)  )
         {
             value=name;
             name='cssText';
-        }else if( Breeze.isObject(name) )
+        }
+        else if( Breeze.isObject(name) )
         {
-            value=Breeze.serialize(name,'style');
+            value=getStyle( elem )+' '+Breeze.serialize(name,'style');
             name='cssText';
         }
 

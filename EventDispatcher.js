@@ -238,9 +238,9 @@
     EventDispatcher.dispatchEvent=function(event, listeners )
     {
         //初始化一个全局事件
-        event= globlaEvent = createEvent( event );
+        event=  globlaEvent || createEvent( event );
 
-        if( !globlaEvent.currentTarget )
+        if( !event.currentTarget )
             return false;
 
         //获取需要调度的侦听器
@@ -249,7 +249,7 @@
         if( !event || listeners.length < 1 )return false;
 
         //标记这个事件的对象已调度
-        globlaEvent.currentTarget.dispatched=true;
+        event.currentTarget.dispatched=true;
 
         var length=0;
         while(  length < listeners.length )
@@ -270,7 +270,6 @@
             }
             length++;
         }
-        globlaEvent=null;
         return true;
     }
 
@@ -442,6 +441,8 @@
                 //通过浏览器来发送
                 if( element && ( (typeof element.nodeName === 'string' && (element.nodeType===1 || element.nodeType===9 )) || element.window )  )
                 {
+                    event.currentTarget=element;
+                    event.target=element;
                     dispather.call( element, event.type );
                 }
 

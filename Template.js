@@ -325,14 +325,15 @@
 
              var event=new TemplateEvent( TemplateEvent.COMPILE_START );
                  event.template = template;
-                 event.data     =  this.variable();
+                 event.variable = this.variable();
+                 event.viewport = this.viewport();
 
               if( !this.hasEventListener( TemplateEvent.COMPILE_START ) || this.dispatchEvent( event ) )
               {
-                  template=make.call(this, event.template , event.data , getSplit.call(this) );
+                  template=make.call(this, event.template , event.variable , getSplit.call(this) );
                   if( this.hasEventListener( TemplateEvent.COMPILE_DONE ) )
                   {
-                      event =  new TemplateEvent( TemplateEvent.COMPILE_DONE )
+                      event.type = TemplateEvent.COMPILE_DONE;
                       event.html = template;
                       if( !this.dispatchEvent( event ) )
                       {
@@ -341,13 +342,9 @@
                       template=event.html;
                   }
 
-                  var viewport= this.viewport();
-                  if( !flag && viewport )
+                  if( !flag && event.viewport instanceof Breeze )
                   {
-                      if( viewport instanceof Breeze )
-                      {
-                          viewport.html( template );
-                      }
+                      event.viewport.html( template );
                       return true;
                   }
                   return template;
@@ -362,8 +359,8 @@
     function TemplateEvent( src, props ){ BreezeEvent.call(this, src, props);}
     TemplateEvent.prototype=new BreezeEvent();
     TemplateEvent.prototype.template=null;
-    TemplateEvent.prototype.data=null;
-    TemplateEvent.prototype.container=null;
+    TemplateEvent.prototype.variable=null;
+    TemplateEvent.prototype.viewport=null;
     TemplateEvent.prototype.html='';
     TemplateEvent.prototype.constructor=TemplateEvent;
     TemplateEvent.COMPILE_START='compileStart';
