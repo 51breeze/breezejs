@@ -117,13 +117,13 @@
         }
         return Breeze.trim( template );
     },
-    jscodeReg = /^(if|for\s*\(|else|do|switch|case|break|var|function|while|foreach|{|})(.*)?/g,
+    jscodeReg = /^\s*(if|for\s*\(|else|do|switch|case|break|var|function|while|foreach|{|})(.*)?/g,
     funReg = /^([\w\.]+)\s*\(/,
     foreachReg  = /(\w+)\s+as\s+(\w+)(\s+(\w+))?/i,
     replace = function( code , flag )
     {
-        code=code.replace(/(^\s+|\s+$)/g,'').replace(/[\r\n\t\s]+/g,' ');
-        if( code == "" )
+        code=code.replace(/[\r\n\t]+/g,'');
+        if( code.replace(/\s+/,'') == "" )
             return "";
 
         if( flag===true && code.match(jscodeReg) )
@@ -185,6 +185,7 @@
         }
         code += replace( template.substr(cursor, template.length - cursor) );
         code += 'return ___code___;';
+        //console.log( code );
         return new Function( code ).call( variable , template );
     }
 
@@ -241,7 +242,8 @@
             if( _split === null )
             {
                 var o = this.options();
-                _split=new RegExp(o.left+'([^'+o.right+']+)'+o.right+'|'+o.shortLeft+'([^'+o.shortRight+']+)'+o.shortRight,'gi');
+               // _split=new RegExp(o.left+'([^'+o.right+']+)'+o.right+'|'+o.shortLeft+'([^'+o.shortRight+']+)'+o.shortRight,'gi');
+                _split=new RegExp(o.left+'(.*?)'+o.right+'|'+o.shortLeft+'(.*?)'+o.shortRight,'gi');
             }
             return _split;
         }

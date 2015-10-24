@@ -17,6 +17,7 @@
     <script src="DataSource.js" ></script>
     <script src="DataRender.js" ></script>
     <script src="Template.js" ></script>
+    <script src="Pagination.js" ></script>
 
     <title></title>
 </head>
@@ -52,30 +53,6 @@
 
     Breeze(function(){
 
-
-
-
-
-        var links = 6;
-        var current = 14 ;
-        var totalPages= 13;
-
-
-          var o =  Math.max( current - Math.ceil( links / 2 ), 0);
-              o =  o+links > totalPages ? o-(o+links - totalPages) : o;
-
-        var but =[];
-
-            for( var b=1 ; b <= links; b++ )
-            {
-                but.push( o+b );
-
-            }
-
-        console.log( but )
-
-
-
       var grid = new DataGrid();
           grid.viewport( '.container' );
           grid.columns({'id':'序号','name':'名称','phone':'手机'})
@@ -94,8 +71,9 @@
    开呗养车运营端
 </div>
 
-<div class="container" data-bind style="width: 300px; height: 300px; ">
+<div class="container" data-bind style="width: 300px; height: auto; ">
 </div>
+<div class="page"></div>
 
 
 <noscript id="template">
