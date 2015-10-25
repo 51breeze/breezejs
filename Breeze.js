@@ -457,51 +457,42 @@
         if ( !Breeze.hasStyle(elem) )
             return false;
 
-        var flag=true;
-        if( name !=='cssText' )
+        //清空样式
+        if( typeof name === 'string' &&  /^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/.test(name)  )
         {
-            flag=false;
+            value=name;
+            name='cssText';
 
-            //清空样式
-            if( typeof name === 'string' &&  /^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/.test(name)  )
-            {
-                value=name;
-                name='cssText';
-                flag=true;
+        }else if( Breeze.isObject(name) )
+        {
+            value=name;
+        }
 
-            }
-            //在现有样式的基础上合并。
-            else if( Breeze.isObject(name) )
-            {
-                value=getStyle( elem )+' '+Breeze.serialize(name,'style');
-                name='cssText';
-                flag=true;
-            }
+        if( Breeze.isObject(value) )
+        {
+            value=getStyle( elem )+' '+Breeze.serialize(value,'style');
+            name='cssText';
         }
 
         name = Breeze.styleName( name );
-        if( flag===false && !Breeze.isScalar( value ) )
+        if( !Breeze.isScalar( value ) )
         {
             return getStyle(elem,name);
         }
 
         var style=elem.style;
-
-        if( !flag )
+        var type = typeof value,ret,
+            hook=cssHooks[name];
+        if ( type === "number" && isNaN( value ) )return false;
+        if ( type === "string" && (ret=cssOperator.exec( value )) )
         {
-            var type = typeof value,ret,
-                hook=cssHooks[name];
-            if ( type === "number" && isNaN( value ) )return false;
-            if ( type === "string" && (ret=cssOperator.exec( value )) )
-            {
-                value =operatorValue(value, parseFloat( getStyle( elem, name ) ) , ret );
-                type = "number";
-            }
-            if ( value == null )return false;
-            if ( type === "number" && !cssNumber[ name ] )
-                value += "px";
-            if( hook && hook.set && hook.set.call(elem,style,value)===true )return true;
+            value =operatorValue(value, parseFloat( getStyle( elem, name ) ) , ret );
+            type = "number";
         }
+        if ( value == null )return false;
+        if ( type === "number" && !cssNumber[ name ] )
+            value += "px";
+        if( hook && hook.set && hook.set.call(elem,style,value)===true )return true;
 
         try{
             style[name]=value;
@@ -994,7 +985,7 @@
      */
     Breeze.isObject=function( val , flag )
     {
-        if( !val || val.nodeType || Breeze.isWindow(val) )
+        if( !val || val.nodeType || Breeze.isWindow(val) || val===null )
            return false;
         return ( flag===true && Breeze.isArray(val) ) || typeof val === 'object';
     }
@@ -2197,7 +2188,7 @@
         }
         else if( Breeze.isObject(name) )
         {
-            value=getStyle( elem )+' '+Breeze.serialize(name,'style');
+            value=name;
             name='cssText';
         }
 

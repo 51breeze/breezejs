@@ -7,37 +7,78 @@
  */
 (function(window,undefined )
 {
-
-
-    function Pagination()
+    function Pagination( dataSource )
     {
         if( !(this instanceof  Pagination) )
         {
-            return new Pagination();
+            return new Pagination( dataSource );
+        }
+
+        if( typeof dataSource !=="undefined" && !(dataSource instanceof DataSource) )
+        {
+            throw new Error('invalid param dataSource');
         }
 
         /**
          * @private
          */
         var setting={
-            'firstPage':'第一页',
-            'prevPage' :'上一页',
-            'links'    :6,
-            'nextPage' :'下一页',
-            'lastPage' :'最后页',
-            'currentStyle':{'backgoundColor':'green'},
-            'hidden':'...',
-            'goto':'跳转到',
-            'template':
-            {
-                'button':'<a data-action="{forKeys}" data-index="{{forKeys}}">{value}</a>\r\n',
-                'link':'<? foreach(linkButton as key value){ ?><a data-action="link" data-index="{value}" <?if(currentPage==value){?>current<? } ?> >{value}</a><? } ?>',
-                'goto':'<span><input data-action="{forKeys}" style="width: 80px; height: 25px;line-height: 25px"/>{value}</span>',
-                'hiddenLeft':'<? if(linkButton[0]>1){ ?><span>{value}</span><?}?>',
-                'hiddenRight':'<? if(linkButton[linkButton.length]<totalPage){ ?><span>{value}</span><?}?>'
+            'links':6,
+            'template':{
+                'firstPage':'<a data-pages="{firstPage}" <?if(currentPage==firstPage && require){?>disable<? } ?> >第一页</a>',
+                'prevPage' :'<a data-pages="{prevPage}" <?if(currentPage==prevPage && require){?>disable<? } ?> >上一页</a>',
+                'buttons'  :'<? foreach(buttons as key value){ ?><a class="link" data-pages="{value}" <?if(currentPage==value){?>current<? } ?> >{value}</a><?}?>',
+                'nextPage' :'<a data-pages="{nextPage}" <?if(currentPage==nextPage && require){?>disable<? } ?> >下一页</a>',
+                'lastPage' :'<a data-pages="{lastPage}" <?if(currentPage==lastPage && require){?>disable<? } ?> >最后页</a>',
+                'hiddenLeft':'<? if(buttons[0]>1){ ?><span>...</span><?}?>',
+                'hiddenRight':'<? if(buttons[buttons.length-1]<totalPage){ ?><span>...</span><?}?>',
+                'goto':'<span><input /><button>跳转到</button></span>'
             },
-            'skin':'{firstPage}{prevPage}{hidden}{links}{hidden}{nextPage}{lastPage}{goto}',
-            'require':false
+            'action':{
+                'a':{'eventType':MouseEvent.CLICK,'callback':function(crrentTarget,event){
+                    var dataSource = this.dataSource();
+                    if( typeof dataSource !=='undefined'  )
+                    {
+                        dataSource.page( crrentTarget.property('data-pages') )
+                    }
+                }},
+                'button':{'eventType':MouseEvent.CLICK,'callback':function(crrentTarget,event){
+                    var dataSource = this.dataSource();
+                    var viewport = this.viewport();
+                    if( typeof dataSource !=='undefined'  )
+                    {
+                        var index = parseInt( Breeze('input' , viewport).property('value') );
+                        dataSource.page( Math.min( Math.max( index , 1), dataSource.totalPages() ) );
+                    }
+                }}
+            },
+            'style':{
+                'a,span':'width:auto; height:22px; line-height:22px; padding:0px 8px; display:block;float:left;margin:0px 2px;cursor:pointer;',
+                'a[current]':{'backgroundColor':'#444444','color':'#ffffff'},
+                'a.link':{'border':'solid 1px #333333'},
+                'input':{'width':'40px','height':'16px','line-height':'16px'},
+                'a[disable]':{'color':'#cccccc','cursor':'auto'}
+            },
+            'skin':'{firstPage}{prevPage}{hiddenLeft}{buttons}{hiddenRight}{nextPage}{lastPage}{goto}',
+            'skin':'{firstPage}{prevPage}{buttons}{nextPage}{lastPage}{goto}',
+            'require':true
+        }
+
+        /**
+         * @type {Pagination}
+         */
+        var self= this;
+
+        /**
+         * @private
+         */
+        if( typeof dataSource !=='undefined'  )
+        {
+            dataSource.addEventListener(DataSourceEvent.FETCH_DATA,function(evnet)
+            {
+                self.display( Math.ceil( this.predicts() / this.rows() ) , this.page() );
+
+            },true,100);
         }
 
         /**
@@ -62,20 +103,11 @@
             if( _changed )
             {
                 _changed=false;
-                var props = ['firstPage', 'prevPage', 'nextPage', 'lastPage', 'goto'];
-                for (var k in props) {
-                    var prop = props[k];
-                    var tpl = prop === 'goto' ? 'goto' : 'button';
-                    var elem = setting.template[tpl].replace(/\{forKeys\}/g, prop).replace('{value}', setting[prop]);
-                    setting.skin = setting.skin.replace('{' + prop + '}', elem);
+                for (var k in setting.template )
+                {
+                    var tpl = setting.template[k];
+                    setting.skin = setting.skin.replace('{' + k + '}', tpl);
                 }
-
-                var hiddenLeft = setting.template.hiddenLeft.replace('{value}', setting.hidden);
-                setting.skin = setting.skin.replace('{hidden}', hiddenLeft);
-
-                var hiddenRight = setting.template.hiddenRight.replace('{value}', setting.hidden);
-                setting.skin = setting.skin.replace('{hidden}', hiddenRight);
-                setting.skin = setting.skin.replace('{links}', setting.template.link);
             }
             return setting;
         }
@@ -94,6 +126,46 @@
         /**
          * @private
          */
+        var _dataSource=dataSource;
+
+        /**
+         * @param dataSource
+         * @returns {*}
+         */
+        this.dataSource=function()
+        {
+            return _dataSource;
+        }
+
+        /**
+         * @private
+         * @param event
+         */
+        var action=function(event)
+        {
+            var viewport= event.viewport;
+            for( var name in setting.action )
+            {
+                var item = setting.action[ name ]
+                Breeze( name , viewport).not('[disable]').addEventListener( item.eventType,(function(self,item)
+                {
+                    return function(event){
+                        item.callback.call(self,this,event)
+                    }
+
+                })(self,item))
+            }
+
+            for( var name in setting.style )
+            {
+                var item = setting.style[ name ]
+                Breeze( name , viewport).style( item );
+            }
+        }
+
+        /**
+         * @private
+         */
         var _tpl=null;
 
         /**
@@ -102,39 +174,63 @@
          */
         this.template=function( tpl )
         {
-            return _tpl || ( _tpl = (tpl && tpl instanceof Template) ? tpl : new Template() )
+            if( tpl && tpl instanceof Template )
+            {
+                _tpl=tpl;
+
+            }else if( _tpl===null )
+            {
+                _tpl = new Template();
+            }
+            _tpl.removeEventListener( TemplateEvent.REFRESH , action );
+            _tpl.addEventListener( TemplateEvent.REFRESH ,  action );
+            return _tpl;
         }
 
+        /**
+         * @private
+         */
+        var _undisplay=false;
+
+        /**
+         * @param flag
+         * @returns {boolean}
+         */
+        this.undisplay=function( flag )
+        {
+            if( typeof  flag !== "undefined" )
+                _undisplay=flag;
+            return _undisplay;
+        }
 
         /**
          * 获取数据渲染项
          * @returns {DataRender}
          */
-        this.display=function(totalPages, current, flag )
+        this.display=function(totalPages, currentPages )
         {
+            if( this.undisplay() )
+               return false;
+
             var options =  this.options();
             var links = options.links;
-            var offset =  Math.max( current - Math.ceil( links / 2 ), 0);
+            var offset =  Math.max( currentPages - Math.ceil( links / 2 ), 0);
             offset = offset+links > totalPages ? offset-(offset+links - totalPages) : offset;
-            var linkButton =[];
+            var buttons =[];
             for( var b=1 ; b <= links; b++ )
             {
-                linkButton.push( offset+b );
+                buttons.push( offset+b );
             }
 
             var tpl=this.template();
             tpl.variable('totalPage', totalPages );
             tpl.variable('firstPage', 1 );
-            tpl.variable('prevPage', Math.max( current-1, 1) );
-            tpl.variable('nextPage', Math.min( current+1, totalPages) );
+            tpl.variable('prevPage', Math.max( currentPages-1, 1) );
+            tpl.variable('nextPage', Math.min( currentPages+1, totalPages) );
             tpl.variable('lastPage', totalPages );
-            tpl.variable('currentPage', current );
-            tpl.variable('linkButton', linkButton );
-
-            console.log( options.skin )
-
-            if( flag===true )
-                return this;
+            tpl.variable('currentPage', currentPages );
+            tpl.variable('buttons', buttons );
+            tpl.variable('require',options.require);
             return tpl.render( options.skin );
         }
     }

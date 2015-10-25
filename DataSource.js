@@ -266,7 +266,7 @@
                }
                return this;
            }
-           return Math.max(_page,1);
+           return Math.min( Math.max(_page,1) , this.totalPages() );
         }
 
         /**
@@ -375,7 +375,7 @@
      */
     DataSource.prototype.fetch=function( filter )
     {
-        var page =   this.page();
+        var page = this.page();
         var rows=this.rows(),start=( page-1 ) * rows;
         this.__fetched__ = page;
 

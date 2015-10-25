@@ -248,6 +248,16 @@
             return _split;
         }
 
+        var self = this;
+        var dispatch=function(event)
+        {
+           var ev = new TemplateEvent( TemplateEvent.REFRESH );
+               ev.viewport = this
+               ev.html = makeTemplate;
+               ev.variable = self.variable()
+               self.dispatchEvent(  ev  );
+        }
+
         /**
          * @private
          */
@@ -276,6 +286,8 @@
                 if (viewport instanceof Breeze && viewport.length < 1) {
                     throw new Error('invalid viewport.')
                 }
+                viewport.removeEventListener(ElementEvent.ADDED,dispatch);
+                viewport.addEventListener( ElementEvent.ADDED ,dispatch);
                 _viewport = viewport;
             }
             return _viewport;
@@ -325,17 +337,17 @@
               if( template.charAt(0) !== '<' )
                 return false;
 
-             var event=new TemplateEvent( TemplateEvent.COMPILE_START );
+             var event=new TemplateEvent( TemplateEvent.START );
                  event.template = template;
                  event.variable = this.variable();
                  event.viewport = this.viewport();
 
-              if( !this.hasEventListener( TemplateEvent.COMPILE_START ) || this.dispatchEvent( event ) )
+              if( !this.hasEventListener( TemplateEvent.START ) || this.dispatchEvent( event ) )
               {
                   template=make.call(this, event.template , event.variable , getSplit.call(this) );
-                  if( this.hasEventListener( TemplateEvent.COMPILE_DONE ) )
+                  if( this.hasEventListener( TemplateEvent.DONE ) )
                   {
-                      event.type = TemplateEvent.COMPILE_DONE;
+                      event.type = TemplateEvent.DONE;
                       event.html = template;
                       if( !this.dispatchEvent( event ) )
                       {
@@ -343,7 +355,7 @@
                       }
                       template=event.html;
                   }
-
+                  makeTemplate=template;
                   if( !flag && event.viewport instanceof Breeze )
                   {
                       event.viewport.html( template );
@@ -353,6 +365,7 @@
               }
             return false;
         }
+        var makeTemplate='';
     }
 
     Template.prototype = new EventDispatcher()
@@ -365,9 +378,11 @@
     TemplateEvent.prototype.viewport=null;
     TemplateEvent.prototype.html='';
     TemplateEvent.prototype.constructor=TemplateEvent;
-    TemplateEvent.COMPILE_START='compileStart';
-    TemplateEvent.COMPILE_DONE='compileDone';
-    TemplateEvent.ADD_TO_CONTAINER='addToContainer';
+    TemplateEvent.START='templateStart';
+    TemplateEvent.DONE='templateDone';
+    TemplateEvent.REFRESH='templateRefresh';
+
+
 
     window.Template = Template;
     window.TemplateEvent = TemplateEvent;

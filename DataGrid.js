@@ -33,7 +33,6 @@
     {
         var theadTemplate='';
         var tbodyTemplate='';
-        var dataRender = null;
         var thead="<th>{value}</th>";
         var tbody="<td>{value}</td>";
         var container="<tr>{value}</tr>";
@@ -260,20 +259,42 @@
                             })
                         }
                     })
-
-                   /* Breeze('.pagination > a', this).addEventListener(MouseEvent.CLICK, function (event) {
-
-                        console.log(this.property('data-index'))
-                        dataRender.page(this.property('data-index'))
-
-                    }).style('width:auto; height:25px; line-height:25px; padding:0px 10px; display:block;float:left;margin:0px 5px;cursor:pointer;')
-
-                    Breeze('.pagination > .current', this).style('background-color','red')*/
-
                 })
             }
             return this;
         }
+
+        /**
+         * @type {boolean}
+         * @private
+         */
+        var _pageEnable=true;
+
+        /**
+         * @param pageContaine
+         * @returns {boolean}
+         */
+        this.pageEnable=function( pageContaine )
+        {
+            if( pageContaine !== false )
+            {
+                _pageEnable = new Pagination( this.dataRender().dataSource() );
+                _pageEnable.viewport( pageContaine );
+
+            }else if( _pageEnable instanceof Pagination )
+            {
+                _pageEnable.undisplay(true);
+                _pageEnable=false;
+            }
+            return !!_pageEnable;
+        }
+
+
+        /**
+         * @type {null}
+         * @private
+         */
+        var _dataRender=null;
 
         /**
          * 获取数据渲染项
@@ -281,28 +302,13 @@
          */
         this.dataRender=function()
         {
-            if( !dataRender )
+            if( !_dataRender )
             {
-
-                var page = new Pagination();
-                dataRender=new DataRender();
-                dataRender.dataSource().addEventListener(DataSourceEvent.FETCH_DATA,function(event){
-
-                    var totalPages = Math.ceil( this.predicts() / this.rows() );
-                    var current = this.page() ;
-
-                    page.viewport('.page')
-                    page.display(totalPages,current);
-
-
-                },true,100);
+                _dataRender=new DataRender();
             }
-            return dataRender;
+            return _dataRender;
         }
     }
-
-
-
 
    window.DataGrid= DataGrid;
 
