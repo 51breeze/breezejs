@@ -252,6 +252,7 @@
         var dispatch=function(event)
         {
            var ev = new TemplateEvent( TemplateEvent.REFRESH );
+               ev.originalEvent=event;
                ev.viewport = this
                ev.html = makeTemplate;
                ev.variable = self.variable()
@@ -381,8 +382,6 @@
     TemplateEvent.START='templateStart';
     TemplateEvent.DONE='templateDone';
     TemplateEvent.REFRESH='templateRefresh';
-
-
 
     window.Template = Template;
     window.TemplateEvent = TemplateEvent;

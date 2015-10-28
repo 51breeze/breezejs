@@ -102,10 +102,23 @@
         {
             if( typeof filter === "undefined" )
             {
-                filter = _filter || ( _filter = createFilter.call(this) )
+                var index = this.index();
+                if( index instanceof Array )
+                {
+                    filter=index;
+                }else
+                {
+                    filter = _filter || ( _filter = createFilter.call(this) )
+                }
 
             }else if ( typeof filter === 'string' )
             {
+                if( filter.match(/^\s*(\d+)(\,(\d+))?\s*$/ ) )
+                {
+                    this.index(RegExp.$1,RegExp.$3);
+                    return null;
+                }
+
                 filter = filter.replace(/(\w+)\s*(?=[\=\!\<\>]+)/g,function(a,b){
                     return "arguments[0]['"+b+"']";
                 }).replace(/(\w+)\s+(notlike|like)\s+([\'\"])([^\3]*)\3/g,function(a,b,c,d,e){
@@ -157,7 +170,15 @@
         var data=this.data();
         var result=null;
         filter = this.filter( filter );
-        if( typeof  filter !== "function" )return data;
+        if( typeof  filter !== "function" )
+        {
+            var index = this.index()
+            if( index instanceof Array )
+            {
+                return data instanceof Array ?  data.slice(index[0],index[1]) : data;
+            }
+            return data;
+        }
 
         if( data instanceof Array )
         {
@@ -172,6 +193,41 @@
             result=data;
         }
         return result;
+    }
+
+    /**
+     * @returns {Grep}
+     */
+    Grep.prototype.clean=function()
+    {
+        for(var i=0; i<this.length; i++)
+        {
+            delete this[i];
+        }
+        _filter=null;
+        return this;
+    }
+
+    /**
+     * @private
+     */
+    var _slice=null;
+
+    /**
+     * @param start
+     * @param end
+     * @returns {*}
+     */
+    Grep.prototype.index=function(start,end)
+    {
+        if(  start > 0 || end > 0 )
+        {
+            end =  parseInt(end) || 1 ;
+            start =  parseInt(start) || 0;
+            _slice = [start, start+end];
+            return this;
+        }
+        return _slice;
     }
 
     /**

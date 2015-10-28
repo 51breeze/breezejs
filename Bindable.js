@@ -20,7 +20,26 @@
         if( !(this instanceof Bindable) )
             return new Bindable( target );
 
-        target = target || [];
+        EventDispatcher.call(this);
+
+       var self  = this;
+       var dataIndex = null;
+       var dataName  = null;
+       if( target && target instanceof Breeze)
+       {
+
+           target.addEventListener(PropertyEvent.PROPERTY_CHANGE,function(event)
+           {
+
+               dataIndex = this.property('data-index');
+               dataName = this.property('data-bind');
+               if( event instanceof PropertyEvent )
+               {
+                   console.log( dataIndex,dataName, event.target )
+                   self.property(event.property, event.newValue);
+               }
+           });
+       }
 
         /**
          * @private
@@ -44,6 +63,12 @@
                 {
                     object=item.key;
                     properties=item.value;
+                    if( object instanceof DataSource && '?' in properties )
+                    {
+                        var old = properties['?'];
+                        properties={}
+                        properties[dataName]=old;
+                    }
 
                     if( properties )
                     {
@@ -61,6 +86,12 @@
                             }else if( object instanceof Bindable || object instanceof Breeze )
                             {
                                 return object.property(property,newValue);
+
+                            }else if( object instanceof DataSource )
+                            {
+                                var data = {};
+                                data[property]=newValue;
+                                object.alter(data,dataIndex);
                             }
                         }
                     }
@@ -68,13 +99,6 @@
             }
             return true;
         }
-
-        EventDispatcher.call(this, target );
-        this.addEventListener(PropertyEvent.PROPERTY_CHANGE,function(event)
-        {
-            if( event instanceof PropertyEvent )
-                this.property(event.property,event.newValue );
-        });
 
         /**
          * 绑定需要动态改变属性的对象(相当于订阅内容)
@@ -86,7 +110,7 @@
         {
             if( !target )
               return false;
-            property = property || 'value';
+            property = property instanceof DataSource ?  property || '?' : property || 'value';
             if( (typeof target === 'object' || target instanceof Array) || (target.nodeType && typeof target.nodeName === 'string' && target !== target.window ) )
             {
                 var obj = subscription.get(target)

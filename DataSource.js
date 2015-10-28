@@ -59,6 +59,9 @@
          */
         var _isRemote=false;
 
+        /**
+         * @returns {boolean}
+         */
         this.isRemote=function()
         {
             return _isRemote;
@@ -203,7 +206,7 @@
         /**
          * @private
          */
-        var _predicts= 20;
+        var _predicts= 0;
 
         /**
          * 预计总数
@@ -248,25 +251,25 @@
         /**
          * @private
          */
-        var _page = 0;
+        var _currentPages = 0;
 
         /**
          * 获取设置当前分页数
          * @param num
          * @returns {*}
          */
-        this.page=function( num )
+        this.currentPages=function( num )
         {
            if( num > 0 ) {
 
-               if(  _page !== num )
+               if(  _currentPages !== num )
                {
-                   _page = num;
+                   _currentPages = num;
                    this.fetch();
                }
                return this;
            }
-           return Math.min( Math.max(_page,1) , this.totalPages() );
+           return Math.min( Math.max(_currentPages,1) , this.totalPages() );
         }
 
         /**
@@ -301,8 +304,8 @@
             index = index < 0 ? index + this.length+1 : index;
             index = Math.min( this.length, Math.max( index, 0 ) )
             this.splice(index,0,item);
-            dispatch.call(this,item,DataSourceEvent.ITEM_ADD,index);
-            dispatch.call(this,item,DataSourceEvent.ITEM_CHANGED,index);
+            dispatch.call(this,item,DataSourceEvent.ADD,index);
+            dispatch.call(this,item,DataSourceEvent.CHANGED,index);
         }
         return this;
     }
@@ -333,8 +336,8 @@
             index = NaN;
         }
 
-        dispatch.call(this,result,DataSourceEvent.ITEM_REMOVE,index);
-        dispatch.call(this,result,DataSourceEvent.ITEM_CHANGED,index);
+        dispatch.call(this,result,DataSourceEvent.REMOVE,index);
+        dispatch.call(this,result,DataSourceEvent.CHANGED,index);
         return this;
     }
 
@@ -346,6 +349,7 @@
     DataSource.prototype.alter=function( data, filter )
     {
         var result = this.grep().execute(filter);
+        var flag=false;
         for(var i=0; i<result.length ; i++)
         {
             for( var c in data )
@@ -353,20 +357,23 @@
                 if( typeof result[i][c] !== "undefined" )
                 {
                     result[i][c] = data[c];
+                    flag=true;
                 }else
                 {
                     throw new Error('unknown column this '+c );
                 }
             }
         }
-        var index = NaN;
-        if( result.length ===1 )
+        if( flag )
         {
-            index = this.indexOf( result[0] );
+            var index = NaN;
+            if (result.length === 1) {
+                index = this.indexOf(result[0]);
+            }
+            dispatch.call(this, result, DataSourceEvent.ALTER, index);
+            dispatch.call(this, result, DataSourceEvent.CHANGED, index);
         }
-        dispatch.call(this,result,DataSourceEvent.ITEM_ALTER,index);
-        dispatch.call(this,result,DataSourceEvent.ITEM_CHANGED,index);
-        return this;
+        return flag;
     }
 
     /**
@@ -375,19 +382,19 @@
      */
     DataSource.prototype.fetch=function( filter )
     {
-        var page = this.page();
+        var page = this.currentPages();
         var rows=this.rows(),start=( page-1 ) * rows;
         this.__fetched__ = page;
 
         if( ( start+rows < this.length || this.isRemote() !==true || !this.hasEventListener(DataSourceEvent.LOAD_START) ) &&
-            this.hasEventListener(DataSourceEvent.FETCH_DATA) )
+            this.hasEventListener(DataSourceEvent.FETCH) )
         {
             this.__fetched__=null;
             var offset  =  start;
             var end     = Math.min( start+rows, this.length );
             var result = this.grep().execute( filter );
             var data = result.slice( offset, end );
-            this.dispatchEvent( new DataSourceEvent( DataSourceEvent.FETCH_DATA, {'data': data} ) );
+            this.dispatchEvent( new DataSourceEvent( DataSourceEvent.FETCH, {'data': data} ) );
         }
 
         //预加载数据
@@ -408,13 +415,13 @@
     DataSourceEvent.prototype.beforehand=false;
     DataSourceEvent.prototype.data=null;
 
-    DataSourceEvent.ITEM_ADD='itemAdd';
-    DataSourceEvent.ITEM_REMOVE='itemRemove';
-    DataSourceEvent.ITEM_CHANGED='itemChanged';
-    DataSourceEvent.ITEM_ALTER='itemAlter';
-    DataSourceEvent.LOAD_START='loadStart';
-    DataSourceEvent.LOAD_COMPLETE='loadComplete';
-    DataSourceEvent.FETCH_DATA = 'fetchData';
+    DataSourceEvent.ADD='dataSourceItemAdd';
+    DataSourceEvent.REMOVE='dataSourceItemRemove';
+    DataSourceEvent.CHANGED='dataSourceItemChanged';
+    DataSourceEvent.ALTER='dataSourceItemAlter';
+    DataSourceEvent.FETCH = 'dataSourceFetch';
+    DataSourceEvent.LOAD_START='dataSourceLoadStart';
+    DataSourceEvent.LOAD_COMPLETE='dataSourceLoadComplete';
 
     window.DataSource=DataSource;
     window.DataSourceEvent=DataSourceEvent;

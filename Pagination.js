@@ -39,7 +39,7 @@
                     var dataSource = this.dataSource();
                     if( typeof dataSource !=='undefined'  )
                     {
-                        dataSource.page( crrentTarget.property('data-pages') )
+                        dataSource.currentPages( crrentTarget.property('data-pages') )
                     }
                 }},
                 'button':{'eventType':MouseEvent.CLICK,'callback':function(crrentTarget,event){
@@ -48,18 +48,18 @@
                     if( typeof dataSource !=='undefined'  )
                     {
                         var index = parseInt( Breeze('input' , viewport).property('value') );
-                        dataSource.page( Math.min( Math.max( index , 1), dataSource.totalPages() ) );
+                        dataSource.currentPages( Math.min( Math.max( index , 1), dataSource.totalPages() ) );
                     }
                 }}
             },
             'style':{
-                'a,span':'width:auto; height:22px; line-height:22px; padding:0px 8px; display:block;float:left;margin:0px 2px;cursor:pointer;',
+                'a,span':{'width':'auto','height':'22px','line-height':'22px','padding':'0px 8px',display:'block;',float:'left;',margin:'0px 2px;',cursor:'pointer;'},
                 'a[current]':{'backgroundColor':'#444444','color':'#ffffff'},
                 'a.link':{'border':'solid 1px #333333'},
                 'input':{'width':'40px','height':'16px','line-height':'16px'},
                 'a[disable]':{'color':'#cccccc','cursor':'auto'}
             },
-            'skin':'{firstPage}{prevPage}{hiddenLeft}{buttons}{hiddenRight}{nextPage}{lastPage}{goto}',
+            //'skin':'{firstPage}{prevPage}{hiddenLeft}{buttons}{hiddenRight}{nextPage}{lastPage}{goto}',
             'skin':'{firstPage}{prevPage}{buttons}{nextPage}{lastPage}{goto}',
             'require':true
         }
@@ -72,11 +72,11 @@
         /**
          * @private
          */
-        if( typeof dataSource !=='undefined'  )
+        if( dataSource instanceof DataSource )
         {
-            dataSource.addEventListener(DataSourceEvent.FETCH_DATA,function(evnet)
+            dataSource.addEventListener(DataSourceEvent.FETCH,function(evnet)
             {
-                self.display( Math.ceil( this.predicts() / this.rows() ) , this.page() );
+                self.display( Math.ceil( this.predicts() / this.rows() ) , this.currentPages() );
 
             },true,100);
         }
@@ -199,7 +199,10 @@
         this.undisplay=function( flag )
         {
             if( typeof  flag !== "undefined" )
-                _undisplay=flag;
+            {
+                _undisplay = flag;
+                this.viewport().html('');
+            }
             return _undisplay;
         }
 

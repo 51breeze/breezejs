@@ -264,29 +264,18 @@
             return this;
         }
 
-        /**
-         * @type {boolean}
-         * @private
-         */
-        var _pageEnable=true;
 
         /**
          * @param pageContaine
-         * @returns {boolean}
+         * @returns {boolean|DataGrid}
          */
         this.pageEnable=function( pageContaine )
         {
-            if( pageContaine !== false )
-            {
-                _pageEnable = new Pagination( this.dataRender().dataSource() );
-                _pageEnable.viewport( pageContaine );
-
-            }else if( _pageEnable instanceof Pagination )
-            {
-                _pageEnable.undisplay(true);
-                _pageEnable=false;
+            if( typeof pageContaine === "undefined" ){
+                return this.dataRender().pageEnable();
             }
-            return !!_pageEnable;
+            this.dataRender().pageEnable( pageContaine );
+            return this;
         }
 
 

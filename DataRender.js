@@ -11,23 +11,28 @@
 
 
     // 为每行绑定动作行为
-    var bindAction=function( target )
+    var bindAction=function( event )
     {
-        var dataRender = this;
-        target.find('[data-bind]').each(function(elem){
+        var dataSource = this.dataSource();
+        var target =  event.viewport;
+        Breeze('[data-bind]', target).each(function(elem){
 
             var index = this.property('data-index');
             var name = this.property('data-bind');
-            var item = dataRender[index];
-            var bind = new Bindable()
-            this.data('__binder__', bind );
+            var item = dataSource[index];
+            var bind = this.data('__binder__');
+            if( !bind )
+            {
+                bind=new Bindable();
+                this.data('__binder__', bind );
+            }
             bind.bind(item,name);
 
             this.addEventListener(BreezeEvent.BLUR,function(event)
             {
                 var name =  this.property('data-bind');
                 var value = this.property('value');
-                var binder =  this.data('__binder__');
+                var binder = this.data('__binder__');
                 if( binder ){
                     binder.property(name,value)
                 }
@@ -86,25 +91,16 @@
         }
 
         /**
-         * 设置数据源
-         * @param source
-         * @param option
-         * @returns {DataRender}
-         */
-        this.source=function( source,option )
-        {
-            this.dataSource().source(source,option);
-            return this;
-        }
-
-        /**
          * @param num
          * @returns {DataRender}
          */
-        this.page=function(num)
+        this.currentPages=function(num)
         {
-            this.dataSource().page(num);
-            return this;
+            if( num > 0 ) {
+                this.dataSource().currentPages(num);
+                return this;
+            }
+            return  this.dataSource().currentPages();
         }
 
         /**
@@ -118,7 +114,67 @@
          */
         this.template=function()
         {
-            return _tpl || ( _tpl=new Template() );
+            if( _tpl=== null )
+            {
+                var self = this;
+                _tpl=new Template();
+                _tpl.addEventListener(TemplateEvent.REFRESH,function(event){
+
+                    var target = Breeze('[data-bind]', event.viewport);
+                    var bind=new Bindable( target );
+                    bind.bind(self.dataSource(), function(){
+                        return this.propertyName();
+                    });
+
+                    target.addEventListener(BreezeEvent.BLUR,function(event)
+                    {
+                        var ev=  new PropertyEvent( PropertyEvent.PROPERTY_CHANGE );
+                            ev.newValue= this.property('value');
+                            ev.property= this.property('data-bind');
+                            target.dispatchEvent(ev);
+                    })
+                })
+
+            }
+            return _tpl;
+        }
+
+
+        /**
+         * @type {boolean}
+         * @private
+         */
+        var _pageEnable=null;
+
+        /**
+         * @param pageContaine
+         * @returns {boolean}
+         */
+        this.pageEnable=function( pageContaine )
+        {
+            if( typeof pageContaine === "string" || pageContaine instanceof Breeze )
+            {
+                _pageEnable = new Pagination( this.dataSource() );
+                _pageEnable.viewport( pageContaine );
+
+            }else if( pageContaine === false && _pageEnable instanceof Pagination )
+            {
+                _pageEnable.undisplay(true);
+                _pageEnable=false;
+            }
+            return !!_pageEnable;
+        }
+
+        /**
+         * 设置数据源
+         * @param source
+         * @param option
+         * @returns {DataRender}
+         */
+        this.source=function( source,option )
+        {
+            this.dataSource().source(source,option);
+            return this;
         }
 
         /**
@@ -134,27 +190,15 @@
         {
             if( _dataSource === null  )
             {
+                var self = this;
                 _dataSource=new DataSource();
-                var tpl=this.template();
-                _dataSource.addEventListener(DataSourceEvent.FETCH_DATA,function(event){
-                    tpl.variable('data', event.data ).render( _view );
-                }).addEventListener(DataRenderEvent.ITEM_ADD,function(event){
-
-                    if( !isNaN(event.index) )
-                    {
-                        var target = template.target();
-                        var list = Breeze('[data-row]:gt('+event.index+')', target )
-                        Breeze('[data-row="'+event.index+'"]',target).removeElement();
-                        list.each(function(elem){
-                            var val= this.property('data-row');
-                            this.property('data-row', val-1 );
-                            Breeze('[data-index]', elem ).property('data-index',  val-1 )
-                        })
+                _dataSource.addEventListener(DataSourceEvent.FETCH,function(event){
+                    if( _view ) {
+                        self.template().variable('data', event.data).render( _view );
                     }
                 });
-
             }
-            return _dataSource || ( _dataSource=new DataSource() );
+            return _dataSource;
         }
     }
 
