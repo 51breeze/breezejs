@@ -2,15 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Bindable.js" afterPath="$PROJECT_DIR$/Bindable.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Breeze.js" afterPath="$PROJECT_DIR$/Breeze.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BreezeEvent.js" afterPath="$PROJECT_DIR$/BreezeEvent.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataGrid.js" afterPath="$PROJECT_DIR$/DataGrid.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataRender.js" afterPath="$PROJECT_DIR$/DataRender.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataSource.js" afterPath="$PROJECT_DIR$/DataSource.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/EventDispatcher.js" afterPath="$PROJECT_DIR$/EventDispatcher.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Pagination.js" afterPath="$PROJECT_DIR$/Pagination.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Template.js" afterPath="$PROJECT_DIR$/Template.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -75,7 +66,7 @@
       <file leaf-file-name="index.html" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6666667" vertical-offset="1080" max-vertical-offset="2688">
+            <state vertical-scroll-proportion="0.7" vertical-offset="1056" max-vertical-offset="2664">
               <caret line="65" column="0" selection-start-line="65" selection-start-column="0" selection-end-line="65" selection-end-column="0" />
               <folding />
             </state>
@@ -397,13 +388,20 @@
       <option name="project" value="LOCAL" />
       <updated>1446032002157</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="grep">
+      <created>1446116931105</created>
+      <option name="number" value="00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1446116931105</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1920" height="1040" extended-state="0" />
     <editor active="true" />
     <layout>
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.0" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -421,7 +419,6 @@
       <window_info id="消息" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32939634" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="更改" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="运行" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="版本控制" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.0" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -866,7 +863,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6666667" vertical-offset="1080" max-vertical-offset="2688">
+        <state vertical-scroll-proportion="0.7" vertical-offset="1056" max-vertical-offset="2664">
           <caret line="65" column="0" selection-start-line="65" selection-start-column="0" selection-end-line="65" selection-end-column="0" />
           <folding />
         </state>
