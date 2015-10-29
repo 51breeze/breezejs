@@ -9,39 +9,6 @@
 
 (function(window,undefined){
 
-
-    // 为每行绑定动作行为
-    var bindAction=function( event )
-    {
-        var dataSource = this.dataSource();
-        var target =  event.viewport;
-        Breeze('[data-bind]', target).each(function(elem){
-
-            var index = this.property('data-index');
-            var name = this.property('data-bind');
-            var item = dataSource[index];
-            var bind = this.data('__binder__');
-            if( !bind )
-            {
-                bind=new Bindable();
-                this.data('__binder__', bind );
-            }
-            bind.bind(item,name);
-
-            this.addEventListener(BreezeEvent.BLUR,function(event)
-            {
-                var name =  this.property('data-bind');
-                var value = this.property('value');
-                var binder = this.data('__binder__');
-                if( binder ){
-                    binder.property(name,value)
-                }
-            })
-
-        })
-    }
-
-
     /**
      * 数据渲染器
      * @param template
@@ -118,23 +85,44 @@
             {
                 var self = this;
                 _tpl=new Template();
-                _tpl.addEventListener(TemplateEvent.REFRESH,function(event){
+                _tpl.addEventListener(TemplateEvent.REFRESH,function(event)
+                {
+                    var dataSource=self.dataSource();
+                    Breeze('[data-bind]', event.viewport).each(function(){
 
-                    var target = Breeze('[data-bind]', event.viewport);
-                    var bind=new Bindable( target );
-                    bind.bind(self.dataSource(), function(){
-                        return this.propertyName();
-                    });
+                        var name  = this.property('data-bind');
+                        var index = dataSource.offsetIndex( this.property('data-index') );
+                        if( typeof dataSource[index] !== "undefined" )
+                        {
+                            var binder = this.data('dataBinder');
+                            if ( !(binder instanceof Bindable) ) {
+                                binder = new Bindable()
+                                this.data('dataBinder', binder);
+                            }
+                            binder.bind(dataSource[index], name);
+                        }
 
-                    target.addEventListener(BreezeEvent.BLUR,function(event)
+                    }).addEventListener(PropertyEvent.PROPERTY_CHANGE,function(event)
                     {
-                        var ev=  new PropertyEvent( PropertyEvent.PROPERTY_CHANGE );
-                            ev.newValue= this.property('value');
-                            ev.property= this.property('data-bind');
-                            target.dispatchEvent(ev);
+                        var newValue= this.property('value');
+                        var property= this.property('data-bind');
+                        var binder = this.data('dataBinder');
+                        if( binder instanceof  Bindable )
+                        {
+                            var result = binder.property(property,newValue);
+                            var index = dataSource.offsetIndex( this.property('data-index') );
+
+                            if(result && !isNaN(index) && dataSource.hasEventListener( DataSourceEvent.ALTER ) && typeof dataSource[ index ] !== "undefined" )
+                            {
+                                var ev = new DataSourceEvent(DataSourceEvent.ALTER);
+                                ev.originalEvent=event;
+                                ev.item= dataSource[ index ];
+                                ev.index = index;
+                                dataSource.dispatchEvent( ev );
+                            }
+                        }
                     })
                 })
-
             }
             return _tpl;
         }

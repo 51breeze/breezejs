@@ -49,6 +49,7 @@
      * @type {propertychange: string}
      */
     ,mapeventname= onPrefix==='' ? {'propertychange':'input','ready':'readystatechange'} :{'ready':'readystatechange'}
+    ,mapkey={'input':'propertychange','readystatechange':'ready'}
     ,agreed=new RegExp( 'webkitAnimationEnd|webkitAnimationIteration','i')
 
     /**
@@ -69,9 +70,6 @@
                 return a.priority=== b.priority ? 0 : (a.priority < b.priority ? 1 : -1);
             })
         }
-
-
-
         return true;
     }
     ,getData=function(target,type)
@@ -105,6 +103,8 @@
             ,currentTarget=event.currentTarget || target
             ,type=onPrefix==='on' && event.type ? event.type.replace(/^on/i,'') : event.type;
 
+        type = mapkey[ type ] || type;
+
         //ie9 以下 如果不是自定义事件
         if( onPrefix==='on' && typeof event.propertyName==='string' && event.propertyName !=="" )
         {
@@ -137,6 +137,16 @@
             breezeEvent.offsetY = event.offsetY;
             breezeEvent.screenX= event.screenX;
             breezeEvent.screenY= event.screenY;
+
+        }else if(KeyboardEvent.KEYPRESS===type || KeyboardEvent.KEY_UP===type || KeyboardEvent.KEY_DOWN===type)
+        {
+            breezeEvent=new KeyboardEvent( event );
+            breezeEvent.keycode = event.keyCode || event.keycode;
+            breezeEvent.altkey= !!event.altkey;
+            breezeEvent.button= event.button;
+            breezeEvent.ctrlKey= !!event.ctrlKey;
+            breezeEvent.shiftKey= !!event.shiftKey;
+            breezeEvent.metaKey= !!event.metaKey;
 
         }else if( typeof BreezeEvent !=='undefined' )
         {
@@ -189,6 +199,9 @@
     EventDispatcher.addListener=function( element, listener, type, useCapture , dataKey , callbackHandle )
     {
         dataKey = dataKey || type;
+        type= !agreed.test( type ) ? type.toLowerCase() : type;
+        type=mapeventname[type] || type;
+
         if( !(listener instanceof  EventDispatcher.Listener) )
         {
             throw new Error('listener invalid, must is EventDispatcher.Listener');
@@ -244,7 +257,7 @@
             return false;
 
         //获取需要调度的侦听器
-        listeners = listeners || getData( event.currentTarget, event.type).items;
+        listeners = listeners || getData( event.currentTarget, event.type ).items;
 
         if( !event || listeners.length < 1 )return false;
 
@@ -329,22 +342,17 @@
             ,element
             ,index=0;
 
-        var oldtype = type;
-        type= type && !agreed.test( type ) ? type.toLowerCase() : type;
-        var proxytype=mapeventname[type] || type;
-        var special = bindBeforeProxy[type];
-
         do{
+
             element=target[ index ] || this;
+            this.__bindType__[ type ]=true;
             if( target[ index ] instanceof EventDispatcher &&  target[ index ] !== this )
             {
-                this.__bindType__[ oldtype ]=true;
-                target[ index ].addEventListener(oldtype,listener,useCapture,priority);
+                target[ index ].addEventListener(type,listener,useCapture,priority);
 
-            }else if( !special || !special.callback(element,listener,type,useCapture,this)  )
+            }else if(  !(bindBeforeProxy[type] instanceof EventDispatcher.SpecialEvent) || !bindBeforeProxy[type].callback(element,listener,type,useCapture,this)  )
             {
-                this.__bindType__[ oldtype ]=true;
-                EventDispatcher.addListener.call(this, element, listener, proxytype, useCapture );
+                EventDispatcher.addListener.call(this, element, listener, type, useCapture );
             }
             index++;
 
@@ -644,16 +652,16 @@
 
         if( !win || !doc )return;
         var self =  this;
+
         var handle=function(event)
         {
             event= createEvent( event || window.event )
             if( event )
             {
+
                 readyState.call(self,event,BreezeEvent.READY,dispatcher);
             }
         }
-
-
 
         EventDispatcher.addListener(win, listener, onPrefix=='' ? 'DOMContentLoaded' : 'load' , useCapture , BreezeEvent.READY,handle );
         EventDispatcher.addListener(doc, listener, 'readystatechange', useCapture, BreezeEvent.READY,handle );

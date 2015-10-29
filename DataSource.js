@@ -291,6 +291,30 @@
     DataSource.prototype.constructor=DataSource;
 
     /**
+     * @param index
+     * @returns {number}
+     */
+    DataSource.prototype.offsetIndex=function( index )
+    {
+        var index = parseInt(index) || NaN;
+        if( isNaN(index) )return index;
+        return ( this.currentPages()-1 ) * this.rows() + index;
+    }
+
+    /**
+     * @param index
+     * @returns {number}
+     */
+    DataSource.prototype.offsetItem=function( index )
+    {
+        var index = this.offsetIndex(index);
+        if( !isNaN(index)) {
+            return this[index] || null;
+        }
+        return null;
+    }
+
+    /**
      * 添加数据项到指定的索引位置
      * @param item
      * @param index

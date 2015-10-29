@@ -42,13 +42,16 @@
                         dataSource.currentPages( crrentTarget.property('data-pages') )
                     }
                 }},
-                'button':{'eventType':MouseEvent.CLICK,'callback':function(crrentTarget,event){
-                    var dataSource = this.dataSource();
-                    var viewport = this.viewport();
-                    if( typeof dataSource !=='undefined'  )
+                'button,input':{'eventType':[MouseEvent.CLICK,KeyboardEvent.KEYPRESS],'callback':function(crrentTarget,event)
+                {
+                    if( event.type===MouseEvent.CLICK || (KeyboardEvent.KEYPRESS===event.type && event.keycode==13 ) )
                     {
-                        var index = parseInt( Breeze('input' , viewport).property('value') );
-                        dataSource.currentPages( Math.min( Math.max( index , 1), dataSource.totalPages() ) );
+                        var dataSource = this.dataSource();
+                        var viewport = this.viewport();
+                        if (typeof dataSource !== 'undefined') {
+                            var index = parseInt(Breeze('input', viewport).property('value'));
+                            dataSource.currentPages(Math.min(Math.max(index, 1), dataSource.totalPages()));
+                        }
                     }
                 }}
             },

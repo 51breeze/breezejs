@@ -203,7 +203,6 @@
            return new Template();
         }
 
-
         /**
          * @private
          */

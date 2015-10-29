@@ -15,31 +15,12 @@
      *               [发布内容的对象]
      * @constructor
      */
-    function Bindable( target )
+    function Bindable()
     {
         if( !(this instanceof Bindable) )
-            return new Bindable( target );
+            return new Bindable();
 
         EventDispatcher.call(this);
-
-       var self  = this;
-       var dataIndex = null;
-       var dataName  = null;
-       if( target && target instanceof Breeze)
-       {
-
-           target.addEventListener(PropertyEvent.PROPERTY_CHANGE,function(event)
-           {
-
-               dataIndex = this.property('data-index');
-               dataName = this.property('data-bind');
-               if( event instanceof PropertyEvent )
-               {
-                   console.log( dataIndex,dataName, event.target )
-                   self.property(event.property, event.newValue);
-               }
-           });
-       }
 
         /**
          * @private
@@ -63,13 +44,6 @@
                 {
                     object=item.key;
                     properties=item.value;
-                    if( object instanceof DataSource && '?' in properties )
-                    {
-                        var old = properties['?'];
-                        properties={}
-                        properties[dataName]=old;
-                    }
-
                     if( properties )
                     {
                         var callback=properties[property] || properties['*'];
@@ -86,12 +60,6 @@
                             }else if( object instanceof Bindable || object instanceof Breeze )
                             {
                                 return object.property(property,newValue);
-
-                            }else if( object instanceof DataSource )
-                            {
-                                var data = {};
-                                data[property]=newValue;
-                                object.alter(data,dataIndex);
                             }
                         }
                     }
@@ -114,8 +82,8 @@
             if( (typeof target === 'object' || target instanceof Array) || (target.nodeType && typeof target.nodeName === 'string' && target !== target.window ) )
             {
                 var obj = subscription.get(target)
-                if( !obj )subscription.set(target, (obj={}) );
-                obj[property]=callback;
+                if (!obj)subscription.set(target, (obj = {}));
+                obj[property] = callback;
                 return true;
             }
             return false;
@@ -148,15 +116,20 @@
             if( typeof value === 'undefined' )
               return dataset[ name ];
 
+            var result = false;
             if( dataset[ name ] !== value )
             {
                 dataset[ name ] = value;
-                commit(name,value);
-                var ev=new PropertyEvent(PropertyEvent.PROPERTY_CHANGE)
-                ev.property=name;
-                ev.newValue=value;
-                this.dispatchEvent(ev);
+                result=commit(name,value);
+                if( result )
+                {
+                    var ev = new PropertyEvent(PropertyEvent.PROPERTY_COMMIT);
+                    ev.property = name;
+                    ev.newValue = value;
+                    this.dispatchEvent(ev);
+                }
             }
+            return result;
         }
 
         /**

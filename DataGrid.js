@@ -239,22 +239,26 @@
 
             if( _viewport === false )
             {
-                this.dataRender().viewport( viewport );
                 _viewport=true;
-                this.dataRender().viewport().addEventListener(ElementEvent.ADDED, function (event)
+                var self= this;
+                this.dataRender().viewport( viewport );
+                this.dataRender().template().addEventListener(TemplateEvent.REFRESH, function (event)
                 {
                     Breeze('[data-action]', this).each(function (elem, index) {
 
                         var action = this.property('data-action');
-                        if (plus_data.option[action]) {
+                        if (plus_data.option[action])
+                        {
                             var option = plus_data.option[action];
                             if (option.cursor)
                                 this.style('cursor', option.cursor);
 
-                            this.addEventListener(option.eventType, function (event) {
-                                var index = this.property('data-index');
-                                if (typeof option.callback === 'function') {
-                                    option.callback.call(this, index, dataRender, event);
+                            this.addEventListener(option.eventType, function (event)
+                            {
+                                var index = self.dataRender().dataSource().offsetIndex( this.property('data-index') );
+                                if (typeof option.callback === 'function')
+                                {
+                                    option.callback.call(this, index, self.dataRender(), event);
                                 }
                             })
                         }
@@ -291,7 +295,7 @@
          */
         this.dataRender=function()
         {
-            if( !_dataRender )
+            if( _dataRender===null )
             {
                 _dataRender=new DataRender();
             }

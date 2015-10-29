@@ -75,9 +75,6 @@
     BreezeEvent.UNLOAD='unload';
     BreezeEvent.LOAD='load';
     BreezeEvent.READY_STATE_CHANGE='readystatechange';
-    BreezeEvent.KEYPRESS='keypress';
-    BreezeEvent.KEY_UP='keyup';
-    BreezeEvent.KEY_DOWN='keydown';
     BreezeEvent.RESET='reset';
     BreezeEvent.FOCUS='focus';
     BreezeEvent.BLUR='blur';
@@ -150,16 +147,25 @@
     function HttpEvent( src, props ){ BreezeEvent.call(this, src, props);}
     HttpEvent.prototype=new BreezeEvent();
     HttpEvent.prototype.data=null;
-    HttpEvent.SUCCESS = 'success';
-    HttpEvent.ERROR   = 'error';
-    HttpEvent.CANCEL  = 'cancel';
-    HttpEvent.TIMEOUT = 'timeout';
-    HttpEvent.OPEN    = 'open';
+    HttpEvent.SUCCESS = 'httpSuccess';
+    HttpEvent.ERROR   = 'httpError';
+    HttpEvent.CANCEL  = 'httpCancel';
+    HttpEvent.TIMEOUT = 'httpTimeout';
+    HttpEvent.OPEN    = 'httpOpen';
 
     //除了不分发 timeout 状态的事件，其它的状态都发。这个事件最先调度。
     HttpEvent.DONE    = 'done';
 
 
+    function KeyboardEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    KeyboardEvent.prototype=new BreezeEvent();
+    KeyboardEvent.prototype.constructor=KeyboardEvent;
+    KeyboardEvent.KEYPRESS='keypress';
+    KeyboardEvent.KEY_UP='keyup';
+    KeyboardEvent.KEY_DOWN='keydown';
+
+
+    window.KeyboardEvent=KeyboardEvent;
     window.HttpEvent=HttpEvent;
     window.BreezeEvent=BreezeEvent;
     window.ElementEvent=ElementEvent;
