@@ -142,8 +142,17 @@
                         self.splice(len, 0, data);
 
                         dispatch.call(self, data, DataSourceEvent.LOAD_COMPLETE, len, event);
-                        if (typeof self.__fetched__ === "number") {
-                            self.fetch(self.__fetched__);
+
+                        //do order by
+                        var orderBy = self.orderBy();
+                        for(var b in orderBy)
+                        {
+                            self.orderBy(b,orderBy[b], true);
+                        }
+
+                        if ( self.__fetched__ === true )
+                        {
+                            self.fetch();
                         }
 
                     },true,0);
@@ -158,7 +167,6 @@
                         source.send(options.param);
 
                     });
-
                     return source;
                 }
             }
@@ -279,6 +287,31 @@
         this.totalPages=function()
         {
            return Math.ceil( this.predicts() / this.rows() );
+        }
+
+        /**
+         * @private
+         */
+        var _orderBy={};
+
+        /**
+         * @param column
+         * @param type
+         */
+        this.orderBy=function(column,type,flag)
+        {
+            if( typeof type === "undefined" )
+            {
+               return  typeof column === "undefined" ? _orderBy : _orderBy[column];
+            }
+
+            if( typeof column === "string" && ( _orderBy[ column ] !==type || flag===true ) )
+            {
+                _orderBy[ column ]=type;
+                DataArray.prototype.orderBy.call(this,column,type);
+                this.fetch();
+            }
+            return this;
         }
 
         /**
@@ -408,12 +441,12 @@
     {
         var page = this.currentPages();
         var rows=this.rows(),start=( page-1 ) * rows;
-        this.__fetched__ = page;
+        this.__fetched__ = true;
 
         if( ( start+rows < this.length || this.isRemote() !==true || !this.hasEventListener(DataSourceEvent.LOAD_START) ) &&
             this.hasEventListener(DataSourceEvent.FETCH) )
         {
-            this.__fetched__=null;
+            this.__fetched__= false;
             var offset  =  start;
             var end     = Math.min( start+rows, this.length );
             var result = this.grep().execute( filter );

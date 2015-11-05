@@ -250,7 +250,7 @@
         }
         if( this === rootLayout && !this.inRootLayout )return;
          //计算子级元素需要排列的位置
-        this.children(':not([includeLayout=false])').each(function(child,index)
+        this.children(':not([includeLayout=false])').forEach(function(child,index)
         {
             this.setStyle('position','absolute')
             var childWidth=this.width()
@@ -451,7 +451,7 @@
 
         Layout.prototype.getRootLayout();
         var method=Breeze.extend({},position,size,range,align,gap);
-        Breeze('layout').each(function(target)
+        Breeze('layout').forEach(function(target)
         {
             var element=target.parentNode;
             if( element )

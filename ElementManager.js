@@ -27,7 +27,7 @@
      * @param element
      * @returns {*}
      */
-    ElementManager.prototype.current=function( element , flag )
+    ElementManager.prototype.current=function( element )
     {
         if( element )
         {
@@ -41,7 +41,7 @@
                 this.forEachCurrentItem = element;
                 this.forEachCurrentIndex = NaN;
             }
-            return flag===true ? this.forEachCurrentIndex : this;
+            return this;
         }
         return this.forEachCurrentItem || this[0];
     }
@@ -51,13 +51,13 @@
      * @param index
      * @returns {*}
      */
-    ElementManager.prototype.index=function( index , flag)
+    ElementManager.prototype.index=function( index )
     {
-        if( index >= 0 && index < this.length )
+        if( index >= 0 && index < this.length && typeof this[index] !== "undefined" )
         {
-            this.forEachCurrentItem= this[ index ] ;
+            this.forEachCurrentItem= this[ index ];
             this.forEachCurrentIndex= index;
-            return flag===true ? this.forEachCurrentItem : this;
+            return this;
         }
         return this.forEachCurrentIndex;
     }
@@ -65,17 +65,16 @@
     /**
      * 遍历元素
      * @param callback
-     * @param proxyTarget
+     * @param refObject
      * @returns {*}
      */
-    ElementManager.prototype.forEach=function(callback , proxyTarget )
+    ElementManager.prototype.forEach=function(callback , refObject )
     {
-        var  proxyTarget=proxyTarget || this;
         var  result;
-
+        refObject=refObject || this;
         if( this.forEachCurrentItem !== undefined && this.forEachPrevItem !== this.forEachCurrentItem )
         {
-            result=callback.call( proxyTarget ,this.forEachCurrentItem,this.forEachCurrentIndex);
+            result=callback.call( refObject ,this.forEachCurrentItem,this.forEachCurrentIndex);
         }else
         {
             var items=this.slice(0),
@@ -86,14 +85,17 @@
                 this.forEachCurrentItem=items[ index ];
                 this.forEachCurrentIndex=index;
                 this.forEachNextItem=items[ index+1 ] === 'undefined' ? undefined : items[ index+1 ] ;
-                result=callback.call( proxyTarget,this.forEachCurrentItem,index);
+                result=callback.call( refObject ,this.forEachCurrentItem,index);
                 this.forEachPrevItem=this.forEachCurrentItem;
                 if( result !== undefined )
                     break;
             }
-            this.forEachCurrentItem=undefined;
+            this.forEachCurrentItem = undefined;
+            this.forEachNextItem    = undefined;
+            this.forEachPrevItem    = undefined;
+            this.forEachCurrentIndex= NaN;
         }
-        return result;
+        return result === undefined ? this : result;
     }
 
     window.ElementManager=ElementManager;

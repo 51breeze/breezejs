@@ -39,7 +39,7 @@
          */
         this.display=function( view )
         {
-            _view=view;
+            if( view )_view=view;
             this.dataSource().fetch();
             return this;
         }
@@ -88,7 +88,7 @@
                 _tpl.addEventListener(TemplateEvent.REFRESH,function(event)
                 {
                     var dataSource=self.dataSource();
-                    Breeze('[data-bind]', event.viewport).each(function(){
+                    Breeze('[data-bind]', event.viewport).forEach(function(){
 
                         var name  = this.property('data-bind');
                         var index = dataSource.offsetIndex( this.property('data-index') );
@@ -132,25 +132,26 @@
          * @type {boolean}
          * @private
          */
-        var _pageEnable=null;
+        var _pagination=true;
 
         /**
          * @param pageContaine
          * @returns {boolean}
          */
-        this.pageEnable=function( pageContaine )
+        this.pagination=function( pageContaine )
         {
             if( typeof pageContaine === "string" || pageContaine instanceof Breeze )
             {
-                _pageEnable = new Pagination( this.dataSource() );
-                _pageEnable.viewport( pageContaine );
+                _pagination = new Pagination( this.dataSource() );
+                _pagination.viewport( pageContaine );
 
-            }else if( pageContaine === false && _pageEnable instanceof Pagination )
+            }else if( pageContaine === false )
             {
-                _pageEnable.undisplay(true);
-                _pageEnable=false;
+                if( _pagination instanceof Pagination )
+                   _pagination.undisplay(true);
+                _pagination=false;
             }
-            return !!_pageEnable;
+            return _pagination;
         }
 
         /**

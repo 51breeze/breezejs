@@ -106,7 +106,24 @@
         this.sort(function(a,b){
             if( typeof a[ column ] === "undefined" )
                return 0;
-           return type === DataArray.ASC ? a[ column ].localeCompare( b[ column ] ):b[ column ].localeCompare( a[ column ] );
+
+            var a1,b2;
+           if( type === DataArray.ASC )
+           {
+               a1=a[ column ];
+               b2=b[ column ];
+           }else
+           {
+               b2=a[ column ];
+               a1=b[ column ];
+           }
+
+           if( !isNaN( parseFloat( a1 ) ) )
+           {
+              return ( parseFloat( b2 ) ||0 )-(parseFloat( a1 ) || 0);
+           }
+           return type === DataArray.ASC ? a1.localeCompare( b2 ): b2.localeCompare( a1 );
+
         })
         return this;
     }

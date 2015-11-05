@@ -29,22 +29,128 @@
         return Breeze.extend( target, opt  );
     }
 
-    function DataGrid()
+    var tagReg = /<?(\w+)(\s+[^>])\/?>?/;
+    var tagAttr=function( tag )
     {
-        var theadTemplate='';
-        var tbodyTemplate='';
-        var thead="<th>{value}</th>";
-        var tbody="<td>{value}</td>";
-        var container="<tr>{value}</tr>";
-        var template="<table style='width: 100%'>\r\n<thead>{theadTemplate}</thead>\r\n<tbody>{tbodyTemplate}</tbody>\r\n</table>";
-        var columnItem={};
-        var plus_data={
-            'template':{},
-            'option':{}
+        var match =  tag.match( tagReg );
+        return '<'+match[1]+match[2]+'>{value}</'+match[1]+'>';
+    }
+
+
+    /**
+     * 编译一个显示列名行的模板
+     * @param columns
+     * @param thead
+     * @param tbody
+     * @returns {DataGrid}
+     */
+    function makeTemplate(columns, options,plus_data )
+    {
+        if( options.needmake===false )
+        {
+            return options.skin;
         }
 
-        this.plus=function(action,column,defualt,option)
+        var props=['attr','style','className'];
+        var type=['thead','tbody','wrap','skin']
+        var replace={'style':'style="{value}"','className':'class="{value}"'};
+        for(var b in props )
         {
+            var item = options[ props[b] ];
+            for( var t in type )
+            {
+                if( item[ type[t] ] )
+                {
+                    if ( (props[b] === 'attr' || props[b] === 'style') && Breeze.isObject(item[type[t]],true) )
+                    {
+                        item[type[t]] = Breeze.serialize(item[type[t]], props[b] === 'style' ? props[b] : 'url');
+                    }
+
+                }else
+                {
+                    item[ type[t] ]='';
+                }
+                item[ type[t] ] = typeof replace[ props[b] ] === "string" && item[ type[t] ] !=='' ? replace[ props[b] ].replace('{value}', item[ type[t] ] ) : item[ type[t] ];
+                options[ type[t] ]=options[ type[t] ].replace('{'+props[b]+'}', item[ type[t] ] );
+            }
+        }
+
+        var thead = options.thead;
+        var tbody = options.tbody;
+        var wrap  = options.wrap;
+
+        if( Breeze.isObject(columns,true) )
+        {
+            options.thead='';
+            options.tbody='';
+
+            for( var i in  columns )
+            {
+                var field = columns[i];
+                i = i.replace(/\s+/,'');
+
+                var tb=tbody,th=thead;
+                if( plus_data['tbody'].template[ i ] )
+                {
+                    tb = tbody.replace('{value}', plus_data['tbody'].template[ i ].join('\r\n') );
+                }
+
+                if( plus_data['thead'].template[ i ] )
+                {
+                    th = thead.replace('{value}', plus_data['thead'].template[ i ].join('\r\n') );
+                }
+
+                if( w )
+                {
+                    th=th.replace(/<(.*?)>/, "<\$1 width='"+ w +"'>" );
+                    tb=tb.replace(/<(.*?)>/, "<\$1 width='"+ w +"'>" );
+                }
+
+                options.thead += th.replace(/\{column\}/g, i).replace(/\{value\}/g, field );
+                options.tbody += tb.replace(/\{column\}/g, i).replace(/\{value\}/g, '{item.'+ i +'}');
+                var w= options.columnWidth[i] || options.columnWidth['*'] || null;
+
+            }
+            options.thead = wrap.replace('{value}', options.thead);
+            options.tbody = wrap.replace('{value}', options.tbody ).replace(/(\<\s*(\w+))/i,function(){
+                return RegExp.$1+' data-row="{key}"';
+            });
+            options.tbody='<? foreach(data as key item){ ?>'+options.tbody+'<? } ?>';
+        }
+        options.needmake=false;
+        options.skin =  options.skin.replace('{thead}', options.thead ).replace('{tbody}',options.tbody );
+        return options.skin;
+    }
+
+    function DataGrid()
+    {
+        var template={
+           'thead':'<th {style} {attr} {className} >{value}</th>',
+           'tbody':'<td {style} {attr} {className} >{value}</td>',
+           'wrap' :'<tr {style} {attr} {className} >{value}</tr>',
+           'columnWidth':{'*':'auto'},
+           'style':{
+               skin:{'width':'100%','height':'auto'},
+               thead:{},
+               tbody:{},
+               wrap :{},
+           },
+           'attr':{
+                skin:null,
+                thead:{'height':'30px'},
+                tbody:{'height':'25px'},
+                wrap :null
+            },
+           'className':{skin:'grid'},
+           'needmake':true,
+           'skin':"<table {style} {attr} {className}>\r\n<thead>{thead}</thead>\r\n<tbody>{tbody}</tbody>\r\n</table>"
+        };
+
+        var plus_data={};
+
+        this.plus=function(action,column,defualt,option,category)
+        {
+            category = category || 'tbody';
             option = mergeOption(defualt,column,option || {} );
             option.template=option.template.replace(/(\<\s*(\w+))/ig,function(){
 
@@ -62,85 +168,43 @@
                 {
                     attr.push('name="{column}"');
                 }
-                return RegExp.$1+' data-index="{key}" data-action="'+action+'" '+attr.join(' ');
+                return RegExp.$1+( category === 'tbody' ? ' data-index="{key}" ': ' data-column="{column}"' )+' data-action="'+action+'" '+attr.join(' ');
             });
 
-            if( !plus_data.template[ column ] )
+            var data = plus_data[ category ] || ( plus_data[ category ]={'template':{},'option':{}} );
+            if( !data.template[ column ] )
             {
-                plus_data.template[ column ]=[];
+                data.template[ column ]=[];
             }
-            plus_data.template[ column ].push( option.template );
-            plus_data.option[ action ]= option;
+            data.template[ column ].push( option.template );
+            data.option[ action ]= option;
         }
 
         /**
-         * 编译一个显示列名行的模板
-         * @param columns
-         * @param thead
-         * @param tbody
-         * @returns {DataGrid}
+         * 设置获取配置选项
+         * @param options
+         * @returns {*}
          */
-        this.makeTemplate= function(columns,thead,tbody)
+        this.options=function( options )
         {
-            if( Breeze.isObject(columns,true) && ( theadTemplate==='' || tbodyTemplate==='' ) )
+            if( typeof options !== "undefined")
             {
-                theadTemplate='';
-                tbodyTemplate='';
-
-                for( var i in  columns )
+                var e = ['tbody','thead','wrap'];
+                for(var i in e )
                 {
-                    var field = columns[i];
-                    i = i.replace(/\s+/,'');
-
-                    if( Breeze.isObject( field ) && ( item.icon || item.label ) )
+                    if( typeof options[ e[i] ] !== "undefined" )
                     {
-                        field='<i class="'+( item.icon || '' )+'"></i>';
-                        field+='<span>'+( item.label || '' )+'</span>';
+                        options[ e[i] ]=tagAttr( options[ e[i] ] );
                     }
-
-                   var tb=tbody;
-                   if( plus_data.template[ i ] )
-                   {
-                       tb = tbody.replace('{value}', plus_data.template[ i ].join('\r\n') );
-                   }
-
-                   tb = tb.replace('{value}', '{item.'+ i.replace(/\s+/,'')+'}' );
-                   tbodyTemplate += tb.replace(/\{column\}/g, i );
-                   theadTemplate += thead.replace('{value}', field ).replace(/\{column\}/g, i );
                 }
-
-                theadTemplate = container.replace('{value}', theadTemplate );
-                tbodyTemplate = container.replace('{value}', tbodyTemplate );
-                tbodyTemplate = tbodyTemplate.replace(/(\<\s*(\w+))/i,function(){
-                    return RegExp.$1+' data-row="{key}"';
-                });
-                tbodyTemplate='<? foreach(data as key item){ ?>'+tbodyTemplate+'<? } ?>';
+                template = Breeze.extend(true, template, options );
+                if( typeof options['skin'] !== "undefined" )
+                {
+                    template.needmake=false;
+                }
+                return this;
             }
-            return this;
-        }
-
-        /**
-         * 指定一个自定义列名行的模板
-         * @param template
-         * @returns {DataGrid}
-         */
-        this.theadTag=function( tag )
-        {
-            var match =  tag.match(/<?(\w+)(\s+[^>])\/?>?/);
-            thead = '<'+match[1]+match[2]+'>{value}</'+match[1]+'>';
-            return this;
-        }
-
-        /**
-         * 指定一个自定义内容行的模板
-         * @param template
-         * @returns {DataGrid}
-         */
-        this.tbodyTag=function( tag )
-        {
-            var match =  tag.match(/<?(\w+)(\s+[^>])\/?>?/);
-            tbody = '<'+match[1]+match[2]+'>{value}</'+match[1]+'>';
-            return this;
+            return template;
         }
 
         /**
@@ -154,7 +218,7 @@
                 'template':'<a>编辑</a>',
                 'callback':null,
                 'eventType':MouseEvent.CLICK,
-                'cursor':'pointer'
+                'style':{'cursor':'pointer'}
             }, option );
             return this;
         }
@@ -170,10 +234,15 @@
                 'template':'<a>删除</a>',
                 'callback':null,
                 'eventType':MouseEvent.CLICK,
-                'cursor':'pointer'
+                'style':{'cursor':'pointer'}
             },option);
             return this;
         }
+
+        /**
+         * @private
+         */
+        var _columns={};
 
         /**
          * 设置指定的列名
@@ -182,11 +251,41 @@
          */
         this.columns=function( columns )
         {
-            columnItem = columns;
+            if( typeof columns === 'undefined' )
+            {
+                return _columns;
+            }
+            _columns = columns;
             if ( Breeze.isString(columns) )
             {
-                columnItem = columns.split(',')
+                _columns = columns.split(',')
             }
+            return this;
+        }
+
+        /**
+         * @type {{}}
+         */
+        var orderType={};
+
+        /**
+         * 排序
+         * @param column
+         * @param option
+         * @returns {DataGrid}
+         */
+        this.orderBy=function(column,option)
+        {
+            this.plus('orderBy',column,{
+                'template':'<span>{value}</span>',
+                'callback':function(index,render){
+                    var column = this.property('data-column');
+                    orderType[column] === 'asc' ? orderType[column]='desc' : orderType[column]='asc';
+                    render.dataSource().orderBy(column,  orderType[column] );
+                },
+                'eventType':MouseEvent.CLICK,
+                'style':{'cursor':'default','display':'block'}
+            },option,'thead');
             return this;
         }
 
@@ -217,10 +316,9 @@
          */
         this.dataProfile=function( data,option )
         {
-            this.makeTemplate(columnItem, thead, tbody);
-            var templateContent =  template.replace('{theadTemplate}', theadTemplate ).replace('{tbodyTemplate}',tbodyTemplate );
+            var pagination =  this.pagination();
             this.dataRender().source( data , option )
-            this.dataRender().display( templateContent );
+            this.dataRender().display(  makeTemplate( this.columns(), this.options(), plus_data ) );
             return this;
         }
 
@@ -244,23 +342,25 @@
                 this.dataRender().viewport( viewport );
                 this.dataRender().template().addEventListener(TemplateEvent.REFRESH, function (event)
                 {
-                    Breeze('[data-action]', this).each(function (elem, index) {
+                    Breeze('[data-action]', this).forEach(function () {
 
                         var action = this.property('data-action');
-                        if (plus_data.option[action])
+                        for(var i in plus_data )
                         {
-                            var option = plus_data.option[action];
-                            if (option.cursor)
-                                this.style('cursor', option.cursor);
-
-                            this.addEventListener(option.eventType, function (event)
+                            var item = plus_data[ i ];
+                            if ( item.option[action] )
                             {
-                                var index = self.dataRender().dataSource().offsetIndex( this.property('data-index') );
-                                if (typeof option.callback === 'function')
+                                var option = item.option[action];
+                                if (option.style)this.style(option.style);
+                                this.addEventListener(option.eventType, function (event)
                                 {
-                                    option.callback.call(this, index, self.dataRender(), event);
-                                }
-                            })
+                                    if (typeof option.callback === 'function')
+                                    {
+                                        var index = self.dataRender().dataSource().offsetIndex( this.property('data-index') );
+                                        option.callback.call(this, index, self.dataRender(), event);
+                                    }
+                                })
+                            }
                         }
                     })
                 })
@@ -268,20 +368,18 @@
             return this;
         }
 
-
         /**
          * @param pageContaine
          * @returns {boolean|DataGrid}
          */
-        this.pageEnable=function( pageContaine )
+        this.pagination=function( pageContaine )
         {
-            if( typeof pageContaine === "undefined" ){
-                return this.dataRender().pageEnable();
+            if( typeof pageContaine === "undefined" )
+            {
+                return this.dataRender().pagination();
             }
-            this.dataRender().pageEnable( pageContaine );
-            return this;
+           return this.dataRender().pagination( pageContaine );
         }
-
 
         /**
          * @type {null}

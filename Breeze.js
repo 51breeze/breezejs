@@ -1169,7 +1169,7 @@
      * @param refObj
      * @returns {*}
      */
-    Breeze.forEach=function( object ,fn ,refObj )
+    /*Breeze.forEach=function( object ,fn ,refObj )
     {
         var index= 0, result;
         if( this instanceof ElementManager && Breeze.isFunction(object) )
@@ -1203,7 +1203,7 @@
             }
         }
         return result === undefined ?  refObj : result;
-    }
+    }*/
 
     /**
      * 合并其它参数到指定的 target 对象中
@@ -1515,7 +1515,7 @@
      * Extends EventDispatcher Class
      * @type {EventDispatcher}
      */
-    Breeze.prototype=new ElementManager()
+    Breeze.prototype=new ElementManager();
 
     //============================================================
     //  Defined Instance Propertys
@@ -1524,23 +1524,11 @@
     //Breeze 构造方法
     Breeze.prototype.constructor=Breeze;
 
-    //此对象的所有者
-    Breeze.prototype.owner=null;
-
     //每个Breeze对象的DOM元素的作用域
     Breeze.prototype.context=null;
 
     //使用的选择器
     Breeze.prototype.selector=null;
-
-    // 选择器已获取到的DOM个数
-    Breeze.prototype.length=0;
-
-    //当前遍历的元素
-    Breeze.prototype.forEachCurrentItem= undefined ;
-
-    //当前遍历的索引
-    Breeze.prototype.forEachCurrentIndex=undefined;
 
     //============================================================
     //  Defined Public Method
@@ -1566,12 +1554,6 @@
             return Sizzle.matchesSelector( this[0], selector );
         return Breeze.isFunction(selector) ? !!doFilter(this.toArray(),selector,false).length : !!Sizzle.matches( selector,this.toArray()).length;
     }
-
-    /**
-     * 遍历元素集
-     * @type {Function}
-     */
-    Breeze.prototype.each=Breeze.forEach;
 
     /**
      * 回撒到指定步骤的选择器所匹配的元素,不包含初始化的步骤。
@@ -1813,7 +1795,7 @@
     {
         Breeze.isString( selector ) && ( selector=Breeze.trim(selector) );
         var ret=[];
-        this.each(function(element)
+        this.forEach(function(element)
         {
            if( !Breeze.isFrame( element ) )
              ret=ret.concat( selector==='*' ? slice.call( element.childNodes,0 ) : Sizzle( '*' ,element) );
@@ -1843,7 +1825,7 @@
             this.index( index );
             before=false;
         }
-        this.each(function(parent){
+        this.forEach(function(parent){
             this.current( parent.parentNode ).addChildAt( element, before ? parent : parent.nextSibling );
         })
         return this;
@@ -1858,7 +1840,7 @@
     {
         if( typeof index==='number' )
             this.index( index );
-        this.each(function(element){
+        this.forEach(function(element){
             this.removeChildAt( element );
         })
         return this;
@@ -1876,7 +1858,7 @@
     {
         if( typeof childElemnet==='string' )
         {
-            this.each(function(elem)
+            this.forEach(function(elem)
             {
                 var children=Sizzle(childElemnet,elem), b=0,len=children.length;
                 for( ; b<len ; b++)if( children[i] && children[i].nodeType===1 && children[i].parentNode )
@@ -1907,7 +1889,7 @@
         }else if( !Breeze.isNumber( index ) )
             throw new Error('Invalid param the index. in removeChildAt');
 
-        return this.each(function(parent)
+        return this.forEach(function(parent)
         {
             var child= is ? index : this.getChildAt( index );
             if( removeChild(this,parent,child) && is )
@@ -1958,7 +1940,7 @@
             throw new Error('Invalid param the index. in addChildAt');
 
         var isElement= childElemnet && childElemnet.nodeType && typeof childElemnet.nodeName === 'string';
-        return this.each(function(parent)
+        return this.forEach(function(parent)
         {
             if( !parent || parent.nodeType!=1 || typeof parent.nodeName !== "string" )
             {
@@ -2004,7 +1986,7 @@
      */
     Breeze.prototype.getChildAt=function( index )
     {
-        return this.each(function(parent)
+        return this.forEach(function(parent)
         {
             var childNodes,child=null;
             if( parent.hasChildNodes() )
@@ -2037,7 +2019,7 @@
             if( !childElemnet )return -1;
             this.current( childElemnet.parentNode );
         }
-        return this.each(function(parent)
+        return this.forEach(function(parent)
         {
             if( childElemnet.parentNode===parent )
             {
@@ -2060,7 +2042,7 @@
     Breeze.prototype.wrap=function( element )
     {
        var is=Breeze.isFunction( element );
-       return this.each(function(elem,index)
+       return this.forEach(function(elem,index)
        {
             var wrap=Breeze.createElement( is ? element.call(this,elem,index) : element );
             this.current( elem.parentNode ).addChildAt( wrap , elem );
@@ -2077,7 +2059,7 @@
     Breeze.prototype.unwrap=function( selector )
     {
         var is= selector === undefined;
-        return this.each(function(elem)
+        return this.forEach(function(elem)
         {
             this.__internal_return__=true;
             var parent= is ?  elem.parentNode : this.parents( selector )[0];
@@ -2110,7 +2092,7 @@
         var write= html !== undefined;
         if( !write && this.length < 1 ) return '';
 
-        return this.each(function(elem)
+        return this.forEach(function(elem)
         {
             if( !write || Breeze.isBoolean(html) )
             {
@@ -2144,7 +2126,7 @@
     {
         var write= newValue !== undefined;
         if( !write && this.length < 1 )return '';
-        return this.each(function(elem)
+        return this.forEach(function(elem)
         {
             var oldValue= callback.get.call(elem,name);
             if( !write ) return oldValue;
@@ -2240,6 +2222,7 @@
           return this.html(value);
         else if( lower === 'style' )
           throw new Error('the style property names only use style method to operate in property');
+
         return access.call(this,name,value,{
             get:function(prop){
                 return ( __property__[ prop ] ? this[ prop ] : this.getAttribute( prop ) ) || null;
