@@ -731,7 +731,7 @@
      */
     Breeze.serialize=function( object, type ,group )
     {
-        var str=[],key,joint='&',separate='=',val='',prefix=Breeze.isBoolean(group) ? null : group;
+        var str=[],key,joint='&',separate='=',val='',wrap='',prefix=Breeze.isBoolean(group) ? null : group;
         type = type || 'url';
         group = ( group !== false );
         if( type==='style' )
@@ -739,10 +739,19 @@
             joint=';';
             separate=':';
             group=false;
+        }else if( type === 'attr' )
+        {
+            joint=' ';
+            wrap='"';
         }
         for( key in object )
         {
-            val=object[key]
+            val=object[key];
+            if(wrap !=='' && typeof val === "string" )
+            {
+                val =wrap+val+wrap;
+            }
+
             key=type==='style' ? Breeze.styleName(key) : key;
             key=prefix ? prefix+'[' + key +']' : key;
             str=str.concat(  typeof val==='object' ? Breeze.serialize( val ,type , group ? key : false ) : key + separate + val  );
@@ -758,10 +767,15 @@
     Breeze.unserialize=function( str )
     {
          var object={},index,joint='&',separate='=',val,ref,last,group=false;
-         if( /\w+[\-\_]\s*\=.*?(?=\&|$)/.test( str ) )
+         if( /\w+[\-\_]\s*\=.*?(?=[\&\s]|$)/.test( str ) )
          {
-             str=str.replace(/^&|&$/,'')
+             str=str.replace(/^[\&\s]|[\&\s]$/,'')
              group=true;
+             if( /\=\s*([\"\']).*?\\1/.test(str) )
+             {
+                 joint=" ";
+                 str =  str.replace(/\'|\"/g,'');
+             }
 
          }else if( /\w+[\-\_]\s*\:.*?(?=\;|$)/.test( str ) )
          {
@@ -769,10 +783,12 @@
              separate=':';
              str=str.replace(/^;|;$/,'')
          }
+
         str=str.split( joint )
         for( index in str )
         {
             val=str[index].split( separate )
+
             if( group &&  /\]\s*$/.test( val[0] ) )
             {
                 ref=object,last;

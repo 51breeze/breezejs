@@ -50,9 +50,8 @@
         {
             return options.skin;
         }
-
         var props=['attr','style','className'];
-        var type=['thead','tbody','wrap','skin']
+        var type=['thead','tbody','tfoot','wrap','skin']
         var replace={'style':'style="{value}"','className':'class="{value}"'};
         for(var b in props )
         {
@@ -63,7 +62,7 @@
                 {
                     if ( (props[b] === 'attr' || props[b] === 'style') && Breeze.isObject(item[type[t]],true) )
                     {
-                        item[type[t]] = Breeze.serialize(item[type[t]], props[b] === 'style' ? props[b] : 'url');
+                        item[ type[t] ] = Breeze.serialize(item[type[t]], props[b] );
                     }
 
                 }else
@@ -100,6 +99,7 @@
                     th = thead.replace('{value}', plus_data['thead'].template[ i ].join('\r\n') );
                 }
 
+                var w= options.columnWidth[i] || options.columnWidth['*'] || null;
                 if( w )
                 {
                     th=th.replace(/<(.*?)>/, "<\$1 width='"+ w +"'>" );
@@ -108,7 +108,6 @@
 
                 options.thead += th.replace(/\{column\}/g, i).replace(/\{value\}/g, field );
                 options.tbody += tb.replace(/\{column\}/g, i).replace(/\{value\}/g, '{item.'+ i +'}');
-                var w= options.columnWidth[i] || options.columnWidth['*'] || null;
 
             }
             options.thead = wrap.replace('{value}', options.thead);
@@ -118,33 +117,41 @@
             options.tbody='<? foreach(data as key item){ ?>'+options.tbody+'<? } ?>';
         }
         options.needmake=false;
-        options.skin =  options.skin.replace('{thead}', options.thead ).replace('{tbody}',options.tbody );
+        options.skin =  options.skin.replace('{thead}', options.thead ).replace('{tbody}',options.tbody).replace('{tfoot}',options.tfoot);
         return options.skin;
     }
 
     function DataGrid()
     {
-        var template={
+        if( !(this instanceof DataGrid) )
+          return new DataGrid();
+
+        var _options={
            'thead':'<th {style} {attr} {className} >{value}</th>',
            'tbody':'<td {style} {attr} {className} >{value}</td>',
+           'tfoot':'<div {style} {attr} {className} >{value}</div>',
            'wrap' :'<tr {style} {attr} {className} >{value}</tr>',
-           'columnWidth':{'*':'auto'},
+           'columnWidth':{},
            'style':{
-               skin:{'width':'100%','height':'auto'},
-               thead:{},
-               tbody:{},
-               wrap :{},
+               skin:{'borderCollapse':'collapse'},
+               thead:{'backgroundColor':'#ccc','border':'solid #333 1px'},
+               tbody:{'border':'solid #333 1px'},
+               tfoot:{'width':'100%','height':'30px'},
+               wrap :{}
            },
            'attr':{
-                skin:null,
-                thead:{'height':'30px'},
-                tbody:{'height':'25px'},
+                skin:{'cellspacing':'1','cellpadding':'1', 'border':'0'},
+                thead:{'height':'40'},
+                tbody:{'height':'25'},
+                tfoot:{},
                 wrap :null
             },
-           'className':{skin:'grid'},
+           'className':{tfoot:'grid-foot'},
            'needmake':true,
            'skin':"<table {style} {attr} {className}>\r\n<thead>{thead}</thead>\r\n<tbody>{tbody}</tbody>\r\n</table>"
         };
+
+        EventDispatcher.call(this);
 
         var plus_data={};
 
@@ -189,7 +196,7 @@
         {
             if( typeof options !== "undefined")
             {
-                var e = ['tbody','thead','wrap'];
+                var e = ['tbody','thead','wrap','tfoot'];
                 for(var i in e )
                 {
                     if( typeof options[ e[i] ] !== "undefined" )
@@ -197,14 +204,117 @@
                         options[ e[i] ]=tagAttr( options[ e[i] ] );
                     }
                 }
-                template = Breeze.extend(true, template, options );
+                _options = Breeze.extend(true, _options, options );
                 if( typeof options['skin'] !== "undefined" )
                 {
-                    template.needmake=false;
+                    _options.needmake=false;
                 }
                 return this;
             }
-            return template;
+            return _options;
+        }
+
+        /**
+         * @param column
+         * @param width
+         * @returns {*}
+         */
+        this.columnWidth=function(column,width)
+        {
+            if(typeof width !== "undefined" )
+            {
+                _options.columnWidth[column]=width;
+                return this;
+            }else if( typeof column === "string" )
+            {
+                return _options.columnWidth[column];
+            }
+            return _options.columnWidth;
+        }
+
+        /**
+         * @param height
+         * @returns {*}
+         */
+        this.headHeight=function(height)
+        {
+            if( typeof height !== "undefined" )
+            {
+                _options.attr.thead.height=height;
+                return this;
+            }
+            return _options.attr.thead.height;
+        }
+
+        /**
+         * @param height
+         * @returns {*}
+         */
+        this.rowHeight=function(height)
+        {
+            if( typeof height !== "undefined" )
+            {
+                _options.attr.tbody.height=height;
+                return this;
+            }
+            return _options.attr.tbody.height;
+        }
+
+        /**
+         * @param height
+         * @returns {*}
+         */
+        this.width=function(width)
+        {
+            if( typeof width !== "undefined")
+            {
+                _options.attr.skin.width=width;
+                return this;
+            }
+            return _options.attr.skin.width;
+        }
+
+        /**
+         * @param height
+         * @returns {*}
+         */
+        this.height=function(height)
+        {
+            if( typeof height !== "undefined" )
+            {
+                _options.attr.skin.height=height;
+                return this;
+            }
+            return _options.attr.skin.height;
+        }
+
+        /**
+         * @param skin
+         * @returns {string}
+         */
+        this.skin=function( skin )
+        {
+            if( typeof skin === "string" )
+            {
+                _options.skin=skin;
+                _options.needmake=false;
+                return this;
+            }
+            return _options.skin;
+        }
+
+        /**
+         * @param skin
+         * @returns {string}
+         */
+        this.skinClass=function( className )
+        {
+            if( typeof className  === "string" )
+            {
+                _options.className.skin=className;
+                return this;
+            }
+            return _options.className.skin;
         }
 
         /**
@@ -303,6 +413,7 @@
                 'dataGroup':[],
                 'property':{},
                 'callback':null,
+                'editable':true,
                 'bindable':false
             }, option );
             return this;
@@ -316,7 +427,6 @@
          */
         this.dataProfile=function( data,option )
         {
-            var pagination =  this.pagination();
             this.dataRender().source( data , option )
             this.dataRender().display(  makeTemplate( this.columns(), this.options(), plus_data ) );
             return this;
@@ -342,6 +452,11 @@
                 this.dataRender().viewport( viewport );
                 this.dataRender().template().addEventListener(TemplateEvent.REFRESH, function (event)
                 {
+                    if( self.hasEventListener(DataGridEvent.REFRESH) )
+                    {
+                        self.dispatchEvent( DataGridEvent.REFRESH );
+                    }
+
                     Breeze('[data-action]', this).forEach(function () {
 
                         var action = this.property('data-action');
@@ -352,14 +467,19 @@
                             {
                                 var option = item.option[action];
                                 if (option.style)this.style(option.style);
+
                                 this.addEventListener(option.eventType, function (event)
                                 {
                                     if (typeof option.callback === 'function')
                                     {
-                                        var index = self.dataRender().dataSource().offsetIndex( this.property('data-index') );
-                                        option.callback.call(this, index, self.dataRender(), event);
+                                        option.callback.call(self, event, this );
                                     }
                                 })
+
+                                if( this.hasEventListener(DataGridEvent.PLUS_INITIALIZED) )
+                                {
+                                    this.dispatchEvent( DataGridEvent.PLUS_INITIALIZED );
+                                }
                             }
                         }
                     })
@@ -401,6 +521,16 @@
         }
     }
 
-   window.DataGrid= DataGrid;
+    DataGrid.prototype=new EventDispatcher();
+    DataGrid.prototype.constructor=DataGrid;
+
+    function DataGridEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    DataGridEvent.prototype=new BreezeEvent();
+    DataGridEvent.prototype.constructor=DataGridEvent;
+    DataGridEvent.PLUS_INITIALIZED='dataGridPlusInitialized';
+    DataGridEvent.REFRESH='dataGridRefresh';
+
+    window.DataGridEvent=DataGridEvent;
+    window.DataGrid= DataGrid;
 
 })( window )

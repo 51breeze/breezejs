@@ -14,6 +14,24 @@
     'use strict'
 
     var XMLHttpRequest=window.XMLHttpRequest || window.ActiveXObject
+        ,getParam=function( object,group )
+        {
+            if( typeof object === "string" )
+              return object;
+
+            if( typeof object !== "object" )
+               return '';
+
+            var str = [], key, joint = '&', separate = '=', val = '', prefix = typeof group === 'boolean' ? null : group;
+            group = ( group !== false );
+            for (key in object) {
+                val = object[key];
+                key = prefix ? prefix + '[' + key + ']' : key;
+                str = str.concat(typeof val === 'object' ? getParam(val, group ? key : false) : key + separate + val);
+            }
+            return str.join(joint);
+        }
+
         ,ScriptRequest=function()
         {
             var script= document.createElement( 'script' )
@@ -53,7 +71,7 @@
              */
             this.send=function( data )
             {
-                 data = typeof data==='string' ? data : '';
+                 data=getParam( data );
                  this.readyState=3;
                  this.status=2;
 
@@ -293,6 +311,11 @@
                 if( !this.hasEventListener(HttpEvent.OPEN) ||
                     this.dispatchEvent( new HttpEvent( HttpEvent.OPEN ,{'options':options}) ) )
                     httpRequest.open(options.method,options.url,options.async );
+
+                if( options.method === HttpRequest.METHOD.POST  )
+                {
+                    httpRequest.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+                }
                 return this;
             }
 
@@ -323,7 +346,8 @@
                        httpRequest.overrideMimeType( options.header.Accept )
 
                     timeoutTimer=setTimeout( done, options.timeout * 1000 );
-                    httpRequest.send( typeof data ==='string' ? data : null );
+                    data=getParam( data );
+                    httpRequest.send(  data  || null );
                     return true;
                 }
                 return false;

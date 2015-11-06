@@ -437,6 +437,9 @@
             if( event.isPropagationStopped===true)
                 return false;
 
+            event.currentTarget=element;
+            event.target=element;
+
             if( target[i] instanceof EventDispatcher && target[i] !==this )
             {
                 if( !target[i].dispatchEvent(event) )
@@ -449,16 +452,12 @@
                 //通过浏览器来发送
                 if( element && ( (typeof element.nodeName === 'string' && (element.nodeType===1 || element.nodeType===9 )) || element.window )  )
                 {
-                    event.currentTarget=element;
-                    event.target=element;
                     dispather.call( element, event.type );
                 }
 
                 //没有派发的事件需要手动派发
                 if( element.dispatched===false )
                 {
-                    event.currentTarget=this;
-                    event.target=element;
                     EventDispatcher.dispatchEvent( event );
                 }
             }

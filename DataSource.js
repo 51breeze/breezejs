@@ -12,12 +12,13 @@
     var defaultOption={
         'method': HttpRequest.METHOD.GET,
         'dataType':HttpRequest.TYPE.JSON,
-        'param':'',
+        'param':{},
+        'delimiter':'%',
         'profile':{
             'data':'data',     //数据集
             'total':'total',   //数据总数
-            'offset':'%offset%', //数据偏移量
-            'rows'  : '%rows%' , //每次摘取多少行数据
+            'offset':'offset', //数据偏移量
+            'rows'  : 'rows' , //每次摘取多少行数据
             'status': 'code'  //请求状态
         },
         'successStatus' : 0 , //成功时的状态值
@@ -161,11 +162,19 @@
                     {
                         beforehand = !!event.beforehand;
                         var offset = loadNum * rows;
-                        var url =  options.url.replace(options.profile.offset, offset).replace(options.profile.rows, rows);
-                        options.param = options.param.replace(options.profile.offset, offset).replace(options.profile.rows, rows);
-                        source.open(url, options.method);
-                        source.send(options.param);
+                        options.param[ options.profile.offset ]=offset;
+                        options.param[ options.profile.rows ]=rows;
+                        var data=options.param;
 
+                        if(  options.method === HttpRequest.METHOD.GET )
+                        {
+                            var param = Breeze.serialize(options.param,'url');
+                            options.url += /\?/.test( options.url ) ? '&'+param : '?'+param;
+                            data=null;
+                        }
+
+                        source.open( options.url, options.method );
+                        source.send( data );
                     });
                     return source;
                 }
@@ -329,7 +338,7 @@
      */
     DataSource.prototype.offsetIndex=function( index )
     {
-        var index = parseInt(index) || NaN;
+        var index = parseInt(index);
         if( isNaN(index) )return index;
         return ( this.currentPages()-1 ) * this.rows() + index;
     }
