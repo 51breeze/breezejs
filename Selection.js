@@ -8,23 +8,42 @@
 (function(window,undefined )
 {
 
-    function Editable( target ,type )
+    function Selection()
     {
         if( !(this instanceof DataGrid) )
-            return new DataGrid(target ,type);
+            return new DataGrid();
 
         EventDispatcher.call(this);
-
 
         /**
          * @private
          */
         var _options={
-            type:type || Editable.TEXT,
-            targets:target,
-            className:null,
-            skin:null
+            'type':type || Editable.TEXT,
+            'targets':target,
+            'profile':{'index':'',lable:''},
+            'template':{
+                searchInput: '<input {style} {attr} {className} />',
+                searchBox: '<div {style} {attr} {className}><span>{searchInput}</span>{group}</div>',
+                lable: '<span {style} {attr} {className}>{current}</span>',
+                group: '<ul {style} {attr} {className}>{list}</ul>',
+                list: '<?foreach(dataGroup as index item){ ?><li {style} {attr} {className}>{item}</li><?}?>'
+            },
+            'style':{
+                searchbox:{'borderCollapse':'collapse'},
+                lable:{'backgroundColor':'#ccc','border':'solid #333 1px'},
+                list:{'border':'solid #333 1px'}
+            },
+            'attr':{
+                searchbox:{'cellspacing':'1','cellpadding':'1', 'border':'0'},
+                lable:{'height':'40'},
+                list:{'height':'25'}
+            },
+            'className':{},
+            'needmake':true,
+            skin:'<div {style} {attr} {className}>{lable}{searchbox}{list}</div>'
         };
+
 
         /**
          * @param options
