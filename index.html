@@ -18,6 +18,7 @@
     <script src="DataRender.js" ></script>
     <script src="Template.js" ></script>
     <script src="Pagination.js" ></script>
+    <script src="Selection.js" ></script>
 
     <title></title>
 </head>
@@ -69,6 +70,11 @@
           grid.columns({'id':'序号','name':'名称','phone':'手机','edit':'操作'});
           grid.component('name',{'bindable':true});
           grid.dataProfile( '/json.php' );
+
+
+         var selection = new Selection()
+
+        selection.display()
 
     })
 

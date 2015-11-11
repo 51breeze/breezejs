@@ -108,7 +108,6 @@
 
                 options.thead += th.replace(/\{column\}/g, i).replace(/\{value\}/g, field );
                 options.tbody += tb.replace(/\{column\}/g, i).replace(/\{value\}/g, '{item.'+ i +'}');
-
             }
             options.thead = wrap.replace('{value}', options.thead);
             options.tbody = wrap.replace('{value}', options.tbody ).replace(/(\<\s*(\w+))/i,function(){

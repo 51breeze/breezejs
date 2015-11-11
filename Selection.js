@@ -8,10 +8,33 @@
 (function(window,undefined )
 {
 
+
+    function SkinFactory( options )
+    {
+        var getElement = function( name )
+        {
+            if( typeof options.elements[ name ] !== "string" )
+                return null;
+
+            var element = options.elements[ name ];
+            var attr = options.attr && options.attr[name] ? options.attr[name] : '';
+            if( attr !='' && Breeze.isObject( attr , true ) )
+            {
+                attr = Breeze.serialize( attr , 'attr' );
+            }
+            return element.replace(/\{include\.(\w+)\}/g,function(a,b){return getElement(b)}).replace('{attr}', attr )
+        }
+        for(var name in options.elements )
+        {
+            options.elements[ name ] = getElement( name );
+        }
+        return options;
+    }
+
     function Selection()
     {
-        if( !(this instanceof DataGrid) )
-            return new DataGrid();
+        if( !(this instanceof Selection) )
+            return new Selection();
 
         EventDispatcher.call(this);
 
@@ -19,29 +42,24 @@
          * @private
          */
         var _options={
-            'type':type || Editable.TEXT,
-            'targets':target,
-            'profile':{'index':'',lable:''},
-            'template':{
-                searchInput: '<input {style} {attr} {className} />',
-                searchBox: '<div {style} {attr} {className}><span>{searchInput}</span>{group}</div>',
-                lable: '<span {style} {attr} {className}>{current}</span>',
-                group: '<ul {style} {attr} {className}>{list}</ul>',
-                list: '<?foreach(dataGroup as index item){ ?><li {style} {attr} {className}>{item}</li><?}?>'
-            },
-            'style':{
-                searchbox:{'borderCollapse':'collapse'},
-                lable:{'backgroundColor':'#ccc','border':'solid #333 1px'},
-                list:{'border':'solid #333 1px'}
+            'elements':{
+                searchInput: '<input {attr} />',
+                searchBox: '<div {attr}><span>{searchInput}</span>{include.group}</div>',
+                lable: '<span {attr}>{current}</span>',
+                list: '<?foreach(dataGroup as index item){ ?><li {attr}>{item}</li><?}?>',
+                group: '<ul {attr}>{include.list}</ul>',
+                container:'<div {attr}>{include.lable}{include.searchBox}{include.list}</div>'
             },
             'attr':{
-                searchbox:{'cellspacing':'1','cellpadding':'1', 'border':'0'},
+                searchbox:{
+                    'cellspacing':'1',
+                    'cellpadding':'1',
+                    'border':'0',
+                    'style':{'borderCollapse':'collapse'}
+                },
                 lable:{'height':'40'},
                 list:{'height':'25'}
-            },
-            'className':{},
-            'needmake':true,
-            skin:'<div {style} {attr} {className}>{lable}{searchbox}{list}</div>'
+            }
         };
 
 
@@ -85,48 +103,12 @@
 
         this.display=function()
         {
-
-        }
-
-        this.skin=function( skin )
-        {
-            var options =  this.options();
-            if( !options.skin )
-            {
-                switch( options.type )
-                {
-                    case Editable.TEXTAREA :
-                        options.skin='<textarea>{value}</textarea>';
-                        break;
-                    case Editable.SELECT :
-                        options.skin='<select><?foreach(dataGroup as index value){<option value="{index}">{value}</option>}?></select>';
-                        break;
-                    default :
-                        options.skin='<input type="'+options.type+'" />';
-
-                }
-            }
+            SkinFactory( this.options() )
+            console.log( this.options() )
         }
 
     }
 
-    Editable.TEXT='text';
-    Editable.TEXTAREA='textarea';
-    Editable.PASSWORD='password';
-    Editable.CHECKBOX='checkbox';
-    Editable.RADIO='radio';
-    Editable.SELECT='select';
-
-    Editable.prototype=new EventDispatcher();
-    Editable.prototype.constructor=Editable;
-
-    function EditableEvent( src, props ){ BreezeEvent.call(this, src, props);}
-    EditableEvent.prototype=new BreezeEvent();
-    EditableEvent.prototype.constructor=EditableEvent;
-    EditableEvent.PLUS_INITIALIZED='dataGridPlusInitialized';
-    EditableEvent.REFRESH='dataGridRefresh';
-
-    window.EditableEvent=EditableEvent;
-    window.Editable= Editable;
+    window.Selection=Selection;
 
 })( window )
