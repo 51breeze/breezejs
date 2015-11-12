@@ -155,27 +155,15 @@
         }
 
         /**
-         * 设置数据源
-         * @param source
-         * @param option
-         * @returns {DataRender}
-         */
-        this.source=function( source,option )
-        {
-            this.dataSource().source(source,option);
-            return this;
-        }
-
-        /**
          * @private
          */
         var _dataSource=null;
 
         /**
-         * 获取数据源对象
-         * @returns {*|Window.DataSource}
+         * 获取设置数据源对象
+         * @returns {DataSource}
          */
-        this.dataSource=function()
+        this.dataSource=function(source,option)
         {
             if( _dataSource === null  )
             {
@@ -183,11 +171,35 @@
                 _dataSource=new DataSource();
                 _dataSource.addEventListener(DataSourceEvent.FETCH,function(event){
                     if( _view ) {
-                        self.template().variable('data', event.data).render( _view );
+                        self.template().variable(self.dataProfile(), event.data).render( _view );
                     }
                 });
             }
-            return _dataSource;
+
+            if( typeof source === "undefined" )
+                return _dataSource;
+            _dataSource.source(source,option);
+            return this;
+        }
+
+        /**
+         * @type {string}
+         * @private
+         */
+        var _dataProfile='data';
+
+        /**
+         * @param profile
+         * @returns {*}
+         */
+        this.dataProfile=function( profile )
+        {
+            if( typeof profile === "string" )
+            {
+                _dataProfile = profile;
+                return this;
+            }
+            return _dataProfile;
         }
     }
 

@@ -378,10 +378,8 @@
         {
             if( name === undefined || name==='cssText')
                 return (elem.style || {} ).cssText || '';
-
             name=Breeze.styleName( name );
             if( cssHooks[name] && cssHooks[name].get )return cssHooks[name].get.call(elem) || '';
-
             var ret='',computedStyle;
             if( name==='' )return '';
 
@@ -443,9 +441,6 @@
         };
     }
 
-    cssHooks.width={get: function( style ){return getWidthOrHeight(this,'width',true);}}
-    cssHooks.height={get: function( style ){return getWidthOrHeight(this,'height',true);}}
-
     /**
      * 设置元素的样式
      * @param elem
@@ -483,6 +478,7 @@
         var style=elem.style;
         var type = typeof value,ret,
             hook=cssHooks[name];
+
         if ( type === "number" && isNaN( value ) )return false;
         if ( type === "string" && (ret=cssOperator.exec( value )) )
         {
@@ -493,7 +489,6 @@
         if ( type === "number" && !cssNumber[ name ] )
             value += "px";
         if( hook && hook.set && hook.set.call(elem,style,value)===true )return true;
-
         try{
             style[name]=value;
         }catch( e ){}
@@ -2475,7 +2470,7 @@
     Breeze.prototype.display=function( flag )
     {
         flag= Breeze.isBoolean(flag) ? flag : true;
-        return this.current(true).style('display',flag ? 'block' : 'none');
+        return this.style('display',flag ? 'block' : 'none');
     }
 
     /**

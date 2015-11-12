@@ -7,30 +7,6 @@
  */
 (function(window,undefined )
 {
-
-
-    function SkinFactory( options )
-    {
-        var getElement = function( name )
-        {
-            if( typeof options.elements[ name ] !== "string" )
-                return null;
-
-            var element = options.elements[ name ];
-            var attr = options.attr && options.attr[name] ? options.attr[name] : '';
-            if( attr !='' && Breeze.isObject( attr , true ) )
-            {
-                attr = Breeze.serialize( attr , 'attr' );
-            }
-            return element.replace(/\{include\.(\w+)\}/g,function(a,b){return getElement(b)}).replace('{attr}', attr )
-        }
-        for(var name in options.elements )
-        {
-            options.elements[ name ] = getElement( name );
-        }
-        return options;
-    }
-
     function Selection()
     {
         if( !(this instanceof Selection) )
@@ -42,26 +18,22 @@
          * @private
          */
         var _options={
-            'elements':{
-                searchInput: '<input {attr} />',
-                searchBox: '<div {attr}><span>{searchInput}</span>{include.group}</div>',
-                lable: '<span {attr}>{current}</span>',
-                list: '<?foreach(dataGroup as index item){ ?><li {attr}>{item}</li><?}?>',
-                group: '<ul {attr}>{include.list}</ul>',
-                container:'<div {attr}>{include.lable}{include.searchBox}{include.list}</div>'
+            'template':{
+                input: '<input {attr.input} />',
+                lable: '<span {attr.lable}>{current}</span>',
+                list: '<?foreach(dataGroup as index item){ ?><li {attr.list}>{item["name"]}</li><?}?>',
+                container:'<div {attr.container}>{template.lable}</div>{template.group}',
+                group: '<div {attr.group}><ul style="padding: 0px;list-style-type:none;-webkit-margin-before:0px;-webkit-margin-after:0px;">{template.list}</ul></div>',
+                searchbox:'<div {attr.searchbox}><span>{template.input}</span>{template.group}</div>'
             },
             'attr':{
-                searchbox:{
-                    'cellspacing':'1',
-                    'cellpadding':'1',
-                    'border':'0',
-                    'style':{'borderCollapse':'collapse'}
-                },
-                lable:{'height':'40'},
-                list:{'height':'25'}
+                searchbox:{'style':{'width':'100%',height:'300px'}},
+                lable:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'}, "data-component":"selection.lable" },
+                list:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},"data-index":"{index}","data-component":"group.list"},
+                group:{style:{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}, "data-component":"selection.group" },
+                container:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px'}, "data-component":"selection" }
             }
         };
-
 
         /**
          * @param options
@@ -80,31 +52,157 @@
         /**
          * @private
          */
-        var _dataSource=null;
+        var _lableProfile='lable';
+
+        /**
+         * @param profile
+         * @returns {*}
+         */
+        this.lableProfile=function( profile )
+        {
+            if( typeof profile === "string" )
+            {
+                _lableProfile = profile
+                return this;
+            }
+            return _lableProfile;
+        }
+
+        /**
+         * @private
+         */
+        var _valueProfile='id';
+
+        /**
+         * @param profile
+         * @returns {*}
+         */
+        this.valueProfile=function( profile )
+        {
+            if( typeof profile === "string" )
+            {
+                _valueProfile = profile
+                return this;
+            }
+            return _valueProfile;
+        }
+
+        /**
+         * @param viewport
+         * @returns {*}
+         */
+        this.viewport=function( viewport )
+        {
+            if( typeof viewport === "undefined" )
+              return this.dataRender().viewport();
+            this.dataRender().viewport( viewport );
+            return this;
+        }
+
+        /**
+         * @private
+         */
+        var _dataRender=null;
 
         /**
          * @param source
          * @param options
          * @returns {*}
          */
-        this.dataSource=function(source,options)
+        this.dataRender=function()
         {
-            if( _dataSource === null )
+            if( _dataRender === null )
             {
-                _dataSource = new DataSource();
+                _dataRender = new DataRender();
+                _dataRender.dataProfile('dataGroup');
+                var self = this;
+                _dataRender.dataSource().addEventListener(DataSourceEvent.FETCH,function(event){
+
+                    var index = self.selectedIndex();
+                    if( typeof index === "function" )
+                        index=index.call(self);
+                    var item = this[index] || this[0];
+                    self.dataRender().template().variable('current', item['name'] || item );
+
+                },true,200)
+
+                this.dataRender().template().addEventListener(TemplateEvent.REFRESH,function(event){
+
+
+                    var viewport =  event.viewport;
+                    var left = viewport.left()
+                    var top  = viewport.top()
+                    var selection= Breeze('[data-component="selection"]',viewport);
+                    Breeze('[data-component="selection.lable"]', selection).addEventListener(MouseEvent.CLICK,function(event){
+
+                        var group = Breeze('[data-component="selection.group"]',viewport);
+                            group.width( viewport.width() )
+                            group.left( left )
+                            group.top( top + viewport.height() );
+                            Breeze('[data-component="group.list"]',group).addEventListener([MouseEvent.MOUSE_OVER,MouseEvent.MOUSE_OUT,MouseEvent.CLICK],function(event){
+
+                                if( event.type === MouseEvent.MOUSE_OVER )
+                                {
+                                    this.style('backgroundColor', '#ccc');
+
+                                }else if(event.type === MouseEvent.MOUSE_OUT)
+                                {
+                                    this.style('background', 'none');
+                                }else
+                                {
+                                    var index = this.property('data-index');
+                                    self.selectedIndex( index );
+                                    group.display(false);
+                                }
+                            })
+                            group.display();
+                    })
+                })
             }
-            if( typeof source !== "undefined" )
-            {
-                _dataSource.source(source,options);
-                return this;
-            }
-            return _dataSource;
+            return _dataRender;
         }
 
+        /**
+         * @param source
+         * @param options
+         * @returns {Selection}
+         */
+        this.dataSource=function(source,options)
+        {
+            if( typeof source === "undefined" )
+                return  this.dataRender().dataSource();
+            this.dataRender().dataSource( source , options )
+            return this;
+        }
+
+        /**
+         * @private
+         */
+        var _index=0;
+
+        /**
+         * @param value
+         * @returns {*}
+         */
+        this.selectedIndex=function( index )
+        {
+            if( typeof index !== "undefined" )
+            {
+                _index = index;
+                return this;
+            }
+            return _index;
+        }
+
+        /**
+         * @returns {Selection}
+         */
         this.display=function()
         {
-            SkinFactory( this.options() )
-            console.log( this.options() )
+            var options = this.options()
+            Template.factory( options );
+            this.dataRender().display( options.template.container );
+            return this;
         }
 
     }

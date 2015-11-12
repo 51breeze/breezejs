@@ -23,6 +23,17 @@
     <title></title>
 </head>
 
+<style>
+
+    div{
+
+       width: 100%;
+
+    }
+
+
+</style>
+
 <script>
 
 
@@ -69,12 +80,14 @@
           grid.orderBy('id')
           grid.columns({'id':'序号','name':'名称','phone':'手机','edit':'操作'});
           grid.component('name',{'bindable':true});
-          grid.dataProfile( '/json.php' );
+          grid.dataSource( '/json.php' );
+          grid.display();
 
 
          var selection = new Selection()
-
-        selection.display()
+         selection.viewport( '#selection' )
+         selection.dataSource( [{id:1,name:'张三'},{id:2,name:'李四'}] );
+         selection.display()
 
     })
 
@@ -85,6 +98,9 @@
 
 <div>
    开呗养车运营端
+</div>
+
+<div id="selection" style="width: 300px;">
 </div>
 
 

@@ -87,10 +87,7 @@
                 {
                     var len = this.length;
                     this.splice(0, len, source);
-                    if( _source )
-                    {
-                        this.removeEventListener(DataSourceEvent.LOAD_START);
-                    }
+                    this.removeEventListener(DataSourceEvent.LOAD_START);
                     return this;
                 }
 

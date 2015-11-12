@@ -371,6 +371,51 @@
     Template.prototype = new EventDispatcher()
     Template.prototype.constructor = Template;
 
+
+    /**
+     * @type {RegExp}
+     */
+    var tplReg=/\{\s*((\w+\s*\.\s*\w+)+)\s*\}/g;
+
+    /**
+     * @param options
+     * @returns {*}
+     */
+    Template.factory=function( options )
+    {
+        var data={};
+        var parser = function( a,b,c )
+        {
+            var prop =key=b.replace(/\s+/g,'');
+            prop=prop.split('.');
+            if( data[key] )
+            {
+                return data[key];
+            }
+            var item = options;
+            for( var index in prop ) {
+                item = item[ prop[index] ];
+                if( !item )return '';
+            }
+            if( item !='' && Breeze.isObject( item ,true) )
+            {
+                if( Breeze.isObject(item.style,true) )
+                {
+                    item.style=Breeze.serialize( item.style , 'style')
+                }
+                item = Breeze.serialize( item , 'attr' );
+            }
+            data[key]=item;
+            return item.replace(tplReg,parser);
+        }
+
+        for(var name in options.template )
+        {
+            options.template[ name ]=options.template[ name ].replace(tplReg,parser);
+        }
+        return options;
+    }
+
     function TemplateEvent( src, props ){ BreezeEvent.call(this, src, props);}
     TemplateEvent.prototype=new BreezeEvent();
     TemplateEvent.prototype.template=null;

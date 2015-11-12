@@ -420,13 +420,40 @@
 
 
         /**
-         * 设置数据属性
+         * 数据属性
          * @param data
          * @returns {DataGrid}
          */
-        this.dataProfile=function( data,option )
+        this.dataProfile=function( profile )
         {
-            this.dataRender().source( data , option )
+            if( typeof profile === "string" )
+            {
+                this.dataRender().dataProfile(profile);
+                return this;
+            }
+            return this.dataRender().dataProfile();
+        }
+
+        /**
+         * 获取设置数据源对象
+         * @param data
+         * @param option
+         * @returns {DataGrid}
+         */
+        this.dataSource=function( source , option )
+        {
+            if( typeof source === "undefined" )
+                return  this.dataRender().dataSource();
+            this.dataRender().dataSource( source , option )
+            return this;
+        }
+
+        /**
+         * 渲染显示组件
+         * @returns {DataGrid}
+         */
+        this.display=function()
+        {
             this.dataRender().display(  makeTemplate( this.columns(), this.options(), plus_data ) );
             return this;
         }
