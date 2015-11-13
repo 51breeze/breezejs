@@ -1943,7 +1943,7 @@
         {
             var target =[].concat( childElemnet.__rootElement__ )
             return Breeze.forEach(target,function(child){
-                this.addChildAt(child,index)
+               this.addChildAt(child,index)
             },this)
         }
 
@@ -2121,7 +2121,6 @@
                      return this;
                 }
             }
-
             elem.innerHTML='';
             if( outer && elem.parentNode && elem.parentNode.ownerDocument && Breeze.isContains(elem.parentNode.ownerDocument.body, elem.parentNode) )
             {
@@ -2469,8 +2468,9 @@
      */
     Breeze.prototype.display=function( flag )
     {
-        flag= Breeze.isBoolean(flag) ? flag : true;
-        return this.style('display',flag ? 'block' : 'none');
+        if( typeof flag === "undefined" )
+            return this.style('display') != 'none';
+        return this.style('display',flag===false ? 'none' : 'block' );
     }
 
     /**

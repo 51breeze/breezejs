@@ -449,6 +449,8 @@
         var rows=this.rows(),start=( page-1 ) * rows;
         this.__fetched__ = true;
 
+
+
         if( ( start+rows < this.length || this.isRemote() !==true || !this.hasEventListener(DataSourceEvent.LOAD_START) ) &&
             this.hasEventListener(DataSourceEvent.FETCH) )
         {

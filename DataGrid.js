@@ -110,8 +110,8 @@
                 options.tbody += tb.replace(/\{column\}/g, i).replace(/\{value\}/g, '{item.'+ i +'}');
             }
             options.thead = wrap.replace('{value}', options.thead);
-            options.tbody = wrap.replace('{value}', options.tbody ).replace(/(\<\s*(\w+))/i,function(){
-                return RegExp.$1+' data-row="{key}"';
+            options.tbody = wrap.replace('{value}', options.tbody ).replace(/(\<\s*(\w+))/i,function(a,b,c){
+                return b+' data-row="{key}"';
             });
             options.tbody='<? foreach(data as key item){ ?>'+options.tbody+'<? } ?>';
         }
@@ -158,10 +158,10 @@
         {
             category = category || 'tbody';
             option = mergeOption(defualt,column,option || {} );
-            option.template=option.template.replace(/(\<\s*(\w+))/ig,function(){
+            option.template=option.template.replace(/(\<\s*(\w+))/ig,function(a,b,c){
 
                 var attr = [];
-                var tag = RegExp.$2.toLowerCase();
+                var tag = c.toLowerCase();
                 if( option.bindable )
                 {
                     attr.push('data-bind="{column}"');
@@ -174,9 +174,8 @@
                 {
                     attr.push('name="{column}"');
                 }
-                return RegExp.$1+( category === 'tbody' ? ' data-index="{key}" ': ' data-column="{column}"' )+' data-action="'+action+'" '+attr.join(' ');
+                return b+( category === 'tbody' ? ' data-index="{key}" ': ' data-column="{column}"' )+' data-action="'+action+'" '+attr.join(' ');
             });
-
             var data = plus_data[ category ] || ( plus_data[ category ]={'template':{},'option':{}} );
             if( !data.template[ column ] )
             {
@@ -387,10 +386,10 @@
         {
             this.plus('orderBy',column,{
                 'template':'<span>{value}</span>',
-                'callback':function(index,render){
-                    var column = this.property('data-column');
+                'callback':function(breeze,event){
+                    var column = breeze.property('data-column');
                     orderType[column] === 'asc' ? orderType[column]='desc' : orderType[column]='asc';
-                    render.dataSource().orderBy(column,  orderType[column] );
+                    this.dataRender().dataSource().orderBy(column,  orderType[column] );
                 },
                 'eventType':MouseEvent.CLICK,
                 'style':{'cursor':'default','display':'block'}
@@ -498,7 +497,7 @@
                                 {
                                     if (typeof option.callback === 'function')
                                     {
-                                        option.callback.call(self, event, this );
+                                        option.callback.call(self,this, event );
                                     }
                                 })
 

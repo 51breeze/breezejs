@@ -89,17 +89,17 @@
      * @param event
      * @returns {*}
      */
-    ,createEvent=function( event )
+    ,createEvent=function( event , target )
     {
         if( event instanceof BreezeEvent )
             return event;
 
-        var event=event || window.event;
-        if( !event )
+        var event=event || window.event || {};
+        target = event.target || event.srcElement || event.currentTarget || target;
+        if( !event || !target )
             return null;
 
         var breezeEvent={}
-            ,target=event.target || event.srcElement
             ,currentTarget=event.currentTarget || target
             ,type=onPrefix==='on' && event.type ? event.type.replace(/^on/i,'') : event.type;
 
@@ -654,10 +654,9 @@
 
         var handle=function(event)
         {
-            event= createEvent( event || window.event )
+            event= createEvent( event , doc )
             if( event )
             {
-
                 readyState.call(self,event,BreezeEvent.READY,dispatcher);
             }
         }
@@ -672,6 +671,7 @@
             try {
                 toplevel = window.frameElement == null;
             } catch(e) {}
+
             if ( toplevel && document.documentElement.doScroll )
             {
                 this.___loading___=true;

@@ -12,7 +12,7 @@
         if( !(this instanceof Selection) )
             return new Selection();
 
-        EventDispatcher.call(this);
+        ElementManager.call(this);
 
         /**
          * @private
@@ -31,7 +31,7 @@
                 lable:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'}, "data-component":"selection.lable" },
                 list:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},"data-index":"{index}","data-component":"group.list"},
                 group:{style:{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}, "data-component":"selection.group" },
-                container:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px'}, "data-component":"selection" }
+                container:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px'}, "data-component":"selection",tabindex:"-1" }
             }
         };
 
@@ -124,18 +124,24 @@
                     var item = this[index] || this[0];
                     self.dataRender().template().variable('current', item['name'] || item );
 
-                },true,200)
+                },true,200);
 
-                this.dataRender().template().addEventListener(TemplateEvent.REFRESH,function(event){
-
+                _dataRender.template().addEventListener(TemplateEvent.REFRESH,function(event){
 
                     var viewport =  event.viewport;
                     var left = viewport.left()
                     var top  = viewport.top()
                     var selection= Breeze('[data-component="selection"]',viewport);
-                    Breeze('[data-component="selection.lable"]', selection).addEventListener(MouseEvent.CLICK,function(event){
+                    var group = Breeze('[data-component="selection.group"]',viewport);
+                    self.splice(0,0,group[0]);
 
-                        var group = Breeze('[data-component="selection.group"]',viewport);
+                    Breeze(document).addEventListener(MouseEvent.CLICK,function(event){
+                        if(group.display() && (event.pageX < group.left() || event.pageY < group.top() || event.pageX > group.left() + group.width() ||  event.pageY > group.top()+group.height()) )
+                            group.display(false);
+                    },true)
+
+                    selection.addEventListener(MouseEvent.CLICK,function(event){
+
                             group.width( viewport.width() )
                             group.left( left )
                             group.top( top + viewport.height() );
@@ -155,8 +161,9 @@
                                     group.display(false);
                                 }
                             })
-                            group.display();
-                    })
+                           group.display(true);
+
+                    },true)
                 })
             }
             return _dataRender;
@@ -186,9 +193,20 @@
          */
         this.selectedIndex=function( index )
         {
-            if( typeof index !== "undefined" )
+            if( typeof index === "number" )
             {
-                _index = index;
+                if( _index !== index )
+                {
+                    _index = index;
+                    var dataSource = this.dataSource();
+                    if( dataSource.length > 0 && dataSource[ index ] )
+                    {
+                        var event = new SelectionEvent(SelectionEvent.CHANGED);
+                        event.selectedIndex = index;
+                        event.selectedItem = dataSource[ index ];
+                        this.dispatchEvent( event );
+                    }
+                }
                 return this;
             }
             return _index;
@@ -207,6 +225,17 @@
 
     }
 
+    Selection.prototype=new ElementManager();
+    Selection.prototype.constructor=Selection;
+
+    function SelectionEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    SelectionEvent.prototype=new BreezeEvent();
+    SelectionEvent.prototype.constructor=SelectionEvent;
+    SelectionEvent.prototype.selectedIndex=NaN;
+    SelectionEvent.prototype.selectedItem=null;
+    SelectionEvent.CHANGED='selectionChanged';
+
+    window.SelectionEvent=SelectionEvent;
     window.Selection=Selection;
 
 })( window )

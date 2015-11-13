@@ -65,7 +65,10 @@
 
     Breeze(function(){
 
-          var grid = new DataGrid();
+
+          console.log('ready')
+
+       /*  var grid = new DataGrid();
           grid.viewport( '.container' );
           grid.pagination( '.page' );
           grid.edit('edit',{callback:function(event){
@@ -84,12 +87,15 @@
           grid.display();
 
 
+        */
+
          var selection = new Selection()
          selection.viewport( '#selection' )
          selection.dataSource( [{id:1,name:'张三'},{id:2,name:'李四'}] );
          selection.display()
 
     })
+
 
 
 </script>
@@ -107,6 +113,13 @@
 <div class="grid">
     <div class="container" data-bind style="width: 600px; height: 620px; "></div>
     <div class="page"></div>
+</div>
+
+<div data-component="selection">
+   <label>请选择</label>
+    <dataGroup>
+        <item value="1" style="color: red">张三</item>
+    </dataGroup>
 </div>
 
 

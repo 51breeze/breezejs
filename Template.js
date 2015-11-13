@@ -82,8 +82,6 @@
     }
 
 
-
-
     var template_contents={};
     var getTemplateContent=function( source )
     {
@@ -126,19 +124,21 @@
         if( code.replace(/\s+/,'') == "" )
             return "";
 
-        if( flag===true && code.match(jscodeReg) )
+        var _result=jscodeReg.exec(code);
+        if( flag===true && _result )
         {
-            if( RegExp.$1 === 'foreach' )
+            if( _result[1] === 'foreach' )
             {
-                if( typeof RegExp.$2 ==='string' && RegExp.$2.match(foreachReg) )
+                var foreach=foreachReg.exec( _result[2] )
+                if( typeof _result[2] ==='string' && foreach )
                 {
-                    var data = RegExp.$1;
+                    var data = foreach[1];
                     var key  ='key';
-                    var item = RegExp.$2;
-                    if(  typeof RegExp.$3 === 'string' )
+                    var item = foreach[2];
+                    if(  typeof foreach[3] === 'string' )
                     {
-                        key=RegExp.$2;
-                        item=RegExp.$3;
+                        key=foreach[2];
+                        item=foreach[3];
                     }
                     code = 'if( this.isObject('+data+') )for(var '+key+' in '+data+'){\n';
                     code += 'var '+item+'='+data+'['+key+'];\n';
@@ -146,7 +146,7 @@
                 }
                 code='\n';
             }
-            return code+'\n';
+            return code+='\n';
         }
         return '___code___+="' + code.replace(/"/g, '\\"') + '";\n';
     },
@@ -166,13 +166,15 @@
 
         while( match = split.exec(template) )
         {
-            code+=replace( template.slice(cursor, match.index) );
-            if( match[2] !==undefined )
+            code += replace( template.slice(cursor, match.index) );
+
+            if( match[2] !==undefined && match[2] !='' )
             {
                 var val=match[2].replace(/(^\s+|\s+$)/g,'');
-                if( val.match( funReg ) )
+                var result = funReg.exec( val );
+                if( result )
                 {
-                    code +='___code___+= typeof '+RegExp.$1+' === "function" ? '+val+' : this.error();\n';
+                    code +='___code___+= typeof '+result[1]+' === "function" ? '+val+' : this.error();\n';
                 }else{
                     code +='___code___+= typeof '+val+' !== "undefined" ? '+val+' : this.error();\n';
                 }
@@ -185,7 +187,6 @@
         }
         code += replace( template.substr(cursor, template.length - cursor) );
         code += 'return ___code___;';
-        //console.log( code );
         return new Function( code ).call( variable , template );
     }
 
@@ -370,7 +371,6 @@
 
     Template.prototype = new EventDispatcher()
     Template.prototype.constructor = Template;
-
 
     /**
      * @type {RegExp}
