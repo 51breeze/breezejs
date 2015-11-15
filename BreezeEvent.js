@@ -23,9 +23,7 @@
         {
             this.originalEvent = src;
             this.type = src.type;
-            this.isDefaultPrevented = src.defaultPrevented ||
-                src.defaultPrevented === undefined && src.returnValue === false ?
-                true : false;
+            this.defaultPrevented = src.defaultPrevented || src.returnValue === false ? true : false;
         }
         if ( props )for(var i in props)
            this[i]=props[i];
@@ -33,41 +31,140 @@
 
     BreezeEvent.prototype = {
         target:null,
+        bubbles:true, // true 只触发冒泡阶段的事件 , false 只触发捕获阶段的事件
+        cancelable:true, // 是否可以取消浏览器默认关联的事件
         currentTarget:null,
-        isDefaultPrevented: false,
-        isPropagationStopped: false,
-        isImmediatePropagationStopped:false,
-
+        defaultPrevented: false,
+        propagationStopped: false,
         preventDefault: function()
         {
-             var e = this.originalEvent;
-            this.isDefaultPrevented = true;
-            if ( e )
+            var e = this.originalEvent;
+            if( this.cancelable===true )
             {
-                e.preventDefault ? e.preventDefault() : e.returnValue = false
+                this.defaultPrevented = true;
+                if ( e )e.preventDefault ? e.preventDefault() : e.returnValue = false
             }
         },
-
         stopPropagation: function()
         {
-            var e = this.originalEvent;
-            this.isPropagationStopped = true;
-            if ( e && e.stopPropagation ) {
-                // e.stopPropagation();
-            }
-        },
-
-        stopImmediatePropagation: function()
-        {
-            var e = this.originalEvent;
-            this.isImmediatePropagationStopped = true;
-            this.isPropagationStopped = true;
-            if ( e ) {
-                !e.stopImmediatePropagation || e.stopImmediatePropagation();
-                !e.stopPropagation ? e.cancelBubble=true : e.stopPropagation();
-            }
+            this.propagationStopped = true;
         }
     };
+
+
+    /**
+     * @private
+     */
+    var mapeventname,onPrefix='',agreed=new RegExp( 'webkitAnimationEnd|webkitAnimationIteration|DOMContentLoaded','i');
+
+    /**
+     * 统一事件名
+     * @param type
+     * @param flag
+     * @returns {*}
+     */
+    BreezeEvent.eventType=function(type,flag)
+    {
+        if( typeof type !== "string" )
+           return null;
+        if( !mapeventname )
+        {
+            mapeventname={'propertychange':'input','ready':'readystatechange','load':'DOMContentLoaded'}
+            if( Utils.isBrowser(Utils.BROWSER_IE,9) )
+            {
+                mapeventname={'ready':'readystatechange'}
+                onPrefix='on';
+            }
+        }
+        if( flag===true )
+        {
+            type= onPrefix==='on' ? type.replace(/^on/i,'') : type;
+            for(var prop in mapeventname)if( mapeventname[prop] === type )return prop
+            return type;
+        }
+        var eventType= !agreed.test( type ) ? type.toLowerCase() : type;
+        return onPrefix+(mapeventname[ eventType ] || eventType);
+    }
+
+    /**
+     * 根据原型事件创建一个Breeze BreezeEvent
+     * @param event
+     * @returns {*}
+     */
+    BreezeEvent.create=function( event )
+    {
+        if( event instanceof BreezeEvent )
+            return event;
+
+        event=event || window.event;
+        var target = event.target || event.srcElement || event.currentTarget;
+        if( !target )
+            return null;
+
+        //阻止浏览浏览器的事件冒泡
+        if ( event )
+        {
+            !event.stopImmediatePropagation || event.stopImmediatePropagation();
+            !event.stopPropagation ? event.cancelBubble=true : event.stopPropagation();
+        }
+
+        var breezeEvent={},currentTarget=event.currentTarget || target;
+        type = BreezeEvent.eventType(event.type,true);
+
+        if( type === null )
+           return null
+
+        if( typeof PropertyEvent !=='undefined' && type === PropertyEvent.PROPERTY_CHANGE )
+        {
+            breezeEvent=new PropertyEvent( event );
+            breezeEvent.property= Breeze.isFormElement(target) ? 'value' : 'innerHTML';
+            breezeEvent.newValue=target[ breezeEvent.property ];
+
+        }else if( /^mouse|click$/i.test(type) && typeof MouseEvent !=='undefined' )
+        {
+            breezeEvent=new MouseEvent( event );
+            breezeEvent.pageX= event.x || event.clientX || event.pageX;
+            breezeEvent.pageY= event.y || event.clientY || event.pageY;
+
+            if( event.offsetX===undefined && target && Breeze )
+            {
+                var offset=Utils.position(target);
+                event.offsetX=breezeEvent.pageX-offset.left;
+                event.offsetY=breezeEvent.pageY-offset.top;
+            }
+
+            breezeEvent.offsetX = event.offsetX;
+            breezeEvent.offsetY = event.offsetY;
+            breezeEvent.screenX= event.screenX;
+            breezeEvent.screenY= event.screenY;
+
+        }else if(KeyboardEvent.KEYPRESS===type || KeyboardEvent.KEY_UP===type || KeyboardEvent.KEY_DOWN===type)
+        {
+            breezeEvent=new KeyboardEvent( event );
+            breezeEvent.keycode = event.keyCode || event.keycode;
+            breezeEvent.altkey= !!event.altkey;
+            breezeEvent.button= event.button;
+            breezeEvent.ctrlKey= !!event.ctrlKey;
+            breezeEvent.shiftKey= !!event.shiftKey;
+            breezeEvent.metaKey= !!event.metaKey;
+
+        }else if( typeof BreezeEvent !=='undefined' )
+        {
+            breezeEvent=new BreezeEvent( event );
+            breezeEvent.altkey= !!event.altkey;
+            breezeEvent.button= event.button;
+            breezeEvent.ctrlKey= !!event.ctrlKey;
+            breezeEvent.shiftKey= !!event.shiftKey;
+            breezeEvent.metaKey= !!event.metaKey;
+        }
+
+        breezeEvent.type=type;
+        breezeEvent.target=target || this;
+        breezeEvent.currentTarget=currentTarget || this;
+        breezeEvent.timeStamp = event.timeStamp;
+        breezeEvent.relatedTarget= event.relatedTarget;
+        return breezeEvent;
+    }
 
     BreezeEvent.SUBMIT='submit';
     BreezeEvent.RESIZE='resize';

@@ -9,7 +9,7 @@
 (function( undefined )
 {
     "use strict";
-    var Uitls= {}
+    var Utils= window.Utils || (window.Utils={})
         ,fix={
             attrMap:{
                 'tabindex'       : 'tabIndex',
@@ -33,8 +33,6 @@
         ,cssNum = /^[\-+]?(?:\d*\.)?\d+$/i
         ,cssNumnonpx = /^-?(?:\d*\.)?\d+(?!px)[^\d\s]+$/i
         ,cssOperator = /^([\-+])=([\-+.\de]+)/
-        ,cssMargin = /^margin/
-        ,cssShow = { position: "absolute", visibility: "hidden", display: "block" }
         ,cssExpand = [ "Top", "Right", "Bottom", "Left" ]
         ,cssDashAlpha = /-([a-z]|[0-9])/ig
         ,cssPrefix = /^-ms-/
@@ -59,8 +57,26 @@
             if ( ret && increase>0 )value = ( +( ret[1] + 1 ) * +ret[2] ) + increase;
             return value;
         }
-        ,getWidthOrHeight=function( elem, name, border )
+        ,getOffsetPosition=function( elem ,local)
         {
+            var top = 0,left = 0,width=0,height=0,stageWidth=0,stageHeight=0;
+            if( Utils.isHTMLElement(elem) )
+            {
+                stageWidth=Utils.getSize(elem.ownerDocument,'width')
+                stageHeight=Utils.getSize(elem.ownerDocument,'height');
+                do{
+                    top  += parseFloat( Utils.style(elem,'borderTopWidth') )  || 0;
+                    left += parseFloat( Utils.style(elem,'borderLeftWidth') ) || 0;
+                    top  +=elem.offsetTop;
+                    left +=elem.offsetLeft;
+                    elem=elem.offsetParent;
+                }while( !local && elem )
+            }
+            return { 'top': top, 'left': left ,'right' : stageWidth-width-left,'bottom':stageHeight-height-top};
+        };
+
+      Utils.getSize=function( elem, name, border )
+      {
             name=name.toLowerCase();
             var doc= elem.document || elem.ownerDocument || elem,
                 docElem=doc.documentElement || {},
@@ -68,14 +84,14 @@
                 i       = name === "width" ? 1 : 0,
                 len     = 4;
 
-            if( Breeze.isDocument(elem) || Breeze.isWindow(elem) || elem===docElem )
+            if( Utils.isDocument(elem) || Utils.isWindow(elem) || elem===docElem )
             {
-                name=Breeze.ucfirst( name );
-                if( Breeze.isWindow(elem) )
+                name=Utils.ucfirst( name );
+                if( Utils.isWindow(elem) )
                 {
                     val=Math.max(
                         elem[ "inner" + name ] || 0,
-                        ( Breeze.isBrowser(Breeze.BROWSER_IE) || 9 ) < 9 ?  docElem[ "offset" + name ] : 0,
+                        ( Utils.isBrowser(Utils.BROWSER_IE) || 9 ) < 9 ?  docElem[ "offset" + name ] : 0,
                         docElem[ "client" + name ] || 0
                     );
 
@@ -91,39 +107,46 @@
 
             }else if ( val > 0 )
             {
-                var margin=( Breeze.isBrowser( Breeze.BROWSER_IE) || 10 ) < 9  ;
+                var margin=( Utils.isBrowser( Utils.BROWSER_IE) || 10 ) < 9  ;
                 for ( ; i < len; i += 2 )
                 {
-                    //val -= parseFloat( Breeze.style( elem, "padding" + cssExpand[ i ] ) ) || 0;
+                    //val -= parseFloat( Utils.style( elem, "padding" + cssExpand[ i ] ) ) || 0;
                     //如果没有指定带border 宽，默认不带边框的宽
                     if( border )
-                        val -= parseFloat( Breeze.style( elem, "border" + cssExpand[ i ] + "Width" ) ) || 0;
+                        val -= parseFloat( Utils.style( elem, "border" + cssExpand[ i ] + "Width" ) ) || 0;
 
                     //ie9 以下 offsetWidth 会包括 margin 边距。
                     if( margin )
-                        val -= parseFloat( Breeze.style( elem, "margin" + cssExpand[ i ] + "Width" ) ) || 0;
+                        val -= parseFloat( Utils.style( elem, "margin" + cssExpand[ i ] + "Width" ) ) || 0;
                 }
 
             }else
             {
-                val= parseInt( Breeze.style(elem,name) ) || 0;
-                for ( ; i < len; i += 2 ) val += parseFloat( Breeze.style( elem, "padding" + cssExpand[ i ] + "Width" ) ) || 0;
+                val= parseInt( Utils.style(elem,name) ) || 0;
+                for ( ; i < len; i += 2 ) val += parseFloat( Utils.style( elem, "padding" + cssExpand[ i ] + "Width" ) ) || 0;
             }
             return val || 0;
-        };
+      };
 
-
+    /**
+     * @param name
+     * @returns {*}
+     */
+    Utils.attrMap=function( name )
+    {
+        return fix.attrMap[name] || name;
+    }
 
     /**
      * 一组代表某个浏览器的常量
      * @type {string}
      */
-    Uitls.BROWSER_IE='IE';
-    Uitls.BROWSER_FIREFOX='FIREFOX';
-    Uitls.BROWSER_CHROME='CHROME';
-    Uitls.BROWSER_OPERA='OPERA';
-    Uitls.BROWSER_SAFARI='SAFARI';
-    Uitls.BROWSER_MOZILLA='MOZILLA';
+    Utils.BROWSER_IE='IE';
+    Utils.BROWSER_FIREFOX='FIREFOX';
+    Utils.BROWSER_CHROME='CHROME';
+    Utils.BROWSER_OPERA='OPERA';
+    Utils.BROWSER_SAFARI='SAFARI';
+    Utils.BROWSER_MOZILLA='MOZILLA';
 
 
     /**
@@ -136,7 +159,7 @@
      * @param type
      * @returns {string|null}
      */
-    Uitls.isBrowser=function( type,version,expr ){
+    Utils.isBrowser=function( type,version,expr ){
         version= version !==undefined ? parseFloat(version) : undefined;
         expr = expr || '<';
         if( typeof _client === 'undefined' )
@@ -144,12 +167,12 @@
             _client = {};
             var ua = navigator.userAgent.toLowerCase();
             var s;
-            (s = ua.match(/msie ([\d.]+)/))             ? _client[Uitls.BROWSER_IE]       = Number(s[1]) :
-                (s = ua.match(/firefox\/([\d.]+)/))         ? _client[Uitls.BROWSER_FIREFOX]  = Number(s[1]) :
-                    (s = ua.match(/chrome\/([\d.]+)/))          ? _client[Uitls.BROWSER_CHROME]   = Number(s[1]) :
-                        (s = ua.match(/opera.([\d.]+)/))            ? _client[Uitls.BROWSER_OPERA]    = Number(s[1]) :
-                            (s = ua.match(/version\/([\d.]+).*safari/)) ? _client[Uitls.BROWSER_SAFARI]   = Number(s[1]) :
-                                (s = ua.match(/^mozilla\/([\d.]+)/))        ? _client[Uitls.BROWSER_MOZILLA]  = Number(s[1]) : null ;
+            (s = ua.match(/msie ([\d.]+)/))             ? _client[Utils.BROWSER_IE]       = Number(s[1]) :
+                (s = ua.match(/firefox\/([\d.]+)/))         ? _client[Utils.BROWSER_FIREFOX]  = Number(s[1]) :
+                    (s = ua.match(/chrome\/([\d.]+)/))          ? _client[Utils.BROWSER_CHROME]   = Number(s[1]) :
+                        (s = ua.match(/opera.([\d.]+)/))            ? _client[Utils.BROWSER_OPERA]    = Number(s[1]) :
+                            (s = ua.match(/version\/([\d.]+).*safari/)) ? _client[Utils.BROWSER_SAFARI]   = Number(s[1]) :
+                                (s = ua.match(/^mozilla\/([\d.]+)/))        ? _client[Utils.BROWSER_MOZILLA]  = Number(s[1]) : null ;
         }
         var result = _client[type];
         if( result && version !== undefined )
@@ -176,7 +199,7 @@
             if( name === undefined || name==='cssText')
                 return (elem.style || {} ).cssText || '';
 
-            name=Uitls.styleName( name );
+            name=Utils.styleName( name );
             if( cssHooks[name] && cssHooks[name].get )return cssHooks[name].get.call(elem) || '';
 
             var ret='',computedStyle;
@@ -186,7 +209,7 @@
             if( computedStyle )
             {
                 ret = computedStyle.getPropertyValue( name );
-                ret = ret === "" && Uitls.hasStyle(elem) ? elem.style[name] : ret;
+                ret = ret === "" && Utils.hasStyle(elem) ? elem.style[name] : ret;
             }
             return ret;
         };
@@ -202,7 +225,7 @@
             if( name === undefined || name==='cssText' )
                 return (elem.style || elem.currentStyle || {} ).cssText || '';
 
-            name=Uitls.styleName( name );
+            name=Utils.styleName( name );
             if( name==='' )return '';
 
             var left='', rsLeft,hook=cssHooks[name]
@@ -236,14 +259,11 @@
                 value=isNaN(value) ? 1 : Math.max( ( value > 1 ? ( Math.min(value,100) / 100 ) : value ) , 0 )
                 var opacity = "alpha(opacity=" + (value* 100) + ")", filter = style.filter || "";
                 style.zoom = 1;
-                style.filter = Uitls.trim( filter.replace(cssAalpha,'') + " " + opacity );
+                style.filter = Utils.trim( filter.replace(cssAalpha,'') + " " + opacity );
                 return true;
             }
         };
     }
-
-    cssHooks.width={get: function( style ){return getWidthOrHeight(this,'width',true);}}
-    cssHooks.height={get: function( style ){return getWidthOrHeight(this,'height',true);}}
 
     /**
      * 设置元素的样式
@@ -251,9 +271,9 @@
      * @param name|cssText|object 当前name的参数是 cssText|object 时会忽略value 参数
      * @param value 需要设置的值
      */
-    Uitls.style=function( elem, name, value )
+    Utils.style=function( elem, name, value )
     {
-        if ( !Uitls.hasStyle(elem) )
+        if ( !Utils.hasStyle(elem) )
             return false;
 
         //清空样式
@@ -262,19 +282,19 @@
             value=name;
             name='cssText';
 
-        }else if( Uitls.isObject(name) )
+        }else if( Utils.isObject(name) )
         {
             value=name;
         }
 
-        if( Uitls.isObject(value) )
+        if( Utils.isObject(value) )
         {
-            value=getStyle( elem )+' '+Uitls.serialize(value,'style');
+            value=getStyle( elem )+' '+Utils.serialize(value,'style');
             name='cssText';
         }
 
-        name = Uitls.styleName( name );
-        if( !Uitls.isScalar( value ) )
+        name = Utils.styleName( name );
+        if( !Utils.isScalar( value ) )
         {
             return getStyle(elem,name);
         }
@@ -306,10 +326,10 @@
      * @param val
      * @returns {number|void}
      */
-    Uitls.scroll=function(element,prop,val)
+    Utils.scroll=function(element,prop,val)
     {
-        var is=Uitls.isWindow( element );
-        if( Uitls.isHTMLContainer( element) || is  )
+        var is=Utils.isWindow( element );
+        if( Utils.isHTMLContainer( element) || is  )
         {
             var win= is ? element : element.nodeType===9 ? elem.defaultView || elem.parentWindow : null;
             var p= /left/i.test(prop) ? 'pageXOffset' : 'pageYOffset'
@@ -318,8 +338,8 @@
                 return win ? p in win ? win[ p ] : win.document.documentElement[ prop ] :  element[ prop ];
             }
             if( win ){
-                win.scrollTo( p==='pageXOffset' ? val : Uitls.scroll(element,'scrollLeft'),
-                              p==='pageYOffset' ? val : Uitls.scroll(element,'scrollTop') );
+                win.scrollTo( p==='pageXOffset' ? val : Utils.scroll(element,'scrollLeft'),
+                              p==='pageYOffset' ? val : Utils.scroll(element,'scrollTop') );
             }else{
                 element[ prop ] = val;
             }
@@ -354,11 +374,11 @@
                 box=value;
             }
 
-            if ( !docElem || !Uitls.isContains( docElem, elem ) )
+            if ( !docElem || !Utils.contains( docElem, elem ) )
                 return value;
 
             var body = doc.body,
-            win = Uitls.getWindow( doc ),
+            win = Utils.getWindow( doc ),
             clientTop  = docElem.clientTop  || body.clientTop  || 0,
             clientLeft = docElem.clientLeft || body.clientLeft || 0,
             scrollTop  = win.pageYOffset ||  docElem.scrollTop  || body.scrollTop,
@@ -375,13 +395,13 @@
         getPosition=function( elem ,local)
         {
             var top = 0,left = 0,width=0,height=0,stageWidth=0,stageHeight=0;
-            if( Breeze.isHTMLElement(elem) )
+            if( Utils.isHTMLElement(elem) )
             {
-                stageWidth=getWidthOrHeight(elem.ownerDocument,'width')
-                stageHeight=getWidthOrHeight(elem.ownerDocument,'height');
+                stageWidth=Utils.getSize(elem.ownerDocument,'width')
+                stageHeight=Utils.getSize(elem.ownerDocument,'height');
                 do{
-                    top  += parseFloat( Breeze.style(elem,'borderTopWidth') )  || 0;
-                    left += parseFloat( Breeze.style(elem,'borderLeftWidth') ) || 0;
+                    top  += parseFloat( Utils.style(elem,'borderTopWidth') )  || 0;
+                    left += parseFloat( Utils.style(elem,'borderLeftWidth') ) || 0;
                     top  +=elem.offsetTop;
                     left +=elem.offsetLeft;
                     elem=elem.offsetParent;
@@ -398,31 +418,31 @@
      * @param value 需要设置的值。如果是一个布尔值则获取相对本地的位置
      * @returns {object}
      */
-    Uitls.position=function( elem, property, value )
+    Utils.position=function( elem, property, value )
     {
-        if( !Uitls.hasStyle( elem ) )
+        if( !Utils.hasStyle( elem ) )
             return { 'top': 0, 'left': 0 ,'right' : 0,'bottom':0};
 
         var options=property;
         var position=getPosition(elem,value);
-        if( !Uitls.isObject(property) )
+        if( !Utils.isObject(property) )
         {
-            if( !Uitls.isString(property) )
+            if( !Utils.isString(property) )
                 return position;
-            if( !Uitls.isScalar(value) || typeof value ==='boolean')
+            if( !Utils.isScalar(value) || typeof value ==='boolean')
                 return position[ property ];
             options={};
             options[property]=value;
         }
 
-        if ( Uitls.style( elem, "position") === "static" )
-            Uitls.style(elem,'position','relative');
+        if ( Utils.style( elem, "position") === "static" )
+            Utils.style(elem,'position','relative');
 
         for( var i in options )
         {
             var ret=cssOperator.exec( options[i] )
             options[i]= ret ? operatorValue( options[i] , position[i] || 0 , ret ) : parseFloat( options[i] ) || 0;
-            Uitls.style(elem,i,options[i]);
+            Utils.style(elem,i,options[i]);
         }
         return true;
     }
@@ -432,7 +452,7 @@
      * @param name
      * @returns {string}
      */
-    Uitls.styleName=function( name )
+    Utils.styleName=function( name )
     {
         if( typeof name !=='string' )
           return name;
@@ -452,7 +472,7 @@
      * @param color
      * @returns {string}
      */
-    Uitls.toHexColor = function( color )
+    Utils.toHexColor = function( color )
     {
         var colorArr,strHex = "#", i,hex;
         if( /^\s*RGB/i.test( color ) )
@@ -481,11 +501,11 @@
      * @param color
      * @returns {string}
      */
-    Uitls.toRgbColor = function( color )
+    Utils.toRgbColor = function( color )
     {
         if( color )
         {
-            color=Uitls.toHEX( color );
+            color=Utils.toHEX( color );
             var colorArr = [],i=1;
             for( ; i<7; i+=2 )colorArr.push( parseInt( "0x"+color.slice(i,i+2) ) );
             return "RGB(" + colorArr.join(",") + ")";
@@ -498,7 +518,7 @@
      * @param elem
      * @returns {boolean}
      */
-    Uitls.hasStyle=function( elem )
+    Utils.hasStyle=function( elem )
     {
         return !( !elem || !elem.nodeType || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style );
     }
@@ -507,7 +527,7 @@
      * 取得当前的时间戳
      * @returns {number}
      */
-    Uitls.time=function()
+    Utils.time=function()
     {
         return ( new Date() ).getTime();
     }
@@ -517,7 +537,7 @@
      * @param str
      * @returns {string}
      */
-    Uitls.ucfirst=function( str )
+    Utils.ucfirst=function( str )
     {
         return str.charAt(0).toUpperCase()+str.substr(1);
     }
@@ -527,10 +547,10 @@
      * @param elem
      * @returns {window|null}
      */
-    Uitls.getWindow=function ( elem )
+    Utils.getWindow=function ( elem )
     {
-        elem=Uitls.isHTMLElement(elem) ? elem.ownerDocument : elem ;
-        return Uitls.isWindow( elem ) ? elem : elem.nodeType === 9 ? elem.defaultView || elem.parentWindow : null;
+        elem=Utils.isHTMLElement(elem) ? elem.ownerDocument : elem ;
+        return Utils.isWindow( elem ) ? elem : elem.nodeType === 9 ? elem.defaultView || elem.contentWindow || elem.parentWindow : null;
     }
 
     /**
@@ -540,9 +560,9 @@
      * @param group  是否要用分组，默认是分组（只限url 类型）
      * @return string
      */
-    Uitls.serialize=function( object, type ,group )
+    Utils.serialize=function( object, type ,group )
     {
-        var str=[],key,joint='&',separate='=',val='',prefix=Uitls.isBoolean(group) ? null : group;
+        var str=[],key,joint='&',separate='=',val='',prefix=Utils.isBoolean(group) ? null : group;
         type = type || 'url';
         group = ( group !== false );
         if( type==='style' )
@@ -550,13 +570,18 @@
             joint=';';
             separate=':';
             group=false;
+        }else if(type === 'attr' )
+        {
+            separate='=';
+            joint=' ';
+            group=false;
         }
         for( key in object )
         {
-            val=object[key]
-            key=type==='style' ? Uitls.styleName(key) : key;
+            val=type === 'attr' ? '"' +object[key]+'"' : object[key];
+            key=type==='style' ? Utils.styleName(key) : key;
             key=prefix ? prefix+'[' + key +']' : key;
-            str=str.concat(  typeof val==='object' ? Uitls.serialize( val ,type , group ? key : false ) : key + separate + val  );
+            str=str.concat(  typeof val==='object' ? Utils.serialize( val ,type , group ? key : false ) : key + separate + val  );
         }
         return str.join( joint );
     }
@@ -566,7 +591,7 @@
      * @param str
      * @returns {{}}
      */
-    Uitls.unserialize=function( str )
+    Utils.unserialize=function( str )
     {
          var object={},index,joint='&',separate='=',val,ref,last,group=false;
          if( /\w+[\-\_]\s*\=.*?(?=\&|$)/.test( str ) )
@@ -608,7 +633,7 @@
      * @param strAttr
      * @return {}
      */
-    Uitls.matchAttr=function(strAttr)
+    Utils.matchAttr=function(strAttr)
     {
         if( typeof strAttr === "string" && /[\S]*/.test(strAttr) )
         {
@@ -622,7 +647,7 @@
                     var val  =  item.split('=');
                     if( val.length > 0 )
                     {
-                        var prop = Uitls.trim( val[0] );
+                        var prop = Utils.trim( val[0] );
                         strAttr[ prop ]='';
                         if( typeof val[1] === "string" )
                         {
@@ -642,48 +667,50 @@
      * @param nodeElement
      * @returns {Node}
      */
-    Uitls.clone=function( nodeElement ,deep )
+    Utils.clone=function( nodeElement ,deep )
     {
-        if( !Uitls.isXMLDoc( nodeElement ) && nodeElement.cloneNode )
+        if( !Utils.isXMLDoc( nodeElement ) && nodeElement.cloneNode )
         {
             return nodeElement.cloneNode( !!deep );
         }
         if( typeof nodeElement.nodeName==='string' )
         {
             var node = document.createElement( nodeElement.nodeName  );
-            if( node )Uitls.cloneAttr(node,nodeElement);
+            if( node )Utils.mergeAttributes(node,nodeElement);
             return node;
         }
         return null;
     }
 
     /**
-     * 克隆元素的属性
-     * @param targetAttr
-     * @param refAttr
+     * 合并元素属性。
+     * 将 refTarget 对象的属性合并到 target 元素
+     * @param target 目标对象
+     * @param refTarget 引用对象
      * @returns {*}
      */
-    Uitls.cloneAttr=function(targetAttr,refAttr)
+    Utils.mergeAttributes=function(target,refTarget)
     {
-        var flag=  (typeof targetAttr.setAttribute === "function") ;
-
-        if( typeof targetAttr.mergeAttributes === "function" )
+        if( typeof target.mergeAttributes === "function" )
         {
-            targetAttr.mergeAttributes(refAttr);
+            target.mergeAttributes(refTarget);
+            return target;
+        }
 
-        }else if( refAttr.attributes )
+        var flag=  (typeof target.setAttribute === "function") ;
+        if( refTarget.attributes )
         {
             var i=0, item;
-            while( item = refAttr.attributes.item(i++) )
+            while( item = refTarget.attributes.item(i++) )
             {
-               flag ? targetAttr.setAttribute(item.nodeName, item.nodeValue) : targetAttr[item.nodeName]=item.nodeValue;
+               flag ? target.setAttribute(item.nodeName, item.nodeValue) : target[item.nodeName]=item.nodeValue;
             }
 
-        }else if( Uitls.isObject(refAttr,true) ) for( var key in refAttr )
+        }else if( Utils.isObject(refTarget,true) ) for( var key in refTarget )
         {
-            flag ?  targetAttr.setAttribute(key, refAttr[key] ) : targetAttr[key]=refAttr[key];
+            flag ?  target.setAttribute(key, refTarget[key] ) : target[key]=refTarget[key];
         }
-        return targetAttr;
+        return target;
     }
 
     /**
@@ -692,7 +719,7 @@
      * @param name
      * @returns {boolean}
      */
-    Uitls.hasAttribute=function(element,name)
+    Utils.hasAttribute=function(element,name)
     {
        return typeof element.hasAttributes === 'function' ? element.hasAttributes( name ) : !!element[name];
     }
@@ -702,7 +729,7 @@
      * @param val,...
      * @returns {boolean}
      */
-    Uitls.isDefined=function()
+    Utils.isDefined=function()
     {
         var i=arguments.length;
         while( i>0 ) if( typeof arguments[ --i ] === 'undefined' )
@@ -715,7 +742,7 @@
      * @param val
      * @returns {boolean}
      */
-    Uitls.isArray=function( val )
+    Utils.isArray=function( val )
     {
         return val instanceof Array;
     }
@@ -725,7 +752,7 @@
      * @param val
      * @returns {boolean}
      */
-    Uitls.isFunction=function( val ){
+    Utils.isFunction=function( val ){
         return typeof val === 'function';
     }
 
@@ -734,7 +761,7 @@
      * @param val
      * @returns {boolean}
      */
-    Uitls.isBoolean=function( val ){
+    Utils.isBoolean=function( val ){
         return typeof val === 'boolean';
     }
 
@@ -743,7 +770,7 @@
      * @param val
      * @returns {boolean}
      */
-    Uitls.isString=function( val )
+    Utils.isString=function( val )
     {
         return typeof val === 'string';
     }
@@ -753,7 +780,7 @@
      * 只有对象类型或者Null不是标量
      * @param {boolean}
      */
-    Uitls.isScalar=function( val )
+    Utils.isScalar=function( val )
     {
         var t=typeof val;
         return t==='string' || t==='number' || t==='float' || t==='boolean';
@@ -764,7 +791,7 @@
      * @param val
      * @returns {boolean}
      */
-    Uitls.isNumber=function( val )
+    Utils.isNumber=function( val )
     {
         return typeof val === 'number';
     }
@@ -772,14 +799,15 @@
     /**
      * 判断是否为一个空值
      * @param val
+     * @param flag 当有true时是否包含为0的值
      * @returns {boolean}
      */
-    Uitls.isEmpty=function( val )
+    Utils.isEmpty=function( val , flag )
     {
-        if( val===null || val==='' || val===false || val==0 || val===undefined )
+        if( val===null || val==='' || val===false || ( val==0 && !flag ) || typeof val === 'undefined' )
             return true;
 
-        if( Uitls.isObject(val,true) )
+        if( Utils.isObject(val,true) )
         {
             var ret;
             for( ret in val )break;
@@ -794,11 +822,11 @@
      * @param flag
      * @returns {boolean}
      */
-    Uitls.isObject=function( val , flag )
+    Utils.isObject=function( val , flag )
     {
-        if( !val || val.nodeType || Uitls.isWindow(val) || val===null )
+        if( !val || val.nodeType || Utils.isWindow(val) || val===null )
            return false;
-        return ( flag===true && Uitls.isArray(val) ) || typeof val === 'object';
+        return ( flag===true && Utils.isArray(val) ) || typeof val === 'object';
     }
 
     /**
@@ -807,9 +835,9 @@
      * @param child
      * @returns {boolean}
      */
-    Uitls.isContains=function( parent, child )
+    Utils.contains=function( parent, child )
     {
-        if( Uitls.isHTMLElement(parent) && Uitls.isHTMLElement(child) )
+        if( Utils.isHTMLElement(parent) && Utils.isHTMLElement(child) )
             return Sizzle.contains(parent,child);
         return false;
     }
@@ -821,12 +849,12 @@
      * @param element
      * @returns {boolean}
      */
-    Uitls.isFormElement=function(element,exclude)
+    Utils.isFormElement=function(element,exclude)
     {
         if( element && typeof element.nodeName ==='string' )
         {
             var ret=formPatternReg.test( element.nodeName );
-            return ret && exclude !== undefined ? exclude !== Uitls.nodeName( element )  : ret;
+            return ret && exclude !== undefined ? exclude !== Utils.nodeName( element )  : ret;
         }
         return false;
     }
@@ -836,9 +864,9 @@
      * @param element
      * @returns {string}
      */
-    Uitls.nodeName=function( element )
+    Utils.nodeName=function( element )
     {
-        return  element && element.nodeName ? element.nodeName.toLowerCase() : '';
+        return  element && typeof element.nodeName=== "string" && element.nodeName!='' ? element.nodeName.toLowerCase() : '';
     }
 
     /**
@@ -846,13 +874,13 @@
      * @param parentNode
      * @param childNode
      */
-    Uitls.isAddRemoveChildNode=function(parentNode,childNode)
+    Utils.isAddRemoveChildNode=function(parentNode,childNode)
     {
-        var nodename=Uitls.nodeName( parentNode );
-        if( nodename=='input' || nodename=='button' || Uitls.isEmpty(nodename) || parentNode===childNode || Uitls.isContains(childNode,parentNode) )
+        var nodename=Utils.nodeName( parentNode );
+        if( nodename=='input' || nodename=='button' || Utils.isEmpty(nodename) || parentNode===childNode || Utils.contains(childNode,parentNode) )
             return false;
         if( nodename=='select' )
-            return Uitls.nodeName( childNode )==='option';
+            return Utils.nodeName( childNode )==='option';
         else if( nodename=='textarea' )
             return childNode && childNode.nodeType===3;
         return true;
@@ -863,7 +891,7 @@
      * @param element
      * @returns {boolean}
      */
-    Uitls.isHTMLElement=function( element )
+    Utils.isHTMLElement=function( element )
     {
         return typeof HTMLElement==='object' ? element instanceof HTMLElement : element && element.nodeType === 1;
     }
@@ -873,9 +901,19 @@
      * @param element
      * @returns {boolean|*|boolean}
      */
-    Uitls.isHTMLContainer=function( element )
+    Utils.isHTMLContainer=function( element )
     {
-       return Uitls.isHTMLElement( element ) || Uitls.isDocument(element);
+       return Utils.isHTMLElement( element ) || Utils.isDocument(element);
+    }
+
+    /**
+     * 判断是否为一个事件元素
+     * @param element
+     * @returns {boolean}
+     */
+    Utils.isEventElement=function( element )
+    {
+        return element ? !!(element.addEventListener || element.attachEvent) : false;
     }
 
     /**
@@ -883,7 +921,7 @@
      * @param obj
      * @returns {boolean}
      */
-    Uitls.isWindow=function( obj ) {
+    Utils.isWindow=function( obj ) {
         return obj != null && obj == obj.window;
     }
 
@@ -892,7 +930,7 @@
      * @param obj
      * @returns {*|boolean}
      */
-    Uitls.isDocument=function( obj )
+    Utils.isDocument=function( obj )
     {
         return obj && obj.nodeType===9;
     }
@@ -903,10 +941,10 @@
      * @param val
      * @returns {*}
      */
-    Uitls.inObject=function( object, val )
+    Utils.inObject=function( object, val )
     {
         var key;
-        if( Uitls.isObject(object,true) )for( key in object  ) if( object[ key ]===val )
+        if( Utils.isObject(object,true) )for( key in object  ) if( object[ key ]===val )
             return key;
         return null;
     }
@@ -918,17 +956,17 @@
      * @param val
      * @returns {string}
      */
-    Uitls.trim=function( val )
+    Utils.trim=function( val )
     {
         return typeof val==='string' ? val.replace( TRIM_LEFT, "" ).replace( TRIM_RIGHT, "" ) : '';
     }
 
     /**
      * 合并其它参数到指定的 target 对象中
-     * 如果只有一个参数则只对 Breeze 本身进行扩展。
+     * 如果只有一个参数则只对 Utils 本身进行扩展。
      * @returns Object
      */
-    Uitls.extend=function(){
+    Utils.extend=function(){
 
         var options, name, src, copy, copyIsArray, clone,
             target = arguments[0] || {},
@@ -952,8 +990,6 @@
             target = {};
         }
 
-
-
         for ( ; i < length; i++ ) {
             // Only deal with non-null/undefined values
             if ( (options = arguments[ i ]) != null ) {
@@ -968,17 +1004,17 @@
                     }
 
                     // Recurse if we're merging plain objects or arrays
-                    if ( deep && copy && ( Uitls.isObject(copy) || (copyIsArray = Uitls.isArray(copy)) ) )
+                    if ( deep && copy && ( Utils.isObject(copy) || (copyIsArray = Utils.isArray(copy)) ) )
                     {
                         if ( copyIsArray ) {
                             copyIsArray = false;
-                            clone = src && Uitls.isArray(src) ? src : [];
+                            clone = src && Utils.isArray(src) ? src : [];
                         } else {
-                            clone = src && Uitls.isObject(src) ? src : {};
+                            clone = src && Utils.isObject(src) ? src : {};
                         }
 
                         // Never move original objects, clone them
-                        target[ name ] = Uitls.extend( deep, clone, copy );
+                        target[ name ] = Utils.extend( deep, clone, copy );
 
                         // Don't bring in undefined values
                     } else if ( copy !== undefined )
@@ -1001,11 +1037,11 @@
      * @param html 一个html字符串
      * @returns {Node}
      */
-    Uitls.createElement=function( html )
+    Utils.createElement=function( html )
     {
-        if( Uitls.isString(html) )
+        if( Utils.isString(html) )
         {
-            html=Uitls.trim( html );
+            html=Utils.trim( html );
             var match;
             if( html.charAt(0) !== "<" && html.charAt( html.length - 1 ) !== ">" )
             {
@@ -1023,7 +1059,7 @@
                         var val  =  item.split('=');
                         if( val.length > 0 )
                         {
-                            var attrNode = document.createAttribute( Uitls.trim( val[0] ) );
+                            var attrNode = document.createAttribute( Utils.trim( val[0] ) );
                             if( typeof val[1] === "string" )
                             {
                                 attrNode.nodeValue=val[1].replace( lr ,'').replace(/\\([\'\"])/g,'$1');
@@ -1053,8 +1089,8 @@
             div=div.childNodes.item(0);
             return div.parentNode.removeChild( div );
 
-        }else if ( Uitls.isHTMLElement(html) && html.parentNode )
-           return Uitls.clone(html,true);
+        }else if ( Utils.isHTMLElement(html) && html.parentNode )
+           return Utils.clone(html,true);
         throw new Error('Uitls.createElement param invalid')
     }
 
@@ -1064,7 +1100,7 @@
      * @param [...]
      * @returns {string}
      */
-    Uitls.sprintf=function()
+    Utils.sprintf=function()
     {
         var str='',i= 1,len=arguments.length,param
         if( len > 0 )
@@ -1108,7 +1144,7 @@
         "CABAC28A 53B39330 24B4A3A6 BAD03605 CDD70693 54DE5729 23D967BF B3667A2E C4614AB8 5D681B02 2A6F2B94 " +
         "B40BBE37 C30C8EA1 5A05DF1B 2D02EF8D";
 
-    Uitls.crc32 = function(  str, crc )
+    Utils.crc32 = function(  str, crc )
     {
         if( crc === undefined ) crc = 0;
         var n = 0; //a number between 0 and 255
@@ -1128,7 +1164,7 @@
      * @param file 脚本的文件地址。
      * @param callback 成功时的回调函数。
      */
-    Uitls.require=function( file , callback )
+    Utils.require=function( file , callback )
     {
         var script;
         if( typeof file !== 'string' )
@@ -1140,7 +1176,7 @@
         var type = file.match(/\.(css|js)(\?.*?)?$/i)
         if( !type )throw new Error('import script file format of invalid');
 
-        file+=( !type[2] ? '?t=' : '&t=')+Uitls.time();
+        file+=( !type[2] ? '?t=' : '&t=')+Utils.time();
 
         type=type[1];
         type=type.toLowerCase() === 'css' ? 'link' : 'script';
@@ -1181,7 +1217,7 @@
      * @param element
      * @returns {boolean}
      */
-    Uitls.isFrame=function( element )
+    Utils.isFrame=function( element )
     {
         if( element && typeof element.nodeName ==='string' )
         {
@@ -1192,6 +1228,31 @@
         return false;
     };
 
-    (window.packages || window).Uitls = Uitls;
+
+    /**
+     * 在指定的元素对象上设置数据
+     * @param target 目标对象
+     * @param name  属性名
+     * @param value 数据
+     * @type {*}
+     */
+    Utils.storage=function(target,name,value)
+    {
+        target = target.storage || (target.storage={});
+        if( typeof name === 'string' )
+        {
+            if( value === null )
+            {
+                if( typeof target[ name ] !== 'undefined' )
+                    delete target[ name ];
+                return true;
+            }
+            if(  typeof value === 'undefined' )
+                return target[ name ] || null;
+            target[ name ] = value;
+            return true;
+        }
+        return target;
+    }
 
 })();

@@ -12,7 +12,7 @@
         if( !(this instanceof Selection) )
             return new Selection();
 
-        ElementManager.call(this);
+        Manager.call(this);
 
         /**
          * @private
@@ -30,7 +30,7 @@
                 searchbox:{'style':{'width':'100%',height:'300px'}},
                 lable:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'}, "data-component":"selection.lable" },
                 list:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},"data-index":"{index}","data-component":"group.list"},
-                group:{style:{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}, "data-component":"selection.group" },
+                group:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}, "data-component":"selection.group" },
                 container:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px'}, "data-component":"selection",tabindex:"-1" }
             }
         };
@@ -225,7 +225,7 @@
 
     }
 
-    Selection.prototype=new ElementManager();
+    Selection.prototype=new Manager();
     Selection.prototype.constructor=Selection;
 
     function SelectionEvent( src, props ){ BreezeEvent.call(this, src, props);}

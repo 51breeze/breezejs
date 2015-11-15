@@ -5,29 +5,35 @@
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
  */
-(function(window,undefined)
-{  "use strict";
-
-   function ElementManager(elements)
+(function(undefined)
+{
+   "use strict";
+   function Manager( elements )
    {
-       if( !(this instanceof ElementManager) )
-          return new ElementManager()
-       EventDispatcher.call(this,elements);
+       if( !(this instanceof Manager) )
+          return new Manager(elements)
+       EventDispatcher.call(this)
+       DataArray.call(this,elements);
    }
 
-    ElementManager.prototype=new EventDispatcher();
-    ElementManager.prototype.constructor= ElementManager;
-    ElementManager.prototype.forEachCurrentItem=undefined;
-    ElementManager.prototype.forEachPrevItem=undefined;
-    ElementManager.prototype.forEachNextItem=undefined;
-    ElementManager.prototype.forEachCurrentIndex=NaN;
+    Manager.prototype= new EventDispatcher();
+    Manager.prototype.constructor= Manager;
+    Manager.prototype.splice= DataArray.prototype.splice;
+    Manager.prototype.slice= DataArray.prototype.slice;
+    Manager.prototype.concat= DataArray.prototype.concat;
+    Manager.prototype.indexOf= DataArray.prototype.indexOf;
+    Manager.prototype.toArray= DataArray.prototype.toArray;
+    Manager.prototype.forEachCurrentItem=undefined;
+    Manager.prototype.forEachPrevItem=undefined;
+    Manager.prototype.forEachNextItem=undefined;
+    Manager.prototype.forEachCurrentIndex=NaN;
 
     /**
      * 返回设置当前元素
      * @param element
      * @returns {*}
      */
-    ElementManager.prototype.current=function( element )
+    Manager.prototype.current=function( element )
     {
         if( element )
         {
@@ -47,11 +53,11 @@
     }
 
     /**
-     * 设置获取指定索引下的元素
+     * 设置获取当前元素的索引
      * @param index
      * @returns {*}
      */
-    ElementManager.prototype.index=function( index )
+    Manager.prototype.index=function( index )
     {
         if( index >= 0 && index < this.length && typeof this[index] !== "undefined" )
         {
@@ -68,7 +74,7 @@
      * @param refObject
      * @returns {*}
      */
-    ElementManager.prototype.forEach=function(callback , refObject )
+    Manager.prototype.forEach=function(callback , refObject )
     {
         var  result;
         refObject=refObject || this;
@@ -97,7 +103,6 @@
         }
         return result === undefined ? this : result;
     }
+    window.Manager=Manager;
 
-    window.ElementManager=ElementManager;
-
-})(window)
+})()

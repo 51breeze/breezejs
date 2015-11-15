@@ -7,164 +7,17 @@
  */
 
 (function(window,undefined)
-{ "use strict";
+{
+    "use strict";
 
-    var globlaEvent=null
-    ,msie=navigator.userAgent.match(/msie ([\d.]+)/i)
-    ,cacheProxy = new CacheProxy('__event__')
-
-    /**
-     * 事件名是否需要加 on
-     * @type {string}
-     */
-    ,onPrefix= msie && msie[1] < 9 ? 'on' : ''
-
-    /**
-     * 添加节点元素事件
-     * @type {Function}
-     */
-    ,addListener=document.addEventListener ?
-        function(type,listener,useCapture){this.addEventListener(type,listener,useCapture)} : function(type,listener,useCapture){this.attachEvent(type,listener)}
-
-    /**
-     * 手动移除节点元素事件
-     * @type {Function}
-     */
-    ,removeListener=document.removeEventListener ?
-        function(type,listener,useCapture){this.removeEventListener(type,listener,useCapture)} :function(type,listener,useCapture){this.detachEvent(type,listener)}
-
-    ,dispather=document.dispatchEvent ?
-        function(type){
-            var evt = document.createEvent('Event');
-            evt.initEvent(type,true,true);
-            this.dispatchEvent(evt)
-        } : onPrefix==='on' ?
-        function(type){
-            this['data-event-'+type]=Math.random();
-        } :
-        function(type){this.fireEvent(type)}
-
-    /**
-     * 统一事件名
-     * @type {propertychange: string}
-     */
-    ,mapeventname= onPrefix==='' ? {'propertychange':'input','ready':'readystatechange'} :{'ready':'readystatechange'}
-    ,mapkey={'input':'propertychange','readystatechange':'ready'}
-    ,agreed=new RegExp( 'webkitAnimationEnd|webkitAnimationIteration','i')
+    var
 
     /**
      * 特定的一些事件类型。
      * 这些事件类型在设备上不被支持，只有通过其它的事件来模拟这些事件的实现。
      * @type {}
      */
-    ,bindBeforeProxy={}
-    ,addItem=function(target,type,listener )
-    {
-        var  data = getData(target,type);
-        data.items.push( listener );
-        if(  data.items.length > 1 )
-        {
-            data.items.sort(function(a,b)
-            {
-                //按权重排序，值大的在前面
-                return a.priority=== b.priority ? 0 : (a.priority < b.priority ? 1 : -1);
-            })
-        }
-        return true;
-    }
-    ,getData=function(target,type)
-    {
-        type=type.toLowerCase();
-        var data = cacheProxy.proxy(target).get(type);
-        if( !data )
-        {
-            data={'items':[],'handle':null,'capture':true,'type':type};
-            cacheProxy.proxy(target).set(type,data);
-        }
-        return data;
-    }
-
-    /**
-     * 根据原型事件创建一个Breeze BreezeEvent
-     * @param event
-     * @returns {*}
-     */
-    ,createEvent=function( event , target )
-    {
-        if( event instanceof BreezeEvent )
-            return event;
-
-        var event=event || window.event || {};
-        target = event.target || event.srcElement || event.currentTarget || target;
-        if( !event || !target )
-            return null;
-
-        var breezeEvent={}
-            ,currentTarget=event.currentTarget || target
-            ,type=onPrefix==='on' && event.type ? event.type.replace(/^on/i,'') : event.type;
-
-        type = mapkey[ type ] || type;
-
-        //ie9 以下 如果不是自定义事件
-        if( onPrefix==='on' && typeof event.propertyName==='string' && event.propertyName !=="" )
-        {
-            if( event.propertyName.match(/data-event-(\w+)/i) )
-                type=RegExp.$1;
-            else if(event.propertyName==='activeElement')
-                return null;
-        }
-
-        if( typeof PropertyEvent !=='undefined' && type === PropertyEvent.PROPERTY_CHANGE )
-        {
-            breezeEvent=new PropertyEvent( event );
-            breezeEvent.property= Breeze.isFormElement(target) ? 'value' : 'innerHTML';
-            breezeEvent.newValue=target[ breezeEvent.property ];
-
-        }else if( /^mouse|click$/i.test(type) && typeof MouseEvent !=='undefined' )
-        {
-            breezeEvent=new MouseEvent( event );
-            breezeEvent.pageX= event.x || event.clientX || event.pageX;
-            breezeEvent.pageY= event.y || event.clientY || event.pageY;
-
-            if( event.offsetX===undefined && target && Breeze )
-            {
-                var offset=Breeze.position(target);
-                event.offsetX=breezeEvent.pageX-offset.left;
-                event.offsetY=breezeEvent.pageY-offset.top;
-            }
-
-            breezeEvent.offsetX = event.offsetX;
-            breezeEvent.offsetY = event.offsetY;
-            breezeEvent.screenX= event.screenX;
-            breezeEvent.screenY= event.screenY;
-
-        }else if(KeyboardEvent.KEYPRESS===type || KeyboardEvent.KEY_UP===type || KeyboardEvent.KEY_DOWN===type)
-        {
-            breezeEvent=new KeyboardEvent( event );
-            breezeEvent.keycode = event.keyCode || event.keycode;
-            breezeEvent.altkey= !!event.altkey;
-            breezeEvent.button= event.button;
-            breezeEvent.ctrlKey= !!event.ctrlKey;
-            breezeEvent.shiftKey= !!event.shiftKey;
-            breezeEvent.metaKey= !!event.metaKey;
-
-        }else if( typeof BreezeEvent !=='undefined' )
-        {
-            breezeEvent=new BreezeEvent( event );
-            breezeEvent.altkey= !!event.altkey;
-            breezeEvent.button= event.button;
-            breezeEvent.ctrlKey= !!event.ctrlKey;
-            breezeEvent.shiftKey= !!event.shiftKey;
-            breezeEvent.metaKey= !!event.metaKey;
-        }
-
-        breezeEvent.type=type;
-        breezeEvent.target=target || this;
-        breezeEvent.currentTarget=currentTarget || this;
-        breezeEvent.timeStamp = event.timeStamp;
-        breezeEvent.relatedTarget= event.relatedTarget;
-        return breezeEvent;
-    }
+    bindBeforeProxy={}
 
     /**
      * EventDispatcher Class
@@ -173,135 +26,34 @@
      * @returns {EventDispatcher}
      * @constructor
      */
-    function EventDispatcher( elements )
+    function EventDispatcher( proxyTarget )
     {
         if( !(this instanceof EventDispatcher) )
-            return new EventDispatcher(elements);
-        DataArray.call(this,elements || [] );
-        this.__bindType__={};
-        return this;
+            return new EventDispatcher(proxyTarget);
+
+        var _targets=proxyTarget || null;
+
+        /**
+         * 获取代理事件的元素目标
+         * @returns {array}
+         */
+        this.targets=function()
+        {
+            if( this instanceof Manager )
+            {
+               return this.forEachCurrentItem ? [ this.forEachCurrentItem ] : this;
+            }else if( _targets )
+            {
+               return !(_targets instanceof Array) ? [ _targets ] : _targets;
+            }
+            return null;
+        }
     };
 
     //Constructor
     EventDispatcher.prototype=new DataArray();
+    EventDispatcher.prototype.bindCounter={}
     EventDispatcher.prototype.constructor=EventDispatcher;
-
-    /**
-     * 添加侦听器到元素中
-     * @param element
-     * @param dataItem
-     * @param type
-     * @param useCapture
-     * @param dataKey
-     * @param callbackHandle
-     * @returns {boolean}
-     */
-    EventDispatcher.addListener=function( element, listener, type, useCapture , dataKey , callbackHandle )
-    {
-        dataKey = dataKey || type;
-        type= !agreed.test( type ) ? type.toLowerCase() : type;
-        type=mapeventname[type] || type;
-
-        if( !(listener instanceof  EventDispatcher.Listener) )
-        {
-            throw new Error('listener invalid, must is EventDispatcher.Listener');
-        }
-
-        listener.target = element;
-        if( element instanceof EventDispatcher )
-        {
-            addItem(element, dataKey, listener );
-            return true;
-        }
-
-        var win=element.document && element.document.nodeType===9 ? element : element.defaultView || element.contentWindow || element.parentWindow;
-        if( (element.nodeType && element.nodeType===1) || element===win || (win && element===win.document) )
-        {
-            addItem(element, dataKey, listener );
-            var data = getData(element,dataKey );
-
-            //每个元素只添加一个类型的事件
-            if( data.items.length===1 )
-            {
-                var handle = callbackHandle || EventDispatcher.dispatchEvent;
-                data.capture = !!useCapture;
-                data.handle = handle;
-                data.type=onPrefix+type;
-
-                //ie9 以下统一用 onpropertychange 来触发自定义事件
-                if( onPrefix === 'on' )
-                {
-                    addListener.call( element, 'onpropertychange', handle ,data.capture);
-                    if( type==='propertychange' )
-                        return true;
-                }
-                addListener.call( element, data.type, handle ,data.capture);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * 调度指定侦听项
-     * @param event
-     * @param listeners
-     * @returns {boolean}
-     */
-    EventDispatcher.dispatchEvent=function(event, listeners )
-    {
-        //初始化一个全局事件
-        event=  globlaEvent || createEvent( event );
-
-        if( !event.currentTarget )
-            return false;
-
-        //获取需要调度的侦听器
-        listeners = listeners || getData( event.currentTarget, event.type ).items;
-
-        if( !event || listeners.length < 1 )return false;
-
-        //标记这个事件的对象已调度
-        event.currentTarget.dispatched=true;
-
-        var length=0;
-        while(  length < listeners.length )
-        {
-            var item = listeners[ length ];
-
-            if( item instanceof EventDispatcher.Listener )
-            {
-                //设置Breeze 对象的当前对象
-                if( item.currentTarget && typeof item.currentTarget.current ==='function' )
-                {
-                    item.currentTarget.current( event.currentTarget );
-                }
-                //调度侦听项
-                item.callback.call( item.currentTarget , event );
-                if( event && event.isPropagationStopped===true )
-                    break;
-            }
-            length++;
-        }
-        return true;
-    }
-
-    /**
-     * 获取代理事件的元素目标
-     * @returns {array}
-     */
-    EventDispatcher.prototype.dispatchTargets=function( index )
-    {
-        if( typeof ElementManager !== 'undefined' && !(this instanceof ElementManager) )
-        {
-            return [];
-        }
-        if( this.forEachCurrentItem )
-        {
-            return [ this.forEachCurrentItem ];
-        }
-        return typeof index ==='number' ? this[ index ] : this;
-    }
 
     /**
      * 判断是否有指定类型的侦听器
@@ -310,7 +62,7 @@
      */
     EventDispatcher.prototype.hasEventListener=function( type )
     {
-        return !!this.__bindType__[type];
+        return this.bindCounter[type] > 0;
     }
 
     /**
@@ -322,41 +74,39 @@
      */
     EventDispatcher.prototype.addEventListener=function(type,listener,useCapture,priority)
     {
+        //如果不是侦听器对象
         if( !(listener instanceof EventDispatcher.Listener) )
         {
-            listener=new EventDispatcher.Listener(listener,priority,useCapture,this);
+            listener=new EventDispatcher.Listener(listener,useCapture,priority,this);
         }
 
+        //指定一组事件
         if( type instanceof Array )
         {
             var len=type.length;
-            while( len > 0 )this.addEventListener(type[--len],listener,useCapture,priority);
+            while( len > 0 )this.addEventListener( type[--len],listener,useCapture,priority );
             return this;
         }
 
        if( typeof type !== 'string' )
          return this;
 
-        var target= this.dispatchTargets()
-            ,len= target.length || 0
+        var target= this.targets()
             ,element
             ,index=0;
 
         do{
-
-            element=target[ index ] || this;
-            this.__bindType__[ type ]=true;
-            if( target[ index ] instanceof EventDispatcher &&  target[ index ] !== this )
+            element= target ? target[ index++] : this;
+            if( !element )continue;
+            if( target && target[ index ] instanceof EventDispatcher )
             {
                 target[ index ].addEventListener(type,listener,useCapture,priority);
-
-            }else if(  !(bindBeforeProxy[type] instanceof EventDispatcher.SpecialEvent) || !bindBeforeProxy[type].callback(element,listener,type,useCapture,this)  )
+            }else if(  !(bindBeforeProxy[type] instanceof EventDispatcher.SpecialEvent) || !bindBeforeProxy[type].callback.call(this,element,listener,type,useCapture)  )
             {
-                EventDispatcher.addListener.call(this, element, listener, type, useCapture );
+                EventDispatcher.addEventListener.call(element, type, listener );
             }
-            index++;
-
-        }while( index < len );
+        }while( target && index < target.length );
+        this.bindCounter[type] ? this.bindCounter[type]++ : this.bindCounter[type]=1;
         return this;
     }
 
@@ -366,58 +116,23 @@
      * @param listener
      * @returns {boolean}
      */
-    EventDispatcher.prototype.removeEventListener=function(type,listener,useCapture)
+    EventDispatcher.prototype.removeEventListener=function(type,listener)
     {
-        if( type==='*' )
+        if( type=='*' )
         {
             for( var t in this.__bindType__ )
-            {
-                this.removeEventListener(t,listener,useCapture);
-            }
+                this.removeEventListener(t,listener);
             return true;
         }
 
-        var target= this.dispatchTargets();
-        var use = typeof useCapture ==='undefined' ? null : useCapture;
+        var target= this.targets();
         var b=0;
-        var elem;
-
+        var element;
         do{
-            elem = target[b] || this;
-            if( target[b] instanceof EventDispatcher && this !==target[b]  )
-            {
-                target[b].removeEventListener(type,listener,useCapture);
-
-            }else
-            {
-                var data = getData(elem,type);
-                var item=data.items;
-                var length =  item.length;
-                if( typeof listener ==='function' || use !==null )while( length > 0 )
-                {
-                    --length;
-                    if( ( !listener || item[ length ].callback===listener ) && ( use===null || use===item[ length ].capture ) )
-                        item.splice(length,1);
-
-                }else
-                {
-                    item.splice(0,length);
-                }
-
-                if( item.length < 1  )
-                {
-                    if( elem !== this )
-                    {
-                        removeListener.call( elem, data.type , data.handle , data.capture  );
-                        if( onPrefix==='on' ){
-                            removeListener.call( elem, 'onpropertychange', data.handle , data.capture );
-                        }
-                    }
-                    this.__bindType__[type]=null;
-                }
-            }
-
-        }while( b < target.length , b++ )
+             element = target ? target[b++] : this;
+             target && target[b] instanceof EventDispatcher ? target[b].removeEventListener(type,listener) :
+             EventDispatcher.removeEventListener.call(element,type,listener);
+        }while( target && b < target.length )
         return true;
     }
 
@@ -428,49 +143,220 @@
      */
     EventDispatcher.prototype.dispatchEvent=function( event )
     {
-        globlaEvent=event= typeof event === 'string'  ? new BreezeEvent(event) :  event;
-        var target = this.dispatchTargets();
+        if( !(event instanceof BreezeEvent) )
+            throw new Error('invalid event.')
+        var target = this.targets();
         var i=0;
         var element;
         do{
-            element = target[i] || this;
-            if( event.isPropagationStopped===true)
+            element = target ? target[i++] : this;
+            if( event.propagationStopped===true ||
+                ( target && target[i] instanceof EventDispatcher && !target[i].dispatchEvent(event) ) )
+            {
                 return false;
-
+            }
             event.currentTarget=element;
             event.target=element;
+            EventDispatcher.dispatchEvent( event );
+        }while( target && i < target.length )
+        return !event.propagationStopped;
+    }
 
-            if( target[i] instanceof EventDispatcher && target[i] !==this )
+
+
+    /**
+     * 添加侦听器到元素中
+     * @param listener
+     * @param handle
+     * @returns {boolean}
+     */
+    EventDispatcher.addEventListener=function( type, listener, handle )
+    {
+        //是否为侦听对象
+        if( !(listener instanceof  EventDispatcher.Listener) )
+        {
+            throw new Error('listener invalid, must is EventDispatcher.Listener');
+        }
+
+        if( !Utils.isEventElement( this ) )
+            return false;
+
+        //获取事件数据集
+        var events = Utils.storage(this,'events') || {};
+        var capture= Number( listener.useCapture );
+        if( !events[ type ]  )
+        {
+            Utils.storage(this,'events',events);
+            events[ type ]=[]
+            events=events[ type ][ capture ]={'listener':[],'handle':null};
+
+        }else
+        {
+            events = events[ type ][ capture ] || ( events[ type ][ capture ]={'listener':[],'handle':null} );
+        }
+
+        //是否有指定的目标对象
+        !listener.target && (listener.target = this);
+
+        //添加到元素
+        events['listener'].push( listener );
+
+        //如果不是 EventDispatcher 则在第一个事件中添加事件代理。
+        if( events['listener'].length===1 && !(this instanceof EventDispatcher) )
+        {
+            var handle = handle || EventDispatcher.dispatchEvent;
+            var eventType= BreezeEvent.eventType(type);
+            events.handle=handle;
+            document.addEventListener ? this.addEventListener(eventType,handle,false) : this.attachEvent(eventType,handle);
+        }
+
+        //按权重排序，值大的在前面
+        if( events['listener'].length > 1 ) events['listener'].sort(function(a,b)
+        {
+            return a.priority=== b.priority ? 0 : (a.priority < b.priority ? 1 : -1);
+        })
+        return true;
+    }
+
+
+    /**
+     * 添加侦听器到元素中
+     * @param listener
+     * @param handle
+     * @returns {boolean}
+     */
+    EventDispatcher.removeEventListener=function( type, listener, useCapture )
+    {
+        //删除捕获阶段和冒泡阶段的事件
+        if( typeof useCapture === "undefined" )
+        {
+            if( EventDispatcher.removeEventListener.call(this,type, listener, false ) &&
+                EventDispatcher.removeEventListener.call(this,type, listener, true ) )
+                return true;
+            return false;
+        }
+
+        //获取事件数据集
+        var events = Utils.storage(this,'events') || {};
+        useCapture= Number( useCapture ) || 0;
+        events = events[ type ] || {};
+        events = events[useCapture];
+
+        if( !events || !events['listener'] || events['listener'].length < 1  )
+            return true;
+
+        var length= events.listener.length,dispatcher;
+        while( length > 0 )
+        {
+            --length;
+            dispatcher=events.listener[ length ].dispatcher;
+            //如果有指定侦听器则删除指定的侦听器
+            if(  ( !listener || events.listener[ length ].callback===listener ) && dispatcher.bindCounter[type] > 0 )
             {
-                if( !target[i].dispatchEvent(event) )
-                    return false;
+                --dispatcher.bindCounter[type];
+                events.listener.splice(length,1);
+            }
+        }
 
-            }else
+        //如果是元素并且也没有侦听器就删除
+        if( !(this instanceof EventDispatcher) && events.listener.length < 1 )
+        {
+            var win=  Utils.getWindow( this );
+            if( (this.nodeType && this.nodeType===1) || this===win || (win && this===win.document) )
             {
-                element.dispatched=false;
+                var eventType= BreezeEvent.eventType(type);
+                document.removeEventListener ? this.removeEventListener(eventType,events.handle,false) : this.detachEvent(eventType,events.handle)
+                return true;
+            }
+            return false;
+        }
+        return true;
+    }
 
-                //通过浏览器来发送
-                if( element && ( (typeof element.nodeName === 'string' && (element.nodeType===1 || element.nodeType===9 )) || element.window )  )
+    /**
+     * 调度指定侦听项
+     * @param event
+     * @param listeners
+     * @returns {boolean}
+     */
+    EventDispatcher.dispatchEvent=function( event )
+    {
+        //初始化一个全局事件
+        event= BreezeEvent.create( event );
+        if( event === null )
+            return false;
+        var targets = [[]];
+        if( !(event.currentTarget instanceof EventDispatcher) )
+        {
+            targets.push([]);
+
+            //是否只是触发捕获阶段的事件
+            var useCapture= event.bubbles === false;
+            var element = event.currentTarget;
+            do{
+                var item = Utils.storage( element ,'events')
+                if( item && item[ event.type ] )
                 {
-                    dispather.call( element, event.type );
+                    //捕获阶段
+                    if( item[ event.type ][1] )
+                       targets[1].push( element );
+
+                    //冒泡阶段
+                    if( !useCapture && item[ event.type ][0] )
+                        targets[0].push( element );
+                }
+                element=element.parentNode;
+            }while( element )
+
+            //捕获阶段的事件先从根触发
+            targets[1]=targets[1].reverse();
+
+        }else
+        {
+            targets[ 0 ].push( event.currentTarget )
+        }
+
+        var step=targets.length,index= 0,category;
+        while(  step > 0 )
+        {
+            category = targets[ --step ];
+            index = 0;
+            while( index < category.length )
+            {
+                //获取事件数据集
+                var target = category[ index++ ];
+                var events = Utils.storage( target ,'events') || {};
+                events = events[ event.type ] ? events[ event.type ][ step ]['listener'] : null;
+                if( !events || events.length < 1 )
+                {
+                    continue;
                 }
 
-                //没有派发的事件需要手动派发
-                if( element.dispatched===false )
+                var length= 0,listener;
+                while(  length < events.length )
                 {
-                    EventDispatcher.dispatchEvent( event );
+                    listener = events[ length++ ];
+
+                    //设置 Manager 的当前元素对象
+                    if( listener.dispatcher instanceof Manager )
+                    {
+                        listener.dispatcher.current( listener.target );
+                    }
+
+                    event.target = target;
+                    //调度侦听项
+                    listener.callback.call( listener.dispatcher , event );
+                    if( event && event.propagationStopped===true )
+                       return false
                 }
             }
-
-        }while( i < target.length, i++ )
-
-        var result = event.isPropagationStopped;
-        globlaEvent=null;
-        return !result;
+        }
+        return true;
     }
 
     /**
      * 事件侦听器
+     * @param type
      * @param callback
      * @param priority
      * @param capture
@@ -478,19 +364,17 @@
      * @param target
      * @constructor
      */
-    EventDispatcher.Listener=function(callback,priority,capture,currentTarget,target)
+    EventDispatcher.Listener=function(callback,useCapture,priority,dispatcher,target)
     {
         if( typeof callback !=='function' )
             throw new Error('callback not is function in EventDispatcher.Listener')
-
-        if(  !(currentTarget instanceof EventDispatcher) )
-            throw new Error('currentTarget not is EventDispatcher in EventDispatcher.Listener');
-
+        if(  !(dispatcher instanceof EventDispatcher) )
+            throw new Error('dispatcher not is EventDispatcher in EventDispatcher.Listener');
         this.callback=callback;
         this.priority=parseInt(priority) || 0;
-        this.capture=!!capture;
-        this.currentTarget=currentTarget; //当前调度对象
-        this.target=target; //html元素
+        this.useCapture=!!useCapture;
+        this.dispatcher=dispatcher; //当前调度对象
+        this.target=target || null; //html元素
     }
     EventDispatcher.Listener.prototype.constructor= EventDispatcher.Listener;
 
@@ -584,14 +468,14 @@
      * @param event
      * @param type
      */
-    var readyState=function( event , type, dispatcher )
+    var readyState=function( event , type )
     {
         var target=  event.srcElement || event.target;
-        var nodeName=  typeof target.nodeName ==='string' ? target.nodeName.toLowerCase() : '';
+        var nodeName=  Utils.nodeName( target );
         var readyState=target.readyState;
         var eventType= event.type || null;
 
-        if( onPrefix === 'on' )
+        if( Utils.isBrowser(Utils.BROWSER_IE,9) )
         {
             //iframe
             if( nodeName==='iframe' )
@@ -605,67 +489,66 @@
         }
 
         //ie9以下用 readyState来判断，其它浏览器都使用 load or DOMContentLoaded
-        if( !this.__STATE__ && ( ( eventType && /load/i.test(eventType) ) || ( readyState && /loaded|complete/.test( readyState ) ) )  )
+        if( ( eventType && /load/i.test(eventType) )  || ( readyState && /loaded|complete/.test( readyState ) ) )
         {
-            this.__STATE__=true;
             event.type = type;
-            this.___loading___=false;
             EventDispatcher.dispatchEvent( event );
-            dispatcher.removeEventListener( BreezeEvent.READY );
+            EventDispatcher.removeEventListener.call(target, type );
         }
     }
 
     //定义 load 事件
     EventDispatcher.SpecialEvent(BreezeEvent.LOAD,
-        function(element,listener,type,useCapture,dispatcher)
+        function(element,listener,type)
         {
-            var self =  this;
             var handle=function(event)
             {
-                event= createEvent( event || window.event )
+                event= BreezeEvent.create( event );
                 if( event )
                 {
-                    readyState.call(self,event,BreezeEvent.LOAD , dispatcher );
+                    event.currentTarget= element;
+                    event.target=element;
+                    readyState.call(this,event,BreezeEvent.LOAD );
                 }
             };
 
             if( element.contentWindow )
             {
-                dispatcher.addEventListener( BreezeEvent.READY, listener ,true, 10000 );
+                this.addEventListener( BreezeEvent.READY, listener ,true, 10000 );
 
             }else
             {
-                handle({'srcElement':element});
-                EventDispatcher.addListener(element, listener, type , useCapture , BreezeEvent.LOAD,handle );
-                EventDispatcher.addListener(element, listener, 'readystatechange' , useCapture , BreezeEvent.LOAD,handle );
+                handle({'srcElement':element,'type':type});
+                EventDispatcher.addEventListener.call(element, type,             listener,  handle );
+                EventDispatcher.addEventListener.call(element, BreezeEvent.READY ,listener, handle );
             }
             return true;
-
         })
 
     // 定义ready事件
-    EventDispatcher.SpecialEvent(BreezeEvent.READY,function(element,listener,type,useCapture,dispatcher)
+    EventDispatcher.SpecialEvent(BreezeEvent.READY,
+        function(element,listener,type)
     {
         var doc = element.contentWindow ?  element.contentWindow.document : element.ownerDocument || element.document || element,
             win= doc && doc.nodeType===9 ? doc.defaultView || doc.parentWindow : window;
 
         if( !win || !doc )return;
-        var self =  this;
-
         var handle=function(event)
         {
-            event= createEvent( event , doc )
+            event= BreezeEvent.create( event )
             if( event )
             {
-                readyState.call(self,event,BreezeEvent.READY,dispatcher);
+                event.currentTarget= doc;
+                event.target=doc;
+                readyState.call(this,event,BreezeEvent.READY);
             }
         }
 
-        EventDispatcher.addListener(win, listener, onPrefix=='' ? 'DOMContentLoaded' : 'load' , useCapture , BreezeEvent.READY,handle );
-        EventDispatcher.addListener(doc, listener, 'readystatechange', useCapture, BreezeEvent.READY,handle );
+        EventDispatcher.addEventListener.call(win,'load', listener, handle );
+        EventDispatcher.addEventListener.call(doc, type , listener, handle );
 
         //ie9 以下，并且是一个顶级文档或者窗口对象
-        if( onPrefix ==='on' && !element.contentWindow )
+        if( Utils.isBrowser(Utils.BROWSER_IE,9) && !element.contentWindow )
         {
             var toplevel = false;
             try {
@@ -674,23 +557,20 @@
 
             if ( toplevel && document.documentElement.doScroll )
             {
-                this.___loading___=true;
                 var doCheck=function()
                 {
-                    if ( !this.___loading___ )
-                        return;
                     try {
                         document.documentElement.doScroll("left");
                     } catch(e) {
                         setTimeout( doCheck, 1 );
                         return;
                     }
-                    handle( {'srcElement':doc} );
+                    handle( {'srcElement':doc,'type':type} );
                 }
                 doCheck();
             }
         }
-        handle({'srcElement':doc});
+        handle({'srcElement':doc,'type':type});
         return true;
     });
 

@@ -14,102 +14,114 @@
      * 此缓存的数据都是在对象本身进行存储，所以此类只是一个对于中间层的封装，提供一个简便的操作。
      * @private
      */
-    function CacheProxy(partition )
+
+    /**
+     * @private
+     */
+    var dataset=function(object,name,value)
+    {
+        if( typeof object.storage === "undefined" )
+        {
+            var attr = {}
+            if( object.attributes && attributes.attributes.length > 0 )
+            {
+                var i=0, item;
+                while( item = refAttr.attributes.item(i++) )
+                {
+                    if( item.nodeName.substr(0,4)==='data' )
+                        attr[ item.nodeName.substr(4) ]= item.nodeValue;
+                }
+            }
+            object=object['dataset']=attr;
+        }else
+        {
+            object=object.storage;
+        }
+
+        if( typeof name === 'string' )
+        {
+            if( value === null )
+            {
+                if( typeof object[ name ] !== 'undefined' )
+                    delete object[ name ];
+                return true;
+            }
+
+            if(  typeof value === 'undefined' )
+                return object[ name ] || null;
+            else
+                object[ name ] = value;
+
+        }else
+        {
+            return object;
+        }
+        return this;
+    }
+
+    function CacheProxy()
     {
         if( !(this instanceof CacheProxy) )
-           return new CacheProxy(partition );
+           return new CacheProxy();
 
         /**
          * @private
          */
-        var name='__storage__';
-        var proxyTarget;
-
-        /**
-         * @private
-         */
-        var data=function(name,value)
-        {
-            var target = proxyTarget || this;
-            var object = target;
-            if( typeof partition === 'string' || typeof partition === 'number' )
-            {
-                object=object[ partition ] || ( object[ partition ]={} )
-            }
-
-            if( typeof name === 'string' )
-            {
-                if( value === null )
-                {
-                    if( typeof object[ name ] !== 'undefined' )
-                       delete object[ name ];
-                    return true;
-                }
-
-                if(  typeof value === 'undefined' )
-                   return object[ name ] || null;
-                else
-                   object[ name ] = value;
-
-            }else if( typeof value === 'undefined' )
-            {
-                object[ partition ]={};
-            }
-            return true;
-        }
+        var _target;
 
         /**
          * 设置代理对象
          * @param target
          * @returns {CacheProxy}
          */
-        this.proxy=function( target )
+        this.target=function( target )
         {
-            proxyTarget = target;
+            _target = target;
             return this;
         }
+    }
 
-        /**
-         * 设置数据
-         * @param name
-         * @returns {r}
-         */
-        this.set=function(name,value)
-        {
-            data(name,value);
-            return this;
-        }
+    /**
+     * 设置数据
+     * @param name
+     * @returns {r}
+     */
+    CacheProxy.prototype.set=function(name,value)
+    {
+        dataset(name,value);
+        return this;
+    }
 
-        /**
-         * 获取数据
-         * @param name
-         * @param value
-         * @returns {*}
-         */
-        this.get=function(name)
-        {
-            return data(name);
-        }
+    /**
+     * 获取数据
+     * @param name
+     * @param value
+     * @returns {*}
+     */
+    CacheProxy.prototype.get=function(name)
+    {
+        return dataset(name);
+    }
 
-        /**
-         * 删除数据
-         * @param name
-         * @returns {boolean}
-         */
-        this.remove=function(name)
-        {
-            return !!data(name,null);
-        }
+    /**
+     * 删除数据
+     * @param name
+     * @returns {boolean}
+     */
+    CacheProxy.prototype.remove=function(name)
+    {
+        dataset(name,null);
+        return this;
+    }
 
-        /**
-         * 判断是否存在指定属性名的数据
-         * @param name
-         * @returns {boolean}
-         */
-        this.has=function(name)
-        {
-           return !!data(name);
-        }
+    /**
+     * 判断是否存在指定属性名的数据
+     * @param name
+     * @returns {boolean}
+     */
+    CacheProxy.prototype.has=function(name)
+    {
+        return !!dataset(name);
     }
 
     CacheProxy.prototype.constructor= CacheProxy;

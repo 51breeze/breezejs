@@ -23,7 +23,7 @@
          * @private
          */
         var setting={
-            'links':6,
+            'links':7,
             'template':{
                 'firstPage':'<a data-pages="{firstPage}" <?if(currentPage==firstPage && require){?>disable<? } ?> >第一页</a>',
                 'prevPage' :'<a data-pages="{prevPage}" <?if(currentPage==prevPage && require){?>disable<? } ?> >上一页</a>',

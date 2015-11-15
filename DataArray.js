@@ -130,8 +130,6 @@
 
     DataArray.DESC='desc';
     DataArray.ASC='asc';
-
-
     window.DataArray=DataArray;
 
 })(window)

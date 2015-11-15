@@ -81,9 +81,9 @@
         {
             if( typeof source !== "undefined" )
             {
-                options = Breeze.extend(true, {}, defaultOption, option || options || {} );
+                options = Utils.extend(true, {}, defaultOption, option || options || {} );
 
-                if( Breeze.isObject(source, true) )
+                if( Utils.isObject(source, true) )
                 {
                     var len = this.length;
                     this.splice(0, len, source);
@@ -165,7 +165,7 @@
 
                         if(  options.method === HttpRequest.METHOD.GET )
                         {
-                            var param = Breeze.serialize(options.param,'url');
+                            var param = Utils.serialize(options.param,'url');
                             options.url += /\?/.test( options.url ) ? '&'+param : '?'+param;
                             data=null;
                         }
@@ -448,8 +448,6 @@
         var page = this.currentPages();
         var rows=this.rows(),start=( page-1 ) * rows;
         this.__fetched__ = true;
-
-
 
         if( ( start+rows < this.length || this.isRemote() !==true || !this.hasEventListener(DataSourceEvent.LOAD_START) ) &&
             this.hasEventListener(DataSourceEvent.FETCH) )

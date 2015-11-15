@@ -146,7 +146,7 @@ var tl= new Timeline(60).addFrame(function(){
     {
         EventDispatcher.SpecialEvent(TimelineEvent.FINISH,function(element,listener,type,useCapture,dispatcher)
         {
-            EventDispatcher.addListener(element,listener,'webkitAnimationEnd',useCapture,TimelineEvent.FINISH,function(event)
+            EventDispatcher.addEventListener(element,listener,'webkitAnimationEnd',useCapture,TimelineEvent.FINISH,function(event)
             {
                 event = new BreezeEvent(event);
                 event.type= TimelineEvent.FINISH;

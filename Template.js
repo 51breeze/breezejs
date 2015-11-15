@@ -90,20 +90,20 @@
 
         if( typeof source === 'string' )
         {
-            source= Breeze.trim( source );
+            source= Utils.trim( source );
             if( source.charAt(0) !== '<' )
             {
                 container = Breeze( source );
             }
 
-        }else if( Breeze.isHTMLElement(source) )
+        }else if( Utils.isHTMLElement(source) )
         {
             container = Breeze( source );
         }
 
         if( container instanceof Breeze )
         {
-            if( !Breeze.nodeName(container[0]).match(/noscript|textarea/) )
+            if( !Utils.nodeName(container[0]).match(/noscript|textarea/) )
             {
                 throw new Error('invalid template.')
             }
@@ -113,7 +113,7 @@
         {
             throw new Error('invalid template.')
         }
-        return Breeze.trim( template );
+        return Utils.trim( template );
     },
     jscodeReg = /^\s*(if|for\s*\(|else|do|switch|case|break|var|function|while|foreach|{|})(.*)?/g,
     funReg = /^([\w\.]+)\s*\(/,
@@ -225,7 +225,7 @@
             {
                 return _options;
             }
-            _options=Breeze.extend( _options, options || {} );
+            _options=Utils.extend( _options, options || {} );
         }
 
         /**
@@ -275,11 +275,11 @@
             {
                 if (typeof viewport === 'string')
                 {
-                    viewport = Breeze.trim(viewport);
+                    viewport = Utils.trim(viewport);
                     if (viewport.charAt(0) !== '<')
                         viewport = Breeze(viewport);
 
-                } else if (Breeze.isHTMLElement(viewport))
+                } else if (Utils.isHTMLElement(viewport))
                 {
                     viewport = Breeze( viewport );
                 }
@@ -397,13 +397,13 @@
                 item = item[ prop[index] ];
                 if( !item )return '';
             }
-            if( item !='' && Breeze.isObject( item ,true) )
+            if( item !='' && Utils.isObject( item ,true) )
             {
-                if( Breeze.isObject(item.style,true) )
+                if( Utils.isObject(item.style,true) )
                 {
-                    item.style=Breeze.serialize( item.style , 'style')
+                    item.style=Utils.serialize( item.style , 'style')
                 }
-                item = Breeze.serialize( item , 'attr' );
+                item = Utils.serialize( item , 'attr' );
             }
             data[key]=item;
             return item.replace(tplReg,parser);
