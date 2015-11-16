@@ -47,7 +47,7 @@
                     if( properties )
                     {
                         var callback=properties[property] || properties['*'];
-                        if( Breeze.isFunction( callback ) )
+                        if( Utils.isFunction( callback ) )
                         {
                               callback.call(object,property,newValue);
 

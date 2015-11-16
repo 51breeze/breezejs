@@ -94,7 +94,6 @@
         var target= this.targets()
             ,element
             ,index=0;
-
         do{
             element= target ? target[ index++] : this;
             if( !element )continue;
@@ -285,54 +284,50 @@
         event= BreezeEvent.create( event );
         if( event === null )
             return false;
-        var targets = [[]];
-        if( !(event.currentTarget instanceof EventDispatcher) )
-        {
-            targets.push([]);
+        var targets = [[],[]];
+        var is= event.currentTarget instanceof EventDispatcher;
 
-            //是否只是触发捕获阶段的事件
-            var useCapture= event.bubbles === false;
-            var element = event.currentTarget;
-            do{
-                var item = Utils.storage( element ,'events')
-                if( item && item[ event.type ] )
-                {
-                    //捕获阶段
-                    if( item[ event.type ][1] )
-                       targets[1].push( element );
+        //是否只是触发捕获阶段的事件
+        var useCapture= event.bubbles === false;
+        var element = event.currentTarget;
+        do{
+            var item = Utils.storage( element ,'events')
+            if( item && item[ event.type ] )
+            {
+                //捕获阶段
+                if( item[ event.type ][1] )
+                   targets[1].push( element );
 
-                    //冒泡阶段
-                    if( !useCapture && item[ event.type ][0] )
-                        targets[0].push( element );
-                }
-                element=element.parentNode;
-            }while( element )
+                //冒泡阶段
+                if( !useCapture && item[ event.type ][0] )
+                    targets[0].push( element );
+                element= !is ? element.parentNode : null;
+            }else
+            {
+               break;
+            }
 
-            //捕获阶段的事件先从根触发
-            targets[1]=targets[1].reverse();
+        }while( element );
 
-        }else
-        {
-            targets[ 0 ].push( event.currentTarget )
-        }
+        //捕获阶段的事件先从根触发
+        if( targets[1].length > 1 )
+           targets[1]=targets[1].reverse();
 
         var step=targets.length,index= 0,category;
         while(  step > 0 )
         {
             category = targets[ --step ];
             index = 0;
-            while( index < category.length )
+            while( index < category.length && category.length > 0 )
             {
                 //获取事件数据集
                 var target = category[ index++ ];
                 var events = Utils.storage( target ,'events') || {};
-                events = events[ event.type ] ? events[ event.type ][ step ]['listener'] : null;
+                events = events[ event.type ] && events[ event.type ][ step ] ? events[ event.type ][ step ]['listener'] : null;
                 if( !events || events.length < 1 )
-                {
                     continue;
-                }
-
                 var length= 0,listener;
+
                 while(  length < events.length )
                 {
                     listener = events[ length++ ];
@@ -340,10 +335,10 @@
                     //设置 Manager 的当前元素对象
                     if( listener.dispatcher instanceof Manager )
                     {
-                        listener.dispatcher.current( listener.target );
+                        listener.dispatcher.current( target );
                     }
-
                     event.target = target;
+
                     //调度侦听项
                     listener.callback.call( listener.dispatcher , event );
                     if( event && event.propagationStopped===true )
@@ -352,6 +347,19 @@
             }
         }
         return true;
+    }
+
+    /**
+     * 判断元素是不注册了指定类型的事件
+     * @param type
+     * @returns {*}
+     */
+    EventDispatcher.hasEventListener=function( type )
+    {
+        if( typeof type  !== "string" )
+          return false;
+        var events = Utils.storage( this, 'events' ) || {}
+        return !!events[ type ];
     }
 
     /**

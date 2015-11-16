@@ -185,9 +185,8 @@
                             lastModified[ 'modified' ] = lastModified;
                         if ( ( etag = self.getResponseHeader( "Etag" ) ) )
                             etag[ 'modified' ] = etag;
-
                         if( self.hasEventListener( HttpEvent.SUCCESS ) )
-                            self.dispatchEvent( new HttpEvent( HttpEvent.SUCCESS ,{status:status,data:response(),target:target }) )
+                            self.dispatchEvent( new HttpEvent( HttpEvent.SUCCESS ,{status:status,data:response()}) )
 
                     }else
                     {

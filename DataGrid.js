@@ -12,21 +12,21 @@
         var opt={}
         if( typeof column === 'string' )
         {
-            if( Breeze.isFunction(option) )
+            if( Utils.isFunction(option) )
             {
                 opt.column=column;
                 opt.callback=option;
 
-            }else if( Breeze.isObject(option) )
+            }else if( Utils.isObject(option) )
             {
                 opt=option;
             }
 
-        }else if( Breeze.isObject(column) )
+        }else if( Utils.isObject(column) )
         {
             opt=column;
         }
-        return Breeze.extend( target, opt  );
+        return Utils.extend( target, opt  );
     }
 
     var tagReg = /<?(\w+)(\s+[^>])\/?>?/;
@@ -60,9 +60,9 @@
             {
                 if( item[ type[t] ] )
                 {
-                    if ( (props[b] === 'attr' || props[b] === 'style') && Breeze.isObject(item[type[t]],true) )
+                    if ( (props[b] === 'attr' || props[b] === 'style') && Utils.isObject(item[type[t]],true) )
                     {
-                        item[ type[t] ] = Breeze.serialize(item[type[t]], props[b] );
+                        item[ type[t] ] = Utils.serialize(item[type[t]], props[b] );
                     }
 
                 }else
@@ -78,7 +78,7 @@
         var tbody = options.tbody;
         var wrap  = options.wrap;
 
-        if( Breeze.isObject(columns,true) )
+        if( Utils.isObject(columns,true) )
         {
             options.thead='';
             options.tbody='';
@@ -202,7 +202,7 @@
                         options[ e[i] ]=tagAttr( options[ e[i] ] );
                     }
                 }
-                _options = Breeze.extend(true, _options, options );
+                _options = Utils.extend(true, _options, options );
                 if( typeof options['skin'] !== "undefined" )
                 {
                     _options.needmake=false;
@@ -364,7 +364,7 @@
                 return _columns;
             }
             _columns = columns;
-            if ( Breeze.isString(columns) )
+            if ( Utils.isString(columns) )
             {
                 _columns = columns.split(',')
             }
@@ -493,6 +493,7 @@
                                 var option = item.option[action];
                                 if (option.style)this.style(option.style);
 
+                               if( !EventDispatcher.hasEventListener.call(this.current(), option.eventType) )
                                 this.addEventListener(option.eventType, function (event)
                                 {
                                     if (typeof option.callback === 'function')

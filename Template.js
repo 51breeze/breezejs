@@ -345,21 +345,30 @@
 
               if( !this.hasEventListener( TemplateEvent.START ) || this.dispatchEvent( event ) )
               {
-                  template=make.call(this, event.template , event.variable , getSplit.call(this) );
+                  makeTemplate=make.call(this, event.template , event.variable , getSplit.call(this) );
                   if( this.hasEventListener( TemplateEvent.DONE ) )
                   {
                       event.type = TemplateEvent.DONE;
-                      event.html = template;
+                      event.html = makeTemplate;
                       if( !this.dispatchEvent( event ) )
                       {
                           return false;
                       }
-                      template=event.html;
+                      makeTemplate=event.html;
                   }
-                  makeTemplate=template;
+
                   if( !flag && event.viewport instanceof Breeze )
                   {
-                      event.viewport.html( template );
+                      event.viewport.html( makeTemplate );
+                      if( this.hasEventListener(TemplateEvent.REFRESH) )
+                      {
+                          this.dispatchEvent( new TemplateEvent(TemplateEvent.REFRESH, {
+                              viewport:event.viewport,
+                              variable:event.variable,
+                              template:event.template,
+                              html:makeTemplate
+                          }))
+                      }
                       return true;
                   }
                   return template;

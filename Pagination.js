@@ -98,7 +98,7 @@
         {
             if( typeof options !== "undefined" )
             {
-                setting=Breeze.extend(true,setting,options);
+                setting=Utils.extend(true,setting,options);
                 _changed=true;
                 return this;
             }
