@@ -284,30 +284,28 @@
         event= BreezeEvent.create( event );
         if( event === null )
             return false;
+
         var targets = [[],[]];
         var is= event.currentTarget instanceof EventDispatcher;
 
         //是否只是触发捕获阶段的事件
         var useCapture= event.bubbles === false;
-        var element = event.currentTarget;
+        var element = event.currentTarget,data=null;
         do{
-            var item = Utils.storage( element ,'events')
-            if( item && item[ event.type ] )
+            data = Utils.storage( element ,'events')
+            if( data && data[ event.type ] )
             {
                 //捕获阶段
-                if( item[ event.type ][1] )
+                if( data[ event.type ][1] )
                    targets[1].push( element );
 
                 //冒泡阶段
-                if( !useCapture && item[ event.type ][0] )
+                if( !useCapture && data[ event.type ][0] )
                     targets[0].push( element );
-                element= !is ? element.parentNode : null;
-            }else
-            {
-               break;
             }
-
+            element=is ? null : element.parentNode;
         }while( element );
+
 
         //捕获阶段的事件先从根触发
         if( targets[1].length > 1 )

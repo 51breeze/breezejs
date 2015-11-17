@@ -16,7 +16,7 @@
        DataArray.call(this,elements);
    }
 
-    Manager.prototype= new EventDispatcher();
+    Manager.prototype= new EventDispatcher()
     Manager.prototype.constructor= Manager;
     Manager.prototype.splice= DataArray.prototype.splice;
     Manager.prototype.slice= DataArray.prototype.slice;

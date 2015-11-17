@@ -216,7 +216,7 @@
 
     }else
     {
-        fix.cssMap['float']='styleFloat';
+       // fix.cssMap['float']='styleFloat';
         fix.cssMap['alpha']='opacity';
         fix.attrMap['class']='className';
 
@@ -286,13 +286,13 @@
         {
             value=name;
         }
-
         if( Utils.isObject(value) )
         {
-            value=getStyle( elem )+' '+Utils.serialize(value,'style');
+            var newvalue=Utils.serialize(value,'style') ;
+            value=getStyle( elem ).replace(/;\s*$/,'');
+            value =  value =='' ? newvalue : value+';'+newvalue;
             name='cssText';
         }
-
         name = Utils.styleName( name );
         if( !Utils.isScalar( value ) )
         {
@@ -312,7 +312,6 @@
         if ( type === "number" && !cssNumber[ name ] )
             value += "px";
         if( hook && hook.set && hook.set.call(elem,style,value)===true )return true;
-
         try{
             style[name]=value;
         }catch( e ){}
@@ -456,15 +455,12 @@
     {
         if( typeof name !=='string' )
           return name;
-
         if( name === 'cssText')
-        {
             return name;
-        }
 
         name=name.replace( cssPrefix, "ms-" ).replace( cssDashAlpha, cssCamelCase );
-        name = fix.cssMap[name] || name;
-        return name.replace( cssUpperProp, "-$1" ).toLowerCase();
+        name = name.replace( cssUpperProp, "-$1" ).toLowerCase();
+        return fix.cssMap[name] || name;
     }
 
     /**

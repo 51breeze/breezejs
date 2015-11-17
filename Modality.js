@@ -7,31 +7,32 @@
  */
 (function(window,undefined )
 {
-    function Selection()
+    function Modality()
     {
-        if( !(this instanceof Selection) )
-            return new Selection();
+        if( !(this instanceof Modality) )
+            return new Modality();
+        Breeze.apply(this, arguments );
 
-        Manager.call(this);
 
         /**
          * @private
          */
         var _options={
             'template':{
-                input: '<input {attr.input} />',
-                lable: '<span {attr.lable}>{current}</span>',
-                list: '<?foreach(dataGroup as index item){ ?><li {attr.list}>{item["name"]}</li><?}?>',
-                container:'<div {attr.container}>{template.lable}</div>{template.group}',
-                group: '<div {attr.group}><ul style="padding: 0px;list-style-type:none;-webkit-margin-before:0px;-webkit-margin-after:0px; text-indent: 0px;">{template.list}</ul></div>',
-                searchbox:'<div {attr.searchbox}><span>{template.input}</span>{template.group}</div>'
+                head: '<div {attr}>{template.lable}{template.close}</div>',
+                lable: '<lable {attr}></lable>',
+                close: '<span {attr}>关闭</span>',
+                body:'<div {attr}></div>',
+                footer: '<div {attr}></div>',
+                skin:'{template.head}{template.body}{template.footer}',
+                container:'<div {attr}>{template.skin}</div>'
             },
             'attr':{
-                searchbox:{'style':{'width':'100%',height:'300px'}},
-                lable:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'}, "data-component":"selection.lable" },
-                list:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},"data-index":"{index}","data-component":"group.list"},
-                group:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}, "data-component":"selection.group" },
-                container:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'}, "data-component":"selection",tabindex:"-1" }
+                head:{ 'style':{'width':'100%',height:'25px'} },
+                lable:{ 'style':{'width':'auto',lineHeight:'25px','display':'block',cursor:'pointer'} },
+                close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'} },
+                body:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'} },
+                footer:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'} }
             }
         };
 
@@ -50,51 +51,13 @@
         }
 
         /**
-         * @private
-         */
-        var _lableProfile='lable';
-
-        /**
-         * @param profile
-         * @returns {*}
-         */
-        this.lableProfile=function( profile )
-        {
-            if( typeof profile === "string" )
-            {
-                _lableProfile = profile
-                return this;
-            }
-            return _lableProfile;
-        }
-
-        /**
-         * @private
-         */
-        var _valueProfile='id';
-
-        /**
-         * @param profile
-         * @returns {*}
-         */
-        this.valueProfile=function( profile )
-        {
-            if( typeof profile === "string" )
-            {
-                _valueProfile = profile
-                return this;
-            }
-            return _valueProfile;
-        }
-
-        /**
          * @param viewport
          * @returns {*}
          */
         this.viewport=function( viewport )
         {
             if( typeof viewport === "undefined" )
-              return this.dataRender().viewport();
+                return this.dataRender().viewport();
             this.dataRender().viewport( viewport );
             return this;
         }
@@ -142,26 +105,26 @@
 
                     selection.addEventListener(MouseEvent.CLICK,function(event){
 
-                            group.width( viewport.width() )
-                            group.left( left )
-                            group.top( top + viewport.height() );
-                            Breeze('[data-component="group.list"]',group).addEventListener([MouseEvent.MOUSE_OVER,MouseEvent.MOUSE_OUT,MouseEvent.CLICK],function(event){
+                        group.width( viewport.width() )
+                        group.left( left )
+                        group.top( top + viewport.height() );
+                        Breeze('[data-component="group.list"]',group).addEventListener([MouseEvent.MOUSE_OVER,MouseEvent.MOUSE_OUT,MouseEvent.CLICK],function(event){
 
-                                if( event.type === MouseEvent.MOUSE_OVER )
-                                {
-                                    this.style('backgroundColor', '#ccc');
+                            if( event.type === MouseEvent.MOUSE_OVER )
+                            {
+                                this.style('backgroundColor', '#ccc');
 
-                                }else if(event.type === MouseEvent.MOUSE_OUT)
-                                {
-                                    this.style('background', 'none');
-                                }else
-                                {
-                                    var index = this.property('data-index');
-                                    self.selectedIndex( index );
-                                    group.display(false);
-                                }
-                            })
-                           group.display(true);
+                            }else if(event.type === MouseEvent.MOUSE_OUT)
+                            {
+                                this.style('background', 'none');
+                            }else
+                            {
+                                var index = this.property('data-index');
+                                self.selectedIndex( index );
+                                group.display(false);
+                            }
+                        })
+                        group.display(true);
 
                     },true)
                 })
@@ -215,27 +178,24 @@
         /**
          * @returns {Selection}
          */
-        this.display=function()
+        this.display=function( flag )
         {
-            var options = this.options()
-            Template.factory( options );
-            this.dataRender().display( options.template.container );
+
+
+
+
+
+            Breeze.prototype.display.call(this, flag );
+
+           // Template.factory( options );
+            //this.dataRender().display( options.template.container );
             return this;
         }
 
     }
 
-    Selection.prototype=new Manager();
-    Selection.prototype.constructor=Selection;
-
-    function SelectionEvent( src, props ){ BreezeEvent.call(this, src, props);}
-    SelectionEvent.prototype=new BreezeEvent();
-    SelectionEvent.prototype.constructor=SelectionEvent;
-    SelectionEvent.prototype.selectedIndex=NaN;
-    SelectionEvent.prototype.selectedItem=null;
-    SelectionEvent.CHANGED='selectionChanged';
-
-    window.SelectionEvent=SelectionEvent;
-    window.Selection=Selection;
+    Modality.prototype=Breeze.prototype
+    Modality.prototype.constructor=Modality;
+    window.Modality=Modality;
 
 })( window )

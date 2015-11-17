@@ -139,7 +139,7 @@
                wrap :{}
            },
            'attr':{
-                skin:{'cellspacing':'1','cellpadding':'1', 'border':'0'},
+                skin:{'cellspacing':'0','cellpadding':'0', 'border':'0'},
                 thead:{'height':'40'},
                 tbody:{'height':'25'},
                 tfoot:{},

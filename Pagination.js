@@ -27,7 +27,7 @@
             'template':{
                 'firstPage':'<a data-pages="{firstPage}" <?if(currentPage==firstPage && require){?>disable<? } ?> >第一页</a>',
                 'prevPage' :'<a data-pages="{prevPage}" <?if(currentPage==prevPage && require){?>disable<? } ?> >上一页</a>',
-                'buttons'  :'<? foreach(buttons as key value){ ?><a class="link" data-pages="{value}" <?if(currentPage==value){?>current<? } ?> >{value}</a><?}?>',
+                'buttons'  :'<? foreach(buttons as key value){ ?><a class="link" data-pages="{value}" <?if(currentPage==value){?>current <? } ?> >{value}</a><?}?>',
                 'nextPage' :'<a data-pages="{nextPage}" <?if(currentPage==nextPage && require){?>disable<? } ?> >下一页</a>',
                 'lastPage' :'<a data-pages="{lastPage}" <?if(currentPage==lastPage && require){?>disable<? } ?> >最后页</a>',
                 'hiddenLeft':'<? if(buttons[0]>1){ ?><span>...</span><?}?>',
@@ -56,7 +56,7 @@
                 }}
             },
             'style':{
-                'a,span':{'width':'auto','height':'22px','line-height':'22px','padding':'0px 8px',display:'block;',float:'left;',margin:'0px 2px;',cursor:'pointer;'},
+                'a,span':{'width':'auto','height':'22px','line-height':'22px','padding':'0px 8px',display:'block',float:'left',margin:'0px 2px',cursor:'pointer'},
                 'a[current]':{'backgroundColor':'#444444','color':'#ffffff'},
                 'a.link':{'border':'solid 1px #333333'},
                 'input':{'width':'40px','height':'16px','line-height':'16px'},

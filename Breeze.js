@@ -37,7 +37,9 @@
 
         if( !(this instanceof Breeze) )
             return new Breeze( selector,context );
-        else if( !Utils.isDefined(selector) && !Utils.isDefined(context) )
+
+        this.length=0;
+        if( !Utils.isDefined(selector) && !Utils.isDefined(context) )
             return this;
 
         var result;
@@ -879,10 +881,10 @@
     }
 
     //访问和操作属性值
-    function access(name,newValue,callback,eventProp,eventType)
+    function access(name,newValue,callback,eventProp,eventType,defaultValue)
     {
         var write= newValue !== undefined;
-        if( !write && this.length < 1 )return '';
+        if( !write && this.length < 1 )return typeof defaultValue !== "undefined" ?  defaultValue : '';
         return this.forEach(function(elem)
         {
             var oldValue= callback.get.call(elem,name);
@@ -1053,7 +1055,7 @@
             set:function(prop,newValue){
                 Utils.style(this,prop,newValue);
             }
-        },prop.toLowerCase());
+        }, prop.toLowerCase(), undefined , 0 );
     }
 
     var __scroll__=function(prop,value)
@@ -1065,7 +1067,7 @@
             set:function(prop,newValue){
                 Utils.scroll(this,'scroll'+prop,newValue);
             }
-        },'scroll'+prop );
+        },'scroll'+prop, undefined , 0 );
     }
 
     var __position__=function(prop,value)
@@ -1083,7 +1085,7 @@
             set:function(prop,newValue){
                 Utils.position(this,prop,newValue);
             }
-        },prop );
+        },prop , undefined , 0 );
     }
 
     /**
@@ -1166,7 +1168,7 @@
 
     var __point__=function(left,top,local)
     {
-        var target=this.forEachCurrentItem || this[0];
+        var target=this.current();
         var point={}
         point['left']=left || 0;
         point['top']=top || 0;

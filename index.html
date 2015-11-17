@@ -19,6 +19,7 @@
     <script src="Template.js" ></script>
     <script src="Pagination.js" ></script>
     <script src="Selection.js" ></script>
+    <script src="Modality.js" ></script>
 
     <title></title>
 </head>
@@ -33,6 +34,20 @@
 
 
 </style>
+
+<style type="text/css">
+   /* table
+    {
+        border-collapse:collapse;
+    }
+
+    table, td
+    {
+        border:1px solid black;
+    }*/
+</style>
+
+
 
 <script>
 
@@ -95,6 +110,16 @@
          selection.dataSource( [{id:1,name:'张三'},{id:2,name:'李四'}] );
          selection.display()
 
+
+       var modal =  new Modality('.modal')
+
+        modal.width(300).height(200)
+
+        modal.display(true)
+
+        console.log( modal.width() )
+
+
     })
 
 
@@ -107,6 +132,17 @@
    开呗养车运营端
 </div>
 
+
+<div class="modal" style="display: none;">
+    <div class="head">
+        <label class="lable">标题</label>
+        <span class="close">关闭</span>
+    </div>
+    <div class="body"></div>
+    <div class="footer"></div>
+</div>
+
+
 <div id="selection" style="width: 300px;" data-uuu="yyyy">
 </div>
 
@@ -118,32 +154,7 @@
 
 <div data-component="selection">
    <label>请选择</label>
-    <dataGroup>
-        <item value="1" style="color: red">张三</item>
-    </dataGroup>
 </div>
-
-
-<noscript id="template">
-    <div>
-        <ul data-bind="sss">
-            <? function test(){
-
-             return '6955555'
-
-             } ?>
-
-            <? foreach( data as key item ){ ?>
-                <li forIndex="{test()}">{item.name}</li>
-            <? } ?>
-
-            <? for( var i in data ){ ?>
-            <li forIndex="{test()}">{data[i]}</li>
-            <? } ?>
-
-        </ul>
-    </div>
-</noscript>
 
 
 <div>
