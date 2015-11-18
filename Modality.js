@@ -18,23 +18,30 @@
          * @private
          */
         var _options={
+
             'template':{
-                head: '<div {attr}>{template.lable}{template.close}</div>',
-                lable: '<lable {attr}></lable>',
-                close: '<span {attr}>关闭</span>',
-                body:'<div {attr}></div>',
-                footer: '<div {attr}></div>',
-                skin:'{template.head}{template.body}{template.footer}',
-                container:'<div {attr}>{template.skin}</div>'
+                head: '<div>{template lable+close}</div>',
+                lable: '<lable></lable>',
+                close: '<span>关闭</span>',
+                body:  '<div></div>',
+                footer:'<div><button>取消</button><button>确认</button></div>',
+                contents:'{template head+body+footer}',
+                group: '<div>{template contents}</div>',
+                maskbox:'<div></div>'
             },
+
             'attr':{
-                head:{ 'style':{'width':'100%',height:'25px'} },
-                lable:{ 'style':{'width':'auto',lineHeight:'25px','display':'block',cursor:'pointer'} },
-                close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'} },
-                body:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'} },
-                footer:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'} }
+                head:{ 'style':{'width':'100%',height:'25px'} , class:'head' },
+                lable:{ 'style':{'width':'auto',lineHeight:'25px','display':'block',cursor:'pointer'}, class:'lable' },
+                close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'}, class:'close' },
+                body:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'} , class:'body' },
+                footer:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'} , class:'footer' },
+                maskbox:{ 'style':{'width':'100%',height:'100%','display':'block',backgroundColor:'#333333'}, class:'modal-maskbox' }
             }
         };
+
+
+       console.log( Utils.createSkin('group',_options) )
 
         /**
          * @param options
