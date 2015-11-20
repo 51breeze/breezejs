@@ -7,67 +7,38 @@
  */
 (function(window,undefined )
 {
+
     function Modality()
     {
         if( !(this instanceof Modality) )
             return new Modality();
-        Breeze.apply(this, arguments );
 
+        Breeze.apply(this, arguments );
 
         /**
          * @private
          */
-        var _options={
-
-            'template':{
-                head: '<div>{template lable+close}</div>',
+        this.skinGroup = new SkinGroup({
+            'elements':{
+                head: '<div>{elements lable+close}</div>',
                 lable: '<lable></lable>',
                 close: '<span>关闭</span>',
                 body:  '<div></div>',
                 footer:'<div><button>取消</button><button>确认</button></div>',
-                contents:'{template head+body+footer}',
-                group: '<div>{template contents}</div>',
-                maskbox:'<div></div>'
+                container:'<div>{elements head+body+footer}</div>'
             },
-
             'attr':{
-                head:{ 'style':{'width':'100%',height:'25px'} , class:'head' },
-                lable:{ 'style':{'width':'auto',lineHeight:'25px','display':'block',cursor:'pointer'}, class:'lable' },
-                close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'}, class:'close' },
-                body:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'} , class:'body' },
-                footer:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'} , class:'footer' },
-                maskbox:{ 'style':{'width':'100%',height:'100%','display':'block',backgroundColor:'#333333'}, class:'modal-maskbox' }
+                head:{ 'style':{'width':'100%',height:'25px'}  },
+                lable:{ 'style':{'width':'auto',lineHeight:'25px','display':'block',cursor:'pointer'} },
+                close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'} },
+                body:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'} },
+                footer:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'} }
             }
-        };
+        });
+
+        console.log( this.skinGroup.toString() )
 
 
-       console.log( Utils.createSkin('group',_options) )
-
-        /**
-         * @param options
-         * @returns {*}
-         */
-        this.options=function( options )
-        {
-            if( typeof options !== "undefined" )
-            {
-                _options = Breeze.extend(true, _options, options)
-                return this;
-            }
-            return _options;
-        }
-
-        /**
-         * @param viewport
-         * @returns {*}
-         */
-        this.viewport=function( viewport )
-        {
-            if( typeof viewport === "undefined" )
-                return this.dataRender().viewport();
-            this.dataRender().viewport( viewport );
-            return this;
-        }
 
         /**
          * @private
@@ -138,71 +109,113 @@
             }
             return _dataRender;
         }
-
-        /**
-         * @param source
-         * @param options
-         * @returns {Selection}
-         */
-        this.dataSource=function(source,options)
-        {
-            if( typeof source === "undefined" )
-                return  this.dataRender().dataSource();
-            this.dataRender().dataSource( source , options )
-            return this;
-        }
-
-        /**
-         * @private
-         */
-        var _index=0;
-
-        /**
-         * @param value
-         * @returns {*}
-         */
-        this.selectedIndex=function( index )
-        {
-            if( typeof index === "number" )
-            {
-                if( _index !== index )
-                {
-                    _index = index;
-                    var dataSource = this.dataSource();
-                    if( dataSource.length > 0 && dataSource[ index ] )
-                    {
-                        var event = new SelectionEvent(SelectionEvent.CHANGED);
-                        event.selectedIndex = index;
-                        event.selectedItem = dataSource[ index ];
-                        this.dispatchEvent( event );
-                    }
-                }
-                return this;
-            }
-            return _index;
-        }
-
-        /**
-         * @returns {Selection}
-         */
-        this.display=function( flag )
-        {
-
-
-
-
-
-            Breeze.prototype.display.call(this, flag );
-
-           // Template.factory( options );
-            //this.dataRender().display( options.template.container );
-            return this;
-        }
-
     }
 
-    Modality.prototype=Breeze.prototype
+    Modality.prototype= new Breeze();
     Modality.prototype.constructor=Modality;
+
+    /**
+     * @param viewport
+     * @returns {*}
+     */
+    Modality.prototype.viewport=function( viewport )
+    {
+        if( typeof viewport === "undefined" )
+            return this.dataRender().viewport();
+        this.dataRender().viewport( viewport );
+        return this;
+    }
+
+    /**
+     * @param source
+     * @param options
+     * @returns {Selection}
+     */
+    Modality.prototype.dataSource=function(source,options)
+    {
+        if( typeof source === "undefined" )
+            return  this.dataRender().dataSource();
+        this.dataRender().dataSource( source , options );
+        return this;
+    }
+
+    /**
+     * 显示模态框
+     * @param flag
+     * @returns {Modality}
+     */
+    Modality.prototype.display=function( flag )
+    {
+        Breeze.prototype.display.call(this, flag );
+
+        // Template.factory( options );
+        //this.dataRender().display( options.template.container );
+        return this;
+    }
+
+    /**
+     * 获取/设置宽度
+     * @param value
+     * @returns {*}
+     */
+    Modality.prototype.width=function(value)
+    {
+        if( typeof value === "undefined")
+           return Breeze.prototype.width.call(this );
+        Breeze.prototype.width.call(this, value );
+        return this;
+    }
+
+    /**
+     * 获取/设置高度
+     * @param value
+     * @returns {*}
+     */
+    Modality.prototype.height=function(value)
+    {
+        if( typeof value === "undefined")
+            return Breeze.prototype.height.call(this );
+        Breeze.prototype.height.call(this, value );
+        return this;
+    }
+
+    /**
+     * 设置获取标题头的高度
+     * @param value
+     * @returns {*}
+     */
+    Modality.prototype.headHeight=function( value )
+    {
+        var skin = this.skin();
+        if( typeof value === "number" )
+        {
+            skin.attr.head.style.height=value;
+            skin.attr.head.style.lineHeight=value;
+            return this;
+        }
+        return parseInt(skin.attr.head.style.height) || 0;
+    }
+
+    /**
+     * 设置获取标题头的高度
+     * @param value
+     * @returns {*}
+     */
+    Modality.prototype.footerHeight=function( value )
+    {
+        var skin = this.skin();
+        if( typeof value === "number" )
+        {
+            skin.attr.footer.style.height=value;
+            skin.attr.footer.style.lineHeight=value;
+            return this;
+        }
+        return parseInt(skin.attr.footer.style.height) || 0;
+    }
+
+
+
     window.Modality=Modality;
+
 
 })( window )
