@@ -14,40 +14,12 @@
     var refvalue=/\{(\w+)\s+([\w\s\+\.]+)\s*\}/g;
     var notattr = /<(\w+)(?!=\{attributes\s+([\w\s\+\.]+)\s*\})>/;
     var blank=/\s+/g;
-
-    function SkinGroup( group )
-    {
-        if( !(this instanceof SkinGroup) )
-            return new SkinGroup( group );
-
-        if( typeof group === "object" )
-        {
-            group.elements && ( this.elements = group.elements );
-            group.attributes && ( this.attributes = group.attributes );
-        }
-    }
-
-    SkinGroup.prototype.constructor=SkinGroup;
-    SkinGroup.prototype.elements={};
-    SkinGroup.prototype.attributes={};
-
-    /**
-     * @param string container
-     * @returns {*}
-     */
-    SkinGroup.prototype.container=function( container )
-    {
-        if( typeof container === "string") {
-            this.elements.container = container;
-            return this;
-        }
-        return this.elements.container || '';
-    }
+    var isselector=/^([\.\#]\w+[\>\+\~\s])+$/;
 
     /**
      * @returns {string}
      */
-    SkinGroup.prototype.toString=function()
+    var toString=function()
     {
         var options = this;
         var parser = function(all, prop, item )
@@ -111,16 +83,114 @@
         {
             for (var name in this.elements)
             {
-                this.elements[name] = this.elements[name].replace(notattr, "<$1 {attributes " + name + "}$2>");
-                if( this.attributes[ name ] && !this.attributes[ name ]['data-skin'] )
+                this.elements[name] = this.elements[name].replace(notattr, "<$1$2 {attributes " + name + "}>");
+                this.attributes[ name ] || (this.attributes[ name ]={});
+                if( !this.attributes[ name ]['data-skin'] )
                 {
                     this.attributes[ name ]['data-skin']= name;
                 }
             }
             this.attached=true;
         }
-        return this.container().replace(refvalue,parser);
+        return this.elements.container.replace(refvalue,parser);
     }
+
+
+    /**
+     * @param selector
+     * @param context
+     * @returns {SkinGroup}
+     * @constructor
+     */
+    function SkinGroup( selector , context )
+    {
+        if( !(this instanceof SkinGroup) )
+            return new SkinGroup( selector, context );
+
+        if( !Utils.isHTMLElement(selector) )
+
+        if( selector )
+
+        Breeze.call(this, selector, context );
+
+        /**
+         * @private
+         */
+        var _viewport=null;
+
+        /**
+         * @param viewport
+         * @returns {*}
+         */
+        this.viewport=function( viewport )
+        {
+            if( typeof viewport === "undefined" )
+               return _viewport;
+            _viewport=viewport;
+            return this;
+        }
+    }
+
+    SkinGroup.prototype=new Breeze();
+    SkinGroup.prototype.elements={};
+    SkinGroup.prototype.attributes={};
+    SkinGroup.prototype.constructor=SkinGroup;
+
+    /**
+     * @param string container
+     * @returns {*}
+     */
+    SkinGroup.prototype.container=function( container )
+    {
+        if( typeof container === "string" )
+        {
+            this.elements.container=container;
+            return this;
+        }
+        return this.elements.container;
+    }
+
+    /**
+     * @returns {SkinGroup}
+     */
+    SkinGroup.prototype.render=function()
+    {
+         var viewport = this.viewport();
+
+
+        console.log( this.length , this[0] )
+
+         if( this.length < 1  && viewport)
+         {
+
+             this.add( viewport );
+
+
+
+             this.addChild( toString.call(this) );
+         }
+
+         if( this.hasEventListener( SkinGroupEvent.RENDER ) )
+         {
+            this.dispatchEvent( new SkinGroupEvent(SkinGroupEvent.RENDER) )
+         }
+         return this;
+    }
+
+    /**
+     * @param string skinName
+     * @returns {*|null}
+     */
+    SkinGroup.prototype.getSkin=function( skinName )
+    {
+        var ret = Sizzle('[data-skin="'+skinName+'"]',this.getContext() );
+        return ret[0] || null;
+    }
+
+    function SkinGroupEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    SkinGroupEvent.prototype=new BreezeEvent();
+    SkinGroupEvent.prototype.constructor=SkinGroupEvent;
+    SkinGroupEvent.RENDER='skinGroupRender';
 
     window.SkinGroup=SkinGroup;
 

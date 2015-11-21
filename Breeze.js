@@ -343,9 +343,9 @@
      */
     Breeze.prototype.add=function( selector )
     {
-       var ret=Breeze.sizzle(selector,this.target);
-       if( ret.length > 0 )doMake( this, ret , false );
-       return this;
+        var ret=selector instanceof Breeze ? selector.toArray() : Sizzle( selector );
+        if( ret.length > 0 )doMake( this, ret , false );
+        return this;
     }
 
     /**
