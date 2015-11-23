@@ -8,50 +8,15 @@
 (function(window,undefined )
 {
 
-    function Modality()
+    function Modality( skinGroup , type )
     {
         if( !(this instanceof Modality) )
-            return new Modality();
-        SkinGroup.apply(this, arguments );
-
-        this.elements={
-            head: '<div>{elements lable+close}</div>',
-            lable: '<lable></lable>',
-            close: '<span>关闭</span>',
-            body:  '<div></div>',
-            footer:'<div><button>取消</button><button>确认</button></div>'
-        };
-
-        this.attributes={
-            head:{ 'style':{'width':'100%',height:'25px'}  },
-            lable:{ 'style':{'width':'auto',lineHeight:'25px','display':'block',cursor:'pointer'} },
-            close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'} },
-            body:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'} },
-            container:{ 'style':{'width':'100%',height:'100%','display':'block', 'position':'absolute'}  },
-            footer:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'} }
-        };
+            return new Modality(  skinGroup , type );
 
         /**
          * @private
          */
-        var _type= Modality.TYPICAL;
-
-        /**
-         * @param type
-         * @returns {*}
-         */
-        this.type=function( type )
-        {
-            if( typeof type === "undefined" )
-              return _type;
-            if(  type.toUpperCase() in Modality  )
-            {
-                _type= type;
-                return this;
-            }
-            throw new Error('undefined theme type in Modality.type');
-        }
-
+        var _type= typeof type === "string" && type.toUpperCase() in Modality ?  type : Modality.TYPICAL;
 
         /**
          * @private
@@ -61,33 +26,57 @@
         _theme[ Modality.TYPICAL ]= '<div>{elements head+body}</div>';
         _theme[ Modality.SIMPLE ]= '<div></div>';
 
+        /**
+         * @private
+         */
+        var _skinGroup=skinGroup ;
+        if( !(_skinGroup instanceof SkinGroup) )
+        {
+           var defaultSkin={
+                elements: {
+                    head: '<div>{elements lable+close}</div>',
+                        lable: '<lable></lable>',
+                        close: '<span>关闭</span>',
+                        body:  '<div></div>',
+                        footer:'<div><button>取消</button><button>确认</button></div>'
+                } ,
+                attributes:{
+                    head:{ 'style':{'width':'100%',height:'25px'}  },
+                    lable:{ 'style':{'width':'auto',lineHeight:'25px','display':'block',cursor:'pointer'} },
+                    close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'} },
+                    body:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'} },
+                    container:{ 'style':{'width':'100%',height:'100%','display':'none', 'position':'absolute'}  },
+                    footer:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'} }
+                }
+            }
+            _skinGroup=new SkinGroup( typeof skinGroup === "string" ?  skinGroup : defaultSkin , document.body , _theme[ _type ] );
+        }
 
         /**
-         * @param string type
-         * @param string theme
+         * @param SkinGroup skinGroup
          * @returns {*}
          */
-        this.theme=function( type, theme )
+        this.skinGroup=function()
         {
-            if( typeof type === "string" && _theme[ type ] )
-            {
-                if( typeof theme === "string" )
-                {
-                    _theme[type] = theme;
-                    return this;
-                }
-                return _theme[type];
-            }
-            throw new Error('undefined theme type in Modality.theme');
+           return _skinGroup;
         }
     }
 
-    Modality.prototype= new SkinGroup();
+    Modality.prototype=  new Breeze();
     Modality.prototype.constructor=Modality;
     Modality.NORM='norm';
     Modality.SIMPLE='simple';
     Modality.TYPICAL='typical';
 
+    /**
+     * @param skinName
+     * @returns {Modality}
+     */
+    Modality.prototype.setCurrentSkin=function( skinName )
+    {
+        this.current( this.skinGroup().getSkin( skinName ) );
+        return this;
+    }
 
     /**
      * 显示模态框
@@ -96,12 +85,10 @@
      */
     Modality.prototype.display=function( flag )
     {
-        this.container( this.theme( this.type() ) );
-        this.render();
-        Breeze.prototype.display.call(this, flag );
+        this.setCurrentSkin('container')
+        Breeze.prototype.display.call(this, !!flag );
         return this;
     }
-
 
     /**
      * 获取/设置宽度
@@ -110,10 +97,13 @@
      */
     Modality.prototype.width=function(value)
     {
-        if( typeof value === "undefined")
-           return Breeze.prototype.width.call(this );
-        Breeze.prototype.width.call(this, value );
-        return this;
+        this.setCurrentSkin('container')
+        if( typeof value === "number" )
+        {
+            Breeze.prototype.width.call(this,value );
+            return this;
+        }
+        return Breeze.prototype.width.call(this);
     }
 
     /**
@@ -123,10 +113,13 @@
      */
     Modality.prototype.height=function(value)
     {
-        if( typeof value === "undefined")
-            return Breeze.prototype.height.call(this );
-        Breeze.prototype.height.call(this, value );
-        return this;
+        this.setCurrentSkin('container');
+        if(  typeof value === "number" )
+        {
+            Breeze.prototype.height.call(this,  value );
+            return this;
+        }
+        return Breeze.prototype.height.call(this);
     }
 
     /**
@@ -136,14 +129,13 @@
      */
     Modality.prototype.headHeight=function( value )
     {
-        var attr = this.attributes;
+        this.setCurrentSkin('head');
         if( typeof value === "number" )
         {
-            attr.head.style.height=value;
-            attr.head.style.lineHeight=value;
+            Breeze.prototype.height.call(this, value );
             return this;
         }
-        return parseInt(attr.head.style.height) || 0;
+        return Breeze.prototype.height.call(this)
     }
 
     /**
@@ -153,17 +145,15 @@
      */
     Modality.prototype.footerHeight=function( value )
     {
-        var attr = this.attributes;
+        this.setCurrentSkin('footer');
         if( typeof value === "number" )
         {
-            attr.footer.style.height=value;
-            attr.footer.style.lineHeight=value;
-            return this;
+            Breeze.prototype.height.call(this,value);
+           return this;
         }
-        return parseInt(attr.footer.style.height) || 0;
+        return Breeze.prototype.height.call(this);
     }
 
     window.Modality=Modality;
-
 
 })( window )

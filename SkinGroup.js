@@ -14,7 +14,7 @@
     var refvalue=/\{(\w+)\s+([\w\s\+\.]+)\s*\}/g;
     var notattr = /<(\w+)(?!=\{attributes\s+([\w\s\+\.]+)\s*\})>/;
     var blank=/\s+/g;
-    var isselector=/^([\.\#]\w+[\>\+\~\s])+$/;
+    var isselector=/^[\.\#]?\w+/;
 
     /**
      * @returns {string}
@@ -79,18 +79,14 @@
             return str.replace(refvalue,parser);
         }
 
-        if( !this.attached )
+        for (var name in this.elements)
         {
-            for (var name in this.elements)
+            this.elements[name] = this.elements[name].replace(notattr, "<$1$2 {attributes " + name + "}>");
+            this.attributes[ name ] || (this.attributes[ name ]={});
+            if( !this.attributes[ name ]['data-skin'] )
             {
-                this.elements[name] = this.elements[name].replace(notattr, "<$1$2 {attributes " + name + "}>");
-                this.attributes[ name ] || (this.attributes[ name ]={});
-                if( !this.attributes[ name ]['data-skin'] )
-                {
-                    this.attributes[ name ]['data-skin']= name;
-                }
+                this.attributes[ name ]['data-skin']= name;
             }
-            this.attached=true;
         }
         return this.elements.container.replace(refvalue,parser);
     }
@@ -102,96 +98,66 @@
      * @returns {SkinGroup}
      * @constructor
      */
-    function SkinGroup( selector , context )
+    function SkinGroup( selector , context , container )
     {
         if( !(this instanceof SkinGroup) )
-            return new SkinGroup( selector, context );
-
-        if( !Utils.isHTMLElement(selector) )
-
-        if( selector )
-
-        Breeze.call(this, selector, context );
+            return new SkinGroup( selector, context , container );
 
         /**
          * @private
          */
-        var _viewport=null;
+        var _skin={};
 
         /**
-         * @param viewport
-         * @returns {*}
+         * @param string skinName
+         * @returns {*|null}
          */
-        this.viewport=function( viewport )
+        this.getSkin=function( skinName )
         {
-            if( typeof viewport === "undefined" )
-               return _viewport;
-            _viewport=viewport;
-            return this;
+            if( !_skin[skinName] )
+            {
+                var ret = Sizzle('[data-skin="' + skinName + '"]', this.getContext() );
+                if( ret.length === 0 )
+                    throw new Error('Not found skin element of '+skinName );
+                _skin[skinName]=ret[0];
+            }
+            return _skin[skinName];
+        }
+
+        if( ( typeof selector === "string" && isselector.test(selector) ) || Utils.isHTMLContainer(selector) )
+        {
+            Breeze.call(this, selector, context );
+            this.index(0).property('data-skin','container');
+            _skin.container=this[0];
+
+        }else if( context && selector )
+        {
+            if( typeof selector === "object" )
+            {
+                if( typeof selector.elements === "undefined" )
+                   throw new Error('invalid selector');
+
+                if( typeof container === "string" )
+                    selector.elements.container=container;
+                selector=toString.call(selector);
+            }
+
+            this.add( context );
+            this.addChild( selector );
+            var container = this.getSkin('container');
+            this.splice(0,this.length);
+            if( Utils.isHTMLElement(container) )
+                this.splice(0, 0, container);
+        }
+
+        if( this.length < 1 )
+        {
+            throw new Error('Need to match at least one element. in param selector, context');
         }
     }
 
     SkinGroup.prototype=new Breeze();
-    SkinGroup.prototype.elements={};
-    SkinGroup.prototype.attributes={};
     SkinGroup.prototype.constructor=SkinGroup;
-
-    /**
-     * @param string container
-     * @returns {*}
-     */
-    SkinGroup.prototype.container=function( container )
-    {
-        if( typeof container === "string" )
-        {
-            this.elements.container=container;
-            return this;
-        }
-        return this.elements.container;
-    }
-
-    /**
-     * @returns {SkinGroup}
-     */
-    SkinGroup.prototype.render=function()
-    {
-         var viewport = this.viewport();
-
-
-        console.log( this.length , this[0] )
-
-         if( this.length < 1  && viewport)
-         {
-
-             this.add( viewport );
-
-
-
-             this.addChild( toString.call(this) );
-         }
-
-         if( this.hasEventListener( SkinGroupEvent.RENDER ) )
-         {
-            this.dispatchEvent( new SkinGroupEvent(SkinGroupEvent.RENDER) )
-         }
-         return this;
-    }
-
-    /**
-     * @param string skinName
-     * @returns {*|null}
-     */
-    SkinGroup.prototype.getSkin=function( skinName )
-    {
-        var ret = Sizzle('[data-skin="'+skinName+'"]',this.getContext() );
-        return ret[0] || null;
-    }
-
-    function SkinGroupEvent( src, props ){ BreezeEvent.call(this, src, props);}
-    SkinGroupEvent.prototype=new BreezeEvent();
-    SkinGroupEvent.prototype.constructor=SkinGroupEvent;
-    SkinGroupEvent.RENDER='skinGroupRender';
-
     window.SkinGroup=SkinGroup;
 
 })( window )
