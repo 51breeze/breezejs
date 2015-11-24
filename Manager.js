@@ -35,16 +35,16 @@
      */
     Manager.prototype.current=function( element )
     {
-        if( element )
+        if( typeof element !== "undefined" )
         {
-            var index =  this.indexOf( element );
+            var index = element === null ? NaN : this.indexOf( element );
             if( index >= 0 )
             {
                 this.forEachCurrentItem=element;
                 this.forEachCurrentIndex= index;
             }else
             {
-                this.forEachCurrentItem = element;
+                this.forEachCurrentItem = element || undefined;
                 this.forEachCurrentIndex = NaN;
             }
             return this;

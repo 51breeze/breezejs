@@ -17,14 +17,9 @@
 +(function( window,undefined )
 {
     var layouts=[]
-    ,rootLayout
-    ,position={'left':'Left','top':'Top','right':'Right','bottom':'Bottom'}
-    ,size={'explicitWidth':'ExplicitWidth','explicitHeight':'ExplicitHeight'}
-    ,range={'maxWidth':'MaxWidth','maxHeight':'MaxHeight','minWidth':'MinWidth','minHeight':'MinHeight'}
-    ,align={'horizontal':'Horizontal','vertical':'Vertical'}
+    ,rootLayout=null
     ,horizontal=['left','center','right']
     ,vertical=['top','middle','bottom']
-    ,gap={'gap':'Gap'}
     ,dispatchLayoutEvent = function(target,property,newVal,oldVal)
     {
         if( target.hasEventListener(PropertyEvent.PROPERTY_CHANGE) )
@@ -61,33 +56,45 @@
      */
     function Layout( target )
     {
-        this.length=1;
-        this[0]=target;
-        this.__COUNTER__=layouts.length;
-        if( rootLayout )
+        if( !(this instanceof Layout) )
+            return new Layout( target );
+
+        Breeze.call(this , target );
+        if( this.length !== 1 )
         {
-            if( !Breeze.isContains(window.document.body,target ) )
-                 throw new Error('invalid target in Layout');
-            if( this.getStyle('position') === "static" )
-                this.setStyle('position',target.parentNode === window.document.body ? 'absolute' : 'relative' );
-            this.setStyle('float','left')
+            throw new Error('invalid target. the param only is a element');
         }
 
+        target = this[0];
+        if( this.data('layout') instanceof Layout )
+           return this.data('layout');
+
         this.childrenItem=[];
-        EventDispatcher.call( this , target );
-        layouts.push( this );
-        var parent,owner;
-        if( rootLayout ) while( parent=target.parentNode )
+        if( rootLayout )
         {
-            owner = getOwnerByElement( parent ) || rootLayout;
-            if( owner !== this )
-            {
-                this.owner=owner;
-                owner.childrenItem.push( this );
-                break;
-            }
+            if( !Utils.contains( window.document.body, target ) )
+                 throw new Error('invalid target in Layout');
+
+            if( this.style('position') === "static" )
+                this.style('position',target.parentNode === window.document.body ? 'absolute' : 'relative' );
+
+            this.style('float','left');
+            var parent=target;
+
+            do{
+                var layout = this.current(parent).data('layout');
+                if( layout && layout instanceof Layout )
+                {
+                    this.owner=layout;
+                    this.owner.childrenItem.push( this );
+                    break;
+                }
+                parent= parent.parentNode;
+            }while( parent );
+            this.current(null);
         }
-        this.setProperty('islayout',true);
+        this.data('layout', this);
+        this.property('islayout',true);
     }
 
     /**
@@ -95,21 +102,23 @@
      * @type {window.Breeze}
      */
     Layout.prototype=new Breeze();
+    Layout.prototype.owner=null;
+    Layout.prototype.childrenItem=[];
 
     /**
      * 初始化根布局容器
      * @returns {Layout}
      */
-    Layout.prototype.getRootLayout=function()
+    Layout.rootLayout=function()
     {
-        if( !(rootLayout instanceof Layout) )
+        if( rootLayout=== null )
         {
             rootLayout = new Layout( window.document.body );
             rootLayout.measureWidth=function(){ return this.current(window).width(); }
             rootLayout.measureHeight=function(){return this.current(window).height(); }
             rootLayout.addEventListener('resize',function(event)
             {
-                rootLayout.updateDisplayList( rootLayout.measureWidth(), rootLayout.measureHeight() );
+                this.updateDisplayList( this.measureWidth(), this.measureHeight() );
             })
         }
         return rootLayout;
@@ -130,7 +139,7 @@
      */
     Layout.prototype.measureWidth=function()
     {
-        var margin=this.getMargin( this[0] );
+        var margin=this.getMargin();
         return this.width() + margin.left + margin.right;
     }
 
@@ -140,7 +149,7 @@
      */
     Layout.prototype.measureHeight=function()
     {
-        var margin=this.getMargin( this[0] )
+        var margin=this.getMargin()
         return this.height()+margin.top + margin.bottom;
     }
 
@@ -150,17 +159,15 @@
      */
     Layout.prototype.calculateWidth=function( parentWidth )
     {
-        var width=this.getExplicitWidth();
-        this.__w__=false;
+        var width=this.explicitWidth();
         if( isNaN( width ) )
         {
             width=parentWidth;
-            var left=this.getLeft() || 0,right=this.getRight() || 0;
-            if( !isNaN(left) && !isNaN(right) )
-            {
-               width-= left + right;
-               this.__w__=true;
-            }
+            var left=this.left() ,right=this.right();
+            if( !isNaN(left) )
+               width-=left;
+            if( !isNaN(right) )
+                width-=right;
         }
         return this.getMaxOrMinWidth( width );
     }
@@ -171,18 +178,18 @@
      */
     Layout.prototype.calculateHeight=function( parentHeight )
     {
-        var height=this.getExplicitHeight();
-        this.__h__=false;
+        var height=this.explicitHeight();
+
         if( isNaN( height ) )
         {
             height=parentHeight;
-            var top=this.getTop(),bottom=this.getBottom();
-            if( !isNaN(top) && !isNaN(bottom) )
-            {
-                height-=top + bottom;
-                this.__h__=true;
-            }
+            var top=this.top() || 0,bottom=this.bottom() || 0;
+
+            console.log(top+bottom,  height )
+            height-=top+bottom;
         }
+        console.log(  height  , '==================', parentHeight )
+
         return this.getMaxOrMinHeight( height );
     }
 
@@ -193,11 +200,7 @@
      */
     Layout.prototype.getMaxOrMinWidth=function( width )
     {
-        if( this.getMaxWidth() < width )
-            width=this.getMaxWidth();
-        if( this.getMinWidth() > width )
-            width=this.getMinWidth();
-        return width;
+        return Math.min( Math.max( this.minWidth() || width , width ), this.maxWidth() || width );
     }
 
     /**
@@ -207,19 +210,23 @@
      */
     Layout.prototype.getMaxOrMinHeight=function( height )
     {
-        if( this.getMaxHeight() < height )
-            height=this.getMaxHeight();
-        if( this.getMinHeight() > height )
-            height=this.getMinHeight();
-        return height;
+        return Math.min( Math.max( this.minHeight() || height , height ), this.maxHeight() || height );
     }
 
-    Layout.prototype.getMargin=function( target )
+    /**
+     * 获取边距
+     * @param target
+     * @returns {{}}
+     */
+    Layout.prototype.getMargin=function()
     {
         var i,margin={'left':'Left','top':'Top','right':'Right','bottom':'Bottom'}
+        var val={};
         for( i in margin )
-            margin[i]=parseInt( Breeze.getStyle(target,'margin'+margin[i]) ) || 0;
-        return margin;
+        {
+            val[i] = parseInt( this.style('margin' + margin[i]) ) || 0;
+        }
+        return val;
     }
 
     /**
@@ -228,9 +235,9 @@
      */
     Layout.prototype.updateDisplayList=function(parentWidth,parentHeight)
     {
-        var horizontalAlign=this.getHorizontal()
-            ,verticalAlign=this.getVertical()
-            ,gap=this.getGap()
+        var horizontalAlign=this.horizontal()
+            ,verticalAlign=this.vertical()
+            ,gap=this.gap()
             ,h=horizontalAlign===horizontal[1] ? 0.5 : horizontalAlign===horizontal[2] ? 1 : 0
             ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0
             ,flag=h+v > 0
@@ -238,24 +245,35 @@
             ,columns=[]
             ,x=gap,y=gap,maxHeight= 0,countHeight= 0,countWidth=0;
 
+        console.log( parentWidth, parentHeight , this )
+
         var measureWidth=this.calculateWidth( parentWidth );
         var measureHeight=this.calculateHeight( parentHeight );
+
+        console.log( measureWidth, measureHeight , this , '=====')
 
         //更新子布局的显示列表
         if( this.childrenItem.length > 0 )
         {
-            var i;
-            for( i in this.childrenItem )
-                this.childrenItem[i].updateDisplayList(measureWidth,measureHeight);
+            var i=0;
+            for( ; i < this.childrenItem.length; i++ )
+            {
+                this.childrenItem[i].updateDisplayList(measureWidth, measureHeight);
+            }
         }
-        if( this === rootLayout && !this.inRootLayout )return;
+
+        if( this === rootLayout )return;
+
+        console.log( measureWidth, measureHeight , this )
+        return
+
          //计算子级元素需要排列的位置
         this.children(':not([includeLayout=false])').forEach(function(child,index)
         {
-            this.setStyle('position','absolute')
+            this.style('position','absolute')
             var childWidth=this.width()
                 ,childHeight=this.height()
-                ,margin=this.getMargin( child )
+                ,margin=this.getMargin()
 
             childWidth+=margin.left + margin.right;
             childHeight+=margin.top + margin.bottom;
@@ -279,10 +297,11 @@
             if( flag )
             {
                 columns.push( {'target':child,'left':x,'top':y} );
-            }else if( !this.getProperty('islayout') )
+
+            }else if( !this.property('islayout') )
             {
-                this.setStyle('left',x);
-                this.setStyle('top' ,y);
+                this.style('left',x);
+                this.style('top' ,y);
             }
 
             x += childWidth+gap;
@@ -290,15 +309,17 @@
             countWidth=Math.max(countWidth,x);
 
         }).revert();
+
+
+
         countHeight+=maxHeight+gap;
 
         var realWidth=measureWidth;
         var realHeight=measureHeight;
-        if( !this.__h__ || !this.__w__ )
-        {
-            realWidth = this.getExplicitWidth()  || this.getMaxOrMinHeight( Math.max( measureWidth,countWidth )) ;
-            realHeight= this.getExplicitHeight() || this.getMaxOrMinWidth( Math.max(measureHeight,countHeight) ) ;
-        }
+
+        realWidth = this.explicitWidth()  || this.getMaxOrMinHeight( Math.max( measureWidth,countWidth ) ) ;
+        realHeight= this.explicitHeight() || this.getMaxOrMinWidth( Math.max(measureHeight,countHeight) ) ;
+
 
         //需要整体排列
         if( flag )
@@ -316,168 +337,274 @@
                size=grid[ index ];
                for( b in items )
                {
-                   Breeze.setStyle(items[b].target,'left',items[b].left+xOffset );
-                   Breeze.setStyle(items[b].target,'top' ,items[b].top+yOffset );
+                   this.current( items[b].target );
+                   this.left( items[b].left+xOffset );
+                   this.top( items[b].top+yOffset );
                }
             }
         }
+
         this.width( realWidth );
         this.height( realHeight );
     }
 
     /**
-     * 扩展位置约束方法(获取/设置)
+     * @param prop
+     * @param val
+     * @returns {*}
      */
-    Breeze.forEach(position,function(method,prop){
-
-        Layout.prototype['get'+method]=Breeze.makeFunction(function()
+    var position = function(prop, val )
+    {
+        var old = Breeze.prototype[prop].call( this ) || NaN;
+        if( typeof val !== "undefined")
         {
-            return this===rootLayout ? 0 : this['__'+prop+'__'] || Breeze.getLocalPosition(this[0])[prop];
-        })
-
-        Layout.prototype['set'+method]=Breeze.makeFunction(function(val)
-        {
-            val=parseFloat( val );
-            var oldVal=this['get'+method]();
-            if( oldVal===val )return this;
-            this['__'+prop+'__']=val;
-            if( !isNaN(val) && this!==rootLayout )
+            val = parseFloat(val) || NaN;
+            if ( val !== old && this !== rootLayout )
             {
-                val+=parseFloat( this.getStyle('margin'+method+'Width') ) || 0;
-                this.setStyle('margin'+method+'Width','0px');
-                this.setStyle(prop,val);
-                dispatchLayoutEvent(this,prop,val,oldVal);
+                var uprop= Utils.ucfirst(prop);
+                val += parseFloat( this.style('margin'+uprop+'Width') ) || 0;
+                this.style('margin'+uprop+'Width', '0px');
+                Breeze.prototype[prop].call(this,val);
+                dispatchLayoutEvent(this, prop, val, old);
             }
             return this;
-        })
-    })
+        }
+        return old;
+    }
 
     /**
-     * 扩展尺寸方法(获取)
+     * 获取设置左边位置
+     * @param val
+     * @returns {*}
      */
-    Breeze.forEach(size,function(method,prop)
+    Layout.prototype.left=function(val)
     {
-        Layout.prototype['get'+method]=Breeze.makeFunction(function()
-        {
-            return this['__'+prop+'__'] || NaN;
-        })
+       return position.call(this,'left',val);
+    }
 
-        Layout.prototype['set'+method]=Breeze.makeFunction(function(val)
+    /**
+     * 获取设置顶边位置
+     * @param val
+     * @returns {*}
+     */
+    Layout.prototype.top=function(val)
+    {
+        return position.call(this,'top',val);
+    }
+
+    /**
+     * 获取设置右边位置
+     * @param val
+     * @returns {*}
+     */
+    Layout.prototype.right=function(val)
+    {
+        return position.call(this,'right',val);
+    }
+
+    /**
+     * 获取设置底边位置
+     * @param val
+     * @returns {*}
+     */
+    Layout.prototype.bottom=function(val)
+    {
+        return position.call(this,'bottom',val);
+    }
+
+
+    /**
+     * @param prop
+     * @param val
+     * @returns {*}
+     */
+    var size = function(prop, val )
+    {
+        var old =  this['__'+prop+'__'] || NaN;
+        if( typeof val !== "undefined" )
         {
-            val=parseFloat( val );
-            var oldVal=this['get'+method]();
-            if( val !== oldVal )
+            val = parseFloat(val) || NaN ;
+            if ( val !== old && this !== rootLayout )
             {
-                this['__'+prop+'__'] = val;
-                dispatchLayoutEvent(this,prop,val,oldVal);
+                this['__'+prop+'__']=val;
+                dispatchLayoutEvent(this, prop, val, old);
             }
             return this;
-        })
-    })
+        }
+        return old;
+    }
 
     /**
-     * 扩展最小和最大尺寸方法(获取/设置)
+     * 设置获取指定的宽度
+     * @param val
+     * @returns {*}
      */
-    Breeze.forEach(range,function(method,prop)
+    Layout.prototype.explicitWidth=function(val)
     {
-        Layout.prototype['get'+method]=Breeze.makeFunction(function()
-        {
-            return this['__'+prop+'__'] || parseFloat( this.getStyle(prop) ) || NaN;
-        })
-
-        Layout.prototype['set'+method]=Breeze.makeFunction(function(val)
-        {
-            val=parseFloat(val);
-            var oldVal=this['get'+method]();
-            if( oldVal===val )return this;
-            this['__'+prop+'__']=val;
-            this.setStyle(prop,val);
-            return this;
-        })
-    })
+        return size.call(this,'explicitWidth',val);
+    }
 
     /**
-     * 扩展排列方位方法(获取/设置)
+     * 设置获取指定的高度
+     * @param val
+     * @returns {*}
      */
-    Breeze.forEach( align,function(method,prop)
+    Layout.prototype.explicitHeight=function(val)
+    {
+        return size.call(this,'explicitHeight',val);
+    }
+
+    /**
+     * @param prop
+     * @param val
+     * @returns {*}
+     */
+    var range = function(prop, val )
+    {
+        var old =  this['__'+prop+'__'] || parseFloat( this.style(prop) ) || NaN;
+        if( typeof val !== "undefined" )
+        {
+            val = parseFloat(val) || NaN;
+            if ( val !== old && this !== rootLayout )
+            {
+                this['__'+prop+'__']=val;
+                this.style(prop,val);
+                dispatchLayoutEvent(this, prop, val, old);
+            }
+            return this;
+        }
+        return old;
+    }
+
+    /**
+     * 获取设置最大宽度
+     * @param val
+     * @returns {*}
+     */
+    Layout.prototype.maxWidth=function(val)
+    {
+        return range.call(this,'maxWidth',val);
+    }
+
+    /**
+     * 获取设置最大高度
+     * @param val
+     * @returns {*}
+     */
+    Layout.prototype.maxHeight=function(val)
+    {
+        return range.call(this,'maxHeight',val);
+    }
+
+    /**
+     * 获取设置最小宽度
+     * @param val
+     * @returns {*}
+     */
+    Layout.prototype.minWidth=function(val)
+    {
+        return range.call(this,'minWidth',val);
+    }
+
+    /**
+     * 获取设置最小高度
+     * @param val
+     * @returns {*}
+     */
+    Layout.prototype.minHeight=function(val)
+    {
+        return range.call(this,'minHeight',val);
+    }
+
+    /**
+     * @param prop
+     * @param val
+     * @returns {*}
+     */
+    var align= function(prop, val )
     {
         var a= prop=='horizontal' ? horizontal : vertical;
-        Layout.prototype['get'+method]=Breeze.makeFunction(function()
+        var old =  this['__'+prop+'__'] || a[0];
+        if( typeof val === "string" )
         {
-            return this['__'+prop+'__'] || a[0];
-        })
-
-        Layout.prototype['set'+method]=Breeze.makeFunction(function(val)
-        {
-            val=val.toLocaleString();
-            if( Breeze.inObject(a,val) !==null  )
+            val =  val.toLowerCase();
+            if ( Utils.inObject(a,val) !==null && val !== old && this !== rootLayout )
             {
-                var oldVal=this['get'+method]();
-                if( oldVal===val )return this;
                 this['__'+prop+'__']=val;
-                dispatchLayoutEvent(this,prop,val,oldVal);
+                dispatchLayoutEvent(this, prop, val, old);
             }
             return this;
-        });
-    })
+        }
+        return old;
+    }
 
     /**
-     * 扩展排列间隙方法(获取/设置)
+     * 设置水平对齐的方位
+     * @param val
+     * @returns {*}
      */
-    Breeze.forEach( gap,function(method,prop)
+    Layout.prototype.horizontal=function(val)
     {
-        Layout.prototype['get'+method]=Breeze.makeFunction(function()
-        {
-            return isNaN(this['__'+prop+'__']) ? 5 : this['__'+prop+'__'] ;
-        })
+        return align.call(this,'horizontal',val);
+    }
 
-        Layout.prototype['set'+method]=Breeze.makeFunction(function(val)
+    /**
+     * 设置垂直对齐的方位
+     * @param val
+     * @returns {*}
+     */
+    Layout.prototype.vertical=function(val)
+    {
+        return align.call(this,'vertical',val);
+    }
+
+    /**
+     * 获取设置间隔
+     * @param number val
+     * @returns {*}
+     */
+    Layout.prototype.gap=function(val)
+    {
+        var old =  this['__gap__'] || 5;
+        if( typeof val === "number" )
         {
-            val=parseInt(val)
-            if( !isNaN(val) )
+            if ( !isNaN(old) && val !== old && this !== rootLayout )
             {
-                var oldVal=this['get'+method]();
-                if( oldVal===val )return this;
-                this['__'+prop+'__']=val;
-                dispatchLayoutEvent(this,prop,val,oldVal);
+                this['__gap__']=val;
+                dispatchLayoutEvent(this, 'gap', val, old);
             }
             return this;
-        });
-    })
+        }
+        return old;
+    }
+
 
 
     //初始化布局组件
     Breeze.ready(function(){
 
-        Layout.prototype.getRootLayout();
-        var method=Breeze.extend({},position,size,range,align,gap);
-        Breeze('layout').forEach(function(target)
+        var rootLayout = Layout.rootLayout();
+        var method=['left','top','right','bottom','explicitHeight','explicitWidth','gap','horizontal','vertical','minWidth','minHeight','maxWidth','maxHeight'];
+        Breeze('[component=layout]', document.body).forEach(function(target)
         {
-            var element=target.parentNode;
-            if( element )
+            if( Utils.isHTMLElement(target) && target !== window.document.body )
             {
-                element.removeChild( target );
                 var prop,layout,value;
-                if( element !== window.document.body )
-                {
-                    layout = new Layout( element )
-                }else
-                {
-                    //是否设置了根布局容器
-                    rootLayout.inRootLayout=true;
-                    layout=rootLayout;
-                }
+                layout = new Layout( target );
                 for( prop in method )
                 {
-                    value=target.getAttribute( prop ) || NaN;
-                    if( layout !== rootLayout || ( prop in gap || prop in align ) )
+                    value = layout.property( method[prop] );
+                    if( value !== null )
                     {
-                       layout[ 'set'+method[prop] ]( value );
+                       layout[ method[prop] ]( value );
                     }
                 }
             }
         })
         rootLayout.updateDisplayList( rootLayout.measureWidth(), rootLayout.measureHeight() );
-    })
+    });
+
+    window.Layout=Layout;
+    window.LayoutEvent=LayoutEvent;
 
 })( window )

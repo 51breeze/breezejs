@@ -410,6 +410,23 @@
         };
     }
 
+
+    /**
+     * 获取相对你父元素的位置
+     * @param elem
+     * @returns {object}
+     */
+    Utils.getLocalPosition=function( elem )
+    {
+        var position=Breeze.getPosition( elem ),
+            parentPosition=Breeze.getPosition( elem.parentNode )
+        position.left-=parentPosition.left;
+        position.top-=parentPosition.top;
+        position.right=parentPosition.right-position.right;
+        position.bottom=parentPosition.bottom-position.bottom;
+        return position;
+    }
+
     /**
      * 设置元素相对舞台坐标位置
      * @param elem
@@ -419,11 +436,8 @@
      */
     Utils.position=function( elem, property, value )
     {
-        if( !Utils.hasStyle( elem ) )
-            return { 'top': 0, 'left': 0 ,'right' : 0,'bottom':0};
-
         var options=property;
-        var position=getPosition(elem,value);
+        var position= !Utils.hasStyle( elem ) ?  {'top': 0, 'left': 0, 'right': 0, 'bottom': 0} : getPosition(elem,value);
         if( !Utils.isObject(property) )
         {
             if( !Utils.isString(property) )

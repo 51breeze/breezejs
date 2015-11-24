@@ -558,7 +558,7 @@
         this.forEach(function(element)
         {
            if( !Utils.isFrame( element ) )
-             ret=ret.concat( selector==='*' ? slice.call( element.childNodes,0 ) : Sizzle( '*' ,element) );
+             ret=ret.concat( selector==='*' ?  Sizzle( '*' ,element) : DataArray.prototype.slice.call( element.childNodes,0 ) );
         })
         var has=Utils.isString(selector) && selector!=='*';
         if( this.length > 1 && !has )
@@ -891,6 +891,7 @@
             if( !write ) return oldValue;
             if( oldValue !== newValue )
             {
+
                 callback.set.call(elem,name,newValue);
                 eventProp && dispatchPropertyEvent(this,newValue,oldValue,eventProp,elem,eventType);
             }
