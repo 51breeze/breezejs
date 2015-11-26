@@ -891,7 +891,6 @@
             if( !write ) return oldValue;
             if( oldValue !== newValue )
             {
-
                 callback.set.call(elem,name,newValue);
                 eventProp && dispatchPropertyEvent(this,newValue,oldValue,eventProp,elem,eventType);
             }
@@ -985,9 +984,13 @@
 
         return access.call(this,name,value,{
             get:function(prop){
+                if( typeof this.getAttribute !== "function" )
+                    return null;
                 return ( __property__[ prop ] ? this[ prop ] : this.getAttribute( prop ) ) || null;
             },
             set:function(prop,newValue){
+                if( typeof this.getAttribute !== "function" )
+                    return;
                 if( newValue === null )
                 {
                     __property__[ prop ] ? delete this[ prop ] : this.removeAttribute( prop );
@@ -1071,20 +1074,19 @@
         },'scroll'+prop, undefined , 0 );
     }
 
+    /**
+     * @private
+     */
     var __position__=function(prop,value)
     {
-        var local= true;
-        if( typeof value==='boolean' )
-        {
-            local=!value;
-            value=undefined;
-        }
         return access.call(this,prop, value,{
             get:function(prop){
-                return Utils.position(this,prop,local);
+                return Utils.style(this,prop);
             },
             set:function(prop,newValue){
-                Utils.position(this,prop,newValue);
+                if( Utils.style(this,'position')==='static' )
+                    Utils.style(this,'position','relative')
+                Utils.style(this,prop,newValue);
             }
         },prop , undefined , 0 );
     }
@@ -1167,23 +1169,26 @@
         return __position__.call(this,'bottom',val)
     }
 
+    /**
+     * @private
+     */
     var __point__=function(left,top,local)
     {
         var target=this.current();
         var point={}
-        point['left']=left || 0;
-        point['top']=top || 0;
+        point['x']=left || 0;
+        point['y']=top || 0;
         if( target && target.parentNode )
         {
             var offset=Utils.position( target.parentNode );
             if( local )
             {
-                point['left']+=offset['left'];
-                point['top']+=offset['top'];
+                point['x']+=offset['x'];
+                point['y']+=offset['y'];
             }else
             {
-                point['left']-=offset['left'];
-                point['top']-=offset['top'];
+                point['x']-=offset['x'];
+                point['y']-=offset['y'];
             }
         }
         return point;
@@ -1209,6 +1214,19 @@
     Breeze.prototype.globalToLocal=function( left,top )
     {
         return __point__.call(this,left,top,false);
+    }
+
+    /**
+     * 设置获取元素相对舞台坐标位置
+     * @param x
+     * @param y
+     * @returns {*}
+     */
+    Breeze.prototype.position=function(x,y)
+    {
+        var result = Utils.position( this.current(), x,y );
+        if( result===true )return this;
+        return result;
     }
 
     /**

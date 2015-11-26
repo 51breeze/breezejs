@@ -94,7 +94,6 @@
             this.current(null);
         }
         this.data('layout', this);
-        this.property('islayout',true);
     }
 
     /**
@@ -113,13 +112,15 @@
     {
         if( rootLayout=== null )
         {
-            rootLayout = new Layout( window.document.body );
-            rootLayout.measureWidth=function(){ return this.current(window).width(); }
-            rootLayout.measureHeight=function(){return this.current(window).height(); }
-            rootLayout.addEventListener('resize',function(event)
+            rootLayout = new Layout( document.body );
+            rootLayout.addEventListener=function(type,listener,useCapture,priority){
+                this.current(window);
+                EventDispatcher.prototype.addEventListener.call(this,type,listener,useCapture,priority);
+            }
+            rootLayout.addEventListener( BreezeEvent.RESIZE ,function(event)
             {
-                this.updateDisplayList( this.measureWidth(), this.measureHeight() );
-            })
+                this.updateDisplayList();
+            });
         }
         return rootLayout;
     }
@@ -139,8 +140,9 @@
      */
     Layout.prototype.measureWidth=function()
     {
-        var margin=this.getMargin();
-        return this.width() + margin.left + margin.right;
+        var marginLeft = parseInt( this.style('marginLeft') ) || 0;
+        var marginRight = parseInt( this.style('marginRight') ) || 0;
+        return this.width() + marginLeft + marginRight;
     }
 
     /**
@@ -149,8 +151,9 @@
      */
     Layout.prototype.measureHeight=function()
     {
-        var margin=this.getMargin()
-        return this.height()+margin.top + margin.bottom;
+        var marginTop = parseInt( this.style('marginTop') ) || 0;
+        var marginBottom = parseInt( this.style('marginBottom') ) || 0;
+        return this.height()+marginTop + marginBottom;
     }
 
     /**
@@ -162,12 +165,12 @@
         var width=this.explicitWidth();
         if( isNaN( width ) )
         {
-            width=parentWidth;
-            var left=this.left() ,right=this.right();
-            if( !isNaN(left) )
-               width-=left;
-            if( !isNaN(right) )
-                width-=right;
+            width= this.percentWidth() / 100 * parentWidth;
+            var marginLeft = parseInt( this.style('marginLeft') ) || 0;
+            var marginRight = parseInt( this.style('marginRight') ) || 0;
+            var left=this.left() || 0,
+                right=this.right() || 0;
+            width-=(left+marginLeft+right+marginRight);
         }
         return this.getMaxOrMinWidth( width );
     }
@@ -179,17 +182,15 @@
     Layout.prototype.calculateHeight=function( parentHeight )
     {
         var height=this.explicitHeight();
-
         if( isNaN( height ) )
         {
-            height=parentHeight;
-            var top=this.top() || 0,bottom=this.bottom() || 0;
-
-            console.log(top+bottom,  height )
-            height-=top+bottom;
+            height= this.percentHeight() / 100 * parentHeight;
+            var marginTop = parseInt( this.style('marginTop') ) || 0;
+            var marginBottom = parseInt( this.style('marginBottom') ) || 0;
+            var top=this.top() || 0,
+                bottom=this.bottom() || 0;
+            height-=(top+marginTop+bottom+marginBottom);
         }
-        console.log(  height  , '==================', parentHeight )
-
         return this.getMaxOrMinHeight( height );
     }
 
@@ -214,18 +215,19 @@
     }
 
     /**
+     * @private
+     */
+    var __margin__={'left':'Left','top':'Top','right':'Right','bottom':'Bottom'};
+
+    /**
      * 获取边距
      * @param target
      * @returns {{}}
      */
     Layout.prototype.getMargin=function()
     {
-        var i,margin={'left':'Left','top':'Top','right':'Right','bottom':'Bottom'}
         var val={};
-        for( i in margin )
-        {
-            val[i] = parseInt( this.style('margin' + margin[i]) ) || 0;
-        }
+        for( i in __margin__ )val[i] = parseInt( this.style('margin' + __margin__[i] ) ) || 0;
         return val;
     }
 
@@ -245,12 +247,16 @@
             ,columns=[]
             ,x=gap,y=gap,maxHeight= 0,countHeight= 0,countWidth=0;
 
-        console.log( parentWidth, parentHeight , this )
+        if( typeof parentWidth !== "number" || typeof parentHeight !== "number" )
+        {
+            var owner = this.owner || this;
+            parentWidth= owner.measureWidth();
+            parentHeight = owner.measureHeight();
+        }
 
         var measureWidth=this.calculateWidth( parentWidth );
-        var measureHeight=this.calculateHeight( parentHeight );
+        var measureHeight=this.calculateHeight( parentHeight );k
 
-        console.log( measureWidth, measureHeight , this , '=====')
 
         //更新子布局的显示列表
         if( this.childrenItem.length > 0 )
@@ -262,10 +268,7 @@
             }
         }
 
-        if( this === rootLayout )return;
-
-        console.log( measureWidth, measureHeight , this )
-        return
+        if( this === Layout.rootLayout() )return;
 
          //计算子级元素需要排列的位置
         this.children(':not([includeLayout=false])').forEach(function(child,index)
@@ -297,13 +300,7 @@
             if( flag )
             {
                 columns.push( {'target':child,'left':x,'top':y} );
-
-            }else if( !this.property('islayout') )
-            {
-                this.style('left',x);
-                this.style('top' ,y);
             }
-
             x += childWidth+gap;
             maxHeight=Math.max(maxHeight,childHeight+gap);
             countWidth=Math.max(countWidth,x);
@@ -311,15 +308,8 @@
         }).revert();
 
 
-
-        countHeight+=maxHeight+gap;
-
-        var realWidth=measureWidth;
-        var realHeight=measureHeight;
-
-        realWidth = this.explicitWidth()  || this.getMaxOrMinHeight( Math.max( measureWidth,countWidth ) ) ;
-        realHeight= this.explicitHeight() || this.getMaxOrMinWidth( Math.max(measureHeight,countHeight) ) ;
-
+        var realWidth= this.explicitWidth()  || this.getMaxOrMinHeight( measureWidth );
+        var realHeight=this.explicitHeight() || this.getMaxOrMinWidth( measureHeight );
 
         //需要整体排列
         if( flag )
@@ -344,27 +334,25 @@
             }
         }
 
+        console.log( realHeight )
+
         this.width( realWidth );
         this.height( realHeight );
     }
 
     /**
-     * @param prop
-     * @param val
-     * @returns {*}
+     * @private
      */
-    var position = function(prop, val )
+    var __property__ = function(prop, val , flag )
     {
-        var old = Breeze.prototype[prop].call( this ) || NaN;
-        if( typeof val !== "undefined")
+        var old =  parseInt( this.property(prop) );
+        if( typeof val !== "undefined" )
         {
-            val = parseFloat(val) || NaN;
+            val = parseInt( val );
+            if( flag ===true )this.style(prop,val);
             if ( val !== old && this !== rootLayout )
             {
-                var uprop= Utils.ucfirst(prop);
-                val += parseFloat( this.style('margin'+uprop+'Width') ) || 0;
-                this.style('margin'+uprop+'Width', '0px');
-                Breeze.prototype[prop].call(this,val);
+                this.property(prop,val);
                 dispatchLayoutEvent(this, prop, val, old);
             }
             return this;
@@ -379,7 +367,7 @@
      */
     Layout.prototype.left=function(val)
     {
-       return position.call(this,'left',val);
+       return __property__.call(this,'left',val, true);
     }
 
     /**
@@ -389,7 +377,7 @@
      */
     Layout.prototype.top=function(val)
     {
-        return position.call(this,'top',val);
+        return __property__.call(this,'top',val, true);
     }
 
     /**
@@ -399,7 +387,7 @@
      */
     Layout.prototype.right=function(val)
     {
-        return position.call(this,'right',val);
+        return __property__.call(this,'right',val, true);
     }
 
     /**
@@ -409,29 +397,7 @@
      */
     Layout.prototype.bottom=function(val)
     {
-        return position.call(this,'bottom',val);
-    }
-
-
-    /**
-     * @param prop
-     * @param val
-     * @returns {*}
-     */
-    var size = function(prop, val )
-    {
-        var old =  this['__'+prop+'__'] || NaN;
-        if( typeof val !== "undefined" )
-        {
-            val = parseFloat(val) || NaN ;
-            if ( val !== old && this !== rootLayout )
-            {
-                this['__'+prop+'__']=val;
-                dispatchLayoutEvent(this, prop, val, old);
-            }
-            return this;
-        }
-        return old;
+        return __property__.call(this,'bottom',val, true);
     }
 
     /**
@@ -441,7 +407,7 @@
      */
     Layout.prototype.explicitWidth=function(val)
     {
-        return size.call(this,'explicitWidth',val);
+        return __property__.call(this,'explicitWidth',val);
     }
 
     /**
@@ -451,29 +417,27 @@
      */
     Layout.prototype.explicitHeight=function(val)
     {
-        return size.call(this,'explicitHeight',val);
+        return __property__.call(this,'explicitHeight',val);
     }
 
     /**
-     * @param prop
+     * 设置获取指定百分比的宽度
      * @param val
      * @returns {*}
      */
-    var range = function(prop, val )
+    Layout.prototype.percentWidth=function(val)
     {
-        var old =  this['__'+prop+'__'] || parseFloat( this.style(prop) ) || NaN;
-        if( typeof val !== "undefined" )
-        {
-            val = parseFloat(val) || NaN;
-            if ( val !== old && this !== rootLayout )
-            {
-                this['__'+prop+'__']=val;
-                this.style(prop,val);
-                dispatchLayoutEvent(this, prop, val, old);
-            }
-            return this;
-        }
-        return old;
+        return __property__.call(this,'percentWidth',val) || 100;
+    }
+
+    /**
+     * 设置获取指定百分比的高度
+     * @param val
+     * @returns {*}
+     */
+    Layout.prototype.percentHeight=function(val)
+    {
+        return __property__.call(this,'percentHeight',val) || 100;
     }
 
     /**
@@ -483,7 +447,7 @@
      */
     Layout.prototype.maxWidth=function(val)
     {
-        return range.call(this,'maxWidth',val);
+        return __property__.call(this,'maxWidth',val, true);
     }
 
     /**
@@ -493,7 +457,7 @@
      */
     Layout.prototype.maxHeight=function(val)
     {
-        return range.call(this,'maxHeight',val);
+        return __property__.call(this,'maxHeight',val, true);
     }
 
     /**
@@ -503,7 +467,7 @@
      */
     Layout.prototype.minWidth=function(val)
     {
-        return range.call(this,'minWidth',val);
+        return __property__.call(this,'minWidth',val, true);
     }
 
     /**
@@ -513,29 +477,7 @@
      */
     Layout.prototype.minHeight=function(val)
     {
-        return range.call(this,'minHeight',val);
-    }
-
-    /**
-     * @param prop
-     * @param val
-     * @returns {*}
-     */
-    var align= function(prop, val )
-    {
-        var a= prop=='horizontal' ? horizontal : vertical;
-        var old =  this['__'+prop+'__'] || a[0];
-        if( typeof val === "string" )
-        {
-            val =  val.toLowerCase();
-            if ( Utils.inObject(a,val) !==null && val !== old && this !== rootLayout )
-            {
-                this['__'+prop+'__']=val;
-                dispatchLayoutEvent(this, prop, val, old);
-            }
-            return this;
-        }
-        return old;
+        return __property__.call(this,'minHeight',val, true);
     }
 
     /**
@@ -545,7 +487,13 @@
      */
     Layout.prototype.horizontal=function(val)
     {
-        return align.call(this,'horizontal',val);
+        if( typeof val === "undefined" )
+          return __property__.call(this,'horizontal') || horizontal[0];
+
+        val=val.toLowerCase();
+        if ( Utils.inObject(horizontal,val) !== null )
+            __property__.call(this,'horizontal', val );
+        return this;
     }
 
     /**
@@ -555,7 +503,12 @@
      */
     Layout.prototype.vertical=function(val)
     {
-        return align.call(this,'vertical',val);
+        if( typeof val === "undefined" )
+            return __property__.call(this,'vertical') || vertical[0];
+        val=val.toLowerCase();
+        if ( Utils.inObject(vertical,val) !== null )
+            __property__.call(this,'vertical', val );
+        return this;
     }
 
     /**
@@ -565,26 +518,15 @@
      */
     Layout.prototype.gap=function(val)
     {
-        var old =  this['__gap__'] || 5;
-        if( typeof val === "number" )
-        {
-            if ( !isNaN(old) && val !== old && this !== rootLayout )
-            {
-                this['__gap__']=val;
-                dispatchLayoutEvent(this, 'gap', val, old);
-            }
-            return this;
-        }
-        return old;
+        return __property__.call(this,'gap', val ) || 0;
     }
-
 
 
     //初始化布局组件
     Breeze.ready(function(){
 
         var rootLayout = Layout.rootLayout();
-        var method=['left','top','right','bottom','explicitHeight','explicitWidth','gap','horizontal','vertical','minWidth','minHeight','maxWidth','maxHeight'];
+        var method=['left','top','right','bottom','explicitHeight','explicitWidth','gap','horizontal','vertical','minWidth','minHeight','maxWidth','maxHeight','percentWidth','percentHeight'];
         Breeze('[component=layout]', document.body).forEach(function(target)
         {
             if( Utils.isHTMLElement(target) && target !== window.document.body )
@@ -601,7 +543,7 @@
                 }
             }
         })
-        rootLayout.updateDisplayList( rootLayout.measureWidth(), rootLayout.measureHeight() );
+        rootLayout.updateDisplayList();
     });
 
     window.Layout=Layout;

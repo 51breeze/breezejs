@@ -57,23 +57,85 @@
             if ( ret && increase>0 )value = ( +( ret[1] + 1 ) * +ret[2] ) + increase;
             return value;
         }
-        ,getOffsetPosition=function( elem ,local)
+        ,getPosition=function( elem )
         {
-            var top = 0,left = 0,width=0,height=0,stageWidth=0,stageHeight=0;
-            if( Utils.isHTMLElement(elem) )
+            var doc=elem ? elem.ownerDocument : {}, docElem=doc.documentElement;
+            var top = 0, left = 0, width = 0,height=0;
+            if ( docElem && Utils.contains( docElem, elem ) )
             {
-                stageWidth=Utils.getSize(elem.ownerDocument,'width')
-                stageHeight=Utils.getSize(elem.ownerDocument,'height');
-                do{
-                    top  += parseFloat( Utils.style(elem,'borderTopWidth') )  || 0;
-                    left += parseFloat( Utils.style(elem,'borderLeftWidth') ) || 0;
-                    top  +=elem.offsetTop;
-                    left +=elem.offsetLeft;
-                    elem=elem.offsetParent;
-                }while( !local && elem )
+                width = Utils.getSize(elem, 'width');
+                height = Utils.getSize(elem, 'height');
+                do {
+                    top += parseFloat(Utils.style(elem, 'borderTopWidth')) || 0;
+                    left += parseFloat(Utils.style(elem, 'borderLeftWidth')) || 0;
+                    top += elem.offsetTop;
+                    left += elem.offsetLeft;
+                    elem = elem.offsetParent;
+                } while (elem);
             }
-            return { 'top': top, 'left': left ,'right' : stageWidth-width-left,'bottom':stageHeight-height-top};
+            return { 'top': top, 'left': left ,'right' : width+left,'bottom':height+top,'width':width, 'height':height };
         };
+
+        /**
+         * 获取元素相对舞台坐标位置
+         * @param elem
+         * @returns {object}
+         */
+        if( "getBoundingClientRect" in document.documentElement )
+        {
+            getPosition = function( elem )
+            {
+                var box={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0},value=box;
+                var doc=elem ? elem.ownerDocument : {}, docElem=doc.documentElement;
+                if ( !docElem || !Utils.contains( docElem, elem ) )
+                {
+                   return box;
+                }
+
+                try {
+                    box = elem.getBoundingClientRect();
+                } catch (e) {}
+
+                var body = doc.body,
+                win = Utils.getWindow(doc),
+                clientTop = docElem.clientTop || body.clientTop || 0,
+                clientLeft = docElem.clientLeft || body.clientLeft || 0,
+                scrollTop = win.pageYOffset || docElem.scrollTop || body.scrollTop,
+                scrollLeft = win.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+                value.top = box.top + scrollTop - clientTop;
+                value.left = box.left + scrollLeft - clientLeft;
+                value.right = box.right + scrollLeft - clientLeft;
+                value.bottom = box.bottom + scrollTop - clientTop;
+                value.width = box.width;
+                value.height = box.height;
+                return value;
+            };
+        }
+
+        /**
+         * 设置获取元素相对舞台坐标位置
+         * @param elem
+         * @param number x
+         * @param number y
+         * @returns {object|boolean}
+         */
+        Utils.position=function( elem, x, y )
+        {
+            if( !Utils.isHTMLElement(elem) )
+               throw new Error('invalid elem');
+            var pos;
+            var isx=typeof x === "number";
+            var isy= typeof y === "number";
+            if( isx | isy )
+            {
+                pos = getPosition( elem.parentNode )
+                if( isx )Utils.style(elem, 'left', pos.left - x  );
+                if( isy )Utils.style(elem, 'top' , pos.top - y   );
+                return true;
+            }
+            pos = getPosition( elem );
+            return {'x':pos.left,'y':pos.top};
+        }
 
       Utils.getSize=function( elem, name, border )
       {
@@ -265,6 +327,8 @@
         };
     }
 
+    var iscsstext=/^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/;
+
     /**
      * 设置元素的样式
      * @param elem
@@ -277,7 +341,7 @@
             return false;
 
         //清空样式
-        if( typeof name === 'string' &&  /^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/.test(name)  )
+        if( typeof name === 'string' && iscsstext.test(name)  )
         {
             value=name;
             name='cssText';
@@ -345,119 +409,6 @@
             return true;
         }
         return false;
-    }
-
-    /**
-     * @type {null}
-     */
-    var getPosition=null;
-
-    /**
-     * 获取元素相对舞台坐标位置
-     * @param elem
-     * @returns {object}
-     */
-    if ( "getBoundingClientRect" in document.documentElement )
-    {
-        getPosition = function( elem,local )
-        {
-            if( local )return getOffsetPosition(elem,true);
-            var value={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0}
-                ,box
-                ,doc=elem.ownerDocument
-                ,docElem= doc && doc.documentElement;
-
-            try {
-                box = elem.getBoundingClientRect();
-            } catch(e) {
-                box=value;
-            }
-
-            if ( !docElem || !Utils.contains( docElem, elem ) )
-                return value;
-
-            var body = doc.body,
-            win = Utils.getWindow( doc ),
-            clientTop  = docElem.clientTop  || body.clientTop  || 0,
-            clientLeft = docElem.clientLeft || body.clientLeft || 0,
-            scrollTop  = win.pageYOffset ||  docElem.scrollTop  || body.scrollTop,
-            scrollLeft = win.pageXOffset ||  docElem.scrollLeft || body.scrollLeft;
-            value.top  = box.top  + scrollTop  - clientTop
-            value.left = box.left + scrollLeft - clientLeft
-            value.right = box.right - scrollLeft + clientLeft
-            value.bottom = box.bottom - scrollTop + clientTop
-            return value;
-        };
-    }
-    else
-    {
-        getPosition=function( elem ,local)
-        {
-            var top = 0,left = 0,width=0,height=0,stageWidth=0,stageHeight=0;
-            if( Utils.isHTMLElement(elem) )
-            {
-                stageWidth=Utils.getSize(elem.ownerDocument,'width')
-                stageHeight=Utils.getSize(elem.ownerDocument,'height');
-                do{
-                    top  += parseFloat( Utils.style(elem,'borderTopWidth') )  || 0;
-                    left += parseFloat( Utils.style(elem,'borderLeftWidth') ) || 0;
-                    top  +=elem.offsetTop;
-                    left +=elem.offsetLeft;
-                    elem=elem.offsetParent;
-                }while( !local && elem )
-            }
-            return { 'top': top, 'left': left ,'right' : stageWidth-width-left,'bottom':stageHeight-height-top};
-        };
-    }
-
-
-    /**
-     * 获取相对你父元素的位置
-     * @param elem
-     * @returns {object}
-     */
-    Utils.getLocalPosition=function( elem )
-    {
-        var position=Breeze.getPosition( elem ),
-            parentPosition=Breeze.getPosition( elem.parentNode )
-        position.left-=parentPosition.left;
-        position.top-=parentPosition.top;
-        position.right=parentPosition.right-position.right;
-        position.bottom=parentPosition.bottom-position.bottom;
-        return position;
-    }
-
-    /**
-     * 设置元素相对舞台坐标位置
-     * @param elem
-     * @param property left|top|right|bottom
-     * @param value 需要设置的值。如果是一个布尔值则获取相对本地的位置
-     * @returns {object}
-     */
-    Utils.position=function( elem, property, value )
-    {
-        var options=property;
-        var position= !Utils.hasStyle( elem ) ?  {'top': 0, 'left': 0, 'right': 0, 'bottom': 0} : getPosition(elem,value);
-        if( !Utils.isObject(property) )
-        {
-            if( !Utils.isString(property) )
-                return position;
-            if( !Utils.isScalar(value) || typeof value ==='boolean')
-                return position[ property ];
-            options={};
-            options[property]=value;
-        }
-
-        if ( Utils.style( elem, "position") === "static" )
-            Utils.style(elem,'position','relative');
-
-        for( var i in options )
-        {
-            var ret=cssOperator.exec( options[i] )
-            options[i]= ret ? operatorValue( options[i] , position[i] || 0 , ret ) : parseFloat( options[i] ) || 0;
-            Utils.style(elem,i,options[i]);
-        }
-        return true;
     }
 
     /**
@@ -834,9 +785,9 @@
      */
     Utils.isObject=function( val , flag )
     {
-        if( !val || val.nodeType || Utils.isWindow(val) || val===null )
+        if( !val || typeof val !== "object" || Utils.isNodeElement(val) || Utils.isWindow(val) || Utils.isHTMLContainer()  )
            return false;
-        return ( flag===true && Utils.isArray(val) ) || typeof val === 'object';
+        return ( flag || !Utils.isArray(val) );
     }
 
     /**
@@ -903,7 +854,17 @@
      */
     Utils.isHTMLElement=function( element )
     {
-        return typeof HTMLElement==='object' ? element instanceof HTMLElement : element && element.nodeType === 1;
+        return typeof HTMLElement==='object' ? element instanceof HTMLElement : ( element && element.nodeType === 1 && typeof element.nodeName === "string" );
+    }
+
+    /**
+     * 判断是否为一个节点类型元素
+     * @param element
+     * @returns {boolean}
+     */
+    Utils.isNodeElement=function( element )
+    {
+        return typeof Node==='object' ? element instanceof Node : ( element && element.nodeType && typeof element.nodeName === "string" );
     }
 
     /**

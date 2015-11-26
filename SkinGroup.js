@@ -67,7 +67,7 @@
                 if ( Utils.isObject(attr.style, true) )
                 {
                     var style = attr.style;
-                    if( typeof attr.class !== "undefined" )
+                    if( typeof attr['class'] !== "undefined" )
                     {
                         var props = ['width','height'], style={};
                         for( var i in props )if( typeof attr.style[ props[i] ] !== "undefined" )style[ props[i] ]=attr.style[ props[i] ];
