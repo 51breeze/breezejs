@@ -119,7 +119,7 @@
             }
             rootLayout.addEventListener( BreezeEvent.RESIZE ,function(event)
             {
-                this.updateDisplayList();
+                this.updateDisplayList( this.width(), this.height() );
             });
         }
         return rootLayout;
@@ -140,9 +140,11 @@
      */
     Layout.prototype.measureWidth=function()
     {
-        var marginLeft = parseInt( this.style('marginLeft') ) || 0;
-        var marginRight = parseInt( this.style('marginRight') ) || 0;
-        return this.width() + marginLeft + marginRight;
+        var marginLeft = parseInt( this.style('marginLeft') ) || 0,
+        marginRight = parseInt( this.style('marginRight') ) || 0,
+        left=this.left() || 0,
+        right=this.right() || 0;
+        return this.width()+marginLeft+marginRight+left+right;
     }
 
     /**
@@ -151,9 +153,11 @@
      */
     Layout.prototype.measureHeight=function()
     {
-        var marginTop = parseInt( this.style('marginTop') ) || 0;
-        var marginBottom = parseInt( this.style('marginBottom') ) || 0;
-        return this.height()+marginTop + marginBottom;
+        var marginTop = parseInt( this.style('marginTop') ) || 0,
+        marginBottom = parseInt( this.style('marginBottom') ) || 0,
+        top=this.top() || 0,
+        bottom=this.bottom() || 0;
+        return this.height()+marginTop + marginBottom+top+bottom;
     }
 
     /**
@@ -165,7 +169,8 @@
         var width=this.explicitWidth();
         if( isNaN( width ) )
         {
-            width= this.percentWidth() / 100 * parentWidth;
+            var percent = this.percentWidth() || 100;
+            width= percent / 100 * parentWidth ;
             var marginLeft = parseInt( this.style('marginLeft') ) || 0;
             var marginRight = parseInt( this.style('marginRight') ) || 0;
             var left=this.left() || 0,
@@ -184,7 +189,8 @@
         var height=this.explicitHeight();
         if( isNaN( height ) )
         {
-            height= this.percentHeight() / 100 * parentHeight;
+            var percent = this.percentHeight() || 100;
+            height=  percent / 100 * parentHeight;
             var marginTop = parseInt( this.style('marginTop') ) || 0;
             var marginBottom = parseInt( this.style('marginBottom') ) || 0;
             var top=this.top() || 0,
@@ -232,10 +238,22 @@
     }
 
     /**
+     * 获取视口大小
+     * @returns {{width: *, height: *}}
+     */
+    Layout.prototype.getViewportSize=function()
+    {
+        var doc = this[0].document || this[0].ownerDocument;
+        var parent = Utils.contains(doc.body,this[0]) ? this[0].parentNode : doc.body;
+            parent = doc.body===parent ? Utils.getWindow(this[0]) : parent;
+        return {'width':Utils.getSize( parent , 'width'),'height':Utils.getSize( parent , 'height')};
+    }
+
+    /**
      * 更新布局视图
      * @returns {Layout}
      */
-    Layout.prototype.updateDisplayList=function(parentWidth,parentHeight)
+    Layout.prototype.updateDisplayList=function()
     {
         var horizontalAlign=this.horizontal()
             ,verticalAlign=this.vertical()
@@ -247,16 +265,9 @@
             ,columns=[]
             ,x=gap,y=gap,maxHeight= 0,countHeight= 0,countWidth=0;
 
-        if( typeof parentWidth !== "number" || typeof parentHeight !== "number" )
-        {
-            var owner = this.owner || this;
-            parentWidth= owner.measureWidth();
-            parentHeight = owner.measureHeight();
-        }
-
-        var measureWidth=this.calculateWidth( parentWidth );
-        var measureHeight=this.calculateHeight( parentHeight );k
-
+        var viewportSize=this.getViewportSize();
+        var parentWidth= this.calculateWidth( viewportSize.width );
+        var parentHeight= this.calculateHeight( viewportSize.height );
 
         //更新子布局的显示列表
         if( this.childrenItem.length > 0 )
@@ -264,25 +275,19 @@
             var i=0;
             for( ; i < this.childrenItem.length; i++ )
             {
-                this.childrenItem[i].updateDisplayList(measureWidth, measureHeight);
+                this.childrenItem[i].updateDisplayList(parentWidth, parentHeight);
             }
         }
 
-        if( this === Layout.rootLayout() )return;
-
-         //计算子级元素需要排列的位置
-        this.children(':not([includeLayout=false])').forEach(function(child,index)
+        //计算子级元素需要排列的位置
+        this.children(':not([includeLayout=false][component=layout])').forEach(function(child,index)
         {
             this.style('position','absolute')
-            var childWidth=this.width()
-                ,childHeight=this.height()
-                ,margin=this.getMargin()
-
-            childWidth+=margin.left + margin.right;
-            childHeight+=margin.top + margin.bottom;
+            var childWidth=this.calculateWidth( this.width() )
+                ,childHeight=this.calculateHeight( this.height() );
 
             //从第二个子级元素开始，如于大于了容器宽度则换行
-            if( x+childWidth+gap > measureWidth && index > 0 )
+            if( x+childWidth+gap > parentWidth && index > 0 )
             {
                 if( flag )
                 {
@@ -300,16 +305,20 @@
             if( flag )
             {
                 columns.push( {'target':child,'left':x,'top':y} );
+            }else
+            {
+                this.style('left', x);
+                this.style('top', y);
             }
             x += childWidth+gap;
             maxHeight=Math.max(maxHeight,childHeight+gap);
             countWidth=Math.max(countWidth,x);
+            this.width(childWidth).height(childHeight);
 
         }).revert();
 
-
-        var realWidth= this.explicitWidth()  || this.getMaxOrMinHeight( measureWidth );
-        var realHeight=this.explicitHeight() || this.getMaxOrMinWidth( measureHeight );
+        var realHeight = Math.max(parentHeight, countHeight );
+        var realWidth= Math.max(parentWidth, countWidth );
 
         //需要整体排列
         if( flag )
@@ -318,8 +327,8 @@
             grid.push( columns )
 
             var items,size,xOffset,yOffset,index,b;
-             xOffset= Math.floor( (realWidth-countWidth)*h ) ;
-             yOffset= Math.floor( (realHeight-countHeight)*v ) ;
+             xOffset= Math.floor( (parentWidth-countWidth)*h ) ;
+             yOffset= Math.floor( (parentHeight-countHeight)*v ) ;
 
             for( index in grid )
             {
@@ -334,10 +343,11 @@
             }
         }
 
-        console.log( realHeight )
-
-        this.width( realWidth );
-        this.height( realHeight );
+        if( this !== Layout.rootLayout() )
+        {
+            this.width( realWidth );
+            this.height( realHeight );
+        }
     }
 
     /**
@@ -427,7 +437,7 @@
      */
     Layout.prototype.percentWidth=function(val)
     {
-        return __property__.call(this,'percentWidth',val) || 100;
+        return __property__.call(this,'percentWidth',val);
     }
 
     /**
@@ -437,7 +447,7 @@
      */
     Layout.prototype.percentHeight=function(val)
     {
-        return __property__.call(this,'percentHeight',val) || 100;
+        return __property__.call(this,'percentHeight',val);
     }
 
     /**
@@ -543,7 +553,7 @@
                 }
             }
         })
-        rootLayout.updateDisplayList();
+        rootLayout.updateDisplayList( rootLayout.width(), rootLayout.height() );
     });
 
     window.Layout=Layout;
