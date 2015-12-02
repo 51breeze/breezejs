@@ -27,11 +27,14 @@
 
 <style type="text/css">
 
+    body{
+        margin: 0px;
+       /* overflow:hidden;*/
+    }
 
     .modal{
         width: 300px;
         height: 200px;
-        background-color: aqua;
         display: none;
         position: absolute;
     }
@@ -147,22 +150,18 @@
    开呗养车运营端
 </div>-->
 
-<div class="modal" component="layout" style="display: block" left="10" right="10" top="10" bottom="10" >
+
+
+
+
+<div class="modal" component="layout" style="display: block" left="10" right="10" top="10" bottom="10" viewport="window" >
     <div class="head" explicitHeight="40">
         <label class="lable">标题</label>
         <span class="close" data-action="close" data-event="click">关闭</span>
     </div>
-    <div class="body"   component="layout" horizontal="center" gap="5"  style="overflow: auto">
-        <div explicitHeight="500" explicitWidth="500" style="background-color: forestgreen; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="background-color: forestgreen; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="background-color: forestgreen; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="background-color: forestgreen; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="background-color: forestgreen; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="background-color: forestgreen; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="background-color: forestgreen; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="background-color: forestgreen; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="background-color: forestgreen; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="background-color: forestgreen; "></div>
+    <div class="body" component="layout" horizontal="center" gap="5" top="40" skin-height="this.height-footer.height-head.height"  style="overflow: auto">
+        <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
+        <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
     </div>
     <div class="footer" explicitHeight="30" bottom="0" >
         <button data-action="close">取消</button>

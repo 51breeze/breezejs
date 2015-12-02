@@ -118,7 +118,7 @@
             {
                 var ret = Sizzle('[data-skin="' + skinName + '"]', this.getContext() );
                 if( ret.length === 0 )
-                    throw new Error('Not found skin element of '+skinName );
+                    throw new Error('Not found skin element is '+skinName );
                 _skin[skinName]=ret[0];
             }
             return _skin[skinName];
@@ -136,7 +136,6 @@
             {
                 if( typeof selector.elements === "undefined" )
                    throw new Error('invalid selector');
-
                 if( typeof container === "string" )
                     selector.elements.container=container;
                 selector=toString.call(selector);

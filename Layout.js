@@ -135,29 +135,33 @@
     }
 
     /**
-     * 测量当前元素的宽度
-     * @returns {Number|string}
+     * 测量元素的宽度
+     * @returns {Number|string|*}
      */
-    Layout.prototype.measureWidth=function()
+    Layout.prototype.measureWidth=function( parentWidth )
     {
-        var marginLeft = parseInt( this.style('marginLeft') ) || 0,
-        marginRight = parseInt( this.style('marginRight') ) || 0,
-        left=this.left() || 0,
-        right=this.right() || 0;
-        return this.width()+marginLeft+marginRight+left+right;
+        var width=this.explicitWidth() || this.width();
+        if( isNaN( width ) )
+        {
+            var percent = this.percentWidth() || 100;
+            width= percent / 100 * parentWidth ;
+        }
+        return width;
     }
 
     /**
-     * 测量当前元素的高度
-     * @returns {Number|string}
+     * 测量元素的宽度
+     * @returns {Number|string|*}
      */
-    Layout.prototype.measureHeight=function()
+    Layout.prototype.measureHeight=function(parentHeight)
     {
-        var marginTop = parseInt( this.style('marginTop') ) || 0,
-        marginBottom = parseInt( this.style('marginBottom') ) || 0,
-        top=this.top() || 0,
-        bottom=this.bottom() || 0;
-        return this.height()+marginTop + marginBottom+top+bottom;
+        var height=this.explicitHeight() || this.height();
+        if( isNaN( height ) )
+        {
+            var percent = this.percentHeight() || 100;
+            height= percent / 100 * parentHeight ;
+        }
+        return height;
     }
 
     /**
@@ -166,15 +170,12 @@
      */
     Layout.prototype.calculateWidth=function( parentWidth )
     {
-        var width=this.explicitWidth();
+        var width=this.explicitWidth() || this.width();
         if( isNaN( width ) )
         {
             var percent = this.percentWidth() || 100;
             width= percent / 100 * parentWidth ;
         }
-        var left=this.left() || 0,
-            right=this.right() || 0;
-        width-=left+right;
         return this.getMaxOrMinWidth( width );
     }
 
@@ -184,16 +185,13 @@
      */
     Layout.prototype.calculateHeight=function( parentHeight )
     {
-        var height=this.explicitHeight();
+        var height=this.explicitHeight() || this.height();
         if( isNaN( height ) )
         {
             var percent = this.percentHeight() || 100;
             height=  percent / 100 * parentHeight;
         }
-        var top=this.top() || 0,
-            bottom=this.bottom() || 0;
-        height-=top+bottom;
-       return this.getMaxOrMinHeight( height );
+        return this.getMaxOrMinHeight( height );
     }
 
     /**
@@ -217,27 +215,10 @@
     }
 
     /**
-     * @private
-     */
-    var __margin__={'left':'Left','top':'Top','right':'Right','bottom':'Bottom'};
-
-    /**
-     * 获取边距
-     * @param target
-     * @returns {{}}
-     */
-    Layout.prototype.getMargin=function()
-    {
-        var val={};
-        for( i in __margin__ )val[i] = parseInt( this.style('margin' + __margin__[i] ) ) || 0;
-        return val;
-    }
-
-    /**
-     * 获取视口大小
+     * 估算视口可见大小
      * @returns {{width: *, height: *}}
      */
-    Layout.prototype.getViewportSize=function()
+    Layout.prototype.parentSize=function()
     {
         var doc = this[0].document || this[0].ownerDocument;
         var parent = Utils.contains(doc.body,this[0]) ? this[0].parentNode : doc.body;
@@ -251,22 +232,10 @@
      */
     Layout.prototype.updateDisplayList=function()
     {
-        var horizontalAlign=this.horizontal()
-            ,verticalAlign=this.vertical()
-            ,gap=this.gap()
-            ,h=horizontalAlign===horizontal[1] ? 0.5 : horizontalAlign===horizontal[2] ? 1 : 0
-            ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0
-            ,flag=h+v > 0
-            ,grid=[]
-            ,columns=[]
-            ,x=gap,y=gap,maxHeight= 0,countHeight= 0,countWidth=0;
-
-        var viewportSize=this.getViewportSize();
-        var parentWidth= this.calculateWidth( viewportSize.width );
-        var parentHeight= this.calculateHeight( viewportSize.height );
-
-        this.width( parentWidth );
-        this.height( parentHeight );
+        var viewportSize = this.parentSize();
+        parentWidth = this.calculateWidth(viewportSize.width);
+        parentHeight = this.calculateHeight(viewportSize.height);
+        this.width(parentWidth).height(parentHeight);
 
         //更新子布局的显示列表
         if( this.childrenItem.length > 0 )
@@ -278,10 +247,20 @@
             }
         }
 
+        var horizontalAlign=this.horizontal()
+            ,verticalAlign=this.vertical()
+            ,gap=this.gap()
+            ,h=horizontalAlign===horizontal[1] ? 0.5 : horizontalAlign===horizontal[2] ? 1 : 0
+            ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0
+            ,flag=h+v > 0
+            ,grid=[]
+            ,columns=[]
+            ,x=gap,y=gap,maxHeight= 0,countHeight= 0,countWidth=0;
+
         //计算子级元素需要排列的位置
         this.children(':not([includeLayout=false][component=layout])').forEach(function(child,index)
         {
-            this.style('position','absolute')
+            this.style('position','absolute');
             var childWidth=this.calculateWidth( parentWidth )
                 ,childHeight=this.calculateHeight( parentHeight );
 
@@ -290,44 +269,34 @@
             var marginTop = parseInt( this.style('marginTop') ) || 0;
             var marginBottom = parseInt( this.style('marginBottom') ) || 0;
 
-            var left = this.left();
-            var top= this.top();
-            var right= this.right();
-            var bottom= this.bottom();
-
-            if( !isNaN(left) || !isNaN(top) || !isNaN(right) || !isNaN(bottom) )
+            //从第二个子级元素开始，如大于了容器宽度则换行
+            if (x + childWidth+gap+marginLeft+marginRight > parentWidth && index > 0)
             {
-                if( !isNaN(left) )
-                    this.style('left', left );
-                if( !isNaN(top) )
-                    this.style('top', top );
-                if( !isNaN(right) )
-                    this.style('right', right );
-                if( !isNaN(bottom) )
-                    this.style('bottom', bottom );
-            }else
-            {
-                //从第二个子级元素开始，如大于了容器宽度则换行
-                if (x + childWidth+gap+marginLeft+marginRight > parentWidth && index > 0)
-                {
-                    if (flag) {
-                        columns.push(x);
-                        grid.push(columns);
-                        columns = [];
-                    }
-                    countWidth = Math.max(countWidth, x);
-                    y += maxHeight;
-                    x = gap;
-                    maxHeight = 0;
+                if (flag) {
+                    columns.push(x);
+                    grid.push(columns);
+                    columns = [];
                 }
-
-                columns.push({'target': child, 'left': x, 'top': y});
-                x += childWidth+gap+marginLeft+marginRight;
-                maxHeight = Math.max(maxHeight, childHeight + gap+marginTop+marginBottom);
-                countHeight = maxHeight + y;
                 countWidth = Math.max(countWidth, x);
+                y += maxHeight;
+                x = gap;
+                maxHeight = 0;
             }
 
+            if (flag)
+            {
+                columns.push({'target': child, 'left': x, 'top': y});
+
+            }else
+            {
+                this.style('left', x);
+                this.style('top',y);
+            }
+
+            x += childWidth+gap+marginLeft+marginRight;
+            maxHeight = Math.max(maxHeight, childHeight + gap+marginTop+marginBottom);
+            countHeight = maxHeight + y;
+            countWidth = Math.max(countWidth, x);
             this.width(childWidth).height(childHeight);
 
         }).revert();
@@ -336,20 +305,23 @@
         var realWidth= Math.max(parentWidth, countWidth );
 
         //需要整体排列
-        columns.push( countWidth );
-        grid.push( columns )
-        var items,size,xOffset,yOffset,index,b;
-         xOffset= Math.floor( (parentWidth-countWidth-gap)*h ) ;
-         yOffset= Math.floor( (parentHeight-countHeight-gap)*v ) ;
-        for( index in grid )
+        if( columns.length > 0 )
         {
-           items=grid[ index ].splice(0,grid[ index ].length-1);
-           size=grid[ index ];
-           for( b in items )
-           {
-               Utils.style(items[b].target ,'left', items[b].left+xOffset );
-               Utils.style(items[b].target ,'top', items[b].top+yOffset );
-           }
+            columns.push(countWidth);
+            grid.push(columns)
+            var items, size, xOffset, yOffset, index, b;
+            xOffset = Math.floor((parentWidth - countWidth - gap) * h);
+            yOffset = Math.floor((parentHeight - countHeight - gap) * v);
+            for (index in grid)
+            {
+                items = grid[index].splice(0, grid[index].length - 1);
+                size = grid[index];
+                for (b in items)
+                {
+                    Utils.style(items[b].target, 'left', items[b].left + xOffset);
+                    Utils.style(items[b].target, 'top', items[b].top + yOffset);
+                }
+            }
         }
 
         if( this !== Layout.rootLayout() )
@@ -368,15 +340,33 @@
         if( typeof val !== "undefined" )
         {
             val =  parseInt( val );
-            if( flag ===true )this.style(prop,val);
             if ( val !== old && this !== rootLayout )
             {
+                if( flag ===true )this.style(prop,val);
                 this.property(prop,val);
                 dispatchLayoutEvent(this, prop, val, old);
             }
             return this;
         }
         return old;
+    }
+
+    /**
+     * 测量当前元素的宽度
+     * @returns {Number|string}
+     */
+    Layout.prototype.width=function(val)
+    {
+      return __property__.call(this,'width', val, true)
+    }
+
+    /**
+     * 测量当前元素的高度
+     * @returns {Number|string}
+     */
+    Layout.prototype.height=function(val)
+    {
+        return __property__.call(this,'height', val, true)
     }
 
     /**
