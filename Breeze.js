@@ -420,24 +420,6 @@
     }
 
     /**
-     * 获取上下文。
-     * @returns {HTMLElement}
-     */
-    Breeze.prototype.getContext=function( context )
-    {
-        if( context !== undefined )
-        {
-            if( context instanceof Breeze )
-              return context.getContext();
-            context = Utils.isString(context) ? Sizzle(context,document)[0] : context;
-        }
-        var target = context || this.forEachCurrentItem || this[0] || this.context;
-        if( Utils.isFrame( target ) && target.contentWindow )
-            return target.contentWindow.document;
-        return Utils.isHTMLContainer( target ) ? target :  document ;
-    }
-
-    /**
      * 查找当前匹配的第一个元素下的指定选择器的元素
      * @param selector
      * @returns {Breeze}

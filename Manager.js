@@ -42,6 +42,13 @@
             {
                 this.forEachCurrentItem=element;
                 this.forEachCurrentIndex= index;
+
+            }else if( typeof element=== "string" )
+            {
+                element=Sizzle(element, this.getContext() );
+                this.forEachCurrentItem = element ? element[0] : undefined;
+                this.forEachCurrentIndex = NaN;
+
             }else
             {
                 this.forEachCurrentItem = element || undefined;
@@ -50,6 +57,24 @@
             return this;
         }
         return this.forEachCurrentItem || this[0];
+    }
+
+    /**
+     * 获取上下文。
+     * @returns {HTMLElement}
+     */
+    Manager.prototype.getContext=function( context )
+    {
+        if( context !== undefined )
+        {
+            if( context instanceof Manager )
+                return context.getContext();
+            context = Utils.isString(context) ? Sizzle(context,document)[0] : context;
+        }
+        var target = context || this[0] || this.context;
+        if( Utils.isFrame( target ) && target.contentWindow )
+            return target.contentWindow.document;
+        return Utils.isHTMLContainer( target ) ? target :  document ;
     }
 
     /**

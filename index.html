@@ -100,6 +100,12 @@
     Breeze(function(){
 
 
+
+
+
+        // this.height - footer.height - head.height
+
+
       /*   var grid = new DataGrid();
           grid.viewport( '.container' );
           grid.pagination( '.page' );
@@ -151,23 +157,34 @@
 </div>-->
 
 
-
-
-
-<div class="modal" component="layout" style="display: block" left="10" right="10" top="10" bottom="10" viewport="window" >
-    <div class="head" explicitHeight="40">
+<div class="modal" component="layout" style="display: block" left="10" right="10" top="10" bottom="10" viewport="window">
+    <noscript>
+        this.verification=function()
+        {
+           var head = this.current( '.head' ).height();
+           var footer = this.current( '.footer' ).height();
+           var body = this.current( '.body' ).height();
+           console.log( body,head,footer  )
+           this.height(body-head-footer);
+           this.current(null);
+           this.height('300')
+        }
+    </noscript>
+    <div class="head" explicitHeight="40" data-skin="head">
         <label class="lable">标题</label>
         <span class="close" data-action="close" data-event="click">关闭</span>
     </div>
-    <div class="body" component="layout" horizontal="center" gap="5" top="40" skin-height="this.height-footer.height-head.height"  style="overflow: auto">
+    <div class="body" data-skin="body" component="layout"   horizontal="center" gap="5" top="40" style="overflow: auto">
         <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
         <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
     </div>
-    <div class="footer" explicitHeight="30" bottom="0" >
+    <div class="footer" data-skin="footer" explicitHeight="30" bottom="0" >
         <button data-action="close">取消</button>
         <button data-action="submit">确认</button>
     </div>
 </div>
+
+
 
 
 

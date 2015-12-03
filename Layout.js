@@ -69,6 +69,17 @@
         if( this.data('layout') instanceof Layout )
            return this.data('layout');
 
+        //初始化视图中的脚本
+        for( var b=0; b<target.childNodes.length; b++)
+        {
+           var child = target.childNodes.item(b);
+           if( Utils.nodeName(child)==='noscript' )
+           {
+               target.removeChild(child);
+               new Function( Sizzle.getText(child) ).call(this);
+           }
+        }
+
         this.childrenItem=[];
         if( rootLayout )
         {
@@ -323,20 +334,26 @@
                 }
             }
         }
-
         if( this !== Layout.rootLayout() )
         {
             this.width( realWidth );
             this.height( realHeight );
         }
+        this.verification(realWidth,realHeight);
+        this.current(null);
     }
+
+    /**
+     * 重新验证子级
+     */
+    Layout.prototype.verification=function(realWidth,realHeight){}
 
     /**
      * @private
      */
     var __property__ = function(prop, val , flag )
     {
-        var old = parseInt( this.property(prop) );
+        var old = parseInt(  this.property(prop) );
         if( typeof val !== "undefined" )
         {
             val =  parseInt( val );
