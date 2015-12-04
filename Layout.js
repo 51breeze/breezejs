@@ -130,7 +130,7 @@
             }
             rootLayout.addEventListener( BreezeEvent.RESIZE ,function(event)
             {
-                this.updateDisplayList();
+                this.validateDisplayList();
             });
         }
         return rootLayout;
@@ -181,12 +181,16 @@
      */
     Layout.prototype.calculateWidth=function( parentWidth )
     {
-        var width=this.explicitWidth() || this.width();
+        var width=this.explicitWidth();
         if( isNaN( width ) )
         {
             var percent = this.percentWidth() || 100;
             width= percent / 100 * parentWidth ;
         }
+        var left = this.left() || 0;
+        var right = this.right() || 0;
+        var paddingWidth  = ( parseInt( this.style('paddingLeft') ) || 0 ) + ( parseInt( this.style('paddingRight') )  || 0);
+        width-=left+right+paddingWidth;
         return this.getMaxOrMinWidth( width );
     }
 
@@ -196,12 +200,16 @@
      */
     Layout.prototype.calculateHeight=function( parentHeight )
     {
-        var height=this.explicitHeight() || this.height();
+        var height=this.explicitHeight();
         if( isNaN( height ) )
         {
             var percent = this.percentHeight() || 100;
             height=  percent / 100 * parentHeight;
         }
+        var bottom = this.bottom() || 0;
+        var top = this.top() || 0;
+        var paddingHeight = ( parseInt( this.style('paddingTop') )  || 0 ) + ( parseInt( this.style('paddingBottom') ) || 0);
+        height-=bottom+top+paddingHeight;
         return this.getMaxOrMinHeight( height );
     }
 
@@ -238,25 +246,44 @@
     }
 
     /**
-     * 更新布局视图
      * @returns {Layout}
      */
-    Layout.prototype.updateDisplayList=function()
+    Layout.prototype.measureSize=function()
     {
-        var viewportSize = this.parentSize();
-        parentWidth = this.calculateWidth(viewportSize.width);
-        parentHeight = this.calculateHeight(viewportSize.height);
-        this.width(parentWidth).height(parentHeight);
+        if( this !== Layout.rootLayout() )
+        {
+            var doc = this[0].document || this[0].ownerDocument;
+            var parent = Utils.contains(doc.body, this[0]) ? this[0].parentNode : doc.body;
+            parent = doc.body === parent ? Utils.getWindow(this[0]) : parent;
+            this.width(this.calculateWidth(Utils.getSize(parent, 'width')))
+                .height(this.calculateHeight(Utils.getSize(parent, 'height')));
+        }
+        return this;
+    }
 
+    Layout.prototype.validateDisplayList=function()
+    {
+        this.measureSize();
         //更新子布局的显示列表
         if( this.childrenItem.length > 0 )
         {
             var i=0;
             for( ; i < this.childrenItem.length; i++ )
             {
-                this.childrenItem[i].updateDisplayList();
+                this.childrenItem[i].validateDisplayList();
             }
         }
+        this.updateDisplayList();
+    }
+
+    /**
+     * 更新布局视图
+     * @returns {Layout}
+     */
+    Layout.prototype.updateDisplayList=function(width,height)
+    {
+        if( this === Layout.rootLayout() )
+            return;
 
         var horizontalAlign=this.horizontal()
             ,verticalAlign=this.vertical()
@@ -266,14 +293,23 @@
             ,flag=h+v > 0
             ,grid=[]
             ,columns=[]
-            ,x=gap,y=gap,maxHeight= 0,countHeight= 0,countWidth=0;
+            ,x=gap,y=gap,maxHeight=0,countHeight= 0,countWidth=0;
+
+        width= this.width();
+        height=this.height();
+
+        var paddingWidth  = ( parseInt( this.style('paddingLeft') ) || 0 ) + ( parseInt( this.style('paddingRight') )  || 0);
+        var paddingHeight = ( parseInt( this.style('paddingTop') )  || 0 ) + ( parseInt( this.style('paddingBottom') ) || 0);
+
+        var parentWidth =  width //-paddingWidth;
+        var parentHeight = height //-paddingHeight;
 
         //计算子级元素需要排列的位置
-        this.children(':not([includeLayout=false][component=layout])').forEach(function(child,index)
+        this.children(':not([includeLayout=false][component="layout"])').forEach(function(child,index)
         {
             this.style('position','absolute');
-            var childWidth=this.calculateWidth( parentWidth )
-                ,childHeight=this.calculateHeight( parentHeight );
+            var childWidth=parseInt(this.property('width')) || this.calculateWidth( parentWidth )
+                ,childHeight=parseInt(this.property('height')) || this.calculateHeight( parentHeight );
 
             var marginLeft = parseInt( this.style('marginLeft') ) || 0;
             var marginRight = parseInt( this.style('marginRight') ) || 0;
@@ -312,8 +348,10 @@
 
         }).revert();
 
-        var realHeight = Math.max(parentHeight, countHeight);
-        var realWidth= Math.max(parentWidth, countWidth );
+        if( countHeight > height )
+            width-=17;
+        if( countWidth > width )
+            height-=17;
 
         //需要整体排列
         if( columns.length > 0 )
@@ -321,8 +359,9 @@
             columns.push(countWidth);
             grid.push(columns)
             var items, size, xOffset, yOffset, index, b;
-            xOffset = Math.floor((parentWidth - countWidth - gap) * h);
-            yOffset = Math.floor((parentHeight - countHeight - gap) * v);
+            xOffset = Math.floor((width-countWidth - gap - paddingWidth ) * h);
+            yOffset = Math.floor((height - countHeight - gap - paddingHeight ) * v);
+
             for (index in grid)
             {
                 items = grid[index].splice(0, grid[index].length - 1);
@@ -334,56 +373,41 @@
                 }
             }
         }
-        if( this !== Layout.rootLayout() )
-        {
-            this.width( realWidth );
-            this.height( realHeight );
-        }
-        this.verification(realWidth,realHeight);
-        this.current(null);
+        this.setLayoutSize( Math.max(parentWidth, countWidth ),  Math.max(parentHeight, countHeight) );
     }
 
     /**
      * 重新验证子级
      */
-    Layout.prototype.verification=function(realWidth,realHeight){}
+    Layout.prototype.setLayoutSize=function(width,height)
+    {
+        this.width( width );
+        this.height( height );
+        this.property('width', width );
+        this.property('height', height );
+    }
 
     /**
      * @private
      */
     var __property__ = function(prop, val , flag )
     {
-        var old = parseInt(  this.property(prop) );
+        var old = parseInt( this.property(prop,val) );
         if( typeof val !== "undefined" )
         {
             val =  parseInt( val );
-            if ( val !== old && this !== rootLayout )
+            if( this !== rootLayout )
             {
-                if( flag ===true )this.style(prop,val);
-                this.property(prop,val);
-                dispatchLayoutEvent(this, prop, val, old);
+                if (flag === true) this.style(prop, val);
+                if (val !== old )
+                {
+                    this.property(prop, val);
+                    dispatchLayoutEvent(this, prop, val, old);
+                }
             }
             return this;
         }
         return old;
-    }
-
-    /**
-     * 测量当前元素的宽度
-     * @returns {Number|string}
-     */
-    Layout.prototype.width=function(val)
-    {
-      return __property__.call(this,'width', val, true)
-    }
-
-    /**
-     * 测量当前元素的高度
-     * @returns {Number|string}
-     */
-    Layout.prototype.height=function(val)
-    {
-        return __property__.call(this,'height', val, true)
     }
 
     /**
@@ -577,7 +601,7 @@
                 }
             }
         })
-        rootLayout.updateDisplayList();
+        rootLayout.validateDisplayList();
     });
 
     window.Layout=Layout;

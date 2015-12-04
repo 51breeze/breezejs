@@ -37,6 +37,7 @@
         height: 200px;
         display: none;
         position: absolute;
+
     }
 
     .modal > .head
@@ -158,25 +159,35 @@
 
 
 <div class="modal" component="layout" style="display: block" left="10" right="10" top="10" bottom="10" viewport="window">
-    <noscript>
-        this.verification=function()
+   <noscript>
+        this.setLayoutSize=function(width,height)
         {
+           var w = this.width()
+           var h = this.height();
            var head = this.current( '.head' ).height();
            var footer = this.current( '.footer' ).height();
-           var body = this.current( '.body' ).height();
-           console.log( body,head,footer  )
-           this.height(body-head-footer);
-           this.current(null);
-           this.height('300')
+           var body = h-head-footer;
+           this.current( '.body' ).height(body);
+           this.current( '.footer' ).top( head+body )
+           this.current(null)
+
         }
     </noscript>
     <div class="head" explicitHeight="40" data-skin="head">
         <label class="lable">标题</label>
         <span class="close" data-action="close" data-event="click">关闭</span>
     </div>
-    <div class="body" data-skin="body" component="layout"   horizontal="center" gap="5" top="40" style="overflow: auto">
-        <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
+    <div class="body" data-skin="body" component="layout" top="40" bottom="30" style="overflow: auto;">
+        <div component="layout" horizontal="center" gap="5">
+            <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
+            <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
+            <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
+            <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
+            <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
+            <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
+            <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
+            <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
+       </div>
     </div>
     <div class="footer" data-skin="footer" explicitHeight="30" bottom="0" >
         <button data-action="close">取消</button>
