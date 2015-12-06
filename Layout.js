@@ -379,11 +379,25 @@
         var countHeight=children.countHeight;
         var countWidth=children.countWidth;
 
-        if( countHeight >= realHeight )
+        var scrollY=0
+        var scrollX=0
+        if( countHeight > realHeight && this.overflowY() )
         {
-             children = this.measureChildren(realWidth-17, realHeight);
-             countHeight=children.countHeight;
-             countWidth=children.countWidth;
+             scrollY=17
+             this.owner.scrollY=17
+        }
+
+        if( countWidth > realWidth && this.overflowX() )
+        {
+            scrollX=17
+            this.owner.scrollX=17
+        }
+
+        if( scrollX+scrollY > 0  )
+        {
+            children = this.measureChildren( realWidth-scrollY, realHeight-scrollX);
+            countHeight=children.countHeight;
+            countWidth=children.countWidth;
         }
 
         //需要整体排列
@@ -391,8 +405,8 @@
         {
             var gap=this.gap();
             var xOffset, yOffset, index=0;
-            xOffset = Math.floor((realWidth-countWidth - gap ) * h);
-            yOffset = Math.floor((realHeight - countHeight - gap ) * v);
+            xOffset = Math.floor((realWidth-countWidth - gap -scrollY ) * h);
+            yOffset = Math.floor((realHeight - countHeight - gap - scrollX ) * v);
             for( ; index < children.grid.length ; index++ )
             {
                 var child = children.grid[index];
