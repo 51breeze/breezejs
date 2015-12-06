@@ -105,6 +105,43 @@
             this.current(null);
         }
         this.data('layout', this);
+
+        var doc = this[0].document || this[0].ownerDocument;
+        var win =  Utils.getWindow(this[0]);
+        var _viewport = Utils.contains(doc.body, this[0]) ? this[0].parentNode : doc.body;
+            _viewport = doc.body === _viewport ? win : _viewport;
+        var map={'body':doc.body,'window': Utils.getWindow(this[0]), 'document':win.document }
+
+        /**
+         * @param viewport
+         * @returns {Function|Node}
+         */
+        this.viewport=function( viewport )
+        {
+            if( typeof viewport === "undefined" )
+              return _viewport;
+
+            if( typeof viewport === "string" )
+            {
+                if( map[viewport] )
+                {
+                    viewport= map[viewport];
+
+                }else
+                {
+                    viewport=Sizzle(viewport,doc.body );
+                    if( viewport.length > 0 ) viewport=viewport[0];
+                }
+            }
+
+            if( Utils.isHTMLElement(viewport) )
+            {
+                _viewport=viewport;
+                return this;
+            }
+            throw new Error('invaild viewport')
+        }
+
     }
 
     /**
@@ -130,7 +167,10 @@
             }
             rootLayout.addEventListener( BreezeEvent.RESIZE ,function(event)
             {
-                this.validateDisplayList();
+                var viewport = rootLayout.viewport()
+                var width =  Utils.getSize(viewport, 'width');
+                var height=  Utils.getSize(viewport, 'height');
+                this.updateDisplayList(  width , height  );
             });
         }
         return rootLayout;
@@ -189,8 +229,7 @@
         }
         var left = this.left() || 0;
         var right = this.right() || 0;
-        var paddingWidth  = ( parseInt( this.style('paddingLeft') ) || 0 ) + ( parseInt( this.style('paddingRight') )  || 0);
-        width-=left+right+paddingWidth;
+        width-=left+right;
         return this.getMaxOrMinWidth( width );
     }
 
@@ -208,8 +247,7 @@
         }
         var bottom = this.bottom() || 0;
         var top = this.top() || 0;
-        var paddingHeight = ( parseInt( this.style('paddingTop') )  || 0 ) + ( parseInt( this.style('paddingBottom') ) || 0);
-        height-=bottom+top+paddingHeight;
+        height-=bottom+top;
         return this.getMaxOrMinHeight( height );
     }
 
@@ -233,37 +271,13 @@
         return Math.min( Math.max( this.minHeight() || height , height ), this.maxHeight() || height );
     }
 
-    /**
-     * 估算视口可见大小
-     * @returns {{width: *, height: *}}
-     */
-    Layout.prototype.parentSize=function()
-    {
-        var doc = this[0].document || this[0].ownerDocument;
-        var parent = Utils.contains(doc.body,this[0]) ? this[0].parentNode : doc.body;
-            parent = doc.body===parent ? Utils.getWindow(this[0]) : parent;
-        return {'width':Utils.getSize( parent , 'width'),'height':Utils.getSize( parent , 'height')};
-    }
-
-    /**
-     * @returns {Layout}
-     */
-    Layout.prototype.measureSize=function()
-    {
-        if( this !== Layout.rootLayout() )
-        {
-            var doc = this[0].document || this[0].ownerDocument;
-            var parent = Utils.contains(doc.body, this[0]) ? this[0].parentNode : doc.body;
-            parent = doc.body === parent ? Utils.getWindow(this[0]) : parent;
-            this.width(this.calculateWidth(Utils.getSize(parent, 'width')))
-                .height(this.calculateHeight(Utils.getSize(parent, 'height')));
-        }
-        return this;
-    }
 
     Layout.prototype.validateDisplayList=function()
     {
-        this.measureSize();
+        var viewport = this.viewport();
+        this.width( this.calculateWidth( Utils.getSize(viewport, 'width') ) );
+        this.height(this.calculateHeight( Utils.getSize(viewport, 'height') ) );
+
         //更新子布局的显示列表
         if( this.childrenItem.length > 0 )
         {
@@ -276,115 +290,120 @@
         this.updateDisplayList();
     }
 
+    Layout.prototype.measureChildren=function(parentWidth,parentHeight)
+    {
+        var paddingLeft  = parseInt( this.style('paddingLeft') )  || 0
+        var paddingRight = parseInt( this.style('paddingRight') ) || 0;
+        var paddingTop   =  parseInt( this.style('paddingTop') )  || 0
+        var paddingBottom= parseInt( this.style('paddingBottom') )|| 0;
+        var gap=this.gap()
+            ,grid=[]
+            ,x=gap+paddingLeft,y=gap+paddingTop,maxHeight=0,countHeight= 0,countWidth=0;
+
+        var target = this.current();
+        if( target && target.childNodes && target.childNodes.length>0 )
+        {
+            var len = target.childNodes.length, index=0;
+            for( ; index<len; index++)
+            {
+                var child = target.childNodes.item( index );
+                if( child.nodeType===1 )
+                {
+                    this.current( child );
+                    this.style('position','absolute');
+                    var childWidth=this.width() || this.calculateWidth( parentWidth );
+                    var childHeight=this.height() || this.calculateHeight( parentHeight );
+
+                    var marginLeft = parseInt( this.style('marginLeft') ) || 0;
+                    var marginRight = parseInt( this.style('marginRight') ) || 0;
+                    var marginTop = parseInt( this.style('marginTop') ) || 0;
+                    var marginBottom = parseInt( this.style('marginBottom') ) || 0;
+
+                    //从第二个子级元素开始，如大于了容器宽度则换行
+                    if (x + childWidth+gap+marginLeft+marginRight+paddingRight > parentWidth && index > 0)
+                    {
+                        y += maxHeight;
+                        x = gap+paddingLeft;
+                        maxHeight = 0;
+                    }
+                    grid.push({'target': child, 'left': x, 'top': y,'width':childWidth,'height':childHeight});
+                    x += childWidth+gap+marginLeft+marginRight;
+                    maxHeight = Math.max(maxHeight, childHeight + gap+marginTop+marginBottom);
+                    countHeight = maxHeight + y;
+                    countWidth = Math.max(countWidth, x+paddingRight );
+                }
+            }
+            this.current( null );
+        }
+        return {'countWidth':countWidth,'countHeight':countHeight,'grid':grid}
+    }
+
+    Layout.prototype.overflowY=function()
+    {
+        var overflowY= this.style('overflowY');
+        return !(overflowY === 'hidden' || overflowY==='visible');
+    }
+
+    Layout.prototype.overflowX=function()
+    {
+        var overflowX= this.style('overflowX');
+        return !(overflowX === 'hidden' || overflowX==='visible');
+    }
+
     /**
      * 更新布局视图
      * @returns {Layout}
      */
-    Layout.prototype.updateDisplayList=function(width,height)
+    Layout.prototype.updateDisplayList=function(parentWidth,parentHeight)
     {
-        if( this === Layout.rootLayout() )
-            return;
+        var  realHeight=this.calculateHeight(parentHeight);
+        var  realWidth= this.calculateWidth(parentWidth);
+
+        //更新子布局的显示列表
+        if( this.childrenItem.length > 0 )
+        {
+            var i=0;
+            for( ; i < this.childrenItem.length; i++ )
+            {
+                this.childrenItem[i].updateDisplayList(realWidth,realHeight);
+            }
+        }
 
         var horizontalAlign=this.horizontal()
             ,verticalAlign=this.vertical()
-            ,gap=this.gap()
             ,h=horizontalAlign===horizontal[1] ? 0.5 : horizontalAlign===horizontal[2] ? 1 : 0
             ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0
-            ,flag=h+v > 0
-            ,grid=[]
-            ,columns=[]
-            ,x=gap,y=gap,maxHeight=0,countHeight= 0,countWidth=0;
-
-        width= this.width();
-        height=this.height();
-
-        var paddingWidth  = ( parseInt( this.style('paddingLeft') ) || 0 ) + ( parseInt( this.style('paddingRight') )  || 0);
-        var paddingHeight = ( parseInt( this.style('paddingTop') )  || 0 ) + ( parseInt( this.style('paddingBottom') ) || 0);
-
-        var parentWidth =  width //-paddingWidth;
-        var parentHeight = height //-paddingHeight;
 
         //计算子级元素需要排列的位置
-        this.children(':not([includeLayout=false][component="layout"])').forEach(function(child,index)
+        var children = this.measureChildren(realWidth, realHeight);
+        var countHeight=children.countHeight;
+        var countWidth=children.countWidth;
+
+        if( countHeight >= realHeight )
         {
-            this.style('position','absolute');
-            var childWidth=parseInt(this.property('width')) || this.calculateWidth( parentWidth )
-                ,childHeight=parseInt(this.property('height')) || this.calculateHeight( parentHeight );
-
-            var marginLeft = parseInt( this.style('marginLeft') ) || 0;
-            var marginRight = parseInt( this.style('marginRight') ) || 0;
-            var marginTop = parseInt( this.style('marginTop') ) || 0;
-            var marginBottom = parseInt( this.style('marginBottom') ) || 0;
-
-            //从第二个子级元素开始，如大于了容器宽度则换行
-            if (x + childWidth+gap+marginLeft+marginRight > parentWidth && index > 0)
-            {
-                if (flag) {
-                    columns.push(x);
-                    grid.push(columns);
-                    columns = [];
-                }
-                countWidth = Math.max(countWidth, x);
-                y += maxHeight;
-                x = gap;
-                maxHeight = 0;
-            }
-
-            if (flag)
-            {
-                columns.push({'target': child, 'left': x, 'top': y});
-
-            }else
-            {
-                this.style('left', x);
-                this.style('top',y);
-            }
-
-            x += childWidth+gap+marginLeft+marginRight;
-            maxHeight = Math.max(maxHeight, childHeight + gap+marginTop+marginBottom);
-            countHeight = maxHeight + y;
-            countWidth = Math.max(countWidth, x);
-            this.width(childWidth).height(childHeight);
-
-        }).revert();
-
-        if( countHeight > height )
-            width-=17;
-        if( countWidth > width )
-            height-=17;
+             children = this.measureChildren(realWidth-17, realHeight);
+             countHeight=children.countHeight;
+             countWidth=children.countWidth;
+        }
 
         //需要整体排列
-        if( columns.length > 0 )
+        if( children.grid.length > 0 )
         {
-            columns.push(countWidth);
-            grid.push(columns)
-            var items, size, xOffset, yOffset, index, b;
-            xOffset = Math.floor((width-countWidth - gap - paddingWidth ) * h);
-            yOffset = Math.floor((height - countHeight - gap - paddingHeight ) * v);
-
-            for (index in grid)
+            var gap=this.gap();
+            var xOffset, yOffset, index=0;
+            xOffset = Math.floor((realWidth-countWidth - gap ) * h);
+            yOffset = Math.floor((realHeight - countHeight - gap ) * v);
+            for( ; index < children.grid.length ; index++ )
             {
-                items = grid[index].splice(0, grid[index].length - 1);
-                size = grid[index];
-                for (b in items)
-                {
-                    Utils.style(items[b].target, 'left', items[b].left + xOffset);
-                    Utils.style(items[b].target, 'top', items[b].top + yOffset);
-                }
+                var child = children.grid[index];
+                Utils.style(child.target, 'left', child.left + xOffset );
+                Utils.style(child.target, 'top', child.top + yOffset );
+                Utils.style(child.target, 'width', child.width );
+                Utils.style(child.target, 'height', child.height );
             }
         }
-        this.setLayoutSize( Math.max(parentWidth, countWidth ),  Math.max(parentHeight, countHeight) );
-    }
-
-    /**
-     * 重新验证子级
-     */
-    Layout.prototype.setLayoutSize=function(width,height)
-    {
-        this.width( width );
-        this.height( height );
-        this.property('width', width );
-        this.property('height', height );
+        this.height( !this.overflowY() ? Math.max(realHeight, countHeight) : realHeight );
+        this.width( !this.overflowX() ? Math.max(realWidth, countWidth) : realWidth );
     }
 
     /**
@@ -392,13 +411,13 @@
      */
     var __property__ = function(prop, val , flag )
     {
-        var old = parseInt( this.property(prop,val) );
+        var old = parseInt( this.property(prop) );
         if( typeof val !== "undefined" )
         {
             val =  parseInt( val );
             if( this !== rootLayout )
             {
-                if (flag === true) this.style(prop, val);
+                if ( flag ) this.style( flag !== true ? flag : prop, val);
                 if (val !== old )
                 {
                     this.property(prop, val);
@@ -451,23 +470,43 @@
     }
 
     /**
-     * 设置获取指定的宽度
+     * 设置获取元素的宽度
+     * @param val
+     * @returns {*}
+     */
+    Layout.prototype.width=function(val)
+    {
+        return __property__.call(this,'width',val, true );
+    }
+
+    /**
+     * 设置获取元素的高度
+     * @param val
+     * @returns {*}
+     */
+    Layout.prototype.height=function(val)
+    {
+        return __property__.call(this,'height',val, true );
+    }
+
+    /**
+     * 设置获取指定明确的宽度
      * @param val
      * @returns {*}
      */
     Layout.prototype.explicitWidth=function(val)
     {
-        return __property__.call(this,'explicitWidth',val);
+        return __property__.call(this,'explicitWidth',val,'width');
     }
 
     /**
-     * 设置获取指定的高度
+     * 设置获取指定明确的高度
      * @param val
      * @returns {*}
      */
     Layout.prototype.explicitHeight=function(val)
     {
-        return __property__.call(this,'explicitHeight',val);
+        return __property__.call(this,'explicitHeight',val,'height');
     }
 
     /**
@@ -477,7 +516,7 @@
      */
     Layout.prototype.percentWidth=function(val)
     {
-        return __property__.call(this,'percentWidth',val);
+        return __property__.call(this,'percentWidth',val, false );
     }
 
     /**
@@ -487,7 +526,7 @@
      */
     Layout.prototype.percentHeight=function(val)
     {
-        return __property__.call(this,'percentHeight',val);
+        return __property__.call(this,'percentHeight',val, false);
     }
 
     /**
@@ -577,7 +616,7 @@
      */
     Layout.prototype.gap=function(val)
     {
-        return __property__.call(this,'gap', val ) || 0;
+        return __property__.call(this,'gap', val ,false) || 0;
     }
 
     //初始化布局组件
@@ -601,7 +640,11 @@
                 }
             }
         })
-        rootLayout.validateDisplayList();
+
+        var viewport = rootLayout.viewport()
+        var width =  Utils.getSize(viewport, 'width');
+        var height=  Utils.getSize(viewport, 'height');
+        rootLayout.updateDisplayList(  width , height  );
     });
 
     window.Layout=Layout;
