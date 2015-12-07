@@ -22,13 +22,13 @@
     ,vertical=['top','middle','bottom']
     ,dispatchLayoutEvent = function(target,property,newVal,oldVal)
     {
-        if( target.hasEventListener(PropertyEvent.PROPERTY_CHANGE) )
+        if( target.hasEventListener(LayoutEvent.LAYOUT_CHANGE) )
         {
-            var event=new LayoutEvent( PropertyEvent.LAYOUT_CHANGE );
+            var event=new LayoutEvent( LayoutEvent.LAYOUT_CHANGE );
             event.newValue=newVal;
             event.oldValue=oldVal;
             event.property=property;
-            target.dispatchEvent(  event );
+            //target.dispatchEvent(  event );
         }
     }
 
@@ -40,14 +40,32 @@
     LayoutEvent.LAYOUT_CHANGE='layoutChange';
     LayoutEvent=LayoutEvent;
 
-    //根据元素查找所属的父布局对象
-    function getOwnerByElement( element )
+    /**
+     * @private
+     */
+    var __method__ = function(prop, val , flag )
     {
-        var index;
-        if( element && rootLayout && window.document.body !== element ) for( index in layouts )
-            if( layouts[index][0]===element ) return layouts[index];
-        return null;
+        if( this.current() instanceof Layout )
+            return this.current()[ prop ]( val );
+        var old = parseInt( this.property(prop) );
+
+        if( typeof val !== "undefined" )
+        {
+            val =  parseInt( val );
+            if( this !== rootLayout )
+            {
+                if ( flag ) this.style( flag !== true ? flag : prop, val);
+                if (val !== old )
+                {
+                    this.property(prop, val);
+                    dispatchLayoutEvent(this, prop, val, old);
+                }
+            }
+            return this;
+        }
+        return old;
     }
+
 
     /**
      * Layout
@@ -103,6 +121,7 @@
                 parent= parent.parentNode;
             }while( parent );
             this.current(null);
+            this.initialized=rootLayout.initialized;
         }
         this.data('layout', this);
 
@@ -142,6 +161,16 @@
             throw new Error('invaild viewport')
         }
 
+        this.addEventListener(LayoutEvent.LAYOUT_CHANGE,function(event)
+        {
+           /*  var width = this.width();
+            var height = this.height();
+            for( var index=0; index < this.childrenItem.length ; index++ )
+            {
+               // this.childrenItem[ index ].updateDisplayList(width,height);
+            }*/
+        })
+
     }
 
     /**
@@ -151,6 +180,12 @@
     Layout.prototype=new Breeze();
     Layout.prototype.owner=null;
     Layout.prototype.childrenItem=[];
+    Layout.prototype.scrollWidth=0;
+    Layout.prototype.scrollHeight=0;
+    Layout.prototype.overflowHeight=0;
+    Layout.prototype.overflowWidth=0;
+    Layout.prototype.invalidate=false;
+    Layout.prototype.initialized=false;
 
     /**
      * 初始化根布局容器
@@ -176,6 +211,17 @@
         return rootLayout;
     }
 
+    Layout.prototype.validateNow=function()
+    {
+
+    }
+
+    Layout.prototype.commitProperty=function()
+    {
+
+    }
+
+
     /**
      * 输出布局组件名称
      * @returns {string}
@@ -183,36 +229,6 @@
     Layout.prototype.toString=function()
     {
         return 'Layout '+this.__COUNTER__;
-    }
-
-    /**
-     * 测量元素的宽度
-     * @returns {Number|string|*}
-     */
-    Layout.prototype.measureWidth=function( parentWidth )
-    {
-        var width=this.explicitWidth() || this.width();
-        if( isNaN( width ) )
-        {
-            var percent = this.percentWidth() || 100;
-            width= percent / 100 * parentWidth ;
-        }
-        return width;
-    }
-
-    /**
-     * 测量元素的宽度
-     * @returns {Number|string|*}
-     */
-    Layout.prototype.measureHeight=function(parentHeight)
-    {
-        var height=this.explicitHeight() || this.height();
-        if( isNaN( height ) )
-        {
-            var percent = this.percentHeight() || 100;
-            height= percent / 100 * parentHeight ;
-        }
-        return height;
     }
 
     /**
@@ -272,11 +288,11 @@
     }
 
 
-    Layout.prototype.validateDisplayList=function()
+    Layout.prototype.validateDisplayList=function( parentWidth, parentHeight )
     {
-        var viewport = this.viewport();
-        this.width( this.calculateWidth( Utils.getSize(viewport, 'width') ) );
-        this.height(this.calculateHeight( Utils.getSize(viewport, 'height') ) );
+        //计算当前布局可用的大小
+        var  realHeight= this.calculateWidth( parentWidth ) ;
+        var  realWidth= this.calculateHeight( parentHeight ) ;
 
         //更新子布局的显示列表
         if( this.childrenItem.length > 0 )
@@ -284,10 +300,21 @@
             var i=0;
             for( ; i < this.childrenItem.length; i++ )
             {
-                this.childrenItem[i].validateDisplayList();
+                var viewport = this.childrenItem[i].viewport();
+                //当前元素为子级元素的视口时
+                if( this.current() === viewport )
+                {
+                    this.childrenItem[i].updateDisplayList(realWidth, realHeight);
+                }
+                //当前的子级布局的视口元素不是一个布局组件
+                else
+                {
+                    this.childrenItem[i].updateDisplayList( Utils.getSize(viewport,'width'),  Utils.getSize(viewport,'height') );
+                }
             }
         }
-        this.updateDisplayList();
+        this.updateDisplayList(realWidth,realHeight);
+        return this;
     }
 
     Layout.prototype.measureChildren=function(parentWidth,parentHeight)
@@ -311,8 +338,15 @@
                 {
                     this.current( child );
                     this.style('position','absolute');
-                    var childWidth=this.width() || this.calculateWidth( parentWidth );
-                    var childHeight=this.height() || this.calculateHeight( parentHeight );
+                    var childWidth = this.calculateWidth( parentWidth );
+                    var childHeight= this.calculateHeight( parentHeight );
+
+                    var layout = this.data('layout');
+                    if( layout instanceof Layout)
+                    {
+                        console.log( this.hasScroll, this.current() )
+                    }
+
 
                     var marginLeft = parseInt( this.style('marginLeft') ) || 0;
                     var marginRight = parseInt( this.style('marginRight') ) || 0;
@@ -338,17 +372,38 @@
         return {'countWidth':countWidth,'countHeight':countHeight,'grid':grid}
     }
 
+    /**
+     * @param x
+     * @param y
+     * @returns {Layout}
+     */
+    Layout.prototype.moveTo=function(x,y)
+    {
+        if( this.current() instanceof Layout )
+            return this.current().moveTo(x,y);
+        Breeze.prototype.left.call(this,x);
+        Breeze.prototype.top.call(this,y);
+        return this;
+    }
+
+    /**
+     * @returns {boolean}
+     */
     Layout.prototype.overflowY=function()
     {
         var overflowY= this.style('overflowY');
         return !(overflowY === 'hidden' || overflowY==='visible');
     }
 
+    /**
+     * @returns {boolean}
+     */
     Layout.prototype.overflowX=function()
     {
         var overflowX= this.style('overflowX');
         return !(overflowX === 'hidden' || overflowX==='visible');
     }
+
 
     /**
      * 更新布局视图
@@ -356,6 +411,7 @@
      */
     Layout.prototype.updateDisplayList=function(parentWidth,parentHeight)
     {
+        //计算当前布局可用的大小
         var  realHeight=this.calculateHeight(parentHeight);
         var  realWidth= this.calculateWidth(parentWidth);
 
@@ -365,7 +421,17 @@
             var i=0;
             for( ; i < this.childrenItem.length; i++ )
             {
-                this.childrenItem[i].updateDisplayList(realWidth,realHeight);
+                var viewport = this.childrenItem[i].viewport();
+                //当前元素为子级元素的视口时
+                if( this.current() === viewport )
+                {
+                    this.childrenItem[i].updateDisplayList(realWidth, realHeight);
+                }
+                //当前的子级布局的视口元素不是一个布局组件
+                else
+                {
+                    this.childrenItem[i].updateDisplayList( Utils.getSize(viewport,'width'),  Utils.getSize(viewport,'height') );
+                }
             }
         }
 
@@ -375,72 +441,62 @@
             ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0
 
         //计算子级元素需要排列的位置
-        var children = this.measureChildren(realWidth, realHeight);
+        var children = this.measureChildren(realWidth-this.scrollWidth, realHeight-this.scrollHeight);
         var countHeight=children.countHeight;
         var countWidth=children.countWidth;
 
-        var scrollY=0
-        var scrollX=0
+        this.scrollWidth=0;
+        this.scrollHeight=0;
+
+        //标记此容器有垂直滚动条
         if( countHeight > realHeight && this.overflowY() )
-        {
-             scrollY=17
-             this.owner.scrollY=17
-        }
+            this.scrollWidth = 17;
 
+        //标记此容器有水平滚动条
         if( countWidth > realWidth && this.overflowX() )
+            this.scrollHeight = 17;
+
+        console.log(this.scrollWidth,  this.scrollHeight)
+
+        if( !this.hasScroll && (this.scrollWidth > 0 || this.scrollHeight > 0) )
         {
-            scrollX=17
-            this.owner.scrollX=17
+            this.hasScroll=true;
+            this.updateDisplayList(parentWidth,parentHeight);
+           // return
+
+        }else if( this.hasScroll && this.scrollWidth === 0 && this.scrollHeight === 0 )
+        {
+            this.hasScroll=false;
+            this.updateDisplayList(parentWidth,parentHeight);
+           // return
         }
 
-        if( scrollX+scrollY > 0  )
-        {
-            children = this.measureChildren( realWidth-scrollY, realHeight-scrollX);
-            countHeight=children.countHeight;
-            countWidth=children.countWidth;
-        }
 
         //需要整体排列
         if( children.grid.length > 0 )
         {
             var gap=this.gap();
             var xOffset, yOffset, index=0;
-            xOffset = Math.floor((realWidth-countWidth - gap -scrollY ) * h);
-            yOffset = Math.floor((realHeight - countHeight - gap - scrollX ) * v);
+            xOffset = Math.floor((realWidth-countWidth - gap - this.scrollWidth  ) * h);
+            yOffset = Math.floor((realHeight - countHeight - gap -this.scrollHeight  ) * v);
             for( ; index < children.grid.length ; index++ )
             {
                 var child = children.grid[index];
-                Utils.style(child.target, 'left', child.left + xOffset );
-                Utils.style(child.target, 'top', child.top + yOffset );
-                Utils.style(child.target, 'width', child.width );
-                Utils.style(child.target, 'height', child.height );
+                this.current( child.target );
+                this.moveTo(  child.left + xOffset, child.top + yOffset );
+                this.height( child.height );
+                this.width( child.width );
             }
+            this.current( null );
         }
-        this.height( !this.overflowY() ? Math.max(realHeight, countHeight) : realHeight );
-        this.width( !this.overflowX() ? Math.max(realWidth, countWidth) : realWidth );
-    }
 
-    /**
-     * @private
-     */
-    var __property__ = function(prop, val , flag )
-    {
-        var old = parseInt( this.property(prop) );
-        if( typeof val !== "undefined" )
-        {
-            val =  parseInt( val );
-            if( this !== rootLayout )
-            {
-                if ( flag ) this.style( flag !== true ? flag : prop, val);
-                if (val !== old )
-                {
-                    this.property(prop, val);
-                    dispatchLayoutEvent(this, prop, val, old);
-                }
-            }
-            return this;
-        }
-        return old;
+        realHeight=!this.overflowY() ? Math.max(realHeight, countHeight) : realHeight;
+        realWidth=!this.overflowX() ? Math.max(realWidth, countWidth) : realWidth;
+        this.overflowHeight= Math.max(countHeight-realHeight,0);
+        this.overflowWidth = Math.max(countWidth-realWidth,0);
+
+        this.height( realHeight );
+        this.width( realWidth );
     }
 
     /**
@@ -450,7 +506,7 @@
      */
     Layout.prototype.left=function(val)
     {
-       return __property__.call(this,'left',val, true);
+       return __method__.call(this,'left',val, true);
     }
 
     /**
@@ -460,7 +516,7 @@
      */
     Layout.prototype.top=function(val)
     {
-        return __property__.call(this,'top',val, true);
+        return __method__.call(this,'top',val, true);
     }
 
     /**
@@ -470,7 +526,7 @@
      */
     Layout.prototype.right=function(val)
     {
-        return __property__.call(this,'right',val, true);
+        return __method__.call(this,'right',val, true);
     }
 
     /**
@@ -480,7 +536,7 @@
      */
     Layout.prototype.bottom=function(val)
     {
-        return __property__.call(this,'bottom',val, true);
+        return __method__.call(this,'bottom',val, true);
     }
 
     /**
@@ -490,7 +546,7 @@
      */
     Layout.prototype.width=function(val)
     {
-        return __property__.call(this,'width',val, true );
+        return __method__.call(this,'width',val, true );
     }
 
     /**
@@ -500,7 +556,7 @@
      */
     Layout.prototype.height=function(val)
     {
-        return __property__.call(this,'height',val, true );
+        return __method__.call(this,'height',val, true );
     }
 
     /**
@@ -510,7 +566,7 @@
      */
     Layout.prototype.explicitWidth=function(val)
     {
-        return __property__.call(this,'explicitWidth',val,'width');
+        return __method__.call(this,'explicitWidth',val,'width');
     }
 
     /**
@@ -520,7 +576,7 @@
      */
     Layout.prototype.explicitHeight=function(val)
     {
-        return __property__.call(this,'explicitHeight',val,'height');
+        return __method__.call(this,'explicitHeight',val,'height');
     }
 
     /**
@@ -530,7 +586,7 @@
      */
     Layout.prototype.percentWidth=function(val)
     {
-        return __property__.call(this,'percentWidth',val, false );
+        return __method__.call(this,'percentWidth',val, false );
     }
 
     /**
@@ -540,7 +596,7 @@
      */
     Layout.prototype.percentHeight=function(val)
     {
-        return __property__.call(this,'percentHeight',val, false);
+        return __method__.call(this,'percentHeight',val, false);
     }
 
     /**
@@ -550,7 +606,7 @@
      */
     Layout.prototype.maxWidth=function(val)
     {
-        return __property__.call(this,'maxWidth',val, true);
+        return __method__.call(this,'maxWidth',val, true);
     }
 
     /**
@@ -560,7 +616,7 @@
      */
     Layout.prototype.maxHeight=function(val)
     {
-        return __property__.call(this,'maxHeight',val, true);
+        return __method__.call(this,'maxHeight',val, true);
     }
 
     /**
@@ -570,7 +626,7 @@
      */
     Layout.prototype.minWidth=function(val)
     {
-        return __property__.call(this,'minWidth',val, true);
+        return __method__.call(this,'minWidth',val, true);
     }
 
     /**
@@ -580,7 +636,7 @@
      */
     Layout.prototype.minHeight=function(val)
     {
-        return __property__.call(this,'minHeight',val, true);
+        return __method__.call(this,'minHeight',val, true);
     }
 
     /**
@@ -630,7 +686,7 @@
      */
     Layout.prototype.gap=function(val)
     {
-        return __property__.call(this,'gap', val ,false) || 0;
+        return __method__.call(this,'gap', val ,false) || 0;
     }
 
     //初始化布局组件
@@ -652,13 +708,15 @@
                        layout[ method[prop] ]( value );
                     }
                 }
+                layout.initialized=true;
             }
         })
 
         var viewport = rootLayout.viewport()
         var width =  Utils.getSize(viewport, 'width');
         var height=  Utils.getSize(viewport, 'height');
-        rootLayout.updateDisplayList(  width , height  );
+            rootLayout.updateDisplayList(  width , height  );
+            rootLayout.initialized=true;
     });
 
     window.Layout=Layout;
