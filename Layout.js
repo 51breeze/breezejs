@@ -28,7 +28,7 @@
             event.newValue=newVal;
             event.oldValue=oldVal;
             event.property=property;
-            //target.dispatchEvent(  event );
+            target.dispatchEvent(  event );
         }
     }
 
@@ -58,6 +58,7 @@
                 if (val !== old )
                 {
                     this.property(prop, val);
+                    this.invalidate=false;
                     dispatchLayoutEvent(this, prop, val, old);
                 }
             }
@@ -287,36 +288,6 @@
         return Math.min( Math.max( this.minHeight() || height , height ), this.maxHeight() || height );
     }
 
-
-    Layout.prototype.validateDisplayList=function( parentWidth, parentHeight )
-    {
-        //计算当前布局可用的大小
-        var  realHeight= this.calculateWidth( parentWidth ) ;
-        var  realWidth= this.calculateHeight( parentHeight ) ;
-
-        //更新子布局的显示列表
-        if( this.childrenItem.length > 0 )
-        {
-            var i=0;
-            for( ; i < this.childrenItem.length; i++ )
-            {
-                var viewport = this.childrenItem[i].viewport();
-                //当前元素为子级元素的视口时
-                if( this.current() === viewport )
-                {
-                    this.childrenItem[i].updateDisplayList(realWidth, realHeight);
-                }
-                //当前的子级布局的视口元素不是一个布局组件
-                else
-                {
-                    this.childrenItem[i].updateDisplayList( Utils.getSize(viewport,'width'),  Utils.getSize(viewport,'height') );
-                }
-            }
-        }
-        this.updateDisplayList(realWidth,realHeight);
-        return this;
-    }
-
     Layout.prototype.measureChildren=function(parentWidth,parentHeight)
     {
         var paddingLeft  = parseInt( this.style('paddingLeft') )  || 0
@@ -336,31 +307,48 @@
                 var child = target.childNodes.item( index );
                 if( child.nodeType===1 )
                 {
-                    this.current( child );
-                    this.style('position','absolute');
-                    var childWidth = this.calculateWidth( parentWidth );
-                    var childHeight= this.calculateHeight( parentHeight );
+                    var childWidth = 0;
+                    var childHeight= 0;
+                    var marginLeft = 0;
+                    var marginRight = 0;
+                    var marginTop = 0;
+                    var marginBottom = 0;
 
-                    var layout = this.data('layout');
-                    if( layout instanceof Layout)
+                    if( Utils.storage(child,'layout') instanceof Layout )
                     {
-                        console.log( this.hasScroll, this.current() )
+                        child=Utils.storage(child,'layout');
+                        childWidth = child.width();
+                        childHeight= child.height();
+                        marginLeft = parseInt( child.style('marginLeft') ) || 0;
+                        marginRight = parseInt( child.style('marginRight') ) || 0;
+                        marginTop = parseInt( child.style('marginTop') ) || 0;
+                        marginBottom = parseInt( child.style('marginBottom') ) || 0;
+
+
+                    }else
+                    {
+                        if( child.getAttribute( 'includeLayout' )==='false' )
+                           continue;
+                         Utils.style(child,'position','absolute')
+                         this.current(child);
+                         childWidth = this.calculateWidth( parentWidth );
+                         childHeight= this.calculateHeight( parentHeight );
+                         this.current(null);
+                         marginLeft = parseInt( Utils.style(child,'marginLeft') ) || 0;
+                         marginRight = parseInt( Utils.style(child,'marginRight') ) || 0;
+                         marginTop = parseInt( Utils.style(child,'marginTop') ) || 0;
+                         marginBottom = parseInt( Utils.style(child,'marginBottom') ) || 0;
+
                     }
-
-
-                    var marginLeft = parseInt( this.style('marginLeft') ) || 0;
-                    var marginRight = parseInt( this.style('marginRight') ) || 0;
-                    var marginTop = parseInt( this.style('marginTop') ) || 0;
-                    var marginBottom = parseInt( this.style('marginBottom') ) || 0;
 
                     //从第二个子级元素开始，如大于了容器宽度则换行
                     if (x + childWidth+gap+marginLeft+marginRight+paddingRight > parentWidth && index > 0)
                     {
                         y += maxHeight;
-                        x = gap+paddingLeft;
+                        x = gap+paddingLeft+marginLeft;
                         maxHeight = 0;
                     }
-                    grid.push({'target': child, 'left': x, 'top': y,'width':childWidth,'height':childHeight});
+                    grid.push({'target': child, 'left': x+marginLeft, 'top': y+marginTop,'width':childWidth,'height':childHeight});
                     x += childWidth+gap+marginLeft+marginRight;
                     maxHeight = Math.max(maxHeight, childHeight + gap+marginTop+marginBottom);
                     countHeight = maxHeight + y;
@@ -369,7 +357,29 @@
             }
             this.current( null );
         }
-        return {'countWidth':countWidth,'countHeight':countHeight,'grid':grid}
+        this.childWidth=countWidth;
+        this.childHeight=countHeight;
+
+        this.scrollWidth=0;
+        this.scrollHeight=0;
+
+        //标记此容器有水平滚动条
+        if( this.childHeight > parentHeight && this.overflowY() )
+            this.scrollWidth = 17;
+        if( this.childWidth > parentWidth && this.overflowX() )
+            this.scrollHeight = 17;
+
+        if( !this.hasScroll && (this.scrollWidth > 0 || this.scrollHeight > 0) )
+        {
+            this.hasScroll=true;
+            this.invalidate=false;
+
+        }else if( this.hasScroll && (this.scrollWidth === 0 || this.scrollHeight === 0) )
+        {
+            this.hasScroll=false;
+            this.invalidate=false;
+        }
+        return grid;
     }
 
     /**
@@ -381,6 +391,10 @@
     {
         if( this.current() instanceof Layout )
             return this.current().moveTo(x,y);
+
+        if( this === rootLayout )
+           return this;
+
         Breeze.prototype.left.call(this,x);
         Breeze.prototype.top.call(this,y);
         return this;
@@ -404,13 +418,23 @@
         return !(overflowX === 'hidden' || overflowX==='visible');
     }
 
-
     /**
      * 更新布局视图
      * @returns {Layout}
      */
     Layout.prototype.updateDisplayList=function(parentWidth,parentHeight)
     {
+        if( this.invalidate )return;
+        this.invalidate=true;
+
+        //获取视口大小
+        if( typeof parentWidth === "undefined" || typeof parentHeight === "undefined" )
+        {
+            var viewport = this.viewport();
+            parentWidth = Utils.getSize(viewport,'width');
+            parentHeight= Utils.getSize(viewport,'height');
+        }
+
         //计算当前布局可用的大小
         var  realHeight=this.calculateHeight(parentHeight);
         var  realWidth= this.calculateWidth(parentWidth);
@@ -421,16 +445,15 @@
             var i=0;
             for( ; i < this.childrenItem.length; i++ )
             {
-                var viewport = this.childrenItem[i].viewport();
                 //当前元素为子级元素的视口时
-                if( this.current() === viewport )
+                if( this.current() === this.childrenItem[i].viewport() )
                 {
                     this.childrenItem[i].updateDisplayList(realWidth, realHeight);
                 }
                 //当前的子级布局的视口元素不是一个布局组件
                 else
                 {
-                    this.childrenItem[i].updateDisplayList( Utils.getSize(viewport,'width'),  Utils.getSize(viewport,'height') );
+                    this.childrenItem[i].updateDisplayList( undefined, undefined );
                 }
             }
         }
@@ -441,60 +464,41 @@
             ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0
 
         //计算子级元素需要排列的位置
-        var children = this.measureChildren(realWidth-this.scrollWidth, realHeight-this.scrollHeight);
-        var countHeight=children.countHeight;
-        var countWidth=children.countWidth;
-
-        this.scrollWidth=0;
-        this.scrollHeight=0;
-
-        //标记此容器有垂直滚动条
-        if( countHeight > realHeight && this.overflowY() )
-            this.scrollWidth = 17;
-
-        //标记此容器有水平滚动条
-        if( countWidth > realWidth && this.overflowX() )
-            this.scrollHeight = 17;
-
-        console.log(this.scrollWidth,  this.scrollHeight)
-
-        if( !this.hasScroll && (this.scrollWidth > 0 || this.scrollHeight > 0) )
-        {
-            this.hasScroll=true;
-            this.updateDisplayList(parentWidth,parentHeight);
-           // return
-
-        }else if( this.hasScroll && this.scrollWidth === 0 && this.scrollHeight === 0 )
-        {
-            this.hasScroll=false;
-            this.updateDisplayList(parentWidth,parentHeight);
-           // return
-        }
-
+        var children = this.measureChildren(realWidth, realHeight);
+        var countHeight= this.childHeight;
+        var countWidth= this.childWidth;
 
         //需要整体排列
-        if( children.grid.length > 0 )
+        if( children.length > 0 )
         {
             var gap=this.gap();
             var xOffset, yOffset, index=0;
             xOffset = Math.floor((realWidth-countWidth - gap - this.scrollWidth  ) * h);
             yOffset = Math.floor((realHeight - countHeight - gap -this.scrollHeight  ) * v);
-            for( ; index < children.grid.length ; index++ )
+            for( ; index < children.length ; index++ )
             {
-                var child = children.grid[index];
-                this.current( child.target );
-                this.moveTo(  child.left + xOffset, child.top + yOffset );
-                this.height( child.height );
-                this.width( child.width );
+                var child = children[index];
+                if( child.target instanceof Layout )
+                {
+                    var target =child.target;
+                    target.width( child.width );
+                    target.height( child.height );
+                    target.moveTo(  child.left + xOffset, child.top + yOffset );
+
+                }else
+                {
+                    Utils.style( child.target , 'left',  child.left + xOffset );
+                    Utils.style( child.target , 'top',  child.top + yOffset );
+                    Utils.style( child.target , 'width',  child.width);
+                    Utils.style( child.target , 'height', child.height);
+                }
             }
-            this.current( null );
         }
 
         realHeight=!this.overflowY() ? Math.max(realHeight, countHeight) : realHeight;
         realWidth=!this.overflowX() ? Math.max(realWidth, countWidth) : realWidth;
         this.overflowHeight= Math.max(countHeight-realHeight,0);
         this.overflowWidth = Math.max(countWidth-realWidth,0);
-
         this.height( realHeight );
         this.width( realWidth );
     }
