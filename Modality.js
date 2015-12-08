@@ -8,15 +8,10 @@
 (function(window,undefined )
 {
 
-    function Modality( skinGroup , type )
+    function Modality( skinGroup )
     {
         if( !(this instanceof Modality) )
             return new Modality(  skinGroup , type );
-
-        /**
-         * @private
-         */
-        var _type= typeof type === "string" && type.toUpperCase() in Modality ?  type : Modality.TYPICAL;
 
         /**
          * @private
@@ -30,35 +25,63 @@
          * @private
          */
         var _skinGroup=skinGroup ;
-        if( !(_skinGroup instanceof SkinGroup) )
-        {
-           var defaultSkin={
-                elements: {
-                    head: '<div>{elements lable+close}</div>',
-                        lable: '<lable></lable>',
-                        close: '<span>关闭</span>',
-                        body:  '<div></div>',
-                        footer:'<div><button>取消</button><button>确认</button></div>'
-                } ,
-                attributes:{
-                    head:{ 'style':{'width':'100%',height:'25px'}  },
-                    lable:{ 'style':{'width':'auto',lineHeight:'25px','display':'block',cursor:'pointer'} },
-                    close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'} },
-                    body:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'} },
-                    container:{ 'style':{'width':'100%',height:'100%','display':'none', 'position':'absolute'}  },
-                    footer:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'} }
-                }
-            }
-            _skinGroup=new SkinGroup( typeof skinGroup === "string" ?  skinGroup : defaultSkin , document.body , _theme[ _type ] );
-        }
 
         /**
          * @param SkinGroup skinGroup
          * @returns {*}
          */
-        this.skinGroup=function()
+        this.skinGroup=function( skinGroup )
         {
+            if( typeof skinGroup !== "undefined" )
+            {
+                _skinGroup=skinGroup;
+                return this;
+            }
+
+            if( !(_skinGroup instanceof SkinGroup) )
+            {
+                var defaultSkin={
+                    elements: {
+                        head: '<div>{elements lable+close}</div>',
+                        lable: '<lable></lable>',
+                        close: '<span>关闭</span>',
+                        body:  '<div></div>',
+                        footer:'<div><button>取消</button><button>确认</button></div>'
+                    } ,
+                    attributes:{
+                        head:{ 'style':{'width':'100%',height:'25px'}  },
+                        lable:{ 'style':{'width':'auto',lineHeight:'25px','display':'block',cursor:'pointer'} },
+                        close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'} },
+                        body:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'} },
+                        container:{ 'style':{'width':'100%',height:'100%','display':'none', 'position':'absolute'}  },
+                        footer:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'} }
+                    }
+                }
+                _skinGroup=new SkinGroup( typeof _skinGroup === "string" ?  _skinGroup : defaultSkin , document.body , _theme[ _type ] );
+            }
            return _skinGroup;
+        }
+
+
+        /**
+         * @private
+         */
+        var _type= Modality.TYPICAL;
+
+        /**
+         * @param type
+         * @returns {*}
+         */
+        this.type=function( type )
+        {
+            if( typeof type === "undefined" )
+                return _type;
+            if(  type.toUpperCase() in Modality  )
+            {
+                _type= type;
+                return this;
+            }
+            throw new Error('undefined theme type in Modality.type');
         }
     }
 

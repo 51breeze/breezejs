@@ -329,11 +329,10 @@
                 while(  length < events.length )
                 {
                     listener = events[ length++ ];
-
                     //设置 Manager 的当前元素对象
                     if( listener.dispatcher instanceof Manager )
                     {
-                        listener.dispatcher.current( target );
+                       listener.dispatcher.current( target );
                     }
                     event.target = target;
 

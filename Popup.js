@@ -8,10 +8,10 @@
 (function(window,undefined )
 {
 
-    function Popup( skinGroup )
+    function Popup( skinGroup , type )
     {
-        if( !(this instanceof Modality) )
-            return new Modality( skinGroup );
+        if( !(this instanceof Popup) )
+            return new Popup( skinGroup , type );
 
         if( !(skinGroup instanceof SkinGroup) )
         {

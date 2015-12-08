@@ -29,6 +29,7 @@
             event.oldValue=oldVal;
             event.property=property;
             target.dispatchEvent(  event );
+            target.current( event.currentTarget );
         }
     }
 
@@ -45,8 +46,9 @@
      */
     var __method__ = function(prop, val , flag )
     {
-        if( this.current() instanceof Layout )
-            return this.current()[ prop ]( val );
+       /* if( this.data('layout') instanceof Layout )
+            return this.data('layout')[ prop ]( val );*/
+
         var old = parseInt( this.property(prop) );
 
         if( typeof val !== "undefined" )
@@ -58,7 +60,7 @@
                 if (val !== old )
                 {
                     this.property(prop, val);
-                    this.invalidate=false;
+                    if( this.initialized );
                     dispatchLayoutEvent(this, prop, val, old);
                 }
             }
@@ -161,17 +163,25 @@
             }
             throw new Error('invaild viewport')
         }
+       // this.addEventListener(LayoutEvent.LAYOUT_CHANGE, this.updateDisplayList );
+    }
 
-        this.addEventListener(LayoutEvent.LAYOUT_CHANGE,function(event)
+    /**
+     * 初始化根布局容器
+     * @returns {Layout}
+     */
+    Layout.rootLayout=function()
+    {
+        if( rootLayout=== null )
         {
-           /*  var width = this.width();
-            var height = this.height();
-            for( var index=0; index < this.childrenItem.length ; index++ )
-            {
-               // this.childrenItem[ index ].updateDisplayList(width,height);
-            }*/
-        })
-
+            rootLayout = new Layout( document.body );
+            rootLayout.addEventListener=function(type,listener,useCapture,priority){
+                this.current(window);
+                EventDispatcher.prototype.addEventListener.call(this,type,listener,useCapture,priority);
+            }
+            rootLayout.addEventListener( BreezeEvent.RESIZE ,rootLayout.updateDisplayList );
+        }
+        return rootLayout;
     }
 
     /**
@@ -187,41 +197,7 @@
     Layout.prototype.overflowWidth=0;
     Layout.prototype.invalidate=false;
     Layout.prototype.initialized=false;
-
-    /**
-     * 初始化根布局容器
-     * @returns {Layout}
-     */
-    Layout.rootLayout=function()
-    {
-        if( rootLayout=== null )
-        {
-            rootLayout = new Layout( document.body );
-            rootLayout.addEventListener=function(type,listener,useCapture,priority){
-                this.current(window);
-                EventDispatcher.prototype.addEventListener.call(this,type,listener,useCapture,priority);
-            }
-            rootLayout.addEventListener( BreezeEvent.RESIZE ,function(event)
-            {
-                var viewport = rootLayout.viewport()
-                var width =  Utils.getSize(viewport, 'width');
-                var height=  Utils.getSize(viewport, 'height');
-                this.updateDisplayList(  width , height  );
-            });
-        }
-        return rootLayout;
-    }
-
-    Layout.prototype.validateNow=function()
-    {
-
-    }
-
-    Layout.prototype.commitProperty=function()
-    {
-
-    }
-
+    Layout.prototype.childrenElement=[];
 
     /**
      * 输出布局组件名称
@@ -288,100 +264,6 @@
         return Math.min( Math.max( this.minHeight() || height , height ), this.maxHeight() || height );
     }
 
-    Layout.prototype.measureChildren=function(parentWidth,parentHeight)
-    {
-        var paddingLeft  = parseInt( this.style('paddingLeft') )  || 0
-        var paddingRight = parseInt( this.style('paddingRight') ) || 0;
-        var paddingTop   =  parseInt( this.style('paddingTop') )  || 0
-        var paddingBottom= parseInt( this.style('paddingBottom') )|| 0;
-        var gap=this.gap()
-            ,grid=[]
-            ,x=gap+paddingLeft,y=gap+paddingTop,maxHeight=0,countHeight= 0,countWidth=0;
-
-        var target = this.current();
-        if( target && target.childNodes && target.childNodes.length>0 )
-        {
-            var len = target.childNodes.length, index=0;
-            for( ; index<len; index++)
-            {
-                var child = target.childNodes.item( index );
-                if( child.nodeType===1 )
-                {
-                    var childWidth = 0;
-                    var childHeight= 0;
-                    var marginLeft = 0;
-                    var marginRight = 0;
-                    var marginTop = 0;
-                    var marginBottom = 0;
-
-                    if( Utils.storage(child,'layout') instanceof Layout )
-                    {
-                        child=Utils.storage(child,'layout');
-                        childWidth = child.width();
-                        childHeight= child.height();
-                        marginLeft = parseInt( child.style('marginLeft') ) || 0;
-                        marginRight = parseInt( child.style('marginRight') ) || 0;
-                        marginTop = parseInt( child.style('marginTop') ) || 0;
-                        marginBottom = parseInt( child.style('marginBottom') ) || 0;
-
-
-                    }else
-                    {
-                        if( child.getAttribute( 'includeLayout' )==='false' )
-                           continue;
-                         Utils.style(child,'position','absolute')
-                         this.current(child);
-                         childWidth = this.calculateWidth( parentWidth );
-                         childHeight= this.calculateHeight( parentHeight );
-                         this.current(null);
-                         marginLeft = parseInt( Utils.style(child,'marginLeft') ) || 0;
-                         marginRight = parseInt( Utils.style(child,'marginRight') ) || 0;
-                         marginTop = parseInt( Utils.style(child,'marginTop') ) || 0;
-                         marginBottom = parseInt( Utils.style(child,'marginBottom') ) || 0;
-
-                    }
-
-                    //从第二个子级元素开始，如大于了容器宽度则换行
-                    if (x + childWidth+gap+marginLeft+marginRight+paddingRight > parentWidth && index > 0)
-                    {
-                        y += maxHeight;
-                        x = gap+paddingLeft+marginLeft;
-                        maxHeight = 0;
-                    }
-                    grid.push({'target': child, 'left': x+marginLeft, 'top': y+marginTop,'width':childWidth,'height':childHeight});
-                    x += childWidth+gap+marginLeft+marginRight;
-                    maxHeight = Math.max(maxHeight, childHeight + gap+marginTop+marginBottom);
-                    countHeight = maxHeight + y;
-                    countWidth = Math.max(countWidth, x+paddingRight );
-                }
-            }
-            this.current( null );
-        }
-        this.childWidth=countWidth;
-        this.childHeight=countHeight;
-
-        this.scrollWidth=0;
-        this.scrollHeight=0;
-
-        //标记此容器有水平滚动条
-        if( this.childHeight > parentHeight && this.overflowY() )
-            this.scrollWidth = 17;
-        if( this.childWidth > parentWidth && this.overflowX() )
-            this.scrollHeight = 17;
-
-        if( !this.hasScroll && (this.scrollWidth > 0 || this.scrollHeight > 0) )
-        {
-            this.hasScroll=true;
-            this.invalidate=false;
-
-        }else if( this.hasScroll && (this.scrollWidth === 0 || this.scrollHeight === 0) )
-        {
-            this.hasScroll=false;
-            this.invalidate=false;
-        }
-        return grid;
-    }
-
     /**
      * @param x
      * @param y
@@ -393,7 +275,7 @@
             return this.current().moveTo(x,y);
 
         if( this === rootLayout )
-           return this;
+            return this;
 
         Breeze.prototype.left.call(this,x);
         Breeze.prototype.top.call(this,y);
@@ -401,21 +283,105 @@
     }
 
     /**
-     * @returns {boolean}
+     * @param val  hidden|visible|auto
+     * @returns {boolean|Layout}
      */
-    Layout.prototype.overflowY=function()
+    Layout.prototype.scrollY=function( val )
     {
+        if( typeof val !== "undefined" )
+        {
+            this.style('overflowY', val );
+            return this;
+        }
         var overflowY= this.style('overflowY');
         return !(overflowY === 'hidden' || overflowY==='visible');
     }
 
     /**
-     * @returns {boolean}
+     * @param val  hidden|visible|auto
+     * @returns {boolean|Layout}
      */
-    Layout.prototype.overflowX=function()
+    Layout.prototype.scrollX=function(val)
     {
+        if( typeof val !== "undefined" )
+        {
+            this.style('overflowX', val );
+            return this;
+        }
         var overflowX= this.style('overflowX');
         return !(overflowX === 'hidden' || overflowX==='visible');
+    }
+
+    /**
+     * @param parentWidth
+     * @param parentHeight
+     */
+    Layout.prototype.measureChildren=function(parentWidth,parentHeight)
+    {
+        var paddingLeft  = parseInt( this.style('paddingLeft') )  || 0
+        var paddingRight = parseInt( this.style('paddingRight') ) || 0;
+        var paddingTop   =  parseInt( this.style('paddingTop') )  || 0
+        var paddingBottom= parseInt( this.style('paddingBottom') )|| 0;
+        var gap=this.gap(),x=gap+paddingLeft,y=gap+paddingTop,maxHeight=0,countHeight= 0,countWidth=0;
+
+        var horizontalAlign=this.horizontal()
+            ,verticalAlign=this.vertical()
+            ,h=horizontalAlign===horizontal[1] ? 0.5 : horizontalAlign===horizontal[2] ? 1 : 0
+            ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0
+            ,flag = h+v > 0;
+
+        this.childrenElement=[];
+        var children =  this.childrenElement;
+        var target = this.current();
+        if( target && target.childNodes && target.childNodes.length>0 )
+        {
+            var len = target.childNodes.length, index=0;
+            for( ; index<len; index++)
+            {
+                var child = target.childNodes.item( index );
+                if( child.nodeType===1 && child.getAttribute( 'includeLayout' )!=='false' )
+                {
+                    this.current( child );
+                    this.style('position','absolute')
+
+                    var childWidth = this.width() || this.calculateWidth( parentWidth );
+                    var childHeight= this.height() || this.calculateHeight( parentHeight );
+                    var marginLeft =  parseInt( this.style('marginLeft') ) || 0;
+                    var marginRight =  parseInt( this.style('marginRight') ) || 0;
+                    var marginTop = parseInt( this.style('marginTop') ) || 0;
+                    var marginBottom = parseInt( this.style('marginBottom') ) || 0;
+
+                    //从第二个子级元素开始，如大于了容器宽度则换行
+                    if (x + childWidth+gap+marginLeft+marginRight+paddingRight > parentWidth && index > 0)
+                    {
+                        y += maxHeight;
+                        x = gap+paddingLeft;
+                        maxHeight = 0;
+                    }
+                    if( flag )
+                    {
+                        children.push({
+                            'target': child,
+                            'left': x + marginLeft,
+                            'top': y + marginTop
+                        });
+
+                    }else
+                    {
+                        this.moveTo(x + marginLeft, y + marginTop )
+                    }
+                    x += childWidth+gap+marginRight;
+                    maxHeight = Math.max(maxHeight, childHeight + gap+marginTop+marginBottom);
+                    countHeight = maxHeight + y;
+                    countWidth = Math.max(countWidth, x+paddingRight );
+                    Utils.style(child,'width',childWidth)
+                    Utils.style(child,'height',childHeight)
+                }
+            }
+            this.current( null );
+        }
+        this.totalChildWidth=countWidth;
+        this.totalChildHeight=countHeight;
     }
 
     /**
@@ -424,9 +390,6 @@
      */
     Layout.prototype.updateDisplayList=function(parentWidth,parentHeight)
     {
-        if( this.invalidate )return;
-        this.invalidate=true;
-
         //获取视口大小
         if( typeof parentWidth === "undefined" || typeof parentHeight === "undefined" )
         {
@@ -436,8 +399,8 @@
         }
 
         //计算当前布局可用的大小
-        var  realHeight=this.calculateHeight(parentHeight);
-        var  realWidth= this.calculateWidth(parentWidth);
+        var  realHeight=this.calculateHeight(parentHeight)
+        var  realWidth= this.calculateWidth(parentWidth)
 
         //更新子布局的显示列表
         if( this.childrenItem.length > 0 )
@@ -458,35 +421,32 @@
             }
         }
 
+        //计算子级元素需要排列的位置
+        this.measureChildren( realWidth, realHeight );
+
+        var countHeight= this.totalChildHeight;
+        var countWidth= this.totalChildWidth;
+
         var horizontalAlign=this.horizontal()
             ,verticalAlign=this.vertical()
             ,h=horizontalAlign===horizontal[1] ? 0.5 : horizontalAlign===horizontal[2] ? 1 : 0
             ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0
+            ,flag = h+v > 0;
 
-        //计算子级元素需要排列的位置
-        var children = this.measureChildren(realWidth, realHeight);
-        var countHeight= this.childHeight;
-        var countWidth= this.childWidth;
-
-        //需要整体排列
-        if( children.length > 0 )
+        if( flag )
         {
-            var gap=this.gap();
-            var xOffset, yOffset, index=0;
-            xOffset = Math.floor((realWidth-countWidth - gap - this.scrollWidth  ) * h);
-            yOffset = Math.floor((realHeight - countHeight - gap -this.scrollHeight  ) * v);
-            for( ; index < children.length ; index++ )
-            {
-                var child = children[index];
-                if( child.target instanceof Layout )
-                {
-                    var target =child.target;
-                    target.width( child.width );
-                    target.height( child.height );
-                    target.moveTo(  child.left + xOffset, child.top + yOffset );
+            var children= this.childrenElement;
 
-                }else
+            //需要整体排列
+            if( children.length > 0 )
+            {
+                var gap=this.gap();
+                var xOffset, yOffset, index=0;
+                xOffset = Math.floor((realWidth-countWidth - gap  ) * h);
+                yOffset = Math.floor((realHeight - countHeight - gap  ) * v);
+                for( ; index < children.length ; index++ )
                 {
+                    var child = children[index];
                     Utils.style( child.target , 'left',  child.left + xOffset );
                     Utils.style( child.target , 'top',  child.top + yOffset );
                     Utils.style( child.target , 'width',  child.width);
@@ -495,8 +455,8 @@
             }
         }
 
-        realHeight=!this.overflowY() ? Math.max(realHeight, countHeight) : realHeight;
-        realWidth=!this.overflowX() ? Math.max(realWidth, countWidth) : realWidth;
+        realHeight=!this.scrollY() ? Math.max(realHeight, countHeight) : realHeight;
+        realWidth=!this.scrollX() ? Math.max(realWidth, countWidth) : realWidth;
         this.overflowHeight= Math.max(countHeight-realHeight,0);
         this.overflowWidth = Math.max(countWidth-realWidth,0);
         this.height( realHeight );
@@ -715,12 +675,9 @@
                 layout.initialized=true;
             }
         })
+       rootLayout.initialized=true;
+       rootLayout.updateDisplayList();
 
-        var viewport = rootLayout.viewport()
-        var width =  Utils.getSize(viewport, 'width');
-        var height=  Utils.getSize(viewport, 'height');
-            rootLayout.updateDisplayList(  width , height  );
-            rootLayout.initialized=true;
     });
 
     window.Layout=Layout;
