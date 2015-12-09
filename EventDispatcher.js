@@ -148,7 +148,7 @@
         var i=0;
         var element;
         do{
-            element = target ? target[i++] : this;
+            element = target && target.length>0 ? target[i++] : this;
             if( event.propagationStopped===true ||
                 ( target && target[i] instanceof EventDispatcher && !target[i].dispatchEvent(event) ) )
             {

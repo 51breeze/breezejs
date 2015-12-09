@@ -75,6 +75,7 @@
                     {
                         var uptype=type.toUpperCase()
                         var event = new ModalityEvent( ModalityEvent[uptype] );
+                        this.current( event.target )
                         if( self.hasEventListener( ModalityEvent[uptype] ) && !self.dispatchEvent(event) )
                            return;
                     }
