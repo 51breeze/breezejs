@@ -133,14 +133,25 @@
          selection.display()
 */
 
-     /*  var modal =  new Modality('.modal')
-        modal.width(600).height(200)
-        modal.display(true)*/
+       var modal =  new Modality()
+        modal.width(600).height(400)
+
+        modal.lable('标题')
+        modal.moveTo(100,100)
+        modal.show(true)
+
+        modal.addEventListener(ModalityEvent.SUBMIT,function(event){
+
+              console.log('submit')
+              //event.stopPropagation()
+
+        })
+
+
 
 
      //  var lay =  new Layout('.modal');
       //  lay.left(20).right(20);
-
        //  lay.height(100);
 
 
@@ -153,21 +164,22 @@
 
 <body>
 
-<div class="modal" component="layout" style="display: block; overflow:hidden;" left="10" right="10" top="10" bottom="10" >
-    <div class="head" explicitHeight="40" data-skin="head">
+<div class="modal" style="display: none; background-color: #118dc2"  >
+    <div class="head" data-skin="head"  style=" width:100%; height:30px; ">
         <label class="lable">标题</label>
         <span class="close" data-action="close" data-event="click">关闭</span>
     </div>
-    <div class="body" data-skin="body" component="layout" horizontal="center" gap="5" top="40" bottom="30" style="overflow:auto">
+    <div class="body" data-skin="body" style="overflow: auto" >
 
-        <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
-        <div explicitHeight="500" explicitWidth="500" style="border:1px #ccc solid; "></div>
+        <div style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
+        <div style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
+        <div style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
+        <div style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
+        <div style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
+        <div style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
 
     </div>
-    <div class="footer" data-skin="footer" explicitHeight="30" bottom="0" >
+    <div class="footer" data-skin="footer" style=" width:100%; height:35px; " >
         <button data-action="close">取消</button>
         <button data-action="submit">确认</button>
     </div>

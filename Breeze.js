@@ -99,6 +99,7 @@
                return doMake(target,ret,true,true,false);
             }
         }
+        target.current(null);
         return target;
     }
 
@@ -426,7 +427,7 @@
      */
     Breeze.prototype.find=function( selector )
     {
-        return doMake( this, Sizzle(selector ) , true );
+        return doMake( this, Sizzle( selector , this.getContext() ) , true );
     }
 
     /**
@@ -672,10 +673,7 @@
     {
         if( childElemnet instanceof Breeze )
         {
-            var target =[].concat( childElemnet.__rootElement__ )
-            return Utils.forEach(target,function(child){
-               this.addChildAt(child,index)
-            },this)
+            childElemnet=childElemnet[0];
         }
 
         if( index===undefined )
@@ -708,13 +706,6 @@
 
                 parent.insertBefore( child , refChild || null );
                 dispatchElementEvent(this,parent,child,ElementEvent.ADDED );
-
-                if( isElement )
-                {
-                    //为子级元素触发添加元素
-                    this.current( child );
-                    dispatchElementEvent(this,parent,child,ElementEvent.ADDED );
-                }
             }
             if( isElement ) return this;
         })

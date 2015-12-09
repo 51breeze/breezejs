@@ -282,7 +282,7 @@
     {
         //初始化一个全局事件
         event= BreezeEvent.create( event );
-        if( event === null )
+        if( event === null || !event.currentTarget )
             return false;
 
         var targets = [[],[]];
@@ -291,6 +291,7 @@
         //是否只是触发捕获阶段的事件
         var useCapture= event.bubbles === false;
         var element = event.currentTarget,data=null;
+
         do{
             data = Utils.storage( element ,'events')
             if( data && data[ event.type ] )

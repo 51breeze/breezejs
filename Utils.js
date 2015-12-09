@@ -242,6 +242,23 @@
         return result;
     }
 
+    // fix style name
+    if( Utils.isBrowser(Utils.BROWSER_FIREFOX,4,'<=') )
+    {
+        fix.cssMap.shadow='-moz-box-shadow';
+        fix.cssMap.radius='-moz-border-radius';
+
+    }else if(  Utils.isBrowser(Utils.BROWSER_SAFARI) || Utils.isBrowser(Utils.BROWSER_CHROME,10,'<') )
+    {
+        fix.cssMap.shadow='-webkit-box-shadow';
+        fix.cssMap.radius='-webkit-border-radius';
+
+    }else
+    {
+        fix.cssMap.shadow='box-shadow';
+        fix.cssMap.radius='border-radius';
+    }
+
     /**
      * @private;
      */
@@ -357,7 +374,7 @@
             value =  value =='' ? newvalue : value+';'+newvalue;
             name='cssText';
         }
-        name = Utils.styleName( name );
+
         if( !Utils.isScalar( value ) )
         {
             return getStyle(elem,name);
@@ -372,10 +389,13 @@
             value =operatorValue(value, parseFloat( getStyle( elem, name ) ) , ret );
             type = "number";
         }
+
         if ( value == null )return false;
         if ( type === "number" && !cssNumber[ name ] )
             value += "px";
         if( hook && hook.set && hook.set.call(elem,style,value)===true )return true;
+
+        name = Utils.styleName( name );
         try{
             style[name]=value;
         }catch( e ){}
@@ -1209,6 +1229,9 @@
      */
     Utils.storage=function(target,name,value)
     {
+        if( !target )
+          return false;
+
         target = target.storage || (target.storage={});
         if( typeof name === 'string' )
         {

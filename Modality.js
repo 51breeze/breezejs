@@ -11,7 +11,7 @@
     function Modality( skinGroup )
     {
         if( !(this instanceof Modality) )
-            return new Modality(  skinGroup , type );
+            return new Modality(  skinGroup );
 
         /**
          * @private
@@ -25,6 +25,7 @@
          * @private
          */
         var _skinGroup=skinGroup ;
+        var _skinChanged=true;
 
         /**
          * @param SkinGroup skinGroup
@@ -35,6 +36,7 @@
             if( typeof skinGroup !== "undefined" )
             {
                 _skinGroup=skinGroup;
+                _skinChanged=true;
                 return this;
             }
 
@@ -43,30 +45,50 @@
                 var defaultSkin={
                     elements: {
                         head: '<div>{elements lable+close}</div>',
-                        lable: '<lable></lable>',
+                        lable: '<lable>Title</lable>',
                         close: '<span>关闭</span>',
                         body:  '<div></div>',
-                        footer:'<div><button>取消</button><button>确认</button></div>'
+                        cancel:'<button {attributes button}>取消</button>',
+                        submit:'<button {attributes button}>确认</button>',
+                        footer:'<div><div style="width: auto; height: auto; float: right;">{elements cancel+submit}</div></div>'
                     } ,
                     attributes:{
-                        head:{ 'style':{'width':'100%',height:'25px'}  },
-                        lable:{ 'style':{'width':'auto',lineHeight:'25px','display':'block',cursor:'pointer'} },
-                        close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'} },
-                        body:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'} },
-                        container:{ 'style':{'width':'100%',height:'100%','display':'none', 'position':'absolute'}  },
-                        footer:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'} }
+                        head:{ 'style':{'width':'100%',height:'35px',lineHeight:'30px','display':'block',backgroundColor:'#118dc2'}  },
+                        lable:{ 'style':{'width':'auto','display':'block',cursor:'pointer','float':'left',margin:'0px 5px'} },
+                        close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer','float':'right',margin:'0px 5px'} },
+                        body:{ 'style':{padding:'0px','width':'100%',height:'auto','display':'block',overflow:'auto'} },
+                        button:{ 'style':{margin:'0px 5px', width:'80px',height:'25px'} },
+                        container:{ 'style':{'width':'800px',height:'550px','display':'none',overflow:'hidden','position':'absolute',zIndex:999,backgroundColor:'#ffffff','shadow':'0px 0px 10px 2px #444444','radius':'5px'}},
+                        footer:{ 'style':{'width':'100%',height:'35px',lineHeight:'30px','display':'block',backgroundColor:'#c0c1c2'}}
                     }
                 }
-                _skinGroup=new SkinGroup( typeof _skinGroup === "string" ?  _skinGroup : defaultSkin , document.body , _theme[ _type ] );
+                _skinGroup=new SkinGroup( typeof _skinGroup === "string" ?  _skinGroup : defaultSkin , document.body , _theme[ this.type() ] );
+                updatePosition.call(this)
             }
-           return _skinGroup;
+            if( _skinChanged && this.type() !== Modality.SIMPLE )
+            {
+                var self = this;
+                _skinGroup.find('[data-skin=head] > [data-skin=close],[data-skin=footer] button').addEventListener(MouseEvent.CLICK,function(event)
+                {
+                    var type = this.property('data-skin');
+                    if( typeof type === "string" )
+                    {
+                        var uptype=type.toUpperCase()
+                        var event = new ModalityEvent( ModalityEvent[uptype] );
+                        if( self.hasEventListener( ModalityEvent[uptype] ) && !self.dispatchEvent(event) )
+                           return;
+                    }
+                    self.hidden();
+                }).revert();
+                _skinChanged=false;
+            }
+            return _skinGroup;
         }
-
 
         /**
          * @private
          */
-        var _type= Modality.TYPICAL;
+        var _type= Modality.NORM;
 
         /**
          * @param type
@@ -83,6 +105,23 @@
             }
             throw new Error('undefined theme type in Modality.type');
         }
+
+        /**
+         * @private
+         */
+        var _layout=null;
+
+        /**
+         * @returns {Layout}
+         */
+        this.layout=function()
+        {
+            if( _layout===null )
+            {
+                _layout = new Layout( this.skinGroup().getSkin('container') )
+            }
+            return _layout;
+        }
     }
 
     Modality.prototype=  new Breeze();
@@ -92,24 +131,91 @@
     Modality.TYPICAL='typical';
 
     /**
-     * @param skinName
+     * @param flag
      * @returns {Modality}
      */
-    Modality.prototype.setCurrentSkin=function( skinName )
+    Modality.prototype.hidden=function()
     {
-        this.current( this.skinGroup().getSkin( skinName ) );
+        this.skinGroup().currentSkin('container')
+        if( _shade instanceof Modality && this !==_shade )_shade.hidden();
+        this.skinGroup().display(false);
         return this;
     }
+
+    var _shade=null;
 
     /**
      * 显示模态框
      * @param flag
      * @returns {Modality}
      */
-    Modality.prototype.display=function( flag )
+    Modality.prototype.show=function( shade ,zIndex )
     {
-        this.setCurrentSkin('container')
-        Breeze.prototype.display.call(this, !!flag );
+        zIndex = zIndex || 999;
+        this.skinGroup().currentSkin('container')
+        if( shade===true )
+        {
+            if( _shade === null )
+            {
+                _shade = new Modality()
+                _shade.type(Modality.SIMPLE);
+                _shade.skinGroup().currentSkin('container').style({'opacity':0.5,'backgroundColor':'#000000'})
+                var layout = _shade.layout();
+                layout.left(0);
+                layout.top(0);
+                layout.right(0);
+                layout.bottom(0);
+                layout.updateDisplayList();
+            }
+            _shade.show(false,zIndex-1);
+        }
+
+        this.skinGroup().style({'zIndex':zIndex,'position':'absolute'}).display(true);
+        return this;
+    }
+
+    var updatePosition=function()
+    {
+        var type = this.type()
+        if( type === Modality.SIMPLE )
+            return;
+        var skin = this.skinGroup();
+        var containerHeight = skin.currentSkin('container').height();
+        var headHeight = skin.currentSkin('head').height();
+        if( type===Modality.TYPICAL )
+        {
+            skin.currentSkin('body').height(containerHeight - headHeight);
+
+        }else
+        {
+            var footerHeight = skin.currentSkin('footer').height();
+            skin.currentSkin('body').height(containerHeight - headHeight - footerHeight);
+        }
+    }
+
+    /**
+     * @param lable
+     * @returns {*}
+     */
+    Modality.prototype.lable=function(lable)
+    {
+        this.skinGroup().currentSkin('lable')
+        if( typeof lable === "undefined" )
+            return this.skinGroup().text();
+        this.skinGroup().text( lable );
+        return this;
+    }
+
+    /**
+     * @param content
+     * @returns {*}
+     */
+    Modality.prototype.content=function( content )
+    {
+        this.skinGroup().currentSkin('body')
+        if( typeof content === "undefined" )
+            return this.skinGroup().html();
+        this.skinGroup().html( content );
         return this;
     }
 
@@ -120,13 +226,13 @@
      */
     Modality.prototype.width=function(value)
     {
-        this.setCurrentSkin('container')
+        this.skinGroup().currentSkin('container')
         if( typeof value === "number" )
         {
-            Breeze.prototype.width.call(this,value );
+            this.skinGroup().width( value );
             return this;
         }
-        return Breeze.prototype.width.call(this);
+        return this.skinGroup().width();
     }
 
     /**
@@ -136,13 +242,27 @@
      */
     Modality.prototype.height=function(value)
     {
-        this.setCurrentSkin('container');
+        this.skinGroup().currentSkin('container')
         if(  typeof value === "number" )
         {
-            Breeze.prototype.height.call(this,  value );
+            this.skinGroup().height( value );
+            updatePosition.call(this)
             return this;
         }
-        return Breeze.prototype.height.call(this);
+        return this.skinGroup().height();
+    }
+
+    /**
+     * @param x
+     * @param y
+     * @returns {Modality}
+     */
+    Modality.prototype.moveTo=function(x,y)
+    {
+        this.skinGroup().currentSkin('container');
+        this.skinGroup().left( x );
+        this.skinGroup().top( y );
+        return this;
     }
 
     /**
@@ -152,13 +272,14 @@
      */
     Modality.prototype.headHeight=function( value )
     {
-        this.setCurrentSkin('head');
+        this.skinGroup().currentSkin('head');
         if( typeof value === "number" )
         {
-            Breeze.prototype.height.call(this, value );
+            this.skinGroup().height( value );
+            updatePosition.call(this)
             return this;
         }
-        return Breeze.prototype.height.call(this)
+        return this.skinGroup().height();
     }
 
     /**
@@ -168,15 +289,24 @@
      */
     Modality.prototype.footerHeight=function( value )
     {
-        this.setCurrentSkin('footer');
+        this.skinGroup().currentSkin('footer');
         if( typeof value === "number" )
         {
-            Breeze.prototype.height.call(this,value);
-           return this;
+            this.skinGroup().height(value);
+            updatePosition.call(this)
+            return this;
         }
-        return Breeze.prototype.height.call(this);
+        return this.skinGroup().height(this);
     }
 
+    function ModalityEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    ModalityEvent.prototype=new BreezeEvent();
+    ModalityEvent.prototype.constructor=ModalityEvent;
+    ModalityEvent.CANCEL='modalityCancel';
+    ModalityEvent.CLOSE='modalityClose';
+    ModalityEvent.SUBMIT='modalitySubmit';
+
     window.Modality=Modality;
+    window.ModalityEvent=ModalityEvent;
 
 })( window )

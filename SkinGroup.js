@@ -12,9 +12,10 @@
      * @type {RegExp}
      */
     var refvalue=/\{(\w+)\s+([\w\s\+\.]+)\s*\}/g;
-    var notattr = /<(\w+)(?!=\{attributes\s+([\w\s\+\.]+)\s*\})>/;
+    var notattr = /\{attributes\s+([\w\s\+\.]+)\s*\}/;
     var blank=/\s+/g;
     var isselector=/^[\.\#]?\w+/;
+    var addattr=/\<(\w+)/;
 
     /**
      * @returns {string}
@@ -79,14 +80,13 @@
             return str.replace(refvalue,parser);
         }
 
+        var regname=new RegExp(SkinGroup.NAME,'i');
         for (var name in this.elements)
         {
-            this.elements[name] = this.elements[name].replace(notattr, "<$1$2 {attributes " + name + "}>");
-            this.attributes[ name ] || (this.attributes[ name ]={});
-            if( !this.attributes[ name ]['data-skin'] )
-            {
-                this.attributes[ name ]['data-skin']= name;
-            }
+            if( !regname.test(this.elements[name]) )
+                this.elements[name] = this.elements[name].replace( addattr, '<$1 '+SkinGroup.NAME+'="'+name+'"');
+            if( !notattr.test( this.elements[name] ) )
+                this.elements[name] = this.elements[name].replace( addattr, "<$1 {attributes " + name + "}");
         }
         return this.elements.container.replace(refvalue,parser);
     }
@@ -116,7 +116,7 @@
         {
             if( !_skin[skinName] )
             {
-                var ret = Sizzle('[data-skin="' + skinName + '"]', this.getContext() );
+                var ret = Sizzle(  Utils.sprintf('[%s="%s"]', SkinGroup.NAME, skinName ) , _skin.container );
                 if( ret.length === 0 )
                     throw new Error('Not found skin element is '+skinName );
                 _skin[skinName]=ret[0];
@@ -124,11 +124,21 @@
             return _skin[skinName];
         }
 
+        /**
+         * @param skinName
+         * @returns {SkinGroup}
+         */
+        this.currentSkin=function( skinName )
+        {
+            this.current( this.getSkin( skinName ) )
+            return this;
+        }
+
         if( ( typeof selector === "string" && isselector.test(selector) ) || Utils.isHTMLContainer(selector) )
         {
             Breeze.call(this, selector, context );
-            this.index(0).property('data-skin','container');
-            _skin.container=this[0];
+            this.property( SkinGroup.NAME ,'container');
+            _skin.container=this.current();
 
         }else if( context && selector )
         {
@@ -140,21 +150,18 @@
                     selector.elements.container=container;
                 selector=toString.call(selector);
             }
-
-            this.add( context );
-            this.addChild( selector );
-            var container = this.getSkin('container');
-            this.splice(0,this.length);
-            if( Utils.isHTMLElement(container) )
-                this.splice(0, 0, container);
+            _skin.container=Utils.createElement( selector );
+            context=this.getContext( context );
+            this.current( context ).addChild( _skin.container );
+            Breeze.call(this,_skin.container, context );
         }
-
         if( this.length < 1 )
         {
             throw new Error('Need to match at least one element. in param selector, context');
         }
     }
 
+    SkinGroup.NAME='data-skin';
     SkinGroup.prototype=new Breeze();
     SkinGroup.prototype.constructor=SkinGroup;
     window.SkinGroup=SkinGroup;
