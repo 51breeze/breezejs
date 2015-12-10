@@ -163,7 +163,6 @@
             }
             throw new Error('invaild viewport')
         }
-       // this.addEventListener(LayoutEvent.LAYOUT_CHANGE, this.updateDisplayList );
     }
 
     /**
@@ -178,8 +177,20 @@
             rootLayout.addEventListener=function(type,listener,useCapture,priority){
                 this.current(window);
                 EventDispatcher.prototype.addEventListener.call(this,type,listener,useCapture,priority);
+                this.current(null);
             }
-            rootLayout.addEventListener( BreezeEvent.RESIZE ,rootLayout.updateDisplayList );
+            var method=['gap','horizontal','vertical'];
+            for( var prop in method )
+            {
+                value = rootLayout.property( method[prop] );
+                if( value !== null )
+                {
+                    rootLayout[ method[prop] ]( value );
+                }
+            }
+            rootLayout.addEventListener( BreezeEvent.RESIZE , function(event){
+                this.updateDisplayList( Utils.getSize(document,'width'),  Utils.getSize(document,'height') );
+            });
         }
         return rootLayout;
     }
@@ -333,17 +344,18 @@
         this.childrenElement=[];
         var children =  this.childrenElement;
         var target = this.current();
+        var isroot = this === rootLayout;
+
         if( target && target.childNodes && target.childNodes.length>0 )
         {
             var len = target.childNodes.length, index=0;
             for( ; index<len; index++)
             {
                 var child = target.childNodes.item( index );
-                if( child.nodeType===1 && child.getAttribute( 'includeLayout' )!=='false' )
+                this.current( child );
+                if( child.nodeType===1 && child.getAttribute( 'includeLayout' )!=='false' && ( !isroot || this.data('layout') ) )
                 {
-                    this.current( child );
                     this.style('position','absolute')
-
                     var childWidth = this.width() || this.calculateWidth( parentWidth );
                     var childHeight= this.height() || this.calculateHeight( parentHeight );
                     var marginLeft =  parseInt( this.style('marginLeft') ) || 0;
@@ -454,7 +466,6 @@
                 }
             }
         }
-
         realHeight=!this.scrollY() ? Math.max(realHeight, countHeight) : realHeight;
         realWidth=!this.scrollX() ? Math.max(realWidth, countWidth) : realWidth;
         this.overflowHeight= Math.max(countHeight-realHeight,0);
@@ -658,7 +669,7 @@
 
         var rootLayout = Layout.rootLayout();
         var method=['left','top','right','bottom','explicitHeight','explicitWidth','gap','horizontal','vertical','minWidth','minHeight','maxWidth','maxHeight','percentWidth','percentHeight'];
-        Breeze('[component=layout]', document.body).forEach(function(target)
+        Breeze('[component=layout]', rootLayout ).forEach(function(target)
         {
             if( Utils.isHTMLElement(target) && target !== window.document.body )
             {
@@ -676,7 +687,7 @@
             }
         })
        rootLayout.initialized=true;
-       rootLayout.updateDisplayList();
+       rootLayout.updateDisplayList( Utils.getSize(document,'width'),  Utils.getSize(document,'height') );
 
     });
 

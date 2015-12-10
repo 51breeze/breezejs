@@ -414,8 +414,8 @@
         var is=Utils.isWindow( element );
         if( Utils.isHTMLContainer( element) || is  )
         {
-            var win= is ? element : element.nodeType===9 ? elem.defaultView || elem.parentWindow : null;
-            var p= /left/i.test(prop) ? 'pageXOffset' : 'pageYOffset'
+            var win= is ? element : element.nodeType===9 ? element.defaultView || element.parentWindow : null;
+            var p= /left/i.test(prop) ? 'pageXOffset' : 'pageYOffset';
             if( val===undefined )
             {
                 return win ? p in win ? win[ p ] : win.document.documentElement[ prop ] :  element[ prop ];
@@ -1247,6 +1247,12 @@
             return true;
         }
         return target;
+    }
+
+
+    Utils.PopUp=function(type,x,y)
+    {
+
     }
 
 })();

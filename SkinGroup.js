@@ -144,8 +144,7 @@
         {
             if( typeof selector === "object" )
             {
-                if( typeof selector.elements === "undefined" )
-                   throw new Error('invalid selector');
+                selector.elements || (selector.elements={})
                 if( typeof container === "string" )
                     selector.elements.container=container;
                 selector=toString.call(selector);
