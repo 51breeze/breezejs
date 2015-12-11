@@ -20,7 +20,7 @@
         var _options={
             'template':{
                 input: '<input {attr.input} />',
-                lable: '<span {attr.lable}>{current}</span>',
+                label: '<span {attr.lable}>{current}</span>',
                 list: '<?foreach(dataGroup as index item){ ?><li {attr.list}>{item["name"]}</li><?}?>',
                 container:'<div {attr.container}>{template.lable}</div>{template.group}',
                 group: '<div {attr.group}><ul style="padding: 0px;list-style-type:none;-webkit-margin-before:0px;-webkit-margin-after:0px; text-indent: 0px;">{template.list}</ul></div>',
@@ -28,7 +28,7 @@
             },
             'attr':{
                 searchbox:{'style':{'width':'100%',height:'300px'}},
-                lable:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'}, "data-component":"selection.lable" },
+                label:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'}, "data-component":"selection.lable" },
                 list:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},"data-index":"{index}","data-component":"group.list"},
                 group:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}, "data-component":"selection.group" },
                 container:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'}, "data-component":"selection",tabindex:"-1" }

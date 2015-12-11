@@ -149,6 +149,7 @@
                     selector.elements.container=container;
                 selector=toString.call(selector);
             }
+
             _skin.container=Utils.createElement( selector );
             context=this.getContext( context );
             this.current( context ).addChild( _skin.container );

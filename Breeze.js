@@ -39,6 +39,7 @@
             return new Breeze( selector,context );
 
         this.length=0;
+
         if( !Utils.isDefined(selector) && !Utils.isDefined(context) )
             return this;
 
@@ -957,19 +958,15 @@
 
         return access.call(this,name,value,{
             get:function(prop){
-                if( typeof this.getAttribute !== "function" )
-                    return null;
-                return ( __property__[ prop ] ? this[ prop ] : this.getAttribute( prop ) ) || null;
+                return ( __property__[ prop ] || Utils.isWindow(this) ? this[ prop ] : this.getAttribute( prop ) ) || null;
             },
             set:function(prop,newValue){
-                if( typeof this.getAttribute !== "function" )
-                    return;
                 if( newValue === null )
                 {
-                    __property__[ prop ] ? delete this[ prop ] : this.removeAttribute( prop );
+                    __property__[ prop ] || Utils.isWindow(this) ? delete this[ prop ] : this.removeAttribute( prop );
                     return;
                 }
-                __property__[ prop ] ? this[ prop ]=newValue : this.setAttribute( prop,newValue );
+                __property__[ prop ] || Utils.isWindow(this) ? this[ prop ]=newValue : this.setAttribute( prop,newValue );
             }
         },name);
     }

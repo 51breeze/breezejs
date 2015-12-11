@@ -1249,10 +1249,4 @@
         return target;
     }
 
-
-    Utils.PopUp=function(type,x,y)
-    {
-
-    }
-
 })();

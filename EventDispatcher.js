@@ -580,6 +580,17 @@
         return true;
     });
 
+
+    // 定义ready事件
+    EventDispatcher.SpecialEvent(BreezeEvent.RESIZE,
+        function(element,listener,type)
+        {
+            var win= Utils.getWindow(element)
+            if( !win )return;
+            EventDispatcher.addEventListener.call(win,BreezeEvent.RESIZE, listener );
+            return true;
+        });
+
     window.EventDispatcher=EventDispatcher;
 
 })(window)

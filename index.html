@@ -23,6 +23,7 @@
     <script src="Component.js" ></script>
     <script src="Modality.js" ></script>
     <script src="Layout.js" ></script>
+    <script src="PopUp.js"></script>
     <title></title>
 </head>
 
@@ -70,9 +71,6 @@
     Breeze(function(){
 
 
-
-
-
         // this.height - footer.height - head.height
 
 
@@ -102,9 +100,9 @@
          selection.display()
 */
 
-       var modal =  new Modality()
+    /*   var modal =  new Modality()
         modal.width(600).height(400)
-        modal.lable('标题')
+        modal.label('标题')
         modal.show(true)
 
         modal.addEventListener(ModalityEvent.SUBMIT,function(event){
@@ -112,7 +110,9 @@
               console.log('submit')
               event.stopPropagation()
 
-        })
+        })*/
+
+        PopUp.warning('错误').width(300).height(150).moveTo(100,100)
 
 
 
@@ -128,24 +128,24 @@
 
 </script>
 
-<body component="layout" horizontal="center" gap="10">
+<body component="layout" horizontal="center" gap="10" viewport="window">
 
-<div class="modal" component="layout" style="background-color: #d6d6db; width: 500px; height: 500px;"  explicitWidth="500" explicitHeight="500" >
-    <div class="head" data-skin="head"  style=" width:100%; height:30px; ">
-        <label class="lable">标题</label>
+<div class="modal" component="layout" style="width: 500px; height: 500px; "  explicitWidth="500" explicitHeight="500" >
+    <div class="head" data-skin="head"  explicitHeight="30" style=" width:100%; height:30px; background-color: #3a3a3a ">
+        <label class="label">标题</label>
         <span class="close" data-action="close" data-event="click">关闭</span>
     </div>
-    <div class="body" data-skin="body" style="overflow: auto" >
+    <div class="body" component="layout" horizontal="center" gap="10"  data-skin="body" style="overflow: auto"  top="30" bottom="35">
 
-        <div style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
-        <div style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
-        <div style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
-        <div style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
-        <div style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
-        <div style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
+        <div  explicitWidth="200" explicitHeight="200"  style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
+        <div  explicitWidth="200" explicitHeight="200"  style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
+        <div  explicitWidth="200" explicitHeight="200"  style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
+        <div  explicitWidth="200" explicitHeight="200"  style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
+        <div  explicitWidth="200" explicitHeight="200"  style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
+        <div  explicitWidth="200" explicitHeight="200"  style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
 
     </div>
-    <div class="footer" data-skin="footer" style=" width:100%; height:35px; " >
+    <div class="footer" data-skin="footer" explicitHeight="35" style=" width:100%; height:35px;background-color: #dadada " >
         <button data-action="close">取消</button>
         <button data-action="submit">确认</button>
     </div>

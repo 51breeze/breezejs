@@ -123,8 +123,8 @@
     {
         var defaultSkin={
             elements: {
-                head: '<div>{elements lable+close}</div>',
-                lable: '<lable>Title</lable>',
+                head: '<div>{elements label+close}</div>',
+                label: '<label>Title</label>',
                 close: '<span>关闭</span>',
                 body:  '<div></div>',
                 cancel:'<button {attributes button}>取消</button>',
@@ -133,9 +133,9 @@
             } ,
             attributes:{
                 head:{ 'style':{'width':'100%',height:'35px',lineHeight:'30px','display':'block',backgroundColor:'#3a3a3a',color:'#d6d6db','fontSize':'14px'}  },
-                lable:{ 'style':{'width':'auto','display':'block',cursor:'pointer','float':'left',margin:'0px 5px'} },
+                label:{ 'style':{'width':'auto','display':'block',cursor:'pointer','float':'left',margin:'0px 5px'} },
                 close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer','float':'right',margin:'0px 5px'} },
-                body:{ 'style':{padding:'0px','width':'100%',height:'auto','display':'block',overflow:'auto',backgroundColor:'#ffffff'} },
+                body:{ 'style':{padding:'10px','width':'100%',height:'auto','display':'block',overflow:'auto',backgroundColor:'#ffffff'} },
                 button:{ 'style':{margin:'0px 5px', width:'auto',height:'25px',padding:"0px 10px"} },
                 container:{ 'style':{'width':'800px',height:'550px','display':'none',overflow:'hidden','position':'absolute',zIndex:999,backgroundColor:'#3a3a3a','shadow':'0px 0px 10px 2px #444444','radius':'5px'}},
                 footer:{ 'style':{'width':'100%',height:'35px',lineHeight:'30px','display':'block',backgroundColor:'#d6d6db'}}
@@ -264,12 +264,12 @@
     }
 
     /**
-     * @param lable
+     * @param label
      * @returns {*}
      */
-    Modality.prototype.lable=function(lable)
+    Modality.prototype.label=function(lable)
     {
-        this.skinGroup().currentSkin('lable')
+        this.skinGroup().currentSkin('label')
         if( typeof lable === "undefined" )
             return this.skinGroup().text();
         this.skinGroup().text( lable );
