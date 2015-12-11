@@ -53,6 +53,7 @@
     //Constructor
     EventDispatcher.prototype=new DataArray();
     EventDispatcher.prototype.bindCounter={}
+    EventDispatcher.prototype.bindElements={};
     EventDispatcher.prototype.constructor=EventDispatcher;
 
     /**
@@ -62,7 +63,7 @@
      */
     EventDispatcher.prototype.hasEventListener=function( type )
     {
-        return this.bindCounter[type] > 0;
+        return this.bindElements[type] && this.bindElements[type].length > 0;
     }
 
     /**
@@ -97,6 +98,7 @@
         do{
             element= target ? target[ index++] : this;
             if( !element )continue;
+
             if( target && target[ index ] instanceof EventDispatcher )
             {
                 target[ index ].addEventListener(type,listener,useCapture,priority);
@@ -105,7 +107,6 @@
                 EventDispatcher.addEventListener.call(element, type, listener );
             }
         }while( target && index < target.length );
-        this.bindCounter[type] ? this.bindCounter[type]++ : this.bindCounter[type]=1;
         return this;
     }
 
@@ -115,11 +116,11 @@
      * @param listener
      * @returns {boolean}
      */
-    EventDispatcher.prototype.removeEventListener=function(type,listener)
+    EventDispatcher.prototype.removeEventListener=function(type,listener,useCapture)
     {
         if( type=='*' )
         {
-            for( var t in this.__bindType__ )
+            for( var t in this.bindElements )
                 this.removeEventListener(t,listener);
             return true;
         }
@@ -129,8 +130,14 @@
         var element;
         do{
              element = target ? target[b++] : this;
-             target && target[b] instanceof EventDispatcher ? target[b].removeEventListener(type,listener) :
-             EventDispatcher.removeEventListener.call(element,type,listener);
+             if( target && target[b] instanceof EventDispatcher )
+             {
+                 target[b].removeEventListener(type,listener,useCapture)
+
+             }else
+             {
+                EventDispatcher.removeEventListener.call(element,type,listener,useCapture, this );
+             }
         }while( target && b < target.length )
         return true;
     }
@@ -149,6 +156,14 @@
         var element;
         do{
             element = target && target.length>0 ? target[i++] : this;
+
+            //此元素是否在此对象上绑定过事件
+            if( !this.bindElements[ event.type ] || this.bindElements[ event.type ].length <1 ||
+                DataArray.prototype.indexOf.call(this.bindElements[ event.type ],element)<0 )
+            {
+                continue;
+            }
+
             if( event.propagationStopped===true ||
                 ( target && target[i] instanceof EventDispatcher && !target[i].dispatchEvent(event) ) )
             {
@@ -197,6 +212,10 @@
         //是否有指定的目标对象
         !listener.target && (listener.target = this);
 
+        //记录绑定过的元素
+        listener.dispatcher.bindElements[type] || ( listener.dispatcher.bindElements[type]=[])
+        listener.dispatcher.bindElements[type].push( this );
+
         //添加到元素
         events['listener'].push( listener );
 
@@ -224,13 +243,13 @@
      * @param handle
      * @returns {boolean}
      */
-    EventDispatcher.removeEventListener=function( type, listener, useCapture )
+    EventDispatcher.removeEventListener=function( type, listener, useCapture, target )
     {
         //删除捕获阶段和冒泡阶段的事件
         if( typeof useCapture === "undefined" )
         {
-            if( EventDispatcher.removeEventListener.call(this,type, listener, false ) &&
-                EventDispatcher.removeEventListener.call(this,type, listener, true ) )
+            if( EventDispatcher.removeEventListener.call(this,type, listener, false , target) &&
+                EventDispatcher.removeEventListener.call(this,type, listener, true, target ) )
                 return true;
             return false;
         }
@@ -250,9 +269,15 @@
             --length;
             dispatcher=events.listener[ length ].dispatcher;
             //如果有指定侦听器则删除指定的侦听器
-            if(  ( !listener || events.listener[ length ].callback===listener ) && dispatcher.bindCounter[type] > 0 )
+            if(  ( !listener || events.listener[ length ].callback===listener ) && ( !target || target === dispatcher) )
             {
-                --dispatcher.bindCounter[type];
+                if( !dispatcher.bindElements[ type ] || dispatcher.bindElements[ type ].length<1 )
+                {
+                    continue;
+                }
+                var index = DataArray.prototype.indexOf.call(dispatcher.bindElements[ type ],this);
+                if( index < 0)continue;
+                dispatcher.bindElements[ type ].splice(index,1);
                 events.listener.splice(length,1);
             }
         }
@@ -291,6 +316,7 @@
         //是否只是触发捕获阶段的事件
         var useCapture= event.bubbles === false;
         var element = event.currentTarget,data=null;
+        var currentTarget= element;
 
         do{
             data = Utils.storage( element ,'events')
@@ -307,7 +333,6 @@
             element=is ? null : element.parentNode;
         }while( element );
 
-
         //捕获阶段的事件先从根触发
         if( targets[1].length > 1 )
            targets[1]=targets[1].reverse();
@@ -315,6 +340,7 @@
         var step=targets.length,index= 0,category;
         while(  step > 0 )
         {
+            //先触发捕获阶段事件，如果有
             category = targets[ --step ];
             index = 0;
             while( index < category.length && category.length > 0 )
@@ -330,6 +356,14 @@
                 while(  length < events.length )
                 {
                     listener = events[ length++ ];
+
+                    //此元素是否在此对象上绑定过事件
+                    if( !listener.dispatcher.bindElements[ event.type ] || listener.dispatcher.bindElements[ event.type ].length <1 ||
+                        DataArray.prototype.indexOf.call(listener.dispatcher.bindElements[ event.type ],target)<0 )
+                    {
+                        continue;
+                    }
+
                     //设置 Manager 的当前元素对象
                     if( listener.dispatcher instanceof Manager )
                     {
@@ -499,7 +533,7 @@
         {
             event.type = type;
             EventDispatcher.dispatchEvent( event );
-            EventDispatcher.removeEventListener.call(target, type );
+            EventDispatcher.removeEventListener.call(target, type  );
         }
     }
 
@@ -581,7 +615,7 @@
     });
 
 
-    // 定义ready事件
+    // 定义resize事件
     EventDispatcher.SpecialEvent(BreezeEvent.RESIZE,
         function(element,listener,type)
         {

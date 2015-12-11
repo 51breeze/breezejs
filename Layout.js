@@ -237,7 +237,9 @@
         }
         var left = this.left() || 0;
         var right = this.right() || 0;
-        width-=left+right;
+        var paddingLeft =  parseInt( this.style('paddingLeft') ) || 0;
+        var paddingRight =  parseInt( this.style('paddingRight') ) || 0;
+        width-=left+right+paddingRight+paddingLeft;
         return this.getMaxOrMinWidth( width );
     }
 
@@ -255,7 +257,9 @@
         }
         var bottom = this.bottom() || 0;
         var top = this.top() || 0;
-        height-=bottom+top;
+        var paddingTop =  parseInt( this.style('paddingTop') ) || 0;
+        var paddingBottom =  parseInt( this.style('paddingBottom') ) || 0;
+        height-=bottom+top+paddingTop+paddingBottom;
         return this.getMaxOrMinHeight( height );
     }
 

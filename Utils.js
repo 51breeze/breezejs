@@ -179,13 +179,13 @@
 
                     //ie9 以下 offsetWidth 会包括 margin 边距。
                     if( margin )
-                        val -= parseFloat( Utils.style( elem, "margin" + cssExpand[ i ] + "Width" ) ) || 0;
+                        val -= parseFloat( Utils.style( elem, "margin" + cssExpand[ i ] ) ) || 0;
                 }
 
             }else
             {
                 val= parseInt( Utils.style(elem,name) ) || 0;
-                for ( ; i < len; i += 2 ) val += parseFloat( Utils.style( elem, "padding" + cssExpand[ i ] + "Width" ) ) || 0;
+                for ( ; i < len; i += 2 ) val += parseFloat( Utils.style( elem, "padding" + cssExpand[ i ] ) ) || 0;
             }
             return val || 0;
       };
@@ -278,7 +278,6 @@
             if( name === undefined || name==='cssText')
                 return (elem.style || {} ).cssText || '';
 
-            name=Utils.styleName( name );
             if( cssHooks[name] && cssHooks[name].get )return cssHooks[name].get.call(elem) || '';
 
             var ret='',computedStyle;
@@ -287,6 +286,7 @@
             computedStyle=document.defaultView.getComputedStyle( elem, null )
             if( computedStyle )
             {
+                name=Utils.styleName( name );
                 ret = computedStyle.getPropertyValue( name );
                 ret = ret === "" && Utils.hasStyle(elem) ? elem.style[name] : ret;
             }
@@ -298,18 +298,17 @@
        // fix.cssMap['float']='styleFloat';
         fix.cssMap['alpha']='opacity';
         fix.attrMap['class']='className';
-
         getStyle=function( elem, name )
         {
             if( name === undefined || name==='cssText' )
                 return (elem.style || elem.currentStyle || {} ).cssText || '';
 
+            var left='', rsLeft,hook=cssHooks[name]
+                ,style = elem.style ? elem.style : elem.currentStyle || elem.style;
+
             name=Utils.styleName( name );
             if( name==='' )return '';
-
-            var left='', rsLeft,hook=cssHooks[name]
-                ,style = elem.style && elem.style[ name ] ? elem.style : elem.currentStyle && elem.currentStyle || elem.style
-                ,ret = style[ name ] || '';
+            var ret = style[ name ] || '';
 
             if( hook && hook.get )
                 ret=hook.get.call(elem,style) || '';
@@ -440,9 +439,9 @@
     {
         if( typeof name !=='string' )
           return name;
+
         if( name === 'cssText')
             return name;
-
         name=name.replace( cssPrefix, "ms-" ).replace( cssDashAlpha, cssCamelCase );
         name = name.replace( cssUpperProp, "-$1" ).toLowerCase();
         return fix.cssMap[name] || name;

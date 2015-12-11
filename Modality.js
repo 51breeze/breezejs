@@ -132,9 +132,9 @@
                 footer:'<div><div style="width: auto; height: auto; float: right;">{elements cancel+submit}</div></div>'
             } ,
             attributes:{
-                head:{ 'style':{'width':'100%',height:'35px',lineHeight:'30px','display':'block',backgroundColor:'#3a3a3a',color:'#d6d6db','fontSize':'14px'}  },
-                label:{ 'style':{'width':'auto','display':'block',cursor:'pointer','float':'left',margin:'0px 5px'} },
-                close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer','float':'right',margin:'0px 5px'} },
+                head:{ 'style':{'width':'100%',height:'30px',lineHeight:'30px','display':'block',backgroundColor:'#3a3a3a',color:'#d6d6db','fontSize':'14px'}  },
+                label:{ 'style':{'width':'auto','display':'block',cursor:'pointer','float':'left',margin:'0px 10px'} },
+                close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer','float':'right',margin:'0px 10px'} },
                 body:{ 'style':{padding:'10px','width':'100%',height:'auto','display':'block',overflow:'auto',backgroundColor:'#ffffff'} },
                 button:{ 'style':{margin:'0px 5px', width:'auto',height:'25px',padding:"0px 10px"} },
                 container:{ 'style':{'width':'800px',height:'550px','display':'none',overflow:'hidden','position':'absolute',zIndex:999,backgroundColor:'#3a3a3a','shadow':'0px 0px 10px 2px #444444','radius':'5px'}},
@@ -150,9 +150,10 @@
      */
     Modality.prototype.hidden=function()
     {
-        this.skinGroup().currentSkin('container')
-        if( _shade instanceof Modality && this !==_shade )_shade.hidden();
-        this.skinGroup().display(false);
+        if( _shade instanceof Modality && this !==_shade ){
+            _shade.hidden();
+        }
+        this.skinGroup().currentSkin('container').display(false);
         return this;
     }
 
@@ -200,14 +201,24 @@
         var containerHeight = skin.currentSkin('container').height();
         var containerWidth = skin.currentSkin('container').width();
         var headHeight = skin.currentSkin('head').height();
+        skin.currentSkin('body');
+        var top = parseInt( skin.style('paddingTop') ) || 0;
+        var bottom= parseInt( skin.style('paddingBottom') ) || 0;
+        var right = parseInt( skin.style('paddingRight') ) || 0;
+        var left= parseInt( skin.style('paddingLeft') ) || 0;
+
         if( type===Modality.TYPICAL )
         {
-            skin.currentSkin('body').height(containerHeight - headHeight);
+            skin.currentSkin('body')
+                .height(containerHeight - headHeight-top-bottom )
+                .width( containerWidth-right-left);
 
         }else
         {
             var footerHeight = skin.currentSkin('footer').height();
-            skin.currentSkin('body').height(containerHeight - headHeight - footerHeight);
+            skin.currentSkin('body')
+                .height( containerHeight - headHeight - footerHeight-top-bottom )
+                .width( containerWidth-right-left);
         }
         skin.current(null);
         var halign=this.horizontal()
@@ -233,6 +244,7 @@
         {
             var selector=Utils.sprintf('[%s=head] > [%s=close],[%s=footer] button', SkinGroup.NAME,SkinGroup.NAME,SkinGroup.NAME );
             var self = this;
+
             skinGroup.find( selector ).addEventListener(MouseEvent.CLICK,function(event)
             {
                 var type = this.property( SkinGroup.NAME );
@@ -246,7 +258,9 @@
                 self.hidden();
 
             }).revert();
-            skinGroup.addEventListener( PropertyEvent.PROPERTY_CHANGE ,function(event){
+
+           skinGroup.addEventListener( PropertyEvent.PROPERTY_CHANGE ,function(event){
+
                 if( event.property==='width' || event.property==='height' )
                    self.reposition()
             })
@@ -267,12 +281,12 @@
      * @param label
      * @returns {*}
      */
-    Modality.prototype.label=function(lable)
+    Modality.prototype.label=function(label)
     {
         this.skinGroup().currentSkin('label')
-        if( typeof lable === "undefined" )
+        if( typeof label === "undefined" )
             return this.skinGroup().text();
-        this.skinGroup().text( lable );
+        this.skinGroup().text( label );
         return this;
     }
 

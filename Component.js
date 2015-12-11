@@ -105,9 +105,9 @@
      */
     Component.prototype.moveTo=function(x,y)
     {
-        this.skinGroup().currentSkin('container');
-        this.skinGroup().left( x );
-        this.skinGroup().top( y );
+        var elem = this.skinGroup().getSkin('container');
+        Utils.style(elem,'left',x)
+        Utils.style(elem,'top',y)
         return this;
     }
 
