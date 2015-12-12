@@ -73,37 +73,39 @@
      * @param priority
      * @returns {Breeze}
      */
-    EventDispatcher.prototype.addEventListener=function(type,listener,useCapture,priority)
+    EventDispatcher.prototype.addEventListener=function(type,listener,useCapture,priority,reference)
     {
         //如果不是侦听器对象
         if( !(listener instanceof EventDispatcher.Listener) )
         {
-            listener=new EventDispatcher.Listener(listener,useCapture,priority,this);
+            listener=new EventDispatcher.Listener(listener,useCapture,priority,reference);
         }
 
         //指定一组事件
         if( type instanceof Array )
         {
             var len=type.length;
-            while( len > 0 )this.addEventListener( type[--len],listener,useCapture,priority );
+            while( len > 0 )this.addEventListener( type[--len],listener,useCapture,priority,reference);
             return this;
         }
 
        if( typeof type !== 'string' )
          return this;
 
+        listener.dispatcher=this;
         var target= this.targets()
             ,element
             ,index=0;
         do{
             element= target ? target[ index++] : this;
             if( !element )continue;
-
             if( target && target[ index ] instanceof EventDispatcher )
             {
                 target[ index ].addEventListener(type,listener,useCapture,priority);
-            }else if(  !(bindBeforeProxy[type] instanceof EventDispatcher.SpecialEvent) || !bindBeforeProxy[type].callback.call(this,element,listener,type,useCapture)  )
+            }else if(  !(bindBeforeProxy[type] instanceof EventDispatcher.SpecialEvent) ||
+                !bindBeforeProxy[type].callback.call(this,element,listener,type,useCapture)  )
             {
+
                 EventDispatcher.addEventListener.call(element, type, listener );
             }
         }while( target && index < target.length );
@@ -210,7 +212,7 @@
         }
 
         //是否有指定的目标对象
-        !listener.target && (listener.target = this);
+        listener.target = this;
 
         //记录绑定过的元素
         listener.dispatcher.bindElements[type] || ( listener.dispatcher.bindElements[type]=[])
@@ -372,7 +374,7 @@
                     event.target = target;
 
                     //调度侦听项
-                    listener.callback.call( listener.dispatcher , event );
+                    listener.callback.call( listener.reference || listener.dispatcher , event );
                     if( event && event.propagationStopped===true )
                        return false
                 }
@@ -404,19 +406,22 @@
      * @param target
      * @constructor
      */
-    EventDispatcher.Listener=function(callback,useCapture,priority,dispatcher,target)
+    EventDispatcher.Listener=function(callback,useCapture,priority,reference)
     {
         if( typeof callback !=='function' )
             throw new Error('callback not is function in EventDispatcher.Listener')
-        if(  !(dispatcher instanceof EventDispatcher) )
-            throw new Error('dispatcher not is EventDispatcher in EventDispatcher.Listener');
         this.callback=callback;
-        this.priority=parseInt(priority) || 0;
         this.useCapture=!!useCapture;
-        this.dispatcher=dispatcher; //当前调度对象
-        this.target=target || null; //html元素
+        this.priority=parseInt(priority) || 0;
+        this.reference=reference || null;
     }
     EventDispatcher.Listener.prototype.constructor= EventDispatcher.Listener;
+    EventDispatcher.Listener.prototype.useCapture=false;
+    EventDispatcher.Listener.prototype.dispatcher=null;
+    EventDispatcher.Listener.prototype.reference=null;
+    EventDispatcher.Listener.prototype.priority=0;
+    EventDispatcher.Listener.prototype.callback=null;
+    EventDispatcher.Listener.prototype.target=null;
 
     /**
      * 特定事件扩展器

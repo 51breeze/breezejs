@@ -103,25 +103,27 @@
          selection.display()
 */
 
-      var modal =  new Modality()
-      modal.width(600).height(400)
-      modal.label('标题')
-        modal.content('<div style="width: 100%; height: 100%;">sdfdsfds</div>')
-       modal.show()
+
+        /* var modal =  new Modality()
+         modal.width(600).height(400)
+         modal.label('标题')
+         modal.content('<div style="width: 100%; height: 100%;">sdfdsfds</div>')
+         modal.show()
 
 
-       modal.addEventListener(ModalityEvent.SUBMIT,function(event){
+         modal.addEventListener(ModalityEvent.SUBMIT,function(event){
 
-              console.log('submit')
-              event.stopPropagation()
+         console.log('submit')
+         event.stopPropagation()
 
-        })
+         })*/
 
      //  var lay =  new Layout('.modal');
       //  lay.left(20).right(20);
        //  lay.height(100);
 
 
+        Component.initialize()
 
     })
 
@@ -130,23 +132,37 @@
 </script>
 
 <body >
-<!--
-<div class="modal" style="width: 500px; height: 500px; "  explicitWidth="500" explicitHeight="500" >
-    <div class="head" data-skin="head"  explicitHeight="30" style=" width:100%; height:30px; background-color: #3a3a3a ">
-        <label class="label">标题</label>
-        <span class="close" data-action="close" data-event="click">关闭</span>
-    </div>
-    <div class="body" component="layout" horizontal="center" gap="10"  data-skin="body" style="overflow: auto"  top="30" bottom="35">
-
-        <div  explicitWidth="200" explicitHeight="200"  style="border:1px #ccc solid; width: 200px; height: 200px; "></div>
 
 
+<div class="modal" component="modality" show="true" horizontal="left" style="width: 500px; height: 500px;" >
+    <noscript>
+
+        this.initialized=function()
+        {
+
+            this.addEventListener(ModalityEvent.SUBMIT,function(event){
+
+                      console.log('submit')
+                     event.stopPropagation()
+
+                     this.width(800)
+             })
+
+        }
+
+    </noscript>
+    <div class="head" skin="head" style="width: 100%; height: 35px; background-color: #3baecc">
+        <label class="label" skin="label">标题</label>
+        <span class="close" skin="close">关闭</span>
     </div>
-    <div class="footer" data-skin="footer" explicitHeight="35" style=" width:100%; height:35px;background-color: #dadada " >
-        <button data-action="close">取消</button>
-        <button data-action="submit">确认</button>
+    <div class="body" skin="body" style="background-color: #fefff3">
+        <div>dsfdsfdsfdsfdsfsd</div>
     </div>
-</div>-->
+    <div class="footer" skin="footer" style="width: 100%; height: 35px; background-color: #c6bec2">
+        <button skin="cancel">取消</button>
+        <button skin="submit">确认</button>
+    </div>
+</div>
 
 
 

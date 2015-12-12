@@ -8,6 +8,12 @@
 (function(window,undefined )
 {
 
+    /**
+     * 所有组件的基类
+     * @param skinGroup
+     * @returns {Component}
+     * @constructor
+     */
     function Component( skinGroup )
     {
         if( !(this instanceof Component) )
@@ -44,6 +50,7 @@
             if( _skinChanged )
             {
                 _skinChanged=false;
+                _skinGroup.currentSkin('container').property( Component.NAME, this.componentProfile )
                 this.skinInstalled( _skinGroup );
             }
             return _skinGroup;
@@ -52,12 +59,25 @@
 
     Component.prototype=  new EventDispatcher();
     Component.prototype.constructor=Component;
+    Component.prototype.componentProfile='component';
+    Component.prototype.initializeMethod=[];
+    Component.NAME='component';
+    Component.AUTO=true;
 
     /**
+     * overwrite method
+     * Installe / Uninstall skinGroup
      * @param skinGroup
      */
     Component.prototype.skinInstalled=function( skinGroup ){}
     Component.prototype.skinUninstall=function( skinGroup ){}
+
+    /**
+     * overwrite method
+     * initialized component.
+     * @param skinGroup
+     */
+    Component.prototype.initialized=function(){}
 
     /**
      * @returns {SkinGroup}
@@ -109,6 +129,46 @@
         Utils.style(elem,'left',x)
         Utils.style(elem,'top',y)
         return this;
+    }
+
+    /**
+     * 初始化组件
+     * 当文档加载完成后调用此方法来初始所有的组件
+     */
+    Component.initialize=function()
+    {
+
+        Breeze('['+Component.NAME+']').forEach(function(element){
+
+            var className= this.property( Component.NAME )
+            className=window[ className ] ||  window[ Utils.ucfirst(className) ];
+            if( className )
+            {
+                var instance = new className( new SkinGroup(element) );
+                //初始化视图中的脚本
+                for( var b=0; b<element.childNodes.length; b++)
+                {
+                    var child = element.childNodes.item(b);
+                    if( Utils.nodeName(child)==='noscript' )
+                    {
+                        element.removeChild(child);
+                        new Function( Sizzle.getText(child) ).call( instance );
+                    }
+                }
+
+                var index = 0;
+                for( index=0; index < instance.initializeMethod.length; index++)
+                {
+                    var method = instance.initializeMethod[ index ];
+                    var value = this.property(method);
+                    if( method && value !==null && typeof instance[ method ] === "function" )
+                    {
+                        instance[ method ]( value );
+                    }
+                }
+                instance.initialized();
+            }
+        })
     }
 
     window.Component=Component;

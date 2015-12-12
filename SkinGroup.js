@@ -161,7 +161,7 @@
         }
     }
 
-    SkinGroup.NAME='data-skin';
+    SkinGroup.NAME='skin';
     SkinGroup.prototype=new Breeze();
     SkinGroup.prototype.constructor=SkinGroup;
     window.SkinGroup=SkinGroup;
