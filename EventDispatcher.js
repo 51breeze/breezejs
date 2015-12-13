@@ -71,7 +71,7 @@
      * @param type
      * @param listener
      * @param priority
-     * @returns {Breeze}
+     * @returns {EventDispatcher}
      */
     EventDispatcher.prototype.addEventListener=function(type,listener,useCapture,priority,reference)
     {
@@ -123,7 +123,7 @@
         if( type=='*' )
         {
             for( var t in this.bindElements )
-                this.removeEventListener(t,listener);
+                this.removeEventListener(t,listener,useCapture);
             return true;
         }
 

@@ -65,7 +65,7 @@
      */
     Manager.prototype.getContext=function( context )
     {
-        if( context !== undefined )
+        if( typeof context !== 'undefined' )
         {
             if( context instanceof Manager )
                 return context.getContext();
@@ -84,11 +84,15 @@
      */
     Manager.prototype.index=function( index )
     {
-        if( index >= 0 && index < this.length && typeof this[index] !== "undefined" )
+        if( typeof index !== "undefined" )
         {
-            this.forEachCurrentItem= this[ index ];
-            this.forEachCurrentIndex= index;
-            return this;
+            if( index >= 0 && index < this.length && typeof this[index] !== "undefined" )
+            {
+                this.forEachCurrentItem= this[ index ];
+                this.forEachCurrentIndex= index;
+                return this;
+            }
+            throw new Error('Out range of index')
         }
         return this.forEachCurrentIndex;
     }
@@ -106,6 +110,7 @@
         if( this.forEachCurrentItem !== undefined && this.forEachPrevItem !== this.forEachCurrentItem )
         {
             result=callback.call( refObject ,this.forEachCurrentItem,this.forEachCurrentIndex);
+
         }else
         {
             var items=this.slice(0),

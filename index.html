@@ -72,6 +72,7 @@
     Breeze(function(){
 
 
+        Component.initialize()
 
 
         // this.height - footer.height - head.height
@@ -103,27 +104,31 @@
          selection.display()
 */
 
+        console.log( "1")
+        console.log( "2")
+        console.log( "==++++==")
 
-        /* var modal =  new Modality()
+
+         var modal =  new Modality()
          modal.width(600).height(400)
          modal.label('标题')
-         modal.content('<div style="width: 100%; height: 100%;">sdfdsfds</div>')
-         modal.show()
+         modal.html('')
+         modal.show(true)
 
-
-         modal.addEventListener(ModalityEvent.SUBMIT,function(event){
+        /* modal.addEventListener(ModalityEvent.SUBMIT,function(event){
 
          console.log('submit')
          event.stopPropagation()
 
          })*/
 
+
      //  var lay =  new Layout('.modal');
       //  lay.left(20).right(20);
        //  lay.height(100);
 
 
-        Component.initialize()
+
 
     })
 
@@ -133,6 +138,9 @@
 
 <body >
 
+sddsf
+
+<!--
 
 <div class="modal" component="modality" show="true" horizontal="left" style="width: 500px; height: 500px;" >
     <noscript>
@@ -163,6 +171,7 @@
         <button skin="submit">确认</button>
     </div>
 </div>
+-->
 
 
 

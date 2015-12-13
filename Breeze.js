@@ -39,34 +39,34 @@
             return new Breeze( selector,context );
 
         this.length=0;
-
         if( !Utils.isDefined(selector) && !Utils.isDefined(context) )
             return this;
 
         var result;
         this.context = this.getContext( context );
         this.selector = selector;
-
         if( Utils.isString( selector ) )
         {
             selector=Utils.trim(selector);
+            result = selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 ?
+                [ Utils.createElement(selector) ] : Sizzle( selector, this.context );
 
-            if( selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 )
-            {
-                result = [ Utils.createElement(selector) ]
-
-            }else
-            {
-                result= Sizzle( selector, this.context )
-            }
-
-        }else if( selector && Utils.isHTMLContainer(selector) || Utils.isWindow(selector) )
+        }else if( Utils.isWindow(selector) || Utils.isNodeElement(selector) )
         {
             result=[selector];
         }
+
+        //新创建的元素直接添加到文档中
+        if( result.length===1 && !result[0].parentNode )
+            this.addChild( result[0] );
+
+        //初始化元素管理器
         Manager.call(this, result );
-        if( result.length > 0 )
-          this.__rootElement__= this[0];
+
+        //设置当前对象中的根元素
+        this.__rootElement__= this[0];
+
+        //统计实例对象数
         this.__COUNTER__=++breezeCounter;
     }
 
@@ -674,27 +674,40 @@
     {
         if( childElemnet instanceof Breeze )
         {
-            childElemnet=childElemnet[0];
+            childElemnet=childElemnet.toArray();
+            for( var c=0; c<childElemnet.length; c++)
+            {
+                 this.addChildAt( childElemnet[c], index );
+            }
+            return this;
         }
 
         if( index===undefined )
             throw new Error('Invalid param the index. in addChildAt');
 
         var isElement= childElemnet && childElemnet.nodeType && typeof childElemnet.nodeName === 'string';
+
+        //如果没有父级元素则设置上下文为父级元素
+        if( this.length === 0 && !this.current() )
+        {
+            var context = this.getContext();
+            this.current( context === document ? document.body : context )
+        }
+
         return this.forEach(function(parent)
         {
             if( !parent || parent.nodeType!=1 || typeof parent.nodeName !== "string" )
             {
-                throw new Error('not is a container type in addChildAt');
+               return;
             }
 
             try{
                 var child=isElement ? childElemnet : Utils.createElement( childElemnet );
             }catch(e){
-                throw new Error('not is a HTMLElement type the childElemnet in addChildAt');
+                throw new Error('The childElemnet not is HTMLElement. in addChildAt');
             }
 
-            if( dispatchElementEvent(this,parent,child,ElementEvent.BEFORE_ADD ) )
+            if( child.parentNode !== parent && dispatchElementEvent(this,parent,child,ElementEvent.BEFORE_ADD ) )
             {
                 if( child.parentNode )
                 {
@@ -704,7 +717,6 @@
                 var refChild=index && index.parentNode && index.parentNode===parent ? index : null;
                     !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
                     refChild && (refChild=index.nextSibling);
-
                 parent.insertBefore( child , refChild || null );
                 dispatchElementEvent(this,parent,child,ElementEvent.ADDED );
             }
@@ -823,7 +835,7 @@
     Breeze.prototype.html=function( html , outer )
     {
         outer = !!outer;
-        var write= html !== undefined;
+        var write= typeof html !== "undefined";
         if( !write && this.length < 1 ) return '';
 
         return this.forEach(function(elem)
@@ -838,13 +850,14 @@
             {
                 var nodes=elem.childNodes;
                 var len=nodes.length,b=0;
-                for( ; b < len ; b++ ) if( nodes[b] && nodes[b].nodeType===1 )
+                for( ; b < len ; b++ ) if( nodes[b] )
                 {
                    if( !removeChild( this, elem, nodes[b] ) )
                      return this;
                 }
             }
             elem.innerHTML='';
+            if( /[^\S]*/.test(html) )return this;
             if( outer && elem.parentNode && elem.parentNode.ownerDocument && Utils.isContains(elem.parentNode.ownerDocument.body, elem.parentNode) )
             {
                 this.current( elem.parentNode );
@@ -861,31 +874,14 @@
         if( !write && this.length < 1 )return typeof defaultValue !== "undefined" ?  defaultValue : '';
         return this.forEach(function(elem)
         {
-            var oldValue= callback.get.call(elem,name);
+            var oldValue= callback.get.call(elem,name,this);
             if( !write ) return oldValue;
             if( oldValue !== newValue )
             {
-                callback.set.call(elem,name,newValue);
+                callback.set.call(elem,name,newValue,this);
                 eventProp && dispatchPropertyEvent(this,newValue,oldValue,eventProp,elem,eventType);
             }
         });
-    }
-
-    /**
-     * 获取或者设置文本内容
-     * @param text
-     * @returns {}
-     */
-    Breeze.prototype.text=function( value )
-    {
-       return access.call(this,'text',value,{
-           get:function(prop){
-                return Sizzle.getText(this) || '';
-           },
-           set:function(prop,newValue){
-               typeof this.textContent === "string" ? this.textContent=newValue : this.innerText=newValue;
-           }
-        },'text');
     }
 
     /**
@@ -1262,18 +1258,27 @@
     }
 
     /**
-     * 获取当前元素的内容值
-     * @returns {*}
+     * 获取设置当前元素的内容值。如果元素是表单元素则写读value否则为text属性。
+     * @returns {string|Breeze}
      */
-    Breeze.prototype.content=function()
+    Breeze.prototype.content=function( value )
     {
-        if( Utils.isFormElement( this.current() ) )
-        {
-            return this.property('value');
-        }
-        return this.text();
+        return access.call(this,'content',value,{
+            get:function(prop,target){
+                return ( Utils.isFormElement( this ) ? target.property('value') : Sizzle.getText(this) ) || '';
+            },
+            set:function(prop,newValue,target)
+            {
+                if( Utils.isFormElement( this ) )
+                {
+                    target.property('value',newValue)
+                }else
+                {
+                   typeof this.textContent === "string" ? this.textContent=newValue : this.innerText=newValue;
+                }
+            }
+        },'content');
     }
-
     window.Breeze=Breeze;
 
 })( window )

@@ -98,10 +98,36 @@
      * @returns {SkinGroup}
      * @constructor
      */
-    function SkinGroup( selector , context , container )
+    function SkinGroup( skinContainer, skinParts, context )
     {
         if( !(this instanceof SkinGroup) )
-            return new SkinGroup( selector, context , container );
+            return new SkinGroup( skinContainer, skinParts, context);
+
+        if( typeof skinContainer === "string" )
+        {
+            if( isselector.test(skinContainer) )
+            {
+               skinContainer=Sizzle(skinContainer,context)[0];
+
+            }else
+            {
+                if( typeof skinParts === "object" )
+                {
+                    skinParts.elements || (skinParts.elements={})
+                    skinParts.elements.container=skinContainer;
+                    skinContainer=toString.call(skinParts);
+                }
+                skinContainer=Utils.createElement( skinContainer );
+            }
+        }
+
+        if( Utils.isHTMLElement(skinContainer) )
+        {
+            Breeze.call(this,skinContainer,context);
+        }
+
+        if( this.length < 1 )
+            throw new Error('Create skinContainer failed');
 
         /**
          * @private
@@ -110,16 +136,14 @@
 
         /**
          * @param string skinName
-         * @returns {*|null}
+         * @returns {HTMLElement}
          */
         this.getSkin=function( skinName )
         {
-            if( !_skin[skinName] )
+            if( typeof _skin[skinName] === "undefined" )
             {
-                var ret = Sizzle(  Utils.sprintf('[%s="%s"]', SkinGroup.NAME, skinName ) , _skin.container );
-                if( ret.length === 0 )
-                    throw new Error('Not found skin element is '+skinName );
-                _skin[skinName]=ret[0];
+                var ret = Sizzle(  Utils.sprintf('[%s="%s"]', SkinGroup.NAME, skinName ) , this[0] );
+                _skin[skinName]=ret[0] || null;
             }
             return _skin[skinName];
         }
@@ -130,34 +154,10 @@
          */
         this.currentSkin=function( skinName )
         {
-            this.current( this.getSkin( skinName ) )
+            var skin = this.getSkin( skinName );
+            if( !skin ) throw new Error('Not found skin element is '+skinName );
+            this.current( skin )
             return this;
-        }
-
-        if( ( typeof selector === "string" && isselector.test(selector) ) || Utils.isHTMLContainer(selector) )
-        {
-            Breeze.call(this, selector, context );
-            this.property( SkinGroup.NAME ,'container');
-            _skin.container=this.current();
-
-        }else if( context && selector )
-        {
-            if( typeof selector === "object" )
-            {
-                selector.elements || (selector.elements={})
-                if( typeof container === "string" )
-                    selector.elements.container=container;
-                selector=toString.call(selector);
-            }
-
-            _skin.container=Utils.createElement( selector );
-            context=this.getContext( context );
-            this.current( context ).addChild( _skin.container );
-            Breeze.call(this,_skin.container, context );
-        }
-        if( this.length < 1 )
-        {
-            throw new Error('Need to match at least one element. in param selector, context');
         }
     }
 

@@ -883,7 +883,7 @@
      */
     Utils.isNodeElement=function( element )
     {
-        return typeof Node==='object' ? element instanceof Node : ( element && element.nodeType && typeof element.nodeName === "string" );
+        return typeof Node==='object' ? element instanceof Node : ( element && element.nodeType && typeof element.nodeName === "string" && typeof element.tagName === "string" );
     }
 
     /**

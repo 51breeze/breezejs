@@ -22,15 +22,16 @@
     ,vertical=['top','middle','bottom']
     ,__method__ = function(prop, val , flag )
     {
-        var old = parseInt( this.property(prop) );
+        var skin = this.skinGroup();
+        var old = parseInt( skin.property(prop) );
         if( typeof val !== "undefined" )
         {
             val =  parseInt( val );
-            if ( flag ) this.style( flag !== true ? flag : prop, val);
+            if ( flag ) skin.style( flag !== true ? flag : prop, val);
             if ( val !== old )
             {
-                this.property(prop, val);
-                if( this.initialized )this.invalidate=false;
+                skin.property(prop, val);
+                this.invalidate=false;
             }
             return this;
         }
@@ -48,57 +49,38 @@
         if( !(this instanceof Layout) )
             return new Layout( target );
 
-        Breeze.call(this , target );
-        if( this.length !== 1 )
-        {
-            throw new Error('invalid target. the param only is a element');
-        }
-
-        target = this[0];
-        if( this.data('layout') instanceof Layout )
-           return this.data('layout');
-
-        //初始化视图中的脚本
-        for( var b=0; b<target.childNodes.length; b++)
-        {
-           var child = target.childNodes.item(b);
-           if( Utils.nodeName(child)==='noscript' )
-           {
-               target.removeChild(child);
-               new Function( Sizzle.getText(child) ).call(this);
-           }
-        }
+        Component.call(this, target instanceof SkinGroup ? target : new SkinGroup(target) );
+        target=this.current()
+        if( !target )
+         throw new Error('Not found skin of container')
 
         this.childrenItem=[];
+
+        var _viewport=target.ownerDocument;
+        var _map={'body':target.ownerDocument.body,'window': Utils.getWindow( target ), 'document': target.ownerDocument };
         if( rootLayout )
         {
-            if( !Utils.contains( window.document.body, target ) )
+            if( !Utils.contains( target.ownerDocument.body, target ) )
                  throw new Error('invalid target in Layout');
 
-            if( this.style('position') === "static" )
-                this.style('position',target.parentNode === window.document.body ? 'absolute' : 'relative' );
+            if( Utils.style(target,'position') === "static" )
+                Utils.style(target,'position',target.parentNode === window.document.body ? 'absolute' : 'relative' );
 
-            this.style('float','left');
+            Utils.style(target,'float','left')
+            _viewport=target.parentNode;
+
             var parent=target;
             do{
-                var layout = this.current(parent).data('layout');
+                parent= parent.parentNode;
+                var layout = Utils.storage( parent, this.componentProfile );
                 if( layout && layout instanceof Layout )
                 {
                     this.owner=layout;
                     this.owner.childrenItem.push( this );
                     break;
                 }
-                parent= parent.parentNode;
             }while( parent );
-            this.current(null);
         }
-        this.data('layout', this);
-
-        var doc = this[0].document || this[0].ownerDocument;
-        var win =  Utils.getWindow(this[0]);
-        var _viewport = Utils.contains(doc.body, this[0]) ? this[0].parentNode : doc.body;
-            _viewport = doc.body === _viewport ? doc : _viewport;
-        var map={'body':doc.body,'window': win, 'document':win.document }
 
         /**
          * @param viewport
@@ -111,9 +93,9 @@
 
             if( typeof viewport === "string" )
             {
-                if( map[viewport] )
+                if( _map[viewport] )
                 {
-                    viewport= map[viewport];
+                    viewport= _map[viewport];
 
                 }else
                 {
@@ -156,7 +138,8 @@
                      }
                  }
              }
-        })
+
+        },false,0,this)
     }
 
     /**
@@ -168,9 +151,6 @@
         if( rootLayout=== null )
         {
             rootLayout = new Layout( document.body );
-            rootLayout.addEventListener=function(type,listener,useCapture,priority){
-                EventDispatcher.prototype.addEventListener.call(this,type,listener,useCapture,priority);
-            }
             var method=['gap','horizontal','vertical'];
             for( var prop in method )
             {
@@ -181,9 +161,16 @@
                 }
             }
             rootLayout.addEventListener( BreezeEvent.RESIZE , function(event){
+
                 this.invalidate=false;
                 this.updateDisplayList();
-            });
+
+            },false,0,rootLayout);
+
+            Breeze.rootEvent().addEventListener(Component.INITIALIZE_COMPLETED,function(event){
+                rootLayout.updateDisplayList();
+                console.log( Component.INITIALIZE_COMPLETED )
+            })
         }
         return rootLayout;
     }
@@ -202,9 +189,9 @@
 
     /**
      * 继承 Breeze
-     * @type {window.Breeze}
+     * @type {window.Component}
      */
-    Layout.prototype=new Breeze();
+    Layout.prototype=new Component();
     Layout.prototype.owner=null;
     Layout.prototype.childrenItem=[];
     Layout.prototype.scrollWidth=0;
@@ -213,6 +200,8 @@
     Layout.prototype.overflowWidth=0;
     Layout.prototype.invalidate=false;
     Layout.prototype.childrenElement=[];
+    Layout.prototype.initializeMethod=['left','top','right','bottom','explicitHeight','explicitWidth','gap',
+        'horizontal','vertical','minWidth','minHeight','maxWidth','maxHeight','percentWidth','percentHeight'];
 
     /**
      * 输出布局组件名称
@@ -220,7 +209,7 @@
      */
     Layout.prototype.toString=function()
     {
-        return 'Layout '+this.__COUNTER__;
+        return 'Layout';
     }
 
     /**
@@ -432,7 +421,6 @@
 
         this.height( parentHeight );
         this.width( parentWidth );
-
     }
 
     /**
@@ -688,30 +676,11 @@
         return __method__.call(this,'gap', val ,false) || 0;
     }
 
-    //初始化布局组件
-    Breeze.ready(function(){
+    Breeze.rootEvent().addEventListener(BreezeEvent.READY,function(event){
 
-        var rootLayout = Layout.rootLayout();
-        var method=['left','top','right','bottom','explicitHeight','explicitWidth','gap','horizontal','vertical','minWidth','minHeight','maxWidth','maxHeight','percentWidth','percentHeight'];
-        Breeze('[component=layout]', rootLayout ).forEach(function(target)
-        {
-            if( Utils.isHTMLElement(target) && target !== window.document.body )
-            {
-                var prop,layout,value;
-                layout = new Layout( target );
-                for( prop in method )
-                {
-                    value = layout.property( method[prop] );
-                    if( value !== null )
-                    {
-                       layout[ method[prop] ]( value );
-                    }
-                }
-            }
-        })
-       rootLayout.updateDisplayList();
+        Layout.rootLayout();
 
-    });
+    },false,100)
 
     window.Layout=Layout;
     window.LayoutEvent=LayoutEvent;

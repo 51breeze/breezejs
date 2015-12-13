@@ -95,9 +95,10 @@ modality.show(true)
         if( type === Modality.SIMPLE )
             return this;
         var skin = this.skinGroup();
-        var containerHeight = skin.currentSkin('container').height();
-        var containerWidth = skin.currentSkin('container').width();
+        var containerHeight = skin.height();
+        var containerWidth = skin.width();
         var headHeight = skin.currentSkin('head').height();
+
         skin.currentSkin('body');
         var top = parseInt( skin.style('paddingTop') ) || 0;
         var bottom= parseInt( skin.style('paddingBottom') ) || 0;
@@ -175,11 +176,10 @@ modality.show(true)
 
     /**
      * 获取模态框的默认皮肤
-     * @param selector|HTMLElement skinGroup
      * @returns {SkinGroup}
      * @protected
      */
-    Modality.prototype.getDefaultSkin=function( skinGroup )
+    Modality.prototype.getDefaultSkin=function()
     {
         var defaultSkin={
             elements: {
@@ -197,11 +197,11 @@ modality.show(true)
                 close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer','float':'right',margin:'0px 10px'} },
                 body:{ 'style':{padding:'10px','width':'100%',height:'auto','display':'block',overflow:'auto',backgroundColor:'#ffffff'} },
                 button:{ 'style':{margin:'0px 5px', width:'auto',height:'25px',padding:"0px 10px"} },
-                container:{ 'style':{'width':'800px',height:'550px','display':'none',overflow:'hidden','position':'absolute',zIndex:999,backgroundColor:'#3a3a3a','shadow':'0px 0px 10px 2px #444444','radius':'5px'}},
+                container:{ 'style':{'width':'800px',height:'550px','display':'none',overflow:'hidden','position':'absolute','zIndex':999,'backgroundColor':'#3a3a3a','shadow':'0px 0px 10px 2px #444444','radius':'5px'}},
                 footer:{ 'style':{'width':'100%',height:'35px',lineHeight:'30px','display':'block',backgroundColor:'#d6d6db'}}
             }
         }
-        return new SkinGroup( typeof skinGroup === "string" ?  skinGroup : defaultSkin , document.body , this.theme( this.type() ) );
+        return new SkinGroup(  this.theme( this.type() ) , defaultSkin,  document.body );
     }
 
 
@@ -290,7 +290,7 @@ modality.show(true)
         if( _shade instanceof Modality && this !==_shade ){
             _shade.hidden();
         }
-        this.skinGroup().currentSkin('container').display(false);
+        this.display(false);
         return this;
     }
 
@@ -310,13 +310,9 @@ modality.show(true)
         {
             _shade = new Modality()
             _shade.type(Modality.SIMPLE);
-            _shade.skinGroup().currentSkin('container').style({'opacity':0.5,'backgroundColor':'#000000','radius':'0px','shadow':'none'})
-            var layout = new Layout( _shade.skinGroup().getSkin('container') );
-            layout.left(0);
-            layout.top(0);
-            layout.right(0);
-            layout.bottom(0);
-            layout.updateDisplayList();
+            _shade.style({'opacity':0.5,'backgroundColor':'#000000','radius':'0px',
+                'shadow':'none','left':'0px','top':'0px'})
+            _shade.style('width','100%').style('height', Utils.getSize(document,'height') )
         }
         return _shade;
     }
@@ -331,13 +327,12 @@ modality.show(true)
     Modality.prototype.show=function( shade ,zIndex )
     {
         zIndex = zIndex || 999;
-        this.skinGroup().currentSkin('container')
         shade= Boolean(shade);
         if( shade===true )
         {
             this.shade().show(false,zIndex-1);
         }
-        this.skinGroup().style({'zIndex':zIndex,'position':'absolute'}).display(true);
+        this.style({'zIndex':zIndex,'position':'absolute'}).display(true);
         return this;
     }
 
@@ -352,10 +347,10 @@ modality.show(true)
         if( typeof label === "string" )
         {
             if( this.type() !== Modality.SIMPLE )
-            this.skinGroup().currentSkin('label').text( label );
+            this.skinGroup().currentSkin('label').content( label );
             return this;
         }
-        return this.type() !== Modality.SIMPLE ? this.skinGroup().currentSkin('label').text() : '';
+        return this.type() !== Modality.SIMPLE ? this.skinGroup().currentSkin('label').content() : '';
     }
 
     /**
@@ -364,12 +359,11 @@ modality.show(true)
      * @returns {string|Modality}
      * @public
      */
-    Modality.prototype.content=function( content )
+    Modality.prototype.html=function( html )
     {
-        this.skinGroup().currentSkin('body')
-        if( typeof content === "undefined" )
-            return this.skinGroup().html();
-        this.skinGroup().html( content );
+        if( typeof html === "undefined" )
+            return this.skinGroup().currentSkin('body').html();
+        this.skinGroup().currentSkin('body').html( html );
         return this;
     }
 
