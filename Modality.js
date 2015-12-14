@@ -165,16 +165,6 @@ modality.show(true)
     }
 
     /**
-     * 皮肤卸载
-     * @param skinGroup
-     * @protected
-     */
-    Modality.prototype.skinUninstall=function( skinGroup )
-    {
-        skinGroup.removeEventListener( PropertyEvent.PROPERTY_CHANGE, this.__propertyChanged__ );
-    }
-
-    /**
      * 获取模态框的默认皮肤
      * @returns {SkinGroup}
      * @protected

@@ -48,6 +48,8 @@
             }
             return null;
         }
+
+        this.bindElements={};
     };
 
     //Constructor
@@ -63,7 +65,8 @@
      */
     EventDispatcher.prototype.hasEventListener=function( type )
     {
-        return this.bindElements[type] && this.bindElements[type].length > 0;
+        var events = this.data('events');
+        return !!( events[type] && (events[type][0]['listener'].length > 0 || events[type][1]['listener'].length > 0 ) );
     }
 
     /**
@@ -105,7 +108,6 @@
             }else if(  !(bindBeforeProxy[type] instanceof EventDispatcher.SpecialEvent) ||
                 !bindBeforeProxy[type].callback.call(this,element,listener,type,useCapture)  )
             {
-
                 EventDispatcher.addEventListener.call(element, type, listener );
             }
         }while( target && index < target.length );
@@ -158,14 +160,6 @@
         var element;
         do{
             element = target && target.length>0 ? target[i++] : this;
-
-            //此元素是否在此对象上绑定过事件
-            if( !this.bindElements[ event.type ] || this.bindElements[ event.type ].length <1 ||
-                DataArray.prototype.indexOf.call(this.bindElements[ event.type ],element)<0 )
-            {
-                continue;
-            }
-
             if( event.propagationStopped===true ||
                 ( target && target[i] instanceof EventDispatcher && !target[i].dispatchEvent(event) ) )
             {
@@ -215,8 +209,8 @@
         listener.target = this;
 
         //记录绑定过的元素
-        listener.dispatcher.bindElements[type] || ( listener.dispatcher.bindElements[type]=[])
-        listener.dispatcher.bindElements[type].push( this );
+       /* listener.dispatcher.bindElements[type] || ( listener.dispatcher.bindElements[type]=[])
+        listener.dispatcher.bindElements[type].push( this );*/
 
         //添加到元素
         events['listener'].push( listener );
@@ -273,13 +267,14 @@
             //如果有指定侦听器则删除指定的侦听器
             if(  ( !listener || events.listener[ length ].callback===listener ) && ( !target || target === dispatcher) )
             {
-                if( !dispatcher.bindElements[ type ] || dispatcher.bindElements[ type ].length<1 )
+               /* if( !dispatcher.bindElements[ type ] || dispatcher.bindElements[ type ].length<1 )
                 {
                     continue;
                 }
                 var index = DataArray.prototype.indexOf.call(dispatcher.bindElements[ type ],this);
                 if( index < 0)continue;
-                dispatcher.bindElements[ type ].splice(index,1);
+                dispatcher.bindElements[ type ].splice(index,1);*/
+
                 events.listener.splice(length,1);
             }
         }
@@ -360,11 +355,11 @@
                     listener = events[ length++ ];
 
                     //此元素是否在此对象上绑定过事件
-                    if( !listener.dispatcher.bindElements[ event.type ] || listener.dispatcher.bindElements[ event.type ].length <1 ||
+                   /* if( !listener.dispatcher.bindElements[ event.type ] || listener.dispatcher.bindElements[ event.type ].length <1 ||
                         DataArray.prototype.indexOf.call(listener.dispatcher.bindElements[ event.type ],target)<0 )
                     {
                         continue;
-                    }
+                    }*/
 
                     //设置 Manager 的当前元素对象
                     if( listener.dispatcher instanceof Manager )
@@ -375,9 +370,10 @@
 
                     //调度侦听项
                     listener.callback.call( listener.reference || listener.dispatcher , event );
-                    if( event && event.propagationStopped===true )
-                       return false
+
                 }
+                if( event && event.propagationStopped===true )
+                    return false
             }
         }
         return true;

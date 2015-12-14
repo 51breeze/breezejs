@@ -147,23 +147,24 @@
             }
             return _skin[skinName];
         }
-
-        /**
-         * @param skinName
-         * @returns {SkinGroup}
-         */
-        this.currentSkin=function( skinName )
-        {
-            var skin = this.getSkin( skinName );
-            if( !skin ) throw new Error('Not found skin element is '+skinName );
-            this.current( skin )
-            return this;
-        }
     }
 
     SkinGroup.NAME='skin';
     SkinGroup.prototype=new Breeze();
     SkinGroup.prototype.constructor=SkinGroup;
     window.SkinGroup=SkinGroup;
+
+    /**
+     * @param skinName
+     * @returns {SkinGroup}
+     */
+    SkinGroup.prototype.currentSkin=function( skinName )
+    {
+        var skin = this.getSkin( skinName );
+        if( !skin ) throw new Error('Not found skin element is '+skinName );
+        this.current( skin )
+        return this;
+    }
+
 
 })( window )

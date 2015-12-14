@@ -345,8 +345,7 @@
             for( ; index<len; index++)
             {
                 var child = target.childNodes.item( index );
-                var skin = this.skinGroup().current( child );
-
+                this.current( child );
                 if( child.nodeType===1 && child.getAttribute( 'includeLayout' )!=='false' && ( !isroot || this.data('layout') instanceof Layout ) )
                 {
                     this.style('position','absolute')
@@ -556,7 +555,6 @@
      */
     Layout.prototype.explicitWidth=function(val)
     {
-        console.log( val )
         return __method__.call(this,'explicitWidth',val,'width');
     }
 

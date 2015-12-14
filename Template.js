@@ -287,8 +287,8 @@
                 if (viewport instanceof Breeze && viewport.length < 1) {
                     throw new Error('invalid viewport.')
                 }
-                viewport.removeEventListener(ElementEvent.ADDED,dispatch);
-                viewport.addEventListener( ElementEvent.ADDED ,dispatch);
+                viewport.removeEventListener(ElementEvent.CHILD_ADD,dispatch);
+                viewport.addEventListener( ElementEvent.CHILD_ADD ,dispatch);
                 _viewport = viewport;
             }
             return _viewport;

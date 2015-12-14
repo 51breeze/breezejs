@@ -644,10 +644,10 @@
     var removeChild= function(target,parent,child)
     {
         if( child && parent.hasChildNodes() && child.parentNode === parent &&
-            dispatchElementEvent(target,parent,child,ElementEvent.BEFORE_REMOVE ) )
+            dispatchElementEvent(target,parent,child,ElementEvent.BEFORE_CHILD_REMOVE ) )
         {
             var result=parent.removeChild( child );
-            dispatchElementEvent(target,parent,child,ElementEvent.REMOVED );
+            dispatchElementEvent(target,parent,child,ElementEvent.CHILD_REMOV );
             return !!result;
         }
         return false;
@@ -707,7 +707,7 @@
                 throw new Error('The childElemnet not is HTMLElement. in addChildAt');
             }
 
-            if( child.parentNode !== parent && dispatchElementEvent(this,parent,child,ElementEvent.BEFORE_ADD ) )
+            if( child.parentNode !== parent && dispatchElementEvent(this,parent,child,ElementEvent.BEFORE_CHILD_ADD ) )
             {
                 if( child.parentNode )
                 {
@@ -718,7 +718,8 @@
                     !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
                     refChild && (refChild=index.nextSibling);
                 parent.insertBefore( child , refChild || null );
-                dispatchElementEvent(this,parent,child,ElementEvent.ADDED );
+                dispatchElementEvent(this,parent,child,ElementEvent.PARENT_ADD_CHILD );
+                dispatchElementEvent(this,parent,child,ElementEvent.CHILD_ADD );
             }
             if( isElement ) return this;
         })
@@ -910,7 +911,7 @@
             set:function(prop,newValue){
                 Utils.style(this,prop,newValue);
             }
-        },name,PropertyEvent.PROPERTY_STYLE_CHANGE);
+        },name,PropertyEvent.STYLE_CHANGE);
     }
 
     /**

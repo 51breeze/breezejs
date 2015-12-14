@@ -35,6 +35,7 @@
         cancelable:true, // 是否可以取消浏览器默认关联的事件
         currentTarget:null,
         defaultPrevented: false,
+        originalEvent:null,
         propagationStopped: false,
         preventDefault: function()
         {
@@ -197,10 +198,12 @@
     ElementEvent.prototype.parent=null;
     ElementEvent.prototype.child=null;
     ElementEvent.prototype.constructor=ElementEvent;
-    ElementEvent.ADDED='added';
-    ElementEvent.REMOVED='removed';
-    ElementEvent.BEFORE_ADD='beforeadd';
-    ElementEvent.BEFORE_REMOVE='beforeremove';
+    ElementEvent.CHILD_ADD='elementChildAdd';
+    ElementEvent.CHILD_REMOV='elementChildRemov';
+    ElementEvent.BEFORE_CHILD_ADD='elementBeforeChildAdd';
+    ElementEvent.BEFORE_CHILD_REMOVE='elementBeforeChildRemove';
+    ElementEvent.PARENT_ADD_CHILD='elementParentAddChild';
+    ElementEvent.PARENT_REMOVE_CHILD='elementParentRemovChild';
 
     /**
      * PropertyEvent
@@ -214,9 +217,9 @@
     PropertyEvent.prototype.newValue=null;
     PropertyEvent.prototype.oldValue=null;
     PropertyEvent.prototype.constructor=PropertyEvent;
-    PropertyEvent.PROPERTY_CHANGE='propertychange';
-    PropertyEvent.PROPERTY_COMMIT='propertycommit';
-    PropertyEvent.PROPERTY_STYLE_CHANGE='propertystylechange';
+    PropertyEvent.PROPERTY_CHANGE='propertyChange';
+    PropertyEvent.PROPERTY_COMMIT='propertyCommit';
+    PropertyEvent.STYLE_CHANGE='styleChange';
 
     /**
      * MouseEvent

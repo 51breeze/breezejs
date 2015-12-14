@@ -29,6 +29,7 @@
         if(  skinGroup instanceof SkinGroup )
         {
             this.__skinGroup__=skinGroup;
+            this.__skinGroup__.current(null).data( this.componentProfile, this )
         }
     }
 
@@ -47,7 +48,6 @@
      * @protected
      */
     Component.prototype.skinInstalled=function( skinGroup ){}
-    Component.prototype.skinUninstall=function( skinGroup ){}
 
     /**
      * overwrite method
@@ -67,36 +67,22 @@
     }
 
     /**
-     * @param SkinGroup skinGroup
-     * @returns {Breeze|Component|EventDispatcher}
+     * @returns {Breeze|SkinGroup|EventDispatcher}
      * @public
      */
-    Component.prototype.skinGroup=function( skinGroup )
+    Component.prototype.skinGroup=function()
     {
-        if( typeof skinGroup !== "undefined" )
-        {
-            if( this.__skinGroup__ instanceof  SkinGroup ){
-                this.skinUninstall(this.__skinGroup__);
-                this.__skinGroup__.data( this.componentProfile, null );
-            }
-            this.__skinGroup__=skinGroup;
-            this.__skinChanged__=true;
-            return this;
-        }
-
-        if( !(this.__skinGroup__ instanceof SkinGroup) )
+        if( this.__skinGroup__ === null )
         {
             this.__skinGroup__ = this.getDefaultSkin()
-            this.__skinChanged__=true;
+            this.__skinGroup__.current(null).data( this.componentProfile, this )
         }
-
-        if( this.__skinChanged__ )
+        if( this.__skinChanged__===true)
         {
             this.__skinChanged__=false;
-            this.__skinGroup__.data( this.componentProfile, this )
             this.skinInstalled( this.__skinGroup__ );
         }
-        return this.__skinGroup__.current(null);
+        return this.__skinGroup__;
     }
 
     /**
