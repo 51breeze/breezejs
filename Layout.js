@@ -163,13 +163,15 @@
             rootLayout.addEventListener( BreezeEvent.RESIZE , function(event){
 
                 this.invalidate=false;
-                this.updateDisplayList();
+                if( this.childrenItem.length > 0 )
+                   this.updateDisplayList();
 
             },false,0,rootLayout);
 
             Breeze.rootEvent().addEventListener(Component.INITIALIZE_COMPLETED,function(event){
-                rootLayout.updateDisplayList();
-                console.log( Component.INITIALIZE_COMPLETED )
+
+                if( rootLayout.childrenItem.length > 0 )
+                   rootLayout.updateDisplayList();
             })
         }
         return rootLayout;
@@ -334,7 +336,7 @@
 
         this.childrenElement=[];
         var children =  this.childrenElement;
-        var target = this.current();
+        var target = this.skinGroup().current();
         var isroot = this === rootLayout;
 
         if( target && target.childNodes && target.childNodes.length>0 )
@@ -343,7 +345,8 @@
             for( ; index<len; index++)
             {
                 var child = target.childNodes.item( index );
-                this.current( child );
+                var skin = this.skinGroup().current( child );
+
                 if( child.nodeType===1 && child.getAttribute( 'includeLayout' )!=='false' && ( !isroot || this.data('layout') instanceof Layout ) )
                 {
                     this.style('position','absolute')
@@ -553,6 +556,7 @@
      */
     Layout.prototype.explicitWidth=function(val)
     {
+        console.log( val )
         return __method__.call(this,'explicitWidth',val,'width');
     }
 
@@ -676,6 +680,7 @@
         return __method__.call(this,'gap', val ,false) || 0;
     }
 
+    //文档就绪后初始化rootLayout
     Breeze.rootEvent().addEventListener(BreezeEvent.READY,function(event){
 
         Layout.rootLayout();

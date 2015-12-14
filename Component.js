@@ -273,12 +273,22 @@
         return this.skinGroup().dispatchEvent( event );
     }
 
+
+    /**
+     * @private
+     */
+    var __initialize__=false;
+
     /**
      * 初始化组件
      * 当文档加载完成后调用此方法来初始所有的组件
      */
     Component.initialize=function()
     {
+        if( __initialize__ ===true )
+          return ;
+
+        __initialize__=true;
         Breeze('['+Component.NAME+']').forEach(function(element){
 
             var className= this.property( Component.NAME )
@@ -293,7 +303,7 @@
                     if( Utils.nodeName(child)==='noscript' )
                     {
                         element.removeChild(child);
-                       // new Function( Sizzle.getText(child) ).call( instance );
+                        new Function( Sizzle.getText(child) ).call( instance );
                     }
                 }
 
@@ -301,7 +311,7 @@
                 for( index=0; index < instance.initializeMethod.length; index++)
                 {
                     var method = instance.initializeMethod[ index ];
-                    var value = this.property(method);
+                    var value = instance.property(method);
                     if( method && value !==null && typeof instance[ method ] === "function" )
                     {
                         instance[ method ]( value );
@@ -313,6 +323,8 @@
         Breeze.rootEvent().dispatchEvent( new BreezeEvent( Component.INITIALIZE_COMPLETED ) )
     }
 
+    //初始化组件
+    Breeze.ready(function(){Component.initialize();});
     Component.INITIALIZE_COMPLETED='initializeCompleted';
     window.Component=Component;
 

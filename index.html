@@ -72,9 +72,6 @@
     Breeze(function(){
 
 
-        Component.initialize()
-
-
         // this.height - footer.height - head.height
 
 
@@ -104,16 +101,13 @@
          selection.display()
 */
 
-        console.log( "1")
-        console.log( "2")
-        console.log( "==++++==")
 
 
-         var modal =  new Modality()
+       /*  var modal =  new Modality()
          modal.width(600).height(400)
          modal.label('标题')
          modal.html('')
-         modal.show(true)
+         modal.show(true)*/
 
         /* modal.addEventListener(ModalityEvent.SUBMIT,function(event){
 
@@ -138,40 +132,21 @@
 
 <body >
 
-sddsf
 
-<!--
 
-<div class="modal" component="modality" show="true" horizontal="left" style="width: 500px; height: 500px;" >
-    <noscript>
-
-        this.initialized=function()
-        {
-
-            this.addEventListener(ModalityEvent.SUBMIT,function(event){
-
-                      console.log('submit')
-                     event.stopPropagation()
-
-                     this.width(800)
-             })
-
-        }
-
-    </noscript>
+<div class="modal" component="modality" show="0000" horizontal="left" style="width: 500px; height: 500px;" >
     <div class="head" skin="head" style="width: 100%; height: 35px; background-color: #3baecc">
         <label class="label" skin="label">标题</label>
         <span class="close" skin="close">关闭</span>
     </div>
-    <div class="body" skin="body" style="background-color: #fefff3">
-        <div>dsfdsfdsfdsfdsfsd</div>
+    <div class="body" skin="body" style="background-color: #fefff3" component="layout" horizontal="center">
+        <div explicitWidth="200" explicitHeight="200">dsfdsfdsfdsfdsfsd</div>
     </div>
     <div class="footer" skin="footer" style="width: 100%; height: 35px; background-color: #c6bec2">
         <button skin="cancel">取消</button>
         <button skin="submit">确认</button>
     </div>
 </div>
--->
 
 
 

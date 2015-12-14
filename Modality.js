@@ -287,7 +287,8 @@ modality.show(true)
      */
     Modality.prototype.hidden=function()
     {
-        if( _shade instanceof Modality && this !==_shade ){
+
+        if( _shade instanceof Modality && this !==_shade && this.__shaded__===true ){
             _shade.hidden();
         }
         this.display(false);
@@ -298,6 +299,7 @@ modality.show(true)
      * @private
      */
     var _shade=null;
+    Modality.prototype.__shaded__=false;
 
     /**
      * 遮罩层模态框
@@ -310,9 +312,13 @@ modality.show(true)
         {
             _shade = new Modality()
             _shade.type(Modality.SIMPLE);
-            _shade.style({'opacity':0.5,'backgroundColor':'#000000','radius':'0px',
-                'shadow':'none','left':'0px','top':'0px'})
+            _shade.style({'opacity':0.5,'backgroundColor':'#000000','radius':'0px','shadow':'none','left':'0px','top':'0px'});
             _shade.style('width','100%').style('height', Utils.getSize(document,'height') )
+            Breeze.rootEvent().addEventListener([BreezeEvent.RESIZE,BreezeEvent.SCROLL],function(event)
+            {
+                var height = event.type === BreezeEvent.RESIZE ? Utils.getSize(window,'height') + Utils.scroll(document,'scrollTop') : Utils.getSize(document,'height');
+                _shade.style('height', height );
+            })
         }
         return _shade;
     }
@@ -327,9 +333,10 @@ modality.show(true)
     Modality.prototype.show=function( shade ,zIndex )
     {
         zIndex = zIndex || 999;
-        shade= Boolean(shade);
+        shade= Utils.boolean( shade );
         if( shade===true )
         {
+            this.__shaded__=true;
             this.shade().show(false,zIndex-1);
         }
         this.style({'zIndex':zIndex,'position':'absolute'}).display(true);

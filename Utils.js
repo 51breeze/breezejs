@@ -1248,4 +1248,14 @@
         return target;
     }
 
+    /**
+     * 根据指定的参数值转成对应的布尔值
+     * @param val
+     * @returns {boolean}
+     */
+    Utils.boolean=function( val )
+    {
+        return typeof val==='string' && /^\s*(0+|false|null)\s*$/.test(val) ? false : !!val;
+    }
+
 })();
