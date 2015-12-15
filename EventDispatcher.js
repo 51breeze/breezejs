@@ -66,7 +66,7 @@
     EventDispatcher.prototype.hasEventListener=function( type )
     {
         var events = this.data('events');
-        return !!( events[type] && (events[type][0]['listener'].length > 0 || events[type][1]['listener'].length > 0 ) );
+        return !!( events && events[type] && ( events[type][0]['listener'].length > 0 || events[type][1]['listener'].length > 0 ) );
     }
 
     /**
@@ -314,13 +314,12 @@
         var useCapture= event.bubbles === false;
         var element = event.currentTarget,data=null;
         var currentTarget= element;
-
         do{
             data = Utils.storage( element ,'events')
             if( data && data[ event.type ] )
             {
                 //捕获阶段
-                if( data[ event.type ][1] )
+                if( useCapture && data[ event.type ][1] )
                    targets[1].push( element );
 
                 //冒泡阶段

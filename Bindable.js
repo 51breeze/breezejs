@@ -123,7 +123,7 @@
                 result=commit(name,value);
                 if( result )
                 {
-                    var ev = new PropertyEvent(PropertyEvent.PROPERTY_COMMIT);
+                    var ev = new PropertyEvent(PropertyEvent.COMMIT);
                     ev.property = name;
                     ev.newValue = value;
                     this.dispatchEvent(ev);

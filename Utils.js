@@ -804,9 +804,7 @@
      */
     Utils.isObject=function( val , flag )
     {
-        if( !val || typeof val !== "object" || Utils.isNodeElement(val) || Utils.isWindow(val) || Utils.isHTMLContainer()  )
-           return false;
-        return ( flag || !Utils.isArray(val) );
+        return typeof val === "object" ? val.constructor === Object || ( flag && Utils.isArray(val) ) : false;
     }
 
     /**
@@ -817,7 +815,7 @@
      */
     Utils.contains=function( parent, child )
     {
-        if( Utils.isHTMLElement(parent) && Utils.isHTMLElement(child) )
+        if( Utils.isHTMLContainer(parent) && Utils.isNodeElement(child) )
             return Sizzle.contains(parent,child);
         return false;
     }

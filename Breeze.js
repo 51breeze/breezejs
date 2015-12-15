@@ -179,7 +179,7 @@
         return ret;
     }
 
-    ,dispatchEventAll=function(target,element,event)
+    ,dispatchEventAll=function(target,event)
     {
         if( target instanceof EventDispatcher && target.hasEventListener( event.type ) && !target.dispatchEvent( event ) )
           return false;
@@ -191,18 +191,18 @@
         event.parent=parent;
         event.child=child
         event.dispatcher=target;
-        return dispatchEventAll(target, parent , event );
+        return dispatchEventAll(target, event );
     }
     ,dispatchPropertyEvent=function(target,newValue,oldValue,property,element,type)
     {
-        type = type || PropertyEvent.PROPERTY_CHANGE;
+        type = type || PropertyEvent.CHANGE;
         var event=new PropertyEvent( type )
         event.newValue=newValue;
         event.oldValue=oldValue;
         event.property=property;
         event.target=element;
         event.dispatcher=target;
-        return dispatchEventAll(target,element,event);
+        return dispatchEventAll(target,event);
     }
 
     ,getChildNodes=function(element,selector,flag)
@@ -1038,7 +1038,7 @@
             set:function(prop,newValue){
                 Utils.scroll(this,'scroll'+prop,newValue);
             }
-        },'scroll'+prop, undefined , 0 );
+        },'scroll'+prop, BreezeEvent.SCROLL, 0 );
     }
 
     /**

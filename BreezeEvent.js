@@ -14,19 +14,26 @@
      * @param props
      * @constructor
      */
-    function BreezeEvent( src, props )
+    function BreezeEvent( type, bubbles,cancelable )
     {
         if ( !(this instanceof BreezeEvent) )
-            return new BreezeEvent( src, props );
-        this.type = src;
-        if ( src && src.type )
+            return new BreezeEvent(  type, bubbles,cancelable );
+        this.type = type;
+        if ( type && type.type )
         {
-            this.originalEvent = src;
-            this.type = src.type;
-            this.defaultPrevented = src.defaultPrevented || src.returnValue === false ? true : false;
+            this.originalEvent = type;
+            this.type = type.type;
+            this.defaultPrevented = type.defaultPrevented || type.returnValue === false ? true : false;
         }
-        if ( props )for(var i in props)
-           this[i]=props[i];
+        if ( Utils.isObject(bubbles) )
+        {
+            for(var i in bubbles)this[i]=bubbles[i];
+
+        }else
+        {
+            this.bubbles = !(bubbles===false);
+            this.cancelable = !(cancelable===false);
+        }
     };
 
     BreezeEvent.prototype = {
@@ -115,7 +122,7 @@
         if( type === null )
            return null
 
-        if( typeof PropertyEvent !=='undefined' && type === PropertyEvent.PROPERTY_CHANGE )
+        if( typeof PropertyEvent !=='undefined' && type === PropertyEvent.CHANGE )
         {
             breezeEvent=new PropertyEvent( event );
             breezeEvent.property= Breeze.isFormElement(target) ? 'value' : 'innerHTML';
@@ -189,11 +196,12 @@
 
     /**
      * ElementEvent
-     * @param src
-     * @param props
+     * @param type
+     * @param bubbles
+     * @param cancelable
      * @constructor
      */
-    function ElementEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    function ElementEvent( type, bubbles,cancelable ){ BreezeEvent.call(this, type, bubbles,cancelable );}
     ElementEvent.prototype=new BreezeEvent();
     ElementEvent.prototype.parent=null;
     ElementEvent.prototype.child=null;
@@ -207,19 +215,34 @@
 
     /**
      * PropertyEvent
-     * @param src
-     * @param props
+     * @param type
+     * @param bubbles
+     * @param cancelable
      * @constructor
      */
-    function PropertyEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    function PropertyEvent( type, bubbles,cancelable ){ BreezeEvent.call(this, type, bubbles,cancelable );}
     PropertyEvent.prototype=new BreezeEvent();
     PropertyEvent.prototype.property=null;
     PropertyEvent.prototype.newValue=null;
     PropertyEvent.prototype.oldValue=null;
     PropertyEvent.prototype.constructor=PropertyEvent;
-    PropertyEvent.PROPERTY_CHANGE='propertyChange';
-    PropertyEvent.PROPERTY_COMMIT='propertyCommit';
-    PropertyEvent.STYLE_CHANGE='styleChange';
+    PropertyEvent.CHANGE='propertyChange';
+    PropertyEvent.COMMIT='propertyCommit';
+
+    /**
+     * StyleEvent
+     * @param type
+     * @param bubbles
+     * @param cancelable
+     * @constructor
+     */
+    function StyleEvent( type, bubbles,cancelable ){ BreezeEvent.call(this, type, bubbles,cancelable );}
+    StyleEvent.prototype=new BreezeEvent();
+    StyleEvent.prototype.property=null;
+    StyleEvent.prototype.newValue=null;
+    StyleEvent.prototype.oldValue=null;
+    StyleEvent.prototype.constructor=StyleEvent;
+    StyleEvent.CHANGE='styleChange';
 
     /**
      * MouseEvent
@@ -227,7 +250,7 @@
      * @param props
      * @constructor
      */
-    function MouseEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    function MouseEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this,  type, bubbles,cancelable );}
     MouseEvent.prototype=new BreezeEvent();
     MouseEvent.prototype.constructor=MouseEvent;
     MouseEvent.prototype.pageX= NaN
@@ -244,7 +267,7 @@
     MouseEvent.CLICK='click';
     MouseEvent.DBLCLICK='dblclick';
 
-    function HttpEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    function HttpEvent( type, bubbles,cancelable ){ BreezeEvent.call(this,  type, bubbles,cancelable );}
     HttpEvent.prototype=new BreezeEvent();
     HttpEvent.prototype.data=null;
     HttpEvent.SUCCESS = 'httpSuccess';
@@ -257,7 +280,7 @@
     HttpEvent.DONE    = 'done';
 
 
-    function KeyboardEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    function KeyboardEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this,  type, bubbles,cancelable );}
     KeyboardEvent.prototype=new BreezeEvent();
     KeyboardEvent.prototype.constructor=KeyboardEvent;
     KeyboardEvent.KEYPRESS='keypress';

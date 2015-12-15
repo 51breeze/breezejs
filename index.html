@@ -3,8 +3,8 @@
 <head lang="en">
     <meta charset="UTF-8">
     <script src="sizzle.js" ></script>
-    <script src="BreezeEvent.js" ></script>
     <script src="Utils.js" ></script>
+    <script src="BreezeEvent.js" ></script>
     <script src="Grep.js" ></script>
     <script src="DataArray.js" ></script>
     <script src="EventDispatcher.js" ></script>
@@ -12,7 +12,7 @@
     <script src="Dictionary.js" ></script>
     <script src="HttpRequest.js" ></script>
     <script src="Breeze.js" ></script>
-    <script src="DataGrid.js" ></script>
+    <script src="DataGrid.js"></script>
     <script src="Bindable.js" ></script>
     <script src="DataSource.js" ></script>
     <script src="DataRender.js" ></script>
@@ -72,26 +72,6 @@
     Breeze(function(){
 
 
-      var m1=  Breeze(document.body).addEventListener(MouseEvent.CLICK,function(){
-
-            console.log( 'click 1' )
-        })
-
-
-       Breeze('.modal').addEventListener(MouseEvent.CLICK,function(){
-
-            console.log( 'click 2' )
-        })
-
-        Breeze('.modal3').addEventListener(MouseEvent.CLICK,function(){
-
-            console.log( 'click 3' )
-        })
-
-
-
-
-        Breeze('.modal').dispatchEvent( new MouseEvent(MouseEvent.CLICK) )
 
 
         // this.height - footer.height - head.height
@@ -155,24 +135,6 @@
 <body >
 
 
-<div class="modal"  horizontal="left" style="width: 500px; height: 500px;" >
-
-</div>
-
-
-<div class="modal2"  horizontal="left" style="width: 500px; height: 500px;" >
-
-    <div class="modal3"  horizontal="left" style="width: 500px; height: 500px;" >
-
-
-    </div>
-
-</div>
-
-
-
-
-<!--
 <div class="modal" component="modality" show="0000" horizontal="left" style="width: 500px; height: 500px;" >
     <div class="head" skin="head" style="width: 100%; height: 35px; background-color: #3baecc">
         <label class="label" skin="label">标题</label>
@@ -188,8 +150,6 @@
         <button skin="submit">确认</button>
     </div>
 </div>
-
--->
 
 
 

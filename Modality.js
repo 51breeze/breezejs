@@ -81,6 +81,7 @@ modality.show(true)
      */
     Modality.prototype.__propertyChanged__=function(event)
     {
+        event.stopPropagation();
         if( event.property==='width' || event.property==='height' )this.setPositionAndSize();
     }
 
@@ -147,6 +148,7 @@ modality.show(true)
 
             skinGroup.find( selector ).addEventListener(MouseEvent.CLICK,function(event)
             {
+                event.stopPropagation();
                 var type = this.property( SkinGroup.NAME );
                 if( typeof type === "string" )
                 {
@@ -158,7 +160,7 @@ modality.show(true)
                 self.hidden();
 
             }).revert();
-            skinGroup.addEventListener( PropertyEvent.PROPERTY_CHANGE , this.__propertyChanged__, false, 0, this )
+            skinGroup.addEventListener( PropertyEvent.CHANGE , this.__propertyChanged__, false, 0, this )
         }
         this.setPositionAndSize();
         return this;

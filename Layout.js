@@ -117,8 +117,7 @@
          */
         this.addEventListener(LayoutEvent.CHANGED,function(event){
 
-            if( event.propagationStopped )
-              return;
+            event.stopPropagation();
 
             //更新子布局的显示列表
              if( this.childrenItem.length > 0 )

@@ -102,7 +102,7 @@
                             binder.bind(dataSource[index], name);
                         }
 
-                    }).addEventListener(PropertyEvent.PROPERTY_CHANGE,function(event)
+                    }).addEventListener(PropertyEvent.CHANGE,function(event)
                     {
                         var newValue= this.property('value');
                         var property= this.property('data-bind');
