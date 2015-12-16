@@ -314,8 +314,10 @@
         var useCapture= event.bubbles === false;
         var element = event.currentTarget,data=null;
         var currentTarget= element;
+
+
         do{
-            data = Utils.storage( element ,'events')
+            data = Utils.storage( element ,'events');
             if( data && data[ event.type ] )
             {
                 //捕获阶段

@@ -643,11 +643,12 @@
 
     var removeChild= function(target,parent,child)
     {
+        target.current(child);
         if( child && parent.hasChildNodes() && child.parentNode === parent &&
             dispatchElementEvent(target,parent,child,ElementEvent.BEFORE_CHILD_REMOVE ) )
         {
             var result=parent.removeChild( child );
-            dispatchElementEvent(target,parent,child,ElementEvent.CHILD_REMOV );
+            dispatchElementEvent(target,parent,child,ElementEvent.CHILD_REMOVE );
             return !!result;
         }
         return false;
@@ -718,7 +719,6 @@
                     !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
                     refChild && (refChild=index.nextSibling);
                 parent.insertBefore( child , refChild || null );
-                dispatchElementEvent(this,parent,child,ElementEvent.PARENT_ADD_CHILD );
                 dispatchElementEvent(this,parent,child,ElementEvent.CHILD_ADD );
             }
             if( isElement ) return this;
@@ -859,7 +859,7 @@
             }
             elem.innerHTML='';
             if( /[^\S]*/.test(html) )return this;
-            if( outer && elem.parentNode && elem.parentNode.ownerDocument && Utils.isContains(elem.parentNode.ownerDocument.body, elem.parentNode) )
+            if( outer && elem.parentNode && elem.parentNode.ownerDocument && Utils.contains(elem.parentNode.ownerDocument.body, elem.parentNode) )
             {
                 this.current( elem.parentNode );
             }
@@ -869,18 +869,25 @@
     }
 
     //访问和操作属性值
-    function access(name,newValue,callback,eventProp,eventType,defaultValue)
+    function access(name,newValue,callback,dispatchEvent)
     {
         var write= newValue !== undefined;
-        if( !write && this.length < 1 )return typeof defaultValue !== "undefined" ?  defaultValue : '';
+        if( !write && this.length < 1 )return null;
         return this.forEach(function(elem)
         {
             var oldValue= callback.get.call(elem,name,this);
             if( !write ) return oldValue;
             if( oldValue !== newValue )
             {
-                callback.set.call(elem,name,newValue,this);
-                eventProp && dispatchPropertyEvent(this,newValue,oldValue,eventProp,elem,eventType);
+                callback.set.call(elem,name,newValue);
+                if( dispatchEvent )
+                {
+                    var event = new PropertyEvent(PropertyEvent.CHANGE);
+                    event.property = name;
+                    event.newValue = newValue;
+                    event.oldValue = oldValue;
+                    dispatchEventAll(this, event);
+                }
             }
         });
     }
@@ -903,7 +910,6 @@
             value=name;
             name='cssText';
         }
-
         return access.call(this,name,value,{
             get:function(prop){
                 return Utils.style(this,prop) || '';
@@ -911,7 +917,7 @@
             set:function(prop,newValue){
                 Utils.style(this,prop,newValue);
             }
-        },name,PropertyEvent.STYLE_CHANGE);
+        },true) || '';
     }
 
     /**
@@ -932,12 +938,6 @@
         });
     }
 
-    var __property__={
-        'className':true,
-        'innerHTML':true,
-        'value'    :true
-    }
-
     /**
      * 为每一个元素设置属性值
      * @param name
@@ -955,17 +955,12 @@
 
         return access.call(this,name,value,{
             get:function(prop){
-                return ( __property__[ prop ] || Utils.isWindow(this) ? this[ prop ] : this.getAttribute( prop ) ) || null;
+                return Utils.property(this,prop);
             },
             set:function(prop,newValue){
-                if( newValue === null )
-                {
-                    __property__[ prop ] || Utils.isWindow(this) ? delete this[ prop ] : this.removeAttribute( prop );
-                    return;
-                }
-                __property__[ prop ] || Utils.isWindow(this) ? this[ prop ]=newValue : this.setAttribute( prop,newValue );
+                Utils.property(this,prop,newValue);
             }
-        },name);
+        },true);
     }
 
     /**
@@ -975,9 +970,8 @@
      */
     Breeze.prototype.hasClass=function( className )
     {
-        var value=this.property('class')
-        return value === '' ? false : typeof className==='string' ?
-               new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
+        var value=this.property('class');
+        return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
     }
 
     /**
@@ -1002,7 +996,7 @@
      */
     Breeze.prototype.removeClass=function(className)
     {
-        if( className !==undefined && typeof className === 'string' )
+        if( typeof className === 'string' )
         {
             var value=this.property('class') || '';
             var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
@@ -1023,10 +1017,10 @@
             get:function(prop){
                 return Utils.getSize(this, prop, border );
             },
-            set:function(prop,newValue){
+            set:function(prop,newValue,oldValue,target){
                 Utils.style(this,prop,newValue);
             }
-        }, prop.toLowerCase(), undefined , 0 );
+        },true) || 0;
     }
 
     var __scroll__=function(prop,value)
@@ -1035,10 +1029,11 @@
             get:function(prop){
                 return Utils.scroll(this,'scroll'+prop);
             },
-            set:function(prop,newValue){
+            set:function(prop,newValue,oldValue,target){
                 Utils.scroll(this,'scroll'+prop,newValue);
+                dispatchEventAll(target, new BreezeEvent(BreezeEvent.SCROLL) );
             }
-        },'scroll'+prop, BreezeEvent.SCROLL, 0 );
+        }) || 0;
     }
 
     /**
@@ -1055,7 +1050,7 @@
                     Utils.style(this,'position','relative')
                 Utils.style(this,prop,newValue);
             }
-        },prop , undefined , 0 );
+        },true) || 0;
     }
 
     /**
@@ -1264,21 +1259,21 @@
      */
     Breeze.prototype.content=function( value )
     {
-        return access.call(this,'content',value,{
-            get:function(prop,target){
-                return ( Utils.isFormElement( this ) ? target.property('value') : Sizzle.getText(this) ) || '';
+        return access.call(this,'value',value,{
+            get:function(prop){
+                return ( Utils.isFormElement( this ) ? this.value : Sizzle.getText(this) ) || '';
             },
-            set:function(prop,newValue,target)
+            set:function(prop,newValue)
             {
                 if( Utils.isFormElement( this ) )
                 {
-                    target.property('value',newValue)
+                    this.value=newValue;
                 }else
                 {
                    typeof this.textContent === "string" ? this.textContent=newValue : this.innerText=newValue;
                 }
             }
-        },'content');
+        },true);
     }
     window.Breeze=Breeze;
 
