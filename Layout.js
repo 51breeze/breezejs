@@ -182,7 +182,7 @@
      * @param props
      * @constructor
      */
-    function LayoutEvent(src, props){ BreezeEvent.call(this, src, props); };
+    function LayoutEvent(type, bubbles,cancelable ){ BreezeEvent.call(this,type, bubbles,cancelable ); };
     LayoutEvent.prototype=new BreezeEvent();
     LayoutEvent.CHANGED='layoutChanged';
     LayoutEvent=LayoutEvent;

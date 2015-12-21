@@ -18,21 +18,26 @@
     {
         if ( !(this instanceof BreezeEvent) )
             return new BreezeEvent(  type, bubbles,cancelable );
-        this.type = type;
+        this.type = type ? type : null;
         if ( type && type.type )
         {
             this.originalEvent = type;
             this.type = type.type;
+            this.bubbles=!(type.bubbles===false);
+            this.cancelable=!(type.cancelable===false);
             this.defaultPrevented = type.defaultPrevented || type.returnValue === false ? true : false;
-        }
-        if ( Utils.isObject(bubbles) )
-        {
-            for(var i in bubbles)this[i]=bubbles[i];
 
         }else
         {
-            this.bubbles = !(bubbles===false);
-            this.cancelable = !(cancelable===false);
+            if ( Utils.isObject(bubbles) )
+            {
+                for(var i in bubbles)this[i]=bubbles[i];
+
+            }else
+            {
+                this.bubbles = !(bubbles===false);
+                this.cancelable = !(cancelable===false);
+            }
         }
     };
 
@@ -43,6 +48,7 @@
         currentTarget:null,
         defaultPrevented: false,
         originalEvent:null,
+        type:null,
         propagationStopped: false,
         preventDefault: function()
         {
@@ -95,6 +101,11 @@
     }
 
     /**
+     * @private
+     */
+    var __eventClassName__=/^([A-Z]?[a-z]+)(?=[A-Z])/;
+
+    /**
      * 根据原型事件创建一个Breeze BreezeEvent
      * @param event
      * @returns {*}
@@ -122,18 +133,25 @@
         if( type === null )
            return null
 
-        if( typeof PropertyEvent !=='undefined' && type === PropertyEvent.CHANGE )
-        {
-            breezeEvent=new PropertyEvent( event );
-            breezeEvent.property= Breeze.isFormElement(target) ? 'value' : 'innerHTML';
-            breezeEvent.newValue=target[ breezeEvent.property ];
+       var className = !agreed.test(type) ? type.match( __eventClassName__ ) : null;
+       if( className && className[1] )
+       {
+           className=Utils.ucfirst( className[1] )+'Event';
+           if( window[className] )
+           {
+               breezeEvent=new className( event )
+           }
+           if( breezeEvent instanceof PropertyEvent )
+           {
+               breezeEvent.property= Breeze.isFormElement(target) ? 'value' : 'innerHTML';
+               breezeEvent.newValue=target[ breezeEvent.property ];
+           }
 
-        }else if( /^mouse|click$/i.test(type) && typeof MouseEvent !=='undefined' )
-        {
+       }else if( /^mouse|click$/i.test(type) )
+       {
             breezeEvent=new MouseEvent( event );
             breezeEvent.pageX= event.x || event.clientX || event.pageX;
             breezeEvent.pageY= event.y || event.clientY || event.pageY;
-
             if( event.offsetX===undefined && target && Breeze )
             {
                 var offset=Utils.position(target);
@@ -156,7 +174,7 @@
             breezeEvent.shiftKey= !!event.shiftKey;
             breezeEvent.metaKey= !!event.metaKey;
 
-        }else if( typeof BreezeEvent !=='undefined' )
+        }else
         {
             breezeEvent=new BreezeEvent( event );
             breezeEvent.altkey= !!event.altkey;
@@ -293,6 +311,7 @@
     window.BreezeEvent=BreezeEvent;
     window.ElementEvent=ElementEvent;
     window.PropertyEvent=PropertyEvent;
+    window.StyleEvent=StyleEvent;
     window.MouseEvent=MouseEvent;
 
 })(window)

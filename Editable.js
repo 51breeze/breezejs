@@ -101,7 +101,7 @@
     Editable.prototype=new EventDispatcher();
     Editable.prototype.constructor=Editable;
 
-    function EditableEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    function EditableEvent( type, bubbles,cancelable ){ BreezeEvent.call(this, type, bubbles,cancelable );}
     EditableEvent.prototype=new BreezeEvent();
     EditableEvent.prototype.constructor=EditableEvent;
     EditableEvent.PLUS_INITIALIZED='dataGridPlusInitialized';

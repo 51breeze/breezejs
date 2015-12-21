@@ -228,7 +228,7 @@
     Selection.prototype=new Manager();
     Selection.prototype.constructor=Selection;
 
-    function SelectionEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    function SelectionEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
     SelectionEvent.prototype=new BreezeEvent();
     SelectionEvent.prototype.constructor=SelectionEvent;
     SelectionEvent.prototype.selectedIndex=NaN;

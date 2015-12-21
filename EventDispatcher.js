@@ -486,12 +486,12 @@
         {
             if( type instanceof Array )for(var i in type)
             {
-                bindBeforeProxy[ type[i] ]=this;
+                this.setType(type[i]);
             }else
             {
                 bindBeforeProxy[type]=this;
+                __type__ = type;
             }
-            __type__ = type;
             return this;
         }
 

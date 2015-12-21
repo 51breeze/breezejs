@@ -129,7 +129,7 @@ var tl= new Timeline(60).addFrame(function(){
     Timeline.prototype.constructor=Timeline;
 
 
-    function TimelineEvent(src, props){BreezeEvent.call(this,src,props);}
+    function TimelineEvent(type, bubbles,cancelable ){BreezeEvent.call(this,type, bubbles,cancelable );}
     TimelineEvent.prototype=new BreezeEvent();
     TimelineEvent.prototype.constructor=TimelineEvent;
     TimelineEvent.PLAY='play';

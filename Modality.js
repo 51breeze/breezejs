@@ -406,7 +406,7 @@ modality.show(true)
      * @param props
      * @constructor
      */
-    function ModalityEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    function ModalityEvent(type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
     ModalityEvent.prototype=new BreezeEvent();
     ModalityEvent.prototype.constructor=ModalityEvent;
 

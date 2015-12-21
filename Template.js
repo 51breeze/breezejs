@@ -425,7 +425,7 @@
         return options;
     }
 
-    function TemplateEvent( src, props ){ BreezeEvent.call(this, src, props);}
+    function TemplateEvent(type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
     TemplateEvent.prototype=new BreezeEvent();
     TemplateEvent.prototype.template=null;
     TemplateEvent.prototype.variable=null;
