@@ -401,6 +401,30 @@
         return true;
     }
 
+    var __property__={
+        'className':true,
+        'innerHTML':true,
+        'value'    :true
+    }
+
+    /**
+     * 设置获取元素的属性
+     * @param element
+     * @param prop
+     * @param val
+     * @returns {*}
+     */
+    Utils.property=function(element,prop,val)
+    {
+        var is=  __property__[prop] || Utils.isWindow(element) || typeof element.getAttribute !== "function";
+        if( typeof val === "undefined" )
+        {
+            return ( is ? element[prop] : element.getAttribute(prop) ) || null;
+        }
+        is ? element[prop] = val : element.setAttribute(prop, val);
+        return true;
+    }
+
     /**
      * 获取或者设置滚动条的位置
      * @param element

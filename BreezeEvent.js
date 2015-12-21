@@ -225,11 +225,10 @@
     ElementEvent.prototype.child=null;
     ElementEvent.prototype.constructor=ElementEvent;
     ElementEvent.CHILD_ADD='elementChildAdd';
-    ElementEvent.CHILD_REMOV='elementChildRemov';
+    ElementEvent.CHILD_REMOVE='elementChildRemove';
     ElementEvent.BEFORE_CHILD_ADD='elementBeforeChildAdd';
     ElementEvent.BEFORE_CHILD_REMOVE='elementBeforeChildRemove';
-    ElementEvent.PARENT_ADD_CHILD='elementParentAddChild';
-    ElementEvent.PARENT_REMOVE_CHILD='elementParentRemovChild';
+
 
     /**
      * PropertyEvent
@@ -246,21 +245,6 @@
     PropertyEvent.prototype.constructor=PropertyEvent;
     PropertyEvent.CHANGE='propertyChange';
     PropertyEvent.COMMIT='propertyCommit';
-
-    /**
-     * StyleEvent
-     * @param type
-     * @param bubbles
-     * @param cancelable
-     * @constructor
-     */
-    function StyleEvent( type, bubbles,cancelable ){ BreezeEvent.call(this, type, bubbles,cancelable );}
-    StyleEvent.prototype=new BreezeEvent();
-    StyleEvent.prototype.property=null;
-    StyleEvent.prototype.newValue=null;
-    StyleEvent.prototype.oldValue=null;
-    StyleEvent.prototype.constructor=StyleEvent;
-    StyleEvent.CHANGE='styleChange';
 
     /**
      * MouseEvent
