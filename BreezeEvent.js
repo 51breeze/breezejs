@@ -247,6 +247,18 @@
     PropertyEvent.COMMIT='propertyCommit';
 
     /**
+     * StyleEvent
+     * @param type
+     * @param bubbles
+     * @param cancelable
+     * @constructor
+     */
+    function StyleEvent( type, bubbles,cancelable ){ PropertyEvent.call(this, type, bubbles,cancelable );}
+    StyleEvent.prototype=new PropertyEvent();
+    StyleEvent.prototype.constructor=StyleEvent;
+    StyleEvent.CHANGE='styleChange';
+
+    /**
      * MouseEvent
      * @param src
      * @param props

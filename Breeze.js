@@ -51,14 +51,18 @@
             result = selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 ?
                 [ Utils.createElement(selector) ] : Sizzle( selector, this.context );
 
-        }else if( Utils.isWindow(selector) || Utils.isNodeElement(selector) )
+        }else if( Utils.isWindow(selector) )
         {
             result=[selector];
-        }
 
-        //新创建的元素直接添加到文档中
-        if( result.length===1 && !result[0].parentNode )
+        }else if( Utils.isNodeElement(selector) )
+        {
+            result=[selector];
+
+            //新创建的元素直接添加到文档中
+            if( !selector.parentNode )
             this.addChild( result[0] );
+        }
 
         //初始化元素管理器
         Manager.call(this, result );
@@ -882,7 +886,7 @@
                 callback.set.call(elem,name,newValue);
                 if( dispatchEvent )
                 {
-                    var event = new PropertyEvent(PropertyEvent.CHANGE);
+                    var event = dispatchEvent===StyleEvent.CHANGE ?  new StyleEvent( StyleEvent.CHANGE ) :  new PropertyEvent( PropertyEvent.CHANGE );
                     event.property = name;
                     event.newValue = newValue;
                     event.oldValue = oldValue;
@@ -917,7 +921,7 @@
             set:function(prop,newValue){
                 Utils.style(this,prop,newValue);
             }
-        },true) || '';
+        }, StyleEvent.CHANGE ) || '';
     }
 
     /**
@@ -960,7 +964,30 @@
             set:function(prop,newValue){
                 Utils.property(this,prop,newValue);
             }
-        },true);
+        },PropertyEvent.CHANGE);
+    }
+
+    /**
+     * 获取设置当前元素的内容值。如果元素是表单元素则写读value否则为text属性。
+     * @returns {string|Breeze}
+     */
+    Breeze.prototype.content=function( value )
+    {
+        return access.call(this,'value',value,{
+            get:function(prop){
+                return ( Utils.isFormElement( this ) ? this.value : Sizzle.getText(this) ) || '';
+            },
+            set:function(prop,newValue)
+            {
+                if( Utils.isFormElement( this ) )
+                {
+                    this.value=newValue;
+                }else
+                {
+                    typeof this.textContent === "string" ? this.textContent=newValue : this.innerText=newValue;
+                }
+            }
+        },PropertyEvent.CHANGE) || '';
     }
 
     /**
@@ -1020,7 +1047,7 @@
             set:function(prop,newValue,oldValue,target){
                 Utils.style(this,prop,newValue);
             }
-        },true) || 0;
+        },PropertyEvent.CHANGE) || 0;
     }
 
     var __scroll__=function(prop,value)
@@ -1050,7 +1077,7 @@
                     Utils.style(this,'position','relative')
                 Utils.style(this,prop,newValue);
             }
-        },true) || 0;
+        },PropertyEvent.CHANGE) || 0;
     }
 
     /**
@@ -1179,19 +1206,6 @@
     }
 
     /**
-     * 设置获取元素相对舞台坐标位置
-     * @param x
-     * @param y
-     * @returns {*}
-     */
-    Breeze.prototype.position=function(x,y)
-    {
-        var result = Utils.position( this.current(), x,y );
-        if( result===true )return this;
-        return result;
-    }
-
-    /**
      * 设置当前元素的显示或者隐藏
      * @param flag false 为隐藏
      * @returns {Breeze}
@@ -1253,28 +1267,7 @@
         return this;
     }
 
-    /**
-     * 获取设置当前元素的内容值。如果元素是表单元素则写读value否则为text属性。
-     * @returns {string|Breeze}
-     */
-    Breeze.prototype.content=function( value )
-    {
-        return access.call(this,'value',value,{
-            get:function(prop){
-                return ( Utils.isFormElement( this ) ? this.value : Sizzle.getText(this) ) || '';
-            },
-            set:function(prop,newValue)
-            {
-                if( Utils.isFormElement( this ) )
-                {
-                    this.value=newValue;
-                }else
-                {
-                   typeof this.textContent === "string" ? this.textContent=newValue : this.innerText=newValue;
-                }
-            }
-        },true);
-    }
+
     window.Breeze=Breeze;
 
 })( window )

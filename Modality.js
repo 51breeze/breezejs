@@ -98,27 +98,31 @@ modality.show(true)
         var skin = this.skinGroup();
         var containerHeight = skin.height();
         var containerWidth = skin.width();
-        var headHeight = skin.currentSkin('head').height();
+        var top= 0,bottom= 0,right= 0,left= 0,headHeight=0,footerHeight=0;
 
-        skin.currentSkin('body');
-        var top = parseInt( skin.style('paddingTop') ) || 0;
-        var bottom= parseInt( skin.style('paddingBottom') ) || 0;
-        var right = parseInt( skin.style('paddingRight') ) || 0;
-        var left= parseInt( skin.style('paddingLeft') ) || 0;
-
-        if( type===Modality.TYPICAL )
+        if( skin.getSkin('head') )
         {
-            skin.currentSkin('body')
-                .height(containerHeight - headHeight-top-bottom )
-                .width( containerWidth-right-left);
-
-        }else
-        {
-            var footerHeight = skin.currentSkin('footer').height();
-            skin.currentSkin('body')
-                .height( containerHeight - headHeight - footerHeight-top-bottom )
-                .width( containerWidth-right-left);
+            headHeight=skin.currentSkin('head').height();
+            skin.style('position','absolute').left(0).top(0);
         }
+
+        if( skin.getSkin('footer') )
+        {
+            footerHeight = skin.currentSkin('footer').height();
+            skin.style('position','absolute').left(0).bottom(0);
+        }
+
+        if( skin.getSkin('body') )
+        {
+             skin.currentSkin('body');
+             skin.style('position','absolute').top( headHeight).left(0);
+             top = parseInt( skin.style('paddingTop') ) || 0;
+             bottom= parseInt( skin.style('paddingBottom') ) || 0;
+             right = parseInt( skin.style('paddingRight') ) || 0;
+             left= parseInt( skin.style('paddingLeft') ) || 0;
+             skin.height( containerHeight - headHeight - footerHeight-top-bottom ).width( containerWidth-right-left);
+        }
+
         skin.current(null);
         var halign=this.horizontal()
             ,valign=this.vertical()
@@ -146,7 +150,7 @@ modality.show(true)
             var selector=Utils.sprintf('[%s=head] > [%s=close],[%s=footer] button', SkinGroup.NAME,SkinGroup.NAME,SkinGroup.NAME );
             var self = this;
 
-            skinGroup.find( selector ).addEventListener(MouseEvent.CLICK,function(event)
+            Breeze(selector,skinGroup).addEventListener(MouseEvent.CLICK,function(event)
             {
                 event.stopPropagation();
                 var type = this.property( SkinGroup.NAME );
@@ -158,8 +162,7 @@ modality.show(true)
                         return;
                 }
                 self.hidden();
-
-            }).revert();
+            });
             skinGroup.addEventListener( PropertyEvent.CHANGE , this.__propertyChanged__, false, 0, this )
         }
         this.setPositionAndSize();
@@ -306,6 +309,7 @@ modality.show(true)
             _shade.type(Modality.SIMPLE);
             _shade.style({'opacity':0.5,'backgroundColor':'#000000','radius':'0px','shadow':'none','left':'0px','top':'0px'});
             _shade.style('width','100%').style('height', Utils.getSize(document,'height') )
+
             Breeze.rootEvent().addEventListener([BreezeEvent.RESIZE,BreezeEvent.SCROLL],function(event)
             {
                 var height = event.type === BreezeEvent.RESIZE ? Utils.getSize(window,'height') + Utils.scroll(document,'scrollTop') : Utils.getSize(document,'height');
@@ -331,6 +335,7 @@ modality.show(true)
             this.__shaded__=true;
             this.shade().show(false,zIndex-1);
         }
+        this.current(null);
         this.style({'zIndex':zIndex,'position':'absolute'}).display(true);
         return this;
     }
@@ -346,10 +351,13 @@ modality.show(true)
         if( typeof label === "string" )
         {
             if( this.type() !== Modality.SIMPLE )
-            this.skinGroup().currentSkin('label').content( label );
+            this.currentSkin('label').content( label );
+            this.current(null);
             return this;
         }
-        return this.type() !== Modality.SIMPLE ? this.skinGroup().currentSkin('label').content() : '';
+        var val = this.type() !== Modality.SIMPLE ? this.skinGroup().currentSkin('label').content() : '';
+        this.current(null);
+        return val;
     }
 
     /**
@@ -361,8 +369,13 @@ modality.show(true)
     Modality.prototype.html=function( html )
     {
         if( typeof html === "undefined" )
-            return this.skinGroup().currentSkin('body').html();
+        {
+            var val =  this.skinGroup().currentSkin('body').html();
+            this.current(null);
+            return val;
+        }
         this.skinGroup().currentSkin('body').html( html );
+        this.current(null);
         return this;
     }
 
@@ -378,9 +391,12 @@ modality.show(true)
         {
             if( this.type() !== Modality.SIMPLE )
             this.skinGroup().currentSkin('head').height( value );
+            this.current(null);
             return this;
         }
-        return this.type() !== Modality.SIMPLE ? this.skinGroup().currentSkin('head').height():0;
+        var val = this.type() !== Modality.SIMPLE ? this.skinGroup().currentSkin('head').height():0;
+        this.current(null);
+        return val;
     }
 
     /**
@@ -395,9 +411,12 @@ modality.show(true)
         {
             if( this.type() === Modality.NORM )
                  this.skinGroup().currentSkin('footer').height(value);
+            this.current(null);
             return this;
         }
-        return this.type() === Modality.NORM ? this.skinGroup().currentSkin('footer').height(this) : 0;
+        var val = this.type() === Modality.NORM ? this.skinGroup().currentSkin('footer').height(this) : 0;
+        this.current(null);
+        return val;
     }
 
     /**

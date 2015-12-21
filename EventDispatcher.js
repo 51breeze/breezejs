@@ -191,6 +191,9 @@
         if( !Utils.isEventElement( this ) )
             return false;
 
+        //是否有指定的目标对象
+        listener.target || (listener.target = this);
+
         //获取事件数据集
         var events = Utils.storage(this,'events') || {};
         var capture= Number( listener.useCapture );
@@ -204,9 +207,6 @@
         {
             events = events[ type ][ capture ] || ( events[ type ][ capture ]={'listener':[],'handle':null} );
         }
-
-        //是否有指定的目标对象
-        listener.target = this;
 
         //记录绑定过的元素
        /* listener.dispatcher.bindElements[type] || ( listener.dispatcher.bindElements[type]=[])
@@ -315,7 +315,6 @@
         var element = event.currentTarget,data=null;
         var currentTarget= element;
 
-
         do{
             data = Utils.storage( element ,'events');
             if( data && data[ event.type ] )
@@ -350,7 +349,6 @@
                 if( !events || events.length < 1 )
                     continue;
                 var length= 0,listener;
-
                 while(  length < events.length )
                 {
                     listener = events[ length++ ];
@@ -623,6 +621,8 @@
         {
             var win= Utils.getWindow(element)
             if( !win )return;
+            listener.target= element;
+            listener.useCapture=true;
             EventDispatcher.addEventListener.call(win,BreezeEvent.RESIZE, listener );
             return true;
         });

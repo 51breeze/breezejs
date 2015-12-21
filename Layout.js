@@ -171,7 +171,7 @@
 
                 if( rootLayout.childrenItem.length > 0 )
                    rootLayout.updateDisplayList();
-            })
+            });
         }
         return rootLayout;
     }

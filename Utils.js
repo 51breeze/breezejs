@@ -1123,10 +1123,18 @@
                 param=arguments[i];
                 str=str.replace(/%(s|d|f)/,function(all,method)
                 {
+                    if( method==='d' ){
+                        param=parseInt(param);
+                        return isNaN(param) ? '' : param;
+                    }else if(method==='f')
+                    {
+                        param=parseFloat(param);
+                        return isNaN(param) ? '' : param;
+                    }
                     return param;
                 })
            }
-           str.replace(/%(s|d|f)/,'');
+           str.replace(/%(s|d|f)/g,'');
         }
         return str;
     }
