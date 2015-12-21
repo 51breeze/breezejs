@@ -1,13 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="Default">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Breeze.js" afterPath="$PROJECT_DIR$/Breeze.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BreezeEvent.js" afterPath="$PROJECT_DIR$/BreezeEvent.js" />
+    <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="Modality">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/EventDispatcher.js" afterPath="$PROJECT_DIR$/EventDispatcher.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Layout.js" afterPath="$PROJECT_DIR$/Layout.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Modality.js" afterPath="$PROJECT_DIR$/Modality.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Utils.js" afterPath="$PROJECT_DIR$/Utils.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -42,10 +37,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Layout.js" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="Layout.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Layout.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="218" column="7" selection-start="6305" selection-end="6305" vertical-scroll-proportion="0.22865413" vertical-offset="4930" max-vertical-offset="16560">
+            <state line="227" column="36" selection-start="6600" selection-end="6600" vertical-scroll-proportion="-12.896552" vertical-offset="4930" max-vertical-offset="16560">
               <folding />
             </state>
           </provider>
@@ -54,7 +49,16 @@
       <file leaf-file-name="EventDispatcher.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="630" column="0" selection-start="19341" selection-end="19341" vertical-scroll-proportion="0.0" vertical-offset="14424" max-vertical-offset="15144">
+            <state line="329" column="51" selection-start="10058" selection-end="10058" vertical-scroll-proportion="0.0" vertical-offset="7848" max-vertical-offset="15168">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="index.html" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/index.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="114" column="32" selection-start="2968" selection-end="2968" vertical-scroll-proportion="0.6255319" vertical-offset="2295" max-vertical-offset="4344">
               <folding />
             </state>
           </provider>
@@ -63,7 +67,7 @@
       <file leaf-file-name="BreezeEvent.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/BreezeEvent.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="195" column="30" selection-start="6215" selection-end="6221" vertical-scroll-proportion="0.0" vertical-offset="4292" max-vertical-offset="7488">
+            <state line="29" column="13" selection-start="888" selection-end="888" vertical-scroll-proportion="0.0" vertical-offset="600" max-vertical-offset="7488">
               <folding />
             </state>
           </provider>
@@ -72,7 +76,7 @@
       <file leaf-file-name="Breeze.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Breeze.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="69" column="21" selection-start="1752" selection-end="1752" vertical-scroll-proportion="0.0" vertical-offset="1152" max-vertical-offset="30552">
+            <state line="186" column="5" selection-start="5317" selection-end="5317" vertical-scroll-proportion="0.0" vertical-offset="4068" max-vertical-offset="30552">
               <folding />
             </state>
           </provider>
@@ -81,9 +85,9 @@
       <file leaf-file-name="Modality.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Modality.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="312" column="86" selection-start="10572" selection-end="10572" vertical-scroll-proportion="0.0" vertical-offset="7080" max-vertical-offset="10608">
+            <state line="87" column="7" selection-start="2576" selection-end="2576" vertical-scroll-proportion="0.0" vertical-offset="1488" max-vertical-offset="10608">
               <folding>
-                <marker date="1450710294726" expanded="false" signature="6169:6209" placeholder="..." />
+                <marker date="1450714338633" expanded="false" signature="6169:6209" placeholder="..." />
               </folding>
             </state>
           </provider>
@@ -92,7 +96,7 @@
       <file leaf-file-name="Component.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Component.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="104" column="37" selection-start="2830" selection-end="2830" vertical-scroll-proportion="0.0" vertical-offset="2064" max-vertical-offset="7608">
+            <state line="116" column="28" selection-start="3070" selection-end="3070" vertical-scroll-proportion="0.0" vertical-offset="2328" max-vertical-offset="7608">
               <folding />
             </state>
           </provider>
@@ -102,15 +106,6 @@
         <entry file="file://$PROJECT_DIR$/Utils.js">
           <provider selected="true" editor-type-id="text-editor">
             <state line="121" column="14" selection-start="4523" selection-end="4523" vertical-scroll-proportion="0.0" vertical-offset="2448" max-vertical-offset="30984">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Timeline.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Timeline.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="131" column="101" selection-start="3645" selection-end="3645" vertical-scroll-proportion="0.0" vertical-offset="3022" max-vertical-offset="18168">
               <folding />
             </state>
           </provider>
@@ -170,13 +165,13 @@
         <option value="$PROJECT_DIR$/Template.js" />
         <option value="$PROJECT_DIR$/Timeline.js" />
         <option value="$PROJECT_DIR$/TouchEvent.js" />
-        <option value="$PROJECT_DIR$/BreezeEvent.js" />
         <option value="$PROJECT_DIR$/Utils.js" />
-        <option value="$PROJECT_DIR$/index.html" />
-        <option value="$PROJECT_DIR$/Breeze.js" />
-        <option value="$PROJECT_DIR$/EventDispatcher.js" />
-        <option value="$PROJECT_DIR$/Modality.js" />
         <option value="$PROJECT_DIR$/Layout.js" />
+        <option value="$PROJECT_DIR$/Breeze.js" />
+        <option value="$PROJECT_DIR$/Modality.js" />
+        <option value="$PROJECT_DIR$/EventDispatcher.js" />
+        <option value="$PROJECT_DIR$/BreezeEvent.js" />
+        <option value="$PROJECT_DIR$/index.html" />
       </list>
     </option>
   </component>
@@ -445,7 +440,11 @@
       <created>1450110419681</created>
       <updated>1450110419681</updated>
     </task>
-    <option name="localTasksCounter" value="42" />
+    <task id="LOCAL-00042" summary="Modality">
+      <created>1450710449454</created>
+      <updated>1450710449454</updated>
+    </task>
+    <option name="localTasksCounter" value="43" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -459,6 +458,7 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="消息" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32939634" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="调试" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -468,7 +468,6 @@
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.08730159" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="消息" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32939634" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4160998" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -496,7 +495,8 @@
     <MESSAGE value="数据渲染器" />
     <MESSAGE value="grep" />
     <MESSAGE value="Default" />
-    <option name="LAST_COMMIT_MESSAGE" value="Default" />
+    <MESSAGE value="Modality" />
+    <option name="LAST_COMMIT_MESSAGE" value="Modality" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -753,13 +753,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="109" column="16" selection-start="2774" selection-end="2774" vertical-scroll-proportion="-8.035714" vertical-offset="2391" max-vertical-offset="4392">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/SkinGroup.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="162" column="27" selection-start="5034" selection-end="5034" vertical-scroll-proportion="0.0" vertical-offset="3360" max-vertical-offset="4080">
@@ -769,44 +762,51 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Component.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="104" column="37" selection-start="2830" selection-end="2830" vertical-scroll-proportion="0.0" vertical-offset="2064" max-vertical-offset="7608">
+        <state line="116" column="28" selection-start="3070" selection-end="3070" vertical-scroll-proportion="0.0" vertical-offset="2328" max-vertical-offset="7608">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Breeze.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="69" column="21" selection-start="1752" selection-end="1752" vertical-scroll-proportion="0.0" vertical-offset="1152" max-vertical-offset="30552">
+        <state line="186" column="5" selection-start="5317" selection-end="5317" vertical-scroll-proportion="0.0" vertical-offset="4068" max-vertical-offset="30552">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/BreezeEvent.js">
+    <entry file="file://$PROJECT_DIR$/Layout.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="195" column="30" selection-start="6215" selection-end="6221" vertical-scroll-proportion="0.0" vertical-offset="4292" max-vertical-offset="7488">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="630" column="0" selection-start="19341" selection-end="19341" vertical-scroll-proportion="0.0" vertical-offset="14424" max-vertical-offset="15144">
+        <state line="227" column="36" selection-start="6600" selection-end="6600" vertical-scroll-proportion="-12.896552" vertical-offset="4930" max-vertical-offset="16560">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Modality.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="312" column="86" selection-start="10572" selection-end="10572" vertical-scroll-proportion="0.0" vertical-offset="7080" max-vertical-offset="10608">
+        <state line="87" column="7" selection-start="2576" selection-end="2576" vertical-scroll-proportion="0.0" vertical-offset="1488" max-vertical-offset="10608">
           <folding>
-            <marker date="1450710294726" expanded="false" signature="6169:6209" placeholder="..." />
+            <marker date="1450714338633" expanded="false" signature="6169:6209" placeholder="..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Layout.js">
+    <entry file="file://$PROJECT_DIR$/BreezeEvent.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="218" column="7" selection-start="6305" selection-end="6305" vertical-scroll-proportion="0.22865413" vertical-offset="4930" max-vertical-offset="16560">
+        <state line="29" column="13" selection-start="888" selection-end="888" vertical-scroll-proportion="0.0" vertical-offset="600" max-vertical-offset="7488">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="329" column="51" selection-start="10058" selection-end="10058" vertical-scroll-proportion="0.0" vertical-offset="7848" max-vertical-offset="15168">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="114" column="32" selection-start="2968" selection-end="2968" vertical-scroll-proportion="0.6255319" vertical-offset="2295" max-vertical-offset="4344">
           <folding />
         </state>
       </provider>

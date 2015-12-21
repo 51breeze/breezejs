@@ -320,7 +320,7 @@
             if( data && data[ event.type ] )
             {
                 //捕获阶段
-                if( useCapture && data[ event.type ][1] )
+                if( data[ event.type ][1] )
                    targets[1].push( element );
 
                 //冒泡阶段
@@ -328,6 +328,7 @@
                     targets[0].push( element );
             }
             element=is ? null : element.parentNode;
+
         }while( element );
 
         //捕获阶段的事件先从根触发
