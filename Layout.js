@@ -38,6 +38,26 @@
         return old;
     };
 
+    /**
+     * @param target
+     * @param profile
+     * @returns {*}
+     */
+    function getOwner(target, profile )
+    {
+        var parent=target;
+        while( Utils.contains( target.ownerDocument.body, parent ) )
+        {
+            parent= parent.parentNode;
+            var layout = Utils.storage( parent, profile );
+            if( layout && layout instanceof Layout )
+            {
+                return layout;
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Layout
@@ -50,58 +70,35 @@
             return new Layout( target );
 
         Component.call(this, target instanceof SkinGroup ? target : new SkinGroup(target) );
-        target=this.current()
-        if( !target )
-         throw new Error('Not found skin of container')
-
         this.childrenItem=[];
 
-        var _viewport=target.ownerDocument;
+        target=this.current();
+        if( !target || !Utils.isHTMLElement(target) || !target.parentNode || !( target.ownerDocument.body !== target && !Utils.contains( target.ownerDocument.body, target ) ) )
+            throw new Error('Invalid element for Layout');
+
         var _map={'body':target.ownerDocument.body,'window': Utils.getWindow( target ), 'document': target.ownerDocument };
-        if( rootLayout )
+        var _viewport= target.ownerDocument.body === target ? target.ownerDocument : target.parentNode;
+        var owner = getOwner(target,this.componentProfile);
+
+        //设置所属父布局容器
+        if( owner )
         {
-            if( !Utils.contains( target.ownerDocument.body, target ) )
-                 throw new Error('invalid target in Layout');
-
-            if( Utils.style(target,'position') === "static" )
-                Utils.style(target,'position',target.parentNode === window.document.body ? 'absolute' : 'relative' );
-
-            Utils.style(target,'float','left')
-            _viewport=target.parentNode;
-
-            var parent=target;
-            do{
-                parent= parent.parentNode;
-                var layout = Utils.storage( parent, this.componentProfile );
-                if( layout && layout instanceof Layout )
-                {
-                    this.owner=layout;
-                    this.owner.childrenItem.push( this );
-                    break;
-                }
-            }while( parent );
+            owner.childrenItem.push(this);
+            this.owner = owner;
         }
 
         /**
          * @param viewport
-         * @returns {Function|Node}
+         * @returns {HTMLElement|Layout}
          */
         this.viewport=function( viewport )
         {
-           if( typeof viewport === "undefined" )
-              return _viewport;
+            if( typeof viewport === "undefined" )
+                return _viewport;
 
             if( typeof viewport === "string" )
             {
-                if( _map[viewport] )
-                {
-                    viewport= _map[viewport];
-
-                }else
-                {
-                    viewport=Sizzle(viewport,doc.body );
-                    if( viewport.length > 0 ) viewport=viewport[0];
-                }
+               viewport=  _map[viewport]  ? _map[viewport] : Sizzle(viewport, _map.document )[0] ;
             }
 
             if( Utils.isHTMLContainer(viewport) || Utils.isWindow(viewport) )
@@ -109,36 +106,21 @@
                 _viewport=viewport;
                 return this;
             }
-            throw new Error('invaild viewport')
+            throw new Error('invaild viewport');
         }
 
         /**
          * @private
          */
-        this.addEventListener(LayoutEvent.CHANGED,function(event){
+        this.addEventListener( [PropertyEvent.CHANGE, LayoutEvent.CHANGE],function(event){
 
             event.stopPropagation();
+            if( event.type !== PropertyEvent.CHANGE || (event.property === 'width' || event.property === 'height') )
+            {
+                this.validateNow();
+            }
 
-            //更新子布局的显示列表
-             if( this.childrenItem.length > 0 )
-             {
-                 var i=0;
-                 for( ; i < this.childrenItem.length; i++ )
-                 {
-                     //当前元素为子级元素的视口时
-                     if( this.current() === this.childrenItem[i].viewport() )
-                     {
-                         this.childrenItem[i].updateDisplayList( this.width(), this.height() );
-                     }
-                     //当前的子级布局的视口元素不是一个布局组件
-                     else
-                     {
-                         this.childrenItem[i].updateDisplayList( undefined, undefined );
-                     }
-                 }
-             }
-
-        },false,0,this)
+        },false,0,this);
     }
 
     /**
@@ -150,15 +132,7 @@
         if( rootLayout=== null )
         {
             rootLayout = new Layout( document.body );
-            var method=['gap','horizontal','vertical'];
-            for( var prop in method )
-            {
-                value = rootLayout.property( method[prop] );
-                if( value !== null )
-                {
-                    rootLayout[ method[prop] ]( value );
-                }
-            }
+            rootLayout.initializeMethod=['gap','horizontal','vertical'];
             rootLayout.addEventListener( BreezeEvent.RESIZE , function(event){
 
                 this.invalidate=false;
@@ -169,24 +143,13 @@
 
             Breeze.rootEvent().addEventListener(Component.INITIALIZE_COMPLETED,function(event){
 
-                if( rootLayout.childrenItem.length > 0 )
-                   rootLayout.updateDisplayList();
-            });
+                if( this.childrenItem.length > 0 )
+                   this.updateDisplayList();
+
+            },false,0,rootLayout);
         }
         return rootLayout;
     }
-
-
-    /**
-     * @param src
-     * @param props
-     * @constructor
-     */
-    function LayoutEvent(type, bubbles,cancelable ){ BreezeEvent.call(this,type, bubbles,cancelable ); };
-    LayoutEvent.prototype=new BreezeEvent();
-    LayoutEvent.CHANGED='layoutChanged';
-    LayoutEvent=LayoutEvent;
-
 
     /**
      * 继承 Breeze
@@ -204,6 +167,15 @@
     Layout.prototype.initializeMethod=['left','top','right','bottom','explicitHeight','explicitWidth','gap',
         'horizontal','vertical','minWidth','minHeight','maxWidth','maxHeight','percentWidth','percentHeight'];
 
+
+    /**
+     * @protected
+     */
+    Layout.prototype.getDefaultSkin=function()
+    {
+       throw new Error('Not skin');
+    }
+
     /**
      * 输出布局组件名称
      * @returns {string}
@@ -213,9 +185,30 @@
         return 'Layout';
     }
 
+    var padding=['Left','Right','Top','Bottom'];
+
+    /**
+     * @returns {{width: (number|void), height: (number|void)}}
+     */
+    Layout.prototype.getViewportSize=function()
+    {
+        var viewport = this.viewport();
+        var height=Utils.scroll(viewport,'scrollTop');
+        height+=Utils.getSize( viewport === viewport.ownerDocument.body ? document : viewport,'height');
+        var width = Utils.scroll(viewport,'scrollLeft');
+        width+=Utils.getSize( viewport === viewport.ownerDocument.body ? document : viewport,'width');
+
+        for( var index=0 ; index < padding.length ; index++ )
+        {
+            var val = parseInt( Utils.style( viewport, 'padding'+ padding[ index ] ) ) || 0;
+            index < 2 ? width-=val : height-=val;
+        }
+        return {'width':width,'height':height};
+    }
+
     /**
      * 根据当前的布局特性计算所需要的宽度
-     * @returns {Number|string|*}
+     * @returns {Number}
      */
     Layout.prototype.calculateWidth=function( parentWidth )
     {
@@ -235,7 +228,7 @@
 
     /**
      * 根据当前的布局特性计算所需要的高度
-     * @returns {Number|string|*}
+     * @returns {Number}
      */
     Layout.prototype.calculateHeight=function( parentHeight )
     {
@@ -256,7 +249,7 @@
     /**
      * 获取布局已设置的最大或者最小宽度
      * @param width
-     * @returns {*}
+     * @returns {Number}
      */
     Layout.prototype.getMaxOrMinWidth=function( width )
     {
@@ -266,7 +259,7 @@
     /**
      * 获取布局已设置的最大或者最小高度
      * @param width
-     * @returns {*}
+     * @returns {Number}
      */
     Layout.prototype.getMaxOrMinHeight=function( height )
     {
@@ -280,8 +273,8 @@
      */
     Layout.prototype.moveTo=function(x,y)
     {
-        Breeze.prototype.left.call(this,x);
-        Breeze.prototype.top.call(this,y);
+        Breeze.prototype.left.call(this, x);
+        Breeze.prototype.top.call(this, y);
         return this;
     }
 
@@ -333,11 +326,8 @@
             ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0
             ,flag = h+v > 0;
 
-        this.childrenElement=[];
-        var children =  this.childrenElement;
+        var children =  [];
         var target = this.skinGroup().current();
-        var isroot = this === rootLayout;
-
         if( target && target.childNodes && target.childNodes.length>0 )
         {
             var len = target.childNodes.length, index=0;
@@ -345,7 +335,7 @@
             {
                 var child = target.childNodes.item( index );
                 this.current( child );
-                if( child.nodeType===1 && child.getAttribute( 'includeLayout' )!=='false' && ( !isroot || this.data('layout') instanceof Layout ) )
+                if( Utils.isHTMLElement(child) && this.property('includeLayout' )!=='false' )
                 {
                     this.style('position','absolute')
                     var childWidth = this.width() || this.calculateWidth( parentWidth );
@@ -381,12 +371,6 @@
         this.totalChildWidth=countWidth;
         this.totalChildHeight=countHeight;
 
-        if( this === rootLayout && countHeight < parentHeight ||  countWidth < parentWidth )
-        {
-            parentHeight= Math.min( Utils.getSize( window ,'height'), parentHeight);
-            parentWidth= Math.min( Utils.getSize( window ,'width'), parentWidth);
-        }
-
         //需要整体排列
         if( children.length > 0 )
         {
@@ -397,13 +381,13 @@
             for( ; index < children.length ; index++ )
             {
                 var child = children[index];
-                var layout = Utils.storage(child.target,'layout');
+                var layout =  Utils.storage(child,this.componentProfile);
                 if( layout instanceof Layout )
                 {
-                    layout.moveTo(child.left + xOffset, child.top + yOffset )
+                    layout.moveTo(child.left + xOffset, child.top + yOffset );
                     layout.width( child.width );
                     layout.height( child.height );
-                    layout.validateNow();
+
                 }else
                 {
                     Utils.style(child.target,'left', child.left + xOffset);
@@ -414,12 +398,9 @@
             }
         }
 
+        this.current(null);
         parentHeight=!this.scrollY() ? Math.max(parentHeight, countHeight) : parentHeight;
-        parentWidth=!this.scrollX() ? Math.max(parentWidth, countWidth) : parentWidth;
-
-        this.overflowHeight= Math.max(countHeight-parentHeight,0);
-        this.overflowWidth = Math.max(countWidth-parentWidth,0);
-
+        parentWidth =!this.scrollX() ? Math.max(parentWidth, countWidth)   : parentWidth;
         this.height( parentHeight );
         this.width( parentWidth );
     }
@@ -429,9 +410,14 @@
      */
     Layout.prototype.validateNow=function()
     {
+        if( this.owner )
+        {
+            this.owner.validateNow();
+        }
         if( !this.invalidate )
         {
-           this.dispatchEvent( new LayoutEvent( LayoutEvent.CHANGED ) );
+            this.invalidate=true;
+            this.updateDisplayList();
         }
         return this;
     }
@@ -440,25 +426,19 @@
      * 更新布局视图
      * @returns {Layout}
      */
-    Layout.prototype.updateDisplayList=function(parentWidth,parentHeight)
+    Layout.prototype.updateDisplayList=function()
     {
-        if( this.invalidate )return false;
-        this.invalidate=true;
-
-        parentWidth = parseInt( parentWidth );
-        parentHeight = parseInt( parentHeight );
-
         //获取视口大小
-        if( isNaN( parentWidth ) || isNaN( parentHeight ) )
-        {
-            var viewport= this.viewport();
-            parentWidth = Utils.getSize(viewport,'width');
-            parentHeight= Utils.getSize(viewport,'height');
-        }
+        var viewport= this.getViewportSize();
+        parentWidth = viewport.width;
+        parentHeight= viewport.height;
 
         //计算当前布局可用的大小
         var  realHeight=this.calculateHeight(parentHeight);
         var  realWidth= this.calculateWidth(parentWidth);
+
+        Utils.style(this.current(),'width', realWidth);
+        Utils.style(this.current(),'height', realHeight);
 
         //更新子布局的显示列表
         if( this.childrenItem.length > 0 )
@@ -467,24 +447,13 @@
             for( ; i < this.childrenItem.length; i++ )
             {
                 this.childrenItem[i].invalidate=false;
-                //当前元素为子级元素的视口时
-                if( this.current() === this.childrenItem[i].viewport() )
-                {
-                    this.childrenItem[i].updateDisplayList( realWidth, realHeight );
-                }
-                //当前的子级布局的视口元素不是一个布局组件
-                else
-                {
-                   this.childrenItem[i].updateDisplayList( undefined, undefined );
-                }
+                this.childrenItem[i].updateDisplayList();
             }
         }
 
         //计算子级元素需要排列的位置
         this.measureChildren( realWidth, realHeight );
 
-        //验证是否有变动
-        this.validateNow();
     }
 
     /**
@@ -682,7 +651,17 @@
 
         Layout.rootLayout();
 
-    },false,100)
+    },false,100);
+
+    /**
+     * @param src
+     * @param props
+     * @constructor
+     */
+    function LayoutEvent(type, bubbles,cancelable ){ BreezeEvent.call(this,type, bubbles,cancelable ); };
+    LayoutEvent.prototype=new BreezeEvent();
+    LayoutEvent.prototype.constructor=LayoutEvent;
+    LayoutEvent.CHANGE='layoutChange';
 
     window.Layout=Layout;
     window.LayoutEvent=LayoutEvent;

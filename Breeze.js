@@ -1070,7 +1070,7 @@
     {
         return access.call(this,prop, value,{
             get:function(prop){
-                return Utils.style(this,prop);
+                return parseInt( Utils.style(this,prop) ) || 0;
             },
             set:function(prop,newValue){
                 if( Utils.style(this,'position')==='static' )

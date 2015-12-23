@@ -201,7 +201,7 @@
                     var dataSource = this.dataSource();
                     if( dataSource.length > 0 && dataSource[ index ] )
                     {
-                        var event = new SelectionEvent(SelectionEvent.CHANGED);
+                        var event = new SelectionEvent(SelectionEvent.CHANGE);
                         event.selectedIndex = index;
                         event.selectedItem = dataSource[ index ];
                         this.dispatchEvent( event );
@@ -233,7 +233,7 @@
     SelectionEvent.prototype.constructor=SelectionEvent;
     SelectionEvent.prototype.selectedIndex=NaN;
     SelectionEvent.prototype.selectedItem=null;
-    SelectionEvent.CHANGED='selectionChanged';
+    SelectionEvent.CHANGE='selectionChanged';
 
     window.SelectionEvent=SelectionEvent;
     window.Selection=Selection;

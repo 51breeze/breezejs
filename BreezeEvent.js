@@ -229,7 +229,6 @@
     ElementEvent.BEFORE_CHILD_ADD='elementBeforeChildAdd';
     ElementEvent.BEFORE_CHILD_REMOVE='elementBeforeChildRemove';
 
-
     /**
      * PropertyEvent
      * @param type
@@ -289,8 +288,6 @@
     HttpEvent.CANCEL  = 'httpCancel';
     HttpEvent.TIMEOUT = 'httpTimeout';
     HttpEvent.OPEN    = 'httpOpen';
-
-    //除了不分发 timeout 状态的事件，其它的状态都发。这个事件最先调度。
     HttpEvent.DONE    = 'done';
 
 

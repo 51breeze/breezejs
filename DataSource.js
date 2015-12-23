@@ -368,7 +368,7 @@
             index = Math.min( this.length, Math.max( index, 0 ) )
             this.splice(index,0,item);
             dispatch.call(this,item,DataSourceEvent.ADD,index);
-            dispatch.call(this,item,DataSourceEvent.CHANGED,index);
+            dispatch.call(this,item,DataSourceEvent.CHANGE,index);
         }
         return this;
     }
@@ -400,7 +400,7 @@
         }
 
         dispatch.call(this,result,DataSourceEvent.REMOVE,index);
-        dispatch.call(this,result,DataSourceEvent.CHANGED,index);
+        dispatch.call(this,result,DataSourceEvent.CHANGE,index);
         return this;
     }
 
@@ -434,7 +434,7 @@
                 index = this.indexOf(result[0]);
             }
             dispatch.call(this, result, DataSourceEvent.ALTER, index);
-            dispatch.call(this, result, DataSourceEvent.CHANGED, index);
+            dispatch.call(this, result, DataSourceEvent.CHANGE, index);
         }
         return flag;
     }
@@ -480,7 +480,7 @@
 
     DataSourceEvent.ADD='dataSourceItemAdd';
     DataSourceEvent.REMOVE='dataSourceItemRemove';
-    DataSourceEvent.CHANGED='dataSourceItemChanged';
+    DataSourceEvent.CHANGE='dataSourceItemChanged';
     DataSourceEvent.ALTER='dataSourceItemAlter';
     DataSourceEvent.FETCH = 'dataSourceFetch';
     DataSourceEvent.LOAD_START='dataSourceLoadStart';

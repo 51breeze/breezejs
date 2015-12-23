@@ -37,6 +37,7 @@
     Component.prototype.constructor=Component;
     Component.prototype.componentProfile='component';
     Component.prototype.initializeMethod=[];
+    Component.prototype.initializeCompleted=false;
     Component.prototype.__skinGroup__=null ;
     Component.prototype.__skinChanged__=true;
     Component.NAME='component';
@@ -148,6 +149,15 @@
             return this;
         }
         return this.skinGroup().data(name);
+    }
+
+    /**
+     * 获取实例对象
+     * @returns {Component}
+     */
+    Component.prototype.getInstance=function()
+    {
+       return this.data( this.componentProfile );
     }
 
     /**
@@ -277,11 +287,16 @@
         __initialize__=true;
         Breeze('['+Component.NAME+']').forEach(function(element){
 
-            var className= this.property( Component.NAME )
+            var className= this.property( Component.NAME );
             className=window[ className ] ||  window[ Utils.ucfirst(className) ];
             if( className )
             {
-                var instance = new className( new SkinGroup(element) );
+                var instance = Utils.storage( element, className['prototype']['componentProfile'] );
+                if( !(instance instanceof className) )
+                {
+                    instance = new className(new SkinGroup(element));
+                }
+
                 //初始化视图中的脚本
                 for( var b=0; b<element.childNodes.length; b++)
                 {
@@ -304,6 +319,7 @@
                     }
                 }
                 instance.initialized();
+                instance.initializeCompleted=true;
             }
         })
         Breeze.rootEvent().dispatchEvent( new BreezeEvent( Component.INITIALIZE_COMPLETED ) )
