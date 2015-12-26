@@ -39,7 +39,7 @@
          */
         this.targets=function()
         {
-            if( this instanceof Manager )
+            if( typeof Manager !== "undefined" && this instanceof Manager )
             {
                return this.forEachCurrentItem ? [ this.forEachCurrentItem ] : this;
             }else if( _targets )
@@ -66,7 +66,12 @@
     EventDispatcher.prototype.hasEventListener=function( type )
     {
         var events = this.data('events');
-        return !!( events && events[type] && ( events[type][0]['listener'].length > 0 || events[type][1]['listener'].length > 0 ) );
+        if( events && events[type] )
+        {
+            var event = events[type][0] || events[type][1];
+            return event && event.listener ? event.listener.length > 0 : false;
+        }
+        return false;
     }
 
     /**
@@ -195,11 +200,11 @@
         listener.target || (listener.target = this);
 
         //获取事件数据集
-        var events = Utils.storage(this,'events') || {};
+        var events = Utils.storage( this,'events') || {};
         var capture= Number( listener.useCapture );
         if( !events[ type ]  )
         {
-            Utils.storage(this,'events',events);
+            Utils.storage( this,'events',events);
             events[ type ]=[]
             events=events[ type ][ capture ]={'listener':[],'handle':null};
 
@@ -208,21 +213,17 @@
             events = events[ type ][ capture ] || ( events[ type ][ capture ]={'listener':[],'handle':null} );
         }
 
-        //记录绑定过的元素
-       /* listener.dispatcher.bindElements[type] || ( listener.dispatcher.bindElements[type]=[])
-        listener.dispatcher.bindElements[type].push( this );*/
-
-        //添加到元素
-        events['listener'].push( listener );
-
         //如果不是 EventDispatcher 则在第一个事件中添加事件代理。
-        if( events['listener'].length===1 && !(this instanceof EventDispatcher) )
+        if( events['listener'].length===0 && !(this instanceof EventDispatcher) )
         {
             var handle = handle || EventDispatcher.dispatchEvent;
             var eventType= BreezeEvent.eventType(type);
             events.handle=handle;
             document.addEventListener ? this.addEventListener(eventType,handle,false) : this.attachEvent(eventType,handle);
         }
+
+        //添加到元素
+        events['listener'].push( listener );
 
         //按权重排序，值大的在前面
         if( events['listener'].length > 1 ) events['listener'].sort(function(a,b)
@@ -267,14 +268,6 @@
             //如果有指定侦听器则删除指定的侦听器
             if(  ( !listener || events.listener[ length ].callback===listener ) && ( !target || target === dispatcher) )
             {
-               /* if( !dispatcher.bindElements[ type ] || dispatcher.bindElements[ type ].length<1 )
-                {
-                    continue;
-                }
-                var index = DataArray.prototype.indexOf.call(dispatcher.bindElements[ type ],this);
-                if( index < 0)continue;
-                dispatcher.bindElements[ type ].splice(index,1);*/
-
                 events.listener.splice(length,1);
             }
         }
@@ -314,6 +307,7 @@
         var useCapture= event.bubbles === false;
         var element = event.currentTarget,data=null;
         var currentTarget= element;
+
         do{
             data = Utils.storage( element ,'events');
             if( data && data[ event.type ] )
@@ -329,6 +323,7 @@
             element=is ? null : element.parentNode;
 
         }while( element );
+
 
         //捕获阶段的事件先从根触发
         if( targets[1].length > 1 )
@@ -349,23 +344,18 @@
                 if( !events || events.length < 1 )
                     continue;
                 var length= 0,listener;
+
                 while(  length < events.length )
                 {
                     listener = events[ length++ ];
 
-                    //此元素是否在此对象上绑定过事件
-                   /* if( !listener.dispatcher.bindElements[ event.type ] || listener.dispatcher.bindElements[ event.type ].length <1 ||
-                        DataArray.prototype.indexOf.call(listener.dispatcher.bindElements[ event.type ],target)<0 )
-                    {
-                        continue;
-                    }*/
 
                     //设置 Manager 的当前元素对象
                     if( listener.dispatcher instanceof Manager )
                     {
-                       listener.dispatcher.current( target );
+                       listener.dispatcher.current( listener.target );
                     }
-                    event.target = target;
+                    event.target = listener.target;
 
                     //调度侦听项
                     listener.callback.call( listener.reference || listener.dispatcher , event );
@@ -619,12 +609,13 @@
     EventDispatcher.SpecialEvent(BreezeEvent.RESIZE,
         function(element,listener,type)
         {
-            var win= Utils.getWindow(element)
-            if( !win )return;
-            listener.target= element;
-            listener.useCapture=true;
-            EventDispatcher.addEventListener.call(win,BreezeEvent.RESIZE, listener );
-            return true;
+            if( !Utils.isWindow(element) )
+            {
+                Breeze.rootEvent().addEventListener(type,function(event){
+                    this.dispatchEvent( event );
+                },true,0,this);
+            }
+            return false;
         });
 
     window.EventDispatcher=EventDispatcher;

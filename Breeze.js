@@ -258,7 +258,7 @@
     Breeze.rootEvent=function()
     {
         if( !__rootEvent__ )
-            __rootEvent__=new EventDispatcher( document );
+            __rootEvent__=new EventDispatcher( window );
         return __rootEvent__;
     }
 

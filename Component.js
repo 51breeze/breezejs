@@ -33,6 +33,19 @@
         }
     }
 
+    /**
+     * 获取实例对象
+     * @returns {Component}
+     */
+    Component.getInstance=function(element,subClass)
+    {
+        if( typeof subClass === "function" && subClass.prototype && subClass.prototype.componentProfile )
+        {
+            return Utils.storage( element, subClass.prototype.componentProfile );
+        }
+        return null;
+    }
+
     Component.prototype=  new EventDispatcher();
     Component.prototype.constructor=Component;
     Component.prototype.componentProfile='component';
@@ -52,10 +65,17 @@
 
     /**
      * overwrite method
-     * initialized component.
+     * initialized 组件中的方法初始完成
      * @protected
      */
     Component.prototype.initialized=function(){}
+
+    /**
+     * overwrite method
+     * initializing 组件中的方法初始进行中
+     * @protected
+     */
+    Component.prototype.initializing=function(){}
 
     /**
      * @param string selector
@@ -152,15 +172,6 @@
     }
 
     /**
-     * 获取实例对象
-     * @returns {Component}
-     */
-    Component.prototype.getInstance=function()
-    {
-       return this.data( this.componentProfile );
-    }
-
-    /**
      * @param name
      * @param value
      * @returns {Breeze|Manager|HTMLElement}
@@ -206,6 +217,24 @@
             return this;
         }
         return this.skinGroup().height();
+    }
+
+    /**
+     * @param width
+     * @param height
+     * @returns {Component}
+     */
+    Component.prototype.setSize=function(width,height)
+    {
+        var oldh = this.skinGroup().height();
+        var oldw = this.skinGroup().width();
+        if( oldh !== height ||  oldw !== width )
+        {
+            this.skinGroup().width( width );
+            this.skinGroup().height( height );
+            //this.dispatchEvent( new BreezeEvent(BreezeEvent.RESIZE) );
+        }
+        return this;
     }
 
     /**
@@ -285,13 +314,14 @@
           return ;
 
         __initialize__=true;
+        Breeze.rootEvent().dispatchEvent( new BreezeEvent( Component.INITIALIZE_START ) );
         Breeze('['+Component.NAME+']').forEach(function(element){
 
             var className= this.property( Component.NAME );
             className=window[ className ] ||  window[ Utils.ucfirst(className) ];
             if( className )
             {
-                var instance = Utils.storage( element, className['prototype']['componentProfile'] );
+                var instance = Component.getInstance(element, className );
                 if( !(instance instanceof className) )
                 {
                     instance = new className(new SkinGroup(element));
@@ -308,6 +338,7 @@
                     }
                 }
 
+                instance.initializing();
                 var index = 0;
                 for( index=0; index < instance.initializeMethod.length; index++)
                 {
@@ -326,8 +357,9 @@
     }
 
     //初始化组件
-    Breeze.ready(function(){Component.initialize();});
-    Component.INITIALIZE_COMPLETED='initializeCompleted';
+    Breeze.rootEvent().addEventListener( BreezeEvent.READY,function(){Component.initialize();},false,100);
+    Component.INITIALIZE_COMPLETED='ComponentInitializeCompleted';
+    Component.INITIALIZE_START='ComponentInitializeStart';
     window.Component=Component;
 
 })( window )
