@@ -123,12 +123,26 @@
        //  lay.height(100);
 
 
-        Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(){
+      /*  Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(){
 
-            var w = Breeze(".modal").width()
-            Breeze(".modal").width( w+1 );
+            var w = Breeze(".mcontainer").width()
+            Breeze(".mcontainer").width( w+10 );
 
-        },true)
+           // Breeze(".mcontainer").dispatchEvent( new LayoutEvent( LayoutEvent.CHANGE ) )
+
+        },true)*/
+
+
+        Breeze('#submit').addEventListener(MouseEvent.CLICK,function(){
+
+             var w = Breeze(".mcontainer").width()
+             Breeze(".mcontainer").width( w+10 );
+             Breeze(".mcontainer").dispatchEvent( new LayoutEvent( LayoutEvent.CHANGE ) )
+
+        },false)
+
+
+
 
 
     })
@@ -140,15 +154,18 @@
 <body style="overflow: hidden;">
 
 
-<div style="width: 800px; height: 600px; margin: 10px auto;">
-
 <div class="modal" component="layout" >
     <div class="head" explicitHeight="35" skin="head" style="width: 100%; height: 35px; background-color: #3baecc">
         <label class="label" skin="label">标题</label>
         <span class="close" skin="close">关闭</span>
     </div>
-    <div class="body" skin="body" top="35" bottom="35" minHeight="300"  style="background-color: #e6e7dc; overflow: hidden; overflow-y: auto; height: 400px; width:100% ">
-        <div component="layout" horizontal="center" vertical="bottom" gap="5" scrollY="hidden">
+    <div class="body" skin="body" top="35" bottom="35" scrollY="auto" scrollX="hidden" minHeight="300" style="background-color: #e6e7dc; height: 400px; width:100% ">
+        <div class="content" viewport=".modal" component="layout" horizontal="center" vertical="bottom" gap="5" scrollY="hidden" scrollX="hidden">
+            <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
+            <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
+            <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
+            <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
+            <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
             <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
         </div>
     </div>
@@ -159,7 +176,10 @@
 </div>
 
 
-</div>
+
+
+
+<button id="submit">点击</button>
 
 
 <!--

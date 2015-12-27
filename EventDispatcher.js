@@ -320,10 +320,9 @@
                 if( !useCapture && data[ event.type ][0] )
                     targets[0].push( element );
             }
-            element=is ? null : element.parentNode;
+            element=is || !event.originalEvent ? null : element.parentNode;
 
         }while( element );
-
 
         //捕获阶段的事件先从根触发
         if( targets[1].length > 1 )
@@ -349,16 +348,17 @@
                 {
                     listener = events[ length++ ];
 
+                    var reference = listener.reference || listener.dispatcher;
 
                     //设置 Manager 的当前元素对象
-                    if( listener.dispatcher instanceof Manager )
+                    if( reference instanceof Manager )
                     {
-                       listener.dispatcher.current( listener.target );
+                        reference.current( listener.target );
                     }
                     event.target = listener.target;
 
                     //调度侦听项
-                    listener.callback.call( listener.reference || listener.dispatcher , event );
+                    listener.callback.call( reference , event );
 
                 }
                 if( event && event.propagationStopped===true )

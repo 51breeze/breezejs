@@ -220,24 +220,6 @@
     }
 
     /**
-     * @param width
-     * @param height
-     * @returns {Component}
-     */
-    Component.prototype.setSize=function(width,height)
-    {
-        var oldh = this.skinGroup().height();
-        var oldw = this.skinGroup().width();
-        if( oldh !== height ||  oldw !== width )
-        {
-            this.skinGroup().width( width );
-            this.skinGroup().height( height );
-            //this.dispatchEvent( new BreezeEvent(BreezeEvent.RESIZE) );
-        }
-        return this;
-    }
-
-    /**
      * @param x
      * @param y
      * @returns {Modality}

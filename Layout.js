@@ -70,13 +70,7 @@
         if( !(this instanceof Layout) )
             return new Layout( target );
 
-        this.childrenItem=[];
-        if( typeof target === "undefined" && !rootLayout )
-        {
-            return this;
-        }
         var skinGroup = target instanceof SkinGroup ? target : new SkinGroup(target);
-
         var instance = Component.getInstance( skinGroup.current(), Layout );
         if( instance  )return instance;
 
@@ -88,6 +82,7 @@
             throw new Error('Invalid element for Layout');
         }
 
+        this.childrenItem=[];
         var owner = getOwner(target);
 
         //设置所属父布局容器
@@ -99,6 +94,37 @@
 
         Utils.style(target,'position', 'absolute' );
 
+
+        /**
+         * @private
+         */
+        var _viewportEvent=null;
+
+        /**
+         * @param viewport
+         */
+        this.viewportChange=function( viewport )
+        {
+            if( _viewportEvent  )
+            {
+                _viewportEvent.removeEventListener( LayoutEvent.CHANGE );
+            }
+            _viewportEvent=new EventDispatcher( viewport ).addEventListener( LayoutEvent.CHANGE ,function(event)
+            {
+                event.stopPropagation();
+                this.invalidate=false;
+                this.updateDisplayList();
+
+                console.log('=====')
+
+            },false, 0 , this );
+        }
+
+        /**
+         * @private
+         */
+        var _viewportChanged=true;
+
         /**
          * @param viewport
          * @returns {HTMLElement|Layout}
@@ -106,7 +132,14 @@
         this.viewport=function( viewport )
         {
             if( typeof viewport === "undefined" )
-                return _viewport;
+            {
+               if( _viewportChanged )
+               {
+                   _viewportChanged=false;
+                   this.viewportChange( _viewport );
+               }
+               return _viewport;
+            }
 
             if( typeof viewport === "string" )
             {
@@ -114,28 +147,16 @@
                viewport=  viewport==='body'    ? target.ownerDocument.body :
                           viewport==='window'  ? Utils.getWindow( target ) :
                           viewport==='document'? target.ownerDocument      :
-                          Sizzle(viewport, _map.document )[0];
+                          Sizzle(viewport, this.skinGroup()[0].ownerDocument )[0];
             }
             if( Utils.isHTMLContainer(viewport) || Utils.isWindow(viewport) )
             {
                 _viewport=viewport;
+                _viewportChanged=true;
                 return this;
             }
             throw new Error('invaild viewport');
         }
-
-        /**
-         * @private
-         */
-        new EventDispatcher( _viewport ).addEventListener(PropertyEvent.CHANGE,function(event){
-
-            event.stopPropagation();
-            if( event.property === 'width' || event.property === 'height' )
-            {
-                this.updateDisplayList();
-            }
-
-        },true,0, this);
 
     }
 
@@ -147,30 +168,15 @@
     {
         if( rootLayout=== null )
         {
-            rootLayout = new Layout();
-            rootLayout.updateDisplayList=function()
-            {
-                //更新子布局的显示列表
-                if( this.childrenItem.length > 0 )
-                {
-                    var i=0;
-                    for( ; i < this.childrenItem.length; i++ )
-                    {
-                        this.childrenItem[i].invalidate=false;
-                        this.childrenItem[i].updateDisplayList();
-                    }
-                }
-            }
-
-            for( var index in rootLayout.initializeMethod )
-            {
-               var method = rootLayout.initializeMethod[ index ]
-               rootLayout[method]=function(){};
-            }
-
+            rootLayout ={'childrenItem':[]};
             Breeze.rootEvent().addEventListener([BreezeEvent.RESIZE,Component.INITIALIZE_COMPLETED],function(event)
             {
-               this.updateDisplayList();
+                var i=0;
+                for( ; i < this.childrenItem.length; i++ )
+                {
+                    this.childrenItem[i].invalidate=false;
+                    this.childrenItem[i].updateDisplayList();
+                }
 
             },true,0,rootLayout);
         }
@@ -191,7 +197,7 @@
     Layout.prototype.invalidate=false;
     Layout.prototype.childrenElement=[];
     Layout.prototype.initializeMethod=['left','top','right','bottom','explicitHeight','explicitWidth','gap',
-        'horizontal','vertical','minWidth','minHeight','maxWidth','maxHeight','percentWidth','percentHeight','scrollY','scrollX'];
+        'horizontal','vertical','minWidth','minHeight','maxWidth','maxHeight','percentWidth','percentHeight','scrollY','scrollX','viewport'];
 
 
     /**
@@ -219,6 +225,13 @@
     Layout.prototype.getViewportSize=function()
     {
         var viewport = this.viewport();
+        var instance = Component.getInstance( viewport, Layout )
+        if( instance )
+        {
+
+        }
+
+
         var height=Utils.scroll(viewport,'scrollTop');
         height+=Utils.getSize( viewport === viewport.ownerDocument.body ? window : viewport,'height');
         var width = Utils.scroll(viewport,'scrollLeft');
@@ -301,8 +314,13 @@
      */
     Layout.prototype.moveTo=function(x,y)
     {
-        Breeze.prototype.left.call(this, x);
-        Breeze.prototype.top.call(this, y);
+        var oldX =  this.skinGroup().left();
+        var oldY = this.skinGroup().top();
+        if( x !== oldX || y !== oldY ){
+
+            this.skinGroup().left(x);
+            this.skinGroup().top(y);
+        }
         return this;
     }
 
@@ -337,6 +355,24 @@
     }
 
     /**
+     * @param width
+     * @param height
+     * @returns {Component}
+     */
+    Layout.prototype.setLayoutSize=function(width,height)
+    {
+        var oldh = this.height();
+        var oldw = this.width();
+        if( oldh !== height ||  oldw !== width )
+        {
+            this.width( width );
+            this.height( height );
+            this.dispatchEvent( new LayoutEvent(LayoutEvent.CHANGE) )
+        }
+        return this;
+    }
+
+    /**
      * @param parentWidth
      * @param parentHeight
      */
@@ -351,11 +387,19 @@
         var horizontalAlign=this.horizontal()
             ,verticalAlign=this.vertical()
             ,h=horizontalAlign===horizontal[1] ? 0.5 : horizontalAlign===horizontal[2] ? 1 : 0
-            ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0
-            ,flag = h+v > 0;
+            ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0;
 
         var children =  [];
         var target = this.skinGroup().current();
+
+        var hscroll = this.scrollWidth ;
+        var vscroll = this.scrollHeight ;
+        if( this.owner instanceof Layout )
+        {
+            hscroll=Math.max(this.owner.scrollWidth,hscroll);
+            vscroll=Math.max(this.owner.scrollHeight,vscroll);
+        }
+
         if( target && target.childNodes && target.childNodes.length>0 )
         {
             var len = target.childNodes.length, index=0;
@@ -366,15 +410,15 @@
                 if( Utils.isHTMLElement(child) && this.property('includeLayout' )!=='false' )
                 {
                     this.style('position','absolute')
-                    var childWidth =  this.calculateWidth( parentWidth );
-                    var childHeight=  this.calculateHeight( parentHeight );
+                    var childWidth = this.width() ||  this.calculateWidth( parentWidth );
+                    var childHeight= this.height() || this.calculateHeight( parentHeight );
                     var marginLeft =  parseInt( this.style('marginLeft') ) || 0;
                     var marginRight =  parseInt( this.style('marginRight') ) || 0;
                     var marginTop = parseInt( this.style('marginTop') ) || 0;
                     var marginBottom = parseInt( this.style('marginBottom') ) || 0;
 
                     //从第二个子级元素开始，如大于了容器宽度则换行
-                    if (x + childWidth+gap+marginLeft+marginRight+paddingRight > parentWidth && index > 0)
+                    if (x + childWidth+gap+marginLeft+marginRight+paddingRight-hscroll > parentWidth && index > 0)
                     {
                         y += maxHeight;
                         x = gap+paddingLeft;
@@ -396,43 +440,87 @@
             this.current( null );
         }
 
-        this.totalChildWidth=countWidth;
-        this.totalChildHeight=countHeight;
+        var scrollbarSize=17;
+        var scrollbarChanged= false;
 
-        console.log( parentHeight, countHeight, this.scrollY() )
+        //监测垂直滚动条
+         if( !this.scrollY() )
+         {
+             parentHeight= Math.max(parentHeight, countHeight)
 
-        parentHeight=!this.scrollY() ? Math.max(parentHeight, countHeight) : parentHeight;
-        parentWidth =!this.scrollX() ? Math.max(parentWidth, countWidth)   : parentWidth;
+         }else if( parentHeight < countHeight )
+         {
+             if( this.scrollWidth!==scrollbarSize )
+             {
+                 this.scrollWidth=scrollbarSize;
+                 scrollbarChanged=true;
+             }
 
+         }else if( this.scrollWidth===scrollbarSize )
+         {
+             this.scrollWidth=0;
+             scrollbarChanged=true;
+         }
+
+        //监测水平滚动条
+         if( !this.scrollX() )
+         {
+            parentWidth= Math.max(parentWidth, countWidth)
+
+         }else if(parentWidth < countWidth)
+         {
+             if( this.scrollHeight!==scrollbarSize )
+             {
+                 this.scrollHeight=scrollbarSize;
+                 scrollbarChanged=true
+             }
+
+         }else if( this.scrollHeight===scrollbarSize )
+         {
+             this.scrollHeight=0;
+             scrollbarChanged=true;
+         }
+
+         if( scrollbarChanged === true )
+         {
+            this.updateDisplayList();
+            return;
+         }
 
         //需要整体排列
         if( children.length > 0 )
         {
             var gap=this.gap();
             var xOffset, yOffset, index=0;
-            xOffset = Math.floor((parentWidth-countWidth - gap  ) * h);
-            yOffset = Math.floor((parentHeight - countHeight - gap  ) * v);
+            xOffset = Math.floor((parentWidth-countWidth - hscroll  ) * h);
+            yOffset = Math.floor((parentHeight - countHeight - vscroll ) * v);
 
-            if( this.scrollY() && yOffset < 0 )
-               yOffset=0;
+            if( this.scrollY() &&  xOffset< 0 )
+                xOffset=gap+paddingLeft;
 
-            if( this.scrollX() && xOffset < 0 )
-                xOffset=0;
+            if( this.scrollX() && yOffset < 0 )
+                yOffset=gap+paddingTop;
 
             for( ; index < children.length ; index++ )
             {
                 var child = children[index];
-                Utils.style(child.target,'left', child.left + xOffset);
-                Utils.style(child.target,'top', child.top + yOffset);
-                Utils.style(child.target,'width', child.width);
-                Utils.style(child.target,'height', child.height);
+                var instance = Component.getInstance(child.target,Layout)
+                if( instance )
+                {
+                    instance.moveTo(child.left + xOffset, child.top + yOffset );
+                    instance.setLayoutSize(child.width,child.height);
+
+                }else
+                {
+
+                    Utils.style(child.target,'left', child.left + xOffset );
+                    Utils.style(child.target,'top', child.top + yOffset );
+                    Utils.style(child.target,'width',child.width);
+                    Utils.style(child.target,'height',child.height);
+                }
             }
         }
-
-
-
-        this.height( parentHeight );
-        this.width( parentWidth );
+        this.setLayoutSize(parentWidth,parentHeight);
     }
 
     /**
@@ -441,28 +529,34 @@
      */
     Layout.prototype.updateDisplayList=function()
     {
+        if( this.invalidate )
+            return this;
+
+        this.invalidate=true;
+        this.current(null);
+
         //获取视口大小
+
         var viewport= this.getViewportSize();
         parentWidth = viewport.width;
         parentHeight= viewport.height;
 
         //计算当前布局可用的大小
-        var  realHeight=this.calculateHeight(parentHeight);
+        var  realHeight=this.calculateHeight(parentHeight) ;
         var  realWidth= this.calculateWidth(parentWidth);
+
+        this.width( realWidth );
+        this.height( realHeight );
+
+        //先从子级布局开始测量
+        for( var index in this.childrenItem )
+        {
+            this.childrenItem[index].invalidate=false;
+            this.childrenItem[index].updateDisplayList();
+        }
 
         //计算子级元素需要排列的位置
         this.measureChildren( realWidth, realHeight );
-
-        //更新子布局的显示列表
-        if( this.childrenItem.length > 0 )
-        {
-            var i=0;
-            for( ; i < this.childrenItem.length; i++ )
-            {
-                this.childrenItem[i].invalidate=false;
-                this.childrenItem[i].updateDisplayList();
-            }
-        }
     }
 
     /**
