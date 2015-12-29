@@ -155,12 +155,12 @@
 
 
 <div class="modal" component="layout" >
-    <div class="head" explicitHeight="35" skin="head" style="width: 100%; height: 35px; background-color: #3baecc">
-        <label class="label" skin="label">标题</label>
-        <span class="close" skin="close">关闭</span>
+    <div class="head"  explicitHeight="35" skin="head"  style="width: 100%; height: 35px; background-color: #3baecc">
+        <label component="layout" percentWidth="0"  percentHeight="0" left="0" class="label" skin="label">标题</label>
+        <span component="layout"  percentWidth="0" percentHeight="0" right="0" class="close" skin="close">关闭</span>
     </div>
-    <div class="body" skin="body" top="35" bottom="35" scrollY="auto" scrollX="hidden" minHeight="300" style="background-color: #e6e7dc; height: 400px; width:100% ">
-        <div class="content" viewport=".modal" component="layout" horizontal="center" vertical="bottom" gap="5" scrollY="hidden" scrollX="hidden">
+    <div class="body" component="layout" skin="body" top="35" bottom="35" scrollY="auto" scrollX="hidden" minHeight="300" style="background-color: #e6e7dc; height: 400px; width:100% ">
+        <div class="content" component="layout" horizontal="center" vertical="bottom" gap="5" scrollY="hidden" scrollX="hidden">
             <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
             <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
             <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
@@ -170,8 +170,8 @@
         </div>
     </div>
     <div class="footer" explicitHeight="35" left="0" bottom="0" skin="footer" style="width: 100%; height: 35px; background-color: #c6bec2">
-        <button skin="cancel">取消</button>
-        <button skin="submit">确认</button>
+        <button  skin="cancel">取消</button>
+        <button  skin="submit">确认</button>
     </div>
 </div>
 

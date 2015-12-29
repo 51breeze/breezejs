@@ -53,6 +53,8 @@
     Component.prototype.initializeCompleted=false;
     Component.prototype.__skinGroup__=null ;
     Component.prototype.__skinChanged__=true;
+    Component.prototype.__viewportChanged__=true;
+    Component.prototype.__viewport__=null;
     Component.NAME='component';
 
     /**
@@ -105,6 +107,45 @@
         }
         return this.__skinGroup__;
     }
+
+    /**
+     * @param viewport
+     * @returns {HTMLElement|Layout}
+     */
+    Component.prototype.viewport=function( viewport )
+    {
+        if( typeof viewport === "undefined" )
+        {
+            if( this.__viewportChanged__ )
+            {
+                this.__viewportChanged__=false;
+                this.viewportChange( this.__viewport__ );
+            }
+            return this.__viewport__;
+        }
+
+        if( typeof viewport === "string" )
+        {
+            var target=this.skinGroup()[0];
+            viewport=  viewport==='body'    ? target.ownerDocument.body :
+                viewport==='window'  ? Utils.getWindow( target ) :
+                    viewport==='document'? target.ownerDocument      :
+                        Sizzle(viewport, target ? target.ownerDocument : document )[0];
+        }
+        if( Utils.isHTMLContainer(viewport) || Utils.isWindow(viewport) )
+        {
+            this.__viewport__=viewport;
+            this.__viewportChanged__=true;
+            return this;
+        }
+        throw new Error('invaild viewport');
+    }
+
+    /**
+     * @protected
+     * @param viewport
+     */
+    Component.prototype.viewportChange=function( viewport ){}
 
     /**
      * @param string skinName
@@ -279,7 +320,6 @@
     {
         return this.skinGroup().dispatchEvent( event );
     }
-
 
     /**
      * @private

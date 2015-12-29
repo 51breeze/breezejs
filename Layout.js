@@ -76,7 +76,6 @@
 
         Component.call(this,  skinGroup );
         target=this.current();
-        var _viewport=target.parentNode;
         if( !Utils.isHTMLElement(target) || !target.parentNode || !Utils.contains( target.ownerDocument.body, target ) )
         {
             throw new Error('Invalid element for Layout');
@@ -93,71 +92,7 @@
         }
 
         Utils.style(target,'position', 'absolute' );
-
-
-        /**
-         * @private
-         */
-        var _viewportEvent=null;
-
-        /**
-         * @param viewport
-         */
-        this.viewportChange=function( viewport )
-        {
-            if( _viewportEvent  )
-            {
-                _viewportEvent.removeEventListener( LayoutEvent.CHANGE );
-            }
-            _viewportEvent=new EventDispatcher( viewport ).addEventListener( LayoutEvent.CHANGE ,function(event)
-            {
-                event.stopPropagation();
-                this.invalidate=false;
-                this.updateDisplayList();
-
-                console.log('=====')
-
-            },false, 0 , this );
-        }
-
-        /**
-         * @private
-         */
-        var _viewportChanged=true;
-
-        /**
-         * @param viewport
-         * @returns {HTMLElement|Layout}
-         */
-        this.viewport=function( viewport )
-        {
-            if( typeof viewport === "undefined" )
-            {
-               if( _viewportChanged )
-               {
-                   _viewportChanged=false;
-                   this.viewportChange( _viewport );
-               }
-               return _viewport;
-            }
-
-            if( typeof viewport === "string" )
-            {
-               var target=this.skinGroup().current();
-               viewport=  viewport==='body'    ? target.ownerDocument.body :
-                          viewport==='window'  ? Utils.getWindow( target ) :
-                          viewport==='document'? target.ownerDocument      :
-                          Sizzle(viewport, this.skinGroup()[0].ownerDocument )[0];
-            }
-            if( Utils.isHTMLContainer(viewport) || Utils.isWindow(viewport) )
-            {
-                _viewport=viewport;
-                _viewportChanged=true;
-                return this;
-            }
-            throw new Error('invaild viewport');
-        }
-
+        this.viewport( target.parentNode );
     }
 
     /**
@@ -199,6 +134,23 @@
     Layout.prototype.initializeMethod=['left','top','right','bottom','explicitHeight','explicitWidth','gap',
         'horizontal','vertical','minWidth','minHeight','maxWidth','maxHeight','percentWidth','percentHeight','scrollY','scrollX','viewport'];
 
+    /**
+     * @param viewport
+     */
+    Layout.prototype.viewportChange=function( viewport )
+    {
+        if( this.__viewportEvent__  )
+        {
+            this.__viewportEvent__.removeEventListener( LayoutEvent.CHANGE );
+        }
+        this.__viewportEvent__=new EventDispatcher( viewport ).addEventListener( LayoutEvent.CHANGE ,function(event)
+        {
+            event.stopPropagation();
+            this.invalidate=false;
+            this.updateDisplayList();
+
+        },false, 0 , this );
+    }
 
     /**
      * @protected
@@ -225,13 +177,6 @@
     Layout.prototype.getViewportSize=function()
     {
         var viewport = this.viewport();
-        var instance = Component.getInstance( viewport, Layout )
-        if( instance )
-        {
-
-        }
-
-
         var height=Utils.scroll(viewport,'scrollTop');
         height+=Utils.getSize( viewport === viewport.ownerDocument.body ? window : viewport,'height');
         var width = Utils.scroll(viewport,'scrollLeft');
@@ -254,8 +199,9 @@
         var width=this.explicitWidth();
         if( isNaN( width ) )
         {
-            var percent = this.percentWidth() || 100;
-            width= percent / 100 * parentWidth ;
+            var percent = this.percentWidth();
+            percent = isNaN(percent) ? 100 : percent;
+            width = percent===0 ?  parseInt( Utils.style(this.current(),'width') ) :  percent  / 100 * parentWidth;
         }
         var left = this.left() || 0;
         var right = this.right() || 0;
@@ -274,8 +220,9 @@
         var height=this.explicitHeight();
         if( isNaN( height ) )
         {
-            var percent = this.percentHeight() || 100;
-            height=  percent / 100 * parentHeight;
+            var percent = this.percentHeight();
+            percent = isNaN(percent) ? 100 : percent;
+            height=  percent===0 ?  parseInt( Utils.style(this.current(),'height') ) :  percent / 100 * parentHeight;
         }
         var bottom = this.bottom() || 0;
         var top = this.top() || 0;
@@ -758,10 +705,6 @@
     LayoutEvent.prototype=new BreezeEvent();
     LayoutEvent.prototype.constructor=LayoutEvent;
     LayoutEvent.CHANGE='layoutChange';
-
-    Breeze.rootEvent().addEventListener(Component.INITIALIZE_START,function(event){
-        Layout.rootLayout();
-    });
 
     window.Layout=Layout;
     window.LayoutEvent=LayoutEvent;
