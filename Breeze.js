@@ -647,7 +647,6 @@
 
     var removeChild= function(target,parent,child)
     {
-        target.current(child);
         if( child && parent.hasChildNodes() && child.parentNode === parent &&
             dispatchElementEvent(target,parent,child,ElementEvent.BEFORE_CHILD_REMOVE ) )
         {
@@ -701,9 +700,9 @@
 
         return this.forEach(function(parent)
         {
-            if( !parent || parent.nodeType!=1 || typeof parent.nodeName !== "string" )
+            if( !Utils.isHTMLElement( parent ) )
             {
-               return;
+                throw new Error('invalid parent HTMLElement.');
             }
 
             try{
@@ -718,7 +717,7 @@
                 {
                    this.removeChildAt( child );
                 }
-
+                this.current(parent);
                 var refChild=index && index.parentNode && index.parentNode===parent ? index : null;
                     !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
                     refChild && (refChild=index.nextSibling);
@@ -843,6 +842,8 @@
         var write= typeof html !== "undefined";
         if( !write && this.length < 1 ) return '';
 
+
+
         return this.forEach(function(elem)
         {
             if( !write || Utils.isBoolean(html) )
@@ -850,7 +851,6 @@
                 html = html===true ? outerHtml(elem) : elem.innerHTML;
                 return html;
             }
-
             if( elem.hasChildNodes() )
             {
                 var nodes=elem.childNodes;
@@ -862,7 +862,6 @@
                 }
             }
             elem.innerHTML='';
-            if( /[^\S]*/.test(html) )return this;
             if( outer && elem.parentNode && elem.parentNode.ownerDocument && Utils.contains(elem.parentNode.ownerDocument.body, elem.parentNode) )
             {
                 this.current( elem.parentNode );
@@ -1070,7 +1069,7 @@
     {
         return access.call(this,prop, value,{
             get:function(prop){
-                return parseInt( Utils.style(this,prop) ) || 0;
+                return parseInt( Utils.style(this,prop) );
             },
             set:function(prop,newValue){
                 if( Utils.style(this,'position')==='static' )

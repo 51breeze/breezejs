@@ -98,7 +98,10 @@
         if( this.__skinGroup__ === null )
         {
             this.__skinGroup__ = this.getDefaultSkin()
-            this.__skinGroup__.current(null).data( this.componentProfile, this )
+            if( this.__skinGroup__ instanceof SkinGroup )
+            {
+               this.__skinGroup__.current(null).data( this.componentProfile, this )
+            }
         }
         if( this.__skinChanged__===true)
         {

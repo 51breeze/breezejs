@@ -104,23 +104,21 @@
          selection.display()
 */
 
-        /* var modal =  new Modality()
+         var modal =  new Modality( new SkinGroup('.modal') )
          modal.width(600).height(400)
-         modal.label('标题')
-         modal.html('')
+         modal.label('标题222')
+         modal.html('<h1>123</h1>')
          modal.show(true)
 
-         modal.addEventListener(ModalityEvent.SUBMIT,function(event){
+         modal.addEventListener(ModalityEvent.CANCEL,function(event){
 
-         console.log('submit')
+         console.log('CANCEL')
          event.stopPropagation()
 
-         })*/
+         })
 
 
-     //  var lay =  new Layout('.modal');
-      //  lay.left(20).right(20);
-       //  lay.height(100);
+
 
 
       /*  Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(){
@@ -141,12 +139,7 @@
 
         },false)
 
-
-
-
-
     })
-
 
 
 </script>
@@ -154,10 +147,11 @@
 <body style="overflow: hidden;">
 
 
-<div class="modal" component="layout" >
+
+<div class="modal" style="width: 300px; height: 200px">
     <div class="head"  explicitHeight="35" skin="head"  style="width: 100%; height: 35px; background-color: #3baecc">
-        <label component="layout" percentWidth="0"  percentHeight="0" left="0" class="label" skin="label">标题</label>
-        <span component="layout"  percentWidth="0" percentHeight="0" right="0" class="close" skin="close">关闭</span>
+        <label component="layout" percentWidth="30"  percentHeight="0" left="0" class="label" skin="label">标题</label>
+        <span component="layout"  percentWidth="30" percentHeight="0" right="0" class="close" skin="close">关闭</span>
     </div>
     <div class="body" component="layout" skin="body" top="35" bottom="35" scrollY="auto" scrollX="hidden" minHeight="300" style="background-color: #e6e7dc; height: 400px; width:100% ">
         <div class="content" component="layout" horizontal="center" vertical="bottom" gap="5" scrollY="hidden" scrollX="hidden">
@@ -174,6 +168,7 @@
         <button  skin="submit">确认</button>
     </div>
 </div>
+
 
 
 

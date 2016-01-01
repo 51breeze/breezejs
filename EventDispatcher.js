@@ -347,19 +347,16 @@
                 while(  length < events.length )
                 {
                     listener = events[ length++ ];
-
                     var reference = listener.reference || listener.dispatcher;
 
                     //设置 Manager 的当前元素对象
-                    if( reference instanceof Manager )
+                    if( reference &&  typeof reference.current === "function" )
                     {
-                        reference.current( listener.target );
+                        reference.current( target );
                     }
-                    event.target = listener.target;
 
                     //调度侦听项
                     listener.callback.call( reference , event );
-
                 }
                 if( event && event.propagationStopped===true )
                     return false
@@ -611,9 +608,14 @@
         {
             if( !Utils.isWindow(element) )
             {
-                Breeze.rootEvent().addEventListener(type,function(event){
-                    this.dispatchEvent( event );
+               /* Breeze.rootEvent().addEventListener(type,function(event){
+
+                    event.currentTarget= element;
+                    event.target=element;
+                    listener.callback(listener.reference || listener.dispatcher , event);
+
                 },true,0,this);
+                return true;*/
             }
             return false;
         });

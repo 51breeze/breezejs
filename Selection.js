@@ -7,12 +7,12 @@
  */
 (function(window,undefined )
 {
-    function Selection()
+    function Selection(skinGroup)
     {
         if( !(this instanceof Selection) )
-            return new Selection();
+            return new Selection(skinGroup);
 
-        Manager.call(this);
+        Component.call(this, skinGroup );
 
         /**
          * @private
@@ -211,19 +211,79 @@
             }
             return _index;
         }
-
-        /**
-         * @returns {Selection}
-         */
-        this.display=function()
-        {
-            var options = this.options()
-            Template.factory( options );
-            this.dataRender().display( options.template.container );
-            return this;
-        }
-
     }
+
+    /**
+     * @returns {Selection}
+     */
+    Selection.prototype.display=function()
+    {
+        var options = this.options()
+        Template.factory( options );
+        this.skinGroup();
+        this.dataRender().display( options.template.container );
+        return this;
+    }
+
+    /**
+     * 皮肤安装完成
+     * @param skinGroup
+     * @returns {Modality}
+     * @protected
+     */
+    Selection.prototype.skinInstalled=function( skinGroup )
+    {
+        if( this.type() !== Modality.SIMPLE )
+        {
+            var selector=Utils.sprintf('[%s=head] > [%s=close],[%s=footer] button', SkinGroup.NAME,SkinGroup.NAME,SkinGroup.NAME );
+            Breeze(selector,skinGroup).addEventListener(MouseEvent.CLICK,function(event)
+            {
+                event.stopPropagation();
+                var type = this.property( SkinGroup.NAME );
+                this.current(null);
+                if( typeof type === "string" )
+                {
+                    var uptype=type.toUpperCase();
+                    var event = new ModalityEvent( ModalityEvent[uptype] );
+                    if( this.hasEventListener( ModalityEvent[uptype] ) && !this.dispatchEvent(event) )
+                        return;
+                }
+                this.hidden();
+            },false,0,this);
+            skinGroup.addEventListener( PropertyEvent.CHANGE , this.__propertyChanged__, false, 0, this )
+        }
+        this.setPositionAndSize();
+        return this;
+    }
+
+    /**
+     * 获取默认皮肤
+     * @returns {SkinGroup}
+     * @protected
+     */
+    Selection.prototype.getDefaultSkin=function()
+    {
+        var defaultSkin={
+            'elements':{
+                input: '<input/>',
+                label: '<span>{current}</span>',
+                list: '<?foreach(dataGroup as index item){ ?><li>{item["name"]}</li><?}?>',
+                container:'<div>{template lable}</div>{elements group}',
+                group: '<div><ul style="padding: 0px;list-style-type:none;-webkit-margin-before:0px;-webkit-margin-after:0px; text-indent: 0px;">{elements list}</ul></div>',
+                searchbox:'<div><span>{template input}</span>{elements group}</div>'
+            },
+            'attributes':{
+                searchbox:{'style':{'width':'100%',height:'300px'}},
+                label:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'} },
+                list:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},"data-index":"{index}"},
+                group:{ 'style':{display:'none',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}},
+                container:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'},tabindex:"-1" }
+            }
+        };
+        return SkinGroup.toString( defaultSkin.elements.container , defaultSkin);
+    }
+
+
 
     Selection.prototype=new Manager();
     Selection.prototype.constructor=Selection;

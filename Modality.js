@@ -96,6 +96,7 @@ modality.show(true)
         if( type === Modality.SIMPLE )
             return this;
         var skin = this.skinGroup();
+        skin.current(null);
         var containerHeight = skin.height();
         var containerWidth = skin.width();
         var top= 0,bottom= 0,right= 0,left= 0,headHeight=0,footerHeight=0;
@@ -148,23 +149,26 @@ modality.show(true)
         if( this.type() !== Modality.SIMPLE )
         {
             var selector=Utils.sprintf('[%s=head] > [%s=close],[%s=footer] button', SkinGroup.NAME,SkinGroup.NAME,SkinGroup.NAME );
-            var self = this;
-
             Breeze(selector,skinGroup).addEventListener(MouseEvent.CLICK,function(event)
             {
                 event.stopPropagation();
                 var type = this.property( SkinGroup.NAME );
+                this.current(null);
                 if( typeof type === "string" )
                 {
-                    var uptype=type.toUpperCase()
+                    var uptype=type.toUpperCase();
                     var event = new ModalityEvent( ModalityEvent[uptype] );
-                    if( self.hasEventListener( ModalityEvent[uptype] ) && !self.dispatchEvent(event) )
+                    if( this.hasEventListener( ModalityEvent[uptype] ) && !this.dispatchEvent(event) )
                         return;
                 }
-                self.hidden();
-            });
+                this.hidden();
+            },false,0,this);
             skinGroup.addEventListener( PropertyEvent.CHANGE , this.__propertyChanged__, false, 0, this )
         }
+
+        Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(event){
+            this.setPositionAndSize();
+        },true,0,this);
         this.setPositionAndSize();
         return this;
     }
@@ -310,11 +314,17 @@ modality.show(true)
             _shade.style({'opacity':0.5,'backgroundColor':'#000000','radius':'0px','shadow':'none','left':'0px','top':'0px'});
             _shade.style('width','100%').style('height', Utils.getSize(document,'height') )
 
-            Breeze.rootEvent().addEventListener([BreezeEvent.RESIZE,BreezeEvent.SCROLL],function(event)
+            Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(event)
             {
-                var height = event.type === BreezeEvent.RESIZE ? Utils.getSize(window,'height') + Utils.scroll(document,'scrollTop') : Utils.getSize(document,'height');
+                var height = Utils.getSize(window,'height') + Utils.scroll(document,'scrollTop')
                 _shade.style('height', height );
-            })
+
+            },true);
+
+            Breeze.rootEvent().addEventListener(BreezeEvent.SCROLL,function(event)
+            {
+                _shade.style('height', Utils.getSize(document,'height') );
+            });
         }
         return _shade;
     }
@@ -374,6 +384,7 @@ modality.show(true)
             this.current(null);
             return val;
         }
+
         this.skinGroup().currentSkin('body').html( html );
         this.current(null);
         return this;

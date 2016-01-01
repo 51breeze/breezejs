@@ -132,7 +132,7 @@
         /**
          * @private
          */
-        var _skin={};
+        var _skin={'container': this[0]};
 
         /**
          * @param string skinName
@@ -142,11 +142,28 @@
         {
             if( typeof _skin[skinName] === "undefined" )
             {
-                var ret = Sizzle(  Utils.sprintf('[%s="%s"]', SkinGroup.NAME, skinName ) , this[0] );
+                var ret = Sizzle(  Utils.sprintf('[%s="%s"]', SkinGroup.NAME, skinName ) , _skin.container );
                 _skin[skinName]=ret[0] || null;
             }
             return _skin[skinName];
         }
+    }
+
+    /**
+     * 将一个符合皮肤格式的对象转换成HTML格式的字符串
+     * @param string skinContainer html包裹容器
+     * @param object skinParts 皮肤组成部分
+     * @returns {*}
+     */
+    SkinGroup.toString=function(skinContainer,skinParts)
+    {
+        if( Utils.isObject(skinParts) )
+        {
+            skinParts.elements || (skinParts.elements={})
+            skinParts.elements.container=skinContainer;
+            return toString.call(skinParts);
+        }
+        return skinContainer;
     }
 
     SkinGroup.NAME='skin';
