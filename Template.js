@@ -87,29 +87,28 @@
     {
         var template,container;
         template = container = source;
-
         if( typeof source === 'string' )
         {
             source= Utils.trim( source );
             if( source.charAt(0) !== '<' )
             {
-                container = Breeze( source );
+                container = Sizzle( source )[0] || '';
+                template=null;
             }
 
-        }else if( Utils.isHTMLElement(source) )
+        }else if( container instanceof Breeze )
         {
-            container = Breeze( source );
+            container=container[0];
+            template=null;
         }
 
-        if( container instanceof Breeze )
+        if( typeof container !== "string" )
         {
-            if( !Utils.nodeName(container[0]).match(/noscript|textarea/) )
-            {
-                throw new Error('invalid template.')
-            }
-            template = container.content();
+            var nodename = Utils.nodeName(container);
+            template = nodename === 'noscript' ? nodename.innerHTML : container.value;
+        }
 
-        }else if( typeof template !== 'string' )
+        if( typeof template !== 'string' )
         {
             throw new Error('invalid template.')
         }
@@ -273,22 +272,17 @@
         {
             if( typeof viewport !== "undefined" )
             {
-                if (typeof viewport === 'string')
+                if ( !(viewport instanceof Breeze) )
                 {
-                    viewport = Utils.trim(viewport);
-                    if (viewport.charAt(0) !== '<')
-                        viewport = Breeze(viewport);
-
-                } else if (Utils.isHTMLElement(viewport))
-                {
-                    viewport = Breeze( viewport );
+                    viewport = Breeze(viewport);
                 }
 
-                if (viewport instanceof Breeze && viewport.length < 1) {
+                if ( viewport.length < 1 )
+                {
                     throw new Error('invalid viewport.')
                 }
-                viewport.removeEventListener(ElementEvent.CHILD_ADD,dispatch);
-                viewport.addEventListener( ElementEvent.CHILD_ADD ,dispatch);
+               /* viewport.removeEventListener(ElementEvent.CHILD_ADD,dispatch);
+                viewport.addEventListener( ElementEvent.CHILD_ADD ,dispatch);*/
                 _viewport = viewport;
             }
             return _viewport;
@@ -343,6 +337,8 @@
                  event.variable = this.variable();
                  event.viewport = this.viewport();
 
+
+
               if( !this.hasEventListener( TemplateEvent.START ) || this.dispatchEvent( event ) )
               {
                   makeTemplate=make.call(this, event.template , event.variable , getSplit.call(this) );
@@ -362,12 +358,8 @@
                       event.viewport.html( makeTemplate );
                       if( this.hasEventListener(TemplateEvent.REFRESH) )
                       {
-                          this.dispatchEvent( new TemplateEvent(TemplateEvent.REFRESH, {
-                              viewport:event.viewport,
-                              variable:event.variable,
-                              template:event.template,
-                              html:makeTemplate
-                          }))
+                          event.type=TemplateEvent.REFRESH;
+                          this.dispatchEvent( event );
                       }
                       return true;
                   }

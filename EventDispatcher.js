@@ -30,48 +30,54 @@
     {
         if( !(this instanceof EventDispatcher) )
             return new EventDispatcher(proxyTarget);
-
-        var _targets=proxyTarget || null;
-
-        /**
-         * 获取代理事件的元素目标
-         * @returns {array}
-         */
-        this.targets=function()
-        {
-            if( typeof Manager !== "undefined" && this instanceof Manager )
-            {
-               return this.forEachCurrentItem ? [ this.forEachCurrentItem ] : this;
-            }else if( _targets )
-            {
-               return !(_targets instanceof Array) ? [ _targets ] : _targets;
-            }
-            return null;
-        }
-
-        this.bindElements={};
+        this.__targets__=  typeof proxyTarget === "undefined" ? null : proxyTarget instanceof Array ? proxyTarget : [proxyTarget] ;
     };
 
     //Constructor
     EventDispatcher.prototype=new DataArray();
-    EventDispatcher.prototype.bindCounter={}
-    EventDispatcher.prototype.bindElements={};
+    EventDispatcher.prototype.__targets__=null;
     EventDispatcher.prototype.constructor=EventDispatcher;
+
+
+    /**
+     * 获取代理事件的目标元素
+     * @returns {array}
+     */
+    EventDispatcher.prototype.targets=function()
+    {
+        if( typeof Manager !== "undefined" && this instanceof Manager )
+        {
+            return this.forEachCurrentItem ? [ this.forEachCurrentItem ] : this;
+        }
+        return this.__targets__;
+    }
 
     /**
      * 判断是否有指定类型的侦听器
      * @param type
      * @returns {boolean}
      */
-    EventDispatcher.prototype.hasEventListener=function( type )
+    EventDispatcher.prototype.hasEventListener=function( type, useCapture )
     {
-        var events = this.data('events');
-        if( events && events[type] )
+        var target=  this.targets() || [this];
+        var events = Utils.storage( target[0] , 'events' );
+        useCapture = Number( useCapture || 0 );
+
+        if( !events || !events[type] || !events[type][useCapture] )
+            return false;
+
+        /*events  = events[type][useCapture];
+        var length= events.listener.length;
+        while( length > 0 )
         {
-            var event = events[type][0] || events[type][1];
-            return event && event.listener ? event.listener.length > 0 : false;
+            --length;
+            if(  events.listener[ length ].dispatcher === this )
+            {
+                return true;
+            }
         }
-        return false;
+        return false;*/
+        return true;
     }
 
     /**
@@ -104,6 +110,13 @@
         var target= this.targets()
             ,element
             ,index=0;
+
+        //如果没有dom元素代理则不需要使用捕获
+        if( target===null )
+        {
+            useCapture=listener.useCapture=false;
+        }
+
         do{
             element= target ? target[ index++] : this;
             if( !element )continue;
@@ -127,13 +140,6 @@
      */
     EventDispatcher.prototype.removeEventListener=function(type,listener,useCapture)
     {
-        if( type=='*' )
-        {
-            for( var t in this.bindElements )
-                this.removeEventListener(t,listener,useCapture);
-            return true;
-        }
-
         var target= this.targets();
         var b=0;
         var element;
@@ -253,13 +259,25 @@
 
         //获取事件数据集
         var events = Utils.storage(this,'events') || {};
+        var old = events;
         useCapture= Number( useCapture ) || 0;
-        events = events[ type ] || {};
-        events = events[useCapture];
-
-        if( !events || !events['listener'] || events['listener'].length < 1  )
+        if( type ==='*')
+        {
+            for(var t in events )
+            {
+                EventDispatcher.removeEventListener.call(this,t,listener,useCapture,target);
+            }
             return true;
+        }
 
+        if( !events[type] || !events[type][useCapture] || !events[type][useCapture]['listener']
+            || events[type][useCapture]['listener'].length < 1 )
+        {
+             delete events[type];
+             return true;
+        }
+
+        events = events[type][useCapture];
         var length= events.listener.length,dispatcher;
         while( length > 0 )
         {
@@ -273,16 +291,15 @@
         }
 
         //如果是元素并且也没有侦听器就删除
-        if( !(this instanceof EventDispatcher) && events.listener.length < 1 )
+        if( events.listener.length < 1 )
         {
-            var win=  Utils.getWindow( this );
-            if( (this.nodeType && this.nodeType===1) || this===win || (win && this===win.document) )
+            if( !(this instanceof EventDispatcher) )
             {
                 var eventType= BreezeEvent.eventType(type);
                 document.removeEventListener ? this.removeEventListener(eventType,events.handle,false) : this.detachEvent(eventType,events.handle)
                 return true;
             }
-            return false;
+            delete old[ type ];
         }
         return true;
     }
@@ -297,6 +314,7 @@
     {
         //初始化一个全局事件
         event= BreezeEvent.create( event );
+
         if( event === null || !event.currentTarget )
             return false;
 
@@ -306,14 +324,14 @@
         //是否只是触发捕获阶段的事件
         var useCapture= event.bubbles === false;
         var element = event.currentTarget,data=null;
-        var currentTarget= element;
 
+        //只有dom 元素的事件才支持捕获和冒泡事件，否则只有目标事件
         do{
             data = Utils.storage( element ,'events');
             if( data && data[ event.type ] )
             {
                 //捕获阶段
-                if( data[ event.type ][1] )
+                if( !is && data[ event.type ][1]   )
                    targets[1].push( element );
 
                 //冒泡阶段
@@ -327,6 +345,9 @@
         //捕获阶段的事件先从根触发
         if( targets[1].length > 1 )
            targets[1]=targets[1].reverse();
+
+
+        console.log( targets )
 
         var step=targets.length,index= 0,category;
         while(  step > 0 )
@@ -350,10 +371,11 @@
                     var reference = listener.reference || listener.dispatcher;
 
                     //设置 Manager 的当前元素对象
-                    if( reference &&  typeof reference.current === "function" )
+                    if( reference && reference instanceof Manager && reference.indexOf(target) >=0 )
                     {
                         reference.current( target );
                     }
+                    //event.target=target;
 
                     //调度侦听项
                     listener.callback.call( reference , event );

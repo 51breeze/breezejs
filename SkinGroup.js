@@ -5,6 +5,33 @@
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
  */
+
+/*
+ @example
+ var defaultSkin={
+     elements: {
+         head: '<div>{elements label+close}</div>',
+         label: '<label>Title</label>',
+         close: '<span>关闭</span>',
+         body:  '<div></div>',
+         cancel:'<button {attributes button}>取消</button>',
+         submit:'<button {attributes button}>确认</button>',
+         footer:'<div><div style="width: auto; height: auto; float: right;">{elements cancel+submit}</div></div>'
+     } ,
+     attributes:{
+         head:{ 'style':{'width':'100%',height:'30px',lineHeight:'30px','display':'block',backgroundColor:'#3a3a3a',color:'#d6d6db','fontSize':'14px'}  },
+         label:{ 'style':{'width':'auto','display':'block',cursor:'pointer','float':'left',margin:'0px 10px'} },
+         close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer','float':'right',margin:'0px 10px'} },
+         body:{ 'style':{padding:'10px','width':'100%',height:'auto','display':'block',overflow:'auto',backgroundColor:'#ffffff'} },
+         button:{ 'style':{margin:'0px 5px', width:'auto',height:'25px',padding:"0px 10px"} },
+         container:{ 'style':{'width':'800px',height:'550px','display':'none',overflow:'hidden','position':'absolute','zIndex':999,'backgroundColor':'#3a3a3a','shadow':'0px 0px 10px 2px #444444','radius':'5px'}},
+         footer:{ 'style':{'width':'100%',height:'35px',lineHeight:'30px','display':'block',backgroundColor:'#d6d6db'}}
+     }
+ }
+  new SkinGroup( "<div>{elements head+body+footer}</div>" , defaultSkin,  document.body );
+ */
+
+
 (function(window,undefined )
 {
 
@@ -93,8 +120,34 @@
 
 
     /**
-     * @param selector
-     * @param context
+     * 皮肤组件
+     * @extends Breeze
+     * @param string skinContainer 皮肤包裹容器。 如果此参数是一个选择器或者是一个完整的HTML格式的字符串将会忽略 skinParts 的参数，直接将此参数当作是一个完整的皮肤组件。
+     * @param object skinParts 皮肤组成部件。一个完整的皮肤部件必须为以下格式。
+     *  {
+     *       //每个皮肤部件对应的HTML元素
+     *        elements: {
+     *            //body 皮肤对应的HTML元素
+     *            body:  '<div></div>',
+     *            label:  '<label>Label</label>',
+     *            //皮肤包裹容器中引用皮肤部件 body 元素
+     *            container:  '<div>{elements body}</div>'
+     *        } ,
+     *        //指定皮肤的属性
+     *        attributes:{
+     *            body:{ 'style':{padding:'10px'}，'id':'body'}
+     *        }
+     *    }
+     *
+     *  在 elements 皮肤元素中可以直接引用多个属性或者皮肤。
+     *  比如： container：'<div {attributes body.style}>{elements body}</div>' 这样 container 皮肤就拥有了body 皮肤的样式。
+     *         container：'<div {attributes body.style}>{elements body+label}</div>' 这样在 container 皮肤下显示 body 和 label元素
+     *
+     *  注意：在elements对象下的所有键名默认为皮肤名，如果需要操作指定的的皮肤组件只需要使用 currentSkin(skinName)。
+     *     使用完后必须调用current(null) 回滚到皮肤主容器，否则将有可能得不到正确的结果。
+     *     当皮肤组件解析完成后会自动添加到context中。
+     *
+     * @param selector|HTMLElement context 皮肤上的父容器。皮肤组装完成后将要添加到的父容器。
      * @returns {SkinGroup}
      * @constructor
      */
@@ -126,27 +179,9 @@
             Breeze.call(this,skinContainer,context);
         }
 
-        if( this.length < 1 )
+        if( this.length != 1 )
             throw new Error('Create skinContainer failed');
-
-        /**
-         * @private
-         */
-        var _skin={'container': this[0]};
-
-        /**
-         * @param string skinName
-         * @returns {HTMLElement}
-         */
-        this.getSkin=function( skinName )
-        {
-            if( typeof _skin[skinName] === "undefined" )
-            {
-                var ret = Sizzle(  Utils.sprintf('[%s="%s"]', SkinGroup.NAME, skinName ) , _skin.container );
-                _skin[skinName]=ret[0] || null;
-            }
-            return _skin[skinName];
-        }
+        this.__skin__={'container': this[0]};
     }
 
     /**
@@ -168,10 +203,27 @@
 
     SkinGroup.NAME='skin';
     SkinGroup.prototype=new Breeze();
+    SkinGroup.prototype.__skin__={};
     SkinGroup.prototype.constructor=SkinGroup;
-    window.SkinGroup=SkinGroup;
+
 
     /**
+     * 获取指定皮肤名的元素
+     * @param string skinName
+     * @returns {HTMLElement}
+     */
+    SkinGroup.prototype.getSkin=function( skinName )
+    {
+        if( typeof this.__skin__[skinName] === "undefined" )
+        {
+            var ret = Sizzle(  Utils.sprintf('[%s="%s"]', SkinGroup.NAME, skinName ) , this.__skin__.container );
+            this.__skin__[skinName]=ret[0] || null;
+        }
+        return this.__skin__[skinName];
+    }
+
+    /**
+     * 设置指定皮肤名为当前操作的元素
      * @param skinName
      * @returns {SkinGroup}
      */
@@ -182,6 +234,8 @@
         this.current( skin )
         return this;
     }
+
+    window.SkinGroup=SkinGroup;
 
 
 })( window )

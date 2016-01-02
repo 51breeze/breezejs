@@ -119,22 +119,21 @@
          * @param number y
          * @returns {object|boolean}
          */
-        Utils.position=function( elem, x, y )
+        Utils.position=function( elem, left, top )
         {
             if( !Utils.isHTMLElement(elem) )
                throw new Error('invalid elem');
             var pos;
-            var isx=typeof x === "number";
-            var isy= typeof y === "number";
+            var isx=typeof left === "number";
+            var isy= typeof top === "number";
             if( isx | isy )
             {
-                pos = getPosition( elem.parentNode )
-                if( isx )Utils.style(elem, 'left', pos.left - x  );
-                if( isy )Utils.style(elem, 'top' , pos.top - y   );
+                if( isx )Utils.style(elem, 'left', left  );
+                if( isy )Utils.style(elem, 'top' , top   );
                 return true;
             }
             pos = getPosition( elem );
-            return {'x':pos.left,'y':pos.top};
+            return {'left':pos.left,'top':pos.top};
         }
 
       Utils.getSize=function( elem, name, border )

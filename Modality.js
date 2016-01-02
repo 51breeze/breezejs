@@ -41,12 +41,13 @@ modality.show(true)
      * 如果在 modality.show(true) 设置为 true 则在底下方显示一个半透明的遮罩层，如果不设置或者为false都将不会显示遮罩层。
      * 如果在使用过程中想改变此组件的皮肤有以下两种方法可以做到：
      *   1、直接覆盖 getDefaultSkin 这个方法
-     *   2、在页面中直通过html方式写一个皮肤，然后通过 new SkinGroup(html) 对象传给模态框就可以了。具体如何使用 SkinGroup 请查看相关文档。
+     *   2、在页面中直通过html方式写一个皮肤，然后通过 new SkinGroup(html) 对象传给模态框。具体如何使用 SkinGroup 请查看相关文档。
      * 注意：此组件使用了皮肤分离层的设计方式，在使用时还必须遵守皮肤的使用规则。
      *
      * 在标准风格下需要的皮肤元素：head, label, close, cancel, submit,body
      * 在典型风格下需要的皮肤元素：head, label, close, body
-     * @param SkinGroup skinGroup
+     * @extends Component
+     * @param SkinGroup skinGroup 皮肤组件
      * @returns {Modality}
      * @constructor
      */
@@ -152,13 +153,12 @@ modality.show(true)
             Breeze(selector,skinGroup).addEventListener(MouseEvent.CLICK,function(event)
             {
                 event.stopPropagation();
-                var type = this.property( SkinGroup.NAME );
-                this.current(null);
+                var type =  Utils.property(event.target,SkinGroup.NAME);
                 if( typeof type === "string" )
                 {
                     var uptype=type.toUpperCase();
                     var event = new ModalityEvent( ModalityEvent[uptype] );
-                    if( this.hasEventListener( ModalityEvent[uptype] ) && !this.dispatchEvent(event) )
+                    if( this.hasEventListener( ModalityEvent[uptype] ) || !this.dispatchEvent(event) )
                         return;
                 }
                 this.hidden();
@@ -376,16 +376,16 @@ modality.show(true)
      * @returns {string|Modality}
      * @public
      */
-    Modality.prototype.html=function( html )
+    Modality.prototype.content=function( content )
     {
-        if( typeof html === "undefined" )
+        if( typeof content === "undefined" )
         {
             var val =  this.skinGroup().currentSkin('body').html();
             this.current(null);
             return val;
         }
 
-        this.skinGroup().currentSkin('body').html( html );
+        this.skinGroup().currentSkin('body').html( content );
         this.current(null);
         return this;
     }

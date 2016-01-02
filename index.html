@@ -13,18 +13,20 @@
     <script src="Dictionary.js" ></script>
     <script src="HttpRequest.js" ></script>
     <script src="Breeze.js" ></script>
+    <script src="SkinGroup.js" ></script>
+    <script src="Component.js" ></script>
+
     <script src="DataGrid.js"></script>
     <script src="Bindable.js" ></script>
     <script src="DataSource.js" ></script>
     <script src="DataRender.js" ></script>
     <script src="Template.js" ></script>
     <script src="Pagination.js" ></script>
+
     <script src="Selection.js" ></script>
-    <script src="SkinGroup.js" ></script>
-    <script src="Component.js" ></script>
+
     <script src="Modality.js" ></script>
     <script src="Layout.js" ></script>
-
 
     <title></title>
 </head>
@@ -73,8 +75,6 @@
     Breeze(function(){
 
 
-
-
         // this.height - footer.height - head.height
 
 
@@ -97,25 +97,28 @@
           grid.display();
 
 
+       */
+
 
          var selection = new Selection()
-         selection.viewport( '#selection' )
+
+     selection.viewport( '#selection' )
          selection.dataSource( [{id:1,name:'张三'},{id:2,name:'李四'}] );
          selection.display()
-*/
 
-         var modal =  new Modality( new SkinGroup('.modal') )
+
+      /*   var modal =  new Modality()
          modal.width(600).height(400)
          modal.label('标题222')
-         modal.html('<h1>123</h1>')
+         modal.content('<h1>123</h1>')
          modal.show(true)
 
-         modal.addEventListener(ModalityEvent.CANCEL,function(event){
+        modal.addEventListener(ModalityEvent.CANCEL,function(event){
 
          console.log('CANCEL')
          event.stopPropagation()
 
-         })
+         })*/
 
 
 
@@ -147,6 +150,7 @@
 <body style="overflow: hidden;">
 
 
+<!--
 
 <div class="modal" style="width: 300px; height: 200px">
     <div class="head"  explicitHeight="35" skin="head"  style="width: 100%; height: 35px; background-color: #3baecc">
@@ -175,13 +179,15 @@
 
 
 <button id="submit">点击</button>
+-->
 
 
-<!--
 
-<div id="selection" style="width: 300px;" data-uuu="yyyy">
+
+<div  id="selection" style="width: 300px; margin: 50px;" data-uuu="yyyy">
 </div>
 
+<!--
 
 <div class="grid" id="grid">
     <div class="container" data-bind style="width: 600px; height: 620px; "></div>
