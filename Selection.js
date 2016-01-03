@@ -78,7 +78,6 @@
             if( _dataRender === null )
             {
                 _dataRender = new DataRender();
-                _dataRender.dataProfile('dataGroup');
                 var self = this;
                 _dataRender.dataSource().addEventListener(DataSourceEvent.FETCH,function(event){
 
@@ -92,14 +91,7 @@
 
                 _dataRender.template().addEventListener(TemplateEvent.REFRESH,function(event){
 
-                    var skinGroup =  event.viewport;
-                    if( !(skinGroup instanceof SkinGroup) )
-                    {
-                        self.__skinGroup__= new SkinGroup( skinGroup.children()[0] );
-                        skinGroup.reverse();
-                        skinGroup=self.skinGroup();
-                    }
-
+                    var skinGroup = self.skinGroup();
                     var position = skinGroup.position()
                     var left = position.left;
                     var top  = position.top;
@@ -183,7 +175,7 @@
         this.selectedIndex=function( index )
         {
             index=parseInt( index );
-            if( typeof index === "number" )
+            if( !isNaN(index) )
             {
                 if( _index !== index )
                 {
@@ -211,7 +203,43 @@
      */
     Selection.prototype.display=function()
     {
-        this.skinGroup();
+        var skinGroup = this.skinGroup();
+        var viewport, index=-1;
+        if( skinGroup instanceof SkinGroup )
+        {
+            skinGroup.display(false);
+            viewport = index = skinGroup.getSkin('container');
+            if( Utils.nodeName(viewport) === 'select' )
+            {
+                var options=[]
+                skinGroup.find('option').forEach(function(){
+
+                    options.push({
+                        'label': this.text(),
+                        'value': this.value()
+                    });
+                })
+
+                this.dataSource( options );
+            }
+            skinGroup=this.getDefaultSkin();
+            viewport=Breeze( viewport.parentNode )
+
+        }else
+        {
+            viewport = this.viewport();
+        }
+
+        index = this.selectedIndex()
+        var dataSource = this.dataSource();
+        var variable = new Variable();
+        variable.set('current', dataSource[index].label );
+        var container =  Template.make(skinGroup.html.container, variable )
+        viewport.addChildAt(container , index );
+
+        this.__skinGroup__=new SkinGroup( viewport.children() );
+        this.viewport( Breeze('[skin=group]',viewport) );
+        this.dataRender().display( skinGroup.html.list );
         return this;
     }
 
@@ -230,44 +258,10 @@
     /**
      * 皮肤安装完成
      * @param skinGroup
-     * @returns {Modality}
+     * @returns {*}
      * @protected
      */
-    Selection.prototype.skinInstalled=function( skinGroup )
-    {
-        var template=skinGroup;
-        if( skinGroup instanceof SkinGroup )
-        {
-           var container = skinGroup.getSkin('container');
-           if( Utils.nodeName(container) === 'noscript' )
-           {
-               template = container.content();
-               if( !this.viewport() )
-               {
-                   this.viewport( container.parentNode );
-               }
-
-           }else
-           {
-               template=null;
-               this.viewport( skinGroup );
-           }
-        }
-
-        //如果是一个html皮肤
-        if( typeof template === "string" )
-        {
-           this.dataRender().display( template );
-        }
-        //是一个dom元素皮肤
-        else
-        {
-            var event = new TemplateEvent(TemplateEvent.REFRESH);
-            event.viewport= this.viewport();
-            //this.dataRender().template().dispatchEvent( event );
-        }
-        return this;
-    }
+    Selection.prototype.skinInstalled=function( skinGroup ){}
 
     /**
      * 获取默认皮肤
@@ -276,26 +270,24 @@
      */
     Selection.prototype.getDefaultSkin=function()
     {
-        var defaultSkin={
-            'elements':{
-                input: '<input/>',
-                label: '<div>{current}</div>',
-                list: '<ul style="width:100%; height:auto;padding: 0px;list-style-type:none;-webkit-margin-before:0px;-webkit-margin-after:0px; text-indent: 0px;"><?foreach(dataGroup as index item){ ?><li {attributes li}>{item["name"]}</li><?}?></ul>',
-                container:'<div>{elements label+group}</div>',
-                group: '<div>{elements list}</div>',
-                searchbox:'<div><span>{elements input}</span>{elements group}</div>'
-            },
-            'attributes':{
-                searchbox:{'style':{'width':'100%',height:'300px'}},
-                label:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'} },
-                li:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},'data-index':'{index}'},
-                group:{ 'style':{display:'none',width:'100%',height:'auto',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}},
-                container:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'},tabindex:"-1" }
-            }
-        };
-        return SkinGroup.toString( defaultSkin.elements.container , defaultSkin);
+        var dataProfile= this.dataRender().dataProfile();
+        var skinObject=SkinGroup.createSkinObject('<div>{html label+group}</div>',{
+            input: '<input/>',
+            label: '<div>{current}</div>',
+            list: '<ul><?foreach('+dataProfile+' as key item){ ?><li {attr li}>{item["label"]}</li><?}?></ul>',
+            group: '<div></div>',
+            searchbox:'<div><span>{html input}</span>{html group}</div>'
+        },{
+            searchbox:{'style':{'width':'100%',height:'300px'}},
+            label:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'} },
+            li:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},'data-index':'{key}','value':'{item["value"]}'},
+            list:{'style':'width:100%; height:auto;padding: 0px;list-style-type:none;-webkit-margin-before:0px;-webkit-margin-after:0px; text-indent: 0px;'},
+            group:{ 'style':{display:'none',width:'100%',height:'auto',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}},
+            container:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'},tabindex:"-1" }
+        });
+        SkinGroup.toString( skinObject );
+        return skinObject;
     }
-
 
     function SelectionEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
     SelectionEvent.prototype=new BreezeEvent();

@@ -33,7 +33,9 @@
             return Breeze.ready( selector );
 
         if( selector instanceof Breeze )
-            return selector;
+        {
+            selector=selector.toArray();
+        }
 
         if( !(this instanceof Breeze) )
             return new Breeze( selector,context );
@@ -42,7 +44,7 @@
         if( !Utils.isDefined(selector) && !Utils.isDefined(context) )
             return this;
 
-        var result;
+        var result=selector;
         this.context = this.getContext( context );
         this.selector = selector;
         if( Utils.isString( selector ) )
@@ -1004,7 +1006,7 @@
      */
     Breeze.prototype.content=function( value )
     {
-        return access.call(this,'value',value,{
+        return access.call(this,'content',value,{
             get:function(prop){
                 return ( Utils.isFormElement( this ) ? this.value : Sizzle.getText(this) ) || '';
             },
@@ -1019,6 +1021,40 @@
                 }
             }
         },PropertyEvent.CHANGE) || '';
+    }
+
+    /**
+     * 获取设置当前元素的内容值。如果元素是表单元素则写读value否则为text属性。
+     * @returns {string|Breeze}
+     */
+    Breeze.prototype.text=function( value )
+    {
+        return access.call(this,'text',value,{
+            get:function(){
+                return Sizzle.getText(this)  || '';
+            },
+            set:function(prop,newValue)
+            {
+                typeof this.textContent === "string" ? this.textContent=newValue : this.innerText=newValue;
+            }
+        },PropertyEvent.CHANGE) || '';
+    }
+
+    /**
+     * 获取设置表单元素的值。此方法只会对表单元素有用。
+     * @returns {string|Breeze}
+     */
+    Breeze.prototype.value=function( value )
+    {
+        return access.call(this,'value',value,{
+            get:function(prop){
+                return this.hasAttribute('value') ? this.value : null;
+            },
+            set:function(prop,newValue)
+            {
+                if( this.hasAttribute('value') )this.value=newValue;
+            }
+        },PropertyEvent.CHANGE) || null;
     }
 
     /**

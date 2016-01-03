@@ -345,10 +345,6 @@
         //捕获阶段的事件先从根触发
         if( targets[1].length > 1 )
            targets[1]=targets[1].reverse();
-
-
-        console.log( targets )
-
         var step=targets.length,index= 0,category;
         while(  step > 0 )
         {

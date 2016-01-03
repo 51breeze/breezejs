@@ -337,8 +337,6 @@
                  event.variable = this.variable();
                  event.viewport = this.viewport();
 
-
-
               if( !this.hasEventListener( TemplateEvent.START ) || this.dispatchEvent( event ) )
               {
                   makeTemplate=make.call(this, event.template , event.variable , getSplit.call(this) );
@@ -368,6 +366,25 @@
             return false;
         }
         var makeTemplate='';
+    }
+
+    /**
+     * @private
+     */
+    var o={
+        'left':"<\\?",
+        'right':"\\?>",
+        'shortLeft':"\\{",
+        'shortRight':"\\}"
+    };
+
+    /**
+     * @private
+     */
+    var _split=new RegExp(o.left+'(.*?)'+o.right+'|'+o.shortLeft+'(.*?)'+o.shortRight,'gi');
+    Template.make=function(template , variable)
+    {
+        return make( template , variable || {} , _split );
     }
 
     Template.prototype = new EventDispatcher()
