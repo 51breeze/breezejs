@@ -88,7 +88,7 @@
                 _tpl.addEventListener(TemplateEvent.REFRESH,function(event)
                 {
                     var dataSource=self.dataSource();
-                    Breeze('[data-bind]', event.viewport).forEach(function(){
+                    Breeze('[data-bind]', event.viewport).forEach(function(elem,index){
 
                         var name  = this.property('data-bind');
                         var index = dataSource.offsetIndex( this.property('data-index') );

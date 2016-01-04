@@ -827,7 +827,7 @@
      */
     Utils.isObject=function( val , flag )
     {
-        return typeof val === "object" ? val.constructor === Object || ( flag && Utils.isArray(val) ) : false;
+        return typeof val === "object" ? !!( val.constructor === Object || ( flag && Utils.isArray(val) ) ) : false;
     }
 
     /**

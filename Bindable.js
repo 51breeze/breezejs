@@ -79,7 +79,7 @@
             if( !target )
               return false;
             property = property instanceof DataSource ?  property || '?' : property || 'value';
-            if( (typeof target === 'object' || target instanceof Array) || (target.nodeType && typeof target.nodeName === 'string' && target !== target.window ) )
+            if( typeof target === 'object' )
             {
                 var obj = subscription.get(target)
                 if (!obj)subscription.set(target, (obj = {}));

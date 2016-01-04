@@ -230,11 +230,10 @@
             viewport = this.viewport();
         }
 
-        index = this.selectedIndex()
+        index = this.selectedIndex();
         var dataSource = this.dataSource();
-        var variable = new Variable();
-        variable.set('current', dataSource[index].label );
-        var container =  Template.make(skinGroup.html.container, variable )
+        var tpl = this.dataRender().template();
+        var container = tpl.variable('current',dataSource[index].label).render(skinGroup.html.container, true );
         viewport.addChildAt(container , index );
 
         this.__skinGroup__=new SkinGroup( viewport.children() );
