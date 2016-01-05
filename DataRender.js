@@ -91,7 +91,7 @@
                     Breeze('[data-bind]', event.viewport).forEach(function(elem,index){
 
                         var name  = this.property('data-bind');
-                        var index = dataSource.offsetIndex( this.property('data-index') );
+                        var index = dataSource.offsetIndex( index );
                         if( typeof dataSource[index] !== "undefined" )
                         {
                             var binder = this.data('dataBinder');
