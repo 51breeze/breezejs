@@ -117,7 +117,7 @@
             event.stopPropagation();
             if( event.type !== PropertyEvent.CHANGE || (event.property === 'width' || event.property === 'height') )
             {
-                this.validateNow();
+                this.updateDisplayList();
             }
 
         },false,0,this);
@@ -410,24 +410,6 @@
      */
     Layout.prototype.validateNow=function()
     {
-        if( this.owner )
-        {
-            this.owner.validateNow();
-        }
-        if( !this.invalidate )
-        {
-            this.invalidate=true;
-            this.updateDisplayList();
-        }
-        return this;
-    }
-
-    /**
-     * 更新布局视图
-     * @returns {Layout}
-     */
-    Layout.prototype.updateDisplayList=function()
-    {
         //获取视口大小
         var viewport= this.getViewportSize();
         parentWidth = viewport.width;
@@ -437,8 +419,19 @@
         var  realHeight=this.calculateHeight(parentHeight);
         var  realWidth= this.calculateWidth(parentWidth);
 
-        Utils.style(this.current(),'width', realWidth);
-        Utils.style(this.current(),'height', realHeight);
+        this.width( realWidth );
+        this.height( realHeight );
+        return this;
+    }
+
+    /**
+     * 更新布局视图
+     * @returns {Layout}
+     */
+    Layout.prototype.updateDisplayList=function()
+    {
+        //计算子级元素需要排列的位置
+        this.measureChildren( this.width(), this.height() );
 
         //更新子布局的显示列表
         if( this.childrenItem.length > 0 )
@@ -450,9 +443,6 @@
                 this.childrenItem[i].updateDisplayList();
             }
         }
-
-        //计算子级元素需要排列的位置
-        this.measureChildren( realWidth, realHeight );
 
     }
 
