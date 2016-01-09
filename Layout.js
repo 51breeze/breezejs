@@ -17,47 +17,48 @@
 +(function( window,undefined )
 {
     var layouts=[]
-    ,rootLayout=null
-    ,horizontal=['left','center','right']
-    ,vertical=['top','middle','bottom']
-    ,__method__ = function(prop, val , flag )
-    {
-        var skin = this.skinGroup();
-        var old = parseInt( skin.property(prop) );
-        if( typeof val !== "undefined" )
+        ,rootLayout=null
+        ,horizontal=['left','center','right']
+        ,vertical=['top','middle','bottom']
+        ,__method__ = function(prop, val , flag )
         {
-            val =  parseInt( val );
-            if ( flag ) skin.style( flag !== true ? flag : prop, val);
-            if ( val !== old )
+            var skin = this.skinGroup();
+            var old = parseInt( skin.property(prop) );
+            if( typeof val !== "undefined" )
             {
-                skin.property(prop, val);
-                this.invalidate=false;
+                val =  parseInt( val );
+                if ( flag ) skin.style( flag !== true ? flag : prop, val);
+                if ( val !== old )
+                {
+                    skin.property(prop, val);
+                    this.invalidate=false;
+                }
+                return this;
             }
-            return this;
-        }
-        return old;
-    };
+            return old;
+        };
 
     /**
      * @param target
      * @param profile
      * @returns {*}
      */
-    function getOwner(target, profile )
+    function getOwner(target)
     {
         var parent=target;
         while( Utils.contains( target.ownerDocument.body, parent ) )
         {
             parent= parent.parentNode;
-            var layout = Utils.storage( parent, profile );
+            var layout = Component.getInstance(parent, Layout );
             if( layout && layout instanceof Layout )
             {
                 return layout;
             }
         }
-        return null;
+        return Layout.rootLayout();
     }
 
+    var rootInitialized=false;
 
     /**
      * Layout
@@ -69,16 +70,19 @@
         if( !(this instanceof Layout) )
             return new Layout( target );
 
-        Component.call(this, target instanceof SkinGroup ? target : new SkinGroup(target) );
-        this.childrenItem=[];
+        var skinGroup = target instanceof SkinGroup ? target : new SkinGroup(target);
+        var instance = Component.getInstance( skinGroup.current(), Layout );
+        if( instance  )return instance;
 
+        Component.call(this,  skinGroup );
         target=this.current();
-        if( !target || !Utils.isHTMLElement(target) || !target.parentNode || !( target.ownerDocument.body !== target && !Utils.contains( target.ownerDocument.body, target ) ) )
+        if( !Utils.isHTMLElement(target) || !target.parentNode || !Utils.contains( target.ownerDocument.body, target ) )
+        {
             throw new Error('Invalid element for Layout');
+        }
 
-        var _map={'body':target.ownerDocument.body,'window': Utils.getWindow( target ), 'document': target.ownerDocument };
-        var _viewport= target.ownerDocument.body === target ? target.ownerDocument : target.parentNode;
-        var owner = getOwner(target,this.componentProfile);
+        this.childrenItem=[];
+        var owner = getOwner(target);
 
         //设置所属父布局容器
         if( owner )
@@ -87,40 +91,8 @@
             this.owner = owner;
         }
 
-        /**
-         * @param viewport
-         * @returns {HTMLElement|Layout}
-         */
-        this.viewport=function( viewport )
-        {
-            if( typeof viewport === "undefined" )
-                return _viewport;
-
-            if( typeof viewport === "string" )
-            {
-               viewport=  _map[viewport]  ? _map[viewport] : Sizzle(viewport, _map.document )[0] ;
-            }
-
-            if( Utils.isHTMLContainer(viewport) || Utils.isWindow(viewport) )
-            {
-                _viewport=viewport;
-                return this;
-            }
-            throw new Error('invaild viewport');
-        }
-
-        /**
-         * @private
-         */
-        this.addEventListener( [PropertyEvent.CHANGE, LayoutEvent.CHANGE],function(event){
-
-            event.stopPropagation();
-            if( event.type !== PropertyEvent.CHANGE || (event.property === 'width' || event.property === 'height') )
-            {
-                this.updateDisplayList();
-            }
-
-        },false,0,this);
+        Utils.style(target,'position', 'absolute' );
+        this.viewport( target.parentNode );
     }
 
     /**
@@ -131,22 +103,17 @@
     {
         if( rootLayout=== null )
         {
-            rootLayout = new Layout( document.body );
-            rootLayout.initializeMethod=['gap','horizontal','vertical'];
-            rootLayout.addEventListener( BreezeEvent.RESIZE , function(event){
+            rootLayout ={'childrenItem':[]};
+            Breeze.rootEvent().addEventListener([BreezeEvent.RESIZE,Component.INITIALIZE_COMPLETED],function(event)
+            {
+                var i=0;
+                for( ; i < this.childrenItem.length; i++ )
+                {
+                    this.childrenItem[i].invalidate=false;
+                    this.childrenItem[i].updateDisplayList();
+                }
 
-                this.invalidate=false;
-                if( this.childrenItem.length > 0 )
-                   this.updateDisplayList();
-
-            },false,0,rootLayout);
-
-            Breeze.rootEvent().addEventListener(Component.INITIALIZE_COMPLETED,function(event){
-
-                if( this.childrenItem.length > 0 )
-                   this.updateDisplayList();
-
-            },false,0,rootLayout);
+            },true,0,rootLayout);
         }
         return rootLayout;
     }
@@ -165,15 +132,32 @@
     Layout.prototype.invalidate=false;
     Layout.prototype.childrenElement=[];
     Layout.prototype.initializeMethod=['left','top','right','bottom','explicitHeight','explicitWidth','gap',
-        'horizontal','vertical','minWidth','minHeight','maxWidth','maxHeight','percentWidth','percentHeight'];
+        'horizontal','vertical','minWidth','minHeight','maxWidth','maxHeight','percentWidth','percentHeight','scrollY','scrollX','viewport'];
 
+    /**
+     * @param viewport
+     */
+    Layout.prototype.viewportChange=function( viewport )
+    {
+        if( this.__viewportEvent__  )
+        {
+            this.__viewportEvent__.removeEventListener( LayoutEvent.CHANGE );
+        }
+        this.__viewportEvent__=new EventDispatcher( viewport ).addEventListener( LayoutEvent.CHANGE ,function(event)
+        {
+            event.stopPropagation();
+            this.invalidate=false;
+            this.updateDisplayList();
+
+        },false, 0 , this );
+    }
 
     /**
      * @protected
      */
     Layout.prototype.getDefaultSkin=function()
     {
-       throw new Error('Not skin');
+        throw new Error('Not skin');
     }
 
     /**
@@ -194,9 +178,9 @@
     {
         var viewport = this.viewport();
         var height=Utils.scroll(viewport,'scrollTop');
-        height+=Utils.getSize( viewport === viewport.ownerDocument.body ? document : viewport,'height');
+        height+=Utils.getSize( viewport === viewport.ownerDocument.body ? window : viewport,'height');
         var width = Utils.scroll(viewport,'scrollLeft');
-        width+=Utils.getSize( viewport === viewport.ownerDocument.body ? document : viewport,'width');
+        width+=Utils.getSize( viewport === viewport.ownerDocument.body ? window : viewport,'width');
 
         for( var index=0 ; index < padding.length ; index++ )
         {
@@ -215,8 +199,9 @@
         var width=this.explicitWidth();
         if( isNaN( width ) )
         {
-            var percent = this.percentWidth() || 100;
-            width= percent / 100 * parentWidth ;
+            var percent = this.percentWidth();
+            percent = isNaN(percent) ? 100 : percent;
+            width = percent===0 ?  parseInt( Utils.style(this.current(),'width') ) :  percent  / 100 * parentWidth;
         }
         var left = this.left() || 0;
         var right = this.right() || 0;
@@ -235,8 +220,9 @@
         var height=this.explicitHeight();
         if( isNaN( height ) )
         {
-            var percent = this.percentHeight() || 100;
-            height=  percent / 100 * parentHeight;
+            var percent = this.percentHeight();
+            percent = isNaN(percent) ? 100 : percent;
+            height=  percent===0 ?  parseInt( Utils.style(this.current(),'height') ) :  percent / 100 * parentHeight;
         }
         var bottom = this.bottom() || 0;
         var top = this.top() || 0;
@@ -253,7 +239,8 @@
      */
     Layout.prototype.getMaxOrMinWidth=function( width )
     {
-        return Math.min( Math.max( this.minWidth() || width , width ), this.maxWidth() || width );
+        var min=Math.max( this.minWidth() || width , width );
+        return Math.min( min,  Math.min( this.maxWidth() || min , min ) );
     }
 
     /**
@@ -263,7 +250,8 @@
      */
     Layout.prototype.getMaxOrMinHeight=function( height )
     {
-        return Math.min( Math.max( this.minHeight() || height , height ), this.maxHeight() || height );
+        var min=Math.max( this.minHeight() || height , height );
+        return Math.min( min,  Math.min( this.maxHeight() || min , min ) );
     }
 
     /**
@@ -273,8 +261,13 @@
      */
     Layout.prototype.moveTo=function(x,y)
     {
-        Breeze.prototype.left.call(this, x);
-        Breeze.prototype.top.call(this, y);
+        var oldX =  this.skinGroup().left();
+        var oldY = this.skinGroup().top();
+        if( x !== oldX || y !== oldY ){
+
+            this.skinGroup().left(x);
+            this.skinGroup().top(y);
+        }
         return this;
     }
 
@@ -290,7 +283,7 @@
             return this;
         }
         var overflowY= this.style('overflowY');
-        return !(overflowY === 'hidden' || overflowY==='visible');
+        return !(overflowY === 'hidden');
     }
 
     /**
@@ -305,7 +298,25 @@
             return this;
         }
         var overflowX= this.style('overflowX');
-        return !(overflowX === 'hidden' || overflowX==='visible');
+        return !(overflowX === 'hidden');
+    }
+
+    /**
+     * @param width
+     * @param height
+     * @returns {Component}
+     */
+    Layout.prototype.setLayoutSize=function(width,height)
+    {
+        var oldh = this.height();
+        var oldw = this.width();
+        if( oldh !== height ||  oldw !== width )
+        {
+            this.width( width );
+            this.height( height );
+            this.dispatchEvent( new LayoutEvent(LayoutEvent.CHANGE) )
+        }
+        return this;
     }
 
     /**
@@ -323,11 +334,19 @@
         var horizontalAlign=this.horizontal()
             ,verticalAlign=this.vertical()
             ,h=horizontalAlign===horizontal[1] ? 0.5 : horizontalAlign===horizontal[2] ? 1 : 0
-            ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0
-            ,flag = h+v > 0;
+            ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0;
 
         var children =  [];
         var target = this.skinGroup().current();
+
+        var hscroll = this.scrollWidth ;
+        var vscroll = this.scrollHeight ;
+        if( this.owner instanceof Layout )
+        {
+            hscroll=Math.max(this.owner.scrollWidth,hscroll);
+            vscroll=Math.max(this.owner.scrollHeight,vscroll);
+        }
+
         if( target && target.childNodes && target.childNodes.length>0 )
         {
             var len = target.childNodes.length, index=0;
@@ -338,7 +357,7 @@
                 if( Utils.isHTMLElement(child) && this.property('includeLayout' )!=='false' )
                 {
                     this.style('position','absolute')
-                    var childWidth = this.width() || this.calculateWidth( parentWidth );
+                    var childWidth = this.width() ||  this.calculateWidth( parentWidth );
                     var childHeight= this.height() || this.calculateHeight( parentHeight );
                     var marginLeft =  parseInt( this.style('marginLeft') ) || 0;
                     var marginRight =  parseInt( this.style('marginRight') ) || 0;
@@ -346,7 +365,7 @@
                     var marginBottom = parseInt( this.style('marginBottom') ) || 0;
 
                     //从第二个子级元素开始，如大于了容器宽度则换行
-                    if (x + childWidth+gap+marginLeft+marginRight+paddingRight > parentWidth && index > 0)
+                    if (x + childWidth+gap+marginLeft+marginRight+paddingRight-hscroll > parentWidth && index > 0)
                     {
                         y += maxHeight;
                         x = gap+paddingLeft;
@@ -368,60 +387,87 @@
             this.current( null );
         }
 
-        this.totalChildWidth=countWidth;
-        this.totalChildHeight=countHeight;
+        var scrollbarSize=17;
+        var scrollbarChanged= false;
+
+        //监测垂直滚动条
+        if( !this.scrollY() )
+        {
+            parentHeight= Math.max(parentHeight, countHeight)
+
+        }else if( parentHeight < countHeight )
+        {
+            if( this.scrollWidth!==scrollbarSize )
+            {
+                this.scrollWidth=scrollbarSize;
+                scrollbarChanged=true;
+            }
+
+        }else if( this.scrollWidth===scrollbarSize )
+        {
+            this.scrollWidth=0;
+            scrollbarChanged=true;
+        }
+
+        //监测水平滚动条
+        if( !this.scrollX() )
+        {
+            parentWidth= Math.max(parentWidth, countWidth)
+
+        }else if(parentWidth < countWidth)
+        {
+            if( this.scrollHeight!==scrollbarSize )
+            {
+                this.scrollHeight=scrollbarSize;
+                scrollbarChanged=true
+            }
+
+        }else if( this.scrollHeight===scrollbarSize )
+        {
+            this.scrollHeight=0;
+            scrollbarChanged=true;
+        }
+
+        if( scrollbarChanged === true )
+        {
+            this.updateDisplayList();
+            return;
+        }
 
         //需要整体排列
         if( children.length > 0 )
         {
             var gap=this.gap();
             var xOffset, yOffset, index=0;
-            xOffset = Math.floor((parentWidth-countWidth - gap  ) * h);
-            yOffset = Math.floor((parentHeight - countHeight - gap  ) * v);
+            xOffset = Math.floor((parentWidth-countWidth - hscroll  ) * h);
+            yOffset = Math.floor((parentHeight - countHeight - vscroll ) * v);
+
+            if( this.scrollY() &&  xOffset< 0 )
+                xOffset=gap+paddingLeft;
+
+            if( this.scrollX() && yOffset < 0 )
+                yOffset=gap+paddingTop;
+
             for( ; index < children.length ; index++ )
             {
                 var child = children[index];
-                var layout =  Utils.storage(child,this.componentProfile);
-                if( layout instanceof Layout )
+                var instance = Component.getInstance(child.target,Layout)
+                if( instance )
                 {
-                    layout.moveTo(child.left + xOffset, child.top + yOffset );
-                    layout.width( child.width );
-                    layout.height( child.height );
+                    instance.moveTo(child.left + xOffset, child.top + yOffset );
+                    instance.setLayoutSize(child.width,child.height);
 
                 }else
                 {
-                    Utils.style(child.target,'left', child.left + xOffset);
-                    Utils.style(child.target,'top', child.top + yOffset);
-                    Utils.style(child.target,'width', child.width);
-                    Utils.style(child.target,'height', child.height);
+
+                    Utils.style(child.target,'left', child.left + xOffset );
+                    Utils.style(child.target,'top', child.top + yOffset );
+                    Utils.style(child.target,'width',child.width);
+                    Utils.style(child.target,'height',child.height);
                 }
             }
         }
-
-        this.current(null);
-        parentHeight=!this.scrollY() ? Math.max(parentHeight, countHeight) : parentHeight;
-        parentWidth =!this.scrollX() ? Math.max(parentWidth, countWidth)   : parentWidth;
-        this.height( parentHeight );
-        this.width( parentWidth );
-    }
-
-    /**
-     * @returns {Layout}
-     */
-    Layout.prototype.validateNow=function()
-    {
-        //获取视口大小
-        var viewport= this.getViewportSize();
-        parentWidth = viewport.width;
-        parentHeight= viewport.height;
-
-        //计算当前布局可用的大小
-        var  realHeight=this.calculateHeight(parentHeight);
-        var  realWidth= this.calculateWidth(parentWidth);
-
-        this.width( realWidth );
-        this.height( realHeight );
-        return this;
+        this.setLayoutSize(parentWidth,parentHeight);
     }
 
     /**
@@ -430,20 +476,34 @@
      */
     Layout.prototype.updateDisplayList=function()
     {
-        //计算子级元素需要排列的位置
-        this.measureChildren( this.width(), this.height() );
+        if( this.invalidate )
+            return this;
 
-        //更新子布局的显示列表
-        if( this.childrenItem.length > 0 )
+        this.invalidate=true;
+        this.current(null);
+
+        //获取视口大小
+
+        var viewport= this.getViewportSize();
+        parentWidth = viewport.width;
+        parentHeight= viewport.height;
+
+        //计算当前布局可用的大小
+        var  realHeight=this.calculateHeight(parentHeight) ;
+        var  realWidth= this.calculateWidth(parentWidth);
+
+        this.width( realWidth );
+        this.height( realHeight );
+
+        //先从子级布局开始测量
+        for( var index in this.childrenItem )
         {
-            var i=0;
-            for( ; i < this.childrenItem.length; i++ )
-            {
-                this.childrenItem[i].invalidate=false;
-                this.childrenItem[i].updateDisplayList();
-            }
+            this.childrenItem[index].invalidate=false;
+            this.childrenItem[index].updateDisplayList();
         }
 
+        //计算子级元素需要排列的位置
+        this.measureChildren( realWidth, realHeight );
     }
 
     /**
@@ -453,7 +513,7 @@
      */
     Layout.prototype.left=function(val)
     {
-       return __method__.call(this,'left',val, true);
+        return __method__.call(this,'left',val, true);
     }
 
     /**
@@ -635,13 +695,6 @@
     {
         return __method__.call(this,'gap', val ,false) || 0;
     }
-
-    //文档就绪后初始化rootLayout
-    Breeze.rootEvent().addEventListener(BreezeEvent.READY,function(event){
-
-        Layout.rootLayout();
-
-    },false,100);
 
     /**
      * @param src

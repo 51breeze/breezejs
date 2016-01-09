@@ -32,29 +32,69 @@
       <file leaf-file-name="Breeze.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Breeze.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="21944" max-vertical-offset="30552">
-              <caret line="932" column="21" selection-start-line="932" selection-start-column="21" selection-end-line="932" selection-end-column="21" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DOMCore.js" pinned="false" current-in-tab="false">
-        <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DOMCore.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="12056" max-vertical-offset="26400">
-              <caret line="514" column="15" selection-start-line="514" selection-start-column="15" selection-end-line="514" selection-end-column="15" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Manager.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Manager.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="2360" max-vertical-offset="3312">
-              <caret line="128" column="48" selection-start-line="128" selection-start-column="48" selection-end-line="128" selection-end-column="48" />
-              <folding />
+            <state vertical-scroll-proportion="0.0" vertical-offset="22736" max-vertical-offset="32904">
+              <caret line="965" column="21" selection-start-line="965" selection-start-column="21" selection-end-line="965" selection-end-column="21" />
+              <folding>
+                <marker date="1452325149730" expanded="true" signature="642:1931" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="2134:2882" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="2238:2530" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="2363:2523" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="2644:2828" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="2788:2809" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="3795:4541" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="3856:4019" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="3956:3980" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="4052:4197" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="4150:4195" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="4248:4408" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="4305:4365" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="4597:4824" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="9146:9164" placeholder="/** 返回此对象名称 ...*/" />
+                <marker date="1452325149730" expanded="true" signature="9211:9240" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="9291:9470" placeholder="/** 判断指定的选择器是否在于当前匹配的项中。 ...*/" />
+                <marker date="1452325149730" expanded="true" signature="9505:9674" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="14502:14764" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="15115:15367" placeholder="/** 获取每一个匹配元素的所有同辈元素 ...*/" />
+                <marker date="1452325149730" expanded="true" signature="15411:15542" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="15600:15682" placeholder="/** 查找所有匹配元素的所有子级元素，不包括孙元素 ...*/" />
+                <marker date="1452325149730" expanded="true" signature="15758:16175" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="17387:17880" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="17442:17801" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="17496:17772" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="17801:17826" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="17906:18042" placeholder="/** 移除子级元素 ...*/" />
+                <marker date="1452325149730" expanded="true" signature="18072:18595" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="18181:18259" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="18399:18572" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="18613:19044" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="23936:24712" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="24036:24704" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="24362:24653" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="24517:24591" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="24993:25855" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="25041:25116" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="25229:25536" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="25371:25506" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="28044:29633" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="29406:29585" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="29441:29464" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="29534:29561" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="29687:29826" placeholder="/** 获取设置当前元素的内容值。如果元素是表单元素则写读value否则为text属性。 ...*/" />
+                <marker date="1452325149730" expanded="true" signature="29868:30345" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="29911:30308" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="29903:29950" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="30002:30298" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="30060:30164" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="30178:30233" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="33167:33838" placeholder="/** 设置所有匹配元素的宽度 ...*/" />
+                <marker date="1452325149730" expanded="true" signature="33888:33898" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="33935:34033" placeholder="/** 获取匹配第一个元素的高度 ...*/" />
+                <marker date="1452325149730" expanded="true" signature="34067:34142" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="34200:34331" placeholder="/** 设置元素滚动条左边的位置 ...*/" />
+                <marker date="1452325149730" expanded="true" signature="34397:34516" placeholder="{...}" />
+                <marker date="1452325149730" expanded="true" signature="34624:34697" placeholder="/** 获取元素滚动条顶边的位置 ...*/" />
+                <marker date="1452325149730" expanded="true" signature="34745:34772" placeholder="{...}" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -62,9 +102,12 @@
       <file leaf-file-name="Utils.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Utils.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="29912" max-vertical-offset="30984">
-              <caret line="1258" column="10" selection-start-line="1258" selection-start-column="10" selection-end-line="1258" selection-end-column="10" />
-              <folding />
+            <state vertical-scroll-proportion="0.0" vertical-offset="29888" max-vertical-offset="30960">
+              <caret line="1257" column="10" selection-start-line="1257" selection-start-column="10" selection-end-line="1257" selection-end-column="10" />
+              <folding>
+                <marker date="1452325149760" expanded="true" signature="4517:5081" placeholder="{...}" />
+                <marker date="1452325149760" expanded="true" signature="4788:4980" placeholder="{...}" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -72,14 +115,42 @@
       <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-23.035715" vertical-offset="2979" max-vertical-offset="4296">
-              <caret line="151" column="0" selection-start-line="151" selection-start-column="0" selection-end-line="151" selection-end-column="0" />
+            <state vertical-scroll-proportion="-36.0" vertical-offset="3504" max-vertical-offset="5040">
+              <caret line="188" column="0" selection-start-line="188" selection-start-column="0" selection-end-line="188" selection-end-column="0" />
               <folding>
+                <element signature="n#style#0;n#body#0;n#html#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#div#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#div#1;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#div#2;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Bindable.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Bindable.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.41238317" vertical-offset="2335" max-vertical-offset="3552">
+              <caret line="118" column="43" selection-start-line="118" selection-start-column="43" selection-end-line="118" selection-end-column="43" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DataRender.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/DataRender.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="5064">
+              <caret line="124" column="18" selection-start-line="124" selection-start-column="18" selection-end-line="124" selection-end-column="18" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Selection.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Selection.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="7224">
+              <caret line="28" column="11" selection-start-line="28" selection-start-column="11" selection-end-line="28" selection-end-column="11" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -87,21 +158,43 @@
       <file leaf-file-name="EventDispatcher.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="3872" max-vertical-offset="15144">
-              <caret line="190" column="43" selection-start-line="190" selection-start-column="43" selection-end-line="190" selection-end-column="43" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Modality.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Modality.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="7080" max-vertical-offset="10752">
-              <caret line="316" column="14" selection-start-line="316" selection-start-column="14" selection-end-line="316" selection-end-column="14" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="3968" max-vertical-offset="15408">
+              <caret line="194" column="5" selection-start-line="194" selection-start-column="5" selection-end-line="194" selection-end-column="5" />
               <folding>
-                <element signature="n#!!doc" expanded="true" />
-                <marker date="1450848819505" expanded="false" signature="6169:6209" placeholder="..." />
+                <marker date="1452325149747" expanded="true" signature="406:1588" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="1280:1479" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="1323:1333" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="1353:1399" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="1849:1963" placeholder="/** 判断是否有指定类型的侦听器 ...*/" />
+                <marker date="1452325149747" expanded="true" signature="2003:2152" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="2193:2486" placeholder="/** 添加侦听器 ...*/" />
+                <marker date="1452325149747" expanded="true" signature="2494:3307" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="2561:2699" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="2909:3212" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="2980:3041" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="3053:3145" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="3492:3676" placeholder="/** 移除指定类型的侦听器 ...*/" />
+                <marker date="1452325149747" expanded="true" signature="3680:4382" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="3710:3787" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="5734:5904" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="5953:6060" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="6083:6249" placeholder="/*...*/" />
+                <marker date="1452325149747" expanded="true" signature="6931:7130" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="7946:8543" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="8095:8533" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="8099:8401" placeholder="/*...*/" />
+                <marker date="1452325149747" expanded="true" signature="8762:8985" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="9547:9836" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="10242:11539" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="10534:11429" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="10816:10928" placeholder="/*...*/" />
+                <marker date="1452325149747" expanded="true" signature="11097:11221" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="17039:18692" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="18274:18588" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="18360:18583" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="18390:18467" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="18477:18518" placeholder="{...}" />
+                <marker date="1452325149747" expanded="true" signature="18889:19126" placeholder="{...}" />
               </folding>
             </state>
           </provider>
@@ -117,12 +210,14 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Layout.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Layout.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Layout.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.11904762" vertical-offset="9956" max-vertical-offset="15816">
-              <caret line="425" column="0" selection-start-line="425" selection-start-column="0" selection-end-line="425" selection-end-column="0" />
-              <folding />
+            <state vertical-scroll-proportion="0.0" vertical-offset="2016" max-vertical-offset="17232">
+              <caret line="97" column="7" selection-start-line="97" selection-start-column="7" selection-end-line="97" selection-end-column="7" />
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -130,8 +225,8 @@
       <file leaf-file-name="Component.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Component.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="3344" max-vertical-offset="7992">
-              <caret line="157" column="24" selection-start-line="157" selection-start-column="24" selection-end-line="157" selection-end-column="24" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="6775" max-vertical-offset="9360">
+              <caret line="330" column="0" selection-start-line="330" selection-start-column="0" selection-end-line="330" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -192,8 +287,10 @@
   </component>
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
   <component name="ProjectFrameBounds">
-    <option name="width" value="1920" />
-    <option name="height" value="1040" />
+    <option name="x" value="-8" />
+    <option name="y" value="-8" />
+    <option name="width" value="1936" />
+    <option name="height" value="1056" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <OptionsSetting value="true" id="Add" />
@@ -277,15 +374,15 @@
       <BehatRunner />
       <method />
     </configuration>
-    <configuration default="true" type="PhpUnitRemoteRunConfigurationType" factoryName="PHPUnit on Server">
-      <method />
-    </configuration>
     <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
       <node-options />
       <gulpfile />
       <tasks />
       <pass-parent-env-vars>false</pass-parent-env-vars>
       <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="PhpUnitRemoteRunConfigurationType" factoryName="PHPUnit on Server">
       <method />
     </configuration>
     <list size="0" />
@@ -563,16 +660,16 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1920" height="1040" extended-state="0" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.014739229" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.014476615" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.17688172" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.17857143" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4160998" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -627,7 +724,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="16512">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -672,10 +771,8 @@
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
+            <element signature="n#style#0;n#body#0;n#html#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#1;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#2;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -707,10 +804,8 @@
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
+            <element signature="n#style#0;n#body#0;n#html#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#1;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#2;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -821,13 +916,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/DataRender.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Pagination.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0">
@@ -836,13 +924,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/DataGrid.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Selection.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
@@ -920,13 +1001,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Bindable.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1440" max-vertical-offset="3576">
-          <caret line="27" column="11" selection-start-line="27" selection-start-column="11" selection-end-line="27" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DOMCore.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="12056" max-vertical-offset="26400">
@@ -937,28 +1011,63 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Manager.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="2360" max-vertical-offset="3312">
-          <caret line="128" column="48" selection-start-line="128" selection-start-column="48" selection-end-line="128" selection-end-column="48" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="2432" max-vertical-offset="3408">
+          <caret line="131" column="48" selection-start-line="131" selection-start-column="48" selection-end-line="131" selection-end-column="48" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Modality.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="7080" max-vertical-offset="10752">
-          <caret line="316" column="14" selection-start-line="316" selection-start-column="14" selection-end-line="316" selection-end-column="14" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="7320" max-vertical-offset="11016">
+          <caret line="326" column="14" selection-start-line="326" selection-start-column="14" selection-end-line="326" selection-end-column="14" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
-            <marker date="1450848819505" expanded="false" signature="6169:6209" placeholder="..." />
+            <element signature="n#!!doc" expanded="false" />
+            <marker date="1452325149751" expanded="true" signature="-1:-1" placeholder="/** 模态框 ...*/" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="3872" max-vertical-offset="15144">
-          <caret line="190" column="43" selection-start-line="190" selection-start-column="43" selection-end-line="190" selection-end-column="43" />
-          <folding />
+        <state vertical-scroll-proportion="0.0" vertical-offset="3968" max-vertical-offset="15408">
+          <caret line="194" column="5" selection-start-line="194" selection-start-column="5" selection-end-line="194" selection-end-column="5" />
+          <folding>
+            <marker date="1452325149747" expanded="true" signature="406:1588" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="1280:1479" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="1323:1333" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="1353:1399" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="1849:1963" placeholder="/** 判断是否有指定类型的侦听器 ...*/" />
+            <marker date="1452325149747" expanded="true" signature="2003:2152" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="2193:2486" placeholder="/** 添加侦听器 ...*/" />
+            <marker date="1452325149747" expanded="true" signature="2494:3307" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="2561:2699" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="2909:3212" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="2980:3041" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="3053:3145" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="3492:3676" placeholder="/** 移除指定类型的侦听器 ...*/" />
+            <marker date="1452325149747" expanded="true" signature="3680:4382" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="3710:3787" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="5734:5904" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="5953:6060" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="6083:6249" placeholder="/*...*/" />
+            <marker date="1452325149747" expanded="true" signature="6931:7130" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="7946:8543" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="8095:8533" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="8099:8401" placeholder="/*...*/" />
+            <marker date="1452325149747" expanded="true" signature="8762:8985" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="9547:9836" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="10242:11539" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="10534:11429" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="10816:10928" placeholder="/*...*/" />
+            <marker date="1452325149747" expanded="true" signature="11097:11221" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="17039:18692" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="18274:18588" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="18360:18583" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="18390:18467" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="18477:18518" placeholder="{...}" />
+            <marker date="1452325149747" expanded="true" signature="18889:19126" placeholder="{...}" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -972,45 +1081,132 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Utils.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="29912" max-vertical-offset="30984">
-          <caret line="1258" column="10" selection-start-line="1258" selection-start-column="10" selection-end-line="1258" selection-end-column="10" />
-          <folding />
+        <state vertical-scroll-proportion="0.0" vertical-offset="29888" max-vertical-offset="30960">
+          <caret line="1257" column="10" selection-start-line="1257" selection-start-column="10" selection-end-line="1257" selection-end-column="10" />
+          <folding>
+            <marker date="1452325149760" expanded="true" signature="4517:5081" placeholder="{...}" />
+            <marker date="1452325149760" expanded="true" signature="4788:4980" placeholder="{...}" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Breeze.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="21944" max-vertical-offset="30552">
-          <caret line="932" column="21" selection-start-line="932" selection-start-column="21" selection-end-line="932" selection-end-column="21" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="22736" max-vertical-offset="32904">
+          <caret line="965" column="21" selection-start-line="965" selection-start-column="21" selection-end-line="965" selection-end-column="21" />
+          <folding>
+            <marker date="1452325149730" expanded="true" signature="642:1931" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="2134:2882" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="2238:2530" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="2363:2523" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="2644:2828" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="2788:2809" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="3795:4541" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="3856:4019" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="3956:3980" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="4052:4197" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="4150:4195" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="4248:4408" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="4305:4365" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="4597:4824" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="9146:9164" placeholder="/** 返回此对象名称 ...*/" />
+            <marker date="1452325149730" expanded="true" signature="9211:9240" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="9291:9470" placeholder="/** 判断指定的选择器是否在于当前匹配的项中。 ...*/" />
+            <marker date="1452325149730" expanded="true" signature="9505:9674" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="14502:14764" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="15115:15367" placeholder="/** 获取每一个匹配元素的所有同辈元素 ...*/" />
+            <marker date="1452325149730" expanded="true" signature="15411:15542" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="15600:15682" placeholder="/** 查找所有匹配元素的所有子级元素，不包括孙元素 ...*/" />
+            <marker date="1452325149730" expanded="true" signature="15758:16175" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="17387:17880" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="17442:17801" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="17496:17772" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="17801:17826" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="17906:18042" placeholder="/** 移除子级元素 ...*/" />
+            <marker date="1452325149730" expanded="true" signature="18072:18595" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="18181:18259" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="18399:18572" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="18613:19044" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="23936:24712" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="24036:24704" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="24362:24653" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="24517:24591" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="24993:25855" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="25041:25116" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="25229:25536" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="25371:25506" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="28044:29633" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="29406:29585" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="29441:29464" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="29534:29561" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="29687:29826" placeholder="/** 获取设置当前元素的内容值。如果元素是表单元素则写读value否则为text属性。 ...*/" />
+            <marker date="1452325149730" expanded="true" signature="29868:30345" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="29911:30308" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="29903:29950" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="30002:30298" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="30060:30164" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="30178:30233" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="33167:33838" placeholder="/** 设置所有匹配元素的宽度 ...*/" />
+            <marker date="1452325149730" expanded="true" signature="33888:33898" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="33935:34033" placeholder="/** 获取匹配第一个元素的高度 ...*/" />
+            <marker date="1452325149730" expanded="true" signature="34067:34142" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="34200:34331" placeholder="/** 设置元素滚动条左边的位置 ...*/" />
+            <marker date="1452325149730" expanded="true" signature="34397:34516" placeholder="{...}" />
+            <marker date="1452325149730" expanded="true" signature="34624:34697" placeholder="/** 获取元素滚动条顶边的位置 ...*/" />
+            <marker date="1452325149730" expanded="true" signature="34745:34772" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Selection.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="7224">
+          <caret line="28" column="11" selection-start-line="28" selection-start-column="11" selection-end-line="28" selection-end-column="11" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DataRender.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="5064">
+          <caret line="124" column="18" selection-start-line="124" selection-start-column="18" selection-end-line="124" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Layout.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="2016" max-vertical-offset="17232">
+          <caret line="97" column="7" selection-start-line="97" selection-start-column="7" selection-end-line="97" selection-end-column="7" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Component.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="3344" max-vertical-offset="7992">
-          <caret line="157" column="24" selection-start-line="157" selection-start-column="24" selection-end-line="157" selection-end-column="24" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="6775" max-vertical-offset="9360">
+          <caret line="330" column="0" selection-start-line="330" selection-start-column="0" selection-end-line="330" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-23.035715" vertical-offset="2979" max-vertical-offset="4296">
-          <caret line="151" column="0" selection-start-line="151" selection-start-column="0" selection-end-line="151" selection-end-column="0" />
+        <state vertical-scroll-proportion="-36.0" vertical-offset="3504" max-vertical-offset="5040">
+          <caret line="188" column="0" selection-start-line="188" selection-start-column="0" selection-end-line="188" selection-end-column="0" />
           <folding>
+            <element signature="n#style#0;n#body#0;n#html#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#1;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#2;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Layout.js">
+    <entry file="file://$PROJECT_DIR$/Bindable.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.11904762" vertical-offset="9956" max-vertical-offset="15816">
-          <caret line="425" column="0" selection-start-line="425" selection-start-column="0" selection-end-line="425" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.41238317" vertical-offset="2335" max-vertical-offset="3552">
+          <caret line="118" column="43" selection-start-line="118" selection-start-column="43" selection-end-line="118" selection-end-column="43" />
           <folding />
         </state>
       </provider>

@@ -7,23 +7,26 @@
     <script src="BreezeEvent.js" ></script>
     <script src="Grep.js" ></script>
     <script src="DataArray.js" ></script>
+
     <script src="EventDispatcher.js" ></script>
     <script src="Manager.js" ></script>
     <script src="Dictionary.js" ></script>
     <script src="HttpRequest.js" ></script>
     <script src="Breeze.js" ></script>
+    <script src="SkinGroup.js" ></script>
+    <script src="Component.js" ></script>
+
     <script src="DataGrid.js"></script>
     <script src="Bindable.js" ></script>
     <script src="DataSource.js" ></script>
     <script src="DataRender.js" ></script>
     <script src="Template.js" ></script>
     <script src="Pagination.js" ></script>
+
     <script src="Selection.js" ></script>
-    <script src="SkinGroup.js" ></script>
-    <script src="Component.js" ></script>
+
     <script src="Modality.js" ></script>
     <script src="Layout.js" ></script>
-
 
     <title></title>
 </head>
@@ -32,7 +35,7 @@
 
     body{
         margin: 0px;
-       /* overflow:hidden;*/
+        /* overflow:hidden;*/
     }
 
 
@@ -72,91 +75,119 @@
     Breeze(function(){
 
 
-
-
         // this.height - footer.height - head.height
 
 
-      /*   var grid = new DataGrid();
-          grid.viewport( '.container' );
-          grid.pagination( '.page' );
-          grid.edit('edit',{callback:function(event){
+        /*   var grid = new DataGrid();
+         grid.viewport( '.container' );
+         grid.pagination( '.page' );
+         grid.edit('edit',{callback:function(event){
 
-              console.log( event, this )
+         console.log( event, this )
 
-          }});
+         }});
 
-          grid.height('auto').width(800).columnWidth('phone',300).columnWidth('name',100).columnWidth('id',50)
+         grid.height('auto').width(800).columnWidth('phone',300).columnWidth('name',100).columnWidth('id',50)
 
-          grid.orderBy('phone')
-          grid.orderBy('id')
-          grid.columns({'id':'序号','name':'名称','phone':'手机','edit':'操作'});
-          grid.component('name',{'bindable':true});
-          grid.dataSource( '/json.php' );
-          grid.display();
+         grid.orderBy('phone')
+         grid.orderBy('id')
+         grid.columns({'id':'序号','name':'名称','phone':'手机','edit':'操作'});
+         grid.component('name',{'bindable':true});
+         grid.dataSource( '/json.php' );
+         grid.display();
 
 
+         */
 
-         var selection = new Selection()
-         selection.viewport( '#selection' )
-         selection.dataSource( [{id:1,name:'张三'},{id:2,name:'李四'}] );
-         selection.display()
-*/
 
-       /*  var modal =  new Modality()
+        var selection = new Selection()
+
+        selection.viewport( '#selection' )
+        selection.dataSource( [{value:1,label:'张三'},{value:2,label:'李四'}] );
+        selection.display()
+
+
+        /*   var modal =  new Modality()
          modal.width(600).height(400)
-         modal.label('标题')
-         modal.html('')
+         modal.label('标题222')
+         modal.content('<h1>123</h1>')
          modal.show(true)
 
-         modal.addEventListener(ModalityEvent.SUBMIT,function(event){
+         modal.addEventListener(ModalityEvent.CANCEL,function(event){
 
-         console.log('submit')
+         console.log('CANCEL')
          event.stopPropagation()
 
          })*/
 
 
-     //  var lay =  new Layout('.modal');
-      //  lay.left(20).right(20);
-       //  lay.height(100);
 
 
 
+        /*  Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(){
+
+         var w = Breeze(".mcontainer").width()
+         Breeze(".mcontainer").width( w+10 );
+
+         // Breeze(".mcontainer").dispatchEvent( new LayoutEvent( LayoutEvent.CHANGE ) )
+
+         },true)*/
+
+
+        Breeze('#submit').addEventListener(MouseEvent.CLICK,function(){
+
+            var w = Breeze(".mcontainer").width()
+            Breeze(".mcontainer").width( w+10 );
+            Breeze(".mcontainer").dispatchEvent( new LayoutEvent( LayoutEvent.CHANGE ) )
+
+        },false)
 
     })
 
 
-
 </script>
 
-<body >
-
-
-<div class="modal" component="modalitys" show="0000" horizontal="left" style="width: 500px; height: 500px;" >
-    <div class="head" skin="head" style="width: 100%; height: 35px; background-color: #3baecc">
-        <label class="label" skin="label">标题</label>
-        <span class="close" skin="close">关闭</span>
-    </div>
-    <div class="body" skin="body" style="background-color: #fefff3">
-        <div component="layout" horizontal="center" vertical="middle">
-            <div explicitWidth="200" explicitHeight="200">dsfdsfdsfdsfdsfsd</div>
-        </div>
-    </div>
-    <div class="footer" skin="footer" style="width: 100%; height: 35px; background-color: #c6bec2">
-        <button skin="cancel">取消</button>
-        <button skin="submit">确认</button>
-    </div>
-</div>
-
-
+<body style="overflow: hidden;">
 
 
 <!--
 
-<div id="selection" style="width: 300px;" data-uuu="yyyy">
+<div class="modal" style="width: 300px; height: 200px">
+    <div class="head"  explicitHeight="35" skin="head"  style="width: 100%; height: 35px; background-color: #3baecc">
+        <label component="layout" percentWidth="30"  percentHeight="0" left="0" class="label" skin="label">标题</label>
+        <span component="layout"  percentWidth="30" percentHeight="0" right="0" class="close" skin="close">关闭</span>
+    </div>
+    <div class="body" component="layout" skin="body" top="35" bottom="35" scrollY="auto" scrollX="hidden" minHeight="300" style="background-color: #e6e7dc; height: 400px; width:100% ">
+        <div class="content" component="layout" horizontal="center" vertical="bottom" gap="5" scrollY="hidden" scrollX="hidden">
+            <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
+            <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
+            <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
+            <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
+            <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
+            <div explicitWidth="500" explicitHeight="200" style="border: solid 1px #ccc;">dsfdsfdsfdsfdsfsd</div>
+        </div>
+    </div>
+    <div class="footer" explicitHeight="35" left="0" bottom="0" skin="footer" style="width: 100%; height: 35px; background-color: #c6bec2">
+        <button  skin="cancel">取消</button>
+        <button  skin="submit">确认</button>
+    </div>
 </div>
 
+
+
+
+
+
+<button id="submit">点击</button>
+-->
+
+
+
+
+<div  id="selection" style="width: 300px; margin: 50px;" data-uuu="yyyy">
+</div>
+
+<!--
 
 <div class="grid" id="grid">
     <div class="container" data-bind style="width: 600px; height: 620px; "></div>
