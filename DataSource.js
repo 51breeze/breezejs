@@ -34,11 +34,11 @@
     {
         if( this.hasEventListener(type) )
         {
-            var event = new DataSourceEvent(type)
-            event.originalEvent=event;
-            event.item=item;
-            event.index = index;
-            this.dispatchEvent( event );
+            var e = new DataSourceEvent(type)
+            e.originalEvent=event;
+            e.item=item;
+            e.index = index;
+            this.dispatchEvent( e );
         }
     }
 
@@ -153,7 +153,7 @@
                             self.fetch();
                         }
 
-                    },true,0);
+                    });
 
                     this.addEventListener(DataSourceEvent.LOAD_START, function (event)
                     {

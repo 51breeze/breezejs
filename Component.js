@@ -33,6 +33,19 @@
         }
     }
 
+    /**
+     * 获取实例对象
+     * @returns {Component}
+     */
+    Component.getInstance=function(element,subClass)
+    {
+        if( typeof subClass === "function" && subClass.prototype && subClass.prototype.componentProfile )
+        {
+            return Utils.storage( element, subClass.prototype.componentProfile );
+        }
+        return null;
+    }
+
     Component.prototype=  new EventDispatcher();
     Component.prototype.constructor=Component;
     Component.prototype.componentProfile='component';
@@ -40,6 +53,8 @@
     Component.prototype.initializeCompleted=false;
     Component.prototype.__skinGroup__=null ;
     Component.prototype.__skinChanged__=true;
+    Component.prototype.__viewportChanged__=true;
+    Component.prototype.__viewport__=null;
     Component.NAME='component';
 
     /**
@@ -52,10 +67,17 @@
 
     /**
      * overwrite method
-     * initialized component.
+     * initialized 组件中的方法初始完成
      * @protected
      */
     Component.prototype.initialized=function(){}
+
+    /**
+     * overwrite method
+     * initializing 组件中的方法初始进行中
+     * @protected
+     */
+    Component.prototype.initializing=function(){}
 
     /**
      * @param string selector
@@ -76,7 +98,10 @@
         if( this.__skinGroup__ === null )
         {
             this.__skinGroup__ = this.getDefaultSkin()
-            this.__skinGroup__.current(null).data( this.componentProfile, this )
+            if( this.__skinGroup__ instanceof SkinGroup )
+            {
+               this.__skinGroup__.current(null).data( this.componentProfile, this )
+            }
         }
         if( this.__skinChanged__===true)
         {
@@ -85,6 +110,45 @@
         }
         return this.__skinGroup__;
     }
+
+    /**
+     * @param viewport
+     * @returns {HTMLElement|Layout}
+     */
+    Component.prototype.viewport=function( viewport )
+    {
+        if( typeof viewport === "undefined" )
+        {
+            if( this.__viewportChanged__ )
+            {
+                this.__viewportChanged__=false;
+                this.viewportChange( this.__viewport__ );
+            }
+            return this.__viewport__;
+        }
+
+        if( typeof viewport === "string" )
+        {
+            var target=this.skinGroup()[0];
+            viewport=  viewport==='body'    ? target.ownerDocument.body :
+                viewport==='window'  ? Utils.getWindow( target ) :
+                    viewport==='document'? target.ownerDocument      :
+                        Sizzle(viewport, target ? target.ownerDocument : document )[0];
+        }
+        if( Utils.isHTMLContainer(viewport) || Utils.isWindow(viewport) )
+        {
+            this.__viewport__=viewport;
+            this.__viewportChanged__=true;
+            return this;
+        }
+        throw new Error('invaild viewport');
+    }
+
+    /**
+     * @protected
+     * @param viewport
+     */
+    Component.prototype.viewportChange=function( viewport ){}
 
     /**
      * @param string skinName
@@ -149,15 +213,6 @@
             return this;
         }
         return this.skinGroup().data(name);
-    }
-
-    /**
-     * 获取实例对象
-     * @returns {Component}
-     */
-    Component.prototype.getInstance=function()
-    {
-       return this.data( this.componentProfile );
     }
 
     /**
@@ -269,7 +324,6 @@
         return this.skinGroup().dispatchEvent( event );
     }
 
-
     /**
      * @private
      */
@@ -285,13 +339,14 @@
           return ;
 
         __initialize__=true;
+        Breeze.rootEvent().dispatchEvent( new BreezeEvent( Component.INITIALIZE_START ) );
         Breeze('['+Component.NAME+']').forEach(function(element){
 
             var className= this.property( Component.NAME );
             className=window[ className ] ||  window[ Utils.ucfirst(className) ];
             if( className )
             {
-                var instance = Utils.storage( element, className['prototype']['componentProfile'] );
+                var instance = Component.getInstance(element, className );
                 if( !(instance instanceof className) )
                 {
                     instance = new className(new SkinGroup(element));
@@ -308,6 +363,7 @@
                     }
                 }
 
+                instance.initializing();
                 var index = 0;
                 for( index=0; index < instance.initializeMethod.length; index++)
                 {
@@ -326,8 +382,9 @@
     }
 
     //初始化组件
-    Breeze.ready(function(){Component.initialize();});
-    Component.INITIALIZE_COMPLETED='initializeCompleted';
+    Breeze.rootEvent().addEventListener( BreezeEvent.READY,function(){Component.initialize();},false,100);
+    Component.INITIALIZE_COMPLETED='ComponentInitializeCompleted';
+    Component.INITIALIZE_START='ComponentInitializeStart';
     window.Component=Component;
 
 })( window )

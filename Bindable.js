@@ -8,7 +8,6 @@
 
 (function(){
 
-
     /**
      * 数据双向绑定器
      * @param target 需要监听的对象,可以是一个元素选择器。在这些对象上所做出的任何属性变化都会影响到通过 bind 方法所绑定到的数据源
@@ -79,7 +78,7 @@
             if( !target )
               return false;
             property = property instanceof DataSource ?  property || '?' : property || 'value';
-            if( (typeof target === 'object' || target instanceof Array) || (target.nodeType && typeof target.nodeName === 'string' && target !== target.window ) )
+            if( typeof target === 'object' )
             {
                 var obj = subscription.get(target)
                 if (!obj)subscription.set(target, (obj = {}));

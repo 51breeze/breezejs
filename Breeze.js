@@ -33,7 +33,9 @@
             return Breeze.ready( selector );
 
         if( selector instanceof Breeze )
-            return selector;
+        {
+            selector=selector.toArray();
+        }
 
         if( !(this instanceof Breeze) )
             return new Breeze( selector,context );
@@ -42,7 +44,7 @@
         if( !Utils.isDefined(selector) && !Utils.isDefined(context) )
             return this;
 
-        var result;
+        var result=selector;
         this.context = this.getContext( context );
         this.selector = selector;
         if( Utils.isString( selector ) )
@@ -51,7 +53,7 @@
             result = selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 ?
                 [ Utils.createElement(selector) ] : Sizzle( selector, this.context );
 
-        }else if( Utils.isWindow(selector) )
+        }else if( Utils.isWindow(selector) || Utils.isDocument( selector ) )
         {
             result=[selector];
 
@@ -123,13 +125,15 @@
 
     ,doFilter=function( elements, strainer, exclude )
     {
+        //自定义过滤器
         if ( Utils.isFunction( strainer ) )
         {
             return doGrep( elements, function( elem, i ){
-                return !!strainer.call( elem, i, elem ) !== exclude;
+                return !!strainer.call( elem, i) !== exclude;
             });
         }
 
+        //是否为指定的元素
         if ( Utils.isHTMLElement( strainer ) )
         {
             return doGrep( elements, function( elem ) {
@@ -137,25 +141,42 @@
             });
         }
 
+        //保留指定匹配选择器的元素
         if ( typeof strainer === "string" )
         {
             if ( isSimple.test( strainer ) ) {
-                return doFind( elements,strainer, exclude );
+                return doFind( elements,strainer );
             }
-            strainer = doFind( elements,strainer );
+            strainer = doFind( elements, strainer );
+            if( !exclude )return strainer;
         }
 
+        //排除匹配指定选择器的元素
         return doGrep( elements, function( elem ) {
             return ( Utils.inObject( strainer, elem ) >= 0 ) !== exclude;
         });
     }
 
-    ,doFind = function( elements, selector, exclude )
+    ,doFind = function( elements, selector )
     {
-        var elem = elements[ 0 ];
-        if ( exclude ) selector = ":not(" + selector + ")";
-        return elements.length === 1 && elem.nodeType === 1 ? ( Sizzle.matchesSelector( elem, selector ) ? [ elem ] : [] ) :
-            Sizzle.matches( selector, doGrep( elements, function( elem ) { return elem.nodeType === 1; }));
+        var ret=[];
+        if( !(elements instanceof Array) || elements.length === 0 )
+            return ret;
+
+        if( typeof selector === "undefined" )
+        {
+            selector=function( elem ) { return elem.nodeType === 1; };
+        }
+
+        if( typeof selector === "function" )
+        {
+            ret=doGrep( elements, selector );
+
+        }else if( typeof selector === "string" )
+        {
+            ret=elements.length === 1 && Sizzle.matchesSelector( elements[ 0 ], selector ) ? ret : Sizzle.matches( selector, elements );
+        }
+        return ret;
     }
 
     /**
@@ -258,7 +279,7 @@
     Breeze.rootEvent=function()
     {
         if( !__rootEvent__ )
-            __rootEvent__=new EventDispatcher( document );
+            __rootEvent__=new EventDispatcher( window );
         return __rootEvent__;
     }
 
@@ -310,15 +331,22 @@
     }
 
     /**
-     * 判断指定的选择器是否在于当前匹配的项中。
+     * 判断指定的选择器是否在当前匹配的项中。
      * @param selector
      * @returns {*}
      */
     Breeze.prototype.has=function( selector )
     {
-        if( this.length===1 )
-            return Sizzle.matchesSelector( this[0], selector );
-        return Utils.isFunction(selector) ? !!doFilter(this.toArray(),selector,false).length : !!Sizzle.matches( selector,this.toArray()).length;
+        if( typeof selector === "undefined" )
+            throw  new Error('invalid selector');
+        var is = Utils.isFunction(selector);
+        var len = this.length,i=0;
+        for( ; i<len ; i++)
+        {
+            var ret = is ? !selector.call( this[i] ) : Sizzle.matchesSelector( this[i] , selector );
+            if( ret ) return true;
+        }
+        return false;
     }
 
     /**
@@ -541,17 +569,23 @@
      */
     Breeze.prototype.children=function( selector )
     {
-        Utils.isString( selector ) && ( selector=Utils.trim(selector) );
+        var has=true;
+        if( Utils.isString( selector ) )
+        {
+            selector=Utils.trim(selector);
+            has = selector !== '*';
+        };
+
         var ret=[];
         this.forEach(function(element)
         {
            if( !Utils.isFrame( element ) )
              ret=ret.concat( selector==='*' ?  Sizzle( '*' ,element) : DataArray.prototype.slice.call( element.childNodes,0 ) );
         })
-        var has=Utils.isString(selector) && selector!=='*';
-        if( this.length > 1 && !has )
-            ret= Sizzle.uniqueSort(ret);
-        return doMake(this , has ? doFind(ret,selector) : ret ,true );
+
+        if( this.length > 1 && !has )ret= Sizzle.uniqueSort(ret);
+        if( has )ret=doFind(ret,selector);
+        return doMake(this , ret ,true );
     }
 
     //=================================================
@@ -647,7 +681,6 @@
 
     var removeChild= function(target,parent,child)
     {
-        target.current(child);
         if( child && parent.hasChildNodes() && child.parentNode === parent &&
             dispatchElementEvent(target,parent,child,ElementEvent.BEFORE_CHILD_REMOVE ) )
         {
@@ -701,9 +734,9 @@
 
         return this.forEach(function(parent)
         {
-            if( !parent || parent.nodeType!=1 || typeof parent.nodeName !== "string" )
+            if( !Utils.isHTMLElement( parent ) )
             {
-               return;
+                throw new Error('invalid parent HTMLElement.');
             }
 
             try{
@@ -718,7 +751,7 @@
                 {
                    this.removeChildAt( child );
                 }
-
+                this.current(parent);
                 var refChild=index && index.parentNode && index.parentNode===parent ? index : null;
                     !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
                     refChild && (refChild=index.nextSibling);
@@ -843,6 +876,8 @@
         var write= typeof html !== "undefined";
         if( !write && this.length < 1 ) return '';
 
+
+
         return this.forEach(function(elem)
         {
             if( !write || Utils.isBoolean(html) )
@@ -850,7 +885,6 @@
                 html = html===true ? outerHtml(elem) : elem.innerHTML;
                 return html;
             }
-
             if( elem.hasChildNodes() )
             {
                 var nodes=elem.childNodes;
@@ -862,7 +896,6 @@
                 }
             }
             elem.innerHTML='';
-            if( /[^\S]*/.test(html) )return this;
             if( outer && elem.parentNode && elem.parentNode.ownerDocument && Utils.contains(elem.parentNode.ownerDocument.body, elem.parentNode) )
             {
                 this.current( elem.parentNode );
@@ -973,7 +1006,7 @@
      */
     Breeze.prototype.content=function( value )
     {
-        return access.call(this,'value',value,{
+        return access.call(this,'content',value,{
             get:function(prop){
                 return ( Utils.isFormElement( this ) ? this.value : Sizzle.getText(this) ) || '';
             },
@@ -988,6 +1021,40 @@
                 }
             }
         },PropertyEvent.CHANGE) || '';
+    }
+
+    /**
+     * 获取设置当前元素的内容值。如果元素是表单元素则写读value否则为text属性。
+     * @returns {string|Breeze}
+     */
+    Breeze.prototype.text=function( value )
+    {
+        return access.call(this,'text',value,{
+            get:function(){
+                return Sizzle.getText(this)  || '';
+            },
+            set:function(prop,newValue)
+            {
+                typeof this.textContent === "string" ? this.textContent=newValue : this.innerText=newValue;
+            }
+        },PropertyEvent.CHANGE) || '';
+    }
+
+    /**
+     * 获取设置表单元素的值。此方法只会对表单元素有用。
+     * @returns {string|Breeze}
+     */
+    Breeze.prototype.value=function( value )
+    {
+        return access.call(this,'value',value,{
+            get:function(prop){
+                return this.hasAttribute('value') ? this.value : null;
+            },
+            set:function(prop,newValue)
+            {
+                if( this.hasAttribute('value') )this.value=newValue;
+            }
+        },PropertyEvent.CHANGE) || null;
     }
 
     /**
@@ -1070,12 +1137,12 @@
     {
         return access.call(this,prop, value,{
             get:function(prop){
-                return parseInt( Utils.style(this,prop) ) || 0;
+                return Utils.position(this)[ prop ]
             },
             set:function(prop,newValue){
                 if( Utils.style(this,'position')==='static' )
                     Utils.style(this,'position','relative')
-                Utils.style(this,prop,newValue);
+                return prop==='left' ? Utils.position(this, prop ) : Utils.position(this, null, prop );
             }
         },PropertyEvent.CHANGE) || 0;
     }
@@ -1116,6 +1183,37 @@
     Breeze.prototype.scrollTop=function(val)
     {
         return __scroll__.call(this,'Top',val)
+    }
+
+    /**
+     * 设置元素相对舞台的位置
+     * @param left
+     * @param top
+     * @returns {*}
+     */
+    Breeze.prototype.position=function(left,top)
+    {
+        left = parseInt(left);
+        top = parseInt( top );
+        return this.forEach(function(elem)
+        {
+            var position = Utils.position(elem);
+            if( !isNaN(left) || !isNaN(top) )
+            {
+                if(position.left !== left || position.top !== top )
+                {
+                    Utils.position(elem,left,top);
+                    var event = new StyleEvent( StyleEvent.CHANGE );
+                    event.property = 'position';
+                    event.newValue = {'left':left,'top':top};
+                    event.oldValue = position;
+                    dispatchEventAll(this, event);
+                }
+
+            }else{
+               return position;
+            }
+        });
     }
 
     /**

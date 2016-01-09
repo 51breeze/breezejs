@@ -8,78 +8,63 @@
      */
     function Variable(data)
     {
-        data = data || {};
-        var keys=[];
-
-        this.length = 0;
-        function setKey( data )
+        if( !(this instanceof Variable) )
         {
-            if( typeof data ==='object' ) for(var key in data )
-            {
-                keys.push( key );
-            }
-            this.length = keys.length;
+            return new Variable( data )
         }
-
-        /**
-         * 获取所有变量名
-         * @returns {Array}
-         */
-        this.toKeys=function()
-        {
-            return keys;
-        }
-
-        /**
-         * 获取变量
-         * @param name
-         * @param val
-         * @returns {Variable}
-         */
-       this.set=function(name,val)
-       {
-           var t = typeof name;
-           if( t === 'string' )
-           {
-               data[name]=val;
-               keys.push( name );
-               this.length = keys.length;
-
-           }else if( t === 'object' && typeof val === 'undefined' )
-           {
-               data=name;
-               setKey( data );
-           }
-           return this;
-       }
-
-        /**
-         * 获取数据
-         * @param name
-         * @returns {*}
-         */
-       this.get=function(name)
-       {
-          return typeof name === 'undefined' ? data : data[name];
-       }
-
-       this.isObject=function( object )
-       {
-           if( object instanceof Array )
-             return true;
-           var prop = typeof object;
-           if( object === null || prop === 'undefined' ||  prop !=='object' )
-                return false;
-           return true;
-       }
-
+        this.__data__ = data || {};
     }
     Variable.prototype.constructor = Variable;
-    Variable.prototype.length=0;
-    Variable.prototype.error=function()
+    Variable.prototype.__data__={};
+
+    /**
+     *设置变量
+     * @param name
+     * @param val
+     * @returns {Variable}
+     */
+    Variable.prototype.set=function(name,val)
     {
-        return '';
+        var t = typeof name;
+        if( t === 'string' )
+        {
+            this.__data__[name]=val;
+            return this;
+        }
+        throw new Error('param undefined for val');
     }
+
+    /**
+     * 获取数据
+     * @param name
+     * @returns {*}
+     */
+    Variable.prototype.get=function(name)
+    {
+        return typeof name === 'undefined' ? this.__data__ : this.__data__[name];
+    }
+
+    /**
+     * 删除变量
+     * @param name
+     * @returns {*}
+     */
+    Variable.prototype.remove=function(name)
+    {
+        var val=this.__data__;
+        if( typeof name === "string" )
+        {
+            if( typeof this.__data__[name] !== "undefined" )
+            {
+                val=this.__data__[name];
+                delete this.__data__[name];
+                return val;
+            }
+            return false;
+        }
+        return val;
+    }
+    Variable.prototype.error=function(){return '';}
 
 
     var template_contents={};
@@ -87,29 +72,28 @@
     {
         var template,container;
         template = container = source;
-
         if( typeof source === 'string' )
         {
             source= Utils.trim( source );
             if( source.charAt(0) !== '<' )
             {
-                container = Breeze( source );
+                container = Sizzle( source )[0] || '';
+                template=null;
             }
 
-        }else if( Utils.isHTMLElement(source) )
+        }else if( container instanceof Breeze )
         {
-            container = Breeze( source );
+            container=container[0];
+            template=null;
         }
 
-        if( container instanceof Breeze )
+        if( typeof container !== "string" )
         {
-            if( !Utils.nodeName(container[0]).match(/noscript|textarea/) )
-            {
-                throw new Error('invalid template.')
-            }
-            template = container.content();
+            var nodename = Utils.nodeName(container);
+            template = nodename === 'noscript' ? nodename.innerHTML : container.value;
+        }
 
-        }else if( typeof template !== 'string' )
+        if( typeof template !== 'string' )
         {
             throw new Error('invalid template.')
         }
@@ -129,18 +113,18 @@
         {
             if( _result[1] === 'foreach' )
             {
-                var foreach=foreachReg.exec( _result[2] )
-                if( typeof _result[2] ==='string' && foreach )
+                var isforeach=foreachReg.exec( _result[2] )
+                if( typeof _result[2] ==='string' && isforeach )
                 {
-                    var data = foreach[1];
+                    var data = isforeach[1];
                     var key  ='key';
-                    var item = foreach[2];
-                    if(  typeof foreach[3] === 'string' )
+                    var item = isforeach[2];
+                    if(  typeof isforeach[3] === 'string' )
                     {
-                        key=foreach[2];
-                        item=foreach[3];
+                        key=isforeach[2];
+                        item=isforeach[3];
                     }
-                    code = 'if( this.isObject('+data+') )for(var '+key+' in '+data+'){\n';
+                    code = 'if( Utils.isObject('+data+', true) )for(var '+key+' in '+data+'){\n';
                     code += 'var '+item+'='+data+'['+key+'];\n';
                     return code;
                 }
@@ -155,12 +139,12 @@
         var code = 'var ___code___="";\n',
             match,cursor = 0;
 
-        if( variable instanceof Variable && variable.length > 0)
+        if( variable instanceof Variable)
         {
-            var keys = variable.toKeys();
-            for( var v in keys )
+            var dataGroup = variable.get();
+            for( var v in dataGroup )
             {
-                code+='var '+keys[v]+'= this.get("'+keys[v]+'");\n';
+                code+='var '+v+'= this.get("'+v+'");\n';
             }
         }
 
@@ -190,6 +174,15 @@
         return new Function( code ).call( variable , template );
     }
 
+    /**
+     * @private
+     */
+    var _options={
+        'left':"<\\?",
+        'right':"\\?>",
+        'shortLeft':"\\{",
+        'shortRight':"\\}"
+    };
 
     /**
      * 模板编译器
@@ -197,189 +190,134 @@
      * @returns {Template}
      * @constructor
      */
-    function Template()
+    function Template( options )
     {
         if( !(this instanceof Template) )
         {
-           return new Template();
+           return new Template( options );
         }
 
-        /**
-         * @private
-         */
-        var _options={
-            'left':"<\\?",
-            'right':"\\?>",
-            'shortLeft':"\\{",
-            'shortRight':"\\}"
-        };
-
-        /**
-         * 获取设置模板选项
-         * @param options
-         * @returns {{left: string, right: string, shortLeft: string, shortRight: string}}
-         */
-        this.options=function( options )
+        if( typeof options !=="undefined" && Utils.isObject(options) )
         {
-            if( typeof options === "undefined" )
-            {
-                return _options;
-            }
-            _options=Utils.extend( _options, options || {} );
+            var o = Utils.extend({}, _options,options);
+
+            // _split=new RegExp(o.left+'([^'+o.right+']+)'+o.right+'|'+o.shortLeft+'([^'+o.shortRight+']+)'+o.shortRight,'gi');
+            this.split( new RegExp(o.left+'(.*?)'+o.right+'|'+o.shortLeft+'(.*?)'+o.shortRight,'gi') );
         }
-
-        /**
-         * @private
-         */
-        var _split=null;
-
-        /**
-         * @private
-         * @returns {RegExp}
-         */
-        var getSplit=function()
-        {
-            if( _split === null )
-            {
-                var o = this.options();
-               // _split=new RegExp(o.left+'([^'+o.right+']+)'+o.right+'|'+o.shortLeft+'([^'+o.shortRight+']+)'+o.shortRight,'gi');
-                _split=new RegExp(o.left+'(.*?)'+o.right+'|'+o.shortLeft+'(.*?)'+o.shortRight,'gi');
-            }
-            return _split;
-        }
-
-        var self = this;
-        var dispatch=function(event)
-        {
-           var ev = new TemplateEvent( TemplateEvent.REFRESH );
-               ev.originalEvent=event;
-               ev.viewport = this
-               ev.html = makeTemplate;
-               ev.variable = self.variable()
-               self.dispatchEvent(  ev  );
-        }
-
-        /**
-         * @private
-         */
-        var _viewport=null;
-
-        /**
-         * 获取设置目标容器
-         * @param target
-         * @returns {*}
-         */
-        this.viewport=function( viewport )
-        {
-            if( typeof viewport !== "undefined" )
-            {
-                if (typeof viewport === 'string')
-                {
-                    viewport = Utils.trim(viewport);
-                    if (viewport.charAt(0) !== '<')
-                        viewport = Breeze(viewport);
-
-                } else if (Utils.isHTMLElement(viewport))
-                {
-                    viewport = Breeze( viewport );
-                }
-
-                if (viewport instanceof Breeze && viewport.length < 1) {
-                    throw new Error('invalid viewport.')
-                }
-                viewport.removeEventListener(ElementEvent.CHILD_ADD,dispatch);
-                viewport.addEventListener( ElementEvent.CHILD_ADD ,dispatch);
-                _viewport = viewport;
-            }
-            return _viewport;
-        }
-
-        /**
-         * @private
-         */
-        var _variable=null;
-
-        /**
-         * 获取此模板的作用域
-         * @returns {*}
-         */
-        this.variable=function(name,value)
-        {
-            if( name instanceof Variable )
-            {
-                _variable=name;
-                return this;
-            }
-
-            if (_variable === null)
-            {
-                _variable = new Variable();
-            }
-
-            if( typeof name === "undefined" )
-            {
-                return _variable;
-            }
-            _variable.set(name, value);
-            return this;
-        }
-
-        /**
-         * 渲染模板视图
-         * @param template
-         * @param data
-         * @param flag
-         * @returns {*}
-         */
-        this.render=function(source,flag )
-        {
-              flag = !!flag;
-              var template = getTemplateContent( source );
-              if( template.charAt(0) !== '<' )
-                return false;
-
-             var event=new TemplateEvent( TemplateEvent.START );
-                 event.template = template;
-                 event.variable = this.variable();
-                 event.viewport = this.viewport();
-
-              if( !this.hasEventListener( TemplateEvent.START ) || this.dispatchEvent( event ) )
-              {
-                  makeTemplate=make.call(this, event.template , event.variable , getSplit.call(this) );
-                  if( this.hasEventListener( TemplateEvent.DONE ) )
-                  {
-                      event.type = TemplateEvent.DONE;
-                      event.html = makeTemplate;
-                      if( !this.dispatchEvent( event ) )
-                      {
-                          return false;
-                      }
-                      makeTemplate=event.html;
-                  }
-
-                  if( !flag && event.viewport instanceof Breeze )
-                  {
-                      event.viewport.html( makeTemplate );
-                      if( this.hasEventListener(TemplateEvent.REFRESH) )
-                      {
-                          this.dispatchEvent( new TemplateEvent(TemplateEvent.REFRESH, {
-                              viewport:event.viewport,
-                              variable:event.variable,
-                              template:event.template,
-                              html:makeTemplate
-                          }))
-                      }
-                      return true;
-                  }
-                  return template;
-              }
-            return false;
-        }
-        var makeTemplate='';
     }
 
     Template.prototype = new EventDispatcher()
     Template.prototype.constructor = Template;
+    Template.prototype.__variable__=null;
+    Template.prototype.__viewport__=null;
+    Template.prototype.__split__=  new RegExp(_options.left+'(.*?)'+_options.right+'|'+_options.shortLeft+'(.*?)'+_options.shortRight,'gi');
+
+
+    /**
+     * @private
+     * @returns {RegExp}
+     */
+    Template.prototype.split=function( split )
+    {
+        if( split instanceof RegExp )
+        {
+            this.__split__=split;
+            return this;
+        }
+        return this.__split__;
+    }
+
+
+    /**
+     * 获取设置目标容器
+     * @param target
+     * @returns {*}
+     */
+    Template.prototype.viewport=function( viewport )
+    {
+        if( typeof viewport !== "undefined" )
+        {
+            if ( !(viewport instanceof Breeze) )
+            {
+                viewport = Breeze(viewport);
+            }
+
+            if ( viewport.length < 1 )
+            {
+                throw new Error('invalid viewport.')
+            }
+            this.__viewport__= viewport;
+        }
+        return this.__viewport__;
+    }
+
+    /**
+     * 获取此模板的作用域
+     * @returns {*}
+     */
+    Template.prototype.variable=function(name,value)
+    {
+        if( name instanceof Variable )
+        {
+            this.__variable__=name;
+            return this;
+        }
+
+        if (this.__variable__ === null)
+        {
+            this.__variable__ = new Variable();
+        }
+
+        if( typeof name === "undefined" )
+        {
+            return this.__variable__;
+        }
+        this.__variable__.set(name, value);
+        return this;
+    }
+
+    /**
+     * 渲染模板视图
+     * @param template
+     * @param data
+     * @param flag
+     * @returns {*}
+     */
+    Template.prototype.render=function(source,flag )
+    {
+        flag = !!flag;
+        var template = getTemplateContent( source );
+        if( template.charAt(0) !== '<' || template.charAt(template.length-1) !== '>' )
+        {
+            throw new Error('invalid html');
+        }
+
+        var event=new TemplateEvent( TemplateEvent.START );
+        event.template = template;
+        event.variable = this.variable();
+        event.viewport = this.viewport();
+
+        if( !this.hasEventListener( TemplateEvent.START ) || this.dispatchEvent( event ) )
+        {
+            event.html=make.call(this, event.template , event.variable , this.split() );
+            event.type = TemplateEvent.DONE;
+            if( this.hasEventListener( TemplateEvent.DONE ) && !this.dispatchEvent( event ) )
+            {
+                return false;
+            }
+
+            if( !flag && event.viewport instanceof Breeze )
+            {
+                event.viewport.html( event.html );
+                event.type=TemplateEvent.REFRESH;
+                if( !this.hasEventListener(TemplateEvent.REFRESH) || this.dispatchEvent( event ) )
+                    return true;
+            }
+            return event.html;
+        }
+        return false;
+    }
+
 
     /**
      * @type {RegExp}

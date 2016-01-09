@@ -107,6 +107,7 @@
     {
         var  result;
         refObject=refObject || this;
+
         if( this.forEachCurrentItem !== undefined && this.forEachPrevItem !== this.forEachCurrentItem )
         {
             result=callback.call( refObject ,this.forEachCurrentItem,this.forEachCurrentIndex);
@@ -116,6 +117,7 @@
             var items=this.slice(0),
                 index = 0,
                 len=items.length;
+
             for( ; index < len ; index++ )
             {
                 this.forEachCurrentItem=items[ index ];
@@ -126,10 +128,12 @@
                 if( result !== undefined )
                     break;
             }
+
             this.forEachCurrentItem = undefined;
             this.forEachNextItem    = undefined;
             this.forEachPrevItem    = undefined;
             this.forEachCurrentIndex= NaN;
+
         }
         return result === undefined ? this : result;
     }

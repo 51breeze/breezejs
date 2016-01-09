@@ -41,12 +41,13 @@ modality.show(true)
      * 如果在 modality.show(true) 设置为 true 则在底下方显示一个半透明的遮罩层，如果不设置或者为false都将不会显示遮罩层。
      * 如果在使用过程中想改变此组件的皮肤有以下两种方法可以做到：
      *   1、直接覆盖 getDefaultSkin 这个方法
-     *   2、在页面中直通过html方式写一个皮肤，然后通过 new SkinGroup(html) 对象传给模态框就可以了。具体如何使用 SkinGroup 请查看相关文档。
+     *   2、在页面中直通过html方式写一个皮肤，然后通过 new SkinGroup(html) 对象传给模态框。具体如何使用 SkinGroup 请查看相关文档。
      * 注意：此组件使用了皮肤分离层的设计方式，在使用时还必须遵守皮肤的使用规则。
      *
      * 在标准风格下需要的皮肤元素：head, label, close, cancel, submit,body
      * 在典型风格下需要的皮肤元素：head, label, close, body
-     * @param SkinGroup skinGroup
+     * @extends Component
+     * @param SkinGroup skinGroup 皮肤组件
      * @returns {Modality}
      * @constructor
      */
@@ -96,6 +97,7 @@ modality.show(true)
         if( type === Modality.SIMPLE )
             return this;
         var skin = this.skinGroup();
+        skin.current(null);
         var containerHeight = skin.height();
         var containerWidth = skin.width();
         var top= 0,bottom= 0,right= 0,left= 0,headHeight=0,footerHeight=0;
@@ -148,23 +150,25 @@ modality.show(true)
         if( this.type() !== Modality.SIMPLE )
         {
             var selector=Utils.sprintf('[%s=head] > [%s=close],[%s=footer] button', SkinGroup.NAME,SkinGroup.NAME,SkinGroup.NAME );
-            var self = this;
-
             Breeze(selector,skinGroup).addEventListener(MouseEvent.CLICK,function(event)
             {
                 event.stopPropagation();
-                var type = this.property( SkinGroup.NAME );
+                var type =  Utils.property(event.target,SkinGroup.NAME);
                 if( typeof type === "string" )
                 {
-                    var uptype=type.toUpperCase()
+                    var uptype=type.toUpperCase();
                     var event = new ModalityEvent( ModalityEvent[uptype] );
-                    if( self.hasEventListener( ModalityEvent[uptype] ) && !self.dispatchEvent(event) )
+                    if( this.hasEventListener( ModalityEvent[uptype] ) || !this.dispatchEvent(event) )
                         return;
                 }
-                self.hidden();
-            });
+                this.hidden();
+            },false,0,this);
             skinGroup.addEventListener( PropertyEvent.CHANGE , this.__propertyChanged__, false, 0, this )
         }
+
+        Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(event){
+            this.setPositionAndSize();
+        },true,0,this);
         this.setPositionAndSize();
         return this;
     }
@@ -310,11 +314,17 @@ modality.show(true)
             _shade.style({'opacity':0.5,'backgroundColor':'#000000','radius':'0px','shadow':'none','left':'0px','top':'0px'});
             _shade.style('width','100%').style('height', Utils.getSize(document,'height') )
 
-            Breeze.rootEvent().addEventListener([BreezeEvent.RESIZE,BreezeEvent.SCROLL],function(event)
+            Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(event)
             {
-                var height = event.type === BreezeEvent.RESIZE ? Utils.getSize(window,'height') + Utils.scroll(document,'scrollTop') : Utils.getSize(document,'height');
+                var height = Utils.getSize(window,'height') + Utils.scroll(document,'scrollTop')
                 _shade.style('height', height );
-            })
+
+            },true);
+
+            Breeze.rootEvent().addEventListener(BreezeEvent.SCROLL,function(event)
+            {
+                _shade.style('height', Utils.getSize(document,'height') );
+            });
         }
         return _shade;
     }
@@ -366,15 +376,16 @@ modality.show(true)
      * @returns {string|Modality}
      * @public
      */
-    Modality.prototype.html=function( html )
+    Modality.prototype.content=function( content )
     {
-        if( typeof html === "undefined" )
+        if( typeof content === "undefined" )
         {
             var val =  this.skinGroup().currentSkin('body').html();
             this.current(null);
             return val;
         }
-        this.skinGroup().currentSkin('body').html( html );
+
+        this.skinGroup().currentSkin('body').html( content );
         this.current(null);
         return this;
     }
