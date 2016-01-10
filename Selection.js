@@ -12,17 +12,7 @@
         if( !(this instanceof Selection) )
             return new Selection(skinGroup);
 
-        if( typeof skinGroup !== "undefined" && !(skinGroup instanceof SkinGroup) )
-        {
-            skinGroup=new SkinGroup( skinGroup )
-        }
-
-        if( skinGroup instanceof SkinGroup )
-        {
-            var continer = skinGroup.getSkin('container') || {};
-            this.viewport( continer.parentNode )
-        }
-        Component.call(this, skinGroup );
+        SkinComponent.call(this, skinGroup );
 
         /**
          * @private
@@ -79,7 +69,7 @@
             {
                 _dataRender = new DataRender();
                 var self = this;
-                _dataRender.dataSource().addEventListener(DataSourceEvent.FETCH,function(event){
+                _dataRender.addEventListener(DataSourceEvent.FETCH,function(event){
 
                     var index = self.selectedIndex();
                     if( typeof index === "function" )
@@ -87,8 +77,11 @@
                     var item = this[index] || this[0];
                     self.dataRender().template().variable('current', item['name'] || item );
 
+                    console.log('====_dataRender===')
+
                 },false,200);
 
+                console.log('========9999999999=====')
                 _dataRender.template().addEventListener(TemplateEvent.REFRESH,function(event){
 
                     var skinGroup = self.skinGroup();
@@ -97,6 +90,8 @@
                     var top  = position.top;
                     var width =  skinGroup.width();
                     var height =  skinGroup.height();
+
+                    console.log('=============')
 
                     EventDispatcher( skinGroup.getSkin('label') ).addEventListener(MouseEvent.CLICK,function(event){
 
@@ -147,6 +142,8 @@
 
                 })
             }
+
+             console.log('++++++++++++++_dataRender++++++++++++')
             return _dataRender;
         }
 
@@ -155,11 +152,20 @@
          * @param options
          * @returns {Selection}
          */
-        this.dataSource=function(source,options)
+        this.source=function(source,options)
         {
             if( typeof source === "undefined" )
-                return  this.dataRender().dataSource();
-            this.dataRender().dataSource( source , options )
+                return this.dataRender().source();
+
+            if( !this.hasEventListener(DataSourceEvent.FETCH) || !DataSource.prototype.source.call(this) )
+            {
+                this.addEventListener(DataSourceEvent.FETCH,function(event){
+                    if( this.__view__ ) {
+                        this.template().variable(this.dataProfile(), event.data).render( this.__view__ );
+                    }
+                });
+            }
+            this.dataRender().source( source , options )
             return this;
         }
 
@@ -195,7 +201,7 @@
         }
     }
 
-    Selection.prototype=new Component();
+    Selection.prototype=new SkinComponent();
     Selection.prototype.constructor=Selection;
 
     /**
@@ -231,36 +237,22 @@
         }
 
         index = this.selectedIndex();
-        var dataSource = this.dataSource();
+        var dataSource = this.dataRender();
+
+
+
         var tpl = this.dataRender().template();
         var container = tpl.variable('current',dataSource[index].label).render(skinGroup.html.container, true );
         viewport.addChildAt(container , index );
+
+
+
 
         this.__skinGroup__=new SkinGroup( viewport.children() );
         this.viewport( Breeze('[skin=group]',viewport) );
         this.dataRender().display( skinGroup.html.list );
         return this;
     }
-
-    /**
-     * @param viewport
-     * @returns {*}
-     */
-    Selection.prototype.viewport=function( viewport )
-    {
-        if( typeof viewport === "undefined" )
-            return this.dataRender().viewport();
-        this.dataRender().viewport( viewport );
-        return this;
-    }
-
-    /**
-     * 皮肤安装完成
-     * @param skinGroup
-     * @returns {*}
-     * @protected
-     */
-    Selection.prototype.skinInstalled=function( skinGroup ){}
 
     /**
      * 获取默认皮肤

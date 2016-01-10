@@ -50,8 +50,15 @@
         if( Utils.isString( selector ) )
         {
             selector=Utils.trim(selector);
-            result = selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 ?
-                [ Utils.createElement(selector) ] : Sizzle( selector, this.context );
+            if( selector==='body' || selector==='window' || selector==='document' )
+            {
+                var win = Utils.getWindow( this.context ) || window;
+                result= [  win[ selector ] || win.document[selector] || win ];
+
+            }else{
+                result = selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 ?
+                    [ Utils.createElement(selector) ] : Sizzle( selector, this.context );
+            }
 
         }else if( Utils.isWindow(selector) || Utils.isDocument( selector ) )
         {

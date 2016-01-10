@@ -26,18 +26,23 @@
      * @returns {EventDispatcher}
      * @constructor
      */
-    function EventDispatcher( proxyTarget )
+    function EventDispatcher( targets )
     {
         if( !(this instanceof EventDispatcher) )
-            return new EventDispatcher(proxyTarget);
-        this.__targets__=  typeof proxyTarget === "undefined" ? null : proxyTarget instanceof Array ? proxyTarget : [proxyTarget] ;
+            return new EventDispatcher(targets);
+
+        if( typeof Manager !== "undefined" && this instanceof Manager )
+        {
+            this.__targets__ = this;
+        }else if( typeof targets !== "undefined" )
+        {
+            this.__targets__ = targets instanceof Array ? targets.slice(0) : [ targets ];
+        }
     };
 
     //Constructor
-    EventDispatcher.prototype=new DataArray();
-    EventDispatcher.prototype.__targets__=null;
     EventDispatcher.prototype.constructor=EventDispatcher;
-
+    EventDispatcher.prototype.__targets__=[];
 
     /**
      * 获取代理事件的目标元素
@@ -45,11 +50,12 @@
      */
     EventDispatcher.prototype.targets=function()
     {
-        if( typeof Manager !== "undefined" && this instanceof Manager )
+        var result= this.__targets__;
+        if( typeof result !== "undefined" && result instanceof Manager && result.forEachCurrentItem )
         {
-            return this.forEachCurrentItem ? [ this.forEachCurrentItem ] : this;
+            result= [ result.forEachCurrentItem ];
         }
-        return this.__targets__;
+        return result.length > 0 ? result : null;
     }
 
     /**
@@ -62,7 +68,6 @@
         var target=  this.targets() || [this];
         var events = Utils.storage( target[0] , 'events' );
         useCapture = Number( useCapture || 0 );
-
         if( !events || !events[type] || !events[type][useCapture] )
             return false;
 
@@ -120,6 +125,7 @@
         do{
             element= target ? target[ index++] : this;
             if( !element )continue;
+
             if( target && target[ index ] instanceof EventDispatcher )
             {
                 target[ index ].addEventListener(type,listener,useCapture,priority);

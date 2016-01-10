@@ -552,6 +552,8 @@
      */
     Utils.getWindow=function ( elem )
     {
+        if( typeof elem !== "object" )
+          return null;
         elem=Utils.isHTMLElement(elem) ? elem.ownerDocument : elem ;
         return Utils.isWindow( elem ) ? elem : elem.nodeType === 9 ? elem.defaultView || elem.contentWindow || elem.parentWindow : null;
     }

@@ -173,10 +173,10 @@
                         source.open( options.url, options.method );
                         source.send( data );
                     });
-                    return source;
+                    return this;
                 }
             }
-            return this;
+            return _source;
         }
 
         /**
@@ -314,7 +314,7 @@
             if( typeof column === "string" && ( _orderBy[ column ] !==type || flag===true ) )
             {
                 _orderBy[ column ]=type;
-                DataArray.prototype.orderBy.call(this,column,type);
+                this.orderBy(column,type);
                 this.fetch();
             }
             return this;
@@ -328,6 +328,12 @@
 
     DataSource.prototype = new EventDispatcher();
     DataSource.prototype.constructor=DataSource;
+    DataSource.prototype.indexOf=DataArray.prototype.indexOf;
+    DataSource.prototype.splice=DataArray.prototype.splice;
+    DataSource.prototype.slice=DataArray.prototype.slice;
+    DataSource.prototype.concat=DataArray.prototype.concat;
+    DataSource.prototype.forEach=DataArray.prototype.forEach;
+    DataSource.prototype.toArray=DataArray.prototype.toArray;
 
     /**
      * @param index
@@ -457,6 +463,7 @@
             var end     = Math.min( start+rows, this.length );
             var result = this.grep().execute( filter );
             var data = result.slice( offset, end );
+            console.log('====fetch===')
             this.dispatchEvent( new DataSourceEvent( DataSourceEvent.FETCH, {'data': data} ) );
         }
 

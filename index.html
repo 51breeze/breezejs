@@ -15,6 +15,7 @@
     <script src="Breeze.js" ></script>
     <script src="SkinGroup.js" ></script>
     <script src="Component.js" ></script>
+    <script src="SkinComponent.js" ></script>
 
     <script src="DataGrid.js"></script>
     <script src="Bindable.js" ></script>
@@ -100,10 +101,16 @@
        */
 
 
+
+
          var selection = new Selection()
 
-     selection.viewport( '#selection' )
-         selection.dataSource( [{value:1,label:'张三'},{value:2,label:'李四'}] );
+          selection.viewport( '#selection' )
+
+         selection.source( [{value:1,label:'张三'},{value:2,label:'李四'}] );
+
+         console.log(   selection.dataRender().hasEventListener( DataSourceEvent.FETCH ) ,'++++');
+
          selection.display()
 
 

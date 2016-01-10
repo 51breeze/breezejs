@@ -66,8 +66,6 @@
     }
     Variable.prototype.error=function(){return '';}
 
-
-    var template_contents={};
     var getTemplateContent=function( source )
     {
         var template,container;
@@ -200,10 +198,10 @@
         if( typeof options !=="undefined" && Utils.isObject(options) )
         {
             var o = Utils.extend({}, _options,options);
-
             // _split=new RegExp(o.left+'([^'+o.right+']+)'+o.right+'|'+o.shortLeft+'([^'+o.shortRight+']+)'+o.shortRight,'gi');
-            this.split( new RegExp(o.left+'(.*?)'+o.right+'|'+o.shortLeft+'(.*?)'+o.shortRight,'gi') );
+            this.__split__=new RegExp(o.left+'(.*?)'+o.right+'|'+o.shortLeft+'(.*?)'+o.shortRight,'gi');
         }
+        EventDispatcher.call(this);
     }
 
     Template.prototype = new EventDispatcher()
@@ -211,22 +209,6 @@
     Template.prototype.__variable__=null;
     Template.prototype.__viewport__=null;
     Template.prototype.__split__=  new RegExp(_options.left+'(.*?)'+_options.right+'|'+_options.shortLeft+'(.*?)'+_options.shortRight,'gi');
-
-
-    /**
-     * @private
-     * @returns {RegExp}
-     */
-    Template.prototype.split=function( split )
-    {
-        if( split instanceof RegExp )
-        {
-            this.__split__=split;
-            return this;
-        }
-        return this.__split__;
-    }
-
 
     /**
      * 获取设置目标容器
@@ -297,9 +279,11 @@
         event.variable = this.variable();
         event.viewport = this.viewport();
 
+        console.log('======Template.render=======')
+
         if( !this.hasEventListener( TemplateEvent.START ) || this.dispatchEvent( event ) )
         {
-            event.html=make.call(this, event.template , event.variable , this.split() );
+            event.html=make.call(this, event.template , event.variable , this.__split__ );
             event.type = TemplateEvent.DONE;
             if( this.hasEventListener( TemplateEvent.DONE ) && !this.dispatchEvent( event ) )
             {

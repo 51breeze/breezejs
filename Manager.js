@@ -12,16 +12,16 @@
    {
        if( !(this instanceof Manager) )
           return new Manager(elements)
-       EventDispatcher.call(this)
-       DataArray.call(this,elements);
+       this.splice.call(this,0,0,elements);
+       EventDispatcher.call(this);
    }
 
     Manager.prototype= new EventDispatcher()
     Manager.prototype.constructor= Manager;
-    Manager.prototype.splice= DataArray.prototype.splice;
     Manager.prototype.slice= DataArray.prototype.slice;
     Manager.prototype.concat= DataArray.prototype.concat;
     Manager.prototype.indexOf= DataArray.prototype.indexOf;
+    Manager.prototype.splice= DataArray.prototype.splice;
     Manager.prototype.toArray= DataArray.prototype.toArray;
     Manager.prototype.forEachCurrentItem=undefined;
     Manager.prototype.forEachPrevItem=undefined;

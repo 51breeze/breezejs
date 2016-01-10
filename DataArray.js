@@ -12,6 +12,7 @@
     {
         if( !(this instanceof DataArray) )
            return new DataArray();
+        Array.call(this);
         this.length = 0;
         this.concat.apply(this,arguments);
     }
@@ -73,10 +74,12 @@
     DataArray.prototype.concat=function()
     {
         var items = Array.prototype.concat.apply( [] , arguments );
-        var len = this.length + items.length;
-        for( var i=0; this.length<len; this.length++, i++ )if( typeof items[ i ] !== 'undefined' )
+        var index = 0;
+        var len =  items.length;
+        for( ; index<len; index++ )if( typeof items[ index ] !== 'undefined' )
         {
-            this[ this.length ] = items[ i ];
+            this[ this.length ] = items[ index ];
+            this.length++;
         }
         return this;
     }
@@ -125,6 +128,26 @@
            return type === DataArray.ASC ? a1.localeCompare( b2 ): b2.localeCompare( a1 );
 
         })
+        return this;
+    }
+
+    /**
+     * 遍历元素
+     * @param callback
+     * @param refObject
+     * @returns {*}
+     */
+    DataArray.prototype.forEach=function( callback )
+    {
+        var items=this.slice(0),
+            index = 0,
+            len=items.length;
+        for( ; index < len ; index++ )
+        {
+            result=callback.call( this ,items[index],index);
+            if( result !== undefined )
+                break;
+        }
         return this;
     }
 

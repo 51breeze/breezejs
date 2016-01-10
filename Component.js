@@ -17,19 +17,17 @@
      * 只需在子类中覆写方可。此方法的功用是当所有的扩展方法初始化完成后您可以在此方法中处理一些自己的业务逻辑以便达到更好的效果。
      * 注意：initialized 这个方法只会在HTML标记为组件并触发了 Component.initialize() 下才会调用，否则组件不会调用。
      *
-     * @param SkinGroup skinGroup
      * @returns {Component}
      * @constructor
      */
-    function Component(skinGroup)
+    function Component( viewport )
     {
         if( !(this instanceof Component) )
-            return new Component(skinGroup);
+            return new Component( viewport );
 
-        if(  skinGroup instanceof SkinGroup )
+        if( typeof viewport !== "undefined" )
         {
-            this.__skinGroup__=skinGroup;
-            this.__skinGroup__.current(null).data( this.componentProfile, this )
+            this.viewport( viewport );
         }
     }
 
@@ -46,24 +44,14 @@
         return null;
     }
 
-    Component.prototype=  new EventDispatcher();
     Component.prototype.constructor=Component;
     Component.prototype.componentProfile='component';
     Component.prototype.initializeMethod=[];
     Component.prototype.initializeCompleted=false;
-    Component.prototype.__skinGroup__=null ;
-    Component.prototype.__skinChanged__=true;
     Component.prototype.__viewportChanged__=true;
     Component.prototype.__viewport__=null;
     Component.NAME='component';
 
-    /**
-     * overwrite method
-     * Installe / Uninstall skinGroup
-     * @param skinGroup
-     * @protected
-     */
-    Component.prototype.skinInstalled=function( skinGroup ){}
 
     /**
      * overwrite method
@@ -79,47 +67,17 @@
      */
     Component.prototype.initializing=function(){}
 
-    /**
-     * @param string selector
-     * @returns {SkinGroup}
-     * @protected
-     */
-    Component.prototype.getDefaultSkin=function()
-    {
-        return new SkinGroup('<div></div>', {}, document.body );
-    }
-
-    /**
-     * @returns {Breeze|SkinGroup|EventDispatcher}
-     * @public
-     */
-    Component.prototype.skinGroup=function()
-    {
-        if( this.__skinGroup__ === null )
-        {
-            this.__skinGroup__ = this.getDefaultSkin()
-            if( this.__skinGroup__ instanceof SkinGroup )
-            {
-               this.__skinGroup__.current(null).data( this.componentProfile, this )
-            }
-        }
-        if( this.__skinChanged__===true)
-        {
-            this.__skinChanged__=false;
-            this.skinInstalled( this.__skinGroup__ );
-        }
-        return this.__skinGroup__;
-    }
 
     /**
      * @param viewport
-     * @returns {HTMLElement|Layout}
+     * @returns {HTMLElement|Component}
+     * @public
      */
-    Component.prototype.viewport=function( viewport )
+    Component.prototype.viewport=function( viewport , context )
     {
         if( typeof viewport === "undefined" )
         {
-            if( this.__viewportChanged__ )
+            if( this.__viewportChanged__ && this.__viewport__ !==null )
             {
                 this.__viewportChanged__=false;
                 this.viewportChange( this.__viewport__ );
@@ -127,48 +85,44 @@
             return this.__viewport__;
         }
 
-        if( typeof viewport === "string" )
+        if( viewport === this.__viewport__ )
         {
-            var target=this.skinGroup()[0];
-            viewport=  viewport==='body'    ? target.ownerDocument.body :
-                viewport==='window'  ? Utils.getWindow( target ) :
-                    viewport==='document'? target.ownerDocument      :
-                        Sizzle(viewport, target ? target.ownerDocument : document )[0];
+            return this;
         }
-        if( Utils.isHTMLContainer(viewport) || Utils.isWindow(viewport) )
+
+        if( !(viewport instanceof Breeze) )
+        {
+            viewport = Breeze( viewport , context );
+        }
+        if( viewport.length > 0 )
         {
             this.__viewport__=viewport;
             this.__viewportChanged__=true;
             return this;
         }
-        throw new Error('invaild viewport');
+        throw new Error('invalid viewport');
     }
 
     /**
      * @protected
-     * @param viewport
+     * @param Breeze newViewport
      */
-    Component.prototype.viewportChange=function( viewport ){}
-
-    /**
-     * @param string skinName
-     * @returns {HTMLElemet}
-     * @public
-     */
-    Component.prototype.getSkin=function(skinName)
+    Component.prototype.viewportChange=function( newViewport )
     {
-       return this.skinGroup().getSkin( skinName );
+        newViewport.current(null).data( this.componentProfile, this );
     }
 
     /**
-     * @param skinName
-     * @returns {*|SkinGroup}
-     * @public
+     * @private
+     * @returns {Breeze}
      */
-    Component.prototype.currentSkin=function(skinName)
+    Component.prototype.getAndCheckViewport=function()
     {
-        return this.skinGroup().currentSkin( skinName );
+        var viewport = this.viewport();
+        if( !viewport )throw new Error('invalid viewport');
+        return viewport;
     }
+
 
     /**
      * @param name
@@ -178,9 +132,8 @@
      */
     Component.prototype.style=function(name,value )
     {
-        var skin = this.skinGroup();
-        var result = skin.style(name,value);
-        return result===skin ? this : result;
+        var result = this.getAndCheckViewport().style(name,value);
+        return result===viewport ? this : result;
     }
 
     /**
@@ -191,12 +144,13 @@
      */
     Component.prototype.property=function(name,value )
     {
+        var viewport = this.getAndCheckViewport();
         if( typeof value !== "undefined" )
         {
-            this.skinGroup().property( name,value  );
+            viewport.property( name,value  );
             return this;
         }
-        return this.skinGroup().property(name);
+        return viewport.property(name);
     }
 
     /**
@@ -207,12 +161,13 @@
      */
     Component.prototype.data=function(name,value )
     {
+        var viewport = this.getAndCheckViewport();
         if( typeof value !== "undefined" )
         {
-            this.skinGroup().data( name,value  );
+            viewport.data( name,value  );
             return this;
         }
-        return this.skinGroup().data(name);
+        return viewport.data(name);
     }
 
     /**
@@ -223,12 +178,13 @@
      */
     Component.prototype.current=function( element )
     {
+        var viewport = this.getAndCheckViewport();
         if( typeof element !== "undefined" )
         {
-            this.skinGroup().current( element );
+            viewport.current( element );
             return this;
         }
-        return this.skinGroup().current();
+        return viewport.current();
     }
 
     /**
@@ -239,12 +195,13 @@
      */
     Component.prototype.width=function(value)
     {
+        var viewport = this.getAndCheckViewport();
         if( typeof value === "number" )
         {
-            this.skinGroup().width( value );
+            viewport.width( value );
             return this;
         }
-        return this.skinGroup().width();
+        return viewport.width();
     }
 
     /**
@@ -255,12 +212,13 @@
      */
     Component.prototype.height=function(value)
     {
+        var viewport = this.getAndCheckViewport();
         if(  typeof value === "number" )
         {
-            this.skinGroup().height( value );
+            viewport.height( value );
             return this;
         }
-        return this.skinGroup().height();
+        return viewport.height();
     }
 
     /**
@@ -271,7 +229,7 @@
      */
     Component.prototype.moveTo=function(x,y)
     {
-        this.skinGroup().left(x).top(y);
+        this.getAndCheckViewport().left(x).top(y);
         return this;
     }
 
@@ -282,28 +240,38 @@
      */
     Component.prototype.display=function( flag )
     {
-        this.skinGroup().display( flag )
+        this.getAndCheckViewport().display( flag )
         return this;
     }
-
     /**
      * @param type
      * @param listener
      * @param useCapture
      * @param priority
      * @param reference
-     * @returns {Component|Breeze}
+     * @returns {Component|Breeze|EventDispatcher}
      * @public
      */
     Component.prototype.addEventListener=function(type,listener,useCapture,priority,reference)
     {
-        this.skinGroup().addEventListener(type,listener,useCapture,priority,reference);
+        this.getAndCheckViewport().addEventListener(type,listener,useCapture,priority,reference);
         return this;
     }
 
     /**
      *
      * @param type
+     * @param useCapture
+     * @returns {boolean}
+     */
+    Component.prototype.hasEventListener=function( type, useCapture)
+    {
+       return this.getAndCheckViewport().hasEventListener( type, useCapture);
+    }
+
+    /**
+     *
+     * @param type·
      * @param listener
      * @param useCapture
      * @returns {boolean}
@@ -311,7 +279,7 @@
      */
     Component.prototype.removeEventListener=function(type,listener,useCapture)
     {
-        return this.skinGroup().removeEventListener(type,listener,useCapture);
+        return this.getAndCheckViewport().removeEventListener(type,listener,useCapture);
     }
 
     /**
@@ -321,7 +289,7 @@
      */
     Component.prototype.dispatchEvent=function( event )
     {
-        return this.skinGroup().dispatchEvent( event );
+        return this.getAndCheckViewport().dispatchEvent( event );
     }
 
     /**
@@ -364,8 +332,8 @@
                 }
 
                 instance.initializing();
-                var index = 0;
-                for( index=0; index < instance.initializeMethod.length; index++)
+                var index=0;
+                for( ; index < instance.initializeMethod.length; index++)
                 {
                     var method = instance.initializeMethod[ index ];
                     var value = instance.property(method);
@@ -378,13 +346,19 @@
                 instance.initializeCompleted=true;
             }
         })
-        Breeze.rootEvent().dispatchEvent( new BreezeEvent( Component.INITIALIZE_COMPLETED ) )
+        Breeze.rootEvent().dispatchEvent( new ComponentEvent( ComponentEvent.INITIALIZE_COMPLETED ) )
     }
 
     //初始化组件
     Breeze.rootEvent().addEventListener( BreezeEvent.READY,function(){Component.initialize();},false,100);
-    Component.INITIALIZE_COMPLETED='ComponentInitializeCompleted';
-    Component.INITIALIZE_START='ComponentInitializeStart';
+
+    function ComponentEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
+    ComponentEvent.prototype=new BreezeEvent();
+    ComponentEvent.prototype.constructor=ComponentEvent;
+    ComponentEvent.INITIALIZE_COMPLETED='ComponentInitializeCompleted';
+    ComponentEvent.INITIALIZE_START='ComponentInitializeStart';
+
     window.Component=Component;
+    window.ComponentEvent=ComponentEvent;
 
 })( window )

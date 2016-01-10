@@ -16,8 +16,7 @@
  */
 +(function( window,undefined )
 {
-    var layouts=[]
-    ,rootLayout=null
+    var rootLayout=null
     ,horizontal=['left','center','right']
     ,vertical=['top','middle','bottom']
     ,__method__ = function(prop, val , flag )
@@ -57,8 +56,6 @@
         }
         return Layout.rootLayout();
     }
-
-    var rootInitialized=false;
 
     /**
      * Layout
