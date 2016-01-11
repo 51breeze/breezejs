@@ -223,7 +223,7 @@
                 skinGroup=this.getDefaultSkin();
                 if( !this.__viewport__ )
                 {
-                    this.viewport(viewport.parentNode)
+                    this.viewport(viewport.parentNode);
                 }
             }
         }
