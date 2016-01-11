@@ -35,7 +35,7 @@
     DataRender.prototype.display=function( view )
     {
         this.__view__=view;
-        this.fetch();
+        this.select();
         return this;
     }
 
@@ -73,7 +73,7 @@
                 Breeze('[data-bind]', event.viewport).forEach(function(elem,index){
 
                     var name  = this.property('data-bind');
-                    var index = dataSource.offsetIndex( index );
+                    var index = dataSource.viewIndex( index );
                     if( typeof dataSource[index] !== "undefined" )
                     {
                         var binder = this.data('dataBinder');
@@ -92,11 +92,11 @@
                     if( binder instanceof  Bindable )
                     {
                         var result = binder.property(property,newValue);
-                        var index = dataSource.offsetIndex( this.property('data-index') );
+                        var index = dataSource.viewIndex( this.property('data-index') );
 
-                        if(result && !isNaN(index) && dataSource.hasEventListener( DataSourceEvent.ALTER ) && typeof dataSource[ index ] !== "undefined" )
+                        if(result && !isNaN(index) && dataSource.hasEventListener( DataSourceEvent.UPDATE ) && typeof dataSource[ index ] !== "undefined" )
                         {
-                            var ev = new DataSourceEvent(DataSourceEvent.ALTER);
+                            var ev = new DataSourceEvent(DataSourceEvent.UPDATE);
                             ev.originalEvent=event;
                             ev.item= dataSource[ index ];
                             ev.index = index;

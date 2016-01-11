@@ -77,7 +77,7 @@
          */
         if( dataSource instanceof DataSource )
         {
-            dataSource.addEventListener(DataSourceEvent.FETCH,function(evnet)
+            dataSource.addEventListener(DataSourceEvent.SELECT,function(evnet)
             {
                 self.display( Math.ceil( this.predicts() / this.rows() ) , this.currentPages() );
 

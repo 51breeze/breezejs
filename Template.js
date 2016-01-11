@@ -279,8 +279,6 @@
         event.variable = this.variable();
         event.viewport = this.viewport();
 
-        console.log('======Template.render=======')
-
         if( !this.hasEventListener( TemplateEvent.START ) || this.dispatchEvent( event ) )
         {
             event.html=make.call(this, event.template , event.variable , this.__split__ );
