@@ -269,11 +269,6 @@
     {
         flag = !!flag;
         var template = getTemplateContent( source );
-        if( template.charAt(0) !== '<' || template.charAt(template.length-1) !== '>' )
-        {
-            throw new Error('invalid html');
-        }
-
         var event=new TemplateEvent( TemplateEvent.START );
         event.template = template;
         event.variable = this.variable();
@@ -287,7 +282,6 @@
             {
                 return false;
             }
-
             if( !flag && event.viewport instanceof Breeze )
             {
                 event.viewport.html( event.html );

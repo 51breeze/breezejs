@@ -31,13 +31,25 @@
         if( !(this instanceof EventDispatcher) )
             return new EventDispatcher(targets);
 
+        this.__targets__=[];
         if( typeof Manager !== "undefined" && this instanceof Manager )
         {
             this.__targets__ = this;
+
         }else if( typeof targets !== "undefined" )
         {
-            this.__targets__ = targets instanceof Array ? targets.slice(0) : [ targets ];
+            if(  targets instanceof Array )
+            {
+                this.__targets__=DataArray.prototype.filter.call(targets,function(item){
+                   return Utils.isEventElement(item);
+                });
+
+            }else if( Utils.isEventElement(targets) )
+            {
+                this.__targets__=[ targets ];
+            }
         }
+
     };
 
     //Constructor

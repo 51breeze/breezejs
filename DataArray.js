@@ -132,6 +132,33 @@
     }
 
     /**
+     * 过滤数组
+     * @param function callback
+     */
+    DataArray.prototype.filter=Array.prototype.filter || function( callback )
+    {
+         if( typeof callback !== "function" )
+         {
+             callback=function( item ){ return !!item; }
+         }
+
+         var index = 0;
+         while( index < this.length )
+         {
+             if( !callback( this[index] ) )
+             {
+                 this.splice(index,1);
+
+             }else
+             {
+                 index++;
+             }
+         }
+         return this;
+    }
+
+
+    /**
      * 遍历元素
      * @param callback
      * @param refObject

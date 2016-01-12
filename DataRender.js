@@ -15,7 +15,6 @@
      * @returns {DataRender}
      * @constructor
      */
-
     function DataRender()
     {
         if( !(this instanceof DataRender) )
@@ -23,6 +22,12 @@
             return new DataRender();
         }
         DataSource.call(this);
+        this.addEventListener(DataSourceEvent.SELECT,function(event)
+        {
+            var data = event.data;
+            var view = this.__view__;
+            this.template().variable( this.dataProfile(), data ).render( view );
+        })
     }
 
     DataRender.prototype = new DataSource();
@@ -59,52 +64,18 @@
 
     /**
      * 返回模板编译器
-     * @returns {*|Window.Template}
+     * @param Template template
+     * @returns {*|Template}
      */
-    DataRender.prototype.template=function()
+    DataRender.prototype.template=function( template )
     {
+        if( template instanceof Template )
+        {
+            this.__template__ = template;
+        }
         if( this.__template__=== null )
         {
-            var self = this;
             this.__template__=new Template();
-            this.__template__.addEventListener(TemplateEvent.REFRESH,function(event)
-            {
-                var dataSource=self.dataSource();
-                Breeze('[data-bind]', event.viewport).forEach(function(elem,index){
-
-                    var name  = this.property('data-bind');
-                    var index = dataSource.viewIndex( index );
-                    if( typeof dataSource[index] !== "undefined" )
-                    {
-                        var binder = this.data('dataBinder');
-                        if ( !(binder instanceof Bindable) ) {
-                            binder = new Bindable()
-                            this.data('dataBinder', binder);
-                        }
-                        binder.bind(dataSource[index], name);
-                    }
-
-                }).addEventListener(PropertyEvent.CHANGE,function(event)
-                {
-                    var newValue= this.property('value');
-                    var property= this.property('data-bind');
-                    var binder = this.data('dataBinder');
-                    if( binder instanceof  Bindable )
-                    {
-                        var result = binder.property(property,newValue);
-                        var index = dataSource.viewIndex( this.property('data-index') );
-
-                        if(result && !isNaN(index) && dataSource.hasEventListener( DataSourceEvent.UPDATE ) && typeof dataSource[ index ] !== "undefined" )
-                        {
-                            var ev = new DataSourceEvent(DataSourceEvent.UPDATE);
-                            ev.originalEvent=event;
-                            ev.item= dataSource[ index ];
-                            ev.index = index;
-                            dataSource.dispatchEvent( ev );
-                        }
-                    }
-                })
-            })
         }
         return this.__template__;
     }
@@ -154,10 +125,6 @@
         }
         return this.__dataProfile__;
     }
-
-
-
-
 
     window.DataRender=DataRender;
     window.DataRenderEvent=DataSourceEvent;

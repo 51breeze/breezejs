@@ -184,7 +184,7 @@
             if( this.__index__ !== index )
             {
                 this.__index__ = index;
-                var dataSource = this.dataSource();
+                var dataSource = this.dataRender();
                 if( dataSource.length > 0 && dataSource[ index ] )
                 {
                     var event = new SelectionEvent(SelectionEvent.CHANGE);
@@ -212,34 +212,36 @@
             var viewport = index = skinGroup.getSkin('container');
             if( Utils.nodeName(viewport) === 'select' )
             {
-                var dataSource=[]
-                skinGroup.find('option').forEach(function(){
-                    var item={};
-                    item[ self.valueProfile() ]=  this.value()
-                    item[ self.lableProfile() ]=  this.text()
+                var dataSource=[];
+                skinGroup.find('option').forEach(function(elem){
+                    var item=Utils.mergeAttributes({}, elem );
+                    item[ self.valueProfile() ]=  this.value();
+                    item[ self.lableProfile() ]=  this.text();
                     dataSource.push( item );
-                })
+                });
                 this.source( dataSource );
-                skinGroup=this.getDefaultSkin();
                 if( !this.__viewport__ )
                 {
                     this.viewport(viewport.parentNode);
                 }
+                skinGroup=this.getDefaultSkin();
             }
         }
 
-        if( !(skinGroup instanceof SkinGroup) )
+        if( SkinGroup.isSkinObject( skinGroup ) )
         {
             var viewport = this.viewport();
             var selectedIndex = this.selectedIndex();
             var dataRender = this.dataRender();
             var tpl = dataRender.template();
-            var container = tpl.variable('current', dataRender[ selectedIndex ][ this.lableProfile() ] ).render( skinGroup.html.container, true );
-            viewport.addChildAt( container , index );
-            this.skinGroup( new SkinGroup( viewport.children() ) );
-        }
+            var lable = dataRender[ selectedIndex ][ this.lableProfile() ];
+            var container = tpl.variable('current', lable ).render( skinGroup.html.container, true );
 
-        this.dataRender().display( skinGroup.html.list );
+            viewport.addChildAt( container , index );
+            this.skinGroup( new SkinGroup(viewport) );
+            tpl.viewport( this.getSkin('group') );
+            dataRender.display( skinGroup.html.list );
+        }
         return this;
     }
 
@@ -251,16 +253,18 @@
     Selection.prototype.getDefaultSkin=function()
     {
         var dataProfile= this.dataRender().dataProfile();
+        var labelProfile =  this.lableProfile();
+        var valueProfile = this.valueProfile();
         var skinObject=SkinGroup.createSkinObject('<div>{html label+group}</div>',{
             input: '<input/>',
             label: '<div>{current}</div>',
-            list: '<ul><?foreach('+dataProfile+' as key item){ ?><li {attr li}>{item["label"]}</li><?}?></ul>',
+            list: '<ul><?foreach('+dataProfile+' as key item){ ?><li {attr li} value="{item["'+valueProfile+'"]}">{item["'+labelProfile+'"]}</li><?}?></ul>',
             group: '<div></div>',
             searchbox:'<div><span>{html input}</span>{html group}</div>'
         },{
             searchbox:{'style':{'width':'100%',height:'300px'}},
             label:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'} },
-            li:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},'data-index':'{key}','value':'{item["value"]}'},
+            li:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},'data-index':'{key}'},
             list:{'style':'width:100%; height:auto;padding: 0px;list-style-type:none;-webkit-margin-before:0px;-webkit-margin-after:0px; text-indent: 0px;'},
             group:{ 'style':{display:'none',width:'100%',height:'auto',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}},
             container:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'},tabindex:"-1" }
