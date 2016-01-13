@@ -60,7 +60,7 @@
     DataArray.prototype.splice=function()
     {
         var arg=[arguments[0],arguments[1]];
-        for(var i=2; i<arguments.length; i++)
+        for(var i=2; i<arguments.length; i++) if(typeof arguments[i] !== 'undefined' )
         {
             arg=arg.concat( arguments[i] );
         }

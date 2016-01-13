@@ -906,7 +906,7 @@
      */
     Utils.isNodeElement=function( element )
     {
-        return typeof Node==='object' ? element instanceof Node : ( element && element.nodeType && typeof element.nodeName === "string" && typeof element.tagName === "string" );
+        return typeof Node !== "undefined" ? element instanceof Node : ( element && element.nodeType && typeof element.nodeName === "string" && typeof element.tagName === "string" );
     }
 
     /**
@@ -926,7 +926,7 @@
      */
     Utils.isEventElement=function( element )
     {
-        return element ? !!(element.addEventListener || element.attachEvent) : false;
+        return Utils.isNodeElement(element) || Utils.isWindow(element) ? !!(element.addEventListener || element.attachEvent) : false;
     }
 
     /**

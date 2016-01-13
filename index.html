@@ -101,15 +101,29 @@
        */
 
 
-
-
          var selection = new Selection()
-
           selection.viewport( '#selection' )
-
          selection.source( [{value:1,lable:'张三'},{value:2,lable:'李四'}] );
+         selection.display();
 
-         selection.display()
+
+        var item = {value:2,lable:'张三'};
+
+        var bindable = new Bindable( Breeze('#bindable')[0] );
+         item = Bindable(item);
+         bindable.bind( item, 'lable');
+
+        var num = 1;
+        Breeze('#bindable').addEventListener(MouseEvent.CLICK,function(){
+
+            var val = 'hello '+ num;
+            this.content(val)
+            item.property('lable',val)
+            console.log( bindable )
+            num++
+
+        })
+
 
 
       /*   var modal =  new Modality()
@@ -124,9 +138,6 @@
          event.stopPropagation()
 
          })*/
-
-
-
 
 
       /*  Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(){
@@ -190,6 +201,10 @@
 
 
 <div  id="selection" style="width: 300px; margin: 50px;" data-uuu="yyyy">
+</div>
+
+<div id="bindable">
+    sssss
 </div>
 
 <!--
