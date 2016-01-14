@@ -166,11 +166,35 @@
         return this;
     }
 
+    function commitSelectedIndex( index )
+    {
+        if( this.__label__ === null && this.getSkin('label') )
+        {
+            this.__label__ = new Bindable('label');
+            var profile = this.lableProfile();
+            this.__label__.bind( this.getSkin('label'), 'label', function (property, item) {
+                this.innerText = item[ profile ];
+            });
+        }
+        if( this.__label__ )
+        {
+            var dataSource = this.dataRender();
+            if( dataSource.length > 0 && dataSource[index] )
+            {
+                this.__label__.property('label', dataSource[index]);
+                var event = new SelectionEvent(SelectionEvent.CHANGE);
+                event.selectedIndex = index;
+                event.selectedItem = dataSource[index];
+                this.dispatchEvent(event);
+            }
+        }
+    }
 
     /**
      * @private
      */
     Selection.prototype.__index__=0;
+    Selection.prototype.__label__=null;
 
     /**
      * @param value
@@ -178,24 +202,17 @@
      */
     Selection.prototype.selectedIndex=function( index )
     {
+        if( typeof index === "undefined" )
+           return this.__index__;
         index=parseInt( index );
-        if( !isNaN(index) )
+        if( isNaN(index) )
+            throw new Error('invalid index');
+        if( this.__index__ !== index  )
         {
-            if( this.__index__ !== index )
-            {
-                this.__index__ = index;
-                var dataSource = this.dataRender();
-                if( dataSource.length > 0 && dataSource[ index ] )
-                {
-                    var event = new SelectionEvent(SelectionEvent.CHANGE);
-                    event.selectedIndex = index;
-                    event.selectedItem = dataSource[ index ];
-                    this.dispatchEvent( event );
-                }
-            }
-            return this;
+            this.__index__ = index;
+            commitSelectedIndex.call(this, index  );
         }
-        return this.__index__;
+        return this;
     }
 
     /**
@@ -231,17 +248,14 @@
         if( SkinGroup.isSkinObject( skinGroup ) )
         {
             var viewport = this.viewport();
-            var selectedIndex = this.selectedIndex();
             var dataRender = this.dataRender();
             var tpl = dataRender.template();
-            var lable = dataRender[ selectedIndex ][ this.lableProfile() ];
-            var container = tpl.variable('current', lable ).render( skinGroup.html.container, true );
-
-            viewport.addChildAt( container , index );
+            viewport.addChildAt( skinGroup.html.container , index );
             this.skinGroup( new SkinGroup(viewport) );
             tpl.viewport( this.getSkin('group') );
             dataRender.display( skinGroup.html.list );
         }
+        commitSelectedIndex.call(this, this.selectedIndex() );
         return this;
     }
 
@@ -257,7 +271,7 @@
         var valueProfile = this.valueProfile();
         var skinObject=SkinGroup.createSkinObject('<div>{html label+group}</div>',{
             input: '<input/>',
-            label: '<div>{current}</div>',
+            label: '<div></div>',
             list: '<ul><?foreach('+dataProfile+' as key item){ ?><li {attr li} value="{item["'+valueProfile+'"]}">{item["'+labelProfile+'"]}</li><?}?></ul>',
             group: '<div></div>',
             searchbox:'<div><span>{html input}</span>{html group}</div>'

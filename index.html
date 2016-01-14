@@ -107,25 +107,6 @@
          selection.display();
 
 
-        var item = {value:2,lable:'张三'};
-
-        var bindable = new Bindable( Breeze('#bindable')[0] );
-         item = Bindable(item);
-         bindable.bind( item, 'lable');
-
-        var num = 1;
-        Breeze('#bindable').addEventListener(MouseEvent.CLICK,function(){
-
-            var val = 'hello '+ num;
-            this.content(val)
-            item.property('lable',val)
-            console.log( bindable )
-            num++
-
-        })
-
-
-
       /*   var modal =  new Modality()
          modal.width(600).height(400)
          modal.label('标题222')
@@ -201,10 +182,6 @@
 
 
 <div  id="selection" style="width: 300px; margin: 50px;" data-uuu="yyyy">
-</div>
-
-<div id="bindable">
-    sssss
 </div>
 
 <!--

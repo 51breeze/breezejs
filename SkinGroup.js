@@ -190,20 +190,22 @@
             skinObject= toString.call( skinObject );
         }
 
+        var ismake= false;
         if( Utils.isNodeElement(skinObject) && !Utils.isDocument(skinObject) )
         {
             var nodename = Utils.nodeName( skinObject );
             context = typeof context === "undefined" ? skinObject.parentNode || document.body : context;
-            this.__skinObject__ = skinObject;
             if( nodename === 'noscript' ||  nodename === 'textarea')
             {
+                ismake=true;
                 skinObject = nodename === 'textarea' ? skinObject.value : skinObject.innerHTML;
             }
+            this.__skinObject__ = skinObject;
         }
 
         if( typeof callback !== "function" || !callback.call(this, skinObject, context ) )
         {
-            this.initialize(skinObject,context);
+            this.initialize(skinObject,context,ismake);
         }
     }
 
@@ -267,17 +269,21 @@
      * @param skinObject
      * @param context
      */
-    SkinGroup.prototype.initialize=function( skinObject,context )
+    SkinGroup.prototype.initialize=function( skinObject,context ,ismake )
     {
         if( this.__initialized__ === false )
         {
             this.__initialized__ = true;
-            if( skinObject instanceof Breeze )
+            if( !ismake )
             {
-                Breeze.call(this, skinObject[0], skinObject.context );
+                if (skinObject instanceof Breeze) {
+                    Breeze.call(this, skinObject[0], skinObject.context);
+                } else {
+                    Breeze.call(this, Utils.createElement(skinObject), context);
+                }
             }else
             {
-                Breeze.call(this, Utils.createElement(skinObject), context);
+                Breeze.call(this, context );
             }
             if (this.length != 1)
                 throw new Error('Create skinObject failed');

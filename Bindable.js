@@ -6,9 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-
 (function(){
-
 
     /**
      * 提交属性到每个绑定的对象
@@ -60,14 +58,14 @@
      * @private
      * @param Bindable bindable
      */
-     function bindEvent( bindable , isProperty )
+     function bindEvent( bindable , bindName )
      {
          bindable= bindable || this;
          this.addEventListener(PropertyEvent.COMMIT, function (event)
          {
              var property = event.property;
              var newvalue = event.newValue;
-             if( typeof isProperty !== "undefined" && property!==isProperty )
+             if( typeof bindName !== "undefined" && property!==bindName )
                  return ;
              if( bindable === this )
              {
@@ -83,50 +81,53 @@
 
     /**
      * 数据双向绑定器
-     * @param sourceObject  一个数据对象, 可以是空。 如果此对象是一个单一的对象则会把此对象上的所有属性继承到绑定器上。
+     * @param propertyObject  一个数据对象, 可以是空。 如果此对象是一个单一的对象则会把此对象上的所有属性继承到绑定器上。
      *                      如果是一个DOM元素则会监听当前元素所的属性的变更并传送到被绑定的对象中。
      * @constructor
      */
-    function Bindable( sourceObject )
+    function Bindable( propertyObject )
     {
-        if( sourceObject instanceof Bindable )
-          return sourceObject;
+        if( propertyObject instanceof Bindable )
+          return propertyObject;
 
-        if( Utils.isNodeElement(sourceObject) )
+        if( Utils.isNodeElement(propertyObject) )
         {
-            var bindable =  Utils.storage(sourceObject,Bindable.NAME);
+            var bindable =  Utils.storage(propertyObject,Bindable.NAME);
             if( bindable &&  bindable instanceof Bindable )
               return bindable;
         }
 
         if( !(this instanceof Bindable) )
-            return new Bindable( sourceObject );
+            return new Bindable( propertyObject );
 
-        if( Utils.isNodeElement(sourceObject) )
+        if( Utils.isNodeElement(propertyObject) )
         {
-            EventDispatcher.call( this , sourceObject );
-            Utils.storage(sourceObject,Bindable.NAME,this);
+            EventDispatcher.call( this , propertyObject );
+            Utils.storage(propertyObject,Bindable.NAME,this);
             this.addEventListener(PropertyEvent.CHANGE,function(event){
 
                 var property = event.property;
                 var newvalue = event.newValue;
-                if( Utils.inObject(this.__bindProperty__,property) )
-                  this.property(property,newvalue);
+                if( typeof this[property] !== "undefined" )
+                    this.property(property,newvalue);
             })
 
         }else
         {
             EventDispatcher.call( this );
-            if( Utils.isObject(sourceObject) )for( var key in sourceObject ) if( typeof this[key] !== "function" )
+            if( Utils.isObject(propertyObject) )for( var key in propertyObject ) if( typeof this[key] !== "function" )
             {
-                this[key] =  sourceObject[key];
+                this[key] =  propertyObject[key];
                 if( this[key] instanceof EventDispatcher )
                 {
                     bindEvent.call(this[key], this);
                 }
+
+            }else if( typeof propertyObject === "string")
+            {
+                this[ propertyObject ]= null;
             }
         }
-
         bindEvent.call(this);
     }
 
@@ -134,8 +135,6 @@
     Bindable.prototype=new EventDispatcher();
     Bindable.prototype.constructor=Bindable;
     Bindable.prototype.__subscription__=null;
-    Bindable.prototype.__bindProperty__=[];
-
 
     /**
      * 订阅者对象词典
@@ -156,29 +155,28 @@
     /**
      * 指定对象到当前绑定器。(订阅)
      * @public
-     * @param object target 数据对象，允许是一个 DOM元素、EventDispatcher、Object。 如果是 Object 则表示为单向绑定，否则都为双向绑定。
+     * @param object targetObject 数据对象，允许是一个 DOM元素、EventDispatcher、Object。 如果是 Object 则表示为单向绑定，否则都为双向绑定。
      * @param string property 需要绑定的属性名,允是一个*代表绑定所有属性
      * @param function|string custom 如果是函数发生变更时调用，如果是一个属性名发生变更时赋值
      * @returns {boolean}
      */
-    Bindable.prototype.bind=function(target,property,custom)
+    Bindable.prototype.bind=function(targetObject,property,custom)
     {
         property =  property || 'value';
 
-        if( Utils.isEventElement(target) )
+        if( Utils.isEventElement(targetObject) )
         {
-            bindEvent.call(new EventDispatcher(target), this, property);
+            bindEvent.call(new EventDispatcher(targetObject), this, property);
 
-        }else if( target instanceof EventDispatcher )
+        }else if( targetObject instanceof EventDispatcher )
         {
-            bindEvent.call(target, this, property);
+            bindEvent.call(targetObject, this, property);
         }
 
-        if( typeof target === 'object' )
+        if( typeof targetObject === 'object' )
         {
-            var obj = this.subscription(target).get( target );
+            var obj = this.subscription(targetObject).get( targetObject );
                 obj[ property ] = custom;
-            this.__bindProperty__.push( property );
             return true;
         }
         return false;
