@@ -58,15 +58,16 @@
 
     /**
      * 获取设置皮肤组
-     * @returns {Breeze|SkinGroup|EventDispatcher|string}
+     * @returns {Breeze|SkinGroup|EventDispatcher|SkinComponent|string}
      * @public
      */
     SkinComponent.prototype.skinGroup=function( skinGroup )
     {
         if( typeof skinGroup !== "undefined" )
         {
-            this.__skinGroup__=  skinGroup instanceof SkinGroup ? skinGroup : new SkinGroup(skinGroup);
+            this.__skinGroup__=  skinGroup instanceof Breeze ? skinGroup : new SkinGroup(skinGroup);
             this.__skinChanged__=true;
+            return this;
         }
         if( this.__skinGroup__ === null )
         {

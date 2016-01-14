@@ -101,17 +101,10 @@
        */
 
 
-
-
          var selection = new Selection()
-
           selection.viewport( '#selection' )
-
-         selection.source( [{value:1,label:'张三'},{value:2,label:'李四'}] );
-
-         console.log(   selection.dataRender().hasEventListener( DataSourceEvent.FETCH ) ,'++++');
-
-         selection.display()
+         selection.source( [{value:1,lable:'张三'},{value:2,lable:'李四'}] );
+         selection.display();
 
 
       /*   var modal =  new Modality()
@@ -126,9 +119,6 @@
          event.stopPropagation()
 
          })*/
-
-
-
 
 
       /*  Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(){

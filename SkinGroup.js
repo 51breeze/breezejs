@@ -175,9 +175,11 @@
         if( !(this instanceof SkinGroup) )
             return new SkinGroup( skinObject, context,callback);
 
-        if( typeof skinObject === "string" )
+        this.__skinObject__=skinObject;
+        if( typeof skinObject === "string" &&  isselector.test(skinObject) )
         {
-           skinObject= isselector.test(skinObject) ? Sizzle(skinObject,context)[0] : Utils.createElement( skinObject ) ;
+           skinObject= Sizzle(skinObject,context)[0];
+           this.__skinObject__=skinObject;
 
         }else if( Utils.isObject(skinObject) )
         {
@@ -186,23 +188,25 @@
                 throw new Error('invaild skinObject');
             }
             skinObject= toString.call( skinObject );
-            skinObject=Utils.createElement(  typeof callback === "function" ? callback( skinObject ) : skinObject )
         }
 
+        var ismake= false;
         if( Utils.isNodeElement(skinObject) && !Utils.isDocument(skinObject) )
         {
             var nodename = Utils.nodeName( skinObject );
+            context = typeof context === "undefined" ? skinObject.parentNode || document.body : context;
             if( nodename === 'noscript' ||  nodename === 'textarea')
             {
-                context = typeof context === "undefined" ? skinObject.parentNode : context;
+                ismake=true;
                 skinObject = nodename === 'textarea' ? skinObject.value : skinObject.innerHTML;
-                skinObject= typeof callback === "function" ? callback( skinObject ) : skinObject;
             }
+            this.__skinObject__ = skinObject;
         }
-        Breeze.call(this,skinObject,context);
-        if( this.length != 1 )
-            throw new Error('Create skinObject failed');
-        this.__skin__={'container': this[0]};
+
+        if( typeof callback !== "function" || !callback.call(this, skinObject, context ) )
+        {
+            this.initialize(skinObject,context,ismake);
+        }
     }
 
     /**
@@ -220,7 +224,17 @@
             }
             return toString.call( skinObject );
         }
-        return '';
+        return skinObject;
+    }
+
+    /**
+     * 判断是否为一个皮肤对象
+     * @param skinObject
+     * @returns {boolean}
+     */
+    SkinGroup.isSkinObject=function( skinObject )
+    {
+         return ( Utils.isObject( skinObject ) && Utils.isObject(skinObject.html) );
     }
 
     /**
@@ -246,8 +260,46 @@
     SkinGroup.NAME='skin';
     SkinGroup.prototype=new Breeze();
     SkinGroup.prototype.__skin__={};
+    SkinGroup.prototype.__skinObject__={};
     SkinGroup.prototype.constructor=SkinGroup;
+    SkinGroup.prototype.__initialized__=false;
 
+    /**
+     * 初始化皮肤
+     * @param skinObject
+     * @param context
+     */
+    SkinGroup.prototype.initialize=function( skinObject,context ,ismake )
+    {
+        if( this.__initialized__ === false )
+        {
+            this.__initialized__ = true;
+            if( !ismake )
+            {
+                if (skinObject instanceof Breeze) {
+                    Breeze.call(this, skinObject[0], skinObject.context);
+                } else {
+                    Breeze.call(this, Utils.createElement(skinObject), context);
+                }
+            }else
+            {
+                Breeze.call(this, context );
+            }
+            if (this.length != 1)
+                throw new Error('Create skinObject failed');
+            this.__skin__ = {'container': this[0]};
+        }
+        return this.__initialized__;
+    }
+
+    /**
+     * 获取皮肤对象
+     * @returns {*}
+     */
+    SkinGroup.prototype.getSkinObject=function()
+    {
+        return this.__skinObject__;
+    }
 
     /**
      * 获取指定皮肤名的元素
@@ -278,6 +330,5 @@
     }
 
     window.SkinGroup=SkinGroup;
-
 
 })( window )

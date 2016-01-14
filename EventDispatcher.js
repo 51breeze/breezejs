@@ -31,12 +31,23 @@
         if( !(this instanceof EventDispatcher) )
             return new EventDispatcher(targets);
 
+        this.__targets__=[];
         if( typeof Manager !== "undefined" && this instanceof Manager )
         {
             this.__targets__ = this;
+
         }else if( typeof targets !== "undefined" )
         {
-            this.__targets__ = targets instanceof Array ? targets.slice(0) : [ targets ];
+            if(  targets instanceof Array )
+            {
+                this.__targets__=DataArray.prototype.filter.call(targets,function(item){
+                   return Utils.isEventElement(item);
+                });
+
+            }else if( Utils.isEventElement(targets) )
+            {
+                this.__targets__=[ targets ];
+            }
         }
     };
 
@@ -67,22 +78,15 @@
     {
         var target=  this.targets() || [this];
         var events = Utils.storage( target[0] , 'events' );
-        useCapture = Number( useCapture || 0 );
-        if( !events || !events[type] || !events[type][useCapture] )
+        if( !events || !events[type] )
             return false;
 
-        /*events  = events[type][useCapture];
-        var length= events.listener.length;
-        while( length > 0 )
+        if( typeof useCapture === "undefined" )
         {
-            --length;
-            if(  events.listener[ length ].dispatcher === this )
-            {
-                return true;
-            }
+            return !!(events[type][0] || events[type][1]);
         }
-        return false;*/
-        return true;
+        useCapture = Number( useCapture || 0 );
+        return !!events[type][useCapture];
     }
 
     /**
@@ -116,16 +120,9 @@
             ,element
             ,index=0;
 
-        //如果没有dom元素代理则不需要使用捕获
-        if( target===null )
-        {
-            useCapture=listener.useCapture=false;
-        }
-
         do{
             element= target ? target[ index++] : this;
             if( !element )continue;
-
             if( target && target[ index ] instanceof EventDispatcher )
             {
                 target[ index ].addEventListener(type,listener,useCapture,priority);
@@ -205,7 +202,7 @@
             throw new Error('listener invalid, must is EventDispatcher.Listener');
         }
 
-        if( !Utils.isEventElement( this ) )
+        if( !Utils.isEventElement( this ) && !(this instanceof EventDispatcher) )
             return false;
 
         //是否有指定的目标对象
@@ -337,7 +334,7 @@
             if( data && data[ event.type ] )
             {
                 //捕获阶段
-                if( !is && data[ event.type ][1]   )
+                if( data[ event.type ][1]   )
                    targets[1].push( element );
 
                 //冒泡阶段
@@ -377,7 +374,6 @@
                     {
                         reference.current( target );
                     }
-                    //event.target=target;
 
                     //调度侦听项
                     listener.callback.call( reference , event );

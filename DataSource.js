@@ -30,18 +30,25 @@
      * @param item
      * @param type
      */
-    var dispatch=function(item,type,index,event)
+    var dispatch=function(data,type,index,event)
     {
         if( this.hasEventListener(type) )
         {
             var e = new DataSourceEvent(type)
             e.originalEvent=event;
-            e.item=item;
+            e.data=data;
             e.index = index;
             this.dispatchEvent( e );
         }
     }
 
+    /**
+     * 数据源
+     * @param source
+     * @param option
+     * @returns {DataSource}
+     * @constructor
+     */
     function DataSource(source,option)
     {
         if( !(this instanceof DataSource) )
@@ -49,297 +56,286 @@
             return new DataSource(source,option);
         }
         EventDispatcher.call(this);
-
-        /**
-         * @private
-         */
-        var options;
-
-        /**
-         * @private
-         */
-        var _isRemote=false;
-
-        /**
-         * @returns {boolean}
-         */
-        this.isRemote=function()
+        if( typeof source !== "undefined" )
         {
-            return _isRemote;
+            this.source(source,option);
         }
-
-        /**
-         * @private
-         */
-        var _source;
-
-        /**
-         * 数据源
-         * @returns {DataSource|window.HttpRequest}
-         */
-        this.source=function( source , option )
-        {
-            if( typeof source !== "undefined" )
-            {
-                options = Utils.extend(true, {}, defaultOption, option || options || {} );
-
-                if( Utils.isObject(source, true) )
-                {
-                    var len = this.length;
-                    this.splice(0, len, source);
-                    this.removeEventListener(DataSourceEvent.LOAD_START);
-                    return this;
-                }
-
-                if( typeof source === 'string' )
-                {
-                    options.url = source;
-                    if( _source )
-                    {
-                        _source.setting({'url':source});
-                        source=_source;
-
-                    }else {
-
-                        source = new HttpRequest(options);
-                    }
-                }
-
-                if ( source instanceof HttpRequest && _source !== source )
-                {
-                    _source=source;
-                    _isRemote=true;
-                    var rows = options.preloadRows;
-                    var beforehand = false;
-                    var loadNum = 0;
-                    var self = this;
-
-                    source.addEventListener( HttpEvent.SUCCESS, function (event)
-                    {
-                        if (event.data[options.profile.status] != options.successStatus) {
-                            throw new Error('加载数据失败');
-                        }
-
-                        loadNum++;
-                        var data = event.data;
-                        var totalProfile = options.profile.total;
-                        var dataProfile = options.profile.data;
-                        var total = parseInt( data[totalProfile] ) || 0;
-                        if ( total > 0 ) {
-                            self.predicts( total );
-                        }
-
-                        data = typeof data[dataProfile] !== 'undefined' ? data[dataProfile] : data;
-
-                        //没有可加载的数据，直接删除事件侦听
-                        if (!(data instanceof Array) || data.length < rows) {
-                            self.removeEventListener(DataSourceEvent.LOAD_START);
-                        }
-
-                        var len = self.length;
-                        self.splice(len, 0, data);
-
-                        dispatch.call(self, data, DataSourceEvent.LOAD_COMPLETE, len, event);
-
-                        //do order by
-                        var orderBy = self.orderBy();
-                        for(var b in orderBy)
-                        {
-                            self.orderBy(b,orderBy[b], true);
-                        }
-
-                        if ( self.__fetched__ === true )
-                        {
-                            self.fetch();
-                        }
-
-                    });
-
-                    this.addEventListener(DataSourceEvent.LOAD_START, function (event)
-                    {
-                        beforehand = !!event.beforehand;
-                        var offset = loadNum * rows;
-                        options.param[ options.profile.offset ]=offset;
-                        options.param[ options.profile.rows ]=rows;
-                        var data=options.param;
-
-                        if(  options.method === HttpRequest.METHOD.GET )
-                        {
-                            var param = Utils.serialize(options.param,'url');
-                            options.url += /\?/.test( options.url ) ? '&'+param : '?'+param;
-                            data=null;
-                        }
-
-                        source.open( options.url, options.method );
-                        source.send( data );
-                    });
-                    return this;
-                }
-            }
-            return _source;
-        }
-
-        /**
-         * @private
-         */
-        var _preloadPages=1;
-
-        /**
-         * 预加载分页数
-         * @param num
-         * @returns {*}
-         */
-        this.preloadPages=function(num)
-        {
-            if( num >= 0 ) {
-                _preloadPages = num;
-                return this;
-            }
-            return _preloadPages;
-        }
-
-        /**
-         * @private
-         */
-        var _pageRows= 20;
-
-        /**
-         * 每页显示数据行数
-         * @param number rows
-         * @returns {DataSource}
-         */
-        this.rows=function( rows )
-        {
-            if( rows >= 0 ) {
-                _pageRows = rows;
-                return this;
-            }
-            return _pageRows;
-        }
-
-        /**
-         * @private
-         */
-        var _predicts= 0;
-
-        /**
-         * 预计总数
-         * @param number num
-         * @returns {DataSource}
-         */
-        this.predicts=function( num )
-        {
-            if( num >= 0 ) {
-                _predicts = num;
-                return this;
-            }
-            return _predicts || this.length;
-        }
-
-        /**
-         * @private
-         */
-        var _grep=null;
-
-        /**
-         * 获取检索对象
-         * @returns {*|Grep}
-         */
-        this.grep=function()
-        {
-            return _grep || ( _grep=new Grep( this ) );
-        }
-
-        /**
-         * 从指定条件中查询
-         * @param condition
-         */
-        this.where=function( filter )
-        {
-            if( typeof filter === "string" ) {
-                this.grep().filter( filter )
-            }
-            return this;
-        }
-
-        /**
-         * @private
-         */
-        var _currentPages = 0;
-
-        /**
-         * 获取设置当前分页数
-         * @param num
-         * @returns {*}
-         */
-        this.currentPages=function( num )
-        {
-           if( num > 0 ) {
-
-               if(  _currentPages !== num )
-               {
-                   _currentPages = num;
-                   this.fetch();
-               }
-               return this;
-           }
-           return Math.min( Math.max(_currentPages,1) , this.totalPages() );
-        }
-
-        /**
-         * 总分页数
-         * @return number
-         */
-        this.totalPages=function()
-        {
-           return Math.ceil( this.predicts() / this.rows() );
-        }
-
-        /**
-         * @private
-         */
-        var _orderBy={};
-
-        /**
-         * @param column
-         * @param type
-         */
-        this.orderBy=function(column,type,flag)
-        {
-            if( typeof type === "undefined" )
-            {
-               return  typeof column === "undefined" ? _orderBy : _orderBy[column];
-            }
-
-            if( typeof column === "string" && ( _orderBy[ column ] !==type || flag===true ) )
-            {
-                _orderBy[ column ]=type;
-                this.orderBy(column,type);
-                this.fetch();
-            }
-            return this;
-        }
-
-        /**
-         * 初始化数据源
-         */
-        this.source( source, option );
     }
 
     DataSource.prototype = new EventDispatcher();
     DataSource.prototype.constructor=DataSource;
+    DataSource.prototype.length=0;
     DataSource.prototype.indexOf=DataArray.prototype.indexOf;
     DataSource.prototype.splice=DataArray.prototype.splice;
     DataSource.prototype.slice=DataArray.prototype.slice;
     DataSource.prototype.concat=DataArray.prototype.concat;
     DataSource.prototype.forEach=DataArray.prototype.forEach;
     DataSource.prototype.toArray=DataArray.prototype.toArray;
+    DataSource.prototype.__isRemote__=false;
 
     /**
+     * @returns {boolean}
+     */
+    DataSource.prototype.isRemote=function()
+    {
+        return this.__isRemote__;
+    }
+
+
+    /**
+     * @private
+     */
+    DataSource.prototype.__source__=null;
+
+    /**
+     * 数据源
+     * @returns {DataSource|window.HttpRequest}
+     */
+    DataSource.prototype.source=function( source , option )
+    {
+        if( typeof source !== "undefined" && this.__source__ === null )
+        {
+            var options = Utils.extend(true, {}, defaultOption, option || {} );
+            if( Utils.isObject(source, true) )
+            {
+                var len = this.length;
+                this.splice(0, len, source);
+                this.__source__=source;
+                this.removeEventListener(DataSourceEvent.LOAD_START);
+                return this;
+            }
+
+            if( typeof source === 'string' )
+            {
+                options.url = source;
+                source = new HttpRequest(options);
+            }
+
+            if ( source instanceof HttpRequest )
+            {
+                this.__source__=source;
+                this.__isRemote__=true;
+                var rows = options.preloadRows;
+                var beforehand = false;
+                var loadNum = 0;
+                var self = this;
+
+                //请求远程数据源侦听器
+                source.addEventListener( HttpEvent.SUCCESS, function (event)
+                {
+                    if (event.data[options.profile.status] != options.successStatus) {
+                        throw new Error('加载数据失败');
+                    }
+
+                    loadNum++;
+                    var data = event.data;
+                    var totalProfile = options.profile.total;
+                    var dataProfile = options.profile.data;
+                    var total = parseInt( data[totalProfile] ) || 0;
+                    if ( total > 0 ) {
+                        self.predicts( total );
+                    }
+
+                    data = typeof data[dataProfile] !== 'undefined' ? data[dataProfile] : data;
+
+                    //没有可加载的数据，直接删除事件侦听
+                    if (!(data instanceof Array) || data.length < rows) {
+                        self.removeEventListener(DataSourceEvent.LOAD_START);
+                    }
+
+                    var len = self.length;
+                    self.splice(len, 0, data);
+
+                    dispatch.call(self, data, DataSourceEvent.LOAD_COMPLETE, len, event);
+
+                    //do order by
+                    var orderBy = self.orderBy();
+                    for(var b in orderBy)
+                    {
+                        self.orderBy(b,orderBy[b], true);
+                    }
+
+                    if ( self.__fetched__ === true )
+                    {
+                        self.select();
+                    }
+
+                });
+
+                //向远程服务器开始加载数据
+                this.addEventListener(DataSourceEvent.LOAD_START, function (event)
+                {
+                    beforehand = !!event.beforehand;
+                    var offset = loadNum * rows;
+                    options.param[ options.profile.offset ]=offset;
+                    options.param[ options.profile.rows ]=rows;
+                    var data=options.param;
+
+                    if(  options.method === HttpRequest.METHOD.GET )
+                    {
+                        var param = Utils.serialize(options.param,'url');
+                        options.url += /\?/.test( options.url ) ? '&'+param : '?'+param;
+                        data=null;
+                    }
+
+                    source.open( options.url, options.method );
+                    source.send( data );
+                });
+                return this;
+            }
+        }
+        return this.__source__;
+    }
+
+    /**
+     * @private
+     */
+    DataSource.prototype.__preloadPages__=1;
+
+    /**
+     * 预加载分页数
+     * @param num
+     * @returns {*}
+     */
+    DataSource.prototype.preloadPages=function(num)
+    {
+        if( num >= 0 ) {
+            this.__preloadPages__ = num;
+            return this;
+        }
+        return this.__preloadPages__;
+    }
+
+    /**
+     * @private
+     */
+    DataSource.prototype.__pageRows__= 20;
+
+    /**
+     * 每页显示数据行数
+     * @param number rows
+     * @returns {DataSource}
+     */
+    DataSource.prototype.rows=function( rows )
+    {
+        if( rows >= 0 ) {
+            this.__pageRows__ = rows;
+            return this;
+        }
+        return this.__pageRows__;
+    }
+
+    /**
+     * @private
+     */
+    DataSource.prototype.__predicts__= 0;
+
+    /**
+     * 预计总数
+     * @param number num
+     * @returns {DataSource}
+     */
+    DataSource.prototype.predicts=function( num )
+    {
+        if( num >= 0 ) {
+            this.__predicts__ = num;
+            return this;
+        }
+        return this.__predicts__ || this.length;
+    }
+
+
+    /**
+     * @private
+     */
+    DataSource.prototype.__grep__=null;
+
+    /**
+     * 获取检索对象
+     * @returns {*|Grep}
+     */
+    DataSource.prototype.grep=function()
+    {
+        return this.__grep__ || ( this.__grep__=new Grep( this ) );
+    }
+
+    /**
+     * 从指定条件中查询
+     * @param condition
+     */
+    DataSource.prototype.where=function( filter )
+    {
+        if( typeof filter === "string" ) {
+            this.grep().filter( filter )
+        }
+        return this;
+    }
+
+    /**
+     * @private
+     */
+    DataSource.prototype.__currentPages__ = 0;
+
+    /**
+     * 获取设置当前分页数
+     * @param num
+     * @returns {*}
+     */
+    DataSource.prototype.currentPages=function( num )
+    {
+        if( num > 0 ) {
+
+            if(  this.__currentPages__ !== num )
+            {
+                this.__currentPages__ = num;
+                this.select();
+            }
+            return this;
+        }
+        return Math.min( Math.max(this.__currentPages__,1) , this.totalPages() );
+    }
+
+    /**
+     * 总分页数
+     * @return number
+     */
+    DataSource.prototype.totalPages=function()
+    {
+        return Math.ceil( this.predicts() / this.rows() );
+    }
+
+
+    /**
+     * @private
+     */
+    DataSource.prototype.__orderBy__={};
+
+    /**
+     * @param column
+     * @param type
+     */
+    DataSource.prototype.orderBy=function(column,type,flag)
+    {
+        if( typeof type === "undefined" )
+        {
+            return  typeof column === "undefined" ? this.__orderBy__ : this.__orderBy__[column];
+        }
+
+        if( typeof column === "string" && ( this.__orderBy__[ column ] !==type || flag===true ) )
+        {
+            this.__orderBy__[ column ]=type;
+            this.orderBy(column,type);
+            this.select();
+        }
+        return this;
+    }
+
+    /**
+     * 通过视图索引返回对应数据源的索引位置
      * @param index
      * @returns {number}
      */
-    DataSource.prototype.offsetIndex=function( index )
+    DataSource.prototype.viewIndex=function( index )
     {
         var index = parseInt(index);
         if( isNaN(index) )return index;
@@ -347,13 +343,14 @@
     }
 
     /**
+     * 根据视图索引返回数据项
      * @param index
      * @returns {number}
      */
-    DataSource.prototype.offsetItem=function( index )
+    DataSource.prototype.getItemByViewIndex=function( index )
     {
-        var index = this.offsetIndex(index);
-        if( !isNaN(index)) {
+        var index = this.viewIndex( index );
+        if( !isNaN(index) ) {
             return this[index] || null;
         }
         return null;
@@ -365,7 +362,7 @@
      * @param index
      * @returns {DataSource}
      */
-    DataSource.prototype.add=function(item,index)
+    DataSource.prototype.insert=function(item,index)
     {
         if( item )
         {
@@ -373,8 +370,7 @@
             index = index < 0 ? index + this.length+1 : index;
             index = Math.min( this.length, Math.max( index, 0 ) )
             this.splice(index,0,item);
-            dispatch.call(this,item,DataSourceEvent.ADD,index);
-            dispatch.call(this,item,DataSourceEvent.CHANGE,index);
+            dispatch.call(this,item,DataSourceEvent.INSERT,index);
         }
         return this;
     }
@@ -384,29 +380,26 @@
      * @param index
      * @returns {boolean}
      */
-    DataSource.prototype.remove=function( filter )
+    DataSource.prototype.delete=function( filter )
     {
-        var index,item;
+        var index;
         var result = this.grep().execute( filter );
         for(var i=0; i<result.length ; i++)
         {
-            index = this.indexOf( result[i] )
+            index = this.indexOf( result[i] );
             if( index >=0 && index < this.length )
             {
-                item=this.splice(index,1);
+                this.splice(index,1);
             }else
             {
                 throw new Error('index invalid');
             }
         }
-
         if( result.length > 1  )
         {
             index = NaN;
         }
-
-        dispatch.call(this,result,DataSourceEvent.REMOVE,index);
-        dispatch.call(this,result,DataSourceEvent.CHANGE,index);
+        dispatch.call(this,result,DataSourceEvent.DELETE,index);
         return this;
     }
 
@@ -415,7 +408,7 @@
      * @param index
      * @returns {boolean}
      */
-    DataSource.prototype.alter=function( data, filter )
+    DataSource.prototype.update=function( data, filter )
     {
         var result = this.grep().execute(filter);
         var flag=false;
@@ -439,8 +432,7 @@
             if (result.length === 1) {
                 index = this.indexOf(result[0]);
             }
-            dispatch.call(this, result, DataSourceEvent.ALTER, index);
-            dispatch.call(this, result, DataSourceEvent.CHANGE, index);
+            dispatch.call(this, result, DataSourceEvent.UPDATE, index);
         }
         return flag;
     }
@@ -449,25 +441,27 @@
      * 选择数据集
      * @returns {DataSource}
      */
-    DataSource.prototype.fetch=function( filter )
+    DataSource.prototype.select=function( filter )
     {
         var page = this.currentPages();
         var rows=this.rows(),start=( page-1 ) * rows;
         this.__fetched__ = true;
 
+        //本地数据源
         if( ( start+rows < this.length || this.isRemote() !==true || !this.hasEventListener(DataSourceEvent.LOAD_START) ) &&
-            this.hasEventListener(DataSourceEvent.FETCH) )
+            this.hasEventListener(DataSourceEvent.SELECT) )
         {
             this.__fetched__= false;
             var offset  =  start;
             var end     = Math.min( start+rows, this.length );
             var result = this.grep().execute( filter );
             var data = result.slice( offset, end );
-            console.log('====fetch===')
-            this.dispatchEvent( new DataSourceEvent( DataSourceEvent.FETCH, {'data': data} ) );
+            var event = new DataSourceEvent( DataSourceEvent.SELECT )
+            event.data = data;
+            this.dispatchEvent( event );
         }
 
-        //预加载数据
+        //预加载数据,远程数据源
         if( this.isRemote() === true && (this.length - start) <= rows*this.preloadPages() && this.hasEventListener( DataSourceEvent.LOAD_START ) )
         {
             var  event = new DataSourceEvent( DataRenderEvent.LOAD_START );
@@ -480,16 +474,14 @@
     function DataSourceEvent( src, props ){ BreezeEvent.call(this, src, props);}
     DataSourceEvent.prototype=new BreezeEvent();
     DataSourceEvent.prototype.constructor=DataSourceEvent;
-    DataSourceEvent.prototype.item=null;
     DataSourceEvent.prototype.index=NaN;
     DataSourceEvent.prototype.beforehand=false;
     DataSourceEvent.prototype.data=null;
 
-    DataSourceEvent.ADD='dataSourceItemAdd';
-    DataSourceEvent.REMOVE='dataSourceItemRemove';
-    DataSourceEvent.CHANGE='dataSourceItemChanged';
-    DataSourceEvent.ALTER='dataSourceItemAlter';
-    DataSourceEvent.FETCH = 'dataSourceFetch';
+    DataSourceEvent.INSERT='dataSourceItemInsert';
+    DataSourceEvent.DELETE='dataSourceItemDelete';
+    DataSourceEvent.UPDATE='dataSourceItemUpdate';
+    DataSourceEvent.SELECT = 'dataSourceSelect';
     DataSourceEvent.LOAD_START='dataSourceLoadStart';
     DataSourceEvent.LOAD_COMPLETE='dataSourceLoadComplete';
 

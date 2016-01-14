@@ -60,7 +60,7 @@
     DataArray.prototype.splice=function()
     {
         var arg=[arguments[0],arguments[1]];
-        for(var i=2; i<arguments.length; i++)
+        for(var i=2; i<arguments.length; i++) if(typeof arguments[i] !== 'undefined' )
         {
             arg=arg.concat( arguments[i] );
         }
@@ -130,6 +130,33 @@
         })
         return this;
     }
+
+    /**
+     * 过滤数组
+     * @param function callback
+     */
+    DataArray.prototype.filter=Array.prototype.filter || function( callback )
+    {
+         if( typeof callback !== "function" )
+         {
+             callback=function( item ){ return !!item; }
+         }
+
+         var index = 0;
+         while( index < this.length )
+         {
+             if( !callback( this[index] ) )
+             {
+                 this.splice(index,1);
+
+             }else
+             {
+                 index++;
+             }
+         }
+         return this;
+    }
+
 
     /**
      * 遍历元素

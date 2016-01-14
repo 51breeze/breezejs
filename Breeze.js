@@ -213,7 +213,7 @@
 
     ,dispatchEventAll=function(target,event)
     {
-        if( target instanceof EventDispatcher && target.hasEventListener( event.type ) && !target.dispatchEvent( event ) )
+        if( target instanceof EventDispatcher &&  target.hasEventListener( event.type ) && !target.dispatchEvent( event ) )
           return false;
         return true;
     }
@@ -883,8 +883,6 @@
         var write= typeof html !== "undefined";
         if( !write && this.length < 1 ) return '';
 
-
-
         return this.forEach(function(elem)
         {
             if( !write || Utils.isBoolean(html) )
@@ -996,7 +994,6 @@
           return this.html(value);
         else if( lower === 'style' )
           throw new Error('the style property names only use style method to operate in property');
-
         return access.call(this,name,value,{
             get:function(prop){
                 return Utils.property(this,prop);

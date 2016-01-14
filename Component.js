@@ -70,7 +70,7 @@
 
     /**
      * @param viewport
-     * @returns {HTMLElement|Component}
+     * @returns {Component|Breeze}
      * @public
      */
     Component.prototype.viewport=function( viewport , context )
