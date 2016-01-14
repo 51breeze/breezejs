@@ -101,8 +101,7 @@
        */
 
 
-         var selection = new Selection()
-          selection.viewport( '#selection' )
+         var selection = new Selection( new SkinGroup('#selection') )
          selection.source( [{value:1,lable:'张三'},{value:2,lable:'李四'}] );
          selection.display();
 

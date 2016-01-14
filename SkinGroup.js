@@ -39,7 +39,7 @@
     /**
      * @type {RegExp}
      */
-    var htmlReg=/\{(html)\s+([\w\s\+\.]+)\s*\}/g;
+    var htmlReg=/\{(part)\s+([\w\s\+\.]+)\s*\}/g;
     var attrReg = /\{(attr)\s+([\w\s\+\.]+)\s*\}/g;
     var isattrReg = /^\s*\<\w+[^\>]*\{attr.*?\}/;
     var blank=/\s+/g;
@@ -118,24 +118,58 @@
            hasskinname=new RegExp('^\s*\<\w+[^\>]*'+SkinGroup.NAME+'\s*\=','i');
         }
 
-        for (var name in this.html)
+        for (var name in this.part)
         {
-            if( !hasskinname.test(this.html[name]) )
-                this.html[name] = this.html[name].replace( addattr, '<$1 '+SkinGroup.NAME+'="'+name+'"');
+            if( !hasskinname.test(this.part[name]) )
+                this.part[name] = this.part[name].replace( addattr, '<$1 '+SkinGroup.NAME+'="'+name+'"');
 
-            if( !isattrReg.test( this.html[name] ) )
-                this.html[name] = this.html[name].replace( addattr, "<$1 {attr " + name + "}");
-            this.html[name] = this.html[name].replace(attrReg,parser);
+            if( !isattrReg.test( this.part[name] ) )
+                this.part[name] = this.part[name].replace( addattr, "<$1 {attr " + name + "}");
+            this.part[name] = this.part[name].replace(attrReg,parser);
         }
 
-        for (var name in this.html)
+        for (var name in this.part)
         {
-           this.html[name] = this.html[name].replace(htmlReg,parser);
+           this.part[name] = this.part[name].replace(htmlReg,parser);
         }
-        this.html.container=this.html.container.replace(htmlReg,parser);
-        return this.html.container;
+        this.part.container=this.part.container.replace(htmlReg,parser);
+        return this.part.container;
     }
 
+
+    /**
+     * 皮肤对象.将一个符合皮肤格式的对象转换成HTML格式的字符串
+     * @param container
+     * @param part
+     * @param attr
+     * @returns {SkinObject}
+     * @constructor
+     */
+    function SkinObject( container,part,attr)
+    {
+        if( !(this instanceof SkinObject ) )
+            return new SkinObject(container,part,attr);
+        if( typeof container !== "string" )
+        {
+            var nodename = Utils.nodeName( container );
+            if( nodename === 'noscript' ||  nodename === 'textarea')
+            {
+                container = nodename === 'textarea' ? container.value : container.innerHTML;
+            }
+        }
+        this.container=container;
+        this.attr=attr;
+        this.part=part;
+    }
+
+    SkinObject.prototype.constructor= SkinObject;
+    SkinObject.prototype.part= {};
+    SkinObject.prototype.attr= {};
+    SkinObject.prototype.container='';
+    SkinObject.prototype.createSkin=function()
+    {
+        return typeof this.container !== "string" ? this.container : toString.call( this );
+    }
 
     /**
      * 皮肤组件
@@ -165,139 +199,75 @@
      *     使用完后必须调用current(null) 回滚到皮肤主容器，否则将有可能得不到正确的结果。
      *     当皮肤组件解析完成后会自动添加到context中。
      *
-     * @param selector|HTMLElement context 皮肤上的父容器。皮肤组装完成后添加到的父容器。
-     * @param function callback 如果是一个模板皮肤通过此回调方法解析后返回。
+     * @param selector|HTMLElement viewport 皮肤所要呈现的视口容器。
+     * @param SkinObject skinObject 皮肤对象，可以是空。
      * @returns {SkinGroup}
      * @constructor
      */
-    function SkinGroup( skinObject, context ,callback)
+    function SkinGroup( viewport , skinObject )
     {
         if( !(this instanceof SkinGroup) )
-            return new SkinGroup( skinObject, context,callback);
+            return new SkinGroup( viewport, skinObject);
 
-        this.__skinObject__=skinObject;
-        if( typeof skinObject === "string" &&  isselector.test(skinObject) )
+        if( typeof viewport === "string" && isselector.test(viewport) )
         {
-           skinObject= Sizzle(skinObject,context)[0];
-           this.__skinObject__=skinObject;
-
-        }else if( Utils.isObject(skinObject) )
-        {
-            if( !skinObject.html || typeof skinObject.html.container !== "string" )
-            {
-                throw new Error('invaild skinObject');
-            }
-            skinObject= toString.call( skinObject );
+            viewport = Sizzle(viewport)[0];
         }
 
-        var ismake= false;
-        if( Utils.isNodeElement(skinObject) && !Utils.isDocument(skinObject) )
+        if( !Utils.isHTMLElement(viewport) )
         {
-            var nodename = Utils.nodeName( skinObject );
-            context = typeof context === "undefined" ? skinObject.parentNode || document.body : context;
-            if( nodename === 'noscript' ||  nodename === 'textarea')
-            {
-                ismake=true;
-                skinObject = nodename === 'textarea' ? skinObject.value : skinObject.innerHTML;
-            }
-            this.__skinObject__ = skinObject;
+            throw new Error('invalid context');
         }
 
-        if( typeof callback !== "function" || !callback.call(this, skinObject, context ) )
-        {
-            this.initialize(skinObject,context,ismake);
-        }
-    }
+        Breeze.call(this, viewport);
+        this.skinObject( skinObject  );
 
-    /**
-     * 将一个符合皮肤格式的对象转换成HTML格式的字符串
-     * @param object skinObject 皮肤对象
-     * @returns {*}
-     */
-    SkinGroup.toString=function(skinObject)
-    {
-        if( Utils.isObject(skinObject) )
-        {
-            if( !skinObject.html || typeof skinObject.html.container !== "string" )
-            {
-                throw new Error('invaild skinObject');
-            }
-            return toString.call( skinObject );
-        }
-        return skinObject;
-    }
-
-    /**
-     * 判断是否为一个皮肤对象
-     * @param skinObject
-     * @returns {boolean}
-     */
-    SkinGroup.isSkinObject=function( skinObject )
-    {
-         return ( Utils.isObject( skinObject ) && Utils.isObject(skinObject.html) );
-    }
-
-    /**
-     * 创建一个皮肤对象
-     * @param skinContainer
-     * @param skinParts
-     * @param skinAttr
-     * @returns {{html: *, attr: *}}
-     */
-    SkinGroup.createSkinObject=function(skinContainer,skinParts,skinAttr)
-    {
-        if( typeof skinContainer !=="string" )
-            throw new Error('invaild skinContainer');
-        skinParts || (skinParts={})
-        skinAttr || (skinAttr={})
-        skinParts.container=skinContainer;
-        return {
-            'html':skinParts,
-            'attr':skinAttr
-        };
+        if (this.length != 1)
+            throw new Error('Create skinObject failed');
     }
 
     SkinGroup.NAME='skin';
     SkinGroup.prototype=new Breeze();
     SkinGroup.prototype.__skin__={};
-    SkinGroup.prototype.__skinObject__={};
+    SkinGroup.prototype.__skinObject__=null;
     SkinGroup.prototype.constructor=SkinGroup;
-    SkinGroup.prototype.__initialized__=false;
 
     /**
-     * 初始化皮肤
-     * @param skinObject
-     * @param context
+     * 添加子级皮肤到当前皮肤组
+     * @param childSkin
+     * @param skinName
+     * @param index
+     * @returns {SkinGroup}
      */
-    SkinGroup.prototype.initialize=function( skinObject,context ,ismake )
+    SkinGroup.prototype.addChildSkin=function( childSkin ,index, skinName )
     {
-        if( this.__initialized__ === false )
+        index = isNaN(index) ? -1 : index ;
+        childSkin = Utils.createElement( childSkin );
+        this.addChildAt(  childSkin , index );
+        if( typeof skinName === "string" )
         {
-            this.__initialized__ = true;
-            if( !ismake )
-            {
-                if (skinObject instanceof Breeze) {
-                    Breeze.call(this, skinObject[0], skinObject.context);
-                } else {
-                    Breeze.call(this, Utils.createElement(skinObject), context);
-                }
-            }else
-            {
-                Breeze.call(this, context );
-            }
-            if (this.length != 1)
-                throw new Error('Create skinObject failed');
-            this.__skin__ = {'container': this[0]};
+            this.current( childSkin );
+            this.property(SkinGroup.NAME, skinName );
+            this.__skin__[skinName]=childSkin;
+            this.current( null );
         }
-        return this.__initialized__;
+        return this;
     }
 
     /**
      * 获取皮肤对象
      * @returns {*}
      */
-    SkinGroup.prototype.getSkinObject=function()
+    SkinGroup.prototype.skinObject=function( skinObject )
     {
+        if( skinObject instanceof SkinObject )
+        {
+            this.__skinObject__=skinObject;
+            childSkin = Utils.createElement( skinObject.createSkin() );
+            if( !Utils.contains(this[0],childSkin) )
+               this.addChildAt(  childSkin , -1 );
+            return this;
+        }
         return this.__skinObject__;
     }
 
@@ -310,7 +280,7 @@
     {
         if( typeof this.__skin__[skinName] === "undefined" )
         {
-            var ret = Sizzle(  Utils.sprintf('[%s="%s"]', SkinGroup.NAME, skinName ) , this.__skin__.container );
+            var ret = Sizzle(  Utils.sprintf('[%s="%s"]', SkinGroup.NAME, skinName ) , this[0] );
             this.__skin__[skinName]=ret[0] || null;
         }
         return this.__skin__[skinName];
@@ -329,6 +299,8 @@
         return this;
     }
 
+
     window.SkinGroup=SkinGroup;
+    window.SkinObject=SkinObject;
 
 })( window )
