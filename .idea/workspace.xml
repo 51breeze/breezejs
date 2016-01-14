@@ -1,19 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="Layout">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Breeze.js" afterPath="$PROJECT_DIR$/Breeze.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Component.js" afterPath="$PROJECT_DIR$/Component.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataArray.js" afterPath="$PROJECT_DIR$/DataArray.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataRender.js" afterPath="$PROJECT_DIR$/DataRender.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataSource.js" afterPath="$PROJECT_DIR$/DataSource.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/EventDispatcher.js" afterPath="$PROJECT_DIR$/EventDispatcher.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Layout.js" afterPath="$PROJECT_DIR$/Layout.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Manager.js" afterPath="$PROJECT_DIR$/Manager.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Selection.js" afterPath="$PROJECT_DIR$/Selection.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Template.js" afterPath="$PROJECT_DIR$/Template.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Utils.js" afterPath="$PROJECT_DIR$/Utils.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
+    <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="Component">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <list id="48e5422b-3dbc-4e69-a533-1ba0bdd3e2ab" name="New changelist" comment="" />
@@ -518,11 +506,15 @@
       <created>1452440825903</created>
       <updated>1452440825903</updated>
     </task>
-    <option name="localTasksCounter" value="54" />
+    <task id="LOCAL-00054" summary="Component">
+      <created>1452445198547</created>
+      <updated>1452445198547</updated>
+    </task>
+    <option name="localTasksCounter" value="55" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1456" height="876" extended-state="6" />
+    <frame x="-8" y="-8" width="1456" height="876" extended-state="7" />
     <editor active="true" />
     <layout>
       <window_info id="更改" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -599,7 +591,8 @@
     <MESSAGE value="Default" />
     <MESSAGE value="Modality" />
     <MESSAGE value="Layout" />
-    <option name="LAST_COMMIT_MESSAGE" value="Layout" />
+    <MESSAGE value="Component" />
+    <option name="LAST_COMMIT_MESSAGE" value="Component" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
