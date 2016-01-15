@@ -152,7 +152,7 @@
     /**
      * @protected
      */
-    Layout.prototype.getDefaultSkin=function()
+    Layout.prototype.getDefaultSkinObject=function()
     {
        throw new Error('Not skin');
     }

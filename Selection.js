@@ -16,24 +16,26 @@
 
     Selection.prototype=new SkinComponent();
     Selection.prototype.constructor=Selection;
+    SkinComponent.prototype.componentProfile='selection';
+    SkinComponent.prototype.initializeMethod=[];
 
     /**
      * @private
      */
-    Selection.prototype.__lableProfile__='lable';
+    Selection.prototype.__labelProfile__='label';
 
     /**
      * @param profile
      * @returns {*}
      */
-    Selection.prototype.lableProfile=function( profile )
+    Selection.prototype.labelProfile=function( profile )
     {
         if( typeof profile === "string" )
         {
-            this.__lableProfile__ = profile;
+            this.__labelProfile__ = profile;
             return this;
         }
-        return this.__lableProfile__;
+        return this.__labelProfile__;
     }
 
     /**
@@ -73,17 +75,17 @@
             var self = this;
             var dr = new DataRender();
             this.__dataRender__ = dr;
-            dr.addEventListener(DataSourceEvent.SELECT,function(event){
+            dr.dataSource().addEventListener(DataSourceEvent.SELECT,function(event){
 
                 var index = this.selectedIndex();
                 if( typeof index === "function" )
                     index=index.call(this);
                 var item = event.data[index] || event.data[0];
-                this.dataRender().template().variable('current', item['name'] || item );
+                this.dataRender().variable('current', item['name'] || item );
 
             },false,200,this);
 
-            dr.template().addEventListener(TemplateEvent.REFRESH,function(event){
+            dr.addEventListener(TemplateEvent.REFRESH,function(event){
 
                 var skinGroup = this.skinGroup();
                 var position = skinGroup.position()
@@ -145,40 +147,22 @@
 
 
     /**
-     * @param source
-     * @param options
-     * @returns {Selection}
+     * @private
+     * @param index
      */
-    Selection.prototype.source=function(source,options)
-    {
-        if( typeof source === "undefined" )
-            return this.dataRender().source();
-
-        if( !this.hasEventListener(DataSourceEvent.SELECT) || !DataSource.prototype.source.call(this) )
-        {
-            this.addEventListener(DataSourceEvent.SELECT,function(event){
-                if( this.__view__ ) {
-                    this.template().variable(this.dataProfile(), event.data).render( this.__view__ );
-                }
-            });
-        }
-        this.dataRender().source( source , options )
-        return this;
-    }
-
     function commitSelectedIndex( index )
     {
         if( this.__label__ === null && this.getSkin('label') )
         {
             this.__label__ = new Bindable('label');
-            var profile = this.lableProfile();
+            var profile = this.labelProfile();
             this.__label__.bind( this.getSkin('label'), 'label', function (property, item) {
                 this.innerText = item[ profile ];
             });
         }
         if( this.__label__ )
         {
-            var dataSource = this.dataRender();
+            var dataSource = this.dataRender().dataSource();
             if( dataSource.length > 0 && dataSource[index] )
             {
                 this.__label__.property('label', dataSource[index]);
@@ -221,42 +205,24 @@
     Selection.prototype.display=function()
     {
         var skinGroup = this.skinGroup();
-        var index=-1;
-        var self= this;
-        if( skinGroup instanceof SkinGroup )
-        {
-            skinGroup.display(false);
-            var viewport = index = skinGroup.getSkin('container');
-            if( Utils.nodeName(viewport) === 'select' )
-            {
-                var dataSource=[];
-                skinGroup.find('option').forEach(function(elem){
-                    var item=Utils.mergeAttributes({}, elem );
-                    item[ self.valueProfile() ]=  this.value();
-                    item[ self.lableProfile() ]=  this.text();
-                    dataSource.push( item );
-                });
-                this.source( dataSource );
-                if( !this.__viewport__ )
-                {
-                    this.viewport(viewport.parentNode);
-                }
-                skinGroup=this.getDefaultSkin();
-            }
-        }
-
-        if( SkinGroup.isSkinObject( skinGroup ) )
-        {
-            var viewport = this.viewport();
-            var dataRender = this.dataRender();
-            var tpl = dataRender.template();
-            viewport.addChildAt( skinGroup.html.container , index );
-            this.skinGroup( new SkinGroup(viewport) );
-            tpl.viewport( this.getSkin('group') );
-            dataRender.display( skinGroup.html.list );
-        }
+        var dataRender = this.dataRender();
+        dataRender.viewport( this.getSkin('group') );
+        dataRender.display( skinGroup.skinObject().get('part.list') );
         commitSelectedIndex.call(this, this.selectedIndex() );
         return this;
+    }
+
+    /**
+     * @protected
+     * @param skinGroup
+     */
+    Selection.prototype.skinInstalled=function( skinGroup )
+    {
+        if( !skinGroup.skinObject() )
+        {
+            skinGroup.skinObject( this.defaultSkinObject() )
+        }
+        SkinComponent.prototype.skinInstalled.call(this,skinGroup);
     }
 
     /**
@@ -264,10 +230,10 @@
      * @returns {SkinGroup}
      * @protected
      */
-    Selection.prototype.getDefaultSkin=function()
+    Selection.prototype.defaultSkinObject=function()
     {
         var dataProfile= this.dataRender().dataProfile();
-        var labelProfile =  this.lableProfile();
+        var labelProfile =  this.labelProfile();
         var valueProfile = this.valueProfile();
         var skinObject=new SkinObject('<div>{part label+group}</div>',{
             input: '<input/>',

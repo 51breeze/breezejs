@@ -17,7 +17,7 @@
      * @returns {Component}
      * @constructor
      */
-    function SkinComponent(skinGroup)
+    function SkinComponent( skinGroup )
     {
         if( !(this instanceof SkinComponent) )
             return new SkinComponent(skinGroup);
@@ -43,39 +43,38 @@
      */
     SkinComponent.prototype.skinInstalled=function( skinGroup )
     {
-        if( skinGroup instanceof Breeze )
-           this.viewport( skinGroup );
+        skinGroup.current(null).property( Component.NAME, this.componentProfile );
     }
 
     /**
-     * @returns {string|SkinGroup|Breeze}
+     * @returns {*}
      * @protected
      */
-    SkinComponent.prototype.getDefaultSkin=function()
-    {
-        return this.viewport();
-    }
+    SkinComponent.prototype.defaultSkinObject=function(){}
 
     /**
      * 获取设置皮肤组
-     * @returns {Breeze|SkinGroup|EventDispatcher|SkinComponent|string}
+     * @returns {SkinGroup|SkinComponent}
      * @public
      */
     SkinComponent.prototype.skinGroup=function( skinGroup )
     {
-        if( typeof skinGroup !== "undefined" )
+        if( typeof skinGroup !== "undefined"  )
         {
-            this.__skinGroup__=  skinGroup instanceof Breeze ? skinGroup : new SkinGroup(skinGroup);
-            this.__skinChanged__=true;
+            if( !this.__skinGroup__ )
+            {
+                this.__skinGroup__ = skinGroup;
+                this.__skinChanged__ = true;
+            }
             return this;
         }
-        if( this.__skinGroup__ === null )
+
+        if( this.__skinChanged__===true )
         {
-            this.__skinGroup__ = this.getDefaultSkin();
-            this.__skinChanged__=true;
-        }
-        if( this.__skinChanged__===true && this.__skinGroup__ !==null )
-        {
+            if( !( this.__skinGroup__ instanceof SkinGroup ) )
+            {
+                this.__skinGroup__ = new SkinGroup( this.__skinGroup__ );
+            }
             this.__skinChanged__=false;
             this.skinInstalled( this.__skinGroup__ );
         }
@@ -83,12 +82,17 @@
     }
 
     /**
+     * 获取设置视口容器
      * @protected
-     * @param Breeze viewport
+     * @param viewport
+     * @param context
+     * @returns {*|DataRender|Component|Breeze}
      */
-    SkinComponent.prototype.viewportChange=function( viewport )
+    SkinComponent.prototype.viewport=function( viewport , context )
     {
-       viewport.current(null).data( this.componentProfile, this );
+        var skinGroup = this.skinGroup();
+        skinGroup.current(null);
+        return skinGroup;
     }
 
     /**

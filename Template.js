@@ -192,7 +192,7 @@
     {
         if( !(this instanceof Template) )
         {
-           return new Template( options );
+           return new Template( view, options );
         }
 
         if( typeof options !=="undefined" && Utils.isObject(options) )
@@ -204,33 +204,35 @@
         EventDispatcher.call(this);
     }
 
-    Template.prototype = new EventDispatcher()
+    Template.prototype = new EventDispatcher();
     Template.prototype.constructor = Template;
     Template.prototype.__variable__=null;
     Template.prototype.__viewport__=null;
     Template.prototype.__split__=  new RegExp(_options.left+'(.*?)'+_options.right+'|'+_options.shortLeft+'(.*?)'+_options.shortRight,'gi');
 
-    /**
-     * 获取设置目标容器
-     * @param target
-     * @returns {*}
-     */
-    Template.prototype.viewport=function( viewport )
-    {
-        if( typeof viewport !== "undefined" )
-        {
-            if ( !(viewport instanceof Breeze) )
-            {
-                viewport = Breeze(viewport);
-            }
 
-            if ( viewport.length < 1 )
-            {
-                throw new Error('invalid viewport.')
-            }
-            this.__viewport__= viewport;
+    /**
+     * @param viewport
+     * @returns {Component|Breeze}
+     * @public
+     */
+    Template.prototype.viewport=function( viewport , context )
+    {
+        if( typeof viewport === "undefined" )
+            return this.__viewport__;
+
+        if( viewport === this.__viewport__ )
+            return this;
+
+        if( !(viewport instanceof Breeze) )
+            viewport = Breeze( viewport , context );
+
+        if( viewport.length > 0 )
+        {
+            this.__viewport__=viewport;
+            return this;
         }
-        return this.__viewport__;
+        throw new Error('invalid viewport');
     }
 
     /**
@@ -259,18 +261,34 @@
     }
 
     /**
+     * @private
+     */
+    Template.prototype.__view__=null;
+
+    /**
+     * 获取设置要渲染的视图
+     * @param view
+     * @returns {*}
+     */
+    Template.prototype.view=function( view )
+    {
+        if( typeof view !== "undefined" )
+            this.__view__= getTemplateContent( view );
+        return this.__view__;
+    }
+
+    /**
      * 渲染模板视图
      * @param template
      * @param data
      * @param flag
      * @returns {*}
      */
-    Template.prototype.render=function(source,flag )
+    Template.prototype.render=function( view,flag )
     {
         flag = !!flag;
-        var template = getTemplateContent( source );
-        var event=new TemplateEvent( TemplateEvent.START );
-        event.template = template;
+        var event = new TemplateEvent( TemplateEvent.START );
+        event.template =  this.view( view );
         event.variable = this.variable();
         event.viewport = this.viewport();
 

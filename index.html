@@ -20,8 +20,8 @@
     <script src="DataGrid.js"></script>
     <script src="Bindable.js" ></script>
     <script src="DataSource.js" ></script>
-    <script src="DataRender.js" ></script>
     <script src="Template.js" ></script>
+    <script src="DataRender.js" ></script>
     <script src="Pagination.js" ></script>
 
     <script src="Selection.js" ></script>
@@ -101,8 +101,9 @@
        */
 
 
-         var selection = new Selection( new SkinGroup('#selection') )
-         selection.source( [{value:1,lable:'张三'},{value:2,lable:'李四'}] );
+         var selection = new Selection( '#selection' )
+         selection.dataRender().source( [{value:1,label:'张三'},{value:2,label:'李四'}] );
+         selection.selectedIndex(0)
          selection.display();
 
 

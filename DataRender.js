@@ -15,23 +15,55 @@
      * @returns {DataRender}
      * @constructor
      */
-    function DataRender()
+    function DataRender(viewport,option)
     {
         if( !(this instanceof DataRender) )
         {
-            return new DataRender();
+            return new DataRender(viewport);
         }
-        DataSource.call(this);
-        this.addEventListener(DataSourceEvent.SELECT,function(event)
-        {
-            var data = event.data;
-            var view = this.__view__;
-            this.template().variable( this.dataProfile(), data ).render( view );
-        })
+        Template.call(this,option);
+        this.viewport( viewport );
     }
 
-    DataRender.prototype = new DataSource();
+    DataRender.prototype = new Template();
     DataRender.prototype.constructor=DataRender;
+    DataRender.prototype.__dataSource__=null;
+
+    /**
+     * 获取设置数据源对象
+     * @returns {DataSource}
+     */
+    DataRender.prototype.dataSource=function()
+    {
+        if( !(this.__dataSource__ instanceof DataSource) )
+        {
+            this.__dataSource__ = new DataSource()
+            .addEventListener(DataSourceEvent.SELECT,function(event)
+            {
+                var data = event.data;
+                var view = this.view();
+                if( typeof view !== "string" )
+                   throw new Error('invalid view');
+                this.variable( this.dataProfile(), data ).render( view );
+
+            },false,0,this);
+        }
+        return this.__dataSource__;
+    }
+
+    /**
+     * 获取设置数据源
+     * @param source
+     * @param option
+     * @returns {*}
+     */
+    DataRender.prototype.source=function( source, option )
+    {
+        if( typeof source === "undefined"  )
+           return this.dataSource().source();
+        this.dataSource().source(source, option);
+        return this;
+    }
 
     /**
      * 显示视图
@@ -39,45 +71,9 @@
      */
     DataRender.prototype.display=function( view )
     {
-        this.__view__=view;
-        this.select();
+        this.view( view );
+        this.dataSource().select();
         return this;
-    }
-
-    /**
-     * 视口元素
-     * @param viewport
-     * @returns {DataRender}
-     */
-    DataRender.prototype.viewport=function( viewport )
-    {
-        if( typeof viewport === "undefined")
-            return this.template().viewport();
-        this.template().viewport( viewport );
-        return this;
-    }
-
-    /**
-     * @private
-     */
-    DataRender.prototype.__template__=null;
-
-    /**
-     * 返回模板编译器
-     * @param Template template
-     * @returns {*|Template}
-     */
-    DataRender.prototype.template=function( template )
-    {
-        if( template instanceof Template )
-        {
-            this.__template__ = template;
-        }
-        if( this.__template__=== null )
-        {
-            this.__template__=new Template();
-        }
-        return this.__template__;
     }
 
     /**

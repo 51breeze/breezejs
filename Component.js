@@ -24,11 +24,11 @@
     {
         if( !(this instanceof Component) )
             return new Component( viewport );
-
-        if( typeof viewport !== "undefined" )
+        if( viewport )
         {
             this.viewport( viewport );
         }
+        EventDispatcher.call(this);
     }
 
     /**
@@ -44,6 +44,7 @@
         return null;
     }
 
+    Component.prototype=new EventDispatcher();
     Component.prototype.constructor=Component;
     Component.prototype.componentProfile='component';
     Component.prototype.initializeMethod=[];
@@ -97,6 +98,7 @@
         if( viewport.length > 0 )
         {
             this.__viewport__=viewport;
+            EventDispatcher.call(this,viewport[0]);
             this.__viewportChanged__=true;
             return this;
         }
@@ -107,10 +109,7 @@
      * @protected
      * @param Breeze newViewport
      */
-    Component.prototype.viewportChange=function( newViewport )
-    {
-        newViewport.current(null).data( this.componentProfile, this );
-    }
+    Component.prototype.viewportChange=function( newViewport ){}
 
     /**
      * @private

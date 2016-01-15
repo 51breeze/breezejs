@@ -118,6 +118,7 @@
            hasskinname=new RegExp('^\s*\<\w+[^\>]*'+SkinGroup.NAME+'\s*\=','i');
         }
 
+        this.part.container = this.container;
         for (var name in this.part)
         {
             if( !hasskinname.test(this.part[name]) )
@@ -132,8 +133,8 @@
         {
            this.part[name] = this.part[name].replace(htmlReg,parser);
         }
-        this.part.container=this.part.container.replace(htmlReg,parser);
-        return this.part.container;
+        this.container=this.part.container.replace(htmlReg,parser);
+        return this.container;
     }
 
 
@@ -145,7 +146,7 @@
      * @returns {SkinObject}
      * @constructor
      */
-    function SkinObject( container,part,attr)
+    function SkinObject( container,part, attr, attach )
     {
         if( !(this instanceof SkinObject ) )
             return new SkinObject(container,part,attr);
@@ -155,20 +156,50 @@
             if( nodename === 'noscript' ||  nodename === 'textarea')
             {
                 container = nodename === 'textarea' ? container.value : container.innerHTML;
+
+            }else
+            {
+                 throw new Error('invalid container');
             }
         }
+
         this.container=container;
         this.attr=attr;
         this.part=part;
+        this.attach= attach !== false;
     }
 
     SkinObject.prototype.constructor= SkinObject;
     SkinObject.prototype.part= {};
     SkinObject.prototype.attr= {};
     SkinObject.prototype.container='';
+    SkinObject.prototype.attach=true;
     SkinObject.prototype.createSkin=function()
     {
         return typeof this.container !== "string" ? this.container : toString.call( this );
+    }
+
+    /**
+     * 获取对象属性
+     * @param name
+     * @returns {*}
+     */
+    SkinObject.prototype.get=function( name )
+    {
+        var result = this;
+        if( typeof name === "string" )
+        {
+            var keys = name.replace(/\s+/,'').split('.');
+            for( var index = 0; index < keys.length ; index++ )
+            {
+                if( typeof result[ keys[index] ] === "undefined" )
+                {
+                   throw new Error('invalid property is in SkinObject::get '+ keys[index] )
+                }
+                result = result[ keys[index] ];
+            }
+        }
+        return result;
     }
 
     /**
@@ -246,26 +277,27 @@
         this.addChildAt(  childSkin , index );
         if( typeof skinName === "string" )
         {
-            this.current( childSkin );
-            this.property(SkinGroup.NAME, skinName );
-            this.__skin__[skinName]=childSkin;
-            this.current( null );
+            Utils.property(childSkin,SkinGroup.NAME, skinName);
         }
         return this;
     }
 
     /**
      * 获取皮肤对象
-     * @returns {*}
+     * @returns {SkinObject}
      */
     SkinGroup.prototype.skinObject=function( skinObject )
     {
-        if( skinObject instanceof SkinObject )
+        if( this.__skinObject__ === null && skinObject instanceof SkinObject )
         {
+            var childSkin = Utils.createElement( skinObject.createSkin() );
+            this.current(null);
+            if ( skinObject.attach && !Utils.contains(this[0], childSkin) )
+            {
+                this.addChildAt(childSkin, -1);
+                this[0]=childSkin;
+            }
             this.__skinObject__=skinObject;
-            childSkin = Utils.createElement( skinObject.createSkin() );
-            if( !Utils.contains(this[0],childSkin) )
-               this.addChildAt(  childSkin , -1 );
             return this;
         }
         return this.__skinObject__;

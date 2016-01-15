@@ -178,7 +178,7 @@ modality.show(true)
      * @returns {SkinGroup}
      * @protected
      */
-    Modality.prototype.getDefaultSkin=function()
+    Modality.prototype.getDefaultSkinObject=function()
     {
         var defaultSkin={
             elements: {
