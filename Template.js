@@ -292,6 +292,9 @@
         event.variable = this.variable();
         event.viewport = this.viewport();
 
+        if(typeof event.template !== "string" )
+         throw new Error('invalid view');
+
         if( !this.hasEventListener( TemplateEvent.START ) || this.dispatchEvent( event ) )
         {
             event.html=make.call(this, event.template , event.variable , this.__split__ );
