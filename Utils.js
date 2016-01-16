@@ -1041,6 +1041,51 @@
     }
 
     /**
+     * @private
+     * @type {RegExp}
+     */
+    var selectorExpr = /^(?:#([\w-]+)|\:?(\w+)|\.([\w-]+)|(\[[\w-]+.*?\]))$/;
+
+    /**
+     * 判断是否为一个有效的选择器
+     * @param selector
+     * @returns {boolean}
+     */
+    Utils.isSelector=function( selector )
+    {
+        return typeof selector === "string" ? selectorExpr.test( selector ) : false;
+    }
+
+    /**
+     * 设置获取元素的内容
+     * @param element
+     * @param html
+     * @param outer
+     * @returns {*}
+     */
+    Utils.getHtml=function(element, outer )
+    {
+        var html=element.innerHTML;
+        if( outer === true )
+        {
+            if( typeof element.outerHTML==='string' )
+            {
+                html=element.outerHTML;
+            }else
+            {
+                var cloneElem=Utils.clone( element,true),div
+                if( cloneElem )
+                {
+                    div=document.createElement( 'div' )
+                    div.appendChild( cloneElem );
+                    html=div.innerHTML;
+                }
+            }
+        }
+        return html;
+    }
+
+    /**
      * @type {RegExp}
      */
     var singleTagExp=/^<(\w+)(.*?)\/\s*>$/;
