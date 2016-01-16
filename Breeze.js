@@ -254,25 +254,8 @@
             }
         }
         return ret;
-    }
-    ,outerHtml=function( element )
-    {
-        var html='';
-        if( typeof element.outerHTML==='string' )
-        {
-            html=element.outerHTML;
-        }else
-        {
-            var cloneElem=Utils.clone( element,true),div
-            if( cloneElem )
-            {
-                div=document.createElement( 'div' )
-                div.appendChild( cloneElem );
-                html=div.innerHTML;
-            }
-        }
-        return html;
-    }
+    };
+
 
     /**
      * @private
@@ -379,23 +362,12 @@
     //==================================================
 
     /**
-     * 在此上下文中添加选择器所匹配的元素
-     * @param selector
-     */
-    Breeze.prototype.add=function( selector )
-    {
-        var ret=selector instanceof Breeze ? selector.toArray() : Sizzle( selector );
-        if( ret.length > 0 )doMake( this, ret , false );
-        return this;
-    }
-
-    /**
      * 筛选指定开始和结束索引值的元素。
      * @returns {Breeze}
      */
     Breeze.prototype.range=function(startIndex,endIndex)
     {
-        return doMake( this, this.slice(startIndex,endIndex),true);
+        return doMake( this, this.slice(startIndex,endIndex),true );
     }
 
     /**
@@ -405,6 +377,8 @@
      */
     Breeze.prototype.eq=function( index )
     {
+        if( typeof index !== "number" || typeof this[index] === "undefined")
+           throw new Error('invalid index');
         return doMake( this,[ this[index] ],true);
     }
 
@@ -437,15 +411,23 @@
      * @param index
      * @returns {Breeze}
      */
-    Breeze.prototype.not=function( selector )
+    Breeze.prototype.not=function( selector , returned )
     {
+        var results=this.toArray();
         if( Utils.isNumber(selector) )
-            selector=this.get( selector );
-        else if( Utils.isString( selector ) )
         {
-            return doMake(this, doFind(this,selector,true) ,true);
+            selector=[ this[ selector ] ];
         }
-        return doMake( this,doGrep(this,function(elem){ return selector !==elem; }) ,true );
+        if( Utils.isSelector( selector ) )
+        {
+            selector= doFind(this, selector );
+        }
+        doGrep(selector,function(a){
+            results=doGrep(results,function(b){
+                return a !== b;
+            })
+        });
+        return returned ? results : doMake( this, results ,true );
     }
 
     /**
@@ -455,9 +437,10 @@
      * @param invert
      * @returns {Breeze}
      */
-    Breeze.prototype.grep=function( strainer, invert )
+    Breeze.prototype.grep=function( strainer, invert , returned )
     {
-        return doMake( this,doGrep(this,strainer,invert),true);
+        var results = doGrep(this,strainer,invert);
+        return returned ? results : doMake( this, results ,true );
     }
 
     /**
@@ -465,9 +448,10 @@
      * @param selector
      * @returns {Breeze}
      */
-    Breeze.prototype.find=function( selector )
+    Breeze.prototype.find=function( selector , returned )
     {
-        return doMake( this, Sizzle( selector , this.getContext() ) , true );
+        var results = Sizzle( selector , this.getContext() );
+        return returned ? results : doMake( this, results ,true );
     }
 
     /**
@@ -475,9 +459,10 @@
      * @param strainer
      * @returns {Breeze}
      */
-    Breeze.prototype.filter=function(strainer)
+    Breeze.prototype.filter=function(strainer, returned )
     {
-        return doMake( this, doFilter(this,strainer,false) ,true );
+        var results = doFilter(this,strainer,false);
+        return returned ? results : doMake( this, results ,true );
     }
 
     /**
@@ -485,10 +470,11 @@
      * @param selector
      * @returns {Breeze}
      */
-    Breeze.prototype.parent=function(selector)
+    Breeze.prototype.parent=function(selector, returned )
     {
-        var ret=doRecursion.call(this,'parentNode',false);
-        return doMake(this , Utils.isDefined(selector) ? doFind(ret,selector) : ret ,true );
+        var results=doRecursion.call(this,'parentNode',false);
+        results=Utils.isDefined(selector) ? doFind(results,selector) : results;
+        return returned ? results : doMake( this, results ,true );
     }
 
     /**
@@ -496,10 +482,10 @@
      * @param selector
      * @returns {Breeze}
      */
-    Breeze.prototype.parents=function( selector )
+    Breeze.prototype.parents=function( selector , returned )
     {
         var is = Utils.isFunction(selector);
-        var ret=doRecursion.call(this,'parentNode',true, selector===undefined ? null : function(element,ret)
+        var results=doRecursion.call(this,'parentNode',true, selector===undefined ? null : function(element,ret)
         {
             if(  ( is && ( element=selector.call(this,element) ) ) ||
                  ( element.nodeType===1 && Sizzle.matchesSelector( element, selector ) ) )
@@ -509,7 +495,7 @@
             }
             return true;
         });
-        return doMake(this , ret ,true );
+        return returned ? results : doMake( this, results ,true );
     }
 
     /**
@@ -517,10 +503,11 @@
      * @param name
      * @returns {Breeze}
      */
-    Breeze.prototype.prevAll=function( selector )
+    Breeze.prototype.prevAll=function( selector, returned )
     {
-        var ret=doRecursion.call(this,'previousSibling',true);
-        return doMake(this , Utils.isDefined(selector) ? doFind(ret,selector) : ret ,true );
+        var results=doRecursion.call(this,'previousSibling',true);
+        results=Utils.isDefined(selector) ? doFind(results,selector) : results
+        return returned ? results : doMake( this, results ,true );
     }
 
     /**
@@ -528,10 +515,11 @@
      * @param name
      * @returns {Breeze}
      */
-    Breeze.prototype.prev=function(selector)
+    Breeze.prototype.prev=function(selector,returned)
     {
-        var ret=doRecursion.call(this,'previousSibling',false);
-        return doMake(this , Utils.isDefined(selector) ? doFind(ret,selector) : ret ,true );
+        var results=doRecursion.call(this,'previousSibling',false);
+        results=Utils.isDefined(selector) ? doFind(results,selector) : results;
+        return returned ? results : doMake( this, results ,true );
     }
 
     /**
@@ -539,10 +527,11 @@
      * @param name
      * @returns {Breeze}
      */
-    Breeze.prototype.nextAll=function( selector )
+    Breeze.prototype.nextAll=function( selector ,returned )
     {
-        var ret=doRecursion.call(this,'nextSibling',true);
-        return doMake(this , Utils.isDefined(selector) ? doFind(ret,selector) : ret ,true );
+        var results=doRecursion.call(this,'nextSibling',true);
+        results=Utils.isDefined(selector) ? doFind(results,selector) : results;
+        return returned ? results : doMake( this, results ,true );
     }
 
     /**
@@ -550,10 +539,11 @@
      * @param name
      * @returns {Breeze}
      */
-    Breeze.prototype.next=function(selector)
+    Breeze.prototype.next=function(selector, returned )
     {
-        var ret=doRecursion.call(this,'nextSibling',false);
-        return doMake(this , Utils.isDefined(selector) ? doFind(ret,selector) : ret ,true );
+        var results=doRecursion.call(this,'nextSibling',false);
+        results=Utils.isDefined(selector) ? doFind(results,selector) : results
+        return returned ? results : doMake( this, results ,true );
     }
 
     /**
@@ -561,12 +551,12 @@
      * @param name
      * @returns {Breeze}
      */
-    Breeze.prototype.siblings=function(selector)
+    Breeze.prototype.siblings=function(selector,returned)
     {
-        var ret=[].concat( doRecursion.call(this,'previousSibling',true,null,true) , doRecursion.call(this,'nextSibling',true,null,true) )
-        ret=Sizzle.uniqueSort( ret );
-        if( Utils.isDefined(selector) )ret= doFind(ret,selector);
-        return doMake( this ,ret, true);
+        var results=[].concat( doRecursion.call(this,'previousSibling',true,null,true) , doRecursion.call(this,'nextSibling',true,null,true) )
+        results=Sizzle.uniqueSort( results );
+        if( Utils.isDefined(selector) )results= doFind(results,selector);
+        return returned ? results : doMake( this, results ,true );
     }
 
     /**
@@ -574,7 +564,7 @@
      * @param selector 如果是 * 返回包括文本节点的所有元素。不指定返回所有HTMLElement 元素。
      * @returns {Breeze}
      */
-    Breeze.prototype.children=function( selector )
+    Breeze.prototype.children=function( selector , returned )
     {
         var has=true;
         if( Utils.isString( selector ) )
@@ -583,16 +573,16 @@
             has = selector !== '*';
         };
 
-        var ret=[];
+        var results=[];
         this.forEach(function(element)
         {
            if( !Utils.isFrame( element ) )
-             ret=ret.concat( selector==='*' ?  Sizzle( '*' ,element) : DataArray.prototype.slice.call( element.childNodes,0 ) );
+               results=results.concat( selector==='*' ?  Sizzle( '*' ,element) : DataArray.prototype.slice.call( element.childNodes,0 ) );
         })
 
-        if( this.length > 1 && !has )ret= Sizzle.uniqueSort(ret);
-        if( has )ret=doFind(ret,selector);
-        return doMake(this , ret ,true );
+        if( this.length > 1 && !has )results= Sizzle.uniqueSort(results);
+        if( has )results=doFind(results,selector);
+        return returned ? results : doMake( this, results ,true );
     }
 
     //=================================================
@@ -887,9 +877,10 @@
         {
             if( !write || Utils.isBoolean(html) )
             {
-                html = html===true ? outerHtml(elem) : elem.innerHTML;
+                html = html===true ? Utils.getHtml(elem,true) : elem.innerHTML;
                 return html;
             }
+
             if( elem.hasChildNodes() )
             {
                 var nodes=elem.childNodes;
@@ -900,6 +891,7 @@
                      return this;
                 }
             }
+
             elem.innerHTML='';
             if( outer && elem.parentNode && elem.parentNode.ownerDocument && Utils.contains(elem.parentNode.ownerDocument.body, elem.parentNode) )
             {
