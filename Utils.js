@@ -415,12 +415,18 @@
      */
     Utils.property=function(element,prop,val)
     {
-        var is=  __property__[prop] || Utils.isWindow(element) || typeof element.getAttribute !== "function";
+        var is=  __property__[prop];
+        var elem= Utils.isNodeElement(element);
         if( typeof val === "undefined" )
         {
-            return ( is ? element[prop] : element.getAttribute(prop) ) || null;
+            return ( is || !elem ? element[prop] : element.getAttribute(prop) ) || null;
         }
-        is ? element[prop] = val : element.setAttribute(prop, val);
+        if( val === null )
+        {
+            elem ? element.removeAttribute(prop) : delete element[prop];
+            return true;
+        }
+        is || !elem ? element[prop] = val : element.setAttribute(prop, val);
         return true;
     }
 
@@ -906,7 +912,8 @@
      */
     Utils.isNodeElement=function( element )
     {
-        return typeof Node !== "undefined" ? element instanceof Node : ( element && element.nodeType && typeof element.nodeName === "string" && typeof element.tagName === "string" );
+        return typeof Node !== "undefined" ? element instanceof Node :
+            !!( element && element.nodeType && typeof element.nodeName === "string" && (typeof element.tagName === "string" || element.nodeType===9) );
     }
 
     /**
@@ -1147,8 +1154,8 @@
             div=div.childNodes.item(0);
             return div.parentNode.removeChild( div );
 
-        }else if ( Utils.isHTMLElement(html) && html.parentNode )
-           return Utils.clone(html,true);
+        }else if ( Utils.isNodeElement(html) )
+           return  html.parentNode ? Utils.clone(html,true) : html;
         throw new Error('Uitls.createElement param invalid')
     }
 

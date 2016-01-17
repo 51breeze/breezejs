@@ -17,16 +17,17 @@
      * @returns {Component}
      * @constructor
      */
-    function SkinComponent( skinGroup )
+    function SkinComponent( selector, context )
     {
         if( !(this instanceof SkinComponent) )
-            return new SkinComponent(skinGroup);
+            return new SkinComponent(selector, context);
 
-        if( typeof skinGroup !== "undefined" )
+        if( typeof selector !== "undefined" )
         {
-            this.skinGroup( skinGroup );
+            selector = selector instanceof SkinGroup ? selector : new SkinGroup(selector, context);
+            this.__skinGroup__= selector;
         }
-        Component.call(this);
+        return Component.call(this, selector);
     }
 
     SkinComponent.prototype=  new Component();
@@ -41,10 +42,7 @@
      * @param skinGroup
      * @protected
      */
-    SkinComponent.prototype.skinInstalled=function( skinGroup )
-    {
-        skinGroup.current(null).property( Component.NAME, this.componentProfile );
-    }
+    SkinComponent.prototype.skinInstalled=function( skinGroup ){}
 
     /**
      * @returns {*}
@@ -94,6 +92,12 @@
         skinGroup.current(null);
         return skinGroup;
     }
+
+    /**
+     * @protected
+     * @param Breeze newViewport
+     */
+     Component.prototype.viewportChange=function( newViewport ){}
 
     /**
      * @param string skinName

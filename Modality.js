@@ -145,7 +145,7 @@ modality.show(true)
      * @returns {Modality}
      * @protected
      */
-    Modality.prototype.skinInstalled=function( skinGroup )
+    Modality.prototype.skinInstalling=function( skinGroup )
     {
         if( this.type() !== Modality.SIMPLE )
         {

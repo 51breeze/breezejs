@@ -123,6 +123,5 @@
     }
 
     window.DataRender=DataRender;
-    window.DataRenderEvent=DataSourceEvent;
 
 })(window)

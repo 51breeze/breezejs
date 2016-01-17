@@ -20,15 +20,22 @@
      * @returns {Component}
      * @constructor
      */
-    function Component( viewport )
+    function Component( viewport , context )
     {
         if( !(this instanceof Component) )
-            return new Component( viewport );
+            return new Component( viewport , context );
+        EventDispatcher.call(this);
         if( viewport )
         {
-            this.viewport( viewport );
+            this.viewport( viewport , context );
+            viewport = this.__viewport__ || viewport;
+            if( viewport && viewport[0] )
+            {
+                var instance = Component.getInstance( viewport[0] , this.constructor );
+                if( instance instanceof this.constructor )return instance;
+                viewport.current(null).property( Component.NAME, this.componentProfile).data(this.componentProfile, this);
+            }
         }
-        EventDispatcher.call(this);
     }
 
     /**
@@ -98,7 +105,6 @@
         if( viewport.length > 0 )
         {
             this.__viewport__=viewport;
-            EventDispatcher.call(this,viewport[0]);
             this.__viewportChanged__=true;
             return this;
         }
@@ -109,7 +115,10 @@
      * @protected
      * @param Breeze newViewport
      */
-    Component.prototype.viewportChange=function( newViewport ){}
+    Component.prototype.viewportChange=function( newViewport )
+    {
+        newViewport.current(null).property( Component.NAME, this.componentProfile).data(this.componentProfile, this);
+    }
 
     /**
      * @private

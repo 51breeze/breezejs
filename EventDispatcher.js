@@ -211,6 +211,7 @@
         //获取事件数据集
         var events = Utils.storage( this,'events') || {};
         var capture= Number( listener.useCapture );
+
         if( !events[ type ]  )
         {
             Utils.storage( this,'events',events);
@@ -337,10 +338,12 @@
                 if( data[ event.type ][1]   )
                    targets[1].push( element );
 
-                //冒泡阶段
-                if( !useCapture && data[ event.type ][0] )
+                //冒泡阶段, ready 事件加进来
+                if( (!useCapture || event.type === BreezeEvent.READY ) && data[ event.type ][0] )
                     targets[0].push( element );
             }
+
+            //如果不是浏览器发出的事件无需冒泡节点
             element=is || !event.originalEvent ? null : element.parentNode;
 
         }while( element );
@@ -534,7 +537,6 @@
                 readyState=target.document.readyState;
             }
         }
-
         //ie9以下用 readyState来判断，其它浏览器都使用 load or DOMContentLoaded
         if( ( eventType && /load/i.test(eventType) )  || ( readyState && /loaded|complete/.test( readyState ) ) )
         {

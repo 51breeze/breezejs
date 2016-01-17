@@ -413,6 +413,9 @@
      */
     Breeze.prototype.not=function( selector , returned )
     {
+        if( Utils.isDefined(selector) )
+            throw new Error('invalid selector')
+
         var results=this.toArray();
         if( Utils.isNumber(selector) )
         {
@@ -450,6 +453,8 @@
      */
     Breeze.prototype.find=function( selector , returned )
     {
+        if( !Utils.isString(selector) )
+         throw new Error('invalid selector')
         var results = Sizzle( selector , this.getContext() );
         return returned ? results : doMake( this, results ,true );
     }
@@ -473,7 +478,7 @@
     Breeze.prototype.parent=function(selector, returned )
     {
         var results=doRecursion.call(this,'parentNode',false);
-        results=Utils.isDefined(selector) ? doFind(results,selector) : results;
+        results=Utils.isString(selector) ? doFind(results,selector) : results;
         return returned ? results : doMake( this, results ,true );
     }
 
@@ -506,7 +511,7 @@
     Breeze.prototype.prevAll=function( selector, returned )
     {
         var results=doRecursion.call(this,'previousSibling',true);
-        results=Utils.isDefined(selector) ? doFind(results,selector) : results
+        results=Utils.isString(selector) ? doFind(results,selector) : results
         return returned ? results : doMake( this, results ,true );
     }
 
@@ -518,7 +523,7 @@
     Breeze.prototype.prev=function(selector,returned)
     {
         var results=doRecursion.call(this,'previousSibling',false);
-        results=Utils.isDefined(selector) ? doFind(results,selector) : results;
+        results=Utils.isString(selector) ? doFind(results,selector) : results;
         return returned ? results : doMake( this, results ,true );
     }
 
@@ -530,7 +535,7 @@
     Breeze.prototype.nextAll=function( selector ,returned )
     {
         var results=doRecursion.call(this,'nextSibling',true);
-        results=Utils.isDefined(selector) ? doFind(results,selector) : results;
+        results=Utils.isString(selector) ? doFind(results,selector) : results;
         return returned ? results : doMake( this, results ,true );
     }
 
@@ -542,7 +547,7 @@
     Breeze.prototype.next=function(selector, returned )
     {
         var results=doRecursion.call(this,'nextSibling',false);
-        results=Utils.isDefined(selector) ? doFind(results,selector) : results
+        results=Utils.isString(selector) ? doFind(results,selector) : results
         return returned ? results : doMake( this, results ,true );
     }
 
@@ -555,7 +560,7 @@
     {
         var results=[].concat( doRecursion.call(this,'previousSibling',true,null,true) , doRecursion.call(this,'nextSibling',true,null,true) )
         results=Sizzle.uniqueSort( results );
-        if( Utils.isDefined(selector) )results= doFind(results,selector);
+        if( Utils.isString(selector) )results= doFind(results,selector);
         return returned ? results : doMake( this, results ,true );
     }
 

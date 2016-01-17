@@ -93,24 +93,36 @@
      */
     DataSource.prototype.source=function( source , option )
     {
-        if( typeof source !== "undefined" && this.__source__ === null )
+        if(  typeof source === "undefined" || this.__source__ === source )
+          return this.__source__;
+
+        var changed = this.__source__ !== null;
+
+        //本地数据源
+        if( Utils.isObject(source, true) )
+        {
+            var len = this.length;
+            this.splice(0, len, source);
+            this.__source__=source;
+
+            //do order by
+            var orderBy = this.orderBy();
+            if(orderBy)for(var b in orderBy)
+            {
+                this.orderBy(b,orderBy[b], true);
+            }
+            this.removeEventListener(DataSourceEvent.LOAD_START);
+
+        }
+        //远程数据源
+        else
         {
             var options = Utils.extend(true, {}, defaultOption, option || {} );
-            if( Utils.isObject(source, true) )
-            {
-                var len = this.length;
-                this.splice(0, len, source);
-                this.__source__=source;
-                this.removeEventListener(DataSourceEvent.LOAD_START);
-                return this;
-            }
-
             if( typeof source === 'string' )
             {
                 options.url = source;
                 source = new HttpRequest(options);
             }
-
             if ( source instanceof HttpRequest )
             {
                 this.__source__=source;
@@ -150,7 +162,7 @@
 
                     //do order by
                     var orderBy = self.orderBy();
-                    for(var b in orderBy)
+                    if(orderBy)for(var b in orderBy)
                     {
                         self.orderBy(b,orderBy[b], true);
                     }
@@ -163,7 +175,7 @@
                 });
 
                 //向远程服务器开始加载数据
-                this.addEventListener(DataSourceEvent.LOAD_START, function (event)
+                this.hasEventListener(DataSourceEvent.LOAD_START) || this.addEventListener(DataSourceEvent.LOAD_START, function (event)
                 {
                     beforehand = !!event.beforehand;
                     var offset = loadNum * rows;
@@ -181,10 +193,14 @@
                     source.open( options.url, options.method );
                     source.send( data );
                 });
-                return this;
             }
         }
-        return this.__source__;
+
+        if( changed && this.hasEventListener(DataSourceEvent.CHANGED) )
+        {
+            this.dispatchEvent( new DataSourceEvent(DataSourceEvent.CHANGED) );
+        }
+        return this;
     }
 
     /**
@@ -318,14 +334,17 @@
     {
         if( typeof type === "undefined" )
         {
-            return  typeof column === "undefined" ? this.__orderBy__ : this.__orderBy__[column];
+            return  typeof column === "undefined" || !this.__orderBy__ ? this.__orderBy__ : this.__orderBy__[column];
         }
-
-        if( typeof column === "string" && ( this.__orderBy__[ column ] !==type || flag===true ) )
+        if( typeof column === "string" )
         {
-            this.__orderBy__[ column ]=type;
-            this.orderBy(column,type);
-            this.select();
+            this.__orderBy__ || ( this.__orderBy__={} );
+            if( this.__orderBy__[ column ] !==type || flag===true )
+            {
+                this.__orderBy__[ column ]=type;
+                this.orderBy(column,type);
+                this.select();
+            }
         }
         return this;
     }
@@ -380,7 +399,7 @@
      * @param index
      * @returns {boolean}
      */
-    DataSource.prototype.delete=function( filter )
+    DataSource.prototype.deletes=function( filter )
     {
         var index;
         var result = this.grep().execute( filter );
@@ -484,6 +503,7 @@
     DataSourceEvent.SELECT = 'dataSourceSelect';
     DataSourceEvent.LOAD_START='dataSourceLoadStart';
     DataSourceEvent.LOAD_COMPLETE='dataSourceLoadComplete';
+    DataSourceEvent.CHANGED='dataSourceChanged';
 
     window.DataSource=DataSource;
     window.DataSourceEvent=DataSourceEvent;

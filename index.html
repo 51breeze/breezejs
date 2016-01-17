@@ -73,6 +73,8 @@
     ]
 
 
+
+
     Breeze(function(){
 
 
@@ -102,9 +104,14 @@
 
 
          var selection = new Selection( '#selection' )
-         selection.dataRender().source( [{value:1,label:'张三'},{value:2,label:'李四'}] );
+         selection.dataRender().source( [{'id':1,'label':'张三'},{'id':2,'label':'李四'}] );
          selection.selectedIndex(0)
          selection.display();
+
+
+        var s=  new Selection( '#selection' )
+        s.selectedIndex(1)
+        s.dataRender().source( [{'id':5,'label':'yejun123'},{'id':6,'label':'李四444444'}] );
 
 
       /*   var modal =  new Modality()

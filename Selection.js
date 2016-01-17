@@ -7,11 +7,11 @@
  */
 (function(window,undefined )
 {
-    function Selection(skinGroup)
+    function Selection( selector , context )
     {
         if( !(this instanceof Selection) )
-            return new Selection(skinGroup);
-        SkinComponent.call(this, skinGroup );
+            return new Selection( selector , context);
+        return SkinComponent.call(this,  selector , context );
     }
 
     Selection.prototype=new SkinComponent();
@@ -57,7 +57,6 @@
         return this.__valueProfile__;
     }
 
-
     /**
      * @private
      */
@@ -75,15 +74,13 @@
             var self = this;
             var dr = new DataRender();
             this.__dataRender__ = dr;
-            dr.dataSource().addEventListener(DataSourceEvent.SELECT,function(event){
 
-                var index = this.selectedIndex();
-                if( typeof index === "function" )
-                    index=index.call(this);
-                var item = event.data[index] || event.data[0];
-                this.dataRender().variable('current', item['name'] || item );
+            dr.dataSource().addEventListener(DataSourceEvent.CHANGED,function(event)
+            {
+                dr.display();
+                commitSelectedIndex.call(this, this.selectedIndex() );
 
-            },false,200,this);
+            },false,0,this);
 
             dr.addEventListener(TemplateEvent.REFRESH,function(event){
 
@@ -108,11 +105,15 @@
                             this.current( event.target );
                             if( event.type === MouseEvent.MOUSE_OVER )
                             {
-                                this.style('backgroundColor', '#ccc');
+                                if( !this.property('current') )
+                                 this.style('backgroundColor', '#ccc');
 
                             }else if(event.type === MouseEvent.MOUSE_OUT)
                             {
-                                this.style('background', 'none');
+
+                                if( !this.property('current') )
+                                  this.style('background', 'none');
+
                             }else
                             {
                                 var index = this.property('data-index');
@@ -152,25 +153,30 @@
      */
     function commitSelectedIndex( index )
     {
-        if( this.__label__ === null && this.getSkin('label') )
+        var skinGroup = this.skinGroup();
+        if( this.__label__ === null && skinGroup.getSkin('label') )
         {
             this.__label__ = new Bindable('label');
             var profile = this.labelProfile();
-            this.__label__.bind( this.getSkin('label'), 'label', function (property, item) {
+            this.__label__.bind( skinGroup.getSkin('label'), 'label', function (property, item) {
                 this.innerText = item[ profile ];
             });
         }
         if( this.__label__ )
         {
             var dataSource = this.dataRender().dataSource();
-            if( dataSource.length > 0 && dataSource[index] )
-            {
-                this.__label__.property('label', dataSource[index]);
-                var event = new SelectionEvent(SelectionEvent.CHANGE);
-                event.selectedIndex = index;
-                event.selectedItem = dataSource[index];
-                this.dispatchEvent(event);
-            }
+            if( typeof dataSource[index] === "undefined"  )
+              throw new Error('invalid index');
+
+            var skinObject = skinGroup.skinObject();
+            skinGroup.find('[current]').property('current',null).style('background','none').revert()
+                .current('[data-index='+index+']').property('current',true).style( skinObject.get('attr.current.style') )
+
+            this.__label__.property('label', dataSource[index]);
+            var event = new SelectionEvent(SelectionEvent.CHANGE);
+            event.selectedIndex = index;
+            event.selectedItem = dataSource[index];
+            this.dispatchEvent(event);
         }
     }
 
@@ -204,11 +210,14 @@
      */
     Selection.prototype.display=function()
     {
-        var skinGroup = this.skinGroup();
         var dataRender = this.dataRender();
-        dataRender.viewport( this.getSkin('group') );
-        dataRender.display( skinGroup.skinObject().get('part.list') );
-        commitSelectedIndex.call(this, this.selectedIndex() );
+        if( !dataRender.viewport() )
+        {
+            var skinGroup= this.skinGroup();
+            dataRender.viewport( skinGroup.getSkin('group') );
+            dataRender.display( skinGroup.skinObject().get('part.list') );
+            commitSelectedIndex.call(this, this.selectedIndex() );
+        }
         return this;
     }
 
@@ -222,12 +231,16 @@
         {
             skinGroup.skinObject( this.defaultSkinObject() )
         }
+        if( Utils.trim( skinGroup.html() ) === '' )
+        {
+            skinGroup.createSkin();
+        }
         SkinComponent.prototype.skinInstalled.call(this,skinGroup);
     }
 
     /**
      * 获取默认皮肤
-     * @returns {SkinGroup}
+     * @returns {SkinObject}
      * @protected
      */
     Selection.prototype.defaultSkinObject=function()
@@ -243,6 +256,7 @@
             searchbox:'<div><span>{part input}</span>{part group}</div>'
         },{
             searchbox:{'style':{'width':'100%',height:'300px'}},
+            current:{'style':{'backgroundColor':'#9a9a9a'}},
             label:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'} },
             li:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},'data-index':'{key}'},
             list:{'style':'width:100%; height:auto;padding: 0px;list-style-type:none;-webkit-margin-before:0px;-webkit-margin-after:0px; text-indent: 0px;'},
