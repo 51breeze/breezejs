@@ -571,7 +571,7 @@
      */
     Breeze.prototype.children=function( selector , returned )
     {
-        var has=true;
+        var has=!!selector;
         if( Utils.isString( selector ) )
         {
             selector=Utils.trim(selector);

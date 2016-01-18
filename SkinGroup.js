@@ -150,15 +150,16 @@
     {
         if( !(this instanceof SkinObject ) )
             return new SkinObject(container,part,attr);
+
         if( typeof container !== "string" )
         {
             var nodename = Utils.nodeName( container );
-            if( nodename === 'noscript' ||  nodename === 'textarea')
+            var type = container.getAttribute('type');
+            if( nodename === 'noscript' ||  nodename === 'textarea' || ( nodename === 'script' && (type==='text/html' || type==='text/plain') ) )
             {
                 container = nodename === 'textarea' ? container.value : container.innerHTML;
             }
         }
-
         this.container=container;
         this.attr=attr;
         this.part=part;
@@ -238,6 +239,15 @@
         Breeze.call(this, selector instanceof Breeze ? selector[0] : selector , context );
         if (this.length != 1)
             throw new Error('invalid selector');
+
+        if( !skinObject )
+        {
+            var child = this.find('script,noscript', true);
+            if ( child[0] )
+            {
+                skinObject = new SkinObject( child[0] );
+            }
+        }
         this.__skinObject__ = skinObject || null;
     }
 
@@ -247,7 +257,6 @@
     SkinGroup.prototype.__skinObject__=null;
     SkinGroup.prototype.__created__=false;
     SkinGroup.prototype.constructor=SkinGroup;
-
 
     /**
      * 初始化皮肤组。此方法在程序内部调用，无需手动调用。
@@ -283,7 +292,7 @@
             this.__skinObject__=skinObject;
             return this;
         }
-        return this.__skinObject__;
+        return this.__skinObject__ && typeof this.__skinObject__.container === "string" ? this.__skinObject__ : null;
     }
 
     /**

@@ -246,16 +246,28 @@
     {
         fix.cssMap.shadow='-moz-box-shadow';
         fix.cssMap.radius='-moz-border-radius';
+        fix.cssMap.topLeftRadius='-moz-border-top-left-radius';
+        fix.cssMap.topRightRadius='-moz-border-top-right-radius';
+        fix.cssMap.bottomLeftRadius='-moz-border-bottom-left-radius';
+        fix.cssMap.bottomRightRadius='-moz-border-bottom-right-radius';
 
     }else if(  Utils.isBrowser(Utils.BROWSER_SAFARI) || Utils.isBrowser(Utils.BROWSER_CHROME,10,'<') )
     {
         fix.cssMap.shadow='-webkit-box-shadow';
         fix.cssMap.radius='-webkit-border-radius';
+        fix.cssMap.topLeftRadius='-webkit-border-top-left-radius';
+        fix.cssMap.topRightRadius='-webkit-border-top-right-radius';
+        fix.cssMap.bottomLeftRadius='-webkit-border-bottom-left-radius';
+        fix.cssMap.bottomRightRadius='-webkit-border-bottom-right-radius';
 
     }else
     {
         fix.cssMap.shadow='box-shadow';
         fix.cssMap.radius='border-radius';
+        fix.cssMap.topLeftRadius='border-top-left-radius';
+        fix.cssMap.topRightRadius='border-top-right-radius';
+        fix.cssMap.bottomLeftRadius='border-bottom-left-radius';
+        fix.cssMap.bottomRightRadius='border-bottom-right-radius';
     }
 
     /**
@@ -343,6 +355,7 @@
     }
 
     var iscsstext=/^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/;
+    var replaceMapName=null;
 
     /**
      * 设置元素的样式
@@ -356,15 +369,33 @@
             return false;
 
         //清空样式
-        if( typeof name === 'string' && iscsstext.test(name)  )
+        if( typeof name === 'string'  )
         {
-            value=name;
-            name='cssText';
+            if( iscsstext.test(name) )
+            {
+                value = name;
+                name = 'cssText';
+
+            }else if( name.toLowerCase()==='csstext' )
+            {
+                name = 'cssText';
+            }
+
+            if( name==='cssText' && typeof value === "string" )
+            {
+                if (replaceMapName === null)
+                    replaceMapName = new RegExp(Utils.sprintf("(%s)\s*(?=\:)", Utils.toKeys(fix.cssMap).join('|')), 'g');
+                value = value.replace(replaceMapName, function (all, name) {
+                    return fix.cssMap[name];
+                });
+            }
 
         }else if( Utils.isObject(name) )
         {
             value=name;
+            name='cssText';
         }
+
         if( Utils.isObject(value) )
         {
             var newvalue=Utils.serialize(value,'style') ;
@@ -400,6 +431,9 @@
         return true;
     }
 
+    /**
+     * @private
+     */
     var __property__={
         'className':true,
         'innerHTML':true,
@@ -471,9 +505,11 @@
 
         if( name === 'cssText')
             return name;
+
+        name=fix.cssMap[name] || name;
         name=name.replace( cssPrefix, "ms-" ).replace( cssDashAlpha, cssCamelCase );
         name = name.replace( cssUpperProp, "-$1" ).toLowerCase();
-        return fix.cssMap[name] || name;
+        return name;
     }
 
     /**
@@ -969,6 +1005,23 @@
         return null;
     }
 
+
+    /**
+     * 返回一个对象的所有键名。
+     * @param object
+     * @returns {Array}
+     */
+    Utils.toKeys=function( object )
+    {
+        var keys=[];
+        if( Utils.isObject( object ) )
+           for(var i in object)keys.push(i);
+        return keys;
+    }
+
+    /**
+     * @type {RegExp}
+     */
     var TRIM_LEFT = /^\s+/,TRIM_RIGHT = /\s+$/;
 
     /**

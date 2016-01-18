@@ -7,6 +7,13 @@
  */
 (function(window,undefined )
 {
+    /**
+     * 下拉选择框
+     * @param selector
+     * @param context
+     * @returns {*}
+     * @constructor
+     */
     function Selection( selector , context )
     {
         if( !(this instanceof Selection) )

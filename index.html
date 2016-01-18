@@ -78,6 +78,7 @@
     Breeze(function(){
 
 
+
         // this.height - footer.height - head.height
 
 
@@ -114,18 +115,19 @@
         s.dataRender().source( [{'id':5,'label':'yejun123'},{'id':6,'label':'李四444444'}] );
 
 
-      /*   var modal =  new Modality()
-         modal.width(600).height(400)
-         modal.label('标题222')
-         modal.content('<h1>123</h1>')
-         modal.show(true)
 
-        modal.addEventListener(ModalityEvent.CANCEL,function(event){
+        /*   var modal =  new Modality()
+           modal.width(600).height(400)
+           modal.label('标题222')
+           modal.content('<h1>123</h1>')
+           modal.show(true)
 
-         console.log('CANCEL')
-         event.stopPropagation()
+          modal.addEventListener(ModalityEvent.CANCEL,function(event){
 
-         })*/
+           console.log('CANCEL')
+           event.stopPropagation()
+
+           })*/
 
 
       /*  Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(){
@@ -145,6 +147,7 @@
              Breeze(".mcontainer").dispatchEvent( new LayoutEvent( LayoutEvent.CHANGE ) )
 
         },false)
+
 
     })
 
@@ -189,7 +192,15 @@
 
 
 <div  id="selection" style="width: 300px; margin: 50px;" data-uuu="yyyy">
+
+
+
 </div>
+
+<script type="text/plain">
+    <ul><?foreach('+dataProfile+' as key item){ ?><li {attr li} value="{item["'+valueProfile+'"]}">{item["'+labelProfile+'"]}</li><?}?></ul>
+</script>
+
 
 <!--
 
