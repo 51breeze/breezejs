@@ -138,11 +138,12 @@
     }
 
 
+
     /**
      * 皮肤对象.将一个符合皮肤格式的对象转换成HTML格式的字符串
-     * @param container
-     * @param part
-     * @param attr
+     * @param string|NodeElement container 包裹容器
+     * @param object part 包裹容器中所需要组合的皮肤元素
+     * @param object attr 皮肤元素对应属性
      * @returns {SkinObject}
      * @constructor
      */
@@ -150,32 +151,46 @@
     {
         if( !(this instanceof SkinObject ) )
             return new SkinObject(container,part,attr);
-
-        if( typeof container !== "string" )
+        if( Utils.isNodeElement(container) )
         {
-            var nodename = Utils.nodeName( container );
+            var nodename = Utils.nodeName(container);
             var type = container.getAttribute('type');
-            if( nodename === 'noscript' ||  nodename === 'textarea' || ( nodename === 'script' && (type==='text/html' || type==='text/plain') ) )
+            this.attached = true;
+            this.isElement=true;
+            container = container.innerHTML;
+            if (nodename === 'noscript' || ( nodename === 'script' && (type === 'text/html' || type === 'text/plain') ))
             {
-                container = nodename === 'textarea' ? container.value : container.innerHTML;
+                this.attached=false;
+                this.isElement=false;
             }
+        }else if( typeof container !== "string" )
+        {
+            throw new Error('invalid container');
         }
         this.container=container;
-        this.attr=attr;
-        this.part=part;
+        this.attr=attr || {};
+        this.part=part || {};
     }
 
     SkinObject.prototype.constructor= SkinObject;
     SkinObject.prototype.part= {};
     SkinObject.prototype.attr= {};
     SkinObject.prototype.container='';
+    SkinObject.prototype.attached=false;
+    SkinObject.prototype.isElement=false;
+
+    /**
+     * 将一个皮肤对象生成html格式的字符串
+     * @returns {string}
+     */
     SkinObject.prototype.createSkin=function()
     {
-        return typeof this.container !== "string" ? this.container : toString.call( this );
+        return toString.call( this );
     }
 
     /**
-     * 获取对象属性
+     * 获取皮肤对象中的属性。
+     * 如果此对象没有传入 attr|part 参数那么会返回 null。
      * @param name
      * @returns {*}
      */
@@ -185,13 +200,9 @@
         if( typeof name === "string" )
         {
             var keys = name.replace(/\s+/,'').split('.');
-            for( var index = 0; index < keys.length ; index++ )
+            for( var index = 0; index < keys.length && result; index++ )
             {
-                if( typeof result[ keys[index] ] === "undefined" )
-                {
-                   throw new Error('invalid property is in SkinObject::get '+ keys[index] )
-                }
-                result = result[ keys[index] ];
+                result = result[ keys[index] ] || null;
             }
         }
         return result;
@@ -227,28 +238,16 @@
      *
      * @param selector|HTMLElement viewport 皮肤所要呈现的视口容器。
      * @param selector context 上下文
-     * @param SkinObject skinObject 皮肤对象，可以是空。
      * @returns {SkinGroup}
      * @constructor
      */
-    function SkinGroup( selector, context ,skinObject )
+    function SkinGroup( selector, context )
     {
         if( !(this instanceof SkinGroup) )
             return new SkinGroup( selector,context );
-
         Breeze.call(this, selector instanceof Breeze ? selector[0] : selector , context );
         if (this.length != 1)
             throw new Error('invalid selector');
-
-        if( !skinObject )
-        {
-            var child = this.find('script,noscript', true);
-            if ( child[0] )
-            {
-                skinObject = new SkinObject( child[0] );
-            }
-        }
-        this.__skinObject__ = skinObject || null;
     }
 
     SkinGroup.NAME='skin';
@@ -259,47 +258,84 @@
     SkinGroup.prototype.constructor=SkinGroup;
 
     /**
-     * 初始化皮肤组。此方法在程序内部调用，无需手动调用。
+     * 生成皮肤对象并添加到当前容器中。
+     * 此方法在程序内部调用，不建议在外部使用。
      * @returns {boolean}
      */
     SkinGroup.prototype.createSkin=function()
     {
         if( this.__created__ !==true )
         {
-           this.__created__=true;
-           var skinObject = this.skinObject();
-            if( !(skinObject instanceof SkinObject) )
-              throw new Error('invalid skinObject')
-           var skin= skinObject.createSkin();
-           if( typeof skin === "string" )
-           {
-              this.html( skin );
-              return true;
-           }
+            this.__created__=true;
+            var skinObject = this.skinObject();
+            if(  !(skinObject instanceof SkinObject) )
+                throw new Error('invalid skinObject');
+            if( !skinObject.attached )
+            {
+                skinObject.attached=true;
+                var skin = this.skinObject().createSkin();
+                if (typeof skin === "string")
+                {
+                    this.html(skin);
+                }
+            }
+            return true;
         }
         return false;
     }
 
     /**
+     * @private
+     */
+    SkinGroup.prototype.__verified__=null;
+
+    /**
+     * 验证是否为一个合法的皮肤对象。
+     * 如果是一个完整的皮肤对象则返回 true 反之返回 false
+     * 如果返回结果为 fales 必须手动传入一个皮肤对象  SkinGroup.skinObject( SkinObject )  之后调用 SkinGroup.createSkin() 生成一个完整的皮肤
+     * @returns {boolean}
+     */
+    SkinGroup.prototype.verification=function()
+    {
+        if( this.__verified__===null )
+        {
+            this.__verified__=false;
+            var child = this.children(null,true);
+            if( child[0] )
+            {
+                this.skinObject( new SkinObject(child[0]) );
+                this.__verified__ = true;
+            }
+        }
+        return this.__verified__;
+    }
+
+    /**
      * 皮肤组对象
-     * @param skinObject
+     * @param SkinObject skinObject 皮肤对象
      * @returns {SkinObject|SkinGroup}
      */
     SkinGroup.prototype.skinObject=function( skinObject )
     {
-        if( skinObject && skinObject instanceof SkinObject )
+        if( typeof skinObject !== "undefined" )
         {
-            this.__skinObject__=skinObject;
+            if(  skinObject instanceof SkinObject )
+            {
+                this.__skinObject__=skinObject;
+            }else
+            {
+                throw new Error('invalid skinObject');
+            }
             return this;
         }
-        return this.__skinObject__ && typeof this.__skinObject__.container === "string" ? this.__skinObject__ : null;
+        return this.__skinObject__;
     }
 
     /**
      * 添加子级皮肤到当前皮肤组
-     * @param childSkin
-     * @param skinName
-     * @param index
+     * @param string childSkin 一个有效的html格式的字符串
+     * @param string skinName 皮肤名
+     * @param number|nodeElement index  一个数字或者是一个当前视口下的节点元素
      * @returns {SkinGroup}
      */
     SkinGroup.prototype.addChildSkin=function( childSkin , skinName, index )
@@ -337,7 +373,7 @@
     {
         var skin = this.getSkin( skinName );
         if( !skin ) throw new Error('Not found skin element is '+skinName );
-        this.current( skin )
+        this.current( skin );
         return this;
     }
 

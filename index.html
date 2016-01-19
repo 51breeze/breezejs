@@ -104,6 +104,7 @@
        */
 
 
+
          var selection = new Selection( '#selection' )
          selection.dataRender().source( [{'id':1,'label':'张三'},{'id':2,'label':'李四'}] );
          selection.selectedIndex(0)
@@ -113,7 +114,6 @@
         var s=  new Selection( '#selection' )
         s.selectedIndex(1)
         s.dataRender().source( [{'id':5,'label':'yejun123'},{'id':6,'label':'李四444444'}] );
-
 
 
         /*   var modal =  new Modality()
@@ -147,6 +147,41 @@
              Breeze(".mcontainer").dispatchEvent( new LayoutEvent( LayoutEvent.CHANGE ) )
 
         },false)
+
+
+
+
+        var html =  Breeze('#tmp').text()
+        var  item,cursor=0;
+
+
+        var ret = html.split(/<(\w+)\s+/);
+
+        console.log( ret )
+
+
+        var str=''
+        for(var i=0 ; i<ret.length; i++)
+        {
+            str+='<div foreached'+ret[i];
+        }
+
+        console.log( str )
+
+/*
+        while( item=/<(\w+)\s+(foreach=([\'\"]).*?\3)/g.exec( html ) )
+        {
+            var start =  html.slice(0, item.index);
+            start+='<? foreach(data item){ ?><'+item[1];
+            cursor = item.index + item[0].length;
+            html= start+html.substr(cursor, html.length - cursor)
+        }
+
+
+
+
+
+        console.log( html )*/
 
 
     })
@@ -192,9 +227,17 @@
 
 
 <div  id="selection" style="width: 300px; margin: 50px;" data-uuu="yyyy">
-
-
-
+    <script type="text/html">
+        <div style="width:100%;height:35px;border:solid #999 1px;display:block;background-color:#ffff00" tabindex="-1" skin="container">
+            <div style="width:100%;line-height:35px;display:block;cursor:pointer" skin="label">李四4444448888</div>
+            <div style="display:none;width:100%;height:auto;z-index:999;position:absolute;background-color:#ffffff;border:solid #333333 1px;padding:0px" skin="group">
+                <ul style="width:100%; height:auto;padding: 0px;list-style-type:none;-webkit-margin-before:0px;-webkit-margin-after:0px; text-indent: 0px;" skin="list">
+                    <li style="width:100%;height:25px;padding:0px;margin:0px;cursor:pointer" data-index="0" value="5">yejun123ssss</li>
+                    <li style="width: 100%; height: 25px; padding: 0px; margin: 0px; cursor: pointer; background-color: rgb(154, 154, 154);" data-index="1" value="6" current="true">李四444444sss</li>
+                </ul>
+            </div>
+        </div>
+    </script>
 </div>
 
 <script type="text/plain">
@@ -214,6 +257,19 @@
 </div>
 
 -->
+
+<noscript id="tmp">
+    <div foreach="data as key item"  if="a eq b" selected="selected" endif >
+       <li>{item.name}</li>
+       <div foreach="data as key item" endforeach if="a eq b" selected="selected" endif ></div>
+    </div>
+    <div foreach="data as key item" endforeach if="a eq b" selected="selected" endif >
+        <li>{item.name}</li>
+    </div>
+</noscript>
+
+
+
 
 
 </body>

@@ -170,11 +170,6 @@
         if( !(elements instanceof Array) || elements.length === 0 )
             return ret;
 
-        if( typeof selector === "undefined" )
-        {
-            selector=function( elem ) { return elem.nodeType === 1; };
-        }
-
         if( typeof selector === "function" )
         {
             ret=doGrep( elements, selector );
@@ -182,6 +177,9 @@
         }else if( typeof selector === "string" )
         {
             ret=elements.length === 1 && Sizzle.matchesSelector( elements[ 0 ], selector ) ? ret : Sizzle.matches( selector, elements );
+        }else
+        {
+            ret=doGrep( elements, function( elem ) { return elem.nodeType === 1; } );
         }
         return ret;
     }
@@ -571,7 +569,7 @@
      */
     Breeze.prototype.children=function( selector , returned )
     {
-        var has=!!selector;
+        var has=true;
         if( Utils.isString( selector ) )
         {
             selector=Utils.trim(selector);
@@ -584,7 +582,6 @@
            if( !Utils.isFrame( element ) )
                results=results.concat( selector==='*' ?  Sizzle( '*' ,element) : DataArray.prototype.slice.call( element.childNodes,0 ) );
         })
-
         if( this.length > 1 && !has )results= Sizzle.uniqueSort(results);
         if( has )results=doFind(results,selector);
         return returned ? results : doMake( this, results ,true );

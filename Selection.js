@@ -64,6 +64,61 @@
         return this.__valueProfile__;
     }
 
+
+    function bindEvent()
+    {
+        var skinGroup = this.skinGroup();
+        var position = skinGroup.position()
+        var left = position.left;
+        var top  = position.top;
+        var width =  skinGroup.width();
+        var height =  skinGroup.height();
+        var self  = this;
+
+        EventDispatcher( skinGroup.getSkin('label') ).addEventListener(MouseEvent.CLICK,function(event){
+
+            skinGroup.currentSkin('group')
+            skinGroup.width( width );
+            skinGroup.position(left, top + height)
+            skinGroup.display(true);
+            skinGroup.current(null);
+            event.stopPropagation();
+
+        });
+
+        EventDispatcher( skinGroup.getSkin('group') ).addEventListener([MouseEvent.MOUSE_OVER,MouseEvent.MOUSE_OUT,MouseEvent.CLICK],function(event)
+        {
+            var current =  Utils.property( event.target, 'current');
+            if( event.type === MouseEvent.MOUSE_OVER )
+            {
+                if( !current )Utils.style( event.target,'backgroundColor', '#ccc');
+
+            }else if(event.type === MouseEvent.MOUSE_OUT)
+            {
+                if( !current )Utils.style( event.target,'background', 'none');
+
+            }else
+            {
+                var index = Utils.property( event.target, 'data-index');
+                self.selectedIndex( index );
+                skinGroup.currentSkin('group').display(false);
+                skinGroup.current(null);
+            }
+            event.stopPropagation();
+        });
+
+        EventDispatcher(document).addEventListener(MouseEvent.CLICK,function(event)
+        {
+            skinGroup.currentSkin('group');
+            if(skinGroup.display() && (event.pageX < skinGroup.left() || event.pageY < skinGroup.top() ||
+                event.pageX > skinGroup.left() + skinGroup.width() ||  event.pageY > skinGroup.top()+skinGroup.height()) )
+            {
+                skinGroup.display(false);
+            }
+            skinGroup.current(null);
+        });
+    }
+
     /**
      * @private
      */
@@ -84,70 +139,12 @@
 
             dr.dataSource().addEventListener(DataSourceEvent.CHANGED,function(event)
             {
-                dr.display();
-                commitSelectedIndex.call(this, this.selectedIndex() );
+                self.display();
 
             },false,0,this);
 
             dr.addEventListener(TemplateEvent.REFRESH,function(event){
-
-                var skinGroup = this.skinGroup();
-                var position = skinGroup.position()
-                var left = position.left;
-                var top  = position.top;
-                var width =  skinGroup.width();
-                var height =  skinGroup.height();
-
-                EventDispatcher( skinGroup.getSkin('label') ).addEventListener(MouseEvent.CLICK,function(event){
-
-                    skinGroup.currentSkin('group')
-                    skinGroup.width( width );
-                    skinGroup.position(left, top + height)
-                    skinGroup.display(true);
-
-                    if( !skinGroup.hasEventListener( MouseEvent.CLICK ) )
-                    {
-                        skinGroup.addEventListener([MouseEvent.MOUSE_OVER,MouseEvent.MOUSE_OUT,MouseEvent.CLICK],function(event){
-
-                            this.current( event.target );
-                            if( event.type === MouseEvent.MOUSE_OVER )
-                            {
-                                if( !this.property('current') )
-                                 this.style('backgroundColor', '#ccc');
-
-                            }else if(event.type === MouseEvent.MOUSE_OUT)
-                            {
-
-                                if( !this.property('current') )
-                                  this.style('background', 'none');
-
-                            }else
-                            {
-                                var index = this.property('data-index');
-                                self.selectedIndex( index );
-                                skinGroup.currentSkin('group')
-                                skinGroup.display(false);
-                            }
-                            skinGroup.current(null);
-                            event.stopPropagation();
-                        })
-                    }
-                    skinGroup.current(null);
-                    event.stopPropagation();
-
-                });
-
-                EventDispatcher(document).addEventListener(MouseEvent.CLICK,function(event)
-                {
-                    skinGroup.currentSkin('group');
-                    if(skinGroup.display() && (event.pageX < skinGroup.left() || event.pageY < skinGroup.top() ||
-                        event.pageX > skinGroup.left() + skinGroup.width() ||  event.pageY > skinGroup.top()+skinGroup.height()) )
-                    {
-                        skinGroup.display(false);
-                    }
-                    skinGroup.current(null);
-                });
-
+                bindEvent.call(this);
             },false,0,this);
         }
         return this.__dataRender__;
@@ -161,11 +158,12 @@
     function commitSelectedIndex( index )
     {
         var skinGroup = this.skinGroup();
+        var labelProfile =  this.labelProfile();
         if( this.__label__ === null && skinGroup.getSkin('label') )
         {
-            this.__label__ = new Bindable('label');
+            this.__label__ = new Bindable( labelProfile );
             var profile = this.labelProfile();
-            this.__label__.bind( skinGroup.getSkin('label'), 'label', function (property, item) {
+            this.__label__.bind( skinGroup.getSkin('label'), labelProfile , function (property, item) {
                 this.innerText = item[ profile ];
             });
         }
@@ -179,7 +177,7 @@
             skinGroup.find('[current]').property('current',null).style('background','none').revert()
                 .current('[data-index='+index+']').property('current',true).style( skinObject.get('attr.current.style') )
 
-            this.__label__.property('label', dataSource[index]);
+            this.__label__.property(labelProfile , dataSource[index]);
             var event = new SelectionEvent(SelectionEvent.CHANGE);
             event.selectedIndex = index;
             event.selectedItem = dataSource[index];
@@ -218,13 +216,22 @@
     Selection.prototype.display=function()
     {
         var dataRender = this.dataRender();
-        if( !dataRender.viewport() )
+        var skinGroup= this.skinGroup();
+        var skinObject = skinGroup.skinObject();
+
+        if( skinObject.attached )
         {
-            var skinGroup= this.skinGroup();
+            bindEvent.call(this);
+
+        }else if( !dataRender.viewport() )
+        {
             dataRender.viewport( skinGroup.getSkin('group') );
-            dataRender.display( skinGroup.skinObject().get('part.list') );
-            commitSelectedIndex.call(this, this.selectedIndex() );
+            var list = skinGroup.skinObject().get('part.list');
+            if( list ) {
+                dataRender.display( list );
+            }
         }
+        commitSelectedIndex.call(this, this.selectedIndex() );
         return this;
     }
 
@@ -234,14 +241,11 @@
      */
     Selection.prototype.skinInstalled=function( skinGroup )
     {
-        if( !skinGroup.skinObject() )
+        if( !skinGroup.verification() )
         {
-            skinGroup.skinObject( this.defaultSkinObject() )
+            skinGroup.skinObject( this.defaultSkinObject() );
         }
-        if( Utils.trim( skinGroup.html() ) === '' )
-        {
-            skinGroup.createSkin();
-        }
+        skinGroup.createSkin();
         SkinComponent.prototype.skinInstalled.call(this,skinGroup);
     }
 

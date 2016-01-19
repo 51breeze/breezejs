@@ -61,7 +61,7 @@
         {
             if( !this.__skinGroup__ )
             {
-                this.__skinGroup__ = skinGroup;
+                this.__skinGroup__   = skinGroup;
                 this.__skinChanged__ = true;
             }
             return this;
@@ -86,18 +86,12 @@
      * @param context
      * @returns {*|DataRender|Component|Breeze}
      */
-    SkinComponent.prototype.viewport=function( viewport , context )
+    SkinComponent.prototype.viewport=function()
     {
         var skinGroup = this.skinGroup();
         skinGroup.current(null);
         return skinGroup;
     }
-
-    /**
-     * @protected
-     * @param Breeze newViewport
-     */
-     Component.prototype.viewportChange=function( newViewport ){}
 
     /**
      * @param string skinName

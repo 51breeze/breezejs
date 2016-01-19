@@ -27,14 +27,18 @@
         EventDispatcher.call(this);
         if( viewport )
         {
-            this.viewport( viewport , context );
-            viewport = this.__viewport__ || viewport;
-            if( viewport && viewport[0] )
+            if( !(viewport instanceof Breeze) )
             {
-                var instance = Component.getInstance( viewport[0] , this.constructor );
-                if( instance instanceof this.constructor )return instance;
-                viewport.current(null).property( Component.NAME, this.componentProfile).data(this.componentProfile, this);
+                viewport = Breeze( viewport , context );
             }
+            if( viewport.length !==1 )
+            {
+                throw new Error('invalid viewport');
+            }
+            this.__viewport__=viewport;
+            var instance = Component.getInstance( viewport[0] , this.constructor );
+            if( instance instanceof this.constructor )return instance;
+            viewport.current(null).property( Component.NAME, this.componentProfile).data(this.componentProfile, this);
         }
     }
 
@@ -78,46 +82,16 @@
 
     /**
      * @param viewport
-     * @returns {Component|Breeze}
+     * @returns {Breeze}
      * @public
      */
-    Component.prototype.viewport=function( viewport , context )
+    Component.prototype.viewport=function()
     {
-        if( typeof viewport === "undefined" )
+        if( !(this.__viewport__ instanceof Breeze) )
         {
-            if( this.__viewportChanged__ && this.__viewport__ !==null )
-            {
-                this.__viewportChanged__=false;
-                this.viewportChange( this.__viewport__ );
-            }
-            return this.__viewport__;
+            throw new Error('invalid viewport');
         }
-
-        if( viewport === this.__viewport__ )
-        {
-            return this;
-        }
-
-        if( !(viewport instanceof Breeze) )
-        {
-            viewport = Breeze( viewport , context );
-        }
-        if( viewport.length > 0 )
-        {
-            this.__viewport__=viewport;
-            this.__viewportChanged__=true;
-            return this;
-        }
-        throw new Error('invalid viewport');
-    }
-
-    /**
-     * @protected
-     * @param Breeze newViewport
-     */
-    Component.prototype.viewportChange=function( newViewport )
-    {
-        newViewport.current(null).property( Component.NAME, this.componentProfile).data(this.componentProfile, this);
+        return this.__viewport__;
     }
 
     /**
@@ -130,7 +104,6 @@
         if( !viewport )throw new Error('invalid viewport');
         return viewport;
     }
-
 
     /**
      * @param name
@@ -332,10 +305,15 @@
                 for( var b=0; b<element.childNodes.length; b++)
                 {
                     var child = element.childNodes.item(b);
-                    if( Utils.nodeName(child)==='noscript' )
+                    if( child.nodeType === 1 )
                     {
-                        element.removeChild(child);
-                        new Function( Sizzle.getText(child) ).call( instance );
+                        var type = element.getAttribute('type');
+                        type = !type || type == 'text/javascript';
+                        if (Utils.nodeName(child) === 'script' && type) {
+                            element.removeChild(child);
+                            new Function( child.innerHTML ).call(instance);
+                        }
+                        break;
                     }
                 }
 
