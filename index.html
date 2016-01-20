@@ -151,23 +151,6 @@
 
 
 
-        var html =  Breeze('#tmp').text()
-        var  item,cursor=0;
-
-
-        var ret = html.split(/<(\w+)\s+/);
-
-        console.log( ret )
-
-
-        var str=''
-        for(var i=0 ; i<ret.length; i++)
-        {
-            str+='<div foreached'+ret[i];
-        }
-
-        console.log( str )
-
 /*
         while( item=/<(\w+)\s+(foreach=([\'\"]).*?\3)/g.exec( html ) )
         {
@@ -258,15 +241,6 @@
 
 -->
 
-<noscript id="tmp">
-    <div foreach="data as key item"  if="a eq b" selected="selected" endif >
-       <li>{item.name}</li>
-       <div foreach="data as key item" endforeach if="a eq b" selected="selected" endif ></div>
-    </div>
-    <div foreach="data as key item" endforeach if="a eq b" selected="selected" endif >
-        <li>{item.name}</li>
-    </div>
-</noscript>
 
 
 
