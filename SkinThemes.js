@@ -5,29 +5,33 @@
 
 (function(window){
 
-
     var themes={
-
 
         'default':{
 
-             'backgroud': {
-                 'subject': '',  //主题颜色
-                 'secondary': '', //辅助颜色
-                 'standard': ''   //标准颜色
-             },
-            'text': {
-                 'subject': '',  //主题颜色
-                 'secondary': '', //辅助颜色
-                 'standard': ''   //标准颜色
-             },
-            'border': {
-                 'subject': '',  //主题颜色
-                 'secondary': '', //辅助颜色
-                 'standard': ''   //标准颜色
-             }
+            //主题颜色
+              'subject':{
+                   'backgroud':'#353535',
+                   'text':'#DFDFDF',
+                   'border':'#353535',
+                   'shadow':'none',
+                   'radius':'3px'
+              },
+            //辅助颜色
+              'secondary':{
+                   'backgroudColor':'#DFDFDF',
+                   'color':'#8C8C8C',
+                   'border':'',
+                   'shadow':''
+              },
+             //标准颜色
+             'standard':{
+                   'backgroud':'#FFFFFF',
+                   'text':'#5E5E5E',
+                   'border':'',
+                   'shadow':''
+              }
         }
-
 
     };
     var SkinThemes={
