@@ -11,29 +11,28 @@
         'default':{
             //主要的颜色
             'primary':{
-                backgroud:'',
-                text:'',
+                backgroud:'#353535',
+                text:'#DFDFDF',
                 border:'',
                 gradient:'',
                 shadow:''
             },
             //辅助的颜色
             'secondary':{
-                backgroud:'',
-                text:'',
+                backgroud:'#DFDFDF',
+                text:'#8C8C8C',
                 border:'',
                 gradient:'',
                 shadow:''
             },
             //阅读的颜色
             'standard':{
-                backgroud:'',
-                text:'',
+                backgroud:'#FFFFFF',
+                text:'#5E5E5E',
                 border:'',
                 gradient:'',
                 shadow:''
             },
-
             //成功颜色
             'success' :{
                 backgroud:'',

@@ -28,7 +28,8 @@
 
     <script src="Modality.js" ></script>
     <script src="Layout.js" ></script>
-
+    <link href="bootstrap.css" rel="stylesheet" />
+    <link href="base.css" rel="stylesheet" />
     <title></title>
 </head>
 
@@ -37,6 +38,19 @@
     body{
         margin: 0px;
        /* overflow:hidden;*/
+    }
+
+    .btn-default {
+        background-image: -webkit-linear-gradient(top, #ffffff 0%, #e0e0e0 100%);
+        background-image: -o-linear-gradient(top, #ffffff 0%, #e0e0e0 100%);
+        background-image: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#e0e0e0));
+        background-image: linear-gradient(to bottom, #ffffff 0%, #e0e0e0 100%);
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe0e0e0', GradientType=0);
+        filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+        background-repeat: repeat-x;
+        border-color: #dbdbdb;
+        text-shadow: 0 1px 0 #fff;
+        border-color: #ccc;
     }
 
 
@@ -76,6 +90,12 @@
 
 
     Breeze(function(){
+
+
+
+
+       Breeze('#bg').style('radialGradient', '10% 50%,circle cover, #ace 20%, #f96 100%')
+
 
 
         // this.height - footer.height - head.height
@@ -190,6 +210,21 @@
 
 <div  id="selection" style="width: 300px; margin: 50px;" data-uuu="yyyy">
 </div>
+
+<!--
+<div class="col-lg-5 container">
+    <ul class="col-lg-12 list-unstyled state">
+        <li>one</li>
+        <li disabled>two</li>
+        <li>three</li>
+    </ul>
+
+</div>
+-->
+
+<div style="background:-webkit-gradient(linear,0 0,173 100,from(#ace),to(#f96)); margin: 10px; width: 200px; height: 200px; display: inline-block;"></div>
+<div style="background:-webkit-linear-gradient(0deg,#ace 0% , #f96 100%);  margin:10px;width: 200px; height: 200px; display:inline-block;"></div>
+<div id="bg" style="margin:10px;width: 200px; height: 200px; display:inline-block;"></div>
 
 
 <!--

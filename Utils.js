@@ -27,6 +27,7 @@
             }
             ,cssMap:{}
         }
+        ,styleNamePrefix=''
         ,cssAalpha = /alpha\([^)]*\)/i
         ,cssOpacity = /opacity=([^)]*)/
         ,cssUpperProp = /([A-Z]|^ms)/g
@@ -228,12 +229,12 @@
             _client = {};
             var ua = navigator.userAgent.toLowerCase();
             var s;
-            (s = ua.match(/msie ([\d.]+)/))             ? _client[Utils.BROWSER_IE]       = Number(s[1]) :
-                (s = ua.match(/firefox\/([\d.]+)/))         ? _client[Utils.BROWSER_FIREFOX]  = Number(s[1]) :
-                    (s = ua.match(/chrome\/([\d.]+)/))          ? _client[Utils.BROWSER_CHROME]   = Number(s[1]) :
-                        (s = ua.match(/opera.([\d.]+)/))            ? _client[Utils.BROWSER_OPERA]    = Number(s[1]) :
-                            (s = ua.match(/version\/([\d.]+).*safari/)) ? _client[Utils.BROWSER_SAFARI]   = Number(s[1]) :
-                                (s = ua.match(/^mozilla\/([\d.]+)/))        ? _client[Utils.BROWSER_MOZILLA]  = Number(s[1]) : null ;
+            (s = ua.match(/msie ([\d.]+)/))             ? _client[Utils.BROWSER_IE]       = parseFloat(s[1]) :
+                (s = ua.match(/firefox\/([\d.]+)/))         ? _client[Utils.BROWSER_FIREFOX]  = parseFloat(s[1]) :
+                    (s = ua.match(/chrome\/([\d.]+)/))          ? _client[Utils.BROWSER_CHROME]   = parseFloat(s[1]) :
+                        (s = ua.match(/opera.([\d.]+)/))            ? _client[Utils.BROWSER_OPERA]    = parseFloat(s[1]) :
+                            (s = ua.match(/version\/([\d.]+).*safari/)) ? _client[Utils.BROWSER_SAFARI]   = parseFloat(s[1]) :
+                                (s = ua.match(/^mozilla\/([\d.]+)/))        ? _client[Utils.BROWSER_MOZILLA]  = parseFloat(s[1]) : null ;
         }
         var result = _client[type];
         if( result && version !== undefined )
@@ -242,32 +243,104 @@
     }
 
     // fix style name
-    if( Utils.isBrowser(Utils.BROWSER_FIREFOX,4,'<=') )
+    if( Utils.isBrowser(Utils.BROWSER_FIREFOX,4,'>=') )
     {
+        //select
+        fix.cssMap.select='-moz-user-select';
+
+        //shadow
         fix.cssMap.shadow='-moz-box-shadow';
+
+        //radius
         fix.cssMap.radius='-moz-border-radius';
         fix.cssMap.topLeftRadius='-moz-border-top-left-radius';
         fix.cssMap.topRightRadius='-moz-border-top-right-radius';
         fix.cssMap.bottomLeftRadius='-moz-border-bottom-left-radius';
         fix.cssMap.bottomRightRadius='-moz-border-bottom-right-radius';
 
-    }else if(  Utils.isBrowser(Utils.BROWSER_SAFARI) || Utils.isBrowser(Utils.BROWSER_CHROME,10,'<') )
+        //transition
+        fix.cssMap.transition='-moz-transition';
+        fix.cssMap.transitionProperty='-moz-transition-property';
+        fix.cssMap.transitionDuration='-moz-transition-duration';
+        fix.cssMap.transitionTimingFunction='-moz-transition-timing-function';
+        fix.cssMap.transitionDelay='-moz-transition-delay';
+
+        //gradient
+        fix.cssMap.linearGradient='-moz-linear-gradient';
+        fix.cssMap.radialGradient='-moz-radial-gradient';
+
+    }else if(  Utils.isBrowser(Utils.BROWSER_SAFARI) || Utils.isBrowser(Utils.BROWSER_CHROME,10,'>') )
     {
+        //select
+        fix.cssMap.select='-webkit-user-select';
+
+        //shadow
         fix.cssMap.shadow='-webkit-box-shadow';
+
+        //radius
         fix.cssMap.radius='-webkit-border-radius';
         fix.cssMap.topLeftRadius='-webkit-border-top-left-radius';
         fix.cssMap.topRightRadius='-webkit-border-top-right-radius';
         fix.cssMap.bottomLeftRadius='-webkit-border-bottom-left-radius';
         fix.cssMap.bottomRightRadius='-webkit-border-bottom-right-radius';
 
+        //transition
+        fix.cssMap.transition='-webkit-transition';
+        fix.cssMap.transitionProperty='-webkit-transition-property';
+        fix.cssMap.transitionDuration='-webkit-transition-duration';
+        fix.cssMap.transitionTimingFunction='-webkit-moz-transition-timing-function';
+        fix.cssMap.transitionDelay='-webkit-transition-delay';
+
+        // gradient
+        fix.cssMap.linearGradient='-webkit-linear-gradient';
+        fix.cssMap.radialGradient='-webkit-radial-gradient';
+
+        //gradient
+       /* fix.cssMap.linearGradient='-webkit-gradient';
+        fix.cssMap.radialGradient='-webkit-gradient';*/
+
+    }else if(Utils.isBrowser(Utils.BROWSER_OPERA))
+    {
+        //select
+        fix.cssMap.select='-o-user-select';
+
+        //transition
+        fix.cssMap.transition='-o-transition';
+        fix.cssMap.transitionProperty='-o-transition-property';
+        fix.cssMap.transitionDuration='-o-transition-duration';
+        fix.cssMap.transitionTimingFunction='-o-moz-transition-timing-function';
+        fix.cssMap.transitionDelay='-o-transition-delay';
+
+        //gradient
+        fix.cssMap.linearGradient='-o-linear-gradient';
+        fix.cssMap.radialGradient='-o-radial-gradient';
+
     }else
     {
+        //shadow
         fix.cssMap.shadow='box-shadow';
+
+        //radius
         fix.cssMap.radius='border-radius';
         fix.cssMap.topLeftRadius='border-top-left-radius';
         fix.cssMap.topRightRadius='border-top-right-radius';
         fix.cssMap.bottomLeftRadius='border-bottom-left-radius';
         fix.cssMap.bottomRightRadius='border-bottom-right-radius';
+
+        //select
+        fix.cssMap.select='user-select';
+
+        //gradient
+        fix.cssMap.linearGradient='linear-gradient';
+        fix.cssMap.radialGradient='radial-gradient';
+
+    }
+
+    //ie 9 以下
+    if( Utils.isBrowser(Utils.BROWSER_IE,10,'<') )
+    {
+        fix.cssMap.linearGradient='filter';
+        fix.cssMap.radialGradient='filter';
     }
 
     /**
@@ -288,13 +361,10 @@
         {
             if( name === undefined || name==='cssText')
                 return (elem.style || {} ).cssText || '';
-
-            if( cssHooks[name] && cssHooks[name].get )return cssHooks[name].get.call(elem) || '';
-
             var ret='',computedStyle;
             if( name==='' )return '';
-
-            computedStyle=document.defaultView.getComputedStyle( elem, null )
+            computedStyle=document.defaultView.getComputedStyle( elem, null );
+            if( cssHooks[name] && typeof cssHooks[name].get === "function" )return cssHooks[name].get.call(elem,computedStyle,name) || '';
             if( computedStyle )
             {
                 name=Utils.styleName( name );
@@ -322,7 +392,7 @@
             var ret = style[ name ] || '';
 
             if( hook && hook.get )
-                ret=hook.get.call(elem,style) || '';
+                ret=hook.get.call(elem,style,name) || '';
 
             //在ie9 以下将百分比的值转成像素的值
             if( cssNumnonpx.test( ret ) )
@@ -352,6 +422,126 @@
                 return true;
             }
         };
+    }
+
+    //set hooks
+    cssHooks.select={
+
+        get: function( style, name )
+        {
+            return style[ fix.cssMap.select ] || '';
+        },
+        set: function( style, value )
+        {
+            style[ fix.cssMap.select ] = value;
+            style['-webkit-touch-callout'] = value;
+            style['-khtml-user-select'] = value;
+            return true;
+        }
+    }
+
+
+   cssHooks.radialGradient=cssHooks.linearGradient={
+
+        get: function( style, name )
+        {
+            return  Utils.storage(this,name) || '';
+        },
+        set: function( style, value, name )
+        {
+            value = Utils.trim(value);
+            Utils.storage(this,name,value);
+            if( fix.cssMap[name] === '-webkit-gradient')
+            {
+                var position='';
+                var deg= 0;
+                if(name==='radialGradient')
+                {
+                    position=value.match(/([^\#]*)/);
+                    if( position ){
+                        position = position[1].replace(/\,\s*$/,'');
+                        value=value.replace(/([^\#]*)/,'')
+                    }
+                    value = value.split(',');
+                }else
+                {
+                    var deg = value.match(/^(\d+)deg/);
+                    value = value.split(',');
+                    if( deg )
+                    {
+                        deg = deg[1]
+                        value.splice(0,1);
+                    }
+                    deg=parseFloat(deg) || 0;
+                }
+                var color = [];
+                for(var i=0; i<value.length; i++)
+                {
+                    var item = Utils.trim(value[i]).split(/\s+/,2);
+                    if( i===0 )color.push("from("+item[0]+")");
+                    if( !(i===0 || i===value.length-1 ) || typeof item[1] !== "undefined"  )
+                    {
+                        var num = (parseFloat(item[1]) || 0) / 100;
+                        color.push( "color-stop("+num+","+item[0]+")" );
+                    }
+                    if( i===value.length-1 )
+                        color.push("to("+item[0]+")");
+                }
+
+                var width= Utils.getSize(this,'width');
+                var height=  Utils.getSize(this,'height');
+                if(name==='radialGradient')
+                {
+                    position = position.split(/\,/,2)
+                    var point = Utils.trim(position[0]).split(/\s+/,2);
+                    if(point.length===1)point.push('50%');
+                    var point = point.join(' ');
+                    position=point+',0, '+point+', '+width/2;
+                    value=Utils.sprintf("%s,%s,%s",'radial',position,color.join(',') );
+
+                }else{
+
+                    var x1=Math.cos(  deg*(Math.PI/180) );
+                    var y1=Math.sin(  deg*(Math.PI/180) );
+                    value=Utils.sprintf("%s,0% 0%,%s %s,%s",'linear',Math.round(x1*width),Math.round(y1*height),color.join(',') );
+                }
+
+            }else if( !value.match(/^(left|top|right|bottom|\d+)/) && name==='linearGradient' )
+            {
+                value= '0deg,'+value;
+
+            }else if( name==='linearGradient' )
+            {
+                value= value.replace(/^(\d+)(deg)?/,'$1deg')
+            }
+
+            var prop = 'background-image';
+            if( fix.cssMap[name] === 'filter' )
+            {
+                value=value.split(',')
+                var deg = value.splice(0,1).toString();
+                deg = parseFloat( deg ) || 0;
+                var color=[];
+                for(var i=0; i<value.length; i++)
+                {
+                    var item = Utils.trim(value[i]).split(/\s+/,2);
+                    color.push( i%1===1 ? "startColorstr='"+item[0]+"'" :  "endColorstr='"+item[0]+"'" );
+                }
+                var type = deg % 90===0 ? '1' : '0';
+                var linear = name==='linearGradient' ? '1' : '2';
+                value = 'alpha(opacity=100 style='+linear+' startx=0,starty=5,finishx=90,finishy=60);';
+                value= style.filter || '';
+                value += Utils.sprintf(";progid:DXImageTransform.Microsoft.gradient(%s, GradientType=%s);",color.join(','), type );
+                value += "progid:DXImageTransform.Microsoft.gradient(enabled = false);";
+                prop='filter';
+
+            }else
+            {
+                value= Utils.sprintf('%s(%s)',fix.cssMap[name],value) ;
+            }
+            style[ prop ] = value ;
+            return true;
+        }
     }
 
     var iscsstext=/^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/;
@@ -422,7 +612,7 @@
         if ( value == null )return false;
         if ( type === "number" && !cssNumber[ name ] )
             value += "px";
-        if( hook && hook.set && hook.set.call(elem,style,value)===true )return true;
+        if( hook && hook.set && hook.set.call(elem,style,value,name)===true )return true;
 
         name = Utils.styleName( name );
         try{
@@ -509,7 +699,7 @@
         name=fix.cssMap[name] || name;
         name=name.replace( cssPrefix, "ms-" ).replace( cssDashAlpha, cssCamelCase );
         name = name.replace( cssUpperProp, "-$1" ).toLowerCase();
-        return name;
+        return styleNamePrefix+name;
     }
 
     /**
