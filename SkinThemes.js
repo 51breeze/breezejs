@@ -9,6 +9,7 @@
     var themes={
 
         'default':{
+
             //主要的颜色
             'primary':{
                 backgroud:'',
@@ -26,7 +27,7 @@
                 shadow:''
             },
             //阅读的颜色
-            'standard':{
+            'normal':{
                 backgroud:'',
                 text:'',
                 border:'',
@@ -116,20 +117,31 @@
                 border:'',
                 gradient:'',
                 shadow:''
+            },
+            //获得焦点时颜色
+            'focus': {
+                backgroud:'',
+                text:'',
+                border:'',
+                gradient:'',
+                shadow:''
             }
         }
     };
 
+    var currentTheme='default';
 
     var SkinThemes={
 
         'get':function(name)
         {
 
+            return themes[currentTheme][name];
         },
-        'set':function(name, skinObject )
+        'set':function(name, colorObject )
         {
-            themes[name]=skinObject;
+
+            themes[name]=colorObject;
         }
     }
 
