@@ -12,16 +12,16 @@
 
             //主要的颜色
             'primary':{
-                backgroud:'',
-                text:'',
+                backgroud:'#353535',
+                text:'#DFDFDF',
                 border:'',
                 gradient:'',
                 shadow:''
             },
             //辅助的颜色
             'secondary':{
-                backgroud:'',
-                text:'',
+                backgroud:'#DFDFDF',
+                text:'#8C8C8C',
                 border:'',
                 gradient:'',
                 shadow:''
@@ -34,7 +34,6 @@
                 gradient:'',
                 shadow:''
             },
-
             //成功颜色
             'success' :{
                 backgroud:'',

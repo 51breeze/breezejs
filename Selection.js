@@ -219,7 +219,7 @@
         var skinGroup= this.skinGroup();
         var skinObject = skinGroup.skinObject();
 
-        if( skinObject.attached )
+        if( skinObject.isElement )
         {
             bindEvent.call(this);
 

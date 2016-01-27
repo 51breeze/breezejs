@@ -163,10 +163,12 @@
                 this.attached=false;
                 this.isElement=false;
             }
+
         }else if( typeof container !== "string" )
         {
             throw new Error('invalid container');
         }
+
         this.container=container;
         this.attr=attr || {};
         this.part=part || {};

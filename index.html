@@ -28,7 +28,8 @@
 
     <script src="Modality.js" ></script>
     <script src="Layout.js" ></script>
-
+    <link href="bootstrap.css" rel="stylesheet" />
+    <link href="base.css" rel="stylesheet" />
     <title></title>
 </head>
 
@@ -37,6 +38,19 @@
     body{
         margin: 0px;
        /* overflow:hidden;*/
+    }
+
+    .btn-default {
+        background-image: -webkit-linear-gradient(top, #ffffff 0%, #e0e0e0 100%);
+        background-image: -o-linear-gradient(top, #ffffff 0%, #e0e0e0 100%);
+        background-image: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#e0e0e0));
+        background-image: linear-gradient(to bottom, #ffffff 0%, #e0e0e0 100%);
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe0e0e0', GradientType=0);
+        filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+        background-repeat: repeat-x;
+        border-color: #dbdbdb;
+        text-shadow: 0 1px 0 #fff;
+        border-color: #ccc;
     }
 
 
@@ -79,6 +93,11 @@
 
 
 
+
+       Breeze('#bg').style('radialGradient', '10% 50%,circle cover, #ace 20%, #f96 100%')
+
+
+
         // this.height - footer.height - head.height
 
 
@@ -104,7 +123,6 @@
        */
 
 
-
          var selection = new Selection( '#selection' )
          selection.dataRender().source( [{'id':1,'label':'张三'},{'id':2,'label':'李四'}] );
          selection.selectedIndex(0)
@@ -116,18 +134,18 @@
         s.dataRender().source( [{'id':5,'label':'yejun123'},{'id':6,'label':'李四444444'}] );
 
 
-        /*   var modal =  new Modality()
-           modal.width(600).height(400)
-           modal.label('标题222')
-           modal.content('<h1>123</h1>')
-           modal.show(true)
+      /*   var modal =  new Modality()
+         modal.width(600).height(400)
+         modal.label('标题222')
+         modal.content('<h1>123</h1>')
+         modal.show(true)
 
-          modal.addEventListener(ModalityEvent.CANCEL,function(event){
+        modal.addEventListener(ModalityEvent.CANCEL,function(event){
 
-           console.log('CANCEL')
-           event.stopPropagation()
+         console.log('CANCEL')
+         event.stopPropagation()
 
-           })*/
+         })*/
 
 
       /*  Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(){
@@ -147,25 +165,6 @@
              Breeze(".mcontainer").dispatchEvent( new LayoutEvent( LayoutEvent.CHANGE ) )
 
         },false)
-
-
-
-
-/*
-        while( item=/<(\w+)\s+(foreach=([\'\"]).*?\3)/g.exec( html ) )
-        {
-            var start =  html.slice(0, item.index);
-            start+='<? foreach(data item){ ?><'+item[1];
-            cursor = item.index + item[0].length;
-            html= start+html.substr(cursor, html.length - cursor)
-        }
-
-
-
-
-
-        console.log( html )*/
-
 
     })
 
@@ -210,22 +209,22 @@
 
 
 <div  id="selection" style="width: 300px; margin: 50px;" data-uuu="yyyy">
-    <script type="text/html">
-        <div style="width:100%;height:35px;border:solid #999 1px;display:block;background-color:#ffff00" tabindex="-1" skin="container">
-            <div style="width:100%;line-height:35px;display:block;cursor:pointer" skin="label">李四4444448888</div>
-            <div style="display:none;width:100%;height:auto;z-index:999;position:absolute;background-color:#ffffff;border:solid #333333 1px;padding:0px" skin="group">
-                <ul style="width:100%; height:auto;padding: 0px;list-style-type:none;-webkit-margin-before:0px;-webkit-margin-after:0px; text-indent: 0px;" skin="list">
-                    <li style="width:100%;height:25px;padding:0px;margin:0px;cursor:pointer" data-index="0" value="5">yejun123ssss</li>
-                    <li style="width: 100%; height: 25px; padding: 0px; margin: 0px; cursor: pointer; background-color: rgb(154, 154, 154);" data-index="1" value="6" current="true">李四444444sss</li>
-                </ul>
-            </div>
-        </div>
-    </script>
 </div>
 
-<script type="text/plain">
-    <ul><?foreach('+dataProfile+' as key item){ ?><li {attr li} value="{item["'+valueProfile+'"]}">{item["'+labelProfile+'"]}</li><?}?></ul>
-</script>
+<!--
+<div class="col-lg-5 container">
+    <ul class="col-lg-12 list-unstyled state">
+        <li>one</li>
+        <li disabled>two</li>
+        <li>three</li>
+    </ul>
+
+</div>
+-->
+
+<div style="background:-webkit-gradient(linear,0 0,173 100,from(#ace),to(#f96)); margin: 10px; width: 200px; height: 200px; display: inline-block;"></div>
+<div style="background:-webkit-linear-gradient(0deg,#ace 0% , #f96 100%);  margin:10px;width: 200px; height: 200px; display:inline-block;"></div>
+<div id="bg" style="margin:10px;width: 200px; height: 200px; display:inline-block;"></div>
 
 
 <!--
@@ -240,10 +239,6 @@
 </div>
 
 -->
-
-
-
-
 
 
 </body>
