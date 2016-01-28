@@ -86,7 +86,7 @@
 
         });
 
-        EventDispatcher( skinGroup.getSkin('group') ).addEventListener([MouseEvent.MOUSE_OVER,MouseEvent.MOUSE_OUT,MouseEvent.CLICK],function(event)
+        EventDispatcher( skinGroup.getSkin('group') ).addEventListener([MouseEvent.CLICK],function(event)
         {
             var current =  Utils.property( event.target, 'current');
             if( event.type === MouseEvent.MOUSE_OVER )
@@ -259,7 +259,7 @@
         var dataProfile= this.dataRender().dataProfile();
         var labelProfile =  this.labelProfile();
         var valueProfile = this.valueProfile();
-        var skinObject=new SkinObject('<div>{part label+group}</div>',{
+       /* var skinObject=new SkinObject('<div>{part label+group}</div>',{
             input: '<input/>',
             label: '<div></div>',
             list: '<ul><?foreach('+dataProfile+' as key item){ ?><li {attr li} value="{item["'+valueProfile+'"]}">{item["'+labelProfile+'"]}</li><?}?></ul>',
@@ -273,6 +273,21 @@
             list:{'style':'width:100%; height:auto;padding: 0px;list-style-type:none;-webkit-margin-before:0px;-webkit-margin-after:0px; text-indent: 0px;'},
             group:{ 'style':{display:'none',width:'100%',height:'auto',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}},
             container:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'},tabindex:"-1" }
+        });*/
+        var skinObject=new SkinObject('<div>{part label+group}</div>',{
+            input: '<input/>',
+            label: '<div></div>',
+            list: '<ul><?foreach('+dataProfile+' as key item){ ?><li {attr li} value="{item["'+valueProfile+'"]}">{item["'+labelProfile+'"]}</li><?}?></ul>',
+            group: '<div></div>',
+            searchbox:'<div><span>{part input}</span>{part group}</div>'
+        },{
+            searchbox:{'style':{'width':'100%',height:'300px'}},
+            current:{'style':{'backgroundColor':'#9a9a9a'}},
+            label:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'} },
+            li:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},'data-index':'{key}'},
+            list:{'class':'list-state'},
+            group:{ 'style':{display:'none',width:'100%',height:'auto',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}},
+            container:{ 'class':'container',tabindex:"-1" }
         });
         return skinObject;
     }
