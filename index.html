@@ -91,15 +91,10 @@
        */
 
 
-         var selection = new Selection( '#selection' )
+        var selection = new Selection( '#selection' )
          selection.dataRender().source( [{'id':1,'label':'张三'},{'id':2,'label':'李四'}] );
-         selection.selectedIndex(0)
+         selection.selectedIndex(0).searchable(true)
          selection.display();
-
-
-        var s=  new Selection( '#selection' )
-        s.selectedIndex(1)
-        s.dataRender().source( [{'id':5,'label':'yejun123'},{'id':6,'label':'李四444444'}] );
 
 
       /*   var modal =  new Modality()
@@ -172,15 +167,9 @@
 -->
 
 
-
-
-<div  id="selection" style="width: 300px; margin: 50px;" data-uuu="yyyy">
+<div  id="selection" style="width: 300px; margin: 50px;">
 </div>
 
-<div class="list-unstyled list-state text-unselect">
-        <li>2121212</li>
-        <li>989sdf989898</li>
-</div>
 
 <!--
 <div class="col-lg-5 container">

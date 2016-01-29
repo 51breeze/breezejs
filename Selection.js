@@ -86,24 +86,11 @@
 
         });
 
-        EventDispatcher( skinGroup.getSkin('group') ).addEventListener([MouseEvent.CLICK],function(event)
+        Breeze( skinGroup.getSkin('list') ).children().addEventListener(MouseEvent.CLICK,function(event)
         {
-            var current =  Utils.property( event.target, 'current');
-            if( event.type === MouseEvent.MOUSE_OVER )
-            {
-                if( !current )Utils.style( event.target,'backgroundColor', '#ccc');
-
-            }else if(event.type === MouseEvent.MOUSE_OUT)
-            {
-                if( !current )Utils.style( event.target,'background', 'none');
-
-            }else
-            {
-                var index = Utils.property( event.target, 'data-index');
-                self.selectedIndex( index );
-                skinGroup.currentSkin('group').display(false);
-                skinGroup.current(null);
-            }
+            var index = this.property('data-index');
+            self.selectedIndex( index );
+            skinGroup.currentSkin('group').display(false).current(null);
             event.stopPropagation();
         });
 
@@ -174,9 +161,7 @@
               throw new Error('invalid index');
 
             var skinObject = skinGroup.skinObject();
-            skinGroup.find('[current]').property('current',null).style('background','none').revert()
-                .current('[data-index='+index+']').property('current',true).style( skinObject.get('attr.current.style') )
-
+            skinGroup.find('.active').removeClass('active').revert().current('[data-index='+index+']').property('class','active');
             this.__label__.property(labelProfile , dataSource[index]);
             var event = new SelectionEvent(SelectionEvent.CHANGE);
             event.selectedIndex = index;
@@ -211,7 +196,43 @@
     }
 
     /**
+     * @private
+     */
+    Selection.prototype.__searchable__=false;
+
+    /**
+     * @param boolean searchable
+     * @public
+     */
+    Selection.prototype.searchable=function( searchable )
+    {
+        if( typeof searchable === "undefined" )
+          return this.__searchable__;
+        this.__searchable__ = searchable===false ? false : true;
+        return this;
+    }
+
+
+    /**
+     * @private
+     */
+    Selection.prototype.__placeholder__='请输入要搜索的内容';
+
+    /**
+     * @param boolean searchable
+     * @public
+     */
+    Selection.prototype.placeholder=function( msg )
+    {
+        if( typeof msg === "undefined" )
+            return this.__placeholder__;
+        this.__placeholder__ = msg || this.__placeholder__;
+        return this;
+    }
+
+    /**
      * @returns {Selection}
+     * @public
      */
     Selection.prototype.display=function()
     {
@@ -225,8 +246,22 @@
 
         }else if( !dataRender.viewport() )
         {
-            dataRender.viewport( skinGroup.getSkin('group') );
-            var list = skinGroup.skinObject().get('part.list');
+            dataRender.viewport( skinGroup.getSkin('list') );
+            if( this.searchable() )
+            {
+               var labelProfile =  this.labelProfile();
+                Breeze('input',skinGroup.getSkin('group') )
+                    .addEventListener(PropertyEvent.CHANGE,function(event){
+
+                        var value = this.property('value');
+                        if( value )
+                        {
+                            dataRender.dataSource().select(labelProfile + '="' + this.property('value') + '"');
+                        }
+
+                    }).property('placeholder', this.placeholder() ).display(true);
+            }
+            var list = skinGroup.skinObject().get('part.items');
             if( list ) {
                 dataRender.display( list );
             }
@@ -259,35 +294,11 @@
         var dataProfile= this.dataRender().dataProfile();
         var labelProfile =  this.labelProfile();
         var valueProfile = this.valueProfile();
-       /* var skinObject=new SkinObject('<div>{part label+group}</div>',{
-            input: '<input/>',
-            label: '<div></div>',
-            list: '<ul><?foreach('+dataProfile+' as key item){ ?><li {attr li} value="{item["'+valueProfile+'"]}">{item["'+labelProfile+'"]}</li><?}?></ul>',
-            group: '<div></div>',
-            searchbox:'<div><span>{part input}</span>{part group}</div>'
-        },{
-            searchbox:{'style':{'width':'100%',height:'300px'}},
-            current:{'style':{'backgroundColor':'#9a9a9a'}},
-            label:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'} },
-            li:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},'data-index':'{key}'},
-            list:{'style':'width:100%; height:auto;padding: 0px;list-style-type:none;-webkit-margin-before:0px;-webkit-margin-after:0px; text-indent: 0px;'},
-            group:{ 'style':{display:'none',width:'100%',height:'auto',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}},
-            container:{ 'style':{'width':'100%',height:'35px',border:'solid #999 1px','display':'block',backgroundColor:'#ffff00'},tabindex:"-1" }
-        });*/
-        var skinObject=new SkinObject('<div>{part label+group}</div>',{
-            input: '<input/>',
-            label: '<div></div>',
-            list: '<ul><?foreach('+dataProfile+' as key item){ ?><li {attr li} value="{item["'+valueProfile+'"]}">{item["'+labelProfile+'"]}</li><?}?></ul>',
-            group: '<div></div>',
-            searchbox:'<div><span>{part input}</span>{part group}</div>'
-        },{
-            searchbox:{'style':{'width':'100%',height:'300px'}},
-            current:{'style':{'backgroundColor':'#9a9a9a'}},
-            label:{ 'style':{'width':'100%',lineHeight:'35px','display':'block',cursor:'pointer'} },
-            li:{ 'style':{'width':'100%',height:'25px',padding:"0px",margin:'0px',cursor:'pointer'},'data-index':'{key}'},
-            list:{'class':'list-state'},
-            group:{ 'style':{display:'none',width:'100%',height:'auto',zIndex:999,position:'absolute',backgroundColor:'#ffffff',border:'solid #333333 1px',padding:'0px'}},
-            container:{ 'class':'container',tabindex:"-1" }
+        var skinObject=new SkinObject('<div class="selection text-unselect">{part label+group}</div>',{
+            label: '<div class="label" tabindex="-1"></div>',
+            items: '<?foreach('+dataProfile+' as key item){ ?><li value="{item["'+valueProfile+'"]}" data-index="{key}">{item["'+labelProfile+'"]}</li><?}?>',
+            list: '<ul class="list-state"></ul>',
+            group: '<div class="group"><input class="searchbox" style="display: none" />{part list}</div>'
         });
         return skinObject;
     }

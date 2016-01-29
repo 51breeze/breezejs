@@ -107,11 +107,14 @@
             return "";
 
         var _result=jscodeReg.exec(code);
+        console.log(code,  '===========',_result );
+
         if( flag===true && _result )
         {
             if( _result[1] === 'foreach' )
             {
                 var isforeach=foreachReg.exec( _result[2] )
+
                 if( typeof _result[2] ==='string' && isforeach )
                 {
                     var data = isforeach[1];
@@ -134,6 +137,9 @@
     },
     make = function(template, variable, split )
     {
+
+        console.log( template )
+
         var code = 'var ___code___="";\n',
             match,cursor = 0;
 
@@ -169,6 +175,9 @@
         }
         code += replace( template.substr(cursor, template.length - cursor) );
         code += 'return ___code___;';
+
+        console.log( code )
+
         return new Function( code ).call( variable , template );
     }
 

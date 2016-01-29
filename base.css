@@ -30,10 +30,7 @@
 .list-state > li:hover,
 .list-state > li:focus
 {
-    background-color: rgb(23, 137, 186);
-    color: #a8f2ff;
-    -webkit-box-shadow: none;
-    box-shadow: none;
+    background-color: #e8e8e8;
 }
 
 .list-state > dl:active,
@@ -41,9 +38,7 @@
 .list-state > li:active,
 .list-state > li.active
 {
-    background-color: #2a71a2;
-    -webkit-box-shadow: none;
-    box-shadow: none;
+    background-color: #e6e2ec;
 }
 
 .list-state > dl.disabled,
@@ -59,10 +54,65 @@
 }
 
 
-
-
-[component=selection]
+.selection
 {
-    background-color: #337ab7;
+    background-color: #e2dee8;
+    width: 100%;
+    height: auto;
+    border:solid #b3b3b3 1px;
+    display:block;
 }
 
+.selection > .label {
+    width: 100%;
+    height: 2.5em;
+    cursor: pointer;
+    line-height: 2.5em ;
+    text-indent: 10px;
+}
+
+.selection > .group
+{
+    width: 100%;
+    height: auto;
+    display:none;
+    z-index:999;
+    position:absolute;
+    background-color: #f4f4f4;
+    border:solid #b3b3b3 1px;
+    padding:0px;
+}
+
+.selection > .group > input
+{
+    width: 100%;
+    background:none;
+    border:none;
+    padding:5px;
+}
+
+.selection > .group ul,
+.selection > .group ol
+{
+    list-style-type:none;
+    -webkit-margin-before:0px;
+    -webkit-margin-after:0px;
+    width: 100%;
+    height: auto;
+    padding: 0px;
+    margin: 0px;
+}
+
+.selection > .group ul li,
+.selection > .group ul dl,
+.selection > .group ol li,
+.selection > .group ol dl
+{
+   margin:0px;
+   padding: 0px;
+   display: block;
+   width: 100%;
+   height: 30px;
+   line-height: 30px;
+   text-indent: 10px;
+}

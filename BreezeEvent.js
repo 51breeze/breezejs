@@ -81,23 +81,29 @@
     {
         if( typeof type !== "string" )
            return null;
+
         if( !mapeventname )
         {
-            mapeventname={'propertychange':'input','ready':'readystatechange','load':'DOMContentLoaded'}
-            if( Utils.isBrowser(Utils.BROWSER_IE,9) )
+            mapeventname={};
+            mapeventname[ PropertyEvent.CHANGE ] = 'input';
+            mapeventname[ BreezeEvent.READY ] = 'readystatechange';
+            mapeventname[ BreezeEvent.LOAD ] = 'DOMContentLoaded';
+            if( Utils.isBrowser(Utils.BROWSER_IE,9,'<') )
             {
-                mapeventname={'ready':'readystatechange'}
                 onPrefix='on';
             }
         }
+
         if( flag===true )
         {
             type= onPrefix==='on' ? type.replace(/^on/i,'') : type;
-            for(var prop in mapeventname)if( mapeventname[prop] === type )return prop
+            for(var prop in mapeventname)if( mapeventname[prop].toLowerCase() === type )return prop
             return type;
         }
-        var eventType= !agreed.test( type ) ? type.toLowerCase() : type;
-        return onPrefix+(mapeventname[ eventType ] || eventType);
+
+        type = mapeventname[ type ] || type;
+        type= !agreed.test( type ) ? type.toLowerCase() : type;
+        return onPrefix+type;
     }
 
     /**
@@ -139,11 +145,11 @@
            className=Utils.ucfirst( className[1] )+'Event';
            if( window[className] )
            {
-               breezeEvent=new className( event )
+               breezeEvent=new window[className]( event )
            }
            if( breezeEvent instanceof PropertyEvent )
            {
-               breezeEvent.property= Breeze.isFormElement(target) ? 'value' : 'innerHTML';
+               breezeEvent.property= Utils.isFormElement(target) ? 'value' : 'innerHTML';
                breezeEvent.newValue=target[ breezeEvent.property ];
            }
 

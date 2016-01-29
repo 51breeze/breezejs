@@ -100,7 +100,7 @@
          */
         this.filter=function( filter )
         {
-            if( typeof filter === "undefined" )
+            if( typeof filter === "undefined" || !filter )
             {
                 var index = this.index();
                 if( index instanceof Array )
@@ -170,17 +170,16 @@
         var data=this.data();
         var result=null;
         filter = this.filter( filter );
-        if( typeof  filter !== "function" )
+        if( typeof filter !== "function" )
         {
             var index = this.index()
             if( index instanceof Array )
             {
-                return data instanceof Array ?  data.slice(index[0],index[1]) : data;
+                return data instanceof Array || data instanceof DataSource ?  data.slice(index[0],index[1]) : data;
             }
             return data;
         }
-
-        if( data instanceof Array )
+        if( data instanceof Array || data instanceof DataSource )
         {
             result=[];
             for(var i=0; i<data.length; i++ ) if( !!filter.call( this,data[i] ) )
