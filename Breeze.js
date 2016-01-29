@@ -895,6 +895,12 @@
             }
 
             elem.innerHTML='';
+            if( Utils.isString(html) )
+            {
+                html = Utils.trim( html );
+                if( html === '' )
+                  return;
+            }
             if( outer && elem.parentNode && elem.parentNode.ownerDocument && Utils.contains(elem.parentNode.ownerDocument.body, elem.parentNode) )
             {
                 this.current( elem.parentNode );

@@ -97,7 +97,7 @@
         }
         return Utils.trim( template );
     },
-    jscodeReg = /^\s*(if|for\s*\(|else|do|switch|case|break|var|function|while|foreach|{|})(.*)?/g,
+    jscodeReg = /^\s*(if|foreach|for|else|do|switch|case|break|var|function|while|{|})(.*)?/,
     funReg = /^([\w\.]+)\s*\(/,
     foreachReg  = /(\w+)\s+as\s+(\w+)(\s+(\w+))?/i,
     replace = function( code , flag )
@@ -107,8 +107,6 @@
             return "";
 
         var _result=jscodeReg.exec(code);
-        console.log(code,  '===========',_result );
-
         if( flag===true && _result )
         {
             if( _result[1] === 'foreach' )
@@ -137,9 +135,6 @@
     },
     make = function(template, variable, split )
     {
-
-        console.log( template )
-
         var code = 'var ___code___="";\n',
             match,cursor = 0;
 
@@ -175,9 +170,6 @@
         }
         code += replace( template.substr(cursor, template.length - cursor) );
         code += 'return ___code___;';
-
-        console.log( code )
-
         return new Function( code ).call( variable , template );
     }
 

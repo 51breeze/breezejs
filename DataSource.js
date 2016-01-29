@@ -473,7 +473,7 @@
             this.__fetched__= false;
             var offset  =  start;
             var end     = Math.min( start+rows, this.length );
-            var result = this.grep().execute( filter ? filter : null );
+            var result = this.grep().execute( filter );
             var data = result.slice( offset, end );
             var event = new DataSourceEvent( DataSourceEvent.SELECT )
             event.data = data;

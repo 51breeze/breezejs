@@ -100,7 +100,7 @@
          */
         this.filter=function( filter )
         {
-            if( typeof filter === "undefined" || !filter )
+            if( typeof filter === "undefined" )
             {
                 var index = this.index();
                 if( index instanceof Array )
@@ -111,7 +111,7 @@
                     filter = _filter || ( _filter = createFilter.call(this) )
                 }
 
-            }else if ( typeof filter === 'string' )
+            }else if ( typeof filter === 'string' && filter!='' )
             {
                 if( filter.match(/^\s*(\d+)(\,(\d+))?\s*$/ ) )
                 {
@@ -141,11 +141,24 @@
             return filter;
         }
 
+
+        /**
+         * @returns {Grep}
+         */
+        this.clean=function()
+        {
+            for(var i=0; i<this.length; i++)
+            {
+                delete this[i];
+            }
+            _filter=null;
+            this.length=0;
+            return this;
+        }
         /**
          * @returns {*}
          */
         this.data=function(){return data;}
-
     }
 
     /**
@@ -194,18 +207,6 @@
         return result;
     }
 
-    /**
-     * @returns {Grep}
-     */
-    Grep.prototype.clean=function()
-    {
-        for(var i=0; i<this.length; i++)
-        {
-            delete this[i];
-        }
-        _filter=null;
-        return this;
-    }
 
     /**
      * @private

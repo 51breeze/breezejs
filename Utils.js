@@ -1350,55 +1350,47 @@
         if( Utils.isString(html) )
         {
             html=Utils.trim( html );
-            var match;
-            if( html.charAt(0) !== "<" && html.charAt( html.length - 1 ) !== ">" )
+            if( html !== '' )
             {
-                return document.createElement( html );
-
-            }else if( html.length >= 3 && ( match=singleTagExp.exec(html) ) )
-            {
-                var elem = document.createElement(match[1]);
-                var attr;
-                if( match[2] && match[2] !="" && (attr=match[2].replace(/=\s*(\w+)/g,'="$1"').match( getAttrExp )) )
+                var match;
+                if( html.charAt(0) !== "<" && html.charAt( html.length - 1 ) !== ">" && html.length >=2 )
                 {
-                    var i= 0,item;
-                    while( item=attr[i++] )
+                    return document.createElement( html );
+
+                }else if( html.charAt(0) === "<" && ( match=singleTagExp.exec(html) ) )
+                {
+                    var elem = document.createElement( match[1] );
+                    var attr = Utils.matchAttr( html )
+                    for(var prop in attr )
                     {
-                        var val  =  item.split('=');
-                        if( val.length > 0 )
-                        {
-                            var attrNode = document.createAttribute( Utils.trim( val[0] ) );
-                            if( typeof val[1] === "string" )
-                            {
-                                attrNode.nodeValue=val[1].replace( lr ,'').replace(/\\([\'\"])/g,'$1');
-                            }
-                            elem.setAttributeNode( attrNode )
-                        }
+                        var attrNode = document.createAttribute( prop );
+                        attrNode.nodeValue=attr[ prop ];
+                        elem.setAttributeNode( attrNode )
                     }
+                    return elem;
                 }
-                return elem;
-            }
 
-            var div = document.createElement( "div")
-                div.innerHTML =  html;
-            var len=div.childNodes.length;
+                var div = document.createElement( "div")
+                    div.innerHTML =  html;
+                var len=div.childNodes.length;
 
-            if(  len > 1 )
-            {
-                var fragment= document.createDocumentFragment();
-                while( len > 0 )
+                if(  len > 1 )
                 {
-                    --len;
-                    fragment.appendChild( div.childNodes.item(0) );
+                    var fragment= document.createDocumentFragment();
+                    while( len > 0 )
+                    {
+                        --len;
+                        fragment.appendChild( div.childNodes.item(0) );
+                    }
+                    return fragment;
                 }
-                return fragment;
+                div=div.childNodes.item(0);
+                return div.parentNode.removeChild( div );
             }
-
-            div=div.childNodes.item(0);
-            return div.parentNode.removeChild( div );
 
         }else if ( Utils.isNodeElement(html) )
            return  html.parentNode ? Utils.clone(html,true) : html;
+
         throw new Error('Uitls.createElement param invalid')
     }
 

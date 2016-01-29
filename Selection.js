@@ -253,10 +253,17 @@
                 Breeze('input',skinGroup.getSkin('group') )
                     .addEventListener(PropertyEvent.CHANGE,function(event){
 
-                        var value = this.property('value');
-                        if( value )
+                        if( event.property==='value')
                         {
-                            dataRender.dataSource().select(labelProfile + '="' + this.property('value') + '"');
+                            if( event.newValue !='' && event.newValue )
+                            {
+                               dataRender.dataSource().grep().clean().like(labelProfile,event.newValue);
+
+                            }else
+                            {
+                                dataRender.dataSource().grep().clean();
+                            }
+                            dataRender.dataSource().select();
                         }
 
                     }).property('placeholder', this.placeholder() ).display(true);
