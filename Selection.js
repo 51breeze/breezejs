@@ -249,24 +249,24 @@
             dataRender.viewport( skinGroup.getSkin('list') );
             if( this.searchable() )
             {
-               var labelProfile =  this.labelProfile();
-                Breeze('input',skinGroup.getSkin('group') )
-                    .addEventListener(PropertyEvent.CHANGE,function(event){
-
-                        if( event.property==='value')
+                var children=null;
+                Breeze(skinGroup.getSkin('group')).children('input').property('placeholder', this.placeholder() ).display(true)
+                .addEventListener(PropertyEvent.CHANGE,function(event){
+                    if( event.property==='value')
+                    {
+                        children!== null || ( children = Breeze( dataRender.viewport() ).children() );
+                        if( event.newValue && event.newValue !='' )
                         {
-                            if( event.newValue !='' && event.newValue )
-                            {
-                               dataRender.dataSource().grep().clean().like(labelProfile,event.newValue);
+                            children.forEach(function(){
+                                this.display( this.has( ":contains('" + event.newValue + "')" ) );
+                            });
 
-                            }else
-                            {
-                                dataRender.dataSource().grep().clean();
-                            }
-                            dataRender.dataSource().select();
+                        }else
+                        {
+                            children.display(true);
                         }
-
-                    }).property('placeholder', this.placeholder() ).display(true);
+                    }
+                });
             }
             var list = skinGroup.skinObject().get('part.items');
             if( list ) {

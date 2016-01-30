@@ -92,9 +92,6 @@
      */
     ,doMake=function( target, elems ,clear , reverted ,uniqueSort )
     {
-        if( target.__internal_return__ )
-           return elems;
-
         if( clear===true )
         {
             var revers=target.splice(0,target.length,elems);
@@ -167,16 +164,13 @@
     ,doFind = function( elements, selector )
     {
         var ret=[];
-        if( !(elements instanceof Array) || elements.length === 0 )
-            return ret;
-
         if( typeof selector === "function" )
         {
             ret=doGrep( elements, selector );
 
         }else if( typeof selector === "string" )
         {
-            ret=elements.length === 1 && Sizzle.matchesSelector( elements[ 0 ], selector ) ? ret : Sizzle.matches( selector, elements );
+            ret=elements.length === 1 && Sizzle.matchesSelector( elements[ 0 ], selector ) ? [ elements[ 0 ] ] : Sizzle.matches( selector, elements );
         }else
         {
             ret=doGrep( elements, function( elem ) { return elem.nodeType === 1; } );
@@ -328,13 +322,16 @@
         if( typeof selector === "undefined" )
             throw  new Error('invalid selector');
         var is = Utils.isFunction(selector);
-        var len = this.length,i=0;
-        for( ; i<len ; i++)
+        var result=false;
+        this.forEach(function(elem)
         {
-            var ret = is ? !selector.call( this[i] ) : Sizzle.matchesSelector( this[i] , selector );
-            if( ret ) return true;
-        }
-        return false;
+            var ret = is ? !!selector.call( elem ) : Sizzle.matchesSelector( elem , selector );
+            if( ret ) {
+                result=true;
+                return result;
+            }
+        });
+        return result;
     }
 
     /**
@@ -345,11 +342,12 @@
     Breeze.prototype.revert=function( step )
     {
         var len= this['__reverts__'] ? this['__reverts__'].length : 0;
-        step = step === undefined ? (this['__revert_step__'] || len)-1 : ( step=parseInt( step ) ) < 0 ? step+len : step ;
-        step=Math.min(Math.max(step,0),len-1);
+        step = typeof step !== "number" ? (this['__step__'] || len)-1 : step < 0 ? step+len : step ;
+        step=  step > len ? 0 : step
+        Math.min( Math.max(step,0), len-1 );
         if( len > 0 && this['__reverts__'][ step ] )
         {
-            this['__revert_step__']=step;
+            this['__step__']=step;
             doMake( this, this['__reverts__'][ step ],true , true );
         }
         return this;
@@ -411,7 +409,7 @@
      */
     Breeze.prototype.not=function( selector , returned )
     {
-        if( Utils.isDefined(selector) )
+        if( !Utils.isDefined(selector) )
             throw new Error('invalid selector')
 
         var results=this.toArray();
@@ -419,6 +417,7 @@
         {
             selector=[ this[ selector ] ];
         }
+
         if( Utils.isSelector( selector ) )
         {
             selector= doFind(this, selector );
@@ -841,15 +840,13 @@
      */
     Breeze.prototype.unwrap=function( selector )
     {
-        var is= selector === undefined;
+        var is= typeof selector === "undefined";
         return this.forEach(function(elem)
         {
-            this.__internal_return__=true;
-            var parent= is ?  elem.parentNode : this.parents( selector )[0];
-
+            var parent= is ?  elem.parentNode : this.parent( selector , true)[0];
             if( parent && parent.ownerDocument && Sizzle.contains( parent.ownerDocument.body, parent ) )
             {
-               var children=this.current( parent ).children('*');
+               var children=this.current( parent ).children('*',true);
                if( parent.parentNode )
                {
                    this.current( parent.parentNode );
@@ -860,7 +857,6 @@
                    this.removeChildAt( parent );
                }
             }
-            this.__internal_return__=false;
         });
     }
 
