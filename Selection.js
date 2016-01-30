@@ -195,6 +195,8 @@
         return this;
     }
 
+
+
     /**
      * @private
      */
@@ -208,10 +210,27 @@
     {
         if( typeof searchable === "undefined" )
           return this.__searchable__;
-        this.__searchable__ = searchable===false ? false : true;
+        this.__searchable__ = !!searchable;
         return this;
     }
 
+
+    /**
+     * @private
+     */
+    Selection.prototype.__multiple__=false;
+
+    /**
+     * @param boolean multiple
+     * @public
+     */
+    Selection.prototype.multiple=function( multiple )
+    {
+        if( typeof multiple === "undefined" )
+          return this.__multiple__;
+        this.__multiple__ = !!multiple;
+        return this;
+    }
 
     /**
      * @private
@@ -255,16 +274,10 @@
                     if( event.property==='value')
                     {
                         children!== null || ( children = Breeze( dataRender.viewport() ).children() );
-                        if( event.newValue && event.newValue !='' )
-                        {
-                            children.forEach(function(){
-                                this.display( this.has( ":contains('" + event.newValue + "')" ) );
-                            });
-
-                        }else
-                        {
-                            children.display(true);
-                        }
+                        var selector = event.newValue && event.newValue !='' ? ":contains('" + event.newValue + "')" : null;
+                        children.forEach(function(){
+                            this.display( selector ? this.has( selector ) : true );
+                        });
                     }
                 });
             }
