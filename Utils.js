@@ -547,6 +547,18 @@
     var iscsstext=/^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/;
     var replaceMapName=null;
 
+
+    /**
+     * 选择元素
+     * @param selector
+     * @param context
+     * @returns {*}
+     */
+    Utils.sizzle=function(selector,context)
+    {
+        return Sizzle( selector , context );
+    }
+
     /**
      * 设置元素的样式
      * @param elem
@@ -653,6 +665,54 @@
         is || !elem ? element[prop] = val : element.setAttribute(prop, val);
         return true;
     }
+
+
+    /**
+     * 判断是否有指定的类名
+     * @param className
+     * @returns {boolean}
+     */
+    Utils.hasClass=function(element, className )
+    {
+        var value=Utils.property(element,'class');
+        return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
+    }
+
+    /**
+     * 添加指定的类名
+     * @param className
+     * @returns {Breeze}
+     */
+    Utils.addClass=function(element, className )
+    {
+        if( typeof className==='string' && !Utils.hasClass(element,className) )
+        {
+            var oldClass=Utils.property('class');
+            Utils.property('class',Utils.trim(oldClass+" " + className))
+        }
+        return this;
+    }
+
+    /**
+     * 移除指定的类名或者清除所有的类名。
+     * @param className
+     * @returns {Breeze}
+     */
+    Utils.removeClass=function(element,className)
+    {
+        if( typeof className === 'string' )
+        {
+            var value=Utils.property('class') || '';
+            var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
+            var newVal=value.replace(reg, '');
+            if( value!==newVal )Utils.property(element,'class',newVal );
+        }else
+        {
+            Utils.property(element,'class', null );
+        }
+        return this;
+    }
+
 
     /**
      * 获取或者设置滚动条的位置
@@ -1575,5 +1635,8 @@
     {
         return typeof val==='string' && /^\s*(0+|false|null)\s*$/.test(val) ? false : !!val;
     }
+
+
+
 
 })();

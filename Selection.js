@@ -137,6 +137,17 @@
         return this.__dataRender__;
     }
 
+    function getSelectedItems(dataSource, selectedIndex)
+    {
+          var result = [];
+          for(var index=0; index < selectedIndex.length; index++)
+          {
+              if( typeof dataSource[ selectedIndex[index] ] === "undefined" )
+                 throw new Error('invalid index');
+              result[ selectedIndex[index] ]= dataSource[ selectedIndex[index] ];
+          }
+          return result;
+    }
 
     /**
      * @private
@@ -157,15 +168,22 @@
         if( this.__label__ )
         {
             var dataSource = this.dataRender().dataSource();
-            if( typeof dataSource[index] === "undefined"  )
-              throw new Error('invalid index');
+            var selectedItems = getSelectedItems(dataSource, index );
+            var labelname=[];
+            Breeze('.active', skinGroup.getSkin('list') ).removeClass().forEach(function(){
 
-            var skinObject = skinGroup.skinObject();
-            skinGroup.find('.active').removeClass('active').revert().current('[data-index='+index+']').property('class','active');
-            this.__label__.property(labelProfile , dataSource[index]);
+                var index = this.property('data-index');
+                if( selectedItems[index] )
+                {
+                    this.addClass('active');
+                    labelname.push( selectedItems[index][labelProfile] );
+                }
+            });
+
+            this.__label__.property(labelProfile , labelname.join(',') );
             var event = new SelectionEvent(SelectionEvent.CHANGE);
             event.selectedIndex = index;
-            event.selectedItem = dataSource[index];
+            event.selectedItem = selectedItems;
             this.dispatchEvent(event);
         }
     }
@@ -179,23 +197,21 @@
     /**
      * @param value
      * @returns {*}
+     * @public
      */
     Selection.prototype.selectedIndex=function( index )
     {
         if( typeof index === "undefined" )
            return this.__index__;
-        index=parseInt( index );
-        if( isNaN(index) )
-            throw new Error('invalid index');
-        if( this.__index__ !== index  )
+
+        index = index instanceof Array ? index : [index];
+        if( this.__index__ !== index.join(',')  )
         {
             this.__index__ = index;
             commitSelectedIndex.call(this, index  );
         }
         return this;
     }
-
-
 
     /**
      * @private
@@ -266,9 +282,9 @@
         }else if( !dataRender.viewport() )
         {
             dataRender.viewport( skinGroup.getSkin('list') );
+            var children=null;
             if( this.searchable() )
             {
-                var children=null;
                 Breeze(skinGroup.getSkin('group')).children('input').property('placeholder', this.placeholder() ).display(true)
                 .addEventListener(PropertyEvent.CHANGE,function(event){
                     if( event.property==='value')
@@ -281,6 +297,29 @@
                     }
                 });
             }
+
+            if( this.multiple() )
+            {
+               var down = false;
+               var selectIndex=[];
+               Breeze( skinGroup.getSkin('list') ).addEventListener([MouseEvent.MOUSE_DOWN,MouseEvent.MOUSE_UP,MouseEvent.MOUSE_MOVE],function(event){
+
+                     if( event.type === MouseEvent.MOUSE_DOWN)
+                     {
+                         down = true;
+
+                     }else if(event.type === MouseEvent.MOUSE_UP)
+                     {
+                         down= false;
+                     }
+                     if( down && event.type === MouseEvent.MOUSE_MOVE )
+                     {
+                         var index = this.property('data-index');
+                         console.log( event.target )
+                     }
+                });
+            }
+
             var list = skinGroup.skinObject().get('part.items');
             if( list ) {
                 dataRender.display( list );

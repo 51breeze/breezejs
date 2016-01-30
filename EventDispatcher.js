@@ -320,7 +320,6 @@
         event= BreezeEvent.create( event );
         if( event === null || !event.currentTarget )
             return false;
-
         var targets = [[],[]];
         var is= event.currentTarget instanceof EventDispatcher;
 

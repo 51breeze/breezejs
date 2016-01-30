@@ -158,9 +158,9 @@
             breezeEvent=new MouseEvent( event );
             breezeEvent.pageX= event.x || event.clientX || event.pageX;
             breezeEvent.pageY= event.y || event.clientY || event.pageY;
-            if( event.offsetX===undefined && target && Breeze )
+            if( typeof event.offsetX==='undefined' && target )
             {
-                var offset=Utils.position(target);
+                var offset=Utils.position( target );
                 event.offsetX=breezeEvent.pageX-offset.left;
                 event.offsetY=breezeEvent.pageY-offset.top;
             }
