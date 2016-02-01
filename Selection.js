@@ -65,6 +65,9 @@
     }
 
 
+    /**
+     * 绑定组件的相关事件
+     */
     function bindEvent()
     {
         var skinGroup = this.skinGroup();
@@ -75,6 +78,7 @@
         var height =  skinGroup.height();
         var self  = this;
 
+        //点击显示下拉列表
         EventDispatcher( skinGroup.getSkin('label') ).addEventListener(MouseEvent.CLICK,function(event){
 
             skinGroup.currentSkin('group')
@@ -86,14 +90,53 @@
 
         });
 
-        Breeze( skinGroup.getSkin('list') ).children().addEventListener(MouseEvent.CLICK,function(event)
+        //选择每项数据
+        var childSkin=Breeze( skinGroup.getSkin('list') ).children();
+        childSkin.addEventListener(MouseEvent.CLICK,function(event)
         {
-            var index = this.property('data-index');
-            self.selectedIndex( index );
-            skinGroup.currentSkin('group').display(false).current(null);
+            self.selectedIndex( getSelectedIndexByViewIndex( this.property('data-index'), self.selectedIndex(), event)  );
+            if( !event.ctrlKey )
+               skinGroup.currentSkin('group').display(false).current(null);
             event.stopPropagation();
         });
 
+        //搜索框
+        if( this.searchable() )
+        {
+            Breeze(skinGroup.getSkin('group')).children('input').property('placeholder', this.placeholder() ).display(true)
+            .addEventListener(PropertyEvent.CHANGE,function(event){
+                if( event.property==='value')
+                {
+                    var selector = event.newValue && event.newValue !='' ? ":contains('" + event.newValue + "')" : null;
+                    childSkin.forEach(function(){
+                        this.display( selector ? this.has( selector ) : true );
+                    });
+                }
+            });
+        }
+
+        //支持多选
+        if( this.multiple() )
+        {
+            var down = false;
+            Breeze( skinGroup.getSkin('list') ).addEventListener([MouseEvent.MOUSE_DOWN,MouseEvent.MOUSE_UP,MouseEvent.MOUSE_MOVE],function(event){
+
+                if( event.type === MouseEvent.MOUSE_DOWN)
+                {
+                    down = true;
+
+                }else if(event.type === MouseEvent.MOUSE_UP)
+                {
+                    down= false;
+                }
+                if( down && event.type === MouseEvent.MOUSE_MOVE )
+                {
+                    var index = this.property('data-index');
+                }
+            });
+        }
+
+        //点击下拉列表外隐藏列表
         EventDispatcher(document).addEventListener(MouseEvent.CLICK,function(event)
         {
             skinGroup.currentSkin('group');
@@ -104,6 +147,33 @@
             }
             skinGroup.current(null);
         });
+    }
+
+    /**
+     * 根据事件的Ctrl或者Shift键来获取选择的索引是追加还是删除
+     * @param viewIndex
+     * @param selectedIndexs
+     * @param event
+     * @returns {*}
+     */
+    function getSelectedIndexByViewIndex(viewIndex, selectedIndexs, event )
+    {
+        viewIndex = parseInt( viewIndex );
+        if( isNaN( viewIndex ) )throw new Error('invalid viewIndex');
+        if( event.ctrlKey )
+        {
+            var key = DataArray.prototype.indexOf.call(selectedIndexs,viewIndex);
+            if( event.shiftKey )
+            {
+                key<0 || selectedIndexs.length<=1 || selectedIndexs.splice(key,1);
+
+            }else if( key < 0 )
+            {
+                selectedIndexs.push( viewIndex );
+            }
+            return selectedIndexs;
+        }
+        return viewIndex;
     }
 
     /**
@@ -137,17 +207,23 @@
         return this.__dataRender__;
     }
 
-    function getSelectedItems(dataSource, selectedIndex)
+    /**
+     * 数据绑定器
+     * @returns {Bindable}
+     */
+    Selection.prototype.bindable=function()
     {
-          var result = [];
-          for(var index=0; index < selectedIndex.length; index++)
-          {
-              if( typeof dataSource[ selectedIndex[index] ] === "undefined" )
-                 throw new Error('invalid index');
-              result[ selectedIndex[index] ]= dataSource[ selectedIndex[index] ];
-          }
-          return result;
+        if( this.__bindable__ === null )
+        {
+            this.__bindable__ = new Bindable( this.labelProfile() );
+        }
+        return this.__bindable__;
     }
+
+    /**
+     * @private
+     */
+    Selection.prototype.__bindable__=null;
 
     /**
      * @private
@@ -156,47 +232,66 @@
     function commitSelectedIndex( index )
     {
         var skinGroup = this.skinGroup();
-        var labelProfile =  this.labelProfile();
-        if( this.__label__ === null && skinGroup.getSkin('label') )
+        var labelSkin = skinGroup.getSkin('label');
+        if( labelSkin  )
         {
-            this.__label__ = new Bindable( labelProfile );
-            var profile = this.labelProfile();
-            this.__label__.bind( skinGroup.getSkin('label'), labelProfile , function (property, item) {
-                this.innerText = item[ profile ];
+            var labelProfile =  this.labelProfile();
+            this.bindable().bind(labelSkin , labelProfile ,function (property, item)
+            {
+                var label=[];
+                for(var i=0; i<item.length; i++)
+                    label.push( item[i][labelProfile] );
+                this.innerText =label.join(',');
             });
         }
-        if( this.__label__ )
+
+        var dataSource = this.dataRender().dataSource();
+        var selectedItems = indexToItems(dataSource, index );
+
+        Breeze('.active', skinGroup.getSkin('list') ).removeClass('active');
+        Breeze( skinGroup.getSkin('list') ).children().forEach(function(){
+
+            var value = this.property('data-index');
+            if( DataArray.prototype.indexOf.call(index,value) >=0  )
+            {
+                this.addClass('active');
+            }
+        });
+
+        this.bindable().commitProperty(labelProfile , selectedItems );
+
+        var event = new SelectionEvent(SelectionEvent.CHANGE);
+        event.selectedIndex = index;
+        event.selectedItem = selectedItems;
+        this.dispatchEvent(event);
+    }
+
+    /**
+     * 根据索引获取数据源项
+     * @param dataSource
+     * @param index
+     * @returns {Array}
+     */
+    function indexToItems( dataSource, index )
+    {
+        var result = [];
+        for (var i = 0; i < index.length; i++)
         {
-            var dataSource = this.dataRender().dataSource();
-            var selectedItems = getSelectedItems(dataSource, index );
-            var labelname=[];
-            Breeze('.active', skinGroup.getSkin('list') ).removeClass().forEach(function(){
-
-                var index = this.property('data-index');
-                if( selectedItems[index] )
-                {
-                    this.addClass('active');
-                    labelname.push( selectedItems[index][labelProfile] );
-                }
-            });
-
-            this.__label__.property(labelProfile , labelname.join(',') );
-            var event = new SelectionEvent(SelectionEvent.CHANGE);
-            event.selectedIndex = index;
-            event.selectedItem = selectedItems;
-            this.dispatchEvent(event);
+            if (!dataSource[ index[i] ] )
+                throw new Error('invalid index');
+            result.push( dataSource[ index[i] ] );
         }
+        return result;
     }
 
     /**
      * @private
      */
-    Selection.prototype.__index__=0;
-    Selection.prototype.__label__=null;
+    Selection.prototype.__index__=[0];
 
     /**
-     * @param value
-     * @returns {*}
+     * @param viod index 当前需要选择的索引值，可以是一个数字或者是字符串。多个可以传一个数组或者以','隔开。
+     * @returns {Selection}
      * @public
      */
     Selection.prototype.selectedIndex=function( index )
@@ -204,11 +299,16 @@
         if( typeof index === "undefined" )
            return this.__index__;
 
-        index = index instanceof Array ? index : [index];
-        if( this.__index__ !== index.join(',')  )
+        if( !(index instanceof Array) )
+        {
+            index=String( index ).split(',');
+        }
+        if( DataArray.prototype.sum.call( index ) != DataArray.prototype.sum.call(  this.__index__ )  )
         {
             this.__index__ = index;
-            commitSelectedIndex.call(this, index  );
+            if( this.dataRender().viewport() ) {
+                commitSelectedIndex.call(this, index);
+            }
         }
         return this;
     }
@@ -229,7 +329,6 @@
         this.__searchable__ = !!searchable;
         return this;
     }
-
 
     /**
      * @private
@@ -265,12 +364,17 @@
         return this;
     }
 
+    Selection.prototype.__display__=false;
+
     /**
-     * @returns {Selection}
+     * @returns {boolean}
      * @public
      */
     Selection.prototype.display=function()
     {
+        if( this.__display__===true )
+           return true;
+        this.__display__=true;
         var dataRender = this.dataRender();
         var skinGroup= this.skinGroup();
         var skinObject = skinGroup.skinObject();
@@ -279,54 +383,15 @@
         {
             bindEvent.call(this);
 
-        }else if( !dataRender.viewport() )
+        }else
         {
             dataRender.viewport( skinGroup.getSkin('list') );
-            var children=null;
-            if( this.searchable() )
-            {
-                Breeze(skinGroup.getSkin('group')).children('input').property('placeholder', this.placeholder() ).display(true)
-                .addEventListener(PropertyEvent.CHANGE,function(event){
-                    if( event.property==='value')
-                    {
-                        children!== null || ( children = Breeze( dataRender.viewport() ).children() );
-                        var selector = event.newValue && event.newValue !='' ? ":contains('" + event.newValue + "')" : null;
-                        children.forEach(function(){
-                            this.display( selector ? this.has( selector ) : true );
-                        });
-                    }
-                });
-            }
-
-            if( this.multiple() )
-            {
-               var down = false;
-               var selectIndex=[];
-               Breeze( skinGroup.getSkin('list') ).addEventListener([MouseEvent.MOUSE_DOWN,MouseEvent.MOUSE_UP,MouseEvent.MOUSE_MOVE],function(event){
-
-                     if( event.type === MouseEvent.MOUSE_DOWN)
-                     {
-                         down = true;
-
-                     }else if(event.type === MouseEvent.MOUSE_UP)
-                     {
-                         down= false;
-                     }
-                     if( down && event.type === MouseEvent.MOUSE_MOVE )
-                     {
-                         var index = this.property('data-index');
-                         console.log( event.target )
-                     }
-                });
-            }
-
-            var list = skinGroup.skinObject().get('part.items');
-            if( list ) {
-                dataRender.display( list );
-            }
+            var list = skinObject.get('part.items');
+            if( !list )throw new Error('not found view of items');
+            dataRender.display( list );
         }
         commitSelectedIndex.call(this, this.selectedIndex() );
-        return this;
+        return true;
     }
 
     /**

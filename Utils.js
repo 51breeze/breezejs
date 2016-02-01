@@ -687,8 +687,8 @@
     {
         if( typeof className==='string' && !Utils.hasClass(element,className) )
         {
-            var oldClass=Utils.property('class');
-            Utils.property('class',Utils.trim(oldClass+" " + className))
+            var oldClass=Utils.property(element,'class');
+            Utils.property(element,'class',Utils.trim( oldClass ? oldClass+" " + className : className));
         }
         return this;
     }
@@ -702,10 +702,11 @@
     {
         if( typeof className === 'string' )
         {
-            var value=Utils.property('class') || '';
+            var value=Utils.property(element,'class') || '';
             var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
             var newVal=value.replace(reg, '');
             if( value!==newVal )Utils.property(element,'class',newVal );
+
         }else
         {
             Utils.property(element,'class', null );

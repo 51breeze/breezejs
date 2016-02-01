@@ -1075,11 +1075,9 @@
      */
     Breeze.prototype.addClass=function( className )
     {
-        if( typeof className==='string' && !this.hasClass(className) )
-        {
-            var oldClass=this.property('class');
-            this.property('class',Utils.trim(oldClass+" " + className))
-        }
+        this.forEach(function(elem){
+            Utils.addClass(elem,className);
+        });
         return this;
     }
 
@@ -1090,16 +1088,9 @@
      */
     Breeze.prototype.removeClass=function(className)
     {
-        if( typeof className === 'string' )
-        {
-            var value=this.property('class') || '';
-            var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
-            var newVal=value.replace(reg, '');
-            if( value!==newVal )this.property('class',newVal );
-        }else
-        {
-            this.property('class', null );
-        }
+        this.forEach(function(elem){
+            Utils.removeClass(elem,className);
+        })
         return this;
     }
 

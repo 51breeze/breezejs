@@ -50,6 +50,11 @@
         originalEvent:null,
         type:null,
         propagationStopped: false,
+        altkey:false,
+        button:false,
+        ctrlKey:false,
+        shiftKey:false,
+        metaKey:false,
         preventDefault: function()
         {
             var e = this.originalEvent;
@@ -174,27 +179,17 @@
         {
             breezeEvent=new KeyboardEvent( event );
             breezeEvent.keycode = event.keyCode || event.keycode;
-            breezeEvent.altkey= !!event.altkey;
-            breezeEvent.button= event.button;
-            breezeEvent.ctrlKey= !!event.ctrlKey;
-            breezeEvent.shiftKey= !!event.shiftKey;
-            breezeEvent.metaKey= !!event.metaKey;
-
-        }else
-        {
-            breezeEvent=new BreezeEvent( event );
-            breezeEvent.altkey= !!event.altkey;
-            breezeEvent.button= event.button;
-            breezeEvent.ctrlKey= !!event.ctrlKey;
-            breezeEvent.shiftKey= !!event.shiftKey;
-            breezeEvent.metaKey= !!event.metaKey;
         }
-
         breezeEvent.type=type;
         breezeEvent.target=target || this;
         breezeEvent.currentTarget=currentTarget || this;
         breezeEvent.timeStamp = event.timeStamp;
         breezeEvent.relatedTarget= event.relatedTarget;
+        breezeEvent.altkey= !!event.altkey;
+        breezeEvent.button= event.button;
+        breezeEvent.ctrlKey= !!event.ctrlKey;
+        breezeEvent.shiftKey= !!event.shiftKey;
+        breezeEvent.metaKey= !!event.metaKey;
         return breezeEvent;
     }
 

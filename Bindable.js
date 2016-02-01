@@ -35,7 +35,11 @@
                     }else if( property in properties || '*' in properties )
                     {
                         var prop = typeof custom === "string" ? custom : property;
-                        if( object instanceof Bindable || object instanceof Breeze )
+                        if( object instanceof Bindable )
+                        {
+                            object.commitProperty(prop,newValue);
+
+                        }else if( object instanceof Breeze )
                         {
                             object.property(prop,newValue);
 
@@ -73,7 +77,7 @@
 
              }else
              {
-                 bindable.property(property,newvalue);
+                 bindable.commitProperty(property,newvalue);
              }
          });
      }
@@ -206,7 +210,7 @@
      * @param string name
      * @param void value
      */
-    Bindable.prototype.property=function(name,value)
+    Bindable.prototype.commitProperty=function(name,value)
     {
         if( typeof value === 'undefined' )
             return this[ name ];

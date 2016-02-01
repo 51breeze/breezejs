@@ -92,7 +92,7 @@
     DataArray.prototype.indexOf=function(searchElement)
     {
         var i=0;
-        for( ; i<this.length; i++ )if( this[i]===searchElement )
+        for( ; i<this.length; i++ )if( this[i]==searchElement )
             return i;
         return -1;
     }
@@ -155,6 +155,31 @@
              }
          }
          return this;
+    }
+
+    /**
+     * 统计数组中所有值的和
+     * @param function callback 回调函数，返回每个项的值。
+     * @returns {number}
+     * @public
+     */
+    DataArray.prototype.sum=function( callback )
+    {
+        var result = 0;
+        if( typeof callback !== "function" )
+        {
+            callback = function( value )
+            {
+                value = typeof value === "string" ? parseInt(  value ) || 0 : value;
+                return typeof value === "number"  ?  value : 0;
+            }
+        }
+        var index = 0, len=this.length;
+        for( ; index < len ; index++ )
+        {
+            result+=callback.call( this ,this[index] ) || 0;
+        }
+        return result;
     }
 
 
