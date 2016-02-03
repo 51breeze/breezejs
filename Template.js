@@ -64,6 +64,7 @@
         }
         return val;
     }
+    Variable.prototype.isObject=Utils.isObject;
     Variable.prototype.error=function(){return '';}
 
     var getTemplateContent=function( source )
@@ -123,8 +124,10 @@
                         key=isforeach[2];
                         item=isforeach[3];
                     }
-                    code = 'if( Utils.isObject('+data+', true) )for(var '+key+' in '+data+'){\n';
+                    code = 'if( this.isObject('+data+', true) )for(var '+key+' in '+data+'){\n';
                     code += 'var '+item+'='+data+'['+key+'];\n';
+                    code += 'var forIndex='+key+';\n';
+                    code += 'var forItem='+item+';\n';
                     return code;
                 }
                 code='\n';

@@ -369,15 +369,20 @@
                 {
                     listener = events[ length++ ];
                     var reference = listener.reference || listener.dispatcher;
+                    var ismanager=false;
 
                     //设置 Manager 的当前元素对象
                     if( reference && reference instanceof Manager && reference.indexOf(target) >=0 )
                     {
                         reference.current( target );
+                        ismanager=true;
                     }
 
                     //调度侦听项
                     listener.callback.call( reference , event );
+
+                    //清除 Manager 的当前元素对象
+                    if( ismanager )reference.current( null );
                 }
                 if( event && event.propagationStopped===true )
                     return false

@@ -38,7 +38,7 @@
 .list-state > li:active,
 .list-state > li.active
 {
-    background-color: #e6e2ec;
+    background-color: #ede9f3;
 }
 
 .list-state > dl.disabled,
@@ -68,7 +68,12 @@
     height: 2.5em;
     cursor: pointer;
     line-height: 2.5em ;
-    text-indent: 10px;
+    padding: 0px 8px;
+}
+
+.selection > .label i{
+    width: auto;
+    float: right;
 }
 
 .selection > .group
@@ -87,7 +92,7 @@
 {
     width: 100%;
     background:none;
-    border:none;
+    border:solid #4aa0cc 1px;
     padding:5px;
 }
 
