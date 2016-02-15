@@ -147,39 +147,22 @@
      * @returns {SkinObject}
      * @constructor
      */
-    function SkinObject( container,part, attr )
+    function SkinObject( container, part, attr )
     {
         if( !(this instanceof SkinObject ) )
             return new SkinObject(container,part,attr);
-        if( Utils.isNodeElement(container) )
-        {
-            var nodename = Utils.nodeName(container);
-            var type = container.getAttribute('type');
-            this.attached = true;
-            this.isElement=true;
-            container = container.innerHTML;
-            if (nodename === 'noscript' || ( nodename === 'script' && (type === 'text/html' || type === 'text/plain') ))
-            {
-                this.attached=false;
-                this.isElement=false;
-            }
-
-        }else if( typeof container !== "string" )
-        {
-            throw new Error('invalid container');
-        }
-
         this.container=container;
         this.attr=attr || {};
         this.part=part || {};
+        this.attr.container || (this.attr.container= {});
+        this.attr.container[ SkinGroup.NAME ] = this.attr.container[ SkinGroup.NAME ] || 'container';
     }
 
     SkinObject.prototype.constructor= SkinObject;
     SkinObject.prototype.part= {};
     SkinObject.prototype.attr= {};
     SkinObject.prototype.container='';
-    SkinObject.prototype.attached=false;
-    SkinObject.prototype.isElement=false;
+    SkinObject.prototype.created=false;
 
     /**
      * 将一个皮肤对象生成html格式的字符串
@@ -187,6 +170,8 @@
      */
     SkinObject.prototype.createSkin=function()
     {
+        if( this.created===true )return this.container;
+        this.created=true;
         return toString.call( this );
     }
 
@@ -243,93 +228,75 @@
      * @returns {SkinGroup}
      * @constructor
      */
-    function SkinGroup( selector, context )
+    function SkinGroup( viewport, context )
     {
         if( !(this instanceof SkinGroup) )
-            return new SkinGroup( selector,context );
-        Breeze.call(this, selector instanceof Breeze ? selector[0] : selector , context );
+            return new SkinGroup( viewport,context );
+        Breeze.call(this, viewport instanceof Breeze ? viewport[0] : viewport , context );
         if (this.length != 1)
             throw new Error('invalid selector');
     }
 
-    SkinGroup.NAME='skin';
+    SkinGroup.NAME='data-skin';
     SkinGroup.prototype=new Breeze();
     SkinGroup.prototype.__skin__={};
-    SkinGroup.prototype.__skinObject__=null;
-    SkinGroup.prototype.__created__=false;
+    SkinGroup.prototype.__validated__=null;
     SkinGroup.prototype.constructor=SkinGroup;
+
+
+    /**
+     * 验证皮肤
+     * @returns {boolean}
+     */
+    SkinGroup.prototype.validateSkin=function()
+    {
+        if( this.__validated__ === null )
+        {
+            this.__validated__=true;
+            if ( !this.has( Utils.sprintf('[%s="container"]',SkinGroup.NAME) ) )
+            {
+                var type = this.property('type');
+                var nodename = this.nodeName();
+                this.__validated__=false;
+                if (nodename === 'noscript' || ( nodename === 'script' && (type === 'text/html' || type === 'text/plain') ) )
+                {
+                    this.skinObject( new SkinObject(this.html() ) );
+                    this.parent();
+                }
+            }
+        }
+        return this.__validated__;
+    }
 
     /**
      * 生成皮肤对象并添加到当前容器中。
      * 此方法在程序内部调用，不建议在外部使用。
      * @returns {boolean}
+     * @public
      */
     SkinGroup.prototype.createSkin=function()
     {
-        if( this.__created__ !==true )
+        if( !this.validateSkin() )
         {
-            this.__created__=true;
-            var skinObject = this.skinObject();
-            if(  !(skinObject instanceof SkinObject) )
-                throw new Error('invalid skinObject');
-            if( !skinObject.attached )
-            {
-                skinObject.attached=true;
-                var skin = this.skinObject().createSkin();
-                if (typeof skin === "string")
-                {
-                    this.html(skin);
-                }
-            }
-            return true;
+            this.html( this.skinObject().createSkin() );
         }
-        return false;
+        this.property(SkinGroup.NAME, 'container');
+        return this;
     }
 
     /**
-     * @private
-     */
-    SkinGroup.prototype.__verified__=null;
-
-    /**
-     * 验证是否为一个合法的皮肤对象。
-     * 如果是一个完整的皮肤对象则返回 true 反之返回 false
-     * 如果返回结果为 fales 必须手动传入一个皮肤对象  SkinGroup.skinObject( SkinObject )  之后调用 SkinGroup.createSkin() 生成一个完整的皮肤
-     * @returns {boolean}
-     */
-    SkinGroup.prototype.verification=function()
-    {
-        if( this.__verified__===null )
-        {
-            this.__verified__=false;
-            var child = this.children(null,true);
-            if( child[0] )
-            {
-                this.skinObject( new SkinObject(child[0]) );
-                this.__verified__ = true;
-            }
-        }
-        return this.__verified__;
-    }
-
-    /**
-     * 皮肤组对象
-     * @param SkinObject skinObject 皮肤对象
-     * @returns {SkinObject|SkinGroup}
+     * 获取设置皮肤组对象
+     * @param SkinObject skinObject
+     * @returns {SkinObject}
+     * @public
      */
     SkinGroup.prototype.skinObject=function( skinObject )
     {
         if( typeof skinObject !== "undefined" )
         {
-            if(  skinObject instanceof SkinObject )
-            {
-                this.__skinObject__=skinObject;
-            }else
-            {
-                throw new Error('invalid skinObject');
-            }
-            return this;
+            this.__skinObject__= skinObject;
         }
+        if (!(this.__skinObject__ instanceof SkinObject))throw new Error('invalid skinObject');
         return this.__skinObject__;
     }
 
@@ -347,7 +314,7 @@
         this.addChildAt(  childSkin , index );
         if( typeof skinName === "string" )
         {
-            Utils.property(childSkin, SkinGroup.NAME, skinName);
+            Utils.property(childSkin,SkinGroup.NAME, skinName);
         }
         return childSkin;
     }
@@ -361,7 +328,13 @@
     {
         if( typeof this.__skin__[skinName] === "undefined" )
         {
-            this.__skin__[skinName]= this.find( Utils.sprintf('[%s="%s"]', SkinGroup.NAME, skinName ), true )[0] || null;
+            if( skinName === 'container')
+            {
+                this.__skin__[skinName] =  this[0];
+            }else
+            {
+                this.__skin__[skinName] = Utils.sizzle( Utils.sprintf('[%s="%s"]',SkinGroup.NAME,skinName), this.getContext())[0] || null;
+            }
         }
         return this.__skin__[skinName];
     }

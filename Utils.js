@@ -560,6 +560,17 @@
     }
 
     /**
+     * 判断元素是否匹配指定的选择器
+     * @param element
+     * @param selector
+     * @returns {*}
+     */
+    Utils.has=function(element,selector)
+    {
+       return Sizzle.matchesSelector( element , selector );
+    }
+
+    /**
      * 设置元素的样式
      * @param elem
      * @param name|cssText|object 当前name的参数是 cssText|object 时会忽略value 参数
@@ -651,6 +662,7 @@
      */
     Utils.property=function(element,prop,val)
     {
+        prop = fix.attrMap[ prop ] || prop;
         var is=  __property__[prop];
         var elem= Utils.isNodeElement(element);
         if( typeof val === "undefined" )
@@ -661,6 +673,11 @@
         {
             elem ? element.removeAttribute(prop) : delete element[prop];
             return true;
+        }
+
+        if( prop === 'className')
+        {
+            return Utils.addClass(element,val);
         }
         is || !elem ? element[prop] = val : element.setAttribute(prop, val);
         return true;
@@ -674,7 +691,7 @@
      */
     Utils.hasClass=function(element, className )
     {
-        var value=Utils.property(element,'class');
+        var value= element['className'];
         return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
     }
 
@@ -687,10 +704,12 @@
     {
         if( typeof className==='string' && !Utils.hasClass(element,className) )
         {
-            var oldClass=Utils.property(element,'class');
-            Utils.property(element,'class',Utils.trim( oldClass ? oldClass+" " + className : className));
+            var oldClass=element['className'];
+            oldClass= [ Utils.trim( oldClass ) ];
+            oldClass.push( className );
+            element['className'] = oldClass.join(' ');
         }
-        return this;
+        return true;
     }
 
     /**
@@ -702,16 +721,14 @@
     {
         if( typeof className === 'string' )
         {
-            var value=Utils.property(element,'class') || '';
+            var value=element['className'] || '';
             var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
-            var newVal=value.replace(reg, '');
-            if( value!==newVal )Utils.property(element,'class',newVal );
-
+            className=value.replace(reg, '');
         }else
         {
-            Utils.property(element,'class', null );
+            className='';
         }
-        return this;
+        element['className']=className;
     }
 
 

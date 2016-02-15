@@ -334,6 +334,11 @@
         return result;
     }
 
+    Breeze.prototype.contains=function( selector )
+    {
+        return Sizzle( selector, this.getContext() ).length > 0;
+    }
+
     /**
      * 回撒到指定步骤的选择器所匹配的元素,不包含初始化的步骤。
      * @param step
@@ -998,6 +1003,16 @@
                 Utils.property(this,prop,newValue);
             }
         },PropertyEvent.CHANGE);
+    }
+
+    /**
+     * 获取匹配第一个元素的节点名称
+     * @returns {string}
+     * @public
+     */
+    Breeze.prototype.nodeName=function()
+    {
+        return Utils.nodeName( this.current() );
     }
 
     /**

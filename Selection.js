@@ -366,16 +366,15 @@
         this.__display__=true;
         var dataRender = this.dataRender();
         var skinGroup= this.skinGroup();
-        var skinObject = skinGroup.skinObject();
 
-        if( skinObject.isElement )
+        if( skinGroup.validateSkin() )
         {
             bindEvent.call(this);
 
         }else
         {
             dataRender.viewport( skinGroup.getSkin('list') );
-            var list = skinObject.get('part.items');
+            var list = skinGroup.skinObject().get('part.items');
             if( !list )throw new Error('not found view of items');
             dataRender.display( list );
         }
@@ -389,11 +388,11 @@
      */
     Selection.prototype.skinInstalled=function( skinGroup )
     {
-        if( !skinGroup.verification() )
+        if( !skinGroup.validateSkin() )
         {
             skinGroup.skinObject( this.defaultSkinObject() );
+            skinGroup.createSkin();
         }
-        skinGroup.createSkin();
         SkinComponent.prototype.skinInstalled.call(this,skinGroup);
     }
 
@@ -407,8 +406,8 @@
         var dataProfile= this.dataRender().dataProfile();
         var labelProfile =  this.labelProfile();
         var valueProfile = this.valueProfile();
-        var skinObject=new SkinObject('<div class="selection text-unselect">{part label+group}</div>',{
-            label: '<div class="label" tabindex="-1"><label></label><i class="glyphicon glyphicon-triangle-bottom"></i></div>',
+        var skinObject=new SkinObject('{part label+group}',{
+            label: '<button class="btn btn-default" type="button" tabindex="-1"><label></label><span class="caret"></span></button>',
             items: '<?foreach('+dataProfile+' as key item){ ?><li value="{item["'+valueProfile+'"]}" data-index="{key}">{item["'+labelProfile+'"]}</li><?}?>',
             list: '<ul class="list-state"></ul>',
             group: '<div class="group"><input class="searchbox" style="display: none" />{part list}</div>'
