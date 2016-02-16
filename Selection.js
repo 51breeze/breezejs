@@ -21,14 +21,14 @@
         var self  = this;
 
         //点击显示下拉列表
-        EventDispatcher( skinGroup.getSkin('label') ).addEventListener(MouseEvent.CLICK,function(event){
+        EventDispatcher( skinGroup.getSkin('button') ).addEventListener(MouseEvent.CLICK,function(event){
 
             var dowWidth = Utils.getSize(document,'width');
             var dowHeight = Utils.getSize(document,'height');
 
             skinGroup.currentSkin('group');
             skinGroup.width( width );
-            skinGroup.position(left, top + height);
+            skinGroup.position(left, top + height + 3 );
             skinGroup.display(true);
             event.stopPropagation();
 
@@ -120,7 +120,7 @@
                 var label=[];
                 for(var i=0; i<item.length; i++)
                     label.push( item[i][labelProfile] );
-                var elem = Utils.sizzle('label',this)[0];
+                var elem = labelSkin;
                 if( elem ) {
                     typeof elem.innerText === "string" ? elem.innerText = label.join(',') : elem.textContent = label.join(',')
                 }
@@ -374,8 +374,8 @@
         }else
         {
             dataRender.viewport( skinGroup.getSkin('list') );
-            var list = skinGroup.skinObject().get('part.items');
-            if( !list )throw new Error('not found view of items');
+            var list = skinGroup.skinObject().get('part.option');
+            if( !list )throw new Error('not found view of option');
             dataRender.display( list );
         }
         commitSelectedIndex.call(this, this.selectedIndex() );
@@ -406,11 +406,15 @@
         var dataProfile= this.dataRender().dataProfile();
         var labelProfile =  this.labelProfile();
         var valueProfile = this.valueProfile();
-        var skinObject=new SkinObject('{part label+group}',{
-            label: '<button class="btn btn-default" type="button" tabindex="-1"><label></label><span class="caret"></span></button>',
-            items: '<?foreach('+dataProfile+' as key item){ ?><li value="{item["'+valueProfile+'"]}" data-index="{key}">{item["'+labelProfile+'"]}</li><?}?>',
-            list: '<ul class="list-state"></ul>',
+        var skinObject=new SkinObject('<div class="selection">{part button+group}</div>',{
+            button:'<button type="button" class="btn btn-default">{part label+caret}</button>',
+            label: '<span></span>',
+            caret:'<span class="pull-right"><i class="caretdown"></i><span>',
+            option: '<?foreach('+dataProfile+' as key item){ ?><li value="{item["'+valueProfile+'"]}" data-index="{key}">{item["'+labelProfile+'"]}</li><?}?>',
+            list:'<ul class="list-state"></ul>',
             group: '<div class="group"><input class="searchbox" style="display: none" />{part list}</div>'
+        },{
+            group:{style:{shadow:'0px 0px 5px 0px rgba(0,0,0,.4)', borderRadius:'3px'}}
         });
         return skinObject;
     }

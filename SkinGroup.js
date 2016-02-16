@@ -154,8 +154,6 @@
         this.container=container;
         this.attr=attr || {};
         this.part=part || {};
-        this.attr.container || (this.attr.container= {});
-        this.attr.container[ SkinGroup.NAME ] = this.attr.container[ SkinGroup.NAME ] || 'container';
     }
 
     SkinObject.prototype.constructor= SkinObject;
@@ -260,8 +258,10 @@
                 this.__validated__=false;
                 if (nodename === 'noscript' || ( nodename === 'script' && (type === 'text/html' || type === 'text/plain') ) )
                 {
-                    this.skinObject( new SkinObject(this.html() ) );
-                    this.parent();
+                    this.skinObject( new SkinObject( this.html() ) );
+                    var index = this[0];
+                    this.parent().addChildAt( this.skinObject().createSkin(), index );
+                    this.__validated__=true;
                 }
             }
         }

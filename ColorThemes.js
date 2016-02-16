@@ -14,6 +14,7 @@
             'primary':{
                 backgroud:'#353535',
                 text:'#DFDFDF',
+                fontSize:'16px',
                 border:'',
                 gradient:'',
                 shadow:''
@@ -69,53 +70,56 @@
                 gradient:'',
                 shadow:''
             },
-            //滑过颜色
-            'over' :{
-                backgroud:'',
-                text:'',
-                border:'',
-                gradient:'',
-                shadow:''
-            },
-            //滑出颜色
-            'out'  : {
-                backgroud:'',
-                text:'',
-                border:'',
-                gradient:'',
-                shadow:''
-            },
-            //松开颜色
-            'up': {
-                backgroud:'',
-                text:'',
-                border:'',
-                gradient:'',
-                shadow:''
-            },
-            //按下颜色
-            'down' : {
-                backgroud:'',
-                text:'',
-                border:'',
-                gradient:'',
-                shadow:''
-            },
-            //当前活动的颜色
-            'active' :{
-                backgroud:'',
-                text:'',
-                border:'',
-                gradient:'',
-                shadow:''
-            },
-            //禁用颜色
-            'disable' : {
-                backgroud:'',
-                text:'',
-                border:'',
-                gradient:'',
-                shadow:''
+            'state':{
+                //滑过颜色
+                'over' :{
+                    backgroud:'',
+                    text:'',
+                    border:'',
+                    gradient:'',
+                    cursor:'',
+                    shadow:''
+                },
+                //滑出颜色
+                'out'  : {
+                    backgroud:'',
+                    text:'',
+                    border:'',
+                    gradient:'',
+                    shadow:''
+                },
+                //松开颜色
+                'up': {
+                    backgroud:'',
+                    text:'',
+                    border:'',
+                    gradient:'',
+                    shadow:''
+                },
+                //按下颜色
+                'down' : {
+                    backgroud:'',
+                    text:'',
+                    border:'',
+                    gradient:'',
+                    shadow:''
+                },
+                //当前活动的颜色
+                'active' :{
+                    backgroud:'',
+                    text:'',
+                    border:'',
+                    gradient:'',
+                    shadow:''
+                },
+                //禁用颜色
+                'disable' : {
+                    backgroud:'',
+                    text:'',
+                    border:'',
+                    gradient:'',
+                    shadow:''
+                }
             },
             //获得焦点时颜色
             'focus': {
@@ -130,7 +134,7 @@
 
     var currentTheme='default';
 
-    var SkinThemes={
+    var ColorThemes={
 
         'get':function(name)
         {
@@ -144,7 +148,7 @@
         }
     }
 
-    window.SkinThemes=SkinThemes;
+    window.ColorThemes=ColorThemes;
 
 })(window)
 

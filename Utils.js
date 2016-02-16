@@ -252,11 +252,11 @@
         fix.cssMap.shadow='-moz-box-shadow';
 
         //radius
-        fix.cssMap.radius='-moz-border-radius';
-        fix.cssMap.topLeftRadius='-moz-border-top-left-radius';
-        fix.cssMap.topRightRadius='-moz-border-top-right-radius';
-        fix.cssMap.bottomLeftRadius='-moz-border-bottom-left-radius';
-        fix.cssMap.bottomRightRadius='-moz-border-bottom-right-radius';
+        fix.cssMap.borderRadius='-moz-border-radius';
+        fix.cssMap.borderTopLeftRadius='-moz-border-top-left-radius';
+        fix.cssMap.borderTopRightRadius='-moz-border-top-right-radius';
+        fix.cssMap.borderBottomLeftRadius='-moz-border-bottom-left-radius';
+        fix.cssMap.borderBottomRightRadius='-moz-border-bottom-right-radius';
 
         //transition
         fix.cssMap.transition='-moz-transition';
@@ -278,11 +278,11 @@
         fix.cssMap.shadow='-webkit-box-shadow';
 
         //radius
-        fix.cssMap.radius='-webkit-border-radius';
-        fix.cssMap.topLeftRadius='-webkit-border-top-left-radius';
-        fix.cssMap.topRightRadius='-webkit-border-top-right-radius';
-        fix.cssMap.bottomLeftRadius='-webkit-border-bottom-left-radius';
-        fix.cssMap.bottomRightRadius='-webkit-border-bottom-right-radius';
+        fix.cssMap.borderRadius='-webkit-border-radius';
+        fix.cssMap.borderTopLeftRadius='-webkit-border-top-left-radius';
+        fix.cssMap.borderTopRightRadius='-webkit-border-top-right-radius';
+        fix.cssMap.borderBottomLeftRadius='-webkit-border-bottom-left-radius';
+        fix.cssMap.borderBottomRightRadius='-webkit-border-bottom-right-radius';
 
         //transition
         fix.cssMap.transition='-webkit-transition';
@@ -304,6 +304,16 @@
         //select
         fix.cssMap.select='-o-user-select';
 
+        //shadow
+        fix.cssMap.shadow='-o-box-shadow';
+
+        //radius
+        fix.cssMap.borderRadius='-o-border-radius';
+        fix.cssMap.borderTopLeftRadius='-o-border-top-left-radius';
+        fix.cssMap.borderTopRightRadius='-o-border-top-right-radius';
+        fix.cssMap.borderBottomLeftRadius='-o-border-bottom-left-radius';
+        fix.cssMap.borderBottomRightRadius='-o-border-bottom-right-radius';
+
         //transition
         fix.cssMap.transition='-o-transition';
         fix.cssMap.transitionProperty='-o-transition-property';
@@ -321,11 +331,11 @@
         fix.cssMap.shadow='box-shadow';
 
         //radius
-        fix.cssMap.radius='border-radius';
-        fix.cssMap.topLeftRadius='border-top-left-radius';
-        fix.cssMap.topRightRadius='border-top-right-radius';
-        fix.cssMap.bottomLeftRadius='border-bottom-left-radius';
-        fix.cssMap.bottomRightRadius='border-bottom-right-radius';
+        fix.cssMap.borderRadius='border-radius';
+        fix.cssMap.borderTopLeftRadius='border-top-left-radius';
+        fix.cssMap.borderTopRightRadius='border-top-right-radius';
+        fix.cssMap.borderBottomLeftRadius='border-bottom-left-radius';
+        fix.cssMap.borderBottomRightRadius='border-bottom-right-radius';
 
         //select
         fix.cssMap.select='user-select';
@@ -440,6 +450,30 @@
         }
     }
 
+    cssHooks.triangle={
+
+        get: function( style, name )
+        {
+            return Utils.storage(this,'style-triangle') || '';
+        },
+        set: function( style, value )
+        {
+            Utils.storage(this,'style-triangle', value);
+            // 40px #000 0ang
+            value=value.match(/(\S+)/g);
+            var size = value[0];
+            var color = value[1] || '#000';
+            var ang  = parseInt(value[2]) || 0;
+            var px =  value.match(/(px|em|rem)$/) || 'px';
+            size = parseInt( size ) || 4;
+            size = size+px;
+            style['display'] = 'inline-block';
+            style['border-top'] = size+' solid '+color;
+            style['border-right'] = size+' solid transparent';
+            style['border-left'] = size+' solid transparent';
+            return true;
+        }
+    }
 
    cssHooks.radialGradient=cssHooks.linearGradient={
 
@@ -1535,8 +1569,9 @@
         if( crc === undefined ) crc = 0;
         var n = 0; //a number between 0 and 255
         var x = 0; //an hex number
+        var iTop = str.length;
         crc = crc ^ (-1);
-        for( var i = 0, iTop = str.length; i < iTop; i++ )
+        for( var i = 0; i < iTop; i++ )
         {
             n = ( crc ^ str.charCodeAt( i ) ) & 0xFF;
             x = "0x" + crc32Table.substr( n * 9, 8 );
