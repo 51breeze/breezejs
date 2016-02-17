@@ -28,6 +28,18 @@
             ,cssMap:{}
         }
         ,styleNamePrefix=''
+        ,needAddPrefixStyleName={
+            'box-shadow':true,
+            'border-radius':true,
+            'border-top-left-radius':true,
+            'border-top-right-radius':true,
+            'border-bottom-left-radius':true,
+            'border-bottom-right-radius':true,
+            'focus-ring-color':true,
+            'user-select':true,
+            'radial-gradient':true,
+            'linear-gradient':true
+        }
         ,cssAalpha = /alpha\([^)]*\)/i
         ,cssOpacity = /opacity=([^)]*)/
         ,cssUpperProp = /([A-Z]|^ms)/g
@@ -236,121 +248,24 @@
                             (s = ua.match(/version\/([\d.]+).*safari/)) ? _client[Utils.BROWSER_SAFARI]   = parseFloat(s[1]) :
                                 (s = ua.match(/^mozilla\/([\d.]+)/))        ? _client[Utils.BROWSER_MOZILLA]  = parseFloat(s[1]) : null ;
         }
-        var result = _client[type];
-        if( result && version !== undefined )
+        var result = typeof _client[type] !== 'undefined';
+        if( result && typeof version !== 'undefined' )
             eval('result = result ' +expr.replace(/\s*/,'') +' version;' );
         return result;
     }
 
-    // fix style name
+    // fix style name add prefix
     if( Utils.isBrowser(Utils.BROWSER_FIREFOX,4,'>=') )
     {
-        //select
-        fix.cssMap.select='-moz-user-select';
+        styleNamePrefix='-moz-';
 
-        //shadow
-        fix.cssMap.shadow='-moz-box-shadow';
-
-        //radius
-        fix.cssMap.borderRadius='-moz-border-radius';
-        fix.cssMap.borderTopLeftRadius='-moz-border-top-left-radius';
-        fix.cssMap.borderTopRightRadius='-moz-border-top-right-radius';
-        fix.cssMap.borderBottomLeftRadius='-moz-border-bottom-left-radius';
-        fix.cssMap.borderBottomRightRadius='-moz-border-bottom-right-radius';
-
-        //transition
-        fix.cssMap.transition='-moz-transition';
-        fix.cssMap.transitionProperty='-moz-transition-property';
-        fix.cssMap.transitionDuration='-moz-transition-duration';
-        fix.cssMap.transitionTimingFunction='-moz-transition-timing-function';
-        fix.cssMap.transitionDelay='-moz-transition-delay';
-
-        //gradient
-        fix.cssMap.linearGradient='-moz-linear-gradient';
-        fix.cssMap.radialGradient='-moz-radial-gradient';
-
-    }else if(  Utils.isBrowser(Utils.BROWSER_SAFARI) || Utils.isBrowser(Utils.BROWSER_CHROME,10,'>') )
+    }else if( Utils.isBrowser(Utils.BROWSER_SAFARI) || Utils.isBrowser(Utils.BROWSER_CHROME) )
     {
-        //select
-        fix.cssMap.select='-webkit-user-select';
-
-        //shadow
-        fix.cssMap.shadow='-webkit-box-shadow';
-
-        //radius
-        fix.cssMap.borderRadius='-webkit-border-radius';
-        fix.cssMap.borderTopLeftRadius='-webkit-border-top-left-radius';
-        fix.cssMap.borderTopRightRadius='-webkit-border-top-right-radius';
-        fix.cssMap.borderBottomLeftRadius='-webkit-border-bottom-left-radius';
-        fix.cssMap.borderBottomRightRadius='-webkit-border-bottom-right-radius';
-
-        //transition
-        fix.cssMap.transition='-webkit-transition';
-        fix.cssMap.transitionProperty='-webkit-transition-property';
-        fix.cssMap.transitionDuration='-webkit-transition-duration';
-        fix.cssMap.transitionTimingFunction='-webkit-moz-transition-timing-function';
-        fix.cssMap.transitionDelay='-webkit-transition-delay';
-
-        // gradient
-        fix.cssMap.linearGradient='-webkit-linear-gradient';
-        fix.cssMap.radialGradient='-webkit-radial-gradient';
-
-        //gradient
-       /* fix.cssMap.linearGradient='-webkit-gradient';
-        fix.cssMap.radialGradient='-webkit-gradient';*/
+        styleNamePrefix='-webkit-';
 
     }else if(Utils.isBrowser(Utils.BROWSER_OPERA))
     {
-        //select
-        fix.cssMap.select='-o-user-select';
-
-        //shadow
-        fix.cssMap.shadow='-o-box-shadow';
-
-        //radius
-        fix.cssMap.borderRadius='-o-border-radius';
-        fix.cssMap.borderTopLeftRadius='-o-border-top-left-radius';
-        fix.cssMap.borderTopRightRadius='-o-border-top-right-radius';
-        fix.cssMap.borderBottomLeftRadius='-o-border-bottom-left-radius';
-        fix.cssMap.borderBottomRightRadius='-o-border-bottom-right-radius';
-
-        //transition
-        fix.cssMap.transition='-o-transition';
-        fix.cssMap.transitionProperty='-o-transition-property';
-        fix.cssMap.transitionDuration='-o-transition-duration';
-        fix.cssMap.transitionTimingFunction='-o-moz-transition-timing-function';
-        fix.cssMap.transitionDelay='-o-transition-delay';
-
-        //gradient
-        fix.cssMap.linearGradient='-o-linear-gradient';
-        fix.cssMap.radialGradient='-o-radial-gradient';
-
-    }else
-    {
-        //shadow
-        fix.cssMap.shadow='box-shadow';
-
-        //radius
-        fix.cssMap.borderRadius='border-radius';
-        fix.cssMap.borderTopLeftRadius='border-top-left-radius';
-        fix.cssMap.borderTopRightRadius='border-top-right-radius';
-        fix.cssMap.borderBottomLeftRadius='border-bottom-left-radius';
-        fix.cssMap.borderBottomRightRadius='border-bottom-right-radius';
-
-        //select
-        fix.cssMap.select='user-select';
-
-        //gradient
-        fix.cssMap.linearGradient='linear-gradient';
-        fix.cssMap.radialGradient='radial-gradient';
-
-    }
-
-    //ie 9 以下
-    if( Utils.isBrowser(Utils.BROWSER_IE,10,'<') )
-    {
-        fix.cssMap.linearGradient='filter';
-        fix.cssMap.radialGradient='filter';
+        styleNamePrefix='-o-';
     }
 
     /**
@@ -435,7 +350,7 @@
     }
 
     //set hooks
-    cssHooks.select={
+    cssHooks.userSelect={
 
         get: function( style, name )
         {
@@ -443,7 +358,7 @@
         },
         set: function( style, value )
         {
-            style[ fix.cssMap.select ] = value;
+            style[ Utils.styleName('userSelect') ] = value;
             style['-webkit-touch-callout'] = value;
             style['-khtml-user-select'] = value;
             return true;
@@ -485,7 +400,8 @@
         {
             value = Utils.trim(value);
             Utils.storage(this,name,value);
-            if( fix.cssMap[name] === '-webkit-gradient')
+
+            if( Utils.isBrowser(Utils.BROWSER_SAFARI,5.1,'<') || Utils.isBrowser(Utils.BROWSER_CHROME,10,'<') )
             {
                 var position='';
                 var deg= 0;
@@ -539,6 +455,7 @@
                     var y1=Math.sin(  deg*(Math.PI/180) );
                     value=Utils.sprintf("%s,0% 0%,%s %s,%s",'linear',Math.round(x1*width),Math.round(y1*height),color.join(',') );
                 }
+                name='gradient';
 
             }else if( !value.match(/^(left|top|right|bottom|\d+)/) && name==='linearGradient' )
             {
@@ -550,7 +467,7 @@
             }
 
             var prop = 'background-image';
-            if( fix.cssMap[name] === 'filter' )
+            if(  Utils.isBrowser(Utils.BROWSER_IE,10,'<') )
             {
                 value=value.split(',')
                 var deg = value.splice(0,1).toString();
@@ -571,7 +488,7 @@
 
             }else
             {
-                value= Utils.sprintf('%s(%s)',fix.cssMap[name],value) ;
+                value= Utils.sprintf('%s(%s)', Utils.styleName( name ) , value ) ;
             }
             style[ prop ] = value ;
             return true;
@@ -670,7 +587,6 @@
         if ( type === "number" && !cssNumber[ name ] )
             value += "px";
         if( hook && hook.set && hook.set.call(elem,style,value,name)===true )return true;
-
         name = Utils.styleName( name );
         try{
             style[name]=value;
@@ -811,7 +727,9 @@
         name=fix.cssMap[name] || name;
         name=name.replace( cssPrefix, "ms-" ).replace( cssDashAlpha, cssCamelCase );
         name = name.replace( cssUpperProp, "-$1" ).toLowerCase();
-        return styleNamePrefix+name;
+        if( needAddPrefixStyleName[name] ===true )
+           return styleNamePrefix+name;
+        return name;
     }
 
     /**

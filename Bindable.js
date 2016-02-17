@@ -151,7 +151,6 @@
         if( this.__subscription__=== null )
         {
             this.__subscription__=new Dictionary();
-            this.__subscription__.set(target,{});
         }
         return this.__subscription__;
     }
@@ -162,28 +161,26 @@
      * @param object targetObject 数据对象，允许是一个 DOM元素、EventDispatcher、Object。 如果是 Object 则表示为单向绑定，否则都为双向绑定。
      * @param string property 需要绑定的属性名,允是一个*代表绑定所有属性
      * @param function|string custom 如果是函数发生变更时调用，如果是一个属性名发生变更时赋值
-     * @returns {boolean}
+     * @returns {Bindable}
      */
     Bindable.prototype.bind=function(targetObject,property,custom)
     {
         property =  property || 'value';
-
-        if( Utils.isEventElement(targetObject) )
-        {
-            bindEvent.call(new EventDispatcher(targetObject), this, property);
-
-        }else if( targetObject instanceof EventDispatcher )
+        if( targetObject instanceof EventDispatcher )
         {
             bindEvent.call(targetObject, this, property);
+
+        }else  if( Utils.isEventElement(targetObject) )
+        {
+            bindEvent.call(new EventDispatcher(targetObject), this, property);
         }
 
         if( typeof targetObject === 'object' )
         {
-            var obj = this.subscription(targetObject).get( targetObject );
-                obj[ property ] = custom;
-            return true;
+            var obj =this.subscription().get( targetObject ) || ( this.subscription().set(targetObject, (obj={}) ) );
+            obj[ property ] = custom;
         }
-        return false;
+        return this;
     }
 
     /**
@@ -205,7 +202,7 @@
     }
 
     /**
-     * 设置绑定器的属性。
+     * 提交属性的值到绑定器。
      * 调用此方法成功后会传递当前改变的值到绑定的对象中。
      * @param string name
      * @param void value

@@ -2,6 +2,7 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <script src="sizzle.js" ></script>
     <script src="Utils.js" ></script>
     <script src="BreezeEvent.js" ></script>
@@ -92,6 +93,8 @@
         var selection = new Selection( '#selection' )
          selection.dataRender().source( [{'id':1,'label':'张三'},{'id':2,'label':'李四'},{'id':3,'label':'赵三'}] );
          selection.selectedIndex([0,1]).searchable(true).multiple(true)
+
+
          selection.display();
 
 

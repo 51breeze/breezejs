@@ -38,9 +38,12 @@
         var childSkin=Breeze( skinGroup.getSkin('list') ).children();
         childSkin.addEventListener(MouseEvent.CLICK,function(event)
         {
-            self.selectedIndex( getSelectedIndexByViewIndex( this.property('data-index'), self.selectedIndex(), event)  );
-            if( !event.ctrlKey )
-                skinGroup.currentSkin('group').display(false);
+           if( !this.has('[disabled]') )
+           {
+               self.selectedIndex(getSelectedIndexByViewIndex(this.property('data-index'), self.selectedIndex(), event, self.multiple() ) );
+           }
+           if (!event.ctrlKey)
+              skinGroup.currentSkin('group').display(false);
         });
 
         //搜索框
@@ -78,11 +81,11 @@
      * @param event
      * @returns {*}
      */
-    function getSelectedIndexByViewIndex(viewIndex, selectedIndexs, event )
+    function getSelectedIndexByViewIndex(viewIndex, selectedIndexs, event, multiple )
     {
         viewIndex = parseInt( viewIndex );
         if( isNaN( viewIndex ) )throw new Error('invalid viewIndex');
-        if( event.ctrlKey )
+        if( event.ctrlKey && multiple )
         {
             var key = DataArray.prototype.indexOf.call(selectedIndexs,viewIndex);
             if( event.shiftKey )
@@ -106,50 +109,34 @@
 
     /**
      * @private
-     * @param index
+     * @param selectedIndex
      */
-    function commitSelectedIndex( index )
+    function commitSelectedIndex( selectedIndex )
     {
-        var skinGroup = this.skinGroup();
-        var labelSkin = skinGroup.getSkin('label');
-        if( labelSkin  )
-        {
-            var labelProfile =  this.labelProfile();
-            this.bindable().bind(labelSkin , labelProfile ,function (property, item)
-            {
-                var label=[];
-                for(var i=0; i<item.length; i++)
-                    label.push( item[i][labelProfile] );
-                var elem = labelSkin;
-                if( elem ) {
-                    typeof elem.innerText === "string" ? elem.innerText = label.join(',') : elem.textContent = label.join(',')
-                }
-            });
-        }
-
-        var dataSource = this.dataRender().dataSource();
-        var selectedItems = indexToItems(dataSource, index );
-
-        Breeze('.active', skinGroup.getSkin('list') ).removeClass('active');
-        Breeze( skinGroup.getSkin('list') ).children().forEach(function(){
-
-            var value = this.property('data-index');
-            if( DataArray.prototype.indexOf.call(index,value) >=0  )
-            {
-                this.addClass('active');
-            }
-        });
-
-        this.bindable().commitProperty(labelProfile , selectedItems );
-
         var event = new SelectionEvent(SelectionEvent.CHANGE);
-        event.selectedIndex = index;
+        event.selectedIndex = selectedIndex;
         event.selectedItem = selectedItems;
-        this.dispatchEvent(event);
+        if( this.dispatchEvent(event) )
+        {
+           var skinGroup = this.skinGroup();
+           var dataSource = this.dataRender().dataSource();
+           var selectedItems = indexToItems(dataSource, selectedIndex );
+           Breeze('.active', skinGroup.getSkinAndValidate('list') ).removeClass('active');
+           Breeze( skinGroup.getSkinAndValidate('list') ).children().forEach(function(){
+
+               var value = this.property('data-index');
+               if( DataArray.prototype.indexOf.call(selectedIndex,value) >=0  )
+               {
+                   this.addClass('active');
+               }
+           });
+           this.bindable().commitProperty( this.labelProfile() , selectedItems );
+        }
     }
 
     /**
      * 根据索引获取数据源项
+     * @private
      * @param dataSource
      * @param index
      * @returns {Array}
@@ -168,7 +155,7 @@
 
 
     /**
-     * 下拉选择框
+     * 下拉选择框组件
      * @param selector
      * @param context
      * @returns {*}
@@ -192,6 +179,17 @@
     Selection.prototype.__labelProfile__='label';
 
     /**
+     * @private
+     */
+    Selection.prototype.__valueProfile__='id';
+
+    /**
+     * @private
+     */
+    Selection.prototype.__dataRender__=null;
+
+    /**
+     * 数据项数据显示字段
      * @param profile
      * @returns {*}
      */
@@ -206,11 +204,7 @@
     }
 
     /**
-     * @private
-     */
-    Selection.prototype.__valueProfile__='id';
-
-    /**
+     * 数据项数据值字段
      * @param profile
      * @returns {*}
      */
@@ -225,13 +219,7 @@
     }
 
     /**
-     * @private
-     */
-    Selection.prototype.__dataRender__=null;
-
-    /**
-     * @param source
-     * @param options
+     * 获取数据渲染器
      * @returns {DataRender}
      */
     Selection.prototype.dataRender=function()
@@ -241,7 +229,6 @@
             var self = this;
             var dr = new DataRender();
             this.__dataRender__ = dr;
-
             dr.dataSource().addEventListener(DataSourceEvent.CHANGED,function(event)
             {
                 self.display();
@@ -256,6 +243,11 @@
     }
 
     /**
+     * @private
+     */
+    Selection.prototype.__bindable__=null;
+
+    /**
      * 数据绑定器
      * @returns {Bindable}
      */
@@ -263,7 +255,13 @@
     {
         if( this.__bindable__ === null )
         {
-            this.__bindable__ = new Bindable( this.labelProfile() );
+            var labelProfile =  this.labelProfile();
+            this.__bindable__ = new Bindable( this.labelProfile() ).bind(this.skinGroup().getSkinAndValidate('label') , labelProfile ,function (property, item)
+            {
+                var label=[];
+                for(var i=0; i<item.length; i++)label.push( item[i][labelProfile] );
+                typeof this.innerText === "string" ? this.innerText = label.join(',') : this.textContent = label.join(',')
+            });
         }
         return this.__bindable__;
     }
@@ -271,12 +269,7 @@
     /**
      * @private
      */
-    Selection.prototype.__bindable__=null;
-
-    /**
-     * @private
-     */
-    Selection.prototype.__index__=[0];
+    Selection.prototype.__selectedIndex__=[0];
 
     /**
      * @param viod index 当前需要选择的索引值，可以是一个数字或者是字符串。多个可以传一个数组或者以','隔开。
@@ -286,16 +279,25 @@
     Selection.prototype.selectedIndex=function( index )
     {
         if( typeof index === "undefined" )
-           return this.__index__;
+        {
+            return  this.__selectedIndex__.slice(0) ;
+        }
 
         if( !(index instanceof Array) )
         {
             index=String( index ).split(',');
         }
-        if( this.__index__ !==index  )
+
+        var has= false;
+        for( var i in index )if( DataArray.prototype.indexOf.call( this.__selectedIndex__, index[i] ) < 0 )
         {
-            this.__index__ = index;
-            if( this.__display__ ) {
+           has=true;
+           break;
+        }
+        if( has || this.__selectedIndex__.length != index.length )
+        {
+            this.__selectedIndex__ = index;
+            if (this.__display__) {
                 commitSelectedIndex.call(this, index);
             }
         }
@@ -375,7 +377,7 @@
         {
             dataRender.viewport( skinGroup.getSkin('list') );
             var list = skinGroup.skinObject().get('part.option');
-            if( !list )throw new Error('not found view of option');
+            if( !list )throw new Error('not found view for option');
             dataRender.display( list );
         }
         commitSelectedIndex.call(this, this.selectedIndex() );
@@ -388,11 +390,8 @@
      */
     Selection.prototype.skinInstalled=function( skinGroup )
     {
-        if( !skinGroup.validateSkin() )
-        {
-            skinGroup.skinObject( this.defaultSkinObject() );
-            skinGroup.createSkin();
-        }
+        if( !skinGroup.skinObject() )skinGroup.skinObject( this.defaultSkinObject() );
+        skinGroup.createSkin();
         SkinComponent.prototype.skinInstalled.call(this,skinGroup);
     }
 
@@ -406,15 +405,13 @@
         var dataProfile= this.dataRender().dataProfile();
         var labelProfile =  this.labelProfile();
         var valueProfile = this.valueProfile();
-        var skinObject=new SkinObject('<div class="selection">{part button+group}</div>',{
+        var skinObject=new SkinObject('<div class="selection text-unselect">{part button+group}</div>',{
             button:'<button type="button" class="btn btn-default">{part label+caret}</button>',
             label: '<span></span>',
             caret:'<span class="pull-right"><i class="caretdown"></i><span>',
             option: '<?foreach('+dataProfile+' as key item){ ?><li value="{item["'+valueProfile+'"]}" data-index="{key}">{item["'+labelProfile+'"]}</li><?}?>',
             list:'<ul class="list-state"></ul>',
-            group: '<div class="group"><input class="searchbox" style="display: none" />{part list}</div>'
-        },{
-            group:{style:{shadow:'0px 0px 5px 0px rgba(0,0,0,.4)', borderRadius:'3px'}}
+            group:'<div class="group"><input class="searchbox" style="display: none" />{part list}</div>'
         });
         return skinObject;
     }

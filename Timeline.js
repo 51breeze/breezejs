@@ -402,7 +402,7 @@ var tl= new Timeline(60).addFrame(function(){
                     //根据播放头的位置找到关键侦的位置
                     index = getFrameByIndex(self.__frame__ , self.__current__);
 
-                    self.__index__= index;
+                    self.__selectedIndex__= index;
 
                     //定位到指定的关键侦
                     frame=self.__frame__[ index ];
