@@ -19,6 +19,27 @@
         var width =  skinGroup.width();
         var height =  skinGroup.height();
         var self  = this;
+        var dataRender= this.dataRender();
+
+        //如果没有数据源或者是一个完整的皮肤则从皮肤列表中获取数据源
+        if( skinGroup.validateSkin() || dataRender.dataSource().length<1 )
+        {
+            var dataItems = [];
+            var labelProfile = this.labelProfile();
+            var valueProfile = this.valueProfile();
+            skinGroup.getSkinGroup('list > *').forEach(function()
+            {
+                if( !this.hasProperty('value') )
+                    throw new Error('miss value property');
+                var value = this.property('value');
+                var label = this.text();
+                var item = {};
+                item[ labelProfile ] = label;
+                item[ valueProfile ] = value;
+                dataItems.push( item );
+            });
+            dataRender.source( dataItems );
+        }
 
         //点击显示下拉列表
         EventDispatcher( skinGroup.getSkin('button') ).addEventListener(MouseEvent.CLICK,function(event){
@@ -34,14 +55,14 @@
 
         });
 
-        //选择每项数据
-        var childSkin=Breeze( skinGroup.getSkin('list') ).children();
-        childSkin.addEventListener(MouseEvent.CLICK,function(event)
+        //下拉列表选项
+        skinGroup.getSkinGroup('list > *').addEventListener(MouseEvent.CLICK,function(event)
         {
            if( !this.has('[disabled]') )
            {
-               self.selectedIndex(getSelectedIndexByViewIndex(this.property('data-index'), self.selectedIndex(), event, self.multiple() ) );
+               self.selectedIndex(getSelectedIndexByViewIndex( this.getElementIndex( event.currentTarget ) , self.selectedIndex(), event, self.multiple() ) );
            }
+
            if (!event.ctrlKey)
               skinGroup.currentSkin('group').display(false);
         });
@@ -49,28 +70,23 @@
         //搜索框
         if( this.searchable() )
         {
-            Breeze( skinGroup.getSkin('group') ).children('input').property('placeholder', this.placeholder() ).display(true)
-                .addEventListener(PropertyEvent.CHANGE,function(event){
-                    if( event.property==='value')
-                    {
-                        var selector = event.newValue && event.newValue !='' ? ":contains('" + event.newValue + "')" : null;
-                        childSkin.forEach(function(){
-                            this.display( selector ? this.has( selector ) : true );
-                        });
-                    }
-                });
+            Breeze('input', skinGroup.getSkin('group') ).property('placeholder', this.placeholder() ).display(true)
+            .addEventListener(PropertyEvent.CHANGE,function(event){
+                if( event.property==='value')
+                {
+                    var selector = event.newValue && event.newValue !='' ? ":contains('" + event.newValue + "')" : null;
+                    skinGroup.getSkinGroup('list > *').forEach(function(){
+                        this.display( selector ? this.has( selector ) : true );
+                    });
+                }
+            });
         }
 
         //点击下拉列表外隐藏列表
-        EventDispatcher(document).addEventListener(MouseEvent.CLICK,function(event)
-        {
-            skinGroup.currentSkin('group');
-            if(skinGroup.display() && (event.pageX < skinGroup.left() || event.pageY < skinGroup.top() ||
-                event.pageX > skinGroup.left() + skinGroup.width() ||  event.pageY > skinGroup.top()+skinGroup.height()) )
-            {
-                skinGroup.display(false);
-            }
-            skinGroup.current(null);
+        EventDispatcher( skinGroup.getSkin('group') ).addEventListener( MouseEvent.MOUSE_OUTSIDE , function(event){
+
+            if( !Utils.contains( skinGroup[0],  event.target ) )
+               Utils.style(event.currentTarget,'display','none');
         });
     }
 
@@ -84,7 +100,7 @@
     function getSelectedIndexByViewIndex(viewIndex, selectedIndexs, event, multiple )
     {
         viewIndex = parseInt( viewIndex );
-        if( isNaN( viewIndex ) )throw new Error('invalid viewIndex');
+        if( isNaN( viewIndex ) || viewIndex < 0 )throw new Error('invalid viewIndex');
         if( event.ctrlKey && multiple )
         {
             var key = DataArray.prototype.indexOf.call(selectedIndexs,viewIndex);
@@ -115,22 +131,18 @@
     {
         var event = new SelectionEvent(SelectionEvent.CHANGE);
         event.selectedIndex = selectedIndex;
-        event.selectedItem = selectedItems;
+        event.selectedItem = indexToItems(this.dataRender().dataSource(), selectedIndex);
         if( this.dispatchEvent(event) )
         {
-           var skinGroup = this.skinGroup();
-           var dataSource = this.dataRender().dataSource();
-           var selectedItems = indexToItems(dataSource, selectedIndex );
-           Breeze('.active', skinGroup.getSkinAndValidate('list') ).removeClass('active');
-           Breeze( skinGroup.getSkinAndValidate('list') ).children().forEach(function(){
-
-               var value = this.property('data-index');
-               if( DataArray.prototype.indexOf.call(selectedIndex,value) >=0  )
+            this.skinGroup().getSkinGroup('list > *').forEach(function(elem,index)
+            {
+               this.removeClass('active');
+               if( DataArray.prototype.indexOf.call(selectedIndex,index) >=0  )
                {
                    this.addClass('active');
                }
            });
-           this.bindable().commitProperty( this.labelProfile() , selectedItems );
+           this.bindable().commitProperty( this.labelProfile() , event.selectedItem );
         }
     }
 
@@ -144,11 +156,22 @@
     function indexToItems( dataSource, index )
     {
         var result = [];
-        for (var i = 0; i < index.length; i++)
+        if( index instanceof Array )
         {
-            if (!dataSource[ index[i] ] )
-                throw new Error('invalid index');
-            result.push( dataSource[ index[i] ] );
+            for (var i = 0; i < index.length; i++)
+            {
+                if (!dataSource[index[i]])
+                    throw new Error('invalid index');
+                result.push(dataSource[index[i]]);
+            }
+
+        }else if( dataSource[index] )
+        {
+            result.push( dataSource[index] )
+        }
+        if( result.length < 1 )
+        {
+            throw new Error('invalid index');
         }
         return result;
     }
@@ -226,18 +249,8 @@
     {
         if( this.__dataRender__ === null )
         {
-            var self = this;
-            var dr = new DataRender();
-            this.__dataRender__ = dr;
-            dr.dataSource().addEventListener(DataSourceEvent.CHANGED,function(event)
-            {
-                self.display();
-
-            },false,0,this);
-
-            dr.addEventListener(TemplateEvent.REFRESH,function(event){
-                bindEvent.call(this);
-            },false,0,this);
+            this.__dataRender__= new DataRender().addEventListener(TemplateEvent.REFRESH,bindEvent,false,0,this);
+            this.__dataRender__.dataSource().addEventListener(DataSourceEvent.CHANGED,this.display,false,0,this);
         }
         return this.__dataRender__;
     }
@@ -256,7 +269,7 @@
         if( this.__bindable__ === null )
         {
             var labelProfile =  this.labelProfile();
-            this.__bindable__ = new Bindable( this.labelProfile() ).bind(this.skinGroup().getSkinAndValidate('label') , labelProfile ,function (property, item)
+            this.__bindable__ = new Bindable().bind(this.skinGroup().getSkinAndValidate('label') , labelProfile ,function (property, item)
             {
                 var label=[];
                 for(var i=0; i<item.length; i++)label.push( item[i][labelProfile] );
@@ -280,7 +293,7 @@
     {
         if( typeof index === "undefined" )
         {
-            return  this.__selectedIndex__.slice(0) ;
+            return this.multiple() ? this.__selectedIndex__.slice(0) : this.__selectedIndex__[0] ;
         }
 
         if( !(index instanceof Array) )
@@ -288,13 +301,13 @@
             index=String( index ).split(',');
         }
 
-        var has= false;
-        for( var i in index )if( DataArray.prototype.indexOf.call( this.__selectedIndex__, index[i] ) < 0 )
+        var has= this.__selectedIndex__.length !== index.length;
+        if(!has)for( var i in index )if( DataArray.prototype.indexOf.call( this.__selectedIndex__, index[i] ) < 0 )
         {
            has=true;
            break;
         }
-        if( has || this.__selectedIndex__.length != index.length )
+        if( has )
         {
             this.__selectedIndex__ = index;
             if (this.__display__) {
@@ -355,6 +368,9 @@
         return this;
     }
 
+    /**
+     * @private
+     */
     Selection.prototype.__display__=false;
 
     /**
@@ -368,11 +384,9 @@
         this.__display__=true;
         var dataRender = this.dataRender();
         var skinGroup= this.skinGroup();
-
         if( skinGroup.validateSkin() )
         {
-            bindEvent.call(this);
-
+            dataRender.dispatchEvent( new TemplateEvent( TemplateEvent.REFRESH ) );
         }else
         {
             dataRender.viewport( skinGroup.getSkin('list') );
@@ -382,17 +396,6 @@
         }
         commitSelectedIndex.call(this, this.selectedIndex() );
         return true;
-    }
-
-    /**
-     * @protected
-     * @param skinGroup
-     */
-    Selection.prototype.skinInstalled=function( skinGroup )
-    {
-        if( !skinGroup.skinObject() )skinGroup.skinObject( this.defaultSkinObject() );
-        skinGroup.createSkin();
-        SkinComponent.prototype.skinInstalled.call(this,skinGroup);
     }
 
     /**

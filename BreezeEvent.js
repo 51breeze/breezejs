@@ -139,8 +139,7 @@
         }
 
         var breezeEvent={},currentTarget=event.currentTarget || target;
-        type = BreezeEvent.eventType(event.type,true);
-
+        var type = BreezeEvent.eventType(event.type,true);
         if( type === null )
            return null
 
@@ -277,9 +276,11 @@
     MouseEvent.MOUSE_UP='mouseup';
     MouseEvent.MOUSE_OVER='mouseover';
     MouseEvent.MOUSE_OUT='mouseout';
+    MouseEvent.MOUSE_OUTSIDE='mouseoutside';
     MouseEvent.MOUSE_MOVE='mousemove';
     MouseEvent.CLICK='click';
     MouseEvent.DBLCLICK='dblclick';
+
 
     function HttpEvent( type, bubbles,cancelable ){ BreezeEvent.call(this,  type, bubbles,cancelable );}
     HttpEvent.prototype=new BreezeEvent();

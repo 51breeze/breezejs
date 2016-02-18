@@ -385,6 +385,28 @@
         return skin;
     }
 
+    /**
+     * 获取指定的皮肤并以Breeze对象返回
+     * @param skinName
+     * @returns {Breeze}
+     */
+    SkinGroup.prototype.getSkinGroup=function( skinName )
+    {
+        var key = 'group_'+skinName.replace(/\s+/,'');
+        if(  !this.__skin__[ key ] )
+        {
+            skinName = skinName.replace(/(\w+)\s+?(\>?)\s+?(.*)/, function (all, a, b, c) {
+                return c === '' ? " return Breeze(this.getSkinAndValidate('" + a + "'))" : "Breeze('" + c + "',this.getSkinAndValidate('" + a + "'))";
+            })
+            try {
+                this.__skin__[key] = eval(skinName + ';');
+            }catch ( e )
+            {
+                throw new Error('invalid skin name');
+            }
+        }
+        return this.__skin__[ key ].current(null);
+    }
     window.SkinGroup=SkinGroup;
     window.SkinObject=SkinObject;
 

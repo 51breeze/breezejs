@@ -93,8 +93,22 @@
      */
     DataSource.prototype.source=function( source , option )
     {
-        if(  typeof source === "undefined" || this.__source__ === source )
-          return this.__source__;
+        if(  typeof source === "undefined"  )
+            return  this.__source__;
+
+        if( this.__source__ === source )
+        {
+            return this;
+        }
+
+        if( source === null )
+        {
+            this.splice(0, this.length);
+            this.removeEventListener(DataSourceEvent.LOAD_START);
+            if (this.__source__ instanceof HttpRequest)
+                this.__source__.removeEventListener(HttpEvent.SUCCESS);
+            return this;
+        }
 
         var changed = this.__source__ !== null;
 
@@ -112,7 +126,6 @@
                 this.orderBy(b,orderBy[b], true);
             }
             this.removeEventListener(DataSourceEvent.LOAD_START);
-
         }
         //远程数据源
         else

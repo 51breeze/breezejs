@@ -90,9 +90,10 @@
 
        */
 
+
         var selection = new Selection( '#selection' )
          selection.dataRender().source( [{'id':1,'label':'张三'},{'id':2,'label':'李四'},{'id':3,'label':'赵三'}] );
-         selection.selectedIndex([0,1]).searchable(true).multiple(true)
+         selection.selectedIndex('1,2').searchable(true).multiple(true)
 
 
          selection.display();
@@ -168,20 +169,26 @@
 -->
 
 
-<div  id="selection" style="width: 300px; margin: 50px;">
+<div  id="selection" style="width: 300px; margin: 50px;visibility: visible">
 </div>
 
 
-<!--
+
+
 <div class="col-lg-5 container">
     <ul class="col-lg-12 list-unstyled state">
         <li>one</li>
         <li disabled>two</li>
         <li>three</li>
+        <span>55555 <li>three</li></span>
+        sdfdsfds
+
+
+
     </ul>
 
 </div>
--->
+
 
 
 <!--

@@ -822,6 +822,21 @@
     }
 
     /**
+     * 返回指定的元素在当前匹配项中的位置
+     * @param childElemnet | selector
+     * @returns {Number}
+     */
+    Breeze.prototype.getElementIndex=function( elemnet )
+    {
+        var index = 0;
+        for(; index< this.length ; index++) if( elemnet === this[index] )
+        {
+           return index;
+        }
+        return -1;
+    }
+
+    /**
      * 用指定的元素来包裹当前所有匹配到的元素
      * @param element
      * @returns {Breeze}
@@ -1003,6 +1018,16 @@
                 Utils.property(this,prop,newValue);
             }
         },PropertyEvent.CHANGE);
+    }
+
+    /**
+     * 判断当前匹配元素是否有指定的属性名
+     * @param prop
+     * @returns {boolean}
+     */
+    Breeze.prototype.hasProperty=function(prop)
+    {
+        return Utils.hasAttribute(this.current(),prop);
     }
 
     /**

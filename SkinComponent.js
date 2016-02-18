@@ -42,7 +42,10 @@
      * @param skinGroup
      * @protected
      */
-    SkinComponent.prototype.skinInstalled=function( skinGroup ){}
+    SkinComponent.prototype.skinInstalled=function( skinGroup ){
+        if( !skinGroup.skinObject() )skinGroup.skinObject( this.defaultSkinObject() );
+        skinGroup.createSkin();
+    }
 
     /**
      * @returns {*}

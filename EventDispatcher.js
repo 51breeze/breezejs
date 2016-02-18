@@ -180,13 +180,11 @@
                 return false;
             }
             event.currentTarget=element;
-            event.target=element;
+            event.target = event.target || element;
             EventDispatcher.dispatchEvent( event );
-        }while( target && i < target.length )
+        }while( target && i < target.length );
         return !event.propagationStopped;
     }
-
-
 
     /**
      * 添加侦听器到元素中
@@ -627,23 +625,26 @@
     });
 
 
-    // 定义resize事件
-    EventDispatcher.SpecialEvent(BreezeEvent.RESIZE,
-        function(element,listener,type)
+    //在指定的目标元素外按下鼠标
+    EventDispatcher.SpecialEvent(MouseEvent.MOUSE_OUTSIDE, function(element,listener,type)
+    {
+        Breeze.rootEvent().addEventListener(MouseEvent.MOUSE_DOWN,function(event)
         {
-            if( !Utils.isWindow(element) )
-            {
-               /* Breeze.rootEvent().addEventListener(type,function(event){
+             if( Utils.style(element,'display') === 'none' ||  Utils.style(element,'visibility') ==='hidden' )
+                return;
+             var pos = Utils.position(element);
+             var width = Utils.getSize( element,'width' );
+             var height = Utils.getSize( element,'height' );
+             if( event.pageX < pos.left || event.pageY < pos.top || event.pageX > pos.left + width ||  event.pageY > pos.top+height )
+             {
+                 event = BreezeEvent.create( event );
+                 event.type = MouseEvent.MOUSE_OUTSIDE;
+                 this.dispatchEvent( event );
+             }
 
-                    event.currentTarget= element;
-                    event.target=element;
-                    listener.callback(listener.reference || listener.dispatcher , event);
-
-                },true,0,this);
-                return true;*/
-            }
-            return false;
-        });
+        },false,0, this);
+        return false;
+    });
 
     window.EventDispatcher=EventDispatcher;
 

@@ -181,7 +181,7 @@
 
             }else if ( val > 0 )
             {
-                var margin=( Utils.isBrowser( Utils.BROWSER_IE) || 10 ) < 9  ;
+                var margin= Utils.isBrowser( Utils.BROWSER_IE, 9 ,'<');
                 for ( ; i < len; i += 2 )
                 {
                     //val -= parseFloat( Utils.style( elem, "padding" + cssExpand[ i ] ) ) || 0;
@@ -613,7 +613,7 @@
     Utils.property=function(element,prop,val)
     {
         prop = fix.attrMap[ prop ] || prop;
-        var is=  __property__[prop];
+        var is= prop === 'value' && !Utils.isFormElement(element) ? false : __property__[prop];
         var elem= Utils.isNodeElement(element);
         if( typeof val === "undefined" )
         {
@@ -632,7 +632,6 @@
         is || !elem ? element[prop] = val : element.setAttribute(prop, val);
         return true;
     }
-
 
     /**
      * 判断是否有指定的类名
@@ -657,7 +656,7 @@
             var oldClass=element['className'];
             oldClass= [ Utils.trim( oldClass ) ];
             oldClass.push( className );
-            element['className'] = oldClass.join(' ');
+            element['className'] = Utils.trim( oldClass.join(' ') );
         }
         return true;
     }
@@ -674,11 +673,12 @@
             var value=element['className'] || '';
             var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
             className=value.replace(reg, '');
+
         }else
         {
             className='';
         }
-        element['className']=className;
+        className === '' ? element.removeAttribute('class') : element['className'] = Utils.trim(className);
     }
 
 
