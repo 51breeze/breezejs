@@ -13,58 +13,35 @@
     function bindEvent()
     {
         var skinGroup = this.skinGroup();
-        var position = skinGroup.position()
-        var left = position.left;
-        var top  = position.top;
-        var width =  skinGroup.width();
-        var height =  skinGroup.height();
-        var self  = this;
-        var dataRender= this.dataRender();
 
-        //如果没有数据源或者是一个完整的皮肤则从皮肤列表中获取数据源
-        if( skinGroup.validateSkin() || dataRender.dataSource().length<1 )
+        var resize = function()
         {
-            var dataItems = [];
-            var labelProfile = this.labelProfile();
-            var valueProfile = this.valueProfile();
-            skinGroup.getSkinGroup('list > *').forEach(function()
-            {
-                if( !this.hasProperty('value') )
-                    throw new Error('miss value property');
-                var value = this.property('value');
-                var label = this.text();
-                var item = {};
-                item[ labelProfile ] = label;
-                item[ valueProfile ] = value;
-                dataItems.push( item );
-            });
-            dataRender.source( dataItems );
-        }
-
-        //点击显示下拉列表
-        EventDispatcher( skinGroup.getSkin('button') ).addEventListener(MouseEvent.CLICK,function(event){
-
-            var dowWidth = Utils.getSize(document,'width');
-            var dowHeight = Utils.getSize(document,'height');
+            skinGroup.current(null);
+            var position = skinGroup.position()
+            var left = position.left;
+            var top  = position.top;
+            var width =  skinGroup.width();
+            var height =  skinGroup.height();
 
             skinGroup.currentSkin('group');
             skinGroup.width( width );
             skinGroup.position(left, top + height + 3 );
             skinGroup.display(true);
+
+            var windowWidth = Utils.getSize(window,'width');
+            var windowHeight = Utils.getSize(window,'height');
+            var inputHeight =  skinGroup.getSkinGroup('group > input').height();
+            var maxHeight = windowHeight - ( top + height + 3 + inputHeight + 5 );
+            skinGroup.currentSkin('list').style('maxHeight',maxHeight);
+            skinGroup.current(null);
+        }
+
+        Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,resize);
+
+        //点击显示下拉列表
+        EventDispatcher( skinGroup.getSkin('button') ).addEventListener(MouseEvent.CLICK,function(event){
+            resize();
             event.stopPropagation();
-
-        });
-
-        //下拉列表选项
-        skinGroup.getSkinGroup('list > *').addEventListener(MouseEvent.CLICK,function(event)
-        {
-           if( !this.has('[disabled]') )
-           {
-               self.selectedIndex(getSelectedIndexByViewIndex( this.getElementIndex( event.currentTarget ) , self.selectedIndex(), event, self.multiple() ) );
-           }
-
-           if (!event.ctrlKey)
-              skinGroup.currentSkin('group').display(false);
         });
 
         //搜索框
@@ -97,31 +74,39 @@
      * @param event
      * @returns {*}
      */
-    function getSelectedIndexByViewIndex(viewIndex, selectedIndexs, event, multiple )
+    function getSelectedIndexByViewIndex(viewIndex, event )
     {
         viewIndex = parseInt( viewIndex );
         if( isNaN( viewIndex ) || viewIndex < 0 )throw new Error('invalid viewIndex');
-        if( event.ctrlKey && multiple )
+        var selectedIndexs = this.__selectedIndex__;
+        var key = DataArray.prototype.indexOf.call(selectedIndexs,viewIndex);
+        if( event.ctrlKey )
         {
-            var key = DataArray.prototype.indexOf.call(selectedIndexs,viewIndex);
+            selectedIndexs=selectedIndexs.slice(0);
+
+            //存在，减去
             if( event.shiftKey )
             {
-                if( key >= 0 && selectedIndexs.length > 1 )
+                if( key >=0  )
                 {
                     selectedIndexs.splice(key,1);
-                    selectedIndexs = selectedIndexs.slice(0);
+                    return selectedIndexs;
                 }
-
-            }else if( key < 0 )
-            {
-                selectedIndexs.push( viewIndex );
-                selectedIndexs = selectedIndexs.slice(0);
             }
-            return selectedIndexs;
+            //不存在，添加
+            else if( key < 0 )
+            {
+                if( this.multiple() || selectedIndexs.length < 1 )
+                {
+                    selectedIndexs.push(viewIndex);
+                    return selectedIndexs;
+                }
+                return viewIndex;
+            }
+            return this.__selectedIndex__;
         }
         return viewIndex;
     }
-
 
     /**
      * @private
@@ -130,19 +115,20 @@
     function commitSelectedIndex( selectedIndex )
     {
         var event = new SelectionEvent(SelectionEvent.CHANGE);
-        event.selectedIndex = selectedIndex;
-        event.selectedItem = indexToItems(this.dataRender().dataSource(), selectedIndex);
-        if( this.dispatchEvent(event) )
+        var selectedItems = indexToItems( this.dataRender().dataSource() , selectedIndex );
+        event.selectedIndex = this.multiple() ? selectedIndex : selectedIndex[0];
+        event.selectedItem = this.multiple() ? selectedItems : selectedItems[0];
+        if( !this.hasEventListener(SelectionEvent.CHANGE) || this.dispatchEvent(event) )
         {
-            this.skinGroup().getSkinGroup('list > *').forEach(function(elem,index)
+            this.skinGroup().getSkinGroup('list > *').forEach(function (elem, index)
             {
-               this.removeClass('active');
-               if( DataArray.prototype.indexOf.call(selectedIndex,index) >=0  )
-               {
-                   this.addClass('active');
-               }
-           });
-           this.bindable().commitProperty( this.labelProfile() , event.selectedItem );
+                this.removeClass('active');
+                if ( DataArray.prototype.indexOf.call(selectedIndex, index) >= 0 )
+                {
+                    this.addClass('active');
+                }
+            });
+            this.bindable().commitProperty( this.labelProfile() , selectedItems );
         }
     }
 
@@ -160,18 +146,13 @@
         {
             for (var i = 0; i < index.length; i++)
             {
-                if (!dataSource[index[i]])
-                    throw new Error('invalid index');
+                if ( dataSource[index[i]] )
                 result.push(dataSource[index[i]]);
             }
 
         }else if( dataSource[index] )
         {
             result.push( dataSource[index] )
-        }
-        if( result.length < 1 )
-        {
-            throw new Error('invalid index');
         }
         return result;
     }
@@ -194,7 +175,7 @@
     Selection.prototype=new SkinComponent();
     Selection.prototype.constructor=Selection;
     SkinComponent.prototype.componentProfile='selection';
-    SkinComponent.prototype.initializeMethod=[];
+    SkinComponent.prototype.initializeMethod=['labelProfile','valueProfile','defaultLabel','selectedIndex','searchable','multiple','placeholder','dataSource','display'];
 
     /**
      * @private
@@ -249,10 +230,58 @@
     {
         if( this.__dataRender__ === null )
         {
-            this.__dataRender__= new DataRender().addEventListener(TemplateEvent.REFRESH,bindEvent,false,0,this);
+            var self = this;
+            this.__dataRender__= new DataRender().addEventListener(TemplateEvent.REFRESH,function(){
+
+                //下拉列表选项
+                var list = self.skinGroup().getSkinGroup('list > *', true);
+                list.hasEventListener(MouseEvent.CLICK) ||  list.addEventListener(MouseEvent.CLICK,function(event)
+                {
+                    if( !this.has('[disabled]') )
+                    {
+                        self.selectedIndex( getSelectedIndexByViewIndex.call(self, this.getElementIndex( event.currentTarget ) , event ) );
+                    }
+                    if (!event.ctrlKey)
+                        self.skinGroup().currentSkin('group').display(false);
+                });
+
+                //如果是一个完整皮肤，则把皮肤列表中的项转换成项数据。
+                if( self.skinGroup().validateSkin() )
+                {
+                    var dataSource = self.dataRender().dataSource();
+                    var labelProfile = self.labelProfile();
+                    var valueProfile = self.valueProfile();
+                    var dataItems = []
+                    list.forEach(function()
+                    {
+                        if (!this.hasProperty( valueProfile ))
+                            throw new Error('miss value property is list option skin');
+                        var item = {};
+                        item[labelProfile] = this.text();
+                        item[valueProfile] = this.property( valueProfile );
+                        dataItems.push( item );
+                    });
+                    dataSource.source( dataItems );
+                }
+            });
             this.__dataRender__.dataSource().addEventListener(DataSourceEvent.CHANGED,this.display,false,0,this);
         }
         return this.__dataRender__;
+    }
+
+    /**
+     * 获取设置数据源
+     * @public
+     * @returns {DataRender}
+     */
+    Selection.prototype.dataSource=function( source )
+    {
+        if( typeof source !== "undefined" )
+        {
+            this.dataRender().source( source );
+            return this;
+        }
+        return this.dataRender().source();
     }
 
     /**
@@ -269,10 +298,17 @@
         if( this.__bindable__ === null )
         {
             var labelProfile =  this.labelProfile();
+            var defaultLabel = this.defaultLabel();
             this.__bindable__ = new Bindable().bind(this.skinGroup().getSkinAndValidate('label') , labelProfile ,function (property, item)
             {
                 var label=[];
-                for(var i=0; i<item.length; i++)label.push( item[i][labelProfile] );
+                if( item instanceof Array && item.length > 0 )
+                {
+                    for(var i=0; i<item.length; i++)label.push( item[i][labelProfile] );
+                }else
+                {
+                    label.push( typeof item ==="string" ? item : defaultLabel );
+                }
                 typeof this.innerText === "string" ? this.innerText = label.join(',') : this.textContent = label.join(',')
             });
         }
@@ -282,7 +318,27 @@
     /**
      * @private
      */
-    Selection.prototype.__selectedIndex__=[0];
+    Selection.prototype.__defaultLabel__='请选择';
+
+    /**
+     * 默认标签
+     * @public
+     * @param label
+     * @returns {*}
+     */
+    Selection.prototype.defaultLabel=function( label )
+    {
+        if( typeof label === "string" ) {
+            this.__defaultLabel__ = label;
+            return this;
+        }
+        return this.__defaultLabel__;
+    }
+
+    /**
+     * @private
+     */
+    Selection.prototype.__selectedIndex__= [];
 
     /**
      * @param viod index 当前需要选择的索引值，可以是一个数字或者是字符串。多个可以传一个数组或者以','隔开。
@@ -293,7 +349,7 @@
     {
         if( typeof index === "undefined" )
         {
-            return this.multiple() ? this.__selectedIndex__.slice(0) : this.__selectedIndex__[0] ;
+            return this.multiple() ? this.__selectedIndex__.slice(0) : this.__selectedIndex__[0] || NaN;
         }
 
         if( !(index instanceof Array) )
@@ -384,9 +440,12 @@
         this.__display__=true;
         var dataRender = this.dataRender();
         var skinGroup= this.skinGroup();
+
+        bindEvent.call(this);
         if( skinGroup.validateSkin() )
         {
             dataRender.dispatchEvent( new TemplateEvent( TemplateEvent.REFRESH ) );
+
         }else
         {
             dataRender.viewport( skinGroup.getSkin('list') );
@@ -394,7 +453,7 @@
             if( !list )throw new Error('not found view for option');
             dataRender.display( list );
         }
-        commitSelectedIndex.call(this, this.selectedIndex() );
+        commitSelectedIndex.call(this, this.__selectedIndex__ );
         return true;
     }
 
@@ -408,11 +467,12 @@
         var dataProfile= this.dataRender().dataProfile();
         var labelProfile =  this.labelProfile();
         var valueProfile = this.valueProfile();
+
         var skinObject=new SkinObject('<div class="selection text-unselect">{part button+group}</div>',{
             button:'<button type="button" class="btn btn-default">{part label+caret}</button>',
-            label: '<span></span>',
+            label: '<span class="text-overflow" style="float: left; width: 96%"></span>',
             caret:'<span class="pull-right"><i class="caretdown"></i><span>',
-            option: '<?foreach('+dataProfile+' as key item){ ?><li value="{item["'+valueProfile+'"]}" data-index="{key}">{item["'+labelProfile+'"]}</li><?}?>',
+            option: '<?foreach('+dataProfile+' as key item){ ?><li '+valueProfile+'="{item["'+valueProfile+'"]}" data-index="{key}">{item["'+labelProfile+'"]}</li><?}?>',
             list:'<ul class="list-state"></ul>',
             group:'<div class="group"><input class="searchbox" style="display: none" />{part list}</div>'
         });

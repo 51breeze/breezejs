@@ -91,12 +91,22 @@
        */
 
 
-        var selection = new Selection( '#selection' )
-         selection.dataRender().source( [{'id':1,'label':'张三'},{'id':2,'label':'李四'},{'id':3,'label':'赵三'}] );
-         selection.selectedIndex('1,2').searchable(true).multiple(true)
+       /* var selection = new Selection( '#selection' )
+         selection.dataSource( [{'id':1,'label':'张三'},{'id':2,'label':'李四'},{'id':3,'label':'赵三'}] );
+         selection.selectedIndex(2).searchable(true).multiple(false)
 
 
          selection.display();
+
+
+        selection.addEventListener( SelectionEvent.CHANGE ,function( event ){
+
+
+            console.log( event )
+
+
+
+        })*/
 
 
       /*   var modal =  new Modality()
@@ -122,14 +132,6 @@
 
         },true)*/
 
-
-        Breeze('#submit').addEventListener(MouseEvent.CLICK,function(){
-
-             var w = Breeze(".mcontainer").width()
-             Breeze(".mcontainer").width( w+10 );
-             Breeze(".mcontainer").dispatchEvent( new LayoutEvent( LayoutEvent.CHANGE ) )
-
-        },false)
 
     })
 
@@ -169,7 +171,15 @@
 -->
 
 
-<div  id="selection" style="width: 300px; margin: 50px;visibility: visible">
+
+<div id="selection" style="width: 300px; margin: 50px;" component="selection" display="true" dataSource="json.php" labelProfile="name" searchable="true" multiple="true">
+    <script>
+        this.initializing=function()
+        {
+            this.dataRender().dataSource().rows(30)
+            console.log( 'in')
+        }
+    </script>
 </div>
 
 

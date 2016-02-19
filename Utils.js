@@ -1607,7 +1607,15 @@
         return typeof val==='string' && /^\s*(0+|false|null)\s*$/.test(val) ? false : !!val;
     }
 
-
+    /**
+     * 将指定的标量转成数组
+     * @param val
+     * @returns {boolean}
+     */
+    Utils.toArray=function( val , separator )
+    {
+        return val instanceof Array ? val : String(val).split(separator || ',');
+    }
 
 
 })();

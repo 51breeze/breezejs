@@ -11,6 +11,14 @@
     user-select:none;
 }
 
+.text-overflow
+{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    display:block;
+}
+
 .caretdown {
     display: inline-block;
     border-top: 4px dashed;
@@ -79,6 +87,8 @@
 {
     width: 100%;
     text-align: left;
+    overflow:hidden;
+    white-space:nowrap;
 }
 
 .selection > .label {
@@ -121,11 +131,12 @@
 .selection > .group > ul,
 .selection > .group > ol
 {
-
     width: 100%;
     height: auto;
     padding: 0px;
     margin: 0px;
+    overflow: auto;
+    min-height: 40px;
 }
 
 .selection > .group > ul li,

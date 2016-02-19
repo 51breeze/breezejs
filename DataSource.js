@@ -412,7 +412,7 @@
      * @param index
      * @returns {boolean}
      */
-    DataSource.prototype.deletes=function( filter )
+    DataSource.prototype.delete=function( filter )
     {
         var index;
         var result = this.grep().execute( filter );
@@ -496,7 +496,7 @@
         //预加载数据,远程数据源
         if( this.isRemote() === true && (this.length - start) <= rows*this.preloadPages() && this.hasEventListener( DataSourceEvent.LOAD_START ) )
         {
-            var  event = new DataSourceEvent( DataRenderEvent.LOAD_START );
+            var  event = new DataSourceEvent( DataSourceEvent.LOAD_START );
             event.beforehand = ( this.length > start+rows );
             this.dispatchEvent( new DataSourceEvent( event ) );
         }

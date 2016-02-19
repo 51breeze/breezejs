@@ -81,6 +81,7 @@
 
 
     /**
+     * 获取视口对象
      * @param viewport
      * @returns {Breeze}
      * @public
@@ -291,46 +292,50 @@
         Breeze.rootEvent().dispatchEvent( new BreezeEvent( Component.INITIALIZE_START ) );
         Breeze('['+Component.NAME+']').forEach(function(element){
 
-            var className= this.property( Component.NAME );
-            className=window[ className ] ||  window[ Utils.ucfirst(className) ];
-            if( className )
+            var name= this.property( Component.NAME );
+            var className = typeof window[ name ] === "function"  ? window[ name ] : window[ Utils.ucfirst(name) ];
+
+            if( typeof className !== "function" )
             {
-                var instance = Component.getInstance(element, className );
-                if( !(instance instanceof className) )
-                {
-                    instance = new className(new SkinGroup(element));
-                }
-
-                //初始化视图中的脚本
-                for( var b=0; b<element.childNodes.length; b++)
-                {
-                    var child = element.childNodes.item(b);
-                    if( child.nodeType === 1 )
-                    {
-                        var type = element.getAttribute('type');
-                        type = !type || type == 'text/javascript';
-                        if (Utils.nodeName(child) === 'script' && type) {
-                            element.removeChild(child);
-                            new Function( child.innerHTML ).call(instance);
-                        }
-                        break;
-                    }
-                }
-
-                instance.initializing();
-                var index=0;
-                for( ; index < instance.initializeMethod.length; index++)
-                {
-                    var method = instance.initializeMethod[ index ];
-                    var value = instance.property(method);
-                    if( method && value !==null && typeof instance[ method ] === "function" )
-                    {
-                        instance[ method ]( value );
-                    }
-                }
-                instance.initialized();
-                instance.initializeCompleted=true;
+                throw new Error('Not found component class for '+name);
             }
+
+            var instance = Component.getInstance(element, className );
+            if( !(instance instanceof className) )
+            {
+                instance = new className(new SkinGroup(element));
+            }
+
+            //初始化视图中的脚本
+            for( var b=0; b<element.childNodes.length; b++)
+            {
+                var child = element.childNodes.item(b);
+                if( child.nodeType === 1 )
+                {
+                    var type = element.getAttribute('type');
+                    type = !type || type == 'text/javascript';
+                    if (Utils.nodeName(child) === 'script' && type) {
+                        element.removeChild(child);
+                        new Function( child.innerHTML ).call(instance);
+                    }
+                    break;
+                }
+            }
+
+            instance.initializing();
+            var index=0;
+            for( ; index < instance.initializeMethod.length; index++)
+            {
+                var method = instance.initializeMethod[ index ];
+                var value = instance.property(method);
+
+                if( method && value !==null && typeof instance[ method ] === "function" )
+                {
+                    instance[ method ]( value );
+                }
+            }
+            instance.initialized();
+            instance.initializeCompleted=true;
         })
         Breeze.rootEvent().dispatchEvent( new ComponentEvent( ComponentEvent.INITIALIZE_COMPLETED ) )
     }

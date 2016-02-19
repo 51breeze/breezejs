@@ -290,7 +290,9 @@
         {
             var skinObject = this.skinObject();
             if (!(skinObject instanceof SkinObject))throw new Error('invalid skinObject');
-            this.html( skinObject.createSkin() );
+            var container = Utils.createElement(  skinObject.createSkin() );
+            this.__skin__['container'] =  container;
+            this.html( container );
         }
         return this;
     }
@@ -350,13 +352,7 @@
     {
         if( typeof this.__skin__[skinName] === "undefined" )
         {
-            if( skinName === 'container')
-            {
-                this.__skin__[skinName] =  this[0];
-            }else
-            {
-                this.__skin__[skinName] =  getSkin(skinName, this.getContext() );
-            }
+            this.__skin__[skinName] =  getSkin(skinName, this.getContext() );
         }
         return this.__skin__[skinName];
     }
@@ -387,13 +383,14 @@
 
     /**
      * 获取指定的皮肤并以Breeze对象返回
-     * @param skinName
+     * @param skinName 皮肤名
+     * @param flag 始终重新建立
      * @returns {Breeze}
      */
-    SkinGroup.prototype.getSkinGroup=function( skinName )
+    SkinGroup.prototype.getSkinGroup=function( skinName , flag )
     {
         var key = 'group_'+skinName.replace(/\s+/,'');
-        if(  !this.__skin__[ key ] )
+        if(  !this.__skin__[ key ] || flag===true )
         {
             skinName = skinName.replace(/(\w+)\s+?(\>?)\s+?(.*)/, function (all, a, b, c) {
                 return c === '' ? " return Breeze(this.getSkinAndValidate('" + a + "'))" : "Breeze('" + c + "',this.getSkinAndValidate('" + a + "'))";

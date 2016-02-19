@@ -83,20 +83,6 @@
     }
 
     /**
-     * 获取设置视口容器
-     * @protected
-     * @param viewport
-     * @param context
-     * @returns {*|DataRender|Component|Breeze}
-     */
-    SkinComponent.prototype.viewport=function()
-    {
-        var skinGroup = this.skinGroup();
-        skinGroup.current(null);
-        return skinGroup;
-    }
-
-    /**
      * @param string skinName
      * @returns {HTMLElemet}
      * @public
