@@ -270,7 +270,7 @@
         {
             this.__validated__=false;
             var skinObject = this.skinObject();
-            for( var name in skinObject.part )if(  getSkin(name, this.getContext() )  )
+            for( var name in skinObject.part )if( name !=='container' &&  getSkin(name, this.getContext() )  )
             {
                 this.__validated__=true;
                 break;
@@ -290,9 +290,13 @@
         {
             var skinObject = this.skinObject();
             if (!(skinObject instanceof SkinObject))throw new Error('invalid skinObject');
-            var container = Utils.createElement(  skinObject.createSkin() );
-            this.__skin__['container'] =  container;
-            this.html( container );
+
+            var html = skinObject.createSkin();
+            if(  html != '' )
+            {
+                var container = Utils.createElement(  skinObject.createSkin() );
+                this.html( container );
+            }
         }
         return this;
     }
@@ -352,7 +356,9 @@
     {
         if( typeof this.__skin__[skinName] === "undefined" )
         {
-            this.__skin__[skinName] =  getSkin(skinName, this.getContext() );
+            if( skinName === 'container' )
+                this.__skin__[skinName] = this[0];
+            else this.__skin__[skinName] =  getSkin(skinName, this.getContext() );
         }
         return this.__skin__[skinName];
     }

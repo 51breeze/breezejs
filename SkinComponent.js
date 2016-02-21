@@ -48,10 +48,10 @@
     }
 
     /**
-     * @returns {*}
+     * @returns {SkinObject}
      * @protected
      */
-    SkinComponent.prototype.defaultSkinObject=function(){}
+    SkinComponent.prototype.defaultSkinObject=function(){  return new SkinObject('<div></div>') }
 
     /**
      * 获取设置皮肤组

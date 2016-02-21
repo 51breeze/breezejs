@@ -56,6 +56,7 @@
                 result= [  win[ selector ] || win.document[selector] || win ];
 
             }else{
+
                 result = selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 ?
                     [ Utils.createElement(selector) ] : Sizzle( selector, this.context );
             }
