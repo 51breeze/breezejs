@@ -98,8 +98,9 @@
             {
                 if( typeof attr.style === "string" && attr.style !== '' )
                 {
-                    attr.style =  attr.style.replace(/^;|;$/,'').split(';');
+                    attr.style =  Utils.unserialize( attr.style );
                 }
+
                 if ( Utils.isObject(attr.style) )
                 {
                     var style = attr.style;
@@ -306,7 +307,7 @@
             {
                 this.html( html );
             }
-            colorTheme={'container':skinObject.attr.container || {} };
+            colorTheme={container:skinObject.attr.container};
         }
 
         for(var name in colorTheme )
@@ -324,9 +325,8 @@
                 {
                     if ( prop==='style' && typeof value === "string")
                     {
-                        attr.style = value.replace(/^;|;$/, '').split(';');
+                        attr.style= Utils.unserialize( value );
                     }
-
                     var style = attr.style;
                     var oldclass = this.property( 'class' );
                     if( typeof attr['class'] !== "undefined" || oldclass )
@@ -334,7 +334,8 @@
                         var props = ['width', 'height'], style = {};
                         for (var i in props)if (typeof attr.style[props[i]] !== "undefined")style[props[i]] = attr.style[props[i]];
                     }
-                    this.style( style );
+                    if( !Utils.isEmpty(style) )
+                       this.style( style );
 
                 }else
                 {
@@ -342,6 +343,7 @@
                 }
             }
         }
+        this.current(null);
         return this;
     }
 

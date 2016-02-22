@@ -496,7 +496,6 @@
     }
 
     var iscsstext=/^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/;
-    var replaceMapName=null;
 
 
     /**
@@ -519,6 +518,28 @@
     Utils.has=function(element,selector)
     {
        return Sizzle.matchesSelector( element , selector );
+    }
+
+    /**
+     * 统一规范的样式名
+     * @param name
+     * @returns {string}
+     */
+    Utils.styleName=function( name )
+    {
+        if( typeof name !=='string' )
+            return name;
+
+        if( name === 'cssText')
+            return name;
+
+        name=fix.cssMap[name] || name;
+        name=name.replace( cssPrefix, "ms-" ).replace( cssDashAlpha, cssCamelCase );
+        name = name.replace( cssUpperProp, "-$1" ).toLowerCase();
+
+        if( needAddPrefixStyleName[name] ===true )
+            return styleNamePrefix+name;
+        return name;
     }
 
     /**
@@ -710,27 +731,6 @@
     }
 
     /**
-     * 统一规范的样式名
-     * @param name
-     * @returns {string}
-     */
-    Utils.styleName=function( name )
-    {
-        if( typeof name !=='string' )
-          return name;
-
-        if( name === 'cssText')
-            return name;
-
-        name=fix.cssMap[name] || name;
-        name=name.replace( cssPrefix, "ms-" ).replace( cssDashAlpha, cssCamelCase );
-        name = name.replace( cssUpperProp, "-$1" ).toLowerCase();
-        if( needAddPrefixStyleName[name] ===true )
-           return styleNamePrefix+name;
-        return name;
-    }
-
-    /**
      * 把颜色的值转成16进制形式 #ffffff
      * @param color
      * @returns {string}
@@ -859,17 +859,18 @@
     Utils.unserialize=function( str )
     {
          var object={},index,joint='&',separate='=',val,ref,last,group=false;
-         if( /\w+[\-\_]\s*\=.*?(?=\&|$)/.test( str ) )
+         if( /[\w\-]+\s*\=.*?(?=\&|$)/.test( str ) )
          {
              str=str.replace(/^&|&$/,'')
              group=true;
 
-         }else if( /\w+[\-\_]\s*\:.*?(?=\;|$)/.test( str ) )
+         }else if( /[\w\-\_]+\s*\:.*?(?=\;|$)/.test( str ) )
          {
              joint=';';
              separate=':';
              str=str.replace(/^;|;$/,'')
          }
+
         str=str.split( joint )
         for( index in str )
         {

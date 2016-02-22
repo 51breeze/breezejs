@@ -24,12 +24,42 @@
         this.__vertical__=Popup.VMIDDLE;
 
         popupInstance[ type ]=this;
-        return SkinComponent.call(this, new SkinGroup('<div class="popup" />','body') );
+        return SkinComponent.call(this, new SkinGroup('<div />','body') );
     }
 
     //弹出风格
     Popup.NORM='norm';
     Popup.SIMPLE='simple';
+    Popup.TYPICAL='typical';
+
+    //警告提示框
+    Popup.alert=function( message )
+    {
+        return Popup( Popup.NORM ).show( message );
+    }
+
+    /**
+     * @private
+     */
+    var __callback__=null;
+
+    //警告确认框
+    Popup.confirm=function( message , callback )
+    {
+        var popup =  Popup( Popup.TYPICAL );
+        popup.width(400);
+        __callback__ = callback || null;
+        if( !popup.hasEventListener(Popup.SUBMIT) )
+        {
+            popup.addEventListener([PopupEvent.SUBMIT,PopupEvent.CANCEL],function(event){
+
+                if( typeof __callback__ === "function" ) __callback__.call(popup, event.type === PopupEvent.SUBMIT );
+                __callback__=null;
+            })
+        }
+        return popup.show( message ).autoHidden(false);
+    }
+
 
     //水平垂直对齐常量
     Popup.HLEFT='left';
@@ -94,23 +124,55 @@
     Popup.prototype.skinInstalled=function( skinGroup )
     {
         SkinComponent.prototype.skinInstalled.call(this,skinGroup);
-        skinGroup[0] = skinGroup.getSkinAndValidate('container');
-
         if( skinGroup.getSkin('close') )
         {
             skinGroup.currentSkin('close').addEventListener(MouseEvent.CLICK,function(event)
             {
-                event.stopPropagation();
                 if( this.hasEventListener( PopupEvent.CLOSE ) || !this.dispatchEvent( new PopupEvent( PopupEvent.CLOSE ) ) )
                    return;
+                this.hidden();
+
+            },false,0,this);
+            skinGroup.current(null);
+        }
+
+        if( skinGroup.getSkin('footer') )
+        {
+            skinGroup.getSkinGroup('footer > button').addEventListener(MouseEvent.CLICK,function(event)
+            {
+                var name =  Utils.property(event.currentTarget ,  SkinGroup.NAME ) || '';
+                var type  = name.toUpperCase();
+                if( this.hasEventListener( PopupEvent[type] ) && !this.dispatchEvent( new PopupEvent( PopupEvent[type]  ) ) )
+                    return;
                 this.hidden();
 
             },false,0,this);
         }
 
         Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(event){
-            setPositionAndSize.call(this);
+             setPositionAndSize.call(this);
         },true,0,this);
+        return this;
+    }
+
+    /**
+     * 设置提示框是否自动隐藏
+     * @param flag
+     * @returns {Popup}
+     */
+    Popup.prototype.autoHidden=function( flag )
+    {
+        this.skinGroup().current(null);
+        if( flag === false )
+        {
+            this.skinGroup().removeEventListener(MouseEvent.MOUSE_OUTSIDE);
+
+        }else if( !this.skinGroup().hasEventListener(MouseEvent.MOUSE_OUTSIDE) )
+        {
+            this.skinGroup().addEventListener(MouseEvent.MOUSE_OUTSIDE,function(event){
+                this.hidden();
+            },true,0,this);
+        }
         return this;
     }
 
@@ -121,19 +183,28 @@
      */
     Popup.prototype.defaultSkinObject=function()
     {
-        if( this.type() !== Popup.NORM )
-            return new SkinObject('');
-        return new SkinObject(  '{part head+body}',{
+        var theme = {}
+        theme[ Popup.NORM ] = '{part head+body}';
+        theme[ Popup.TYPICAL ] = '{part head+body+footer}';
+
+        return new SkinObject( theme[this.type()] || '' ,{
             head: '<div>{part label+close}</div>',
             label: '<label>Title</label>',
             close: '<span>关闭</span>',
+            body:  '<div></div>',
+            cancel:'<button>取消</button>',
+            submit:'<button>确认</button>',
+            footer:'<div><div style="width: auto; height: auto; float: right;">{part cancel+submit}</div></div>',
             body:  '<div></div>'
         },{
             container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;position:absolute;width:auto;height:auto;display:none;border:solid #b3b3b3 1px"},
-            head:{'style':{'width':'100%','height':'30px','lineHeight':'30px','display':'block','color':'#333333','borderBottom':'solid 1px #cccccc'} },
-            label:{ 'style':{'width':'auto','display':'block','float':'left','margin':'0px 10px'} },
-            close:{ 'style':{'width':'auto','height':'25px','padding':"0px",'margin':'0px','cursor':'pointer','float':'right','margin':'0px 10px'} },
-            body:{ 'style':{'padding':'10px','width':'100%','height':'auto','display':'block','overflow':'auto','backgroundColor':'#ffffff'} }
+            head:{'style':"width:100%;height:30px;lineHeight:30px;display:block;color:#333333;borderBottom:solid 1px #cccccc" },
+            label:{ 'style':"width:auto;display:block;float:left;margin:0px 10px" },
+            close:{ 'style':"width:auto;height:25px;padding:0px;margin:0px;cursor:pointer;float:right;margin:0px 10px" },
+            body:{ 'style':"padding:10px;width:100%;height:auto;display:block;overflow:auto;backgroundColor:#ffffff'" },
+            cancel:{ 'style':{ width:'auto',height:'25px',lineHeight:'25px',padding:"0px 10px", margin:'auto 3px'} },
+            submit:{ 'style':{ width:'auto',height:'25px',lineHeight:'25px',padding:"0px 10px",margin:'auto 3px'} },
+            footer:{ 'style':{'width':'100%',height:'30px',lineHeight:'30px','display':'block','borderTop':'solid 1px #cccccc'}}
         });
     }
 
@@ -242,8 +313,9 @@
 
         var body = skinGroup.getSkin('body') || skinGroup.getSkin('container');
         skinGroup.current( body ).html( content );
-        skinGroup.current(null).style({'zIndex':zIndex,'position':'absolute'}).display(true);
+        skinGroup.current(null).style('zIndex',zIndex).display(true);
         setPositionAndSize.call(this);
+        this.autoHidden(true);
         return this;
     }
 
@@ -257,8 +329,12 @@
     PopupEvent.prototype=new BreezeEvent();
     PopupEvent.prototype.constructor=PopupEvent;
 
+    //取消事件触发时调度
+    PopupEvent.CANCEL='popupCancel';
     //模态框关闭时调度
-    PopupEvent.CLOSE='PopupClose';
+    PopupEvent.CLOSE='popupClose';
+    //提交事件触发时调度
+    PopupEvent.SUBMIT='popupSubmit';
 
     window.Popup=Popup;
     window.PopupEvent=PopupEvent;

@@ -54,6 +54,22 @@
     SkinComponent.prototype.defaultSkinObject=function(){  return new SkinObject('<div></div>') }
 
     /**
+     * 获取视口对象
+     * @returns {Breeze|SkinGroup}
+     * @public
+     */
+    Component.prototype.viewport=function()
+    {
+        var viewport = this.skinGroup().current(null);
+        if( viewport.length !==1 )
+        {
+            throw new Error('invalid viewport');
+        }
+        return viewport;
+    }
+
+
+    /**
      * 获取设置皮肤组
      * @returns {SkinGroup|SkinComponent}
      * @public
