@@ -19,12 +19,12 @@
         if( !(this instanceof Popup) )
             return new Popup( type );
 
-        this.__type__ = type || Popup.NORM;
-        popupInstance[ this.__type__ ]=this;
+        this.__type__ = type;
+        this.__horizontal__=Popup.HCENTER;
+        this.__vertical__=Popup.VMIDDLE;
 
-        var skin = new SkinGroup('body');
-        skin.splice(0, skin.length, skin.addChildSkin('div','container') );
-        return SkinComponent.call(this, skin );
+        popupInstance[ type ]=this;
+        return SkinComponent.call(this, new SkinGroup('<div class="popup" />','body') );
     }
 
     //弹出风格
@@ -42,8 +42,10 @@
     Popup.prototype=  new SkinComponent();
     Popup.prototype.constructor=Popup;
     Popup.prototype.__type__=Popup.NORM;
-    Popup.prototype.componentProfile='Popup';
-    Popup.prototype.initializeMethod=['show','hidden','label','headHeight','footerHeight','type','vertical','horizontal']
+    Popup.prototype.__vertical__=Popup.VMIDDLE;
+    Popup.prototype.__horizontal__=Popup.HCENTER;
+    Popup.prototype.componentProfile='popup';
+    Popup.prototype.initializeMethod=['show','hidden','label','headHeight','footerHeight','type','vertical','horizontal'];
 
     /**
      * @param event
@@ -66,6 +68,9 @@
         var containerHeight = skin.height();
         var containerWidth = skin.width();
 
+        if( containerHeight < 1 || containerWidth < 1 )
+           return this;
+
         var halign=this.horizontal()
             ,valign=this.vertical()
             ,width = Utils.getSize(window,'width')
@@ -73,9 +78,10 @@
             ,h=halign==='center' ? 0.5 : halign==='right' ? 1 : 0
             ,v=valign==='middle' ? 0.5 : valign==='bottom' ? 1 : 0
             ,xOffset, yOffset;
+
         xOffset = Math.floor( (width-containerWidth) * h );
-        yOffset = Math.floor( (height-containerHeight) * v);
-        this.moveTo(xOffset,yOffset)
+        yOffset = Math.floor( (height-containerHeight) * v)
+        skin.position(xOffset,  yOffset);
         return this;
     }
 
@@ -105,8 +111,6 @@
         Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(event){
             setPositionAndSize.call(this);
         },true,0,this);
-
-        setPositionAndSize.call(this);
         return this;
     }
 
@@ -117,13 +121,16 @@
      */
     Popup.prototype.defaultSkinObject=function()
     {
-        return new SkinObject( this.type() === Popup.NORM ? '{part head+body}' : '', {
+        if( this.type() !== Popup.NORM )
+            return new SkinObject('');
+        return new SkinObject(  '{part head+body}',{
             head: '<div>{part label+close}</div>',
             label: '<label>Title</label>',
             close: '<span>关闭</span>',
             body:  '<div></div>'
         },{
-            head:{ 'style':{'width':'100%','height':'30px','lineHeight':'30px','display':'block','backgroundColor':'#3a3a3a','color':'#d6d6db','fontSize':'14px'}  },
+            container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;position:absolute;width:auto;height:auto;display:none;border:solid #b3b3b3 1px"},
+            head:{'style':{'width':'100%','height':'30px','lineHeight':'30px','display':'block','color':'#333333','borderBottom':'solid 1px #cccccc'} },
             label:{ 'style':{'width':'auto','display':'block','float':'left','margin':'0px 10px'} },
             close:{ 'style':{'width':'auto','height':'25px','padding':"0px",'margin':'0px','cursor':'pointer','float':'right','margin':'0px 10px'} },
             body:{ 'style':{'padding':'10px','width':'100%','height':'auto','display':'block','overflow':'auto','backgroundColor':'#ffffff'} }
@@ -167,7 +174,6 @@
      * @returns {Popup|string}
      * @public
      */
-    Popup.prototype.__horizontal__=Popup.HCENTER;
     Popup.prototype.horizontal=function( align )
     {
         if( typeof align !== "undefined" )
@@ -185,7 +191,6 @@
      * @returns {Popup|string}
      * @public
      */
-    Popup.prototype.__vertical__=Popup.VMIDDLE;
     Popup.prototype.vertical=function( align )
     {
         if( typeof align !== "undefined" )
@@ -209,9 +214,9 @@
     }
 
     /**
-     * @private
+     * @type {null}
      */
-    Popup.prototype.__currentPopup__=null;
+    var currentPopup = null;
 
     /**
      * 显示弹框
@@ -221,12 +226,13 @@
      */
     Popup.prototype.show=function( content, label )
     {
-        if( this.__currentPopup__ !==null )
-            this.__currentPopup__.hidden();
-        this.__currentPopup__= this;
+        if( currentPopup !== null )
+            currentPopup.hidden();
+        currentPopup = this;
 
         var zIndex = 999;
         var skinGroup = this.skinGroup();
+
         label = label || '提示信息';
         content = content || '';
         if( skinGroup.getSkin('label') )
@@ -237,6 +243,7 @@
         var body = skinGroup.getSkin('body') || skinGroup.getSkin('container');
         skinGroup.current( body ).html( content );
         skinGroup.current(null).style({'zIndex':zIndex,'position':'absolute'}).display(true);
+        setPositionAndSize.call(this);
         return this;
     }
 

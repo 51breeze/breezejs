@@ -17,17 +17,17 @@
      * @returns {Component}
      * @constructor
      */
-    function SkinComponent( selector, context )
+    function SkinComponent( viewport , context )
     {
         if( !(this instanceof SkinComponent) )
-            return new SkinComponent(selector, context);
+            return new SkinComponent(viewport, context);
 
-        if( typeof selector !== "undefined" )
+        if( typeof viewport !== "undefined" )
         {
-            selector = selector instanceof SkinGroup ? selector : new SkinGroup(selector, context);
-            this.__skinGroup__= selector;
+            viewport = viewport instanceof SkinGroup ? viewport : new SkinGroup(viewport, context);
+            this.__skinGroup__= viewport;
         }
-        return Component.call(this, selector);
+        return Component.call(this, viewport);
     }
 
     SkinComponent.prototype=  new Component();

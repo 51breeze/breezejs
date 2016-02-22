@@ -547,10 +547,8 @@
 
             if( name==='cssText' && typeof value === "string" )
             {
-                if (replaceMapName === null)
-                    replaceMapName = new RegExp(Utils.sprintf("(%s)\s*(?=\:)", Utils.toKeys(fix.cssMap).join('|')), 'g');
-                value = value.replace(replaceMapName, function (all, name) {
-                    return fix.cssMap[name];
+                value= value.replace(/(\w+)\s*(?=\:)/g, function (all, name) {
+                    return Utils.styleName( name );
                 });
             }
 
@@ -904,11 +902,12 @@
     {
         if( typeof strAttr === "string" && /[\S]*/.test(strAttr) )
         {
+            var i=  strAttr.charAt(0)==='<' ? 1 : 0;
             var attr=strAttr.replace(/=\s*(\w+)/g,'="$1"').match( getAttrExp );
             strAttr={};
             if( attr && attr.length > 0 )
             {
-                var i= 0, item;
+                var item;
                 while( item=attr[i++] )
                 {
                     var val  =  item.split('=');
@@ -1389,6 +1388,7 @@
 
                 }else if( html.charAt(0) === "<" && ( match=singleTagExp.exec(html) ) )
                 {
+
                     var elem = document.createElement( match[1] );
                     var attr = Utils.matchAttr( html )
                     for(var prop in attr )

@@ -96,6 +96,10 @@
 
             if( !Utils.isEmpty(attr) )
             {
+                if( typeof attr.style === "string" && attr.style !== '' )
+                {
+                    attr.style =  attr.style.replace(/^;|;$/,'').split(';');
+                }
                 if ( Utils.isObject(attr.style) )
                 {
                     var style = attr.style;
@@ -106,10 +110,8 @@
                     }
                     attr.style = Utils.serialize(style, 'style');
                 }
-
                 str += Utils.serialize(attr, 'attr');
             }
-
             return str.replace(htmlReg,parser);
         }
 
@@ -126,6 +128,7 @@
 
             if( !isattrReg.test( this.part[name] ) )
                 this.part[name] = this.part[name].replace( addattr, "<$1 {attr " + name + "}");
+
             this.part[name] = this.part[name].replace(attrReg,parser);
         }
 
@@ -160,6 +163,7 @@
                 container =  nodename === 'textarea' ? container.value : container.innerHTML;
             }
         }
+
         this.container=container;
         this.attr=attr || {};
         this.part=part || {};
@@ -178,7 +182,7 @@
     SkinObject.prototype.createSkin=function()
     {
         if( this.created===true )return this.container;
-        this.created=true;
+            this.created=true;
         return toString.call( this );
     }
 
@@ -246,11 +250,17 @@
         var nodename = this.nodeName();
         if( nodename === 'noscript' || nodename === 'script' || nodename ==='textarea' )
         {
-            var index = this[0];
-            var skinContainer =  Utils.createElement( nodename==='textarea' ? this[0].value : this[0].innerHTML );
-            this.parent().addChildAt( skinContainer, index );
+            viewport = this[0];
+            this.skinObject( new SkinObject(  nodename==='textarea' ? viewport.value : viewport.innerHTML) );
+            this.skinObject().created=true;
+            var skinContainer =  Utils.createElement( this.skinObject().createSkin() );
+            this.parent().addChildAt( skinContainer, viewport );
             this.splice(0,this.length,skinContainer);
         }
+
+        this.__skin__={};
+        this.__skinObject__=null;
+        this.__validated__=null;
     }
 
     SkinGroup.NAME='skin';
@@ -286,16 +296,50 @@
      */
     SkinGroup.prototype.createSkin=function()
     {
+        var skinObject = this.skinObject();
+        var colorTheme=skinObject.attr;
         if( !this.validateSkin() )
         {
-            var skinObject = this.skinObject();
-            if (!(skinObject instanceof SkinObject))throw new Error('invalid skinObject');
-
+            if(!(skinObject instanceof SkinObject))throw new Error('invalid skinObject');
             var html = skinObject.createSkin();
             if(  html != '' )
             {
-                var container = Utils.createElement(  skinObject.createSkin() );
-                this.html( container );
+                this.html( html );
+            }
+            colorTheme={'container':skinObject.attr.container || {} };
+        }
+
+        for(var name in colorTheme )
+        {
+            this.currentSkin( name );
+            var attr = skinObject.attr[name];
+            for(var prop in attr )
+            {
+                var value = attr[prop];
+                var oldprop = this.property( prop );
+                if( oldprop || value==='' )
+                   continue;
+
+                if( prop==='style' )
+                {
+                    if ( prop==='style' && typeof value === "string")
+                    {
+                        attr.style = value.replace(/^;|;$/, '').split(';');
+                    }
+
+                    var style = attr.style;
+                    var oldclass = this.property( 'class' );
+                    if( typeof attr['class'] !== "undefined" || oldclass )
+                    {
+                        var props = ['width', 'height'], style = {};
+                        for (var i in props)if (typeof attr.style[props[i]] !== "undefined")style[props[i]] = attr.style[props[i]];
+                    }
+                    this.style( style );
+
+                }else
+                {
+                    this.property(prop, value);
+                }
             }
         }
         return this;
@@ -309,7 +353,7 @@
      */
     SkinGroup.prototype.skinObject=function( skinObject )
     {
-        if( skinObject instanceof SkinObject )
+        if( this.__skinObject__===null && skinObject instanceof SkinObject )
         {
             this.__skinObject__= skinObject;
         }
@@ -335,7 +379,6 @@
         return childSkin;
     }
 
-
     /**
      * @private
      * @param skinName
@@ -356,9 +399,11 @@
     {
         if( typeof this.__skin__[skinName] === "undefined" )
         {
-            if( skinName === 'container' )
+            if( skinName === 'container' ) {
                 this.__skin__[skinName] = this[0];
-            else this.__skin__[skinName] =  getSkin(skinName, this.getContext() );
+            }else {
+                this.__skin__[skinName] = getSkin(skinName, this.getContext());
+            }
         }
         return this.__skin__[skinName];
     }

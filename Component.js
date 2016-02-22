@@ -60,7 +60,6 @@
     Component.prototype.componentProfile='component';
     Component.prototype.initializeMethod=[];
     Component.prototype.initializeCompleted=false;
-    Component.prototype.__viewportChanged__=true;
     Component.prototype.__viewport__=null;
     Component.NAME='component';
 
@@ -92,18 +91,7 @@
         {
             throw new Error('invalid viewport');
         }
-        return this.__viewport__;
-    }
-
-    /**
-     * @private
-     * @returns {Breeze}
-     */
-    Component.prototype.getAndCheckViewport=function()
-    {
-        var viewport = this.viewport();
-        if( !viewport )throw new Error('invalid viewport');
-        return viewport;
+        return this.__viewport__.current(null);
     }
 
     /**
@@ -114,7 +102,7 @@
      */
     Component.prototype.style=function(name,value )
     {
-        var result = this.getAndCheckViewport().style(name,value);
+        var result = this.viewport().style(name,value);
         return result===viewport ? this : result;
     }
 
@@ -126,7 +114,7 @@
      */
     Component.prototype.property=function(name,value )
     {
-        var viewport = this.getAndCheckViewport();
+        var viewport = this.viewport();
         if( typeof value !== "undefined" )
         {
             viewport.property( name,value  );
@@ -143,7 +131,7 @@
      */
     Component.prototype.data=function(name,value )
     {
-        var viewport = this.getAndCheckViewport();
+        var viewport = this.viewport();
         if( typeof value !== "undefined" )
         {
             viewport.data( name,value  );
@@ -160,7 +148,7 @@
      */
     Component.prototype.current=function( element )
     {
-        var viewport = this.getAndCheckViewport();
+        var viewport = this.viewport();
         if( typeof element !== "undefined" )
         {
             viewport.current( element );
@@ -177,7 +165,7 @@
      */
     Component.prototype.width=function(value)
     {
-        var viewport = this.getAndCheckViewport();
+        var viewport = this.viewport();
         if( typeof value === "number" )
         {
             viewport.width( value );
@@ -194,7 +182,7 @@
      */
     Component.prototype.height=function(value)
     {
-        var viewport = this.getAndCheckViewport();
+        var viewport = this.viewport();
         if(  typeof value === "number" )
         {
             viewport.height( value );
@@ -211,7 +199,7 @@
      */
     Component.prototype.moveTo=function(x,y)
     {
-        this.getAndCheckViewport().left(x).top(y);
+        this.viewport().left(x).top(y);
         return this;
     }
 
@@ -222,7 +210,7 @@
      */
     Component.prototype.display=function( flag )
     {
-        this.getAndCheckViewport().display( flag )
+        this.viewport().display( flag )
         return this;
     }
     /**
@@ -236,7 +224,7 @@
      */
     Component.prototype.addEventListener=function(type,listener,useCapture,priority,reference)
     {
-        this.getAndCheckViewport().addEventListener(type,listener,useCapture,priority,reference);
+        this.viewport().addEventListener(type,listener,useCapture,priority,reference);
         return this;
     }
 
@@ -248,7 +236,7 @@
      */
     Component.prototype.hasEventListener=function( type, useCapture)
     {
-       return this.getAndCheckViewport().hasEventListener( type, useCapture);
+       return this.viewport().hasEventListener( type, useCapture);
     }
 
     /**
@@ -261,7 +249,7 @@
      */
     Component.prototype.removeEventListener=function(type,listener,useCapture)
     {
-        return this.getAndCheckViewport().removeEventListener(type,listener,useCapture);
+        return this.viewport().removeEventListener(type,listener,useCapture);
     }
 
     /**
@@ -271,7 +259,7 @@
      */
     Component.prototype.dispatchEvent=function( event )
     {
-        return this.getAndCheckViewport().dispatchEvent( event );
+        return this.viewport().dispatchEvent( event );
     }
 
     /**

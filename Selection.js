@@ -16,6 +16,7 @@
 
         var resize = function()
         {
+
             skinGroup.current(null);
             var position = skinGroup.position()
             var left = position.left;
@@ -24,9 +25,11 @@
             var height =  skinGroup.height();
 
             skinGroup.currentSkin('group');
+            if( !skinGroup.display() )
+              return;
+
             skinGroup.width( width );
             skinGroup.position(left, top + height + 3 );
-            skinGroup.display(true);
 
             var windowWidth = Utils.getSize(window,'width');
             var windowHeight = Utils.getSize(window,'height');
@@ -40,6 +43,7 @@
 
         //点击显示下拉列表
         EventDispatcher( skinGroup.getSkin('button') ).addEventListener(MouseEvent.CLICK,function(event){
+            skinGroup.currentSkin('group').display(true);
             resize();
             event.stopPropagation();
         });
@@ -468,13 +472,15 @@
         var labelProfile =  this.labelProfile();
         var valueProfile = this.valueProfile();
 
-        var skinObject=new SkinObject('<div class="selection text-unselect">{part button+group}</div>',{
+        var skinObject=new SkinObject('{part button+group}',{
             button:'<button type="button" class="btn btn-default">{part label+caret}</button>',
             label: '<span class="text-overflow" style="float: left; width: 96%"></span>',
             caret:'<span class="pull-right"><i class="caretdown"></i><span>',
             option: '<?foreach('+dataProfile+' as key item){ ?><li '+valueProfile+'="{item["'+valueProfile+'"]}" data-index="{key}">{item["'+labelProfile+'"]}</li><?}?>',
             list:'<ul class="list-state"></ul>',
             group:'<div class="group"><input class="searchbox" style="display: none" />{part list}</div>'
+        },{
+            'container':{'class':'selection text-unselect'}
         });
         return skinObject;
     }

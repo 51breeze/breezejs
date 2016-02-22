@@ -50,18 +50,21 @@
         if( Utils.isString( selector ) )
         {
             selector=Utils.trim(selector);
-            if( selector==='body' || selector==='window' || selector==='document' )
+            if( selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 )
+            {
+                selector =  Utils.createElement(selector);
+
+            }else if( selector==='body' || selector==='window' || selector==='document' )
             {
                 var win = Utils.getWindow( this.context ) || window;
                 result= [  win[ selector ] || win.document[selector] || win ];
-
-            }else{
-
-                result = selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 ?
-                    [ Utils.createElement(selector) ] : Sizzle( selector, this.context );
+            }else
+            {
+                result= Sizzle( selector, this.context );
             }
+        }
 
-        }else if( Utils.isWindow(selector) || Utils.isDocument( selector ) )
+        if( Utils.isWindow(selector) || Utils.isDocument( selector ) )
         {
             result=[selector];
 
@@ -733,7 +736,7 @@
         if( this.length === 0 && !this.current() )
         {
             var context = this.getContext();
-            this.current( context === document ? document.body : context )
+            this.current( context === document ? document.body : context );
         }
 
         return this.forEach(function(parent)
@@ -922,7 +925,12 @@
             {
                 this.current( elem.parentNode );
             }
-            this.addChild( html );
+
+            if( typeof html === "string" ) {
+                this.current().innerHTML = html;
+            }else {
+                this.addChild(html);
+            }
 
         });
     }
@@ -1009,13 +1017,13 @@
         var lower=name.toLowerCase();
         if( lower==='innerhtml' )
           return this.html(value);
-        else if( lower === 'style' )
-          throw new Error('the style property names only use style method to operate in property');
         return access.call(this,name,value,{
             get:function(prop){
                 return Utils.property(this,prop);
             },
             set:function(prop,newValue){
+                if( lower === 'style' )
+                    throw new Error('the style property names only use style method to operate in property');
                 Utils.property(this,prop,newValue);
             }
         },PropertyEvent.CHANGE);
