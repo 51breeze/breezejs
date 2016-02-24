@@ -98,18 +98,13 @@
             {
                 if( typeof attr.style === "string" && attr.style !== '' )
                 {
-                    attr.style =  Utils.unserialize( attr.style );
-                }
+                    attr.style= attr.style.replace(/(\w+)\s*(?=\:)/g, function (all, name) {
+                        return Utils.styleName( name );
+                    });
 
-                if ( Utils.isObject(attr.style) )
+                }else if( Utils.isObject(attr.style) )
                 {
-                    var style = attr.style;
-                    if( typeof attr['class'] !== "undefined" )
-                    {
-                        var props = ['width','height'], style={};
-                        for( var i in props )if( typeof attr.style[ props[i] ] !== "undefined" )style[ props[i] ]=attr.style[ props[i] ];
-                    }
-                    attr.style = Utils.serialize(style, 'style');
+                    attr.style = Utils.serialize(attr.style, 'style');
                 }
                 str += Utils.serialize(attr, 'attr');
             }
@@ -298,7 +293,7 @@
     SkinGroup.prototype.createSkin=function()
     {
         var skinObject = this.skinObject();
-        var colorTheme=skinObject.attr;
+        var colorTheme=skinObject.part;
         if( !this.validateSkin() )
         {
             if(!(skinObject instanceof SkinObject))throw new Error('invalid skinObject');
@@ -307,36 +302,20 @@
             {
                 this.html( html );
             }
-            colorTheme={container:skinObject.attr.container};
+            colorTheme={container:''};
         }
 
         for(var name in colorTheme )
         {
             this.currentSkin( name );
-            var attr = skinObject.attr[name];
-            for(var prop in attr )
+            var nodename = this.nodeName();
+            var attr = skinObject.attr[name] || skinObject.attr[nodename];
+            if(attr)for(var prop in attr )
             {
                 var value = attr[prop];
-                var oldprop = this.property( prop );
-                if( oldprop || value==='' )
-                   continue;
-
                 if( prop==='style' )
                 {
-                    if ( prop==='style' && typeof value === "string")
-                    {
-                        attr.style= Utils.unserialize( value );
-                    }
-                    var style = attr.style;
-                    var oldclass = this.property( 'class' );
-                    if( typeof attr['class'] !== "undefined" || oldclass )
-                    {
-                        var props = ['width', 'height'], style = {};
-                        for (var i in props)if (typeof attr.style[props[i]] !== "undefined")style[props[i]] = attr.style[props[i]];
-                    }
-                    if( !Utils.isEmpty(style) )
-                       this.style( style );
-
+                    if( !Utils.isEmpty(value) )this.style('cssText', value );
                 }else
                 {
                     this.property(prop, value);

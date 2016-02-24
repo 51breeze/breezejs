@@ -315,7 +315,7 @@
             for( ; index < instance.initializeMethod.length; index++)
             {
                 var method = instance.initializeMethod[ index ];
-                var value = instance.property(method);
+                var value = Utils.property(element,method);
 
                 if( method && value !==null && typeof instance[ method ] === "function" )
                 {

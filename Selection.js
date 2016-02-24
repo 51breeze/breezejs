@@ -471,7 +471,6 @@
         var dataProfile= this.dataRender().dataProfile();
         var labelProfile =  this.labelProfile();
         var valueProfile = this.valueProfile();
-
         var skinObject=new SkinObject('{part button+group}',{
             button:'<button type="button" class="btn btn-default">{part label+caret}</button>',
             label: '<span class="text-overflow" style="float: left; width: 96%"></span>',

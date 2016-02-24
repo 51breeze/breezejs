@@ -192,19 +192,18 @@
             label: '<label>Title</label>',
             close: '<span>关闭</span>',
             body:  '<div></div>',
-            cancel:'<button>取消</button>',
-            submit:'<button>确认</button>',
-            footer:'<div><div style="width: auto; height: auto; float: right;">{part cancel+submit}</div></div>',
+            cancel:'<button {attr button} class="btn btn-default">取消</button>',
+            submit:'<button {attr button} class="btn btn-default">确认</button>',
+            footer:'<div><div style="width: auto; height:inherit;float: right;">{part cancel+submit}</div></div>',
             body:  '<div></div>'
         },{
-            container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;position:absolute;width:auto;height:auto;display:none;border:solid #b3b3b3 1px"},
+            container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;position:absolute;width:auto;height:auto;display:none;border:solid #b3b3b3 1px;backgroundColor:#ffffff"},
             head:{'style':"width:100%;height:30px;lineHeight:30px;display:block;color:#333333;borderBottom:solid 1px #cccccc" },
             label:{ 'style':"width:auto;display:block;float:left;margin:0px 10px" },
             close:{ 'style':"width:auto;height:25px;padding:0px;margin:0px;cursor:pointer;float:right;margin:0px 10px" },
-            body:{ 'style':"padding:10px;width:100%;height:auto;display:block;overflow:auto;backgroundColor:#ffffff'" },
-            cancel:{ 'style':{ width:'auto',height:'25px',lineHeight:'25px',padding:"0px 10px", margin:'auto 3px'} },
-            submit:{ 'style':{ width:'auto',height:'25px',lineHeight:'25px',padding:"0px 10px",margin:'auto 3px'} },
-            footer:{ 'style':{'width':'100%',height:'30px',lineHeight:'30px','display':'block','borderTop':'solid 1px #cccccc'}}
+            body:{ 'style':"padding:10px;width:100%;height:auto;display:block;overflow:auto;backgroundColor:#ffffff" },
+            button:{ 'style':{ width:'auto',height:'25px',lineHeight:'25px',padding:"0px 10px", margin:'3px',display:'inline-block'} },
+            footer:{ 'style':{'width':'100%',height:'auto','display':'block','borderTop':'solid 1px #cccccc',padding:'0px'}}
         });
     }
 
