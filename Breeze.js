@@ -74,7 +74,7 @@
 
             //新创建的元素直接添加到文档中
             if( !selector.parentNode )
-            this.addChild( result[0] );
+                this.addChild(result[0]);
         }
 
         //初始化元素管理器
@@ -221,18 +221,6 @@
         event.dispatcher=target;
         return dispatchEventAll(target, event );
     }
-    ,dispatchPropertyEvent=function(target,newValue,oldValue,property,element,type)
-    {
-        type = type || PropertyEvent.CHANGE;
-        var event=new PropertyEvent( type )
-        event.newValue=newValue;
-        event.oldValue=oldValue;
-        event.property=property;
-        event.target=element;
-        event.dispatcher=target;
-        return dispatchEventAll(target,event);
-    }
-
     ,getChildNodes=function(element,selector,flag)
     {
         var ret=[]
@@ -338,6 +326,11 @@
         return result;
     }
 
+    /**
+     * 指定的选择器是否为当前作用域的子级
+     * @param selector
+     * @returns {boolean}
+     */
     Breeze.prototype.contains=function( selector )
     {
         return Sizzle( selector, this.getContext() ).length > 0;

@@ -136,7 +136,6 @@
         {
             if( !Utils.isHTMLElement(elem) )
                throw new Error('invalid elem');
-            var pos;
             var isx=typeof left === "number";
             var isy= typeof top === "number";
             if( isx | isy )
@@ -145,8 +144,7 @@
                 if( isy )Utils.style(elem, 'top' , top   );
                 return true;
             }
-            pos = getPosition( elem );
-            return {'left':pos.left,'top':pos.top};
+            return getPosition( elem );
         }
 
       Utils.getSize=function( elem, name, border )

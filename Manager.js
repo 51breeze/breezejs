@@ -11,7 +11,11 @@
    function Manager( elements )
    {
        if( !(this instanceof Manager) )
-          return new Manager(elements)
+          return new Manager(elements);
+       this.forEachCurrentItem=undefined;
+       this.forEachPrevItem=undefined;
+       this.forEachNextItem=undefined;
+       this.forEachCurrentIndex=NaN;
        this.splice.call(this,0,0,elements);
        EventDispatcher.call(this);
    }

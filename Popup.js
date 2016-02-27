@@ -9,7 +9,36 @@
 
 (function(window,undefined )
 {
+
+    /**
+     * @private
+     * @param object
+     * @param option
+     */
+    function setting(object,option)
+    {
+        if( Utils.isObject(option) )
+        {
+            for( var prop in option ) if( typeof object[prop] === "function" )
+            {
+                object[prop]( option[prop] );
+            }
+        }
+    }
+
+    /**
+     * @private
+     * @type {{Popup}}
+     */
     var popupInstance={};
+
+
+    /**
+     * 弹框组件
+     * @param type
+     * @returns {*}
+     * @constructor
+     */
     function Popup( type )
     {
         type = type || Popup.NORM;
@@ -22,7 +51,9 @@
         this.__type__ = type;
         this.__horizontal__=Popup.HCENTER;
         this.__vertical__=Popup.VMIDDLE;
-
+        this.__title__='提示信息';
+        this.__anchor__=null;
+        this.__callback__=null;
         popupInstance[ type ]=this;
         return SkinComponent.call(this, new SkinGroup('<div />','body') );
     }
@@ -32,35 +63,6 @@
     Popup.SIMPLE='simple';
     Popup.TYPICAL='typical';
 
-    //警告提示框
-    Popup.alert=function( message )
-    {
-        return Popup( Popup.NORM ).show( message );
-    }
-
-    /**
-     * @private
-     */
-    var __callback__=null;
-
-    //警告确认框
-    Popup.confirm=function( message , callback )
-    {
-        var popup =  Popup( Popup.TYPICAL );
-        popup.width(400);
-        __callback__ = callback || null;
-        if( !popup.hasEventListener(Popup.SUBMIT) )
-        {
-            popup.addEventListener([PopupEvent.SUBMIT,PopupEvent.CANCEL],function(event){
-
-                if( typeof __callback__ === "function" ) __callback__.call(popup, event.type === PopupEvent.SUBMIT );
-                __callback__=null;
-            })
-        }
-        return popup.show( message ).autoHidden(false);
-    }
-
-
     //水平垂直对齐常量
     Popup.HLEFT='left';
     Popup.HCENTER='center';
@@ -69,23 +71,34 @@
     Popup.VMIDDLE='middle';
     Popup.VBOTTOM='bottom';
 
+    //提示框
+    Popup.info=function( message , option )
+    {
+        return Popup( Popup.SIMPLE ).show( message , option);
+    }
+
+    //警告框
+    Popup.alert=function( message , option )
+    {
+        return  Popup( Popup.NORM ).show( message , option);
+    }
+
+    //确认框
+    Popup.confirm=function( message , option )
+    {
+        if( typeof option === "function" )
+            option={callback:option};
+        option =  Utils.extend({width:400,autoHidden:false}, option || {});
+        return  Popup( Popup.TYPICAL ).show( message , option);
+    }
+
     Popup.prototype=  new SkinComponent();
     Popup.prototype.constructor=Popup;
     Popup.prototype.__type__=Popup.NORM;
     Popup.prototype.__vertical__=Popup.VMIDDLE;
     Popup.prototype.__horizontal__=Popup.HCENTER;
     Popup.prototype.componentProfile='popup';
-    Popup.prototype.initializeMethod=['show','hidden','label','headHeight','footerHeight','type','vertical','horizontal'];
-
-    /**
-     * @param event
-     * @private
-     */
-    Popup.prototype.__propertyChanged__=function(event)
-    {
-        event.stopPropagation();
-        if( event.property==='width' || event.property==='height' )setPositionAndSize.call(this);
-    }
+    Popup.prototype.initializeMethod=[];
 
     /**
      * 设置此模态框的位置和大小
@@ -103,11 +116,19 @@
 
         var halign=this.horizontal()
             ,valign=this.vertical()
-            ,width = Utils.getSize(window,'width')
-            ,height = Utils.getSize(window,'height')
             ,h=halign==='center' ? 0.5 : halign==='right' ? 1 : 0
             ,v=valign==='middle' ? 0.5 : valign==='bottom' ? 1 : 0
             ,xOffset, yOffset;
+
+        var width = Utils.getSize(window,'width');
+        var height = Utils.getSize(window,'height');
+
+
+       var anchor = this.anchor();
+       if( anchor )
+       {
+           Utils.position( anchor );
+       }
 
         xOffset = Math.floor( (width-containerWidth) * h );
         yOffset = Math.floor( (height-containerHeight) * v)
@@ -116,43 +137,43 @@
     }
 
     /**
-     * 皮肤安装完成
-     * @param skinGroup
-     * @returns {Popup}
-     * @protected
+     * @private
      */
-    Popup.prototype.skinInstalled=function( skinGroup )
+    Popup.prototype.__anchor__=null;
+
+    /**
+     * 指定锚点目标对象
+     * @param HTMLEment
+     * @returns {Popup}
+     */
+    Popup.prototype.anchor=function( target )
     {
-        SkinComponent.prototype.skinInstalled.call(this,skinGroup);
-        if( skinGroup.getSkin('close') )
+        if( Utils.isNodeElement(target) )
         {
-            skinGroup.currentSkin('close').addEventListener(MouseEvent.CLICK,function(event)
-            {
-                if( this.hasEventListener( PopupEvent.CLOSE ) || !this.dispatchEvent( new PopupEvent( PopupEvent.CLOSE ) ) )
-                   return;
-                this.hidden();
-
-            },false,0,this);
-            skinGroup.current(null);
+            this.__anchor__ = target;
+            return this;
         }
+        return this.__anchor__;
+    }
 
-        if( skinGroup.getSkin('footer') )
+    /**
+     * @private
+     */
+    Popup.prototype.__callback__=null;
+
+    /**
+     * 点击取消或者确认按扭后的回调函数
+     * @param function callback
+     * @returns {Popup|function}
+     */
+    Popup.prototype.callback=function( callback )
+    {
+        if( typeof callback === "function" )
         {
-            skinGroup.getSkinGroup('footer > button').addEventListener(MouseEvent.CLICK,function(event)
-            {
-                var name =  Utils.property(event.currentTarget ,  SkinGroup.NAME ) || '';
-                var type  = name.toUpperCase();
-                if( this.hasEventListener( PopupEvent[type] ) && !this.dispatchEvent( new PopupEvent( PopupEvent[type]  ) ) )
-                    return;
-                this.hidden();
-
-            },false,0,this);
+            this.__callback__ = callback;
+            return this;
         }
-
-        Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(event){
-             setPositionAndSize.call(this);
-        },true,0,this);
-        return this;
+        return this.__callback__;
     }
 
     /**
@@ -163,7 +184,7 @@
     Popup.prototype.autoHidden=function( flag )
     {
         this.skinGroup().current(null);
-        if( flag === false )
+        if( !!flag === false )
         {
             this.skinGroup().removeEventListener(MouseEvent.MOUSE_OUTSIDE);
 
@@ -174,37 +195,6 @@
             },true,0,this);
         }
         return this;
-    }
-
-    /**
-     * 获取模态框的默认皮肤
-     * @returns {SkinObject}
-     * @protected
-     */
-    Popup.prototype.defaultSkinObject=function()
-    {
-        var theme = {}
-        theme[ Popup.NORM ] = '{part head+body}';
-        theme[ Popup.TYPICAL ] = '{part head+body+footer}';
-
-        return new SkinObject( theme[this.type()] || '' ,{
-            head: '<div>{part label+close}</div>',
-            label: '<label>Title</label>',
-            close: '<span>关闭</span>',
-            body:  '<div></div>',
-            cancel:'<button {attr button} class="btn btn-default">取消</button>',
-            submit:'<button {attr button} class="btn btn-default">确认</button>',
-            footer:'<div><div style="width: auto; height:inherit;float: right;">{part cancel+submit}</div></div>',
-            body:  '<div></div>'
-        },{
-            container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;position:absolute;width:auto;height:auto;display:none;border:solid #b3b3b3 1px;backgroundColor:#ffffff"},
-            head:{'style':"width:100%;height:30px;lineHeight:30px;display:block;color:#333333;borderBottom:solid 1px #cccccc" },
-            label:{ 'style':"width:auto;display:block;float:left;margin:0px 10px" },
-            close:{ 'style':"width:auto;height:25px;padding:0px;margin:0px;cursor:pointer;float:right;margin:0px 10px" },
-            body:{ 'style':"padding:10px;width:100%;height:auto;display:block;overflow:auto;backgroundColor:#ffffff" },
-            button:{ 'style':{ width:'auto',height:'25px',lineHeight:'25px',padding:"0px 10px", margin:'3px',display:'inline-block'} },
-            footer:{ 'style':{'width':'100%',height:'auto','display':'block','borderTop':'solid 1px #cccccc',padding:'0px'}}
-        });
     }
 
     /**
@@ -233,9 +223,14 @@
      * @returns {Popup|string}
      * @public
      */
-    Popup.prototype.type=function()
+    Popup.prototype.type=function( type )
     {
-        return  this.__type__;
+        if( typeof type === "string" )
+        {
+            type in Popup && (this.__type__ = type);
+            return this;
+        }
+        return this.__type__;
     }
 
     /**
@@ -273,20 +268,61 @@
     }
 
     /**
+     * @private
+     */
+    Popup.prototype.__title__='提示信息';
+
+    /**
+     * 隐藏此弹框
+     * @returns {Popup}
+     * @public
+     */
+    Popup.prototype.title=function( title )
+    {
+        if( typeof title !== "undefined" )
+        {
+            this.__title__=title;
+            return this;
+        }
+        return this.__title__;
+    }
+
+    /**
+     * @private
+     */
+    var __mask__=null;
+
+    /**
+     * 庶罩层
+     * @returns {*}
+     */
+    Popup.prototype.mask=function()
+    {
+        if( __mask__ === null )
+        {
+            __mask__ = Breeze('<div name="mask" />', 'body').style('cssText',"background-color:#ffffff;opacity:0;width:100%;height:797px;position:absolute;z-index:998;top:0px;left:0px;display:none;" );
+            __mask__.height( Utils.getSize(window,'height') );
+        }
+        return __mask__;
+    }
+
+    /**
+     * @type {null}
+     */
+    var showing = {};
+
+    /**
      * 隐藏此弹框
      * @returns {Popup}
      * @public
      */
     Popup.prototype.hidden=function()
     {
+        showing[ this.type() ] = false;
+        this.mask().display(false);
         this.current(null).display(false);
         return this;
     }
-
-    /**
-     * @type {null}
-     */
-    var currentPopup = null;
 
     /**
      * 显示弹框
@@ -294,28 +330,108 @@
      * @returns {Popup}
      * @public
      */
-    Popup.prototype.show=function( content, label )
+    Popup.prototype.show=function( content, option )
     {
-        if( currentPopup !== null )
-            currentPopup.hidden();
-        currentPopup = this;
+        var type =  this.type();
+        if( showing[ type ] )
+           return this;
 
-        var zIndex = 999;
-        var skinGroup = this.skinGroup();
-
-        label = label || '提示信息';
+        showing[ type ] = true;
         content = content || '';
-        if( skinGroup.getSkin('label') )
-        {
-            skinGroup.currentSkin('label').text( label );
-        }
 
+        option =  Utils.extend({autoHidden:true,zIndex:999}, option || {});
+        setting(this, option);
+
+        var skinGroup = this.skinGroup();
+        if( skinGroup.getSkin('label') )
+            skinGroup.currentSkin('label').text( this.title() );
         var body = skinGroup.getSkin('body') || skinGroup.getSkin('container');
         skinGroup.current( body ).html( content );
-        skinGroup.current(null).style('zIndex',zIndex).display(true);
+        skinGroup.current( null ).style('zIndex',option.zIndex).display(true);
+
+        this.mask().display(true).style('zIndex', option.zIndex-1 );
         setPositionAndSize.call(this);
-        this.autoHidden(true);
         return this;
+    }
+
+
+    /**
+     * 皮肤安装完成
+     * @param skinGroup
+     * @returns {Popup}
+     * @protected
+     */
+    Popup.prototype.skinInstalled=function( skinGroup )
+    {
+        SkinComponent.prototype.skinInstalled.call(this,skinGroup);
+
+        skinGroup.current(null).addEventListener(PropertyEvent.CHANGE,function(event) {
+            if( event.property==='width' || event.property==='height' )setPositionAndSize.call(this);
+        },false,0,this);
+
+        if( skinGroup.getSkin('close') )
+        {
+            skinGroup.currentSkin('close').addEventListener(MouseEvent.CLICK,function(event)
+            {
+                if( this.hasEventListener( PopupEvent.CLOSE ) || !this.dispatchEvent( new PopupEvent( PopupEvent.CLOSE ) ) )
+                    return;
+                this.hidden();
+
+            },false,0,this);
+            skinGroup.current(null);
+        }
+
+        if( skinGroup.getSkin('footer') )
+        {
+            skinGroup.getSkinGroup('footer > button').addEventListener(MouseEvent.CLICK,function(event)
+            {
+                var name =  Utils.property(event.currentTarget ,  SkinGroup.NAME ) || '';
+                var type  = name.toUpperCase();
+                if( this.hasEventListener( PopupEvent[type] ) && !this.dispatchEvent( new PopupEvent( PopupEvent[type]  ) ) )
+                    return;
+                var callback =  this.callback();
+                if( callback && callback( PopupEvent.SUBMIT === PopupEvent[type] ) === false )
+                    return;
+                this.hidden();
+
+            },false,0,this);
+        }
+
+        Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(event){
+            setPositionAndSize.call(this);
+        },true,0,this);
+        return this;
+    }
+
+
+    /**
+     * 获取模态框的默认皮肤
+     * @returns {SkinObject}
+     * @protected
+     */
+    Popup.prototype.defaultSkinObject=function()
+    {
+        var theme = {}
+        theme[ Popup.NORM ] = '{part head+body}';
+        theme[ Popup.TYPICAL ] = '{part head+body+footer}';
+        return new SkinObject( theme[this.type()] || '' ,{
+            head: '<div>{part label+close}</div>',
+            label: '<label>Title</label>',
+            close: '<span>关闭</span>',
+            body:  '<div></div>',
+            cancel:'<button {attr button} class="btn btn-default">取消</button>',
+            submit:'<button {attr button} class="btn btn-default">确定</button>',
+            footer:'<div><div style="width: auto; height:inherit;float: right;">{part cancel+submit}</div></div>',
+            body:  '<div></div>'
+        },{
+            container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;position:absolute;width:auto;height:auto;display:none;border:solid #b3b3b3 1px;backgroundColor:#ffffff"},
+            head:{'style':"width:100%;height:35px;lineHeight:35px;display:block;color:#333333;borderBottom:solid 1px #cccccc" },
+            label:{ 'style':"width:auto;display:block;float:left;margin:0px 10px" },
+            close:{ 'style':"width:auto;height:25px;padding:0px;margin:0px;cursor:pointer;float:right;margin:0px 10px" },
+            body:{ 'style':"padding:10px;width:100%;height:auto;display:block;overflow:auto;backgroundColor:#ffffff" },
+            button:{ 'style':{ width:'auto',height:'25px',lineHeight:'25px',padding:"0px 10px", margin:'3px',display:'inline-block'} },
+            footer:{ 'style':{'width':'100%',height:'auto','display':'block','borderTop':'solid 1px #cccccc',padding:'0px'}}
+        });
     }
 
     /**
