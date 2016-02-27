@@ -420,6 +420,8 @@
         this.useCapture=!!useCapture;
         this.priority=parseInt(priority) || 0;
         this.reference=reference || null;
+        this.target = null;
+        this.dispatcher=null;
     }
     EventDispatcher.Listener.prototype.constructor= EventDispatcher.Listener;
     EventDispatcher.Listener.prototype.useCapture=false;
