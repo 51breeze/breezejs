@@ -128,7 +128,6 @@ var tl= new Timeline(60).addFrame(function(){
     Timeline.prototype=new EventDispatcher();
     Timeline.prototype.constructor=Timeline;
 
-
     function TimelineEvent(type, bubbles,cancelable ){BreezeEvent.call(this,type, bubbles,cancelable );}
     TimelineEvent.prototype=new BreezeEvent();
     TimelineEvent.prototype.constructor=TimelineEvent;
@@ -144,15 +143,28 @@ var tl= new Timeline(60).addFrame(function(){
 
     if( animationSupport )
     {
-        EventDispatcher.SpecialEvent(TimelineEvent.FINISH,function(element,listener,type,useCapture,dispatcher)
+        EventDispatcher.SpecialEvent(TimelineEvent.FINISH,function(element,listener)
         {
-            EventDispatcher.addEventListener(element,listener,'webkitAnimationEnd',useCapture,TimelineEvent.FINISH,function(event)
+            EventDispatcher.addEventListener.call(element,'webkitAnimationEnd',listener,function(event)
             {
-                event = new BreezeEvent(event);
+                event= BreezeEvent.create( event );
                 event.type= TimelineEvent.FINISH;
                 EventDispatcher.dispatchEvent(event);
             })
+            return false;
         })
+
+        EventDispatcher.SpecialEvent(TimelineEvent.REPEAT,function(element,listener)
+        {
+            EventDispatcher.addEventListener.call(element,'webkitAnimationIteration',listener,function(event)
+            {
+                event= BreezeEvent.create( event );
+                event.type= TimelineEvent.REPEAT;
+                EventDispatcher.dispatchEvent(event);
+            })
+            return false;
+        })
+
     }
 
     Timeline.prototype.bind=function( elements )
@@ -182,7 +194,16 @@ var tl= new Timeline(60).addFrame(function(){
 
     /**
      * 动画函数
-     * @param fn
+     * @param string|function fn 默认 linear
+     * linear：线性过渡。等同于贝塞尔曲线(0.0, 0.0, 1.0, 1.0)
+     * ease：平滑过渡。等同于贝塞尔曲线(0.25, 0.1, 0.25, 1.0)
+     * ease-in：由慢到快。等同于贝塞尔曲线(0.42, 0, 1.0, 1.0)
+     * ease-out：由快到慢。等同于贝塞尔曲线(0, 0, 0.58, 1.0)
+     * ease-in-out：由慢到快再到慢。等同于贝塞尔曲线(0.42, 0, 0.58, 1.0)
+     * step-start：等同于 steps(1, start)
+     * step-end：等同于 steps(1, end)
+     * steps(<integer>[, [ start | end ] ]?)：接受两个参数的步进函数。第一个参数必须为正整数，指定函数的步数。第二个参数取值可以是start或end，指定每一步的值发生变化的时间点。第二个参数是可选的，默认值为end。
+     * cubic-bezier(<number>, <number>, <number>, <number>)：特定的贝塞尔曲线类型，4个数值需在[0, 1]区间内
      * @returns {*|string}
      */
     Timeline.prototype.timingFunction=function( fn )
@@ -325,7 +346,7 @@ var tl= new Timeline(60).addFrame(function(){
         if( this.__isPlaying__ )
             return false;
 
-        if( animationSupport === true )
+       /* if( animationSupport === true )
         {
             return CSS3Animation.call(
                 this,
@@ -336,7 +357,7 @@ var tl= new Timeline(60).addFrame(function(){
                 this.__delay__,
                 this.__length__,
                 index );
-        }
+        }*/
 
         var self=this;
 
@@ -362,6 +383,10 @@ var tl= new Timeline(60).addFrame(function(){
         this.__pauseTime__=0;
 
         var fn =  getFunByName( this.timingFunction() );
+        if( !fn )
+        {
+            throw new Error('miss animation function');
+        }
 
         var frame,
             n=Math.max( this.__reverse__ ? this.__repeats__* 2 : this.__repeats__ ,1),//需要重复播放的次数
@@ -628,7 +653,7 @@ var tl= new Timeline(60).addFrame(function(){
              var elem = this.__elements__[ i ];
              for( var p in property )
              {
-                 var c = property[p];
+                 var c = parseFloat( property[p] );
                  var b=0;
                  //var percent = Math.round( this.time() / durat * 100 );
                  //var per =Math.round( this.calculateDuration(frame.end) / durat * 100 );
@@ -658,6 +683,8 @@ var tl= new Timeline(60).addFrame(function(){
                      }
                      b = frame.initValue[p];
                      var v= fn( t, Math.min(b,c), Math.max(b,c),d );
+
+                     console.log( v )
                      v = Math.abs(b-v);
                      elem.style[ p ] = v;
                  }
@@ -671,25 +698,31 @@ var tl= new Timeline(60).addFrame(function(){
         {
             name =  name.split('.');
             var fn=Tween;
-            for( var i in name )
+            for( var i in name ) if( fn[ name[i] ] )
             {
-                if( typeof fn[ name[i] ] === 'function' )
-                {
-                    fn= fn[ name[i] ];
-                }
+                fn= fn[ name[i] ];
             }
-            return  typeof fn === 'function' ? fn : null;
+            return typeof fn === 'function' ? fn : null;
         }
         return null;
     }
 
+    var createdAnimationStyle={};
 
+    /**
+     * 生成css3样式动画
+     * @param frames 每个侦上所要改变元素的样式属性
+     * @param duration 每个侦持续的时间以秒为单位
+     * @param repeats 重复播放几次
+     * @param reverse 是否需要倒放
+     * @param delay  延迟多少秒后播放
+     * @param length 总长度
+     * @param index 当前侦的编号
+     * @constructor
+     */
     function CSS3Animation(frames, duration,repeats,reverse,delay,length,index )
     {
         var frame;
-        var name = 'an'+( Math.round(new Date().getTime()/1000) + Math.floor( Math.random()*1000 ) ) ;
-        var stylename= 'animation-'+name;
-
         var  css=[];
         for( var i in frames )
         {
@@ -702,50 +735,52 @@ var tl= new Timeline(60).addFrame(function(){
             css.push( '}' );
         }
 
-       var am_prefix = prefix==='' ? '' : '-'+prefix+'-';
-
-       css.unshift('@'+am_prefix+'keyframes ' + name + '{');
-       css.push('}');
-       css.push( '.'+stylename+'{' );
-
-        var param = {
-            'name':name,
-            'duration':duration+'s',
-            'iteration-count':(repeats || 1),
-            'delay':(delay || 0)+'s',
-            'fill-mode':'forwards',  //both backwards none forwards
-            'direction': !!reverse ? 'alternate' : 'normal',  // alternate-reverse  reverse alternate normal
-            'timing-function':'linear',  //ease  ease-in  ease-out  cubic-bezier  linear
-            'play-state':'running' //paused running
-        }
-        for( var p in  param )
+        var stylename = 'a'+Utils.crc32( css.join('') ) ;
+        if( createdAnimationStyle[ stylename ] !==true )
         {
-            css.push(am_prefix+'animation-'+p+':'+param[p]+';');
-        }
-        css.push('}');
-        css = css.join("\r\n");
+           createdAnimationStyle[ stylename ]=true;
+           var am_prefix = prefix==='' ? '' : '-'+prefix+'-';
+           css.unshift('@'+am_prefix+'keyframes ' + stylename + '{');
+           css.push('}');
+           css.push( '.'+stylename+'{' );
 
-       var style =  document.createElement('style');
-           style.setAttribute('id',name);
-       var head = document.getElementsByTagName('head')[0];
+           var param = {
+               'name':stylename,
+               'duration':duration+'s',
+               'iteration-count': (repeats || 1),  //infinite
+               'delay':(delay || 0)+'s',
+               'fill-mode':'forwards',  //both backwards none forwards
+               'direction': !!reverse ? 'alternate' : 'normal',  // alternate-reverse  reverse alternate normal
+               'timing-function': this.timingFunction(),  //ease  ease-in  ease-out  cubic-bezier  linear
+               'play-state':'running' //paused running
+           }
+           for( var p in  param )
+           {
+               css.push(am_prefix+'animation-'+p+':'+param[p]+';');
+           }
+           css.push('}');
+           css = css.join("\r\n");
+
+           var head = document.getElementsByTagName('head')[0];
+           var style = document.createElement('style');
+           style.setAttribute('id',stylename);
            style.innerHTML= css;
-        head.appendChild( style );
+           head.appendChild( style );
+        }
 
         for(var i in this.__elements__ )
         {
             var elem = this.__elements__[ i ];
-            if( typeof Breeze !== 'undefined' && elem instanceof Breeze )
+            if( typeof Breeze !=="undefined" && elem instanceof Breeze )
             {
-                elem.addClass( stylename );
+                elem.removeClass(stylename).addClass(stylename);
             }else
             {
-                var old = elem.getAttribute('class') || '';
-                elem.setAttribute('class', old +' '+stylename );
+                Utils.removeClass(elem,stylename);
+                Utils.addClass(elem,stylename);
             }
         }
-
     }
-
     window.Timeline=Timeline;
 
 })(window)

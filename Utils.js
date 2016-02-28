@@ -38,8 +38,17 @@
             'focus-ring-color':true,
             'user-select':true,
             'radial-gradient':true,
-            'linear-gradient':true
+            'linear-gradient':true,
+            'animation-name':true,
+            'animation-duration':true,
+            'animation-iteration-count':true,
+            'animation-delay':true,
+            'animation-fill-mode':true,
+            'animation-direction':true,
+            'animation-timing-function':true,
+            'animation-play-state':true
         }
+
         ,cssAalpha = /alpha\([^)]*\)/i
         ,cssOpacity = /opacity=([^)]*)/
         ,cssUpperProp = /([A-Z]|^ms)/g
@@ -603,6 +612,8 @@
         if ( value == null )return false;
         if ( type === "number" && !cssNumber[ name ] )
             value += "px";
+
+
         if( hook && hook.set && hook.set.call(elem,style,value,name)===true )return true;
         name = Utils.styleName( name );
         try{
@@ -696,6 +707,7 @@
             className='';
         }
         className === '' ? element.removeAttribute('class') : element['className'] = Utils.trim(className);
+        element.offsetWidth = element.offsetWidth;
     }
 
 

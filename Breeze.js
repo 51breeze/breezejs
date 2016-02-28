@@ -1398,7 +1398,6 @@
         return this;
     }
 
-
     window.Breeze=Breeze;
 
 })( window )

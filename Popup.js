@@ -55,7 +55,7 @@
         this.__anchor__=null;
         this.__callback__=null;
         popupInstance[ type ]=this;
-        return SkinComponent.call(this, new SkinGroup('<div />','body') );
+        return SkinComponent.call(this, new SkinGroup('<div class="popup" />','body') );
     }
 
     //弹出风格
@@ -131,7 +131,7 @@
        }
 
         xOffset = Math.floor( (width-containerWidth) * h );
-        yOffset = Math.floor( (height-containerHeight) * v)
+        yOffset = Math.floor( (height-containerHeight) * v);
         skin.position(xOffset,  yOffset);
         return this;
     }
@@ -300,8 +300,27 @@
     {
         if( __mask__ === null )
         {
-            __mask__ = Breeze('<div name="mask" />', 'body').style('cssText',"background-color:#ffffff;opacity:0;width:100%;height:797px;position:absolute;z-index:998;top:0px;left:0px;display:none;" );
-            __mask__.height( Utils.getSize(window,'height') );
+            __mask__ = Breeze('<div name="mask" />', 'body').style('cssText',"background-color:#000000;opacity:0;width:100%;height:100%;position:fixed;z-index:998;top:0px;left:0px;display:none;" );
+            var callback = function(event){this.height( Utils.getSize(window,'height'));}
+            Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,callback,true,0,__mask__);
+            callback.call(__mask__);
+            var skinGroup =  this.skinGroup()
+            __mask__.addEventListener( MouseEvent.MOUSE_DOWN,function(event){
+
+                var tl=  new Timeline().bind( skinGroup[0] )
+                tl.timingFunction('Quad.easeIn');
+
+                var size = 3;
+                var duration =1;
+                var pos =  Utils.position(skinGroup[0])
+                tl.addFrame( {'left':(pos.left-size)+'px'} , duration);
+                tl.addFrame( {'top':(pos.top-size)+'px'} , duration);
+                tl.addFrame( {'left':(pos.left+size)+'px'} , duration);
+                tl.addFrame( {'top':(pos.top+size)+'px'} , duration);
+                tl.addFrame( {'left':pos.left+'px'} , duration);
+                tl.addFrame( {'top':pos.top+'px'} , duration);
+                tl.play();
+            })
         }
         return __mask__;
     }
@@ -340,6 +359,7 @@
         content = content || '';
 
         option =  Utils.extend({autoHidden:true,zIndex:999}, option || {});
+        option.zIndex = parseInt( option.zIndex ) || 999;
         setting(this, option);
 
         var skinGroup = this.skinGroup();
@@ -424,7 +444,7 @@
             footer:'<div><div style="width: auto; height:inherit;float: right;">{part cancel+submit}</div></div>',
             body:  '<div></div>'
         },{
-            container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;position:absolute;width:auto;height:auto;display:none;border:solid #b3b3b3 1px;backgroundColor:#ffffff"},
+            container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;position:fixed;width:auto;height:auto;display:none;border:solid #b3b3b3 1px;backgroundColor:#ffffff"},
             head:{'style':"width:100%;height:35px;lineHeight:35px;display:block;color:#333333;borderBottom:solid 1px #cccccc" },
             label:{ 'style':"width:auto;display:block;float:left;margin:0px 10px" },
             close:{ 'style':"width:auto;height:25px;padding:0px;margin:0px;cursor:pointer;float:right;margin:0px 10px" },
