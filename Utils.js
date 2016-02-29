@@ -27,7 +27,7 @@
             }
             ,cssMap:{}
         }
-        ,styleNamePrefix=''
+        ,browserPrefix=''
         ,needAddPrefixStyleName={
             'box-shadow':true,
             'border-radius':true,
@@ -241,7 +241,6 @@
      * @returns {string|null}
      */
     Utils.isBrowser=function( type,version,expr ){
-        version= version !==undefined ? parseFloat(version) : undefined;
         expr = expr || '<';
         if( typeof _client === 'undefined' )
         {
@@ -255,24 +254,41 @@
                             (s = ua.match(/version\/([\d.]+).*safari/)) ? _client[Utils.BROWSER_SAFARI]   = parseFloat(s[1]) :
                                 (s = ua.match(/^mozilla\/([\d.]+)/))        ? _client[Utils.BROWSER_MOZILLA]  = parseFloat(s[1]) : null ;
         }
-        var result = typeof _client[type] !== 'undefined';
-        if( result && typeof version !== 'undefined' )
-            eval('result = result ' +expr.replace(/\s*/,'') +' version;' );
+        var result =_client[type];
+        if( typeof result !== "undefined" && typeof version !== 'undefined' )
+        {
+            version = parseFloat(version);
+            if( isNaN(version) )return false;
+            eval('result = result ' + expr.replace(/\s*/, '') + ' version;');
+        }
         return result;
     }
 
     // fix style name add prefix
     if( Utils.isBrowser(Utils.BROWSER_FIREFOX,4,'>=') )
     {
-        styleNamePrefix='-moz-';
+        browserPrefix='-moz-';
 
     }else if( Utils.isBrowser(Utils.BROWSER_SAFARI) || Utils.isBrowser(Utils.BROWSER_CHROME) )
     {
-        styleNamePrefix='-webkit-';
+        browserPrefix='-webkit-';
 
     }else if(Utils.isBrowser(Utils.BROWSER_OPERA))
     {
-        styleNamePrefix='-o-';
+        browserPrefix='-o-';
+
+    }else if(Utils.isBrowser(Utils.BROWSER_IE,9,'>='))
+    {
+        browserPrefix='-ms-';
+    }
+
+    /**
+     * 获取浏览器前缀
+     * @returns {string}
+     */
+    Utils.getBrowserPrefix=function()
+    {
+        return browserPrefix;
     }
 
     /**
@@ -545,7 +561,7 @@
         name = name.replace( cssUpperProp, "-$1" ).toLowerCase();
 
         if( needAddPrefixStyleName[name] ===true )
-            return styleNamePrefix+name;
+            return browserPrefix+name;
         return name;
     }
 
@@ -813,6 +829,16 @@
     Utils.ucfirst=function( str )
     {
         return str.charAt(0).toUpperCase()+str.substr(1);
+    }
+
+    /**
+     * 将字符串的首字母转换为小写
+     * @param str
+     * @returns {string}
+     */
+    Utils.lcfirst=function( str )
+    {
+        return str.charAt(0).toLowerCase()+str.substr(1);
     }
 
     /**

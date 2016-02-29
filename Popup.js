@@ -307,18 +307,19 @@
             var skinGroup =  this.skinGroup()
             __mask__.addEventListener( MouseEvent.MOUSE_DOWN,function(event){
 
-                var tl=  new Timeline().bind( skinGroup[0] )
+                var tl=  new Timeline( skinGroup[0] )
                 tl.timingFunction('Quad.easeIn');
 
-                var size = 3;
-                var duration =1;
+                var size = 30;
+                var duration =100;
                 var pos =  Utils.position(skinGroup[0])
+
                 tl.addFrame( {'left':(pos.left-size)+'px'} , duration);
-                tl.addFrame( {'top':(pos.top-size)+'px'} , duration);
+              /*tl.addFrame( {'top':(pos.top-size)+'px'} , duration);
                 tl.addFrame( {'left':(pos.left+size)+'px'} , duration);
                 tl.addFrame( {'top':(pos.top+size)+'px'} , duration);
                 tl.addFrame( {'left':pos.left+'px'} , duration);
-                tl.addFrame( {'top':pos.top+'px'} , duration);
+                tl.addFrame( {'top':pos.top+'px'} , duration);*/
                 tl.play();
             })
         }
