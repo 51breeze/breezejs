@@ -310,16 +310,15 @@
                 var tl=  new Timeline( skinGroup[0] )
                 tl.timingFunction('Quad.easeIn');
 
-                var size = 30;
-                var duration =100;
+                tl.enable(false)
+
+                var size = 300;
+                var duration =1;
                 var pos =  Utils.position(skinGroup[0])
 
-                tl.addFrame( {'left':(pos.left-size)+'px'} , duration);
-              /*tl.addFrame( {'top':(pos.top-size)+'px'} , duration);
-                tl.addFrame( {'left':(pos.left+size)+'px'} , duration);
-                tl.addFrame( {'top':(pos.top+size)+'px'} , duration);
-                tl.addFrame( {'left':pos.left+'px'} , duration);
-                tl.addFrame( {'top':pos.top+'px'} , duration);*/
+                var frame = new KeyFrame( 10 );
+                  frame.motions( new MotionProperties(skinGroup[0]).setProperties('left', pos.left+size, pos.left ) )
+                tl.addKeyFrame( frame );
                 tl.play();
             })
         }

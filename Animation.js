@@ -17,7 +17,7 @@
     Animation.prototye.fadeIn=function( duration , tween )
     {
         tween = tween || Tween.Linear;
-        this.addFrame(function(){
+        this.addKeyFrame(function(){
 
         },duration);
     }

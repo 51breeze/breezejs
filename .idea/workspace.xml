@@ -3,9 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Animation.js" afterPath="$PROJECT_DIR$/Animation.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Breeze.js" afterPath="$PROJECT_DIR$/Breeze.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Popup.js" afterPath="$PROJECT_DIR$/Popup.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Timeline.js" afterPath="$PROJECT_DIR$/Timeline.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Utils.js" afterPath="$PROJECT_DIR$/Utils.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="breezejs.iws" />
@@ -34,10 +34,10 @@
       <file leaf-file-name="Popup.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Popup.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="6984" max-vertical-offset="11448">
-              <caret line="313" column="34" selection-start-line="313" selection-start-column="34" selection-end-line="313" selection-end-column="34" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="7080" max-vertical-offset="11424">
+              <caret line="323" column="9" selection-start-line="323" selection-start-column="9" selection-end-line="323" selection-end-column="9" />
               <folding>
-                <marker date="1456739542443" expanded="false" signature="12002:12043" placeholder="..." />
+                <marker date="1456831907520" expanded="false" signature="11828:11869" placeholder="..." />
               </folding>
             </state>
           </provider>
@@ -66,8 +66,8 @@
       <file leaf-file-name="Timeline.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Timeline.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.71428573" vertical-offset="20184" max-vertical-offset="21888">
-              <caret line="866" column="38" selection-start-line="866" selection-start-column="38" selection-end-line="866" selection-end-column="38" />
+            <state vertical-scroll-proportion="0.6753864" vertical-offset="22064" max-vertical-offset="26592">
+              <caret line="943" column="16" selection-start-line="943" selection-start-column="16" selection-end-line="943" selection-end-column="16" />
               <folding />
             </state>
           </provider>
@@ -89,7 +89,7 @@
         <entry file="file://$PROJECT_DIR$/Breeze.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0" vertical-offset="8592" max-vertical-offset="33672">
-              <caret line="364" column="7" selection-start-line="364" selection-start-column="7" selection-end-line="364" selection-end-column="7" />
+              <caret line="382" column="7" selection-start-line="382" selection-start-column="7" selection-end-line="382" selection-end-column="7" />
               <folding />
             </state>
           </provider>
@@ -183,8 +183,8 @@
         <option value="$PROJECT_DIR$/Breeze.js" />
         <option value="$PROJECT_DIR$/EventDispatcher.js" />
         <option value="$PROJECT_DIR$/Utils.js" />
-        <option value="$PROJECT_DIR$/Popup.js" />
         <option value="$PROJECT_DIR$/Timeline.js" />
+        <option value="$PROJECT_DIR$/Popup.js" />
       </list>
     </option>
   </component>
@@ -225,6 +225,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -259,7 +260,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -296,6 +296,11 @@
       <method />
     </configuration>
     <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
+      <node-options />
+      <gulpfile />
+      <tasks />
+      <pass-parent-env-vars>false</pass-parent-env-vars>
+      <envs />
       <method />
     </configuration>
     <configuration default="true" type="PhpUnitRemoteRunConfigurationType" factoryName="PHPUnit on Server">
@@ -740,7 +745,13 @@
       <option name="project" value="LOCAL" />
       <updated>1456571444507</updated>
     </task>
-    <option name="localTasksCounter" value="72" />
+    <task id="LOCAL-00072" summary="Default">
+      <created>1456744013499</created>
+      <option name="number" value="00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1456744013499</updated>
+    </task>
+    <option name="localTasksCounter" value="73" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -753,7 +764,7 @@
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.13494624" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.13709678" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4160998" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -1101,8 +1112,6 @@
           <caret line="29" column="0" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="0" />
           <folding>
             <element signature="n#!!doc" expanded="false" />
-            <marker date="1456209618605" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1456209618605" expanded="false" signature="-1:-1" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -1131,14 +1140,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Breeze.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="9272" max-vertical-offset="33696">
-          <caret line="364" column="7" selection-start-line="364" selection-start-column="7" selection-end-line="364" selection-end-column="7" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="1036" max-vertical-offset="15648">
@@ -1151,7 +1152,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="3874" max-vertical-offset="4728">
           <caret line="186" column="5" selection-start-line="186" selection-start-column="5" selection-end-line="186" selection-end-column="5" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1160,16 +1160,6 @@
         <state vertical-scroll-proportion="0.0" vertical-offset="19588" max-vertical-offset="39792">
           <caret line="836" column="24" selection-start-line="836" selection-start-column="24" selection-end-line="836" selection-end-column="24" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Popup.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="6984" max-vertical-offset="11448">
-          <caret line="313" column="34" selection-start-line="313" selection-start-column="34" selection-end-line="313" selection-end-column="34" />
-          <folding>
-            <marker date="1456739542443" expanded="false" signature="12002:12043" placeholder="..." />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1183,10 +1173,28 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Popup.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="7080" max-vertical-offset="11424">
+          <caret line="323" column="9" selection-start-line="323" selection-start-column="9" selection-end-line="323" selection-end-column="9" />
+          <folding>
+            <marker date="1456831907520" expanded="false" signature="11828:11869" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Breeze.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="8592" max-vertical-offset="33672">
+          <caret line="382" column="7" selection-start-line="382" selection-start-column="7" selection-end-line="382" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Timeline.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.71428573" vertical-offset="20184" max-vertical-offset="21888">
-          <caret line="866" column="38" selection-start-line="866" selection-start-column="38" selection-end-line="866" selection-end-column="38" />
+        <state vertical-scroll-proportion="0.6753864" vertical-offset="22064" max-vertical-offset="26592">
+          <caret line="943" column="16" selection-start-line="943" selection-start-column="16" selection-end-line="943" selection-end-column="16" />
           <folding />
         </state>
       </provider>

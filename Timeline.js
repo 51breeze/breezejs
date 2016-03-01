@@ -69,9 +69,9 @@ var tl= new Timeline(60).addFrame(function(){
      * @param name
      * @returns {*}
      */
-    function getFrameIndexByName( name )
+    function getFrameIndexByName( frames, name )
     {
-        for( var index in __frame__) if(  __frame__[ index ].name===name )
+        for( var index in frames ) if(  frames[ index ].name()===name )
         {
             return index;
         }
@@ -87,7 +87,7 @@ var tl= new Timeline(60).addFrame(function(){
     {
         if( typeof index === 'number' )
         {
-            for( var i in frames ) if( frames[ i ].start <= index && frames[ i ].end >= index )
+            for( var i in frames ) if( frames[ i ].start() <= index && frames[ i ].end() >= index )
             {
                 return i;
             }
@@ -95,6 +95,25 @@ var tl= new Timeline(60).addFrame(function(){
         return -1;
     }
 
+    /**
+     * 获取缓动函数
+     * @param name
+     * @returns {*}
+     */
+    function getFunByName( name )
+    {
+        if( typeof  name  === 'string' && typeof Tween === 'object' )
+        {
+            name =  name.split('.');
+            var fn=Tween;
+            for( var i in name ) if( fn[ name[i] ] )
+            {
+                fn= fn[ name[i] ];
+            }
+            return typeof fn === 'function' ? fn : null;
+        }
+        return null;
+    }
 
     /**
      * 时间轴事件
@@ -298,6 +317,16 @@ var tl= new Timeline(60).addFrame(function(){
     }
 
     /**
+     * 获取当前时间轴播放需的总时长,以毫秒为单位。
+     * @returns {number}
+     */
+    Timeline.prototype.timeLenght=function( length )
+    {
+        var interval = Math.max(1000 / this.fps(), 16.7 );
+        return Math.round( (length || this.__length__ ) * interval );
+    }
+
+    /**
      * 时间轴的计数器，当前播放放了多少个侦格。
      * @returns {number}
      */
@@ -386,15 +415,15 @@ var tl= new Timeline(60).addFrame(function(){
 
         if( this.enable() )
         {
-            /*return CSS3Animation.call(
+            return CSS3Animation.call(
                 this,
-                this.__frame__,
-                this.__length__ * this.__interval__ / 1000,
-                this.__repeats__,
-                this.__reverse__,
-                this.__delay__,
+                this.__frames__,
+                this.calculateDuration(),
+                this.repeat(),
+                this.reverse(),
+                this.delay(),
                 this.__length__,
-                index );*/
+                index );
         }
 
         var self=this;
@@ -480,8 +509,7 @@ var tl= new Timeline(60).addFrame(function(){
                     //调用关键侦上的方法
                     if( frame )
                     {
-                        self.__name__=frame.name;
-                        setStyle.call(self, frame , fn );
+                        frame.action( fn );
                     }
 
                     //判断当前时间轴的状态
@@ -626,43 +654,61 @@ var tl= new Timeline(60).addFrame(function(){
      * 获取当前侦的名称
      * @returns {*}
      */
-    Timeline.prototype.currentName=function()
+    Timeline.prototype.currentKeyFrameName=function()
     {
         return this.__name__;
     }
 
     /**
      * 添加关键侦
-     * @param object|function properties 当前侦上所需要修改的属性。如果是一个函数则会调用,并传递当前指定的缓动函数所返回的结果值。
-     * @param length
-     * @param name
+     * @param Frame frame 关键侦对象
+     * @param length 持续侦格的长度
      * @returns {Timeline}
      */
+    Timeline.prototype.addKeyFrame=function( frame )
+    {
+        if( !(frame instanceof KeyFrame) )
+        {
+            throw new Error('invalid frame. The frame must be is Frame instance');
+        }
+
+        if( !frame.name() )
+        {
+            frame.name( this.__frames__.length )
+        }
+
+        frame.__timeline__ = this;
+        frame.__start__ = this.__length__;
+        this.__length__ += frame.length();
+        frame.__end__ = this.__length__;
+        this.__frames__.push( frame );
+        return this;
+    }
 
     /**
-     * 添加关键侦
-     * @param string from 指
-     * @param to
-     * @param length
-     * @param properties
-     * @param name
-     * @returns {Timeline}
+     * 根据名称或者索引获取关键侦
+     * @param number|string name 名称或者索引
+     * @returns {*}
      */
-    Timeline.prototype.addFrame=function(from,to,length,properties,name)
+    Timeline.prototype.getKeyFrame=function(name)
     {
-        var start=this.__length__;
-        this.__length__ += length ;
-        name = name || this.__frames__.length;
-        var frame={'name': name ,'properties':properties,'start':start,'end':this.__length__,'from':from,'to':to};
-        this.__frames__.push( frame );
-        dipatcher.call(this, TimelineEvent.ADD_FRAME , {'data':frame,'length':length} );
-        return this;
+        if( typeof name === "string" )
+        {
+            var index =  getFrameIndexByName(this.__frames__, name );
+            return  this.__frames__[index] || null;
+
+        }else if( typeof name === "number"  )
+        {
+            var index =  getFrameByIndex(this.__frames__, name );
+            return  this.__frames__[index] || null;
+        }
+        return this.__frames__;
     }
 
     /**
      * 清除所有的侦格
      */
-    Timeline.prototype.cleanFrame=function()
+    Timeline.prototype.cleanKeyFrame=function()
     {
         this.__frames__=[];
         this.__length__=0;
@@ -670,33 +716,46 @@ var tl= new Timeline(60).addFrame(function(){
 
     /**
      * 删除关键侦或者裁剪时间轴
-     * @param index  侦的名称或者播放头的位置
-     * @param several 是否为关键侦,还是侦格
+     * @param number|string index  关键侦的名称或者索引
+     * @param number frameLength 要删除的侦格长度。如果不传则删除指定索引下的整个关键侦。
      * @returns {boolean}
      */
-    Timeline.prototype.removeFrame=function( index , several )
+    Timeline.prototype.removeKeyFrame=function( index , frameLength )
     {
-        index= typeof  index !== 'number' ? getFrameIndexByName(index) : index;
-        index=getFrameByIndex(this.__frames__,index);
+        index= typeof  index !== 'number' ? getFrameIndexByName(this.__frames__,index) : getFrameByIndex(this.__frames__,index);
         if( index >=0 ) {
-           var normal= typeof several === 'number';
-           var frame= normal===true ? this.__frames__[index] : this.__frames__.splice(index,1)[0];
-           if( frame )
-           {
-               var old=frame;
-               var length=normal===true ? several : frame.end-frame.start,len=this.__frames__.length ;
-               var i=index;
-               while( i < len )
-               {
-                   frame=this.__frames__[ i ];
-                   frame.start-=length;
-                   frame.end-=length;
-                   i++;
-               }
-               this.__length__ -=length;
-               dipatcher.call(this, TimelineEvent.REMOVE_FRAME , {data:old,index:index,length:length,normal:normal} );
-           }
-           return true;
+
+            var frame, len=this.__frames__.length;
+            if( typeof frameLength === 'number' )
+            {
+                frame = this.__frames__[index];
+                if( frameLength < 0 )
+                {
+                    frameLength+=frame.length();
+                }
+                frameLength = Math.min( frameLength , frame.length()- 1 );
+
+            }else
+            {
+                frame=this.__frames__.splice(index,1)[0];
+                frameLength = frame.length();
+            }
+
+            if( frameLength > 0 )
+            {
+                var old = frame;
+                while (index < len) {
+                    frame = this.__frames__[index];
+                    if (frame) {
+                        frame.__start__ -= frameLength;
+                        frame.__end__ -= frameLength;
+                    }
+                    index++;
+                }
+                this.__length__ -= frameLength;
+                dipatcher.call(this, TimelineEvent.REMOVE_FRAME, {keyframe: frame, index: index, length: frameLength});
+                return true;
+            }
         }
         return false;
     }
@@ -731,26 +790,10 @@ var tl= new Timeline(60).addFrame(function(){
 
                  b = frame.initValue[p];
                  var v= fn( t, b, c, d );
-                 console.log( v  )
                  elem.style[ p ] = v;
 
              }
         }
-    }
-
-    function getFunByName( name )
-    {
-        if( typeof  name  === 'string' && typeof Tween === 'object' )
-        {
-            name =  name.split('.');
-            var fn=Tween;
-            for( var i in name ) if( fn[ name[i] ] )
-            {
-                fn= fn[ name[i] ];
-            }
-            return typeof fn === 'function' ? fn : null;
-        }
-        return null;
     }
 
     var createdAnimationStyle={};
@@ -774,9 +817,9 @@ var tl= new Timeline(60).addFrame(function(){
         {
             frame =frames[ i ];
             css.push( Math.round( frame.end / length * 100 ) + '% {');
-            for( var p in frame.property )
+            for( var p in frame.properties )
             {
-                css.push( p + ':' +  frame.property[p] + ';' );
+                css.push( p + ':' +  frame.properties[p] + ';' );
             }
             css.push( '}' );
         }
@@ -790,6 +833,8 @@ var tl= new Timeline(60).addFrame(function(){
            css.push('}');
            css.push( '.'+stylename+'{' );
 
+           var timing = this.timingFunction();
+
            var param = {
                'name':stylename,
                'duration':duration+'s',
@@ -797,7 +842,7 @@ var tl= new Timeline(60).addFrame(function(){
                'delay':(delay || 0)+'s',
                'fill-mode':'forwards',  //both backwards none forwards
                'direction': !!reverse ? 'alternate' : 'normal',  // alternate-reverse  reverse alternate normal
-               'timing-function': this.timingFunction(),  //ease  ease-in  ease-out  cubic-bezier  linear
+               'timing-function': timing,  //ease  ease-in  ease-out  cubic-bezier  linear
                'play-state':'running' //paused running
            }
            for( var p in  param )
@@ -835,62 +880,134 @@ var tl= new Timeline(60).addFrame(function(){
      * @param to
      * @constructor
      */
-    function Frame()
+    function KeyFrame( length )
     {
-        this.__from__= from
-        this.__to__=to;
-        this.__name__=0;
-        this.__callback__=null;
+        this.__motionProperties__=[];
+        this.length( length );
     }
 
-    Frame.prototype.constructor = Frame;
-    Frame.prototype.__name__=0;
-    Frame.prototype.__from__=0;
-    Frame.prototype.__to__=0;
-    Frame.prototype.__callback__=null;
+    KeyFrame.prototype.constructor = KeyFrame;
+    KeyFrame.prototype.__name__=0;
+    KeyFrame.prototype.__lenght__=1;
+    KeyFrame.prototype.__start__=0;
+    KeyFrame.prototype.__end__=0;
+    KeyFrame.prototype.__timeline__=null;
+    KeyFrame.prototype.__motionProperties__=[];
 
     /**
-     * 获取初始值
-     * @param val
-     * @returns {*}
+     * 获取时间轴对象
+     * @read-only
+     * @returns {Timeline}
      */
-    Frame.prototype.from=function( from, to )
+    KeyFrame.prototype.timeline=function()
     {
-        return this.__from__;
-    }
-
-    /**
-     * 获取结束值
-     * @param val
-     * @returns {*}
-     */
-    Frame.prototype.to=function( val )
-    {
-        return this.__to__;
-    }
-
-    /**
-     * 指定一个回调函数
-     * @param function callback
-     * @returns {*}
-     */
-    Frame.prototype.callback=function( callback )
-    {
-        if( typeof callback !== "undefined" )
+        if( !(this.__timeline__ instanceof Timeline) )
         {
-            if( typeof callback === "function" )
-                this.__callback__ = callback;
-            return this;
+            throw new Error('timeline instance is empty');
         }
-        return this.__callback__;
+        return this.__timeline__;
+    }
+
+    /**
+     * 动作入口
+     * @read-only
+     * @returns {null|NodeElement}
+     */
+    KeyFrame.prototype.action=function( timing )
+    {
+           var motion,motions = this.motions();
+           var len = motions.length,index=0;
+           var timeline = this.timeline();
+           var d = timeline.timeLenght( this.length() );
+           var t = timeline.time();
+
+           for( ;index< len ; index++ )
+           {
+               motion = motions[index];
+               if( motion instanceof MotionProperties )
+               {
+                   var properties = motion.getProperties();
+                   var target = motion.target();
+                   var i= 0, l= properties.length;
+                   for( ; i<l; i++ )
+                   {
+                        var property = properties[i];
+                        var to = property.to;
+                        var from  = property.from;
+                        var value = timing(t,from, to-from, d);
+                        property.flag ? property.property.call(target, value) : Utils.style(target,property.property, value);
+                   }
+
+               }else if( typeof motion === "function" )
+               {
+                   motion.call(this);
+               }
+           }
+    }
+
+
+    /**
+     * 关键侦在侦格上的开始位置
+     * @read-only
+     * @returns {number}
+     */
+    KeyFrame.prototype.start=function()
+    {
+        return this.__start__;
+    }
+
+    /**
+     * 关键侦在侦格上的结束位置
+     * @read-only
+     * @returns {number}
+     */
+    KeyFrame.prototype.end=function()
+    {
+        return this.__end__;
+    }
+
+    /**
+     * 关键侦在侦格上持续的长度
+     * @param length
+     * @returns {*}
+     * @public
+     */
+    KeyFrame.prototype.length=function( length )
+    {
+         if( typeof length !==  "undefined" )
+         {
+             length = parseInt( length );
+             if( isNaN(length) || length < 1 )throw new Error('invalid length. The frame lenght must be greater than 1');
+             this.__lenght__ = length;
+             return this;
+         }
+         return this.__lenght__;
+    }
+
+    /**
+     * 运动属性对象
+     * @param val
+     * @returns {*}
+     * @public
+     */
+    KeyFrame.prototype.motions=function( motionProperties )
+    {
+        if( typeof motionProperties !== "undefined" )
+        {
+            if( !(motionProperties instanceof MotionProperties) )
+                throw new Error('invalid motionProperties');
+            this.__motionProperties__.push(motionProperties);
+        }
+        return this.__motionProperties__;
     }
 
     /**
      * 设置获取关键侦名称
+     * @public
      * @param string name
      * @returns {*}
      */
-    Frame.prototype.name=function( name )
+    KeyFrame.prototype.name=function( name )
     {
         if( typeof name !== "undefined" )
         {
@@ -900,7 +1017,86 @@ var tl= new Timeline(60).addFrame(function(){
         return this.__name__;
     }
 
-    window.Frame=Frame;
+
+    /**
+     * 目标运动属性对象
+     * @param nodeElement target 目标元素
+     * @constructor
+     */
+    function MotionProperties( target )
+    {
+        if( !Utils.isNodeElement(target) )
+        {
+            throw new Error('invalid target');
+        }
+        this.__target__=target;
+        this.__properties__=[];
+    }
+
+    MotionProperties.prototype.constructor=MotionProperties;
+    MotionProperties.prototype.__target__=null;
+    MotionProperties.prototype.__properties__=[];
+
+
+    /**
+     * 运动目标
+     * @read-only
+     * @returns {null|NodeElement}
+     */
+    MotionProperties.prototype.target=function()
+    {
+        return this.__target__;
+    }
+
+    /**
+     * 设置运动属性
+     * @param string|function property  属性名称
+     * @param number endPoint  结束点
+     * @param number startPoint 开始点
+     * @returns {MotionProperties}
+     */
+    MotionProperties.prototype.setProperties=function(property,endPoint,startPoint)
+    {
+        var type =  typeof property;
+        if( type !== "string" && type !== "function" )
+           throw new Error('invalid property');
+
+        endPoint =  parseFloat( endPoint );
+        if( isNaN(endPoint)  )throw new Error('invalid endPoint');
+
+        if( typeof startPoint === "undefined" && this.__target__ )
+        {
+            startPoint = type === "function" ? property.call( this.__target__, 'getting' ) : Utils.style( this.__target__ , property );
+        }
+
+        startPoint =  parseFloat( startPoint );
+        if( isNaN(startPoint)  )throw new Error('invalid startPoint');
+
+        this.__properties__.push( {'property':property,'from': startPoint, 'to': endPoint, flag: type === "function" } );
+        return this;
+    }
+
+    /**
+     * 获取运动属性
+     * @param string|function property 属性名称
+     * @returns {*}
+     */
+    MotionProperties.prototype.getProperties=function( property )
+    {
+        if( typeof property === "undefined" )
+          return this.__properties__;
+
+        var len = this.__properties__.length;
+        var index = 0;
+        for(; index < len; index++ )if( this.__properties__[index].property === property )
+        {
+            return this.__properties__[index];
+        }
+        return null;
+    }
+
+    window.MotionProperties=MotionProperties;
+    window.KeyFrame=KeyFrame;
     window.Timeline=Timeline;
 
 })(window)

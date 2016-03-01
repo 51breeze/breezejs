@@ -1362,7 +1362,7 @@
         {
             var d = options[i].duration;
             delete options[i].duration
-            tl.addFrame( options[i] , d );
+            tl.addKeyFrame( options[i] , d );
         }
         if( typeof callback === 'function' )
         {
