@@ -124,6 +124,14 @@
                 clientLeft = docElem.clientLeft || body.clientLeft || 0,
                 scrollTop = win.pageYOffset || docElem.scrollTop || body.scrollTop,
                 scrollLeft = win.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+
+                //始终相对浏览器窗口的位置
+                var fixed =  Utils.style(elem,'position') === 'fixed';
+                if( fixed ){
+                    scrollTop=0;
+                    scrollLeft=0;
+                }
+
                 value.top = box.top + scrollTop - clientTop;
                 value.left = box.left + scrollLeft - clientLeft;
                 value.right = box.right + scrollLeft - clientLeft;
@@ -816,7 +824,7 @@
      * 取得当前的时间戳
      * @returns {number}
      */
-    Utils.time=function()
+    Utils.timed=function()
     {
         return ( new Date() ).getTime();
     }
@@ -1552,7 +1560,7 @@
         var type = file.match(/\.(css|js)(\?.*?)?$/i)
         if( !type )throw new Error('import script file format of invalid');
 
-        file+=( !type[2] ? '?t=' : '&t=')+Utils.time();
+        file+=( !type[2] ? '?t=' : '&t=')+Utils.timed();
 
         type=type[1];
         type=type.toLowerCase() === 'css' ? 'link' : 'script';

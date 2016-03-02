@@ -182,7 +182,7 @@ var tl= new Timeline(60).addFrame(function(){
         this.__startTime__=0;
         this.__lastTime__=0;
         this.__counter__=0;
-        this.__flag__=true; //是否正序播放还是倒序播放
+        this.__positive__=true; //播放头是处于正序播放还是倒序播放的状态
         this.__delay__=0;
         EventDispatcher.call(this, elements );
     }
@@ -246,6 +246,15 @@ var tl= new Timeline(60).addFrame(function(){
     }
 
     /**
+     * 播放头是处于正序播放还是倒序播放的状态
+     * @returns {boolean}
+     */
+    Timeline.prototype.positive=function()
+    {
+        return !!this.__positive__;
+    }
+
+    /**
      * 开始播放时间轴
      * @returns {Timeline}
      */
@@ -301,7 +310,7 @@ var tl= new Timeline(60).addFrame(function(){
      * 获取已播放的时长,以毫秒为单位
      * @returns {number|*}
      */
-    Timeline.prototype.time=function()
+    Timeline.prototype.timed=function()
     {
         return Math.round( this.__time__ );
     }
@@ -310,29 +319,23 @@ var tl= new Timeline(60).addFrame(function(){
      * 获取当前动画需要持续的总时长,以毫秒为单位。
      * @returns {number}
      */
-    Timeline.prototype.calculateDuration=function( length )
+    Timeline.prototype.duration=function( length )
     {
         var interval = Math.max(1000 / this.fps(), 16.7 );
-        return Math.round( (length || this.length() ) * interval );
+
+        console.log( interval )
+
+        return Math.round( ( length >=0 ? length : this.__length__ ) * interval );
     }
 
     /**
-     * 获取当前时间轴播放需的总时长,以毫秒为单位。
+     * 根据侦格索引返回当前时间。以毫秒为单位。
      * @returns {number}
      */
-    Timeline.prototype.timeLenght=function( length )
+    Timeline.prototype.timeByIndex=function( index )
     {
         var interval = Math.max(1000 / this.fps(), 16.7 );
-        return Math.round( (length || this.__length__ ) * interval );
-    }
-
-    /**
-     * 时间轴的计数器，当前播放放了多少个侦格。
-     * @returns {number}
-     */
-    Timeline.prototype.counter = function()
-    {
-        return this.__counter__;
+        return Math.round( index * interval );
     }
 
     /**
@@ -377,14 +380,12 @@ var tl= new Timeline(60).addFrame(function(){
     }
 
     /**
-     * 播放头需要播放的总侦格的长度。
-     * 如果设置了倒放则是单向侦格*2
+     * 时间轴侦格的总长度。
      * @return number
      */
     Timeline.prototype.length=function()
     {
-        var val= this.__length__ * Math.max(this.repeat(),1);
-        return this.__reverse__ ? val * 2 : val;
+        return this.__length__;
     }
 
     /**
@@ -418,7 +419,7 @@ var tl= new Timeline(60).addFrame(function(){
             return CSS3Animation.call(
                 this,
                 this.__frames__,
-                this.calculateDuration(),
+                this.duration(),
                 this.repeat(),
                 this.reverse(),
                 this.delay(),
@@ -444,6 +445,8 @@ var tl= new Timeline(60).addFrame(function(){
         this.__isPlaying__=true;
         this.__paused__=false;
         this.__current__=index;
+        this.__counter__=0;
+        this.__tick__=interval;
 
         //统计暂停总时间
         this.__pauseTimes__+=this.__pauseTime__ > 0 ? getTime()-this.__pauseTime__ : 0;
@@ -460,8 +463,9 @@ var tl= new Timeline(60).addFrame(function(){
             strict = this.strict(),
             reverse=this.reverse(),
             smooth = this.smooth(),
-            duration=this.calculateDuration(), //此时间轴需要持续的总时间
-            length= this.length(), //此时间轴的总长度包括重复的次数
+            duration=reverse ? this.duration() * 2 : this.duration() , //此时间轴需要持续的总时间包括倒放时间
+            length= reverse? this.length()*2 :  this.length() , //此时间轴的总长度包括倒放
+            keyframes = this.__frames__,
             running=function(val)
             {
                 if( !self.__isPlaying__ )
@@ -477,7 +481,7 @@ var tl= new Timeline(60).addFrame(function(){
                 var t= Math.round( curtime - self.__startTime__ );
 
                 //平均心跳间隔
-                var a= self.__counter__ > 0 ? Math.round( interval / Math.max( t-interval * self.__counter__, 1 ) ) : 0 ;
+                var a= self.__counter__ > 0  ? Math.round( interval / Math.max( t-interval * self.__counter__, 1 ) ) : 0 ;
 
                 //上一次与现在的心跳间隔
                 var d=  curtime - self.__lastTime__ ;
@@ -492,16 +496,16 @@ var tl= new Timeline(60).addFrame(function(){
                 self.__time__=t;
 
                 //tick
-                if( d >= a || smooth )
+                if( true )
                 {
+                    self.__counter__++;
+                    self.__tick__= d;
+
                     //记录最近一次播放的时间
                     self.__lastTime__= curtime;
 
-                    //当前已播放的侦格
-                    self.__counter__++;
-
                     //根据播放头找到关键侦的位置
-                    index = getFrameByIndex(self.__frames__ , self.__current__);
+                    index = getFrameByIndex( keyframes, self.__current__);
 
                     //定位到指定的关键侦
                     frame=self.__frames__[ index ];
@@ -512,61 +516,38 @@ var tl= new Timeline(60).addFrame(function(){
                         frame.action( fn );
                     }
 
-                    //判断当前时间轴的状态
-                    var finish = repeat > 0 ? (strict ? duration <= t : self.__counter__ >= length) : false;
+                    //判断播放头是否达到结尾状态
+                    var finish = strict ? duration <= t : self.__counter__ >= length;
+
+                    console.log('==============current===========', self.__current__, self.__counter__ );
 
                     //播放完成.
-                    if( !frame || finish )
+                    if( finish )
                     {
                         self.stop();
-                        dipatcher.call(self, TimelineEvent.FINISH, {time:t} );
-                        self.__counter__=0;
+                        console.log('==============FINISH===========', duration, t);
+                        dipatcher.call(self, TimelineEvent.FINISH, {timed:t} );
                     }
-                    //将播放头向后移动, flag 为 false 时将播放头向前移动
                     else
                     {
                         //严格模式，根据时间定位播放头
                         if( strict )
                         {
                             var b=Math.round( t / interval ) % self.__length__ + 1 ;
-                            var val= self.__flag__ ? b : self.__length__ - b -1  ;
-                            self.__current__ = Math.min( Math.max( val, 0 ) , self.__length__ -1 );
-
-                            //播放头是否到结尾
-                            if( self.__counter__ % self.__length__===0 )
-                            {
-                                self.__current__ = self.__flag__ ? self.__length__ : -1 ;
-                            }
+                            var val= self.__positive__ ? b : self.__length__ - b ;
+                            self.__current__ = Math.max( val, 0 );
                         }
                         //移动播放头
                         else
                         {
-                            self.__flag__ ? self.__current__++ : self.__current__--;
+                            self.__positive__ ? self.__current__++ : self.__current__--;
                         }
 
-                       var isRev = !self.__flag__  && self.__current__ < 0;
-
-                        //播放头是否在结尾和开始的位置
-                        if( ( self.__flag__ && self.__current__ >= self.__length__ ) || isRev  )
+                        //改变播放头方向
+                        if( reverse && self.__current__ >= self.__length__ )
                         {
-                            //需要重复的次数
-                            if( repeat === -1 ||  self.__counter__ < length )
-                            {
-                                self.__current__= 0;
-
-                                //倒放
-                                if( reverse )
-                                {
-                                    isRev && dipatcher.call(self, TimelineEvent.REPEAT );
-                                    self.__flag__=!self.__flag__;
-                                    self.__current__=self.__flag__ ? 0 : self.__length__-1;
-                                    dipatcher.call(self, TimelineEvent.REVERSE );
-
-                                }else
-                                {
-                                    dipatcher.call(self, TimelineEvent.REPEAT );
-                                }
-                            }
+                            self.__positive__ = !self.__positive__;
+                            self.__current__ = self.__length__-1;
                         }
                     }
                 }
@@ -578,15 +559,17 @@ var tl= new Timeline(60).addFrame(function(){
            this.__lastTime__ = this.__startTime__= getTime() ;
 
         //根据播放头的位置,计算从0到指定播放头所需要的时间增量
-        if(  this.__current__ > 0 && this.__counter__=== 0 )
+        if(  this.__current__ > 0 )
         {
             this.__startTime__ -= this.__current__ * interval;
-            this.__lastTime__   = this.__startTime__;
+            this.__lastTime__   = this.__startTime__ + interval;
         }
 
-        //计数器初始值设置为与播放头同等
-        if( this.__counter__ === 0 )
-            this.__counter__=this.__current__;
+        //当前时间
+        var curtime=getTime() - self.__pauseTimes__ ;
+
+        //当前运行时长
+        var t= Math.round( curtime - self.__startTime__ );
 
         running(0);
         dipatcher.call(this, TimelineEvent.PLAY );
@@ -647,7 +630,7 @@ var tl= new Timeline(60).addFrame(function(){
      */
     Timeline.prototype.current=function()
     {
-       return this.__current__+1;
+       return this.__current__;
     }
 
     /**
@@ -661,27 +644,34 @@ var tl= new Timeline(60).addFrame(function(){
 
     /**
      * 添加关键侦
-     * @param Frame frame 关键侦对象
+     * @param KeyFrame keyframe 关键侦对象
      * @param length 持续侦格的长度
      * @returns {Timeline}
      */
-    Timeline.prototype.addKeyFrame=function( frame )
+    Timeline.prototype.addKeyFrame=function( keyframe )
     {
-        if( !(frame instanceof KeyFrame) )
+        if( !(keyframe instanceof KeyFrame) )
         {
             throw new Error('invalid frame. The frame must be is Frame instance');
         }
 
-        if( !frame.name() )
+        if( !keyframe.name() )
         {
-            frame.name( this.__frames__.length )
+            keyframe.name( this.__frames__.length )
         }
 
-        frame.__timeline__ = this;
-        frame.__start__ = this.__length__;
-        this.__length__ += frame.length();
-        frame.__end__ = this.__length__;
-        this.__frames__.push( frame );
+        var len =  this.__frames__.length;
+        if( len > 0 )
+        {
+            var prevKeyFrame = this.__frames__[ len-1 ];
+            keyframe.__prevKeyFrame__= prevKeyFrame;
+            prevKeyFrame.__nextKeyFrame__= keyframe;
+        }
+        keyframe.__timeline__ = this;
+        keyframe.__start__ = this.__length__;
+        this.__length__ += keyframe.length();
+        keyframe.__end__ = this.__length__-1;
+        this.__frames__.push( keyframe );
         return this;
     }
 
@@ -758,42 +748,6 @@ var tl= new Timeline(60).addFrame(function(){
             }
         }
         return false;
-    }
-
-    /*
-     * Tween.js
-     * t: current time（当前时间）
-     * b: beginning value（初始值）
-     * c: change in value（变化量）
-     * d: duration（持续时间）
-     */
-    function setStyle( frame, fn )
-    {
-        var d = this.calculateDuration(frame.end - frame.start);
-        var t = this.time();
-
-        var targets =  this.targets();
-        targets = targets instanceof Array ? targets : [targets];
-
-        for(var i in targets )
-        {
-             var elem = targets[ i ];
-             for( var p in frame.property )
-             {
-                 var c = parseFloat( frame.property[p] );
-                 var b=0;
-
-                 if( typeof frame.initValue[p] === 'undefined' )
-                 {
-                     frame.initValue[p]= parseFloat( elem.style[p] ) || 0;
-                 }
-
-                 b = frame.initValue[p];
-                 var v= fn( t, b, c, d );
-                 elem.style[ p ] = v;
-
-             }
-        }
     }
 
     var createdAnimationStyle={};
@@ -882,7 +836,7 @@ var tl= new Timeline(60).addFrame(function(){
      */
     function KeyFrame( length )
     {
-        this.__motionProperties__=[];
+        this.__motions__=[];
         this.length( length );
     }
 
@@ -892,7 +846,30 @@ var tl= new Timeline(60).addFrame(function(){
     KeyFrame.prototype.__start__=0;
     KeyFrame.prototype.__end__=0;
     KeyFrame.prototype.__timeline__=null;
-    KeyFrame.prototype.__motionProperties__=[];
+    KeyFrame.prototype.__motions__=[];
+    KeyFrame.prototype.__prevKeyFrame__=null;
+    KeyFrame.prototype.__nextKeyFrame__=null;
+
+
+    /**
+     * 紧邻的上一个关键侦
+     * @read-only
+     * @returns {KeyFrame}
+     */
+    KeyFrame.prototype.prevKeyFrame=function()
+    {
+        return this.__prevKeyFrame__;
+    }
+
+    /**
+     * 紧邻的下一个关键侦
+     * @read-only
+     * @returns {KeyFrame}
+     */
+    KeyFrame.prototype.nextKeyFrame=function()
+    {
+        return this.__nextKeyFrame__;
+    }
 
     /**
      * 获取时间轴对象
@@ -909,6 +886,16 @@ var tl= new Timeline(60).addFrame(function(){
     }
 
     /**
+     * 当前关键需要播放的总时长
+     * @read-only
+     * @returns {number}
+     */
+    KeyFrame.prototype.timeByIndex=function()
+    {
+        return this.timeline().timeByIndex( this.timeline().current() - this.start() );
+    }
+
+    /**
      * 动作入口
      * @read-only
      * @returns {null|NodeElement}
@@ -917,16 +904,15 @@ var tl= new Timeline(60).addFrame(function(){
     {
            var motion,motions = this.motions();
            var len = motions.length,index=0;
-           var timeline = this.timeline();
-           var d = timeline.timeLenght( this.length() );
-           var t = timeline.time();
+           var d = this.timeline().duration( this.length() );
+           var t = this.timeByIndex();
 
            for( ;index< len ; index++ )
            {
                motion = motions[index];
-               if( motion instanceof MotionProperties )
+               if( motion instanceof Motions )
                {
-                   var properties = motion.getProperties();
+                   var properties = motion.get();
                    var target = motion.target();
                    var i= 0, l= properties.length;
                    for( ; i<l; i++ )
@@ -934,13 +920,22 @@ var tl= new Timeline(60).addFrame(function(){
                         var property = properties[i];
                         var to = property.to;
                         var from  = property.from;
-                        var value = timing(t,from, to-from, d);
-                        property.flag ? property.property.call(target, value) : Utils.style(target,property.property, value);
+                        var value = Math.round( timing(t,from, to-from, d) );
+
+                       console.log( property.property, value , t, d, from, to , to-from ,  this.timeline().current() , this.name() )
+
+                        if( !motion.isNodeElement )
+                        {
+                           target.call( this, value);
+                        }else
+                        {
+                            property.flag ? property.property.call(target, value) : Utils.style(target, property.property, value);
+                        }
                    }
 
                }else if( typeof motion === "function" )
                {
-                   motion.call(this);
+                   motion.call(this,t,d);
                }
            }
     }
@@ -977,7 +972,7 @@ var tl= new Timeline(60).addFrame(function(){
          if( typeof length !==  "undefined" )
          {
              length = parseInt( length );
-             if( isNaN(length) || length < 1 )throw new Error('invalid length. The frame lenght must be greater than 1');
+             if( isNaN(length) || length < 1 )throw new Error('invalid length. The keyframe lenght must be greater than 0');
              this.__lenght__ = length;
              return this;
          }
@@ -985,20 +980,20 @@ var tl= new Timeline(60).addFrame(function(){
     }
 
     /**
-     * 运动属性对象
-     * @param val
-     * @returns {*}
+     * 设置获取运动属性对象
+     * @param Motions motions 目标运动属性对象
+     * @returns {Array}
      * @public
      */
-    KeyFrame.prototype.motions=function( motionProperties )
+    KeyFrame.prototype.motions=function( motions )
     {
-        if( typeof motionProperties !== "undefined" )
+        if( typeof motions !== "undefined" )
         {
-            if( !(motionProperties instanceof MotionProperties) )
+            if( !(motions instanceof Motions) )
                 throw new Error('invalid motionProperties');
-            this.__motionProperties__.push(motionProperties);
+            this.__motions__.push(motions);
         }
-        return this.__motionProperties__;
+        return this.__motions__;
     }
 
     /**
@@ -1017,15 +1012,15 @@ var tl= new Timeline(60).addFrame(function(){
         return this.__name__;
     }
 
-
     /**
      * 目标运动属性对象
-     * @param nodeElement target 目标元素
+     * @param nodeElement|function target 需要运动的目标元素
      * @constructor
      */
-    function MotionProperties( target )
+    function Motions( target )
     {
-        if( !Utils.isNodeElement(target) )
+        this.isNodeElement=Utils.isNodeElement(target);
+        if( !this.isNodeElement && typeof target !== "function" )
         {
             throw new Error('invalid target');
         }
@@ -1033,46 +1028,38 @@ var tl= new Timeline(60).addFrame(function(){
         this.__properties__=[];
     }
 
-    MotionProperties.prototype.constructor=MotionProperties;
-    MotionProperties.prototype.__target__=null;
-    MotionProperties.prototype.__properties__=[];
-
+    Motions.prototype.constructor=Motions;
+    Motions.prototype.__target__=null;
+    Motions.prototype.__properties__=[];
 
     /**
-     * 运动目标
+     * 运动目标对象
      * @read-only
      * @returns {null|NodeElement}
      */
-    MotionProperties.prototype.target=function()
+    Motions.prototype.target=function()
     {
         return this.__target__;
     }
 
     /**
-     * 设置运动属性
+     * 设置运动属性方位
      * @param string|function property  属性名称
-     * @param number endPoint  结束点
-     * @param number startPoint 开始点
-     * @returns {MotionProperties}
+     * @param number from  开始点
+     * @param number to  结束点
+     * @returns {Motions}
      */
-    MotionProperties.prototype.setProperties=function(property,endPoint,startPoint)
+    Motions.prototype.set=function(property,from,to)
     {
         var type =  typeof property;
         if( type !== "string" && type !== "function" )
            throw new Error('invalid property');
 
-        endPoint =  parseFloat( endPoint );
-        if( isNaN(endPoint)  )throw new Error('invalid endPoint');
-
-        if( typeof startPoint === "undefined" && this.__target__ )
-        {
-            startPoint = type === "function" ? property.call( this.__target__, 'getting' ) : Utils.style( this.__target__ , property );
-        }
-
-        startPoint =  parseFloat( startPoint );
-        if( isNaN(startPoint)  )throw new Error('invalid startPoint');
-
-        this.__properties__.push( {'property':property,'from': startPoint, 'to': endPoint, flag: type === "function" } );
+        from =  parseFloat( from );
+        to =  parseFloat( to );
+        if( isNaN(from)  )throw new Error('The from type must be is number');
+        if( isNaN(to)  )throw new Error('The to type must be is number');
+        this.__properties__.push( {'property':property,'from': from, 'to': to, flag: type === "function" } );
         return this;
     }
 
@@ -1081,7 +1068,7 @@ var tl= new Timeline(60).addFrame(function(){
      * @param string|function property 属性名称
      * @returns {*}
      */
-    MotionProperties.prototype.getProperties=function( property )
+    Motions.prototype.get=function( property )
     {
         if( typeof property === "undefined" )
           return this.__properties__;
@@ -1095,7 +1082,7 @@ var tl= new Timeline(60).addFrame(function(){
         return null;
     }
 
-    window.MotionProperties=MotionProperties;
+    window.Motions=Motions;
     window.KeyFrame=KeyFrame;
     window.Timeline=Timeline;
 

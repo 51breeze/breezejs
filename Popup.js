@@ -308,18 +308,45 @@
             __mask__.addEventListener( MouseEvent.MOUSE_DOWN,function(event){
 
                 var tl=  new Timeline( skinGroup[0] )
-                tl.timingFunction('Quad.easeIn');
+                tl.timingFunction('Elastic.easeInOut');
 
                 tl.enable(false)
+                tl.reverse(true)
+                tl.strict(true)
+                tl.fps(60)
 
                 var size = 300;
                 var duration =1;
-                var pos =  Utils.position(skinGroup[0])
+                var pos =  Utils.position(skinGroup[0]);
 
-                var frame = new KeyFrame( 10 );
-                  frame.motions( new MotionProperties(skinGroup[0]).setProperties('left', pos.left+size, pos.left ) )
-                tl.addKeyFrame( frame );
+                console.log( pos )
+
+                var frame = new KeyFrame( 50 );
+                  frame.motions( new Motions(skinGroup[0])
+                      .set('left', pos.left, pos.left+size )
+                  )
+                  tl.addKeyFrame( frame );
+
+                  var frame1 = new KeyFrame( 50 );
+                  frame1.motions( new Motions(skinGroup[0])
+                      .set('left', pos.left+size , pos.left )
+                  )
+                  tl.addKeyFrame( frame1 );
+
+
+                var frame2 = new KeyFrame( 50 );
+                frame2.motions( new Motions(skinGroup[0])
+                      .set('top', pos.top, pos.top+200  )
+                  )
+                tl.addKeyFrame( frame2 );
+
+              // console.log( tl.calculateDuration() )
+
                 tl.play();
+
+              //  console.log( tl.getKeyFrame() )
+
+
             })
         }
         return __mask__;
