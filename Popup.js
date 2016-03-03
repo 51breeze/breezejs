@@ -308,18 +308,19 @@
             __mask__.addEventListener( MouseEvent.MOUSE_DOWN,function(event){
 
                 var tl=  new Timeline( skinGroup[0] )
-                tl.timingFunction('Elastic.easeInOut');
+                tl.timingFunction('Bounce.easeOut');
 
                 tl.enable(false)
-                tl.reverse(true)
-                tl.strict(true)
+                tl.reverse(false)
+                tl.strict(false)
                 tl.fps(60)
+              //  tl.repeat(3)
+             //   tl.delay(2000)
 
                 var size = 300;
                 var duration =1;
                 var pos =  Utils.position(skinGroup[0]);
 
-                console.log( 150 % 150 )
 
                 var frame = new KeyFrame( 50 );
                   frame.motions( new Motions(skinGroup[0])
@@ -327,7 +328,7 @@
                   )
                   tl.addKeyFrame( frame );
 
-                  var frame1 = new KeyFrame( 50 );
+                /*  var frame1 = new KeyFrame( 50 );
                   frame1.motions( new Motions(skinGroup[0])
                       .set('left', pos.left+size , pos.left )
                   )
@@ -338,11 +339,11 @@
                 frame2.motions( new Motions(skinGroup[0])
                       .set('top', pos.top, pos.top+200  )
                   )
-                tl.addKeyFrame( frame2 );
+                tl.addKeyFrame( frame2 );*/
 
               // console.log( tl.calculateDuration() )
 
-                tl.play();
+                tl.gotoAndPlay(0);
 
               //  console.log( tl.getKeyFrame() )
 
