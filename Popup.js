@@ -319,7 +319,7 @@
                 var duration =1;
                 var pos =  Utils.position(skinGroup[0]);
 
-                console.log( pos )
+                console.log( 150 % 150 )
 
                 var frame = new KeyFrame( 50 );
                   frame.motions( new Motions(skinGroup[0])
@@ -345,6 +345,20 @@
                 tl.play();
 
               //  console.log( tl.getKeyFrame() )
+
+
+
+
+
+                var interval = 20;
+                var runtime = 500;
+                var counter  = 1;
+                var lentime = 1000;
+                var len = 50;
+
+
+
+               // console.log(   ( lentime - runtime ) / ( len - counter )  )
 
 
             })

@@ -322,9 +322,6 @@ var tl= new Timeline(60).addFrame(function(){
     Timeline.prototype.duration=function( length )
     {
         var interval = Math.max(1000 / this.fps(), 16.7 );
-
-        console.log( interval )
-
         return Math.round( ( length >=0 ? length : this.__length__ ) * interval );
     }
 
@@ -412,7 +409,7 @@ var tl= new Timeline(60).addFrame(function(){
         if( this.__isPlaying__ )
             return false;
 
-        var interval = Math.max(1000 / this.fps(), 20 );
+        var interval = Math.max(1000 / this.fps(), 16.7 );
 
         if( this.enable() )
         {
@@ -466,6 +463,7 @@ var tl= new Timeline(60).addFrame(function(){
             duration=reverse ? this.duration() * 2 : this.duration() , //此时间轴需要持续的总时间包括倒放时间
             length= reverse? this.length()*2 :  this.length() , //此时间轴的总长度包括倒放
             keyframes = this.__frames__,
+            lastIndex = -1,
             running=function(val)
             {
                 if( !self.__isPlaying__ )
@@ -481,10 +479,11 @@ var tl= new Timeline(60).addFrame(function(){
                 var t= Math.round( curtime - self.__startTime__ );
 
                 //平均心跳间隔
-                var a= self.__counter__ > 0  ? Math.round( interval / Math.max( t-interval * self.__counter__, 1 ) ) : 0 ;
+               //  var a= self.__counter__ > 0  ? Math.round( interval / Math.max( t-interval * self.__counter__, 1 ) ) : 0 ;
+                var a=Math.round( ( duration - t ) / ( length - self.__counter__ ) ) ;
 
                 //上一次与现在的心跳间隔
-                var d=  curtime - self.__lastTime__ ;
+                var d=  Math.round(curtime - self.__lastTime__);
 
                 //运行总时长不能大于时间轴侦格长度
                 if( duration-t <= interval )
@@ -496,22 +495,24 @@ var tl= new Timeline(60).addFrame(function(){
                 self.__time__=t;
 
                 //tick
-                if( true )
+                if( d >= a )
                 {
-                    self.__counter__++;
+
                     self.__tick__= d;
 
                     //记录最近一次播放的时间
                     self.__lastTime__= curtime;
 
                     //根据播放头找到关键侦的位置
-                    index = getFrameByIndex( keyframes, self.__current__);
+
+                    index = self.__current__ != lastIndex ? getFrameByIndex( keyframes, self.__current__ ) : -1;
+                    lastIndex=  self.__current__;
 
                     //定位到指定的关键侦
-                    frame=self.__frames__[ index ];
+                    frame=  self.__frames__[ index ];
 
                     //调用关键侦上的方法
-                    if( frame )
+                    if( frame  )
                     {
                         frame.action( fn );
                     }
@@ -519,13 +520,10 @@ var tl= new Timeline(60).addFrame(function(){
                     //判断播放头是否达到结尾状态
                     var finish = strict ? duration <= t : self.__counter__ >= length;
 
-                    console.log('==============current===========', self.__current__, self.__counter__ );
-
                     //播放完成.
                     if( finish )
                     {
                         self.stop();
-                        console.log('==============FINISH===========', duration, t);
                         dipatcher.call(self, TimelineEvent.FINISH, {timed:t} );
                     }
                     else
@@ -533,9 +531,8 @@ var tl= new Timeline(60).addFrame(function(){
                         //严格模式，根据时间定位播放头
                         if( strict )
                         {
-                            var b=Math.round( t / interval ) % self.__length__ + 1 ;
-                            var val= self.__positive__ ? b : self.__length__ - b ;
-                            self.__current__ = Math.max( val, 0 );
+                            var b=Math.round( t / interval );
+                            self.__current__ = self.__positive__ ? b : self.__length__ - b % self.__length__ ;
                         }
                         //移动播放头
                         else
@@ -544,12 +541,13 @@ var tl= new Timeline(60).addFrame(function(){
                         }
 
                         //改变播放头方向
-                        if( reverse && self.__current__ >= self.__length__ )
+                        if( reverse && self.__positive__ && self.__current__ >= self.__length__ )
                         {
                             self.__positive__ = !self.__positive__;
-                            self.__current__ = self.__length__-1;
+                            self.__current__ = self.__length__;
                         }
                     }
+                    self.__counter__++;
                 }
                 self.__tid__=requestAnimationFrame( running );
             };
@@ -562,14 +560,8 @@ var tl= new Timeline(60).addFrame(function(){
         if(  this.__current__ > 0 )
         {
             this.__startTime__ -= this.__current__ * interval;
-            this.__lastTime__   = this.__startTime__ + interval;
+            this.__lastTime__  -= this.__current__-1 * interval;
         }
-
-        //当前时间
-        var curtime=getTime() - self.__pauseTimes__ ;
-
-        //当前运行时长
-        var t= Math.round( curtime - self.__startTime__ );
 
         running(0);
         dipatcher.call(this, TimelineEvent.PLAY );
