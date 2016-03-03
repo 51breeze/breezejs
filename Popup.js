@@ -308,13 +308,12 @@
             __mask__.addEventListener( MouseEvent.MOUSE_DOWN,function(event){
 
                 var tl=  new Timeline( skinGroup[0] )
-                tl.timingFunction('Bounce.easeOut');
+                tl.timing( Tween.Elastic.easeIn );
 
-                tl.enable(false)
-                tl.reverse(false)
+                tl.reverse(true)
                 tl.strict(false)
                 tl.fps(60)
-              //  tl.repeat(3)
+              //  tl.repeats(3)
              //   tl.delay(2000)
 
                 var size = 300;

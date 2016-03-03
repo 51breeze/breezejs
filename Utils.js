@@ -871,6 +871,8 @@
      */
     Utils.serialize=function( object, type ,group )
     {
+        if( typeof object === "string" )
+           return object;
         var str=[],key,joint='&',separate='=',val='',prefix=Utils.isBoolean(group) ? null : group;
         type = type || 'url';
         group = ( group !== false );
@@ -1660,6 +1662,127 @@
     Utils.toArray=function( val , separator )
     {
         return val instanceof Array ? val : String(val).split(separator || ',');
+    }
+
+
+    /**
+     * @private
+     */
+    var animationSupport=null;
+
+    /**
+     * 判断是否支持css3动画
+     * @returns {boolean}
+     */
+    Utils.isAnimationSupport=function()
+    {
+        if( animationSupport === null )
+        {
+             var prefix = Utils.getBrowserPrefix();
+             var div = Utils.createElement('div');
+             var prop = prefix+'animation-play-state';
+             div.style[prop] = 'paused';
+             animationSupport = div.style[prop] === 'paused';
+        }
+        return animationSupport;
+    }
+
+    /**
+     * @private
+     */
+    var createdAnimationStyle={};
+
+    /**
+     * @private
+     */
+    var defaultOptions= {
+        'duration':'1s',
+        'repeats':'1',
+        'reverse':'normal',
+        'delay':'0s',
+        'timing':'ease',
+        'state':'running',
+        'callback':null,
+        'mode':'forwards'
+    };
+
+    /**
+     * 生成css3样式动画
+     * properties={
+     *    '0%':'left:10px;',
+     *    '100%':'left:100px;'
+     * }
+     */
+    Utils.CSS3Animation=function(element, properties, options )
+    {
+        if( !Utils.isAnimationSupport() )
+           return false;
+
+        options = Utils.extend(defaultOptions,options || {})
+        var  css=[];
+        for( var i in properties )
+        {
+            if( typeof  properties[i] === "string" )
+            {
+                css.push( i + ' {');
+                css.push( properties[i] );
+                css.push( '}' );
+            }
+        }
+
+        var prefix = Utils.getBrowserPrefix()
+        var stylename = 'A'+Utils.crc32( css.join('') ) ;
+        if( createdAnimationStyle[ stylename ] !==true )
+        {
+            createdAnimationStyle[ stylename ]=true;
+            css.unshift('@'+prefix+'keyframes ' + stylename + '{');
+            css.push('}');
+            css.push( '.'+stylename+'{' );
+
+            var repeats = options.repeats < 0 ? 'infinite' : options.repeats;
+            var timing=options.timing.replace(/([A-Z])/,function(all,a){
+                return '-'+a.toLowerCase();
+            });
+
+            var param = {
+                'name':stylename,
+                'duration':options.duration,
+                'iteration-count': repeats,  //infinite
+                'delay':options.delay,
+                'fill-mode':options.mode,  //both backwards none forwards
+                'direction': options.reverse,  // alternate-reverse  reverse alternate normal
+                'timing-function': timing,  //ease  ease-in  ease-out  cubic-bezier  linear
+                'play-state':options.state //paused running
+            }
+            for( var p in  param )
+            {
+                css.push(prefix+'animation-'+p+':'+param[p]+';');
+            }
+            css.push('}');
+            css = css.join("\r\n");
+
+            var head = document.getElementsByTagName('head')[0];
+            var style = document.createElement('style');
+            style.setAttribute('id',stylename);
+            style.innerHTML= css;
+            head.appendChild( style );
+        }
+
+        if( typeof options.callback === "function" )
+        {
+            prefix =prefix.replace(/-/g,'');
+            var end = Utils.lcfirst( prefix+'AnimationEnd' );
+            var iteration = Utils.lcfirst( prefix+'AnimationIteration' );
+            EventDispatcher(element).addEventListener([end,iteration],function(event){
+                options.callback.call(this, event.type === end );
+                this.removeEventListener(end);
+                this.removeEventListener(iteration);
+            });
+        }
+
+        Utils.removeClass(element,stylename);
+        Utils.addClass(element,stylename);
+        return stylename;
     }
 
 

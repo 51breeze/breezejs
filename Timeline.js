@@ -17,8 +17,7 @@ var tl= new Timeline(60).addFrame(function(){
 {
     'use strict';
 
-     var support=true,
-         prefix=Utils.getBrowserPrefix().replace(/-/g,''),
+     var prefix=Utils.getBrowserPrefix().replace(/-/g,''),
          now= performance ? performance.now || performance[ prefix+'Now' ] || null : null,
          requestAnimationFrame = window.requestAnimationFrame || window[prefix+'RequestAnimationFrame'] || null,
          cancelAnimationFrame  = window.cancelAnimationFrame  || window[prefix+'CancelAnimationFrame']  || null;
@@ -37,7 +36,6 @@ var tl= new Timeline(60).addFrame(function(){
         {
             window.clearTimeout(id);
         };
-        support=false;
     }
 
     /**
@@ -96,26 +94,6 @@ var tl= new Timeline(60).addFrame(function(){
     }
 
     /**
-     * 获取缓动函数
-     * @param name
-     * @returns {*}
-     */
-    function getFunByName( name )
-    {
-        if( typeof  name  === 'string' && typeof Tween === 'object' )
-        {
-            name =  name.split('.');
-            var fn=Tween;
-            for( var i in name ) if( fn[ name[i] ] )
-            {
-                fn= fn[ name[i] ];
-            }
-            return typeof fn === 'function' ? fn : null;
-        }
-        return null;
-    }
-
-    /**
      * 时间轴事件
      * @param type
      * @param bubbles
@@ -135,45 +113,19 @@ var tl= new Timeline(60).addFrame(function(){
     TimelineEvent.PAUSE='timelinePause';
     window.TimelineEvent=TimelineEvent;
 
-    //兼容css3 动画事件
-    if( support )
+    function Timeline()
     {
-        //播放完成
-        EventDispatcher.SpecialEvent(TimelineEvent.FINISH,function(element,listener)
-        {
-            EventDispatcher.addEventListener.call(element, Utils.lcfirst( prefix+'AnimationEnd' ),listener,function(event)
-            {
-                event= BreezeEvent.create( event );
-                event.type= TimelineEvent.FINISH;
-                EventDispatcher.dispatchEvent(event);
-            })
-            return false;
-        })
+        if( !(this instanceof Timeline ) )
+          return new Timeline();
 
-        //重复播放
-        EventDispatcher.SpecialEvent(TimelineEvent.REPEAT,function(element,listener)
-        {
-            EventDispatcher.addEventListener.call(element, Utils.lcfirst( prefix+'AnimationIteration') ,listener,function(event)
-            {
-                event= BreezeEvent.create( event );
-                event.type= TimelineEvent.REPEAT;
-                EventDispatcher.dispatchEvent(event);
-            })
-            return false;
-        })
-    }
-
-
-    function Timeline( elements )
-    {
-        this.__fps__= 50 ;
+        this.__fps__= 60 ;
         this.__length__=0;
         this.__frames__=[];
         this.__current__=0;
         this.__repeats__=1;
         this.__reverse__=false;
         this.__tid__=null;
-        this.__strict__=true;
+        this.__strict__=false;
         this.__pauseTime__=0;
         this.__pauseTimes__=0;
         this.__paused__=false;
@@ -183,7 +135,7 @@ var tl= new Timeline(60).addFrame(function(){
         this.__counter__=0;
         this.__positive__=true; //播放头是处于正序播放还是倒序播放的状态
         this.__delay__=0;
-        EventDispatcher.call(this, elements );
+        EventDispatcher.call(this);
     }
 
     Timeline.prototype=new EventDispatcher();
@@ -194,7 +146,7 @@ var tl= new Timeline(60).addFrame(function(){
      * @param number
      * @returns {Timeline}
      */
-    Timeline.prototype.repeat=function( num )
+    Timeline.prototype.repeats=function( num )
     {
         if( typeof num !== "undefined" )
         {
@@ -207,26 +159,18 @@ var tl= new Timeline(60).addFrame(function(){
 
     /**
      * 动画函数
-     * @param string|function fn 默认 linear
-     * linear：线性过渡。等同于贝塞尔曲线(0.0, 0.0, 1.0, 1.0)
-     * ease：平滑过渡。等同于贝塞尔曲线(0.25, 0.1, 0.25, 1.0)
-     * ease-in：由慢到快。等同于贝塞尔曲线(0.42, 0, 1.0, 1.0)
-     * ease-out：由快到慢。等同于贝塞尔曲线(0, 0, 0.58, 1.0)
-     * ease-in-out：由慢到快再到慢。等同于贝塞尔曲线(0.42, 0, 0.58, 1.0)
-     * step-start：等同于 steps(1, start)
-     * step-end：等同于 steps(1, end)
-     * steps(<integer>[, [ start | end ] ]?)：接受两个参数的步进函数。第一个参数必须为正整数，指定函数的步数。第二个参数取值可以是start或end，指定每一步的值发生变化的时间点。第二个参数是可选的，默认值为end。
-     * cubic-bezier(<number>, <number>, <number>, <number>)：特定的贝塞尔曲线类型，4个数值需在[0, 1]区间内
-     * @returns {*|string}
+     * @returns {function}
      */
-    Timeline.prototype.timingFunction=function( fn )
+    Timeline.prototype.timing=function( timing )
     {
-        if( typeof fn !== "undefined" )
+        var type = typeof timing;
+        if( type !== "undefined" )
         {
-            this.__function__= fn ;
+            if( type !=='function' )throw new Error('invalid timing')
+            this.__timing__= timing ;
             return this;
         }
-        return this.__function__ || 'Linear';
+        return this.__timing__ || null;
     }
 
     /**
@@ -356,26 +300,6 @@ var tl= new Timeline(60).addFrame(function(){
     }
 
     /**
-     * @private
-     */
-    Timeline.prototype.__enable__=true;
-
-    /**
-     * 在浏览器支持的情况下是否需要使用用css3的动画, 默认开启。
-     * @param boolean val true 开启 false 禁用
-     * @returns {boolean}
-     */
-    Timeline.prototype.enable = function( val )
-    {
-        if(typeof val !== "undefined" )
-        {
-            this.__enable__=!!val;
-            return this;
-        }
-        return ( !!this.__enable__ && support );
-    }
-
-    /**
      * 时间轴侦格的总长度。
      * @return number
      */
@@ -416,20 +340,6 @@ var tl= new Timeline(60).addFrame(function(){
 
         var interval = this.interval();
         var keyframes = this.getKeyFrame();
-
-        if( this.enable() )
-        {
-            return CSS3Animation.call(
-                this,
-                keyframes,
-                this.duration(),
-                this.repeat(),
-                this.reverse(),
-                this.delay(),
-                this.length(),
-                index );
-        }
-
         var self=this;
         var delay = this.delay();
 
@@ -452,11 +362,8 @@ var tl= new Timeline(60).addFrame(function(){
         this.__pauseTimes__+=this.__pauseTime__ > 0 ? getTime()-this.__pauseTime__ : 0;
         this.__pauseTime__=0;
 
-        var fn =  getFunByName( this.timingFunction() );
-        if( !fn )throw new Error('miss animation function');
-
         var frame,
-            repeat=this.repeat(),
+            repeat=this.repeats(),
             strict = this.strict(),
             reverse=this.reverse(),
             duration=reverse ? this.duration() * 2 : this.duration() , //此时间轴需要持续的总时间包括倒放时间
@@ -507,7 +414,7 @@ var tl= new Timeline(60).addFrame(function(){
                     //调用关键侦上的方法
                     if( frame  )
                     {
-                        frame.action( fn );
+                        frame.action();
                     }
 
                     //判断播放头是否达到结尾状态
@@ -565,7 +472,6 @@ var tl= new Timeline(60).addFrame(function(){
         }
 
         running(0);
-        dipatcher.call(this, TimelineEvent.PLAY );
         return true;
     }
 
@@ -575,16 +481,20 @@ var tl= new Timeline(60).addFrame(function(){
      */
     Timeline.prototype.gotoAndStop=function( index )
     {
-        this.__current__= Math.max(index-1,0);
-        index=getFrameByIndex(this.__frames__,this.__current__);
-        if( !this.__frames__[ index ] )
+        index = parseInt(index) || 0;
+        if( index > this.__length__ )
         {
-            console.log('index invaild');
-            return false;
+            throw new Error('Then index out range')
         }
-       this.stop();
-       this.__name__=this.__frames__[index].name;
-       this.__frames__[index].fn.call(this);
+        this.stop();
+        this.__current__ = index;
+        var frame = this.getKeyFrame(index);
+        if( frame )
+        {
+            frame.action();
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -599,7 +509,7 @@ var tl= new Timeline(60).addFrame(function(){
             isNaN(fps) || (this.__fps__ = fps);
             return this;
         }
-        return this.__fps__ || 50;
+        return this.__fps__ || 60;
     }
 
     /**
@@ -624,15 +534,6 @@ var tl= new Timeline(60).addFrame(function(){
     Timeline.prototype.current=function()
     {
        return this.__current__;
-    }
-
-    /**
-     * 获取当前侦的名称
-     * @returns {*}
-     */
-    Timeline.prototype.currentKeyFrameName=function()
-    {
-        return this.__name__;
     }
 
     /**
@@ -689,15 +590,6 @@ var tl= new Timeline(60).addFrame(function(){
     }
 
     /**
-     * 清除所有的侦格
-     */
-    Timeline.prototype.cleanKeyFrame=function()
-    {
-        this.__frames__=[];
-        this.__length__=0;
-    }
-
-    /**
      * 删除关键侦或者裁剪时间轴
      * @param number|string index  关键侦的名称或者索引
      * @param number frameLength 要删除的侦格长度。如果不传则删除指定索引下的整个关键侦。
@@ -742,108 +634,6 @@ var tl= new Timeline(60).addFrame(function(){
         }
         return false;
     }
-
-    var createdAnimationStyle={};
-
-    /**
-     * 生成css3样式动画
-     * @param frames 每个侦上所要改变元素的样式属性
-     * @param duration 每个侦持续的时间以秒为单位
-     * @param repeats 重复播放几次
-     * @param reverse 是否需要倒放
-     * @param delay  延迟多少秒后播放
-     * @param length 总长度
-     * @param index 当前侦的编号
-     * @constructor
-     */
-    function CSS3Animation(frames, duration,repeats,reverse,delay,length,index )
-    {
-        var frame;
-        var  css=[];
-        for( var i in frames )
-        {
-            frame =frames[ i ];
-            css.push( Math.round( frame.end / length * 100 ) + '% {');
-            var motion,motions = frame.motions();
-            var len = motions.length,index=0;
-            for( ;index< len ; index++ )
-            {
-                motion = motions[index];
-                if( motion instanceof Motions )
-                {
-                    var properties = motion.get();
-                    var target = motion.target();
-                    var i= 0, l= properties.length;
-                    for( ; i<l; i++ )
-                    {
-                        var property = properties[i];
-                        var to = property.to;
-                        css.push( property.property + ':' +  to + 'px;' );
-                    }
-
-                }else if( typeof motion === "function" )
-                {
-                    motion.call(this, css );
-                }
-            }
-            css.push( '}' );
-        }
-
-
-        var stylename = 'a'+Utils.crc32( css.join('') ) ;
-        if( createdAnimationStyle[ stylename ] !==true )
-        {
-           createdAnimationStyle[ stylename ]=true;
-           var am_prefix = prefix==='' ? '' : '-'+prefix+'-';
-           css.unshift('@'+am_prefix+'keyframes ' + stylename + '{');
-           css.push('}');
-           css.push( '.'+stylename+'{' );
-
-           var timing = this.timingFunction();
-            repeats = repeats < 0 ? 'infinite' : repeats;
-            timing=timing.replace(/([A-Z])/,function(all,a){
-                return '-'+a.toLowerCase();
-            });
-
-           var param = {
-               'name':stylename,
-               'duration':duration+'s',
-               'iteration-count': repeats,  //infinite
-               'delay':(delay || 0)+'s',
-               'fill-mode':'forwards',  //both backwards none forwards
-               'direction': !!reverse ? 'alternate' : 'normal',  // alternate-reverse  reverse alternate normal
-               'timing-function': timing,  //ease  ease-in  ease-out  cubic-bezier  linear
-               'play-state':'running' //paused running
-           }
-           for( var p in  param )
-           {
-               css.push(am_prefix+'animation-'+p+':'+param[p]+';');
-           }
-           css.push('}');
-           css = css.join("\r\n");
-
-           var head = document.getElementsByTagName('head')[0];
-           var style = document.createElement('style');
-           style.setAttribute('id',stylename);
-           style.innerHTML= css;
-           head.appendChild( style );
-        }
-
-        for(var i in this.__elements__ )
-        {
-            var elem = this.__elements__[ i ];
-            if( typeof Breeze !=="undefined" && elem instanceof Breeze )
-            {
-                elem.removeClass(stylename).addClass(stylename);
-            }else
-            {
-                Utils.removeClass(elem,stylename);
-                Utils.addClass(elem,stylename);
-            }
-        }
-        return style;
-    }
-
 
     /**
      * 关键侦构造函数
@@ -917,12 +707,13 @@ var tl= new Timeline(60).addFrame(function(){
      * @read-only
      * @returns {null|NodeElement}
      */
-    KeyFrame.prototype.action=function( timing )
+    KeyFrame.prototype.action=function()
     {
            var motion,motions = this.motions();
            var len = motions.length,index=0;
            var d = this.timeline().duration( this.length() );
            var t = this.timeByIndex();
+           var timing = this.timeline().timing();
 
            for( ;index< len ; index++ )
            {
@@ -937,7 +728,7 @@ var tl= new Timeline(60).addFrame(function(){
                         var property = properties[i];
                         var to = property.to;
                         var from  = property.from;
-                        var value = Math.round( timing(t,from, to-from, d) );
+                        var value =timing ? Math.round( timing(t,from, to-from, d) ) : NaN;
                         if( !motion.isNodeElement )
                         {
                            target.call( this, value);
@@ -949,7 +740,7 @@ var tl= new Timeline(60).addFrame(function(){
 
                }else if( typeof motion === "function" )
                {
-                   motion.call(this,t,d);
+                   motion.call(this,t,d,timing);
                }
            }
     }
@@ -996,16 +787,17 @@ var tl= new Timeline(60).addFrame(function(){
     /**
      * 设置获取运动属性对象
      * @param Motions motions 目标运动属性对象
-     * @returns {Array}
+     * @returns {Array|KeyFrame}
      * @public
      */
     KeyFrame.prototype.motions=function( motions )
     {
         if( typeof motions !== "undefined" )
         {
-            if( !(motions instanceof Motions) )
+            if( !(motions instanceof Motions) && typeof motions !== "function" )
                 throw new Error('invalid motionProperties');
             this.__motions__.push(motions);
+            return this;
         }
         return this.__motions__;
     }

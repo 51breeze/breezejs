@@ -26,6 +26,7 @@
     <script src="Pagination.js" ></script>
     <script src="Tween.js" ></script>
     <script src="Timeline.js" ></script>
+    <script src="Animation.js" ></script>
 
     <script src="Selection.js" ></script>
     <script src="Popup.js" ></script>
@@ -152,6 +153,13 @@
         });
 
         Breeze('body').property('disabled','disabled')
+
+
+
+
+        Animation.fadeOut(  Breeze('#selection')[0] ,2 )
+
+        console.log( Utils.isAnimationSupport() )
 
 
     })
