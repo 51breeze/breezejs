@@ -124,25 +124,30 @@
         var height = Utils.getSize(window,'height');
 
         var anchor = this.anchor();
-        var auto = true;
+
         if( anchor )
         {
             var position = Utils.position( anchor );
             var anchorHeight = Utils.getSize(anchor,'height');
             xOffset = position.left;
-            yOffset = position.top - anchorHeight;
+            yOffset = position.top + anchorHeight;
 
             //如超出窗口边界则调整到最佳位置
-            if( auto )
+            if( this.auto() )
             {
+                var scrollLeft = Utils.scroll(document,'left');
+                var scrollTop = Utils.scroll(document,'top');
+
                 if (xOffset + containerWidth > width)
                 {
-                    xOffset -= containerWidth;
+                    xOffset -= (xOffset + containerWidth) - width;
                 }
-                if (yOffset + containerHeight > height)
+
+                var h = height + scrollTop;
+
+                if (yOffset + containerHeight > height &&  h-yOffset < h-position.top )
                 {
-                    height - position.top  > height - position.top - anchorHeight;
-                    yOffset -= containerHeight;
+                    yOffset = position.top - containerHeight;
                 }
             }
 
@@ -173,6 +178,46 @@
             return this;
         }
         return this.__anchor__;
+    }
+
+    /**
+     * @private
+     */
+    Popup.prototype.__auto__=true;
+
+    /**
+     * 指定锚点目标对象
+     * @param HTMLEment
+     * @returns {Popup}
+     */
+    Popup.prototype.auto=function( auto )
+    {
+        if( typeof auto !== "undefined")
+        {
+            this.__auto__ = auto;
+            return this;
+        }
+        return this.__auto__;
+    }
+
+    /**
+     * @private
+     */
+    Popup.prototype.__priority__='bottom';
+
+    /**
+     * 指定锚点目标对象
+     * @param HTMLEment
+     * @returns {Popup}
+     */
+    Popup.prototype.priority=function( priority )
+    {
+        if( typeof priority !== "undefined")
+        {
+            this.__priority__ = priority;
+            return this;
+        }
+        return this.__priority__;
     }
 
     /**

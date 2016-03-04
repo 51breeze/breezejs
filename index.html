@@ -146,11 +146,11 @@
         });
       */
 
-        Popup.confirm('6666666666',function( result ){
+       /* Popup.confirm('6666666666',function( result ){
 
             console.log( result )
 
-        });
+        });*/
 
      //   Breeze('body').property('disabled','disabled')
 
@@ -163,7 +163,19 @@
      //  Animation.shake(  Breeze('#an')[0],.5  , {fps:60})
 
 
-       // console.log( Utils.isAnimationSupport() )
+        Breeze('#an').addEventListener(MouseEvent.CLICK,function(event){
+
+
+            console.log('====')
+
+            console.log( Utils.position(Breeze('#an')[0]).top - Utils.scroll(document,'top') )
+
+        })
+
+
+
+
+
 
 
     })
@@ -216,10 +228,15 @@
 </div>
 
 
+<div  style="width: 100px; height: 100px; background-color: #1b6d85; margin: 200px; overflow:auto;">
 
-<div id="an" style="width: 100px; height: 100px; background-color: #1b6d85; position: absolute; left:200px; top: 200px">
-    sssssss
+    <div id="an" style="width: 300px; height: 300px; background-color: #1b6d85;">
+        sssssss
+    </div>
+
 </div>
+
+
 
 
 
