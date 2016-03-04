@@ -50,6 +50,7 @@
         originalEvent:null,
         type:null,
         propagationStopped: false,
+        immediatePropagationStopped: false,
         altkey:false,
         button:false,
         ctrlKey:false,
@@ -66,7 +67,14 @@
         },
         stopPropagation: function()
         {
+            if( this.originalEvent && this.originalEvent.stopPropagation )this.originalEvent.stopPropagation();
             this.propagationStopped = true;
+        }
+        ,stopImmediatePropagation:function()
+        {
+            if( this.originalEvent && this.originalEvent.stopImmediatePropagation )this.originalEvent.stopImmediatePropagation();
+            this.stopPropagation();
+            this.immediatePropagationStopped = true;
         }
     };
 

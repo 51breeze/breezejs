@@ -637,12 +637,13 @@ var tl= new Timeline(60).addFrame(function(){
 
     /**
      * 关键侦构造函数
-     * @param from
-     * @param to
+     * @param length
      * @constructor
      */
     function KeyFrame( length )
     {
+        if( !(this instanceof  KeyFrame) )
+           return new KeyFrame(length);
         this.__motions__=[];
         this.length( length );
     }
@@ -825,6 +826,8 @@ var tl= new Timeline(60).addFrame(function(){
      */
     function Motions( target )
     {
+        if( !(this instanceof  Motions) )
+          return new Motions(target);
         this.isNodeElement=Utils.isNodeElement(target);
         if( !this.isNodeElement && typeof target !== "function" )
         {

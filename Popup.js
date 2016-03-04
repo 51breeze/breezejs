@@ -123,15 +123,34 @@
         var width = Utils.getSize(window,'width');
         var height = Utils.getSize(window,'height');
 
+        var anchor = this.anchor();
+        var auto = true;
+        if( anchor )
+        {
+            var position = Utils.position( anchor );
+            var anchorHeight = Utils.getSize(anchor,'height');
+            xOffset = position.left;
+            yOffset = position.top - anchorHeight;
 
-       var anchor = this.anchor();
-       if( anchor )
-       {
-           Utils.position( anchor );
-       }
+            //如超出窗口边界则调整到最佳位置
+            if( auto )
+            {
+                if (xOffset + containerWidth > width)
+                {
+                    xOffset -= containerWidth;
+                }
+                if (yOffset + containerHeight > height)
+                {
+                    height - position.top  > height - position.top - anchorHeight;
+                    yOffset -= containerHeight;
+                }
+            }
 
-        xOffset = Math.floor( (width-containerWidth) * h );
-        yOffset = Math.floor( (height-containerHeight) * v);
+        }else
+        {
+            xOffset = Math.floor((width - containerWidth) * h);
+            yOffset = Math.floor((height - containerHeight) * v);
+        }
         skin.position(xOffset,  yOffset);
         return this;
     }
@@ -306,61 +325,8 @@
             callback.call(__mask__);
             var skinGroup =  this.skinGroup()
             __mask__.addEventListener( MouseEvent.MOUSE_DOWN,function(event){
-
-                var tl=  new Timeline( skinGroup[0] )
-                tl.timing( Tween.Elastic.easeIn );
-
-                tl.reverse(true)
-                tl.strict(false)
-                tl.fps(60)
-              //  tl.repeats(3)
-             //   tl.delay(2000)
-
-                var size = 300;
-                var duration =1;
-                var pos =  Utils.position(skinGroup[0]);
-
-
-                var frame = new KeyFrame( 50 );
-                  frame.motions( new Motions(skinGroup[0])
-                      .set('left', pos.left, pos.left+size )
-                  )
-                  tl.addKeyFrame( frame );
-
-                /*  var frame1 = new KeyFrame( 50 );
-                  frame1.motions( new Motions(skinGroup[0])
-                      .set('left', pos.left+size , pos.left )
-                  )
-                  tl.addKeyFrame( frame1 );
-
-
-                var frame2 = new KeyFrame( 50 );
-                frame2.motions( new Motions(skinGroup[0])
-                      .set('top', pos.top, pos.top+200  )
-                  )
-                tl.addKeyFrame( frame2 );*/
-
-              // console.log( tl.calculateDuration() )
-
-                tl.gotoAndPlay(0);
-
-              //  console.log( tl.getKeyFrame() )
-
-
-
-
-
-                var interval = 20;
-                var runtime = 500;
-                var counter  = 1;
-                var lentime = 1000;
-                var len = 50;
-
-
-
-               // console.log(   ( lentime - runtime ) / ( len - counter )  )
-
-
+                Animation.shake(skinGroup[0]);
+                event.stopPropagation();
             })
         }
         return __mask__;

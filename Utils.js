@@ -1702,7 +1702,6 @@
         'delay':'0s',
         'timing':'ease',
         'state':'running',
-        'callback':null,
         'mode':'forwards'
     };
 
@@ -1713,7 +1712,7 @@
      *    '100%':'left:100px;'
      * }
      */
-    Utils.CSS3Animation=function(element, properties, options )
+    Utils.CSS3Animation=function(properties, options )
     {
         if( !Utils.isAnimationSupport() )
            return false;
@@ -1760,28 +1759,12 @@
             }
             css.push('}');
             css = css.join("\r\n");
-
             var head = document.getElementsByTagName('head')[0];
             var style = document.createElement('style');
             style.setAttribute('id',stylename);
             style.innerHTML= css;
             head.appendChild( style );
         }
-
-        if( typeof options.callback === "function" )
-        {
-            prefix =prefix.replace(/-/g,'');
-            var end = Utils.lcfirst( prefix+'AnimationEnd' );
-            var iteration = Utils.lcfirst( prefix+'AnimationIteration' );
-            EventDispatcher(element).addEventListener([end,iteration],function(event){
-                options.callback.call(this, event.type === end );
-                this.removeEventListener(end);
-                this.removeEventListener(iteration);
-            });
-        }
-
-        Utils.removeClass(element,stylename);
-        Utils.addClass(element,stylename);
         return stylename;
     }
 

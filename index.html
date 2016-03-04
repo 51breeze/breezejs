@@ -138,13 +138,13 @@
 
      //  Popup( Popup.SIMPLE ).show('<h1>uuuuuu</h1>');
 
-        Popup.confirm('uuuuuuuuuu',function( result ){
+     /*   Popup.confirm('uuuuuuuuuu',function( result ){
 
            console.log( result ,'====')
 
 
         });
-
+      */
 
         Popup.confirm('6666666666',function( result ){
 
@@ -152,14 +152,18 @@
 
         });
 
-        Breeze('body').property('disabled','disabled')
+     //   Breeze('body').property('disabled','disabled')
 
 
 
 
-        Animation.fadeOut(  Breeze('#selection')[0] ,2 )
+     //   Animation.fadeIn(  Breeze('#selection')[0] ,2 )
 
-        console.log( Utils.isAnimationSupport() )
+
+     //  Animation.shake(  Breeze('#an')[0],.5  , {fps:60})
+
+
+       // console.log( Utils.isAnimationSupport() )
 
 
     })
@@ -213,6 +217,12 @@
 
 
 
+<div id="an" style="width: 100px; height: 100px; background-color: #1b6d85; position: absolute; left:200px; top: 200px">
+    sssssss
+</div>
+
+
+
 
 <div class="col-lg-5 container" style="width: 2000px;">
     <ul class="col-lg-12 list-unstyled state">
@@ -223,35 +233,6 @@
         <li>three</li> <li>one</li>
         <li disabled>two</li>
         <li>three</li> <li>one</li>
-        <li disabled>two</li>
-        <li>three</li> <li>one</li>
-        <li disabled>two</li>
-        <li>three</li> <li>one</li>
-        <li disabled>two</li>
-        <li>three</li> <li>one</li>
-        <li disabled>two</li>
-        <li>three</li> <li>one</li>
-        <li disabled>two</li>
-        <li>three</li> <li>one</li>
-        <li disabled>two</li>
-        <li>three</li> <li>one</li>
-        <li disabled>two</li>
-        <li>three</li> <li>one</li>
-        <li disabled>two</li>
-        <li>three</li> <li>one</li>
-        <li disabled>two</li>
-        <li>three</li> <li>one</li>
-        <li disabled>two</li>
-        <li>three</li> <li>one</li>
-        <li disabled>two</li>
-        <li>three</li> <li>one</li>
-        <li disabled>two</li>
-        <li>three</li> <li>one</li>
-        <li disabled>two</li>
-        <li>three</li>
-        <span>55555 <li>three</li></span>
-        sdfdsfds
-
 
 
     </ul>
@@ -259,12 +240,7 @@
 </div>
 
 
-
-
-
-
 <!--
-
 <div class="grid" id="grid">
     <div class="container" data-bind style="width: 600px; height: 620px; "></div>
     <div class="page"></div>
