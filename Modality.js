@@ -316,7 +316,7 @@ modality.show(true)
 
             Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(event)
             {
-                var height = Utils.getSize(window,'height') + Utils.scroll(document,'scrollTop')
+                var height = Utils.getSize(window,'height') + Utils.scroll(document).top
                 _shade.style('height', height );
 
             },true);

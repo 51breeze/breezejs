@@ -74,7 +74,7 @@
     //提示框
     Popup.info=function( message , option )
     {
-        return Popup( Popup.SIMPLE ).show( message , option);
+        return Popup( Popup.SIMPLE ).show( Utils.sprintf('<div style="margin: 5px;">%s</div>',message) , option);
     }
 
     //警告框
@@ -128,26 +128,30 @@
         if( anchor )
         {
             var position = Utils.position( anchor );
-            var anchorHeight = Utils.getSize(anchor,'height');
+            var anchorSize = Utils.getSize(anchor,true);
+            var scroll = Utils.scroll(document);
             xOffset = position.left;
-            yOffset = position.top + anchorHeight;
+            yOffset = position.top + anchorSize.height - scroll.top;
 
             //如超出窗口边界则调整到最佳位置
             if( this.auto() )
             {
-                var scrollLeft = Utils.scroll(document,'left');
-                var scrollTop = Utils.scroll(document,'top');
+                var topSpace = position.top - scroll.top;
+                var bottomSpace = (height+scroll.top) - (position.top  + anchorSize.height);
+                var leftSpace = position.left - scroll.left;
+                var rightSpace = (width+scroll.left) - (position.left  + anchorSize.width);
 
-                if (xOffset + containerWidth > width)
+
+                console.log( topSpace, rightSpace, bottomSpace, leftSpace, anchorSize, yOffset + containerHeight > height )
+
+                if (xOffset + containerWidth > width && leftSpace > rightSpace)
                 {
-                    xOffset -= (xOffset + containerWidth) - width;
+                    xOffset = position.left- scroll.left - containerWidth;
                 }
 
-                var h = height + scrollTop;
-
-                if (yOffset + containerHeight > height &&  h-yOffset < h-position.top )
+                if ( yOffset + containerHeight > height && topSpace > bottomSpace )
                 {
-                    yOffset = position.top - containerHeight;
+                    yOffset = position.top- scroll.top - containerHeight;
                 }
             }
 
@@ -421,7 +425,10 @@
         skinGroup.current( body ).html( content );
         skinGroup.current( null ).style('zIndex',option.zIndex).display(true);
 
-        this.mask().display(true).style('zIndex', option.zIndex-1 );
+        if( type !== Popup.SIMPLE )
+        {
+          this.mask().display(true).style('zIndex', option.zIndex-1 );
+        }
         setPositionAndSize.call(this);
         return this;
     }

@@ -81,21 +81,33 @@
         }
         ,getPosition=function( elem )
         {
-            var doc=elem ? elem.ownerDocument : {}, docElem=doc.documentElement;
-            var top = 0, left = 0, width = 0,height=0;
-            if ( docElem && Utils.contains( docElem, elem ) )
+            var box={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0,'width':0,'height':0};
+            var size = Utils.getSize(elem);
+
+            if( Utils.isWindow(elem) )
             {
-                width = Utils.getSize(elem, 'width');
-                height = Utils.getSize(elem, 'height');
+                box.left = elem.screenLeft || elem.screenX;
+                box.top = elem.screenTop || elem.screenY;
+                box.width = size.width;
+                box.height = size.height;
+                box.right =  size.width + box.left;
+                box.bottom =  size.height + box.top;
+                return box;
+
+            }else if( Utils.isNodeElement(elem ) )
+            {
+                elem = elem.documentElement || elem;
+                box.width = size.width;
+                box.height=size.height;
                 do {
-                    top += parseFloat(Utils.style(elem, 'borderTopWidth')) || 0;
-                    left += parseFloat(Utils.style(elem, 'borderLeftWidth')) || 0;
-                    top += elem.offsetTop;
-                    left += elem.offsetLeft;
+                    box.top += elem.offsetTop;
+                    box.left += elem.offsetLeft;
                     elem = elem.offsetParent;
                 } while (elem);
+                box.right = box.width+box.left;
+                box.bottom = box.height+box.top;
             }
-            return { 'top': top, 'left': left ,'right' : width+left,'bottom':height+top,'width':width, 'height':height };
+            return box;
         };
 
         /**
@@ -107,37 +119,46 @@
         {
             getPosition = function( elem )
             {
-                var box={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0},value=box;
-                var doc=elem ? elem.ownerDocument : {}, docElem=doc.documentElement;
-                if ( !docElem || !Utils.contains( docElem, elem ) )
+                var box,value;
+                box=value={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0,'width':0,'height':0};
+
+                if( Utils.isWindow(elem) )
                 {
-                   return box;
-                }
+                    box.left = elem.screenLeft || elem.screenX;
+                    box.top = elem.screenTop || elem.screenY;
+                    var size = Utils.getSize(window);
+                    box.width = size.width;
+                    box.height = size.height;
+                    box.right =  size.width + box.left;
+                    box.bottom = size.height + box.top;
+                    return box;
 
-                try {
+                }else if( Utils.isNodeElement(elem) )
+                {
+                    var doc =  elem.ownerDocument || elem,
+                        docElem=doc.documentElement;
+
                     box = elem.getBoundingClientRect();
-                } catch (e) {}
+                    var clientTop = docElem.clientTop || doc.body.clientTop || 0,
+                        clientLeft = docElem.clientLeft || doc.body.clientLeft || 0,
+                        scrollTop = 0,
+                        scrollLeft = 0;
 
-                var body = doc.body,
-                win = Utils.getWindow(doc),
-                clientTop = docElem.clientTop || body.clientTop || 0,
-                clientLeft = docElem.clientLeft || body.clientLeft || 0,
-                scrollTop = win.pageYOffset || docElem.scrollTop || body.scrollTop,
-                scrollLeft = win.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+                    //始终相对浏览器窗口的位置
+                    var fixed =  Utils.style(elem,'position') === 'fixed';
+                    if( !fixed ){
+                        var scroll = Utils.scroll( Utils.getWindow(doc) );
+                        scrollTop = scroll.top,
+                        scrollLeft = scroll.left;
+                    }
 
-                //始终相对浏览器窗口的位置
-                var fixed =  Utils.style(elem,'position') === 'fixed';
-                if( fixed ){
-                    scrollTop=0;
-                    scrollLeft=0;
+                    value.top = box.top + scrollTop - clientTop;
+                    value.left = box.left + scrollLeft - clientLeft;
+                    value.right = box.right + scrollLeft - clientLeft;
+                    value.bottom = box.bottom + scrollTop - clientTop;
+                    value.width = box.width;
+                    value.height = box.height;
                 }
-
-                value.top = box.top + scrollTop - clientTop;
-                value.left = box.left + scrollLeft - clientLeft;
-                value.right = box.right + scrollLeft - clientLeft;
-                value.bottom = box.bottom + scrollTop - clientTop;
-                value.width = box.width;
-                value.height = box.height;
                 return value;
             };
         }
@@ -145,17 +166,15 @@
         /**
          * 设置获取元素相对舞台坐标位置
          * @param elem
-         * @param number x
-         * @param number y
+         * @param number left
+         * @param number top
          * @returns {object|boolean}
          */
         Utils.position=function( elem, left, top )
         {
-            if( !Utils.isHTMLElement(elem) )
-               throw new Error('invalid elem');
             var isx=typeof left === "number";
             var isy= typeof top === "number";
-            if( isx | isy )
+            if( (isx || isy) && Utils.isNodeElement(elem) )
             {
                 if( isx )Utils.style(elem, 'left', left  );
                 if( isy )Utils.style(elem, 'top' , top   );
@@ -164,57 +183,73 @@
             return getPosition( elem );
         }
 
-      Utils.getSize=function( elem, name, border )
+    /**
+     * 获取元素大小
+     * @param NodeElement elem
+     * @param string prop  width|height
+     * @param boolean border 默认为ture 包括边框，false 不包括边框
+     * @returns {*|number}
+     */
+      Utils.getSize=function( elem, prop, border )
       {
-            name=name.toLowerCase();
-            var doc= elem.document || elem.ownerDocument || elem,
-                docElem=doc.documentElement || {},
-                val     = name === "width" ? elem.offsetWidth : elem.offsetHeight,
-                i       = name === "width" ? 1 : 0,
-                len     = 4;
+          var size ={}
+          elem =  elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || elem;
 
-            if( Utils.isDocument(elem) || Utils.isWindow(elem) || elem===docElem )
-            {
-                name=Utils.ucfirst( name );
-                if( Utils.isWindow(elem) )
-                {
-                    val=Math.max(
-                        elem[ "inner" + name ] || 0,
-                        ( Utils.isBrowser(Utils.BROWSER_IE) || 9 ) < 9 ?  docElem[ "offset" + name ] : 0,
-                        docElem[ "client" + name ] || 0
-                    );
+          if( Utils.isWindow(elem) )
+          {
+              size.width=Math.max(elem.innerWidth || 0, elem.offsetWidth || 0,elem.clientWidth || 0);
+              size.height=Math.max(elem.innerHeight || 0, elem.offsetHeight || 0,elem.clientHeight || 0);
 
-                }else
-                {
-                    val=Math.max(
-                        document.body[ "scroll" + name ] || 0, document[ "scroll" + name ] || 0
-                        ,document.body[ "offset" + name ] || 0, document[ "offset" + name ] || 0
-                        ,docElem[ "client" + name ] || 0
-                    );
-                    val+=docElem['client'+cssExpand[ i+2 ]] || 0;
-                }
+          }else if( Utils.isDocument(elem) )
+          {
+               var docElem = elem.documentElement;
+                size.width=Math.max(
+                    elem.body.scrollWidth  || 0, docElem.scrollWidth || 0
+                    ,elem.body.offsetWidth || 0, elem.offsetWidth || 0
+                    ,elem.body.clientWidth || 0, elem.clientWidth || 0
+                );
+                size.height+=docElem.clientLeft || 0;
 
-            }else if ( val > 0 )
-            {
-                var margin= Utils.isBrowser( Utils.BROWSER_IE, 9 ,'<');
-                for ( ; i < len; i += 2 )
-                {
+                size.height=Math.max(
+                    elem.body.scrollHeight  || 0, docElem.scrollHeight || 0
+                    ,elem.body.offsetHeight || 0, elem.offsetHeight || 0
+                    ,elem.body.clientHeight || 0, elem.clientHeight || 0
+                );
+               size.height+=docElem.clientTop || 0;
+
+          }else if ( typeof elem.offsetWidth !== "undefined"  )
+          {
+              size.width = elem.offsetWidth;
+              size.height = elem.offsetHeight;
+              border = arguments[ arguments.length-1 ] !== false;
+
+              var margin= Utils.isBrowser( Utils.BROWSER_IE, 9 ,'<');
+              for ( var i=0 ; i < 4; i ++ )
+              {
                     //val -= parseFloat( Utils.style( elem, "padding" + cssExpand[ i ] ) ) || 0;
-                    //如果没有指定带border 宽，默认不带边框的宽
-                    if( border )
-                        val -= parseFloat( Utils.style( elem, "border" + cssExpand[ i ] + "Width" ) ) || 0;
+                    //如果没有指定带 border 宽，默认不带边框的宽
+                    if( !border )
+                    {
+                        size[ i%2==0 ? 'width' : 'height' ]-= parseFloat( Utils.style( elem, "border"+cssExpand[ i ]+"Width" ) ) || 0;
+                    }
 
                     //ie9 以下 offsetWidth 会包括 margin 边距。
                     if( margin )
-                        val -= parseFloat( Utils.style( elem, "margin" + cssExpand[ i ] ) ) || 0;
-                }
+                    {
+                        size[ i%2==0 ? 'width' : 'height']-= parseFloat( Utils.style( elem, "margin"+cssExpand[ i ]  ) ) || 0;
+                    }
+              }
 
-            }else
-            {
-                val= parseInt( Utils.style(elem,name) ) || 0;
-                for ( ; i < len; i += 2 ) val += parseFloat( Utils.style( elem, "padding" + cssExpand[ i ] ) ) || 0;
-            }
-            return val || 0;
+          }else
+          {
+             size.width = parseInt( Utils.style(elem,'width') ) || 0;
+             size.height = parseInt( Utils.style(elem,'height') ) || 0;
+             for ( var i=0 ; i < 4; i ++  )
+             {
+                size[ i%2==0 ? 'width' : 'height'] += parseFloat( Utils.style( elem, "padding" + cssExpand[ i ] ) ) || 0;
+             }
+          }
+          return typeof prop === "string" ? size[ prop.toLowerCase() ] || 0 : size;
       };
 
     /**
@@ -737,31 +772,54 @@
 
     /**
      * 获取或者设置滚动条的位置
-     * @param element
-     * @param prop
-     * @param val
-     * @returns {number|void}
+     * @param NodeElement element
+     * @param number left
+     * @param number top
+     * @returns {left:number,top:number,height:number,width:number}
      */
-    Utils.scroll=function(element,prop,val)
+    Utils.scroll=function(element, left, top)
     {
-        var is=Utils.isWindow( element );
-        if( Utils.isHTMLContainer( element) || is  )
+        element = element.defaultView || element.parentWindow || element;
+        var l= typeof left === "number",t=typeof top === "number";
+        if( l || t )
         {
-            var win= is ? element : element.nodeType===9 ? element.defaultView || element.parentWindow : null;
-            var p= /left/i.test(prop) ? 'pageXOffset' : 'pageYOffset';
-            if( val===undefined )
+            if( !(l && t) )
             {
-                return win ? p in win ? win[ p ] : win.document.documentElement[ prop ] :  element[ prop ];
+                var pos = Utils.scroll(element);
+                l || (left=pos.left);
+                t || (top=pos.top);
             }
-            if( win ){
-                win.scrollTo( p==='pageXOffset' ? val : Utils.scroll(element,'scrollLeft'),
-                              p==='pageYOffset' ? val : Utils.scroll(element,'scrollTop') );
-            }else{
-                element[ prop ] = val;
+
+            left = Math.max(left,0);
+            top = Math.max(top,0);
+
+            if( typeof element.scrollTo === "function" )
+            {
+                element.scrollTo(left,top);
+            }else
+            {
+                element.scrollTop = top;
+                element.scrollLeft = left;
             }
             return true;
         }
-        return false;
+
+        var scroll={};
+        if( Utils.isWindow( element ) )
+        {
+            scroll.left = element.pageXOffset || element.document.documentElement.scrollLeft || element.document.body.scrollLeft;
+            scroll.top =  element.pageYOffset  || element.document.documentElement.scrollTop || element.document.body.scrollTop;
+            scroll.height = element.document.documentElement.scrollHeight || element.document.body.scrollHeight;
+            scroll.width = element.document.documentElement.scrollWidth || element.document.body.scrollWidth;
+
+        }else
+        {
+            scroll.left = element.scrollLeft;
+            scroll.top =  element.scrollTop;
+            scroll.height = element.scrollHeight;
+            scroll.width = element.scrollWidth;
+        }
+        return scroll;
     }
 
     /**
@@ -858,8 +916,8 @@
     {
         if( typeof elem !== "object" )
           return null;
-        elem=Utils.isHTMLElement(elem) ? elem.ownerDocument : elem ;
-        return Utils.isWindow( elem ) ? elem : elem.nodeType === 9 ? elem.defaultView || elem.contentWindow || elem.parentWindow : null;
+        elem= elem.ownerDocument || elem ;
+        return elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || null;
     }
 
     /**

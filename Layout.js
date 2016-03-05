@@ -174,9 +174,10 @@
     Layout.prototype.getViewportSize=function()
     {
         var viewport = this.viewport();
-        var height=Utils.scroll(viewport,'scrollTop');
+        var scroll = Utils.scroll(viewport)
+        var height=scroll.top;
         height+=Utils.getSize( viewport === viewport.ownerDocument.body ? window : viewport,'height');
-        var width = Utils.scroll(viewport,'scrollLeft');
+        var width = scroll.left;
         width+=Utils.getSize( viewport === viewport.ownerDocument.body ? window : viewport,'width');
 
         for( var index=0 ; index < padding.length ; index++ )

@@ -1150,19 +1150,6 @@
         },PropertyEvent.CHANGE) || 0;
     }
 
-    var __scroll__=function(prop,value)
-    {
-        return access.call(this,prop, value,{
-            get:function(prop){
-                return Utils.scroll(this,'scroll'+prop);
-            },
-            set:function(prop,newValue,oldValue,target){
-                Utils.scroll(this,'scroll'+prop,newValue);
-                dispatchEventAll(target, new BreezeEvent(BreezeEvent.SCROLL) );
-            }
-        }) || 0;
-    }
-
     /**
      * @private
      */
@@ -1201,21 +1188,28 @@
     }
 
     /**
-     * 设置元素滚动条左边的位置
-     * @returns {Breeze}
+     * 获取设置滚动条的位置
+     * @param number left
+     * @param number top
+     * @returns {Breeze|{left:number,top:number,height:number,width:number}}
      */
-    Breeze.prototype.scrollLeft=function(val)
+    Breeze.prototype.scroll=function( left, top )
     {
-        return __scroll__.call(this,'Left',val)
-    }
-
-    /**
-     * 获取元素滚动条顶边的位置
-     * @returns {number}
-     */
-    Breeze.prototype.scrollTop=function(val)
-    {
-        return __scroll__.call(this,'Top',val)
+        var scroll = Utils.scroll( this.current() );
+        if( typeof left === "number" || typeof top === "number" )
+        {
+            if( scroll.left != left || pos.top!=top )
+            {
+                Utils.scroll( this.current(), left, top );
+                var event = new PropertyEvent( PropertyEvent.CHANGE );
+                event.property = 'scroll';
+                event.newValue = {left:left,top:top};
+                event.oldValue = scroll;
+                dispatchEventAll(this, event);
+            }
+            return this;
+        }
+        return scroll;
     }
 
     /**
