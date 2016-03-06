@@ -1682,22 +1682,41 @@
      */
     Utils.storage=function(target,name,value)
     {
-        if( !target )
+        if( typeof target !== "object" )
           return false;
 
         target = target.storage || (target.storage={});
         if( typeof name === 'string' )
         {
+            var namespace = name.split('.');
+            var i = 0, len = namespace.length-1;
+
+            while( i<len )
+            {
+                name = namespace[i++];
+                target= target[ name ] || (target[ name ] = {});
+            }
+            name = namespace[ len++ ];
+
             if( value === null )
             {
-                if( typeof target[ name ] !== 'undefined' )
+                if( typeof target[ name ] !== 'undefined' ){
                     delete target[ name ];
-                return true;
+                    return true;
+                }
+                return false;
+                
+            }else if( typeof value === 'undefined' )
+            {
+                return target[ name ] || null ;
             }
-            if(  typeof value === 'undefined' )
-                return target[ name ] || null;
             target[ name ] = value;
-            return true;
+            return value;
+
+        }else if( typeof name === "object" )
+        {
+            target.storage = name;
+            return name;
         }
         return target;
     }

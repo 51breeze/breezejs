@@ -39,7 +39,7 @@
      * @returns {*}
      * @constructor
      */
-    function Popup( type )
+    function Popup( type, context )
     {
         type = type || Popup.NORM;
         if( !!popupInstance[ type ] )
@@ -55,7 +55,7 @@
         this.__anchor__=null;
         this.__callback__=null;
         popupInstance[ type ]=this;
-        return SkinComponent.call(this, new SkinGroup('<div class="popup" />','body') );
+        return SkinComponent.call(this, new SkinGroup('<div class="popup" />', context || 'body') );
     }
 
     //弹出风格
@@ -382,18 +382,13 @@
     }
 
     /**
-     * @type {null}
-     */
-    var showing = {};
-
-    /**
      * 隐藏此弹框
      * @returns {Popup}
      * @public
      */
     Popup.prototype.hidden=function()
     {
-        showing[ this.type() ] = false;
+        Utils.storage(skinGroup[0].parentNode,'popupshowing.'+this.type(), false )
         this.mask().display(false);
         this.current(null).display(false);
         return this;
@@ -408,17 +403,18 @@
     Popup.prototype.show=function( content, option )
     {
         var type =  this.type();
-        if( showing[ type ] )
+        var skinGroup = this.skinGroup();
+
+        if( Utils.storage(skinGroup[0].parentNode,'popupshowing.'+type ) )
            return this;
 
-        showing[ type ] = true;
+        Utils.storage(skinGroup[0].parentNode,'popupshowing.'+type, true )
         content = content || '';
 
         option =  Utils.extend({autoHidden:true,zIndex:999}, option || {});
         option.zIndex = parseInt( option.zIndex ) || 999;
         setting(this, option);
 
-        var skinGroup = this.skinGroup();
         if( skinGroup.getSkin('label') )
             skinGroup.currentSkin('label').text( this.title() );
         var body = skinGroup.getSkin('body') || skinGroup.getSkin('container');
