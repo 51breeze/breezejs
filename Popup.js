@@ -125,10 +125,16 @@
             throw new Error('invalid context');
         }
 
-        var instance = Utils.storage(context,'popup.instance');
+        if( !(type.toUpperCase() in Popup) )
+        {
+            throw new Error('invalid type');
+        }
+
+        var instance = Utils.storage(context,'popup.instance'+type);
         if( instance )return instance;
         if( !(this instanceof Popup) )
             return new Popup( type , context);
+
 
         this.__type__ = type;
         this.__horizontal__=Popup.HCENTER;
@@ -138,7 +144,7 @@
         this.__callback__=null;
         this.__left__=NaN;
         this.__top__=NaN;
-        Utils.storage(context,'popup.instance', this);
+        Utils.storage(context,'popup.instance'+type, this);
         return SkinComponent.call(this, new SkinGroup('<div class="popup" />', context) );
     }
 
@@ -169,7 +175,7 @@
     //警告框
     Popup.alert=function( message , option )
     {
-        return Popup( Popup.NORM).minHeight(120).minWidth(280).show( message , option);
+        return Popup( Popup.NORM ).minHeight(120).minWidth(280).show( message , option);
     }
 
     //确认框
@@ -179,6 +185,17 @@
             option={callback:option};
         option =  Utils.extend({width:400,autoHidden:false}, option || {});
         return  Popup( Popup.TYPICAL ).show( message , option);
+    }
+
+    //模态框
+    Popup.modality=function(title, content , option )
+    {
+        option=option || {};
+        option =  Utils.extend({minWidth:600,minHeight:300,autoHidden:false,type:Popup.TYPICAL,style:{opacity:0.5}}, option || {});
+        var popup = Popup( option.type === Popup.NORM ? Popup.NORM : Popup.TYPICAL );
+        popup.mask().style(option.style);
+        delete option.style;
+        return  popup.title( title ).show( content , option);
     }
 
     Popup.prototype=  new SkinComponent();
@@ -252,17 +269,11 @@
 
     /**
      * 设置获取模态窗口的类型,默认标准
-     * @param string type [norm,simple,typical]
      * @returns {Popup|string}
      * @public
      */
-    Popup.prototype.type=function( type )
+    Popup.prototype.type=function()
     {
-        if( typeof type === "string" )
-        {
-            type in Popup && (this.__type__ = type);
-            return this;
-        }
         return this.__type__;
     }
 
@@ -556,7 +567,22 @@
             maxWidth = isNaN(maxWidth) ? size.width : maxWidth;
             minWidth = isNaN(minWidth) ? size.width : minWidth;
             skinGroup.current(null).height( Math.max( Math.min(size.height, maxHeight ) , minHeight ) );
-            skinGroup.height( Math.max( Math.min(size.width, maxWidth ) , minWidth ) );
+            skinGroup.width( Math.max( Math.min(size.width, maxWidth ) , minWidth ) );
+
+            var bodySkin  = skinGroup.getSkin('body');
+            if( bodySkin )
+            {
+                var headSkin = skinGroup.getSkin('head');
+                var footerSkin = skinGroup.getSkin('footer');
+                var headHeight =headSkin ? Utils.getSize(headSkin,'height') : 0;
+                var footerHeight = footerSkin ? Utils.getSize(footerSkin,'height') : 0;
+
+                console.log( footerHeight )
+
+
+                Utils.style( bodySkin, 'height', skinGroup.current(null).height() - headHeight - footerHeight );
+            }
+
         }
         setPositionAndSize.call(this);
         return this;
@@ -628,7 +654,7 @@
             body:  '<div></div>',
             cancel:'<button {attr button} class="btn btn-default">取消</button>',
             submit:'<button {attr button} class="btn btn-default">确定</button>',
-            footer:'<div><div style="width: auto; height:inherit;float: right;">{part cancel+submit}</div></div>',
+            footer:'<div>{part cancel+submit}</div>',
             body:  '<div></div>'
         },{
             container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;overflow:hidden;position:fixed;left:0px;top:0px;width:auto;height:auto;display:none;border:solid #b3b3b3 1px;backgroundColor:#ffffff"},
@@ -636,8 +662,8 @@
             label:{ 'style':"width:auto;display:block;float:left;margin:0px 10px" },
             close:{ 'style':"width:auto;height:25px;padding:0px;margin:0px;cursor:pointer;float:right;margin:0px 10px" },
             body:{ 'style':"padding:10px;width:100%;height:auto;display:block;overflow:auto;backgroundColor:#ffffff" },
-            button:{ 'style':{ width:'auto',height:'25px',lineHeight:'25px',padding:"0px 10px", margin:'3px',display:'inline-block'} },
-            footer:{ 'style':{'width':'100%',height:'auto','display':'block','borderTop':'solid 1px #cccccc',padding:'0px'}}
+            button:{ 'style':{ width:'auto',height:'25px',lineHeight:'25px',padding:"0px 10px", margin:'5px 3px',display:'inline-block'} },
+            footer:{ 'style':{'width':'100%',height:'auto','display':'block','borderTop':'solid 1px #cccccc',padding:'0px', textAlign:'right'}}
         });
     }
 

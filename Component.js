@@ -102,7 +102,8 @@
      */
     Component.prototype.style=function(name,value )
     {
-        var result = this.viewport().style(name,value);
+        var viewport = this.viewport();
+        var result = viewport.style(name,value);
         return result===viewport ? this : result;
     }
 
