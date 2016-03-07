@@ -6,6 +6,24 @@
  * https://github.com/51breeze/breezejs
  */
 
+/*
+ @example
+
+ 1、提示框
+ Popup.info('Hello word!',{anchor:event,vertical:'top', horizontal:'left'})
+
+ 2、警告框
+ Popup.alert('Hello word!')
+
+ 3、确认框
+ Popup.confirm('Hello word!',function(result){
+    console.log(result);
+ })
+
+ 除以上封装好的弹出框外，还可以根据需求自定义弹框
+ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
+
+ */
 
 (function(window,undefined )
 {
@@ -25,88 +43,6 @@
             }
         }
     }
-
-    /**
-     * 弹框组件
-     * @param string type norm|simple|typical
-     * @param NodeElement context
-     * @returns {*}
-     * @constructor
-     */
-    function Popup( type, context )
-    {
-        type = type || Popup.NORM;
-        if( typeof context === "undefined" )
-        {
-           context = document.body;
-        }
-
-        if( !Utils.isNodeElement(context) )
-        {
-            throw new Error('invalid context');
-        }
-
-        var instance = Utils.storage(context,'popup.instance');
-        if( instance )return instance;
-        if( !(this instanceof Popup) )
-            return new Popup( type , context);
-
-        this.__type__ = type;
-        this.__horizontal__=Popup.HCENTER;
-        this.__vertical__=Popup.VMIDDLE;
-        this.__title__='提示信息';
-        this.__anchor__=null;
-        this.__callback__=null;
-        this.__left__=NaN;
-        this.__top__=NaN;
-        Utils.storage(context,'popup.instance', this);
-        return SkinComponent.call(this, new SkinGroup('<div class="popup" />', context) );
-    }
-
-    //弹出风格
-    Popup.NORM='norm';
-    Popup.SIMPLE='simple';
-    Popup.TYPICAL='typical';
-
-    //水平垂直对齐常量
-    Popup.HLEFT='left';
-    Popup.HCENTER='center';
-    Popup.HRIGHT='right';
-    Popup.VTOP='top';
-    Popup.VMIDDLE='middle';
-    Popup.VBOTTOM='bottom';
-
-    //提示框
-    Popup.info=function( message , option )
-    {
-        var popup = Popup( Popup.SIMPLE ).vertical('bottom').horizontal('center');
-        popup.show( Utils.sprintf('<div style="margin: 5px;">%s</div>',message) , option);
-        popup.skinGroup().current(null).getBoundingRect(option.left,option.top);
-        return popup;
-    }
-
-    //警告框
-    Popup.alert=function( message , option )
-    {
-        return  Popup( Popup.NORM ).show( message , option);
-    }
-
-    //确认框
-    Popup.confirm=function( message , option )
-    {
-        if( typeof option === "function" )
-            option={callback:option};
-        option =  Utils.extend({width:400,autoHidden:false}, option || {});
-        return  Popup( Popup.TYPICAL ).show( message , option);
-    }
-
-    Popup.prototype=  new SkinComponent();
-    Popup.prototype.constructor=Popup;
-    Popup.prototype.__type__=Popup.NORM;
-    Popup.prototype.__vertical__=Popup.VMIDDLE;
-    Popup.prototype.__horizontal__=Popup.HCENTER;
-    Popup.prototype.componentProfile='popup';
-    Popup.prototype.initializeMethod=[];
 
     /**
      * 设置此模态框的位置和大小
@@ -168,6 +104,90 @@
         if( isNaN(top) )skin.top(yOffset);
         return this;
     }
+
+    /**
+     * 弹框组件
+     * @param string type norm|simple|typical
+     * @param NodeElement context
+     * @returns {*}
+     * @constructor
+     */
+    function Popup( type, context )
+    {
+        type = type || Popup.NORM;
+        if( typeof context === "undefined" )
+        {
+           context = document.body;
+        }
+
+        if( !Utils.isNodeElement(context) )
+        {
+            throw new Error('invalid context');
+        }
+
+        var instance = Utils.storage(context,'popup.instance');
+        if( instance )return instance;
+        if( !(this instanceof Popup) )
+            return new Popup( type , context);
+
+        this.__type__ = type;
+        this.__horizontal__=Popup.HCENTER;
+        this.__vertical__=Popup.VMIDDLE;
+        this.__title__='提示信息';
+        this.__anchor__=null;
+        this.__callback__=null;
+        this.__left__=NaN;
+        this.__top__=NaN;
+        Utils.storage(context,'popup.instance', this);
+        return SkinComponent.call(this, new SkinGroup('<div class="popup" />', context) );
+    }
+
+    //弹出风格
+    Popup.NORM='norm';
+    Popup.SIMPLE='simple';
+    Popup.TYPICAL='typical';
+
+    //水平垂直对齐常量
+    Popup.HLEFT='left';
+    Popup.HCENTER='center';
+    Popup.HRIGHT='right';
+    Popup.VTOP='top';
+    Popup.VMIDDLE='middle';
+    Popup.VBOTTOM='bottom';
+
+    //提示框
+    Popup.info=function( message , option )
+    {
+        var popup = Popup( Popup.SIMPLE )
+        if( option.anchor instanceof MouseEvent )
+        {
+            popup.vertical('top').horizontal('left');
+        }
+        return popup.show( Utils.sprintf('<div style="margin: 5px;">%s</div>',message) , option);
+    }
+
+    //警告框
+    Popup.alert=function( message , option )
+    {
+        return Popup( Popup.NORM).minHeight(120).minWidth(280).show( message , option);
+    }
+
+    //确认框
+    Popup.confirm=function( message , option )
+    {
+        if( typeof option === "function" )
+            option={callback:option};
+        option =  Utils.extend({width:400,autoHidden:false}, option || {});
+        return  Popup( Popup.TYPICAL ).show( message , option);
+    }
+
+    Popup.prototype=  new SkinComponent();
+    Popup.prototype.constructor=Popup;
+    Popup.prototype.__type__=Popup.NORM;
+    Popup.prototype.__vertical__=Popup.VMIDDLE;
+    Popup.prototype.__horizontal__=Popup.HCENTER;
+    Popup.prototype.componentProfile='popup';
+    Popup.prototype.initializeMethod=[];
 
     /**
      * @private
@@ -388,10 +408,95 @@
     /**
      * @private
      */
+    Popup.prototype.__maxHeight__=NaN;
+
+    /**
+     * 最大高度
+     * @param number val
+     * @returns {Popup|number}
+     * @public
+     */
+    Popup.prototype.maxHeight=function( val )
+    {
+        if( typeof val !== "undefined" )
+        {
+            this.__maxHeight__=parseInt(val);
+            return this;
+        }
+        return this.__maxHeight__;
+    }
+
+    /**
+     * @private
+     */
+    Popup.prototype.__minHeight__=NaN;
+
+    /**
+     * 最小高度
+     * @param number val
+     * @returns {Popup|number}
+     * @public
+     */
+    Popup.prototype.minHeight=function( val )
+    {
+        if( typeof val !== "undefined" )
+        {
+            this.__minHeight__=parseInt(val);
+            return this;
+        }
+        return this.__minHeight__;
+    }
+
+    /**
+     * @private
+     */
+    Popup.prototype.__maxWidth__=NaN;
+
+    /**
+     * 最大宽度
+     * @param number val
+     * @returns {Popup|number}
+     * @public
+     */
+    Popup.prototype.maxWidth=function( val )
+    {
+        if( typeof val !== "undefined" )
+        {
+            this.__maxWidth__=parseInt(val);
+            return this;
+        }
+        return this.__maxWidth__;
+    }
+
+    /**
+     * @private
+     */
+    Popup.prototype.__minWidth__=NaN;
+
+    /**
+     * 最小宽度
+     * @param number val
+     * @returns {Popup|number}
+     * @public
+     */
+    Popup.prototype.minWidth=function( val )
+    {
+        if( typeof val !== "undefined" )
+        {
+            this.__minWidth__=parseInt(val);
+            return this;
+        }
+        return this.__minWidth__;
+    }
+
+    /**
+     * @private
+     */
     Popup.prototype.__anchor__=null;
 
     /**
-     * 显示弹框
+     * 设置一个锚点对象，可以是一个节点元素和鼠标事件对象。
+     * 设置这个对象后弹框会根据设置的布局方位来紧贴锚点对象的周围
      * @param number val
      * @returns {Popup|number}
      * @public
@@ -439,6 +544,19 @@
             {
                 this.mask().display(true).style('zIndex', option.zIndex-1 );
             }
+
+            var size = Utils.getSize( skinGroup[0] );
+            var maxHeight =  this.maxHeight();
+            var minHeight = this.minHeight();
+            var maxWidth  =  this.maxWidth();
+            var minWidth  = this.minWidth();
+
+            maxHeight = isNaN(maxHeight) ? size.height : maxHeight;
+            minHeight = isNaN(minHeight) ? size.height : minHeight;
+            maxWidth = isNaN(maxWidth) ? size.width : maxWidth;
+            minWidth = isNaN(minWidth) ? size.width : minWidth;
+            skinGroup.current(null).height( Math.max( Math.min(size.height, maxHeight ) , minHeight ) );
+            skinGroup.height( Math.max( Math.min(size.width, maxWidth ) , minWidth ) );
         }
         setPositionAndSize.call(this);
         return this;
@@ -513,7 +631,7 @@
             footer:'<div><div style="width: auto; height:inherit;float: right;">{part cancel+submit}</div></div>',
             body:  '<div></div>'
         },{
-            container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;position:fixed;left:0px;top:0px;width:auto;height:auto;display:none;border:solid #b3b3b3 1px;backgroundColor:#ffffff"},
+            container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;overflow:hidden;position:fixed;left:0px;top:0px;width:auto;height:auto;display:none;border:solid #b3b3b3 1px;backgroundColor:#ffffff"},
             head:{'style':"width:100%;height:35px;lineHeight:35px;display:block;color:#333333;borderBottom:solid 1px #cccccc" },
             label:{ 'style':"width:auto;display:block;float:left;margin:0px 10px" },
             close:{ 'style':"width:auto;height:25px;padding:0px;margin:0px;cursor:pointer;float:right;margin:0px 10px" },
