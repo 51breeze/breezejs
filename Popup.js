@@ -27,26 +27,29 @@
     }
 
     /**
-     * @private
-     * @type {{Popup}}
-     */
-    var popupInstance={};
-
-
-    /**
      * 弹框组件
-     * @param type
+     * @param string type norm|simple|typical
+     * @param NodeElement context
      * @returns {*}
      * @constructor
      */
     function Popup( type, context )
     {
         type = type || Popup.NORM;
-        if( !!popupInstance[ type ] )
-           return popupInstance[ type ];
+        if( typeof context === "undefined" )
+        {
+           context = document.body;
+        }
 
+        if( !Utils.isNodeElement(context) )
+        {
+            throw new Error('invalid context');
+        }
+
+        var instance = Utils.storage(context,'popup.instance');
+        if( instance )return instance;
         if( !(this instanceof Popup) )
-            return new Popup( type );
+            return new Popup( type , context);
 
         this.__type__ = type;
         this.__horizontal__=Popup.HCENTER;
@@ -54,8 +57,10 @@
         this.__title__='提示信息';
         this.__anchor__=null;
         this.__callback__=null;
-        popupInstance[ type ]=this;
-        return SkinComponent.call(this, new SkinGroup('<div class="popup" />', context || 'body') );
+        this.__left__=NaN;
+        this.__top__=NaN;
+        Utils.storage(context,'popup.instance', this);
+        return SkinComponent.call(this, new SkinGroup('<div class="popup" />', context) );
     }
 
     //弹出风格
@@ -74,7 +79,10 @@
     //提示框
     Popup.info=function( message , option )
     {
-        return Popup( Popup.SIMPLE ).show( Utils.sprintf('<div style="margin: 5px;">%s</div>',message) , option);
+        var popup = Popup( Popup.SIMPLE ).vertical('bottom').horizontal('center');
+        popup.show( Utils.sprintf('<div style="margin: 5px;">%s</div>',message) , option);
+        popup.skinGroup().current(null).getBoundingRect(option.left,option.top);
+        return popup;
     }
 
     //警告框
@@ -110,118 +118,55 @@
         var skin = this.skinGroup().current(null);
         var containerHeight = skin.height();
         var containerWidth = skin.width();
+        var halign=this.horizontal();
+        var valign=this.vertical();
+        var anchor =  this.anchor();
+        var left = this.left();
+        var top = this.top();
 
-        if( containerHeight < 1 || containerWidth < 1 )
-           return this;
+        if( (containerHeight < 1 || containerWidth < 1) && (halign==='left' && valign==='top') && !anchor && !( isNaN(left) || isNaN(top) ) )
+            return this;
 
-        var halign=this.horizontal()
-            ,valign=this.vertical()
-            ,h=halign==='center' ? 0.5 : halign==='right' ? 1 : 0
+        var windowSize = Utils.getSize( window );
+        var width      = windowSize.width;
+        var height     = windowSize.height;
+        var x = 0;
+        var y = 0;
+        var  h=halign==='center' ? 0.5 : halign==='right' ? 1 : 0
             ,v=valign==='middle' ? 0.5 : valign==='bottom' ? 1 : 0
             ,xOffset, yOffset;
 
-        var width = Utils.getSize(window,'width');
-        var height = Utils.getSize(window,'height');
-
-        var anchor = this.anchor();
-
         if( anchor )
         {
-            var position = Utils.position( anchor );
-            var anchorSize = Utils.getSize(anchor,true);
-            var scroll = Utils.scroll(document);
-            xOffset = position.left;
-            yOffset = position.top + anchorSize.height - scroll.top;
+            width = containerWidth;
+            height = containerHeight;
+            x-=width-width * h;
+            y-=height-height * v;
 
-            //如超出窗口边界则调整到最佳位置
-            if( this.auto() )
+            if( anchor instanceof MouseEvent )
             {
-                var topSpace = position.top - scroll.top;
-                var bottomSpace = (height+scroll.top) - (position.top  + anchorSize.height);
-                var leftSpace = position.left - scroll.left;
-                var rightSpace = (width+scroll.left) - (position.left  + anchorSize.width);
-
-
-                console.log( topSpace, rightSpace, bottomSpace, leftSpace, anchorSize, yOffset + containerHeight > height )
-
-                if (xOffset + containerWidth > width && leftSpace > rightSpace)
-                {
-                    xOffset = position.left- scroll.left - containerWidth;
-                }
-
-                if ( yOffset + containerHeight > height && topSpace > bottomSpace )
-                {
-                    yOffset = position.top- scroll.top - containerHeight;
-                }
+                x += anchor.pageX;
+                y += anchor.pageY;
+                width = containerWidth;
+                height = containerHeight;
+            }else
+            {
+                var rect = Utils.getBoundingRect(anchor,true);
+                x += rect.left;
+                y += rect.top;
+                containerWidth = rect.width;
+                containerHeight = rect.height;
+                width=containerWidth * 2;
+                height=containerHeight * 2;
             }
-
-        }else
-        {
-            xOffset = Math.floor((width - containerWidth) * h);
-            yOffset = Math.floor((height - containerHeight) * v);
         }
-        skin.position(xOffset,  yOffset);
+
+        xOffset = x+Math.floor( (width - containerWidth) * h);
+        yOffset = y+Math.floor( (height - containerHeight) * v);
+
+        if( isNaN(left) )skin.left(xOffset);
+        if( isNaN(top) )skin.top(yOffset);
         return this;
-    }
-
-    /**
-     * @private
-     */
-    Popup.prototype.__anchor__=null;
-
-    /**
-     * 指定锚点目标对象
-     * @param HTMLEment
-     * @returns {Popup}
-     */
-    Popup.prototype.anchor=function( target )
-    {
-        if( Utils.isNodeElement(target) )
-        {
-            this.__anchor__ = target;
-            return this;
-        }
-        return this.__anchor__;
-    }
-
-    /**
-     * @private
-     */
-    Popup.prototype.__auto__=true;
-
-    /**
-     * 指定锚点目标对象
-     * @param HTMLEment
-     * @returns {Popup}
-     */
-    Popup.prototype.auto=function( auto )
-    {
-        if( typeof auto !== "undefined")
-        {
-            this.__auto__ = auto;
-            return this;
-        }
-        return this.__auto__;
-    }
-
-    /**
-     * @private
-     */
-    Popup.prototype.__priority__='bottom';
-
-    /**
-     * 指定锚点目标对象
-     * @param HTMLEment
-     * @returns {Popup}
-     */
-    Popup.prototype.priority=function( priority )
-    {
-        if( typeof priority !== "undefined")
-        {
-            this.__priority__ = priority;
-            return this;
-        }
-        return this.__priority__;
     }
 
     /**
@@ -312,7 +257,7 @@
         if( typeof align !== "undefined" )
         {
             if( Popup['H'+align.toUpperCase()] )
-                __horizontal__=align;
+                this.__horizontal__=align;
             return this;
         }
         return this.__horizontal__;
@@ -356,29 +301,27 @@
     }
 
     /**
-     * @private
-     */
-    var __mask__=null;
-
-    /**
      * 庶罩层
      * @returns {*}
      */
     Popup.prototype.mask=function()
     {
-        if( __mask__ === null )
+        var skinGroup = this.skinGroup();
+        var context = skinGroup[0].parentNode;
+        var mask = Utils.storage(context,'popup.mask');
+        if( this.type() !== Popup.SIMPLE && !mask )
         {
-            __mask__ = Breeze('<div name="mask" />', 'body').style('cssText',"background-color:#000000;opacity:0;width:100%;height:100%;position:fixed;z-index:998;top:0px;left:0px;display:none;" );
+            mask = Breeze('<div name="mask" />', skinGroup[0].parentNode ).style('cssText',"background-color:#000000;opacity:0;width:100%;height:100%;position:fixed;z-index:998;top:0px;left:0px;display:none;" );
             var callback = function(event){this.height( Utils.getSize(window,'height'));}
-            Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,callback,true,0,__mask__);
-            callback.call(__mask__);
-            var skinGroup =  this.skinGroup()
-            __mask__.addEventListener( MouseEvent.MOUSE_DOWN,function(event){
-                Animation.shake(skinGroup[0]);
+            Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,callback,true,0,mask);
+            callback.call(mask);
+            mask.addEventListener( MouseEvent.MOUSE_DOWN,function(event){
+                Animation.shake( skinGroup[0] );
                 event.stopPropagation();
-            })
+            });
+            Utils.storage(context,'popup.mask', mask);
         }
-        return __mask__;
+        return mask;
     }
 
     /**
@@ -388,10 +331,83 @@
      */
     Popup.prototype.hidden=function()
     {
-        Utils.storage(skinGroup[0].parentNode,'popupshowing.'+this.type(), false )
-        this.mask().display(false);
+        var skinGroup = this.skinGroup();
+        var context = skinGroup[0].parentNode;
+        Utils.storage(context,'popup.'+this.type(), false );
+        if( this.type() !== Popup.SIMPLE )this.mask().display(false);
         this.current(null).display(false);
         return this;
+    }
+
+    /**
+     * @private
+     */
+    Popup.prototype.__left__=NaN;
+
+    /**
+     * 显示弹框
+     * @param number val
+     * @returns {Popup|number}
+     * @public
+     */
+    Popup.prototype.left=function( val )
+    {
+        if( typeof val !== "undefined" )
+        {
+            val = parseInt(val);
+            if( !isNaN(val ) )this.skinGroup().current(null).left(val);
+            this.__left__=val;
+            return this;
+        }
+        return this.__left__;
+    }
+
+    /**
+     * @private
+     */
+    Popup.prototype.__top__=NaN;
+
+    /**
+     * 显示弹框
+     * @param number val
+     * @returns {Popup|number}
+     * @public
+     */
+    Popup.prototype.top=function( val )
+    {
+        if( typeof val !== "undefined" )
+        {
+            val = parseInt(val);
+            if( !isNaN(val ) )this.skinGroup().current(null).top( val );
+            this.__top__=val;
+            return this;
+        }
+        return this.__top__;
+    }
+
+    /**
+     * @private
+     */
+    Popup.prototype.__anchor__=null;
+
+    /**
+     * 显示弹框
+     * @param number val
+     * @returns {Popup|number}
+     * @public
+     */
+    Popup.prototype.anchor=function( val )
+    {
+        if( typeof val !== "undefined" )
+        {
+            if( !Utils.isNodeElement(val) && !(val instanceof MouseEvent) )
+            {
+                throw new Error('invalid anchor. the val only can is NodeElement or MouseEvent');
+            }
+            this.__anchor__=val;
+            return this;
+        }
+        return this.__anchor__;
     }
 
     /**
@@ -404,31 +420,29 @@
     {
         var type =  this.type();
         var skinGroup = this.skinGroup();
-
-        if( Utils.storage(skinGroup[0].parentNode,'popupshowing.'+type ) )
-           return this;
-
-        Utils.storage(skinGroup[0].parentNode,'popupshowing.'+type, true )
-        content = content || '';
-
-        option =  Utils.extend({autoHidden:true,zIndex:999}, option || {});
-        option.zIndex = parseInt( option.zIndex ) || 999;
+        var context = skinGroup[0].parentNode;
         setting(this, option);
-
-        if( skinGroup.getSkin('label') )
-            skinGroup.currentSkin('label').text( this.title() );
-        var body = skinGroup.getSkin('body') || skinGroup.getSkin('container');
-        skinGroup.current( body ).html( content );
-        skinGroup.current( null ).style('zIndex',option.zIndex).display(true);
-
-        if( type !== Popup.SIMPLE )
+        if( !Utils.storage(context,'popup.'+type ) )
         {
-          this.mask().display(true).style('zIndex', option.zIndex-1 );
+            Utils.storage(context,'popup.'+type, true );
+            content = content || '';
+            option =  Utils.extend({autoHidden:true,zIndex:999}, option || {});
+            option.zIndex = parseInt( option.zIndex ) || 999;
+
+            if( skinGroup.getSkin('label') )
+                skinGroup.currentSkin('label').text( this.title() );
+            var body = skinGroup.getSkin('body') || skinGroup.getSkin('container');
+            skinGroup.current( body ).html( content );
+            skinGroup.current( null ).style('zIndex',option.zIndex).display(true);
+
+            if( type !== Popup.SIMPLE )
+            {
+                this.mask().display(true).style('zIndex', option.zIndex-1 );
+            }
         }
         setPositionAndSize.call(this);
         return this;
     }
-
 
     /**
      * 皮肤安装完成
@@ -499,7 +513,7 @@
             footer:'<div><div style="width: auto; height:inherit;float: right;">{part cancel+submit}</div></div>',
             body:  '<div></div>'
         },{
-            container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;position:fixed;width:auto;height:auto;display:none;border:solid #b3b3b3 1px;backgroundColor:#ffffff"},
+            container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;position:fixed;left:0px;top:0px;width:auto;height:auto;display:none;border:solid #b3b3b3 1px;backgroundColor:#ffffff"},
             head:{'style':"width:100%;height:35px;lineHeight:35px;display:block;color:#333333;borderBottom:solid 1px #cccccc" },
             label:{ 'style':"width:auto;display:block;float:left;margin:0px 10px" },
             close:{ 'style':"width:auto;height:25px;padding:0px;margin:0px;cursor:pointer;float:right;margin:0px 10px" },

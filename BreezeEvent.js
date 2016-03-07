@@ -172,7 +172,7 @@
             breezeEvent.pageY= event.y || event.clientY || event.pageY;
             if( typeof event.offsetX==='undefined' && target )
             {
-                var offset=Utils.position( target );
+                var offset=Utils.getBoundingRect( target );
                 event.offsetX=breezeEvent.pageX-offset.left;
                 event.offsetY=breezeEvent.pageY-offset.top;
             }

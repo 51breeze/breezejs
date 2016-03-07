@@ -18,7 +18,7 @@
         {
 
             skinGroup.current(null);
-            var position = skinGroup.position()
+            var position = skinGroup.getBoundingRect()
             var left = position.left;
             var top  = position.top;
             var width =  skinGroup.width();
@@ -29,7 +29,7 @@
               return;
 
             skinGroup.width( width );
-            skinGroup.position(left, top + height + 3 );
+            skinGroup.getBoundingRect(left, top + height + 3 );
 
             var windowWidth = Utils.getSize(window,'width');
             var windowHeight = Utils.getSize(window,'height');

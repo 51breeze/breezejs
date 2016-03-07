@@ -160,7 +160,7 @@
         options.duration = duration;
 
         var tl =createTimeline(options);
-        var position = Utils.position(element);
+        var position = Utils.getBoundingRect(element);
         var motion = new Motions( element )
 
         if( typeof options.x === "number" )motion.set('left', position.left, options.x )
@@ -182,7 +182,7 @@
         options.duration = duration || 0.2;
         options.fps = options.fps || 30;
         var tl =createTimeline(options);
-        var position = Utils.position(element);
+        var position = Utils.getBoundingRect(element);
         var size = options.size || 4;
         var keyframe = KeyFrame( options.duration * 60 )
 

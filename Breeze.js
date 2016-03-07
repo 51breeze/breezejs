@@ -1157,12 +1157,11 @@
     {
         return access.call(this,prop, value,{
             get:function(prop){
-                return Utils.position(this)[ prop ]
+                return Utils.getBoundingRect(this)[ prop ];
             },
             set:function(prop,newValue){
-                if( Utils.style(this,'position')==='static' )
-                    Utils.style(this,'position','relative')
-                return prop==='left' ? Utils.position(this, prop ) : Utils.position(this, null, prop );
+                if( Utils.style(this,'position')==='static' )Utils.style(this,'position','relative');
+                return Utils.style(this,prop,parseInt(newValue) || 0 );
             }
         },PropertyEvent.CHANGE) || 0;
     }
@@ -1218,29 +1217,9 @@
      * @param top
      * @returns {*}
      */
-    Breeze.prototype.position=function(left,top)
+    Breeze.prototype.getBoundingRect=function()
     {
-        left = parseInt(left);
-        top = parseInt( top );
-        return this.forEach(function(elem)
-        {
-            var position = Utils.position(elem);
-            if( !isNaN(left) || !isNaN(top) )
-            {
-                if(position.left !== left || position.top !== top )
-                {
-                    Utils.position(elem,left,top);
-                    var event = new StyleEvent( StyleEvent.CHANGE );
-                    event.property = 'position';
-                    event.newValue = {'left':left,'top':top};
-                    event.oldValue = position;
-                    dispatchEventAll(this, event);
-                }
-
-            }else{
-               return position;
-            }
-        });
+        return Utils.getBoundingRect( this.current() );
     }
 
     /**
@@ -1294,7 +1273,7 @@
         point['y']=top || 0;
         if( target && target.parentNode )
         {
-            var offset=Utils.position( target.parentNode );
+            var offset=Utils.getBoundingRect( target.parentNode );
             if( local )
             {
                 point['x']+=offset['x'];

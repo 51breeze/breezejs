@@ -10,178 +10,135 @@
 {
     "use strict";
     var Utils= window.Utils || (window.Utils={})
-        ,fix={
-            attrMap:{
-                'tabindex'       : 'tabIndex',
-                'readonly'       : 'readOnly',
-                'for'            : 'htmlFor',
-                'maxlength'      : 'maxLength',
-                'cellspacing'    : 'cellSpacing',
-                'cellpadding'    : 'cellPadding',
-                'rowspan'        : 'rowSpan',
-                'colspan'        : 'colSpan',
-                'usemap'         : 'useMap',
-                'frameborder'    : 'frameBorder',
-                'class'          : 'className',
-                'contenteditable': 'contentEditable'
-            }
-            ,cssMap:{}
+    ,fix={
+        attrMap:{
+            'tabindex'       : 'tabIndex',
+            'readonly'       : 'readOnly',
+            'for'            : 'htmlFor',
+            'maxlength'      : 'maxLength',
+            'cellspacing'    : 'cellSpacing',
+            'cellpadding'    : 'cellPadding',
+            'rowspan'        : 'rowSpan',
+            'colspan'        : 'colSpan',
+            'usemap'         : 'useMap',
+            'frameborder'    : 'frameBorder',
+            'class'          : 'className',
+            'contenteditable': 'contentEditable'
         }
-        ,browserPrefix=''
-        ,needAddPrefixStyleName={
-            'box-shadow':true,
-            'border-radius':true,
-            'border-top-left-radius':true,
-            'border-top-right-radius':true,
-            'border-bottom-left-radius':true,
-            'border-bottom-right-radius':true,
-            'focus-ring-color':true,
-            'user-select':true,
-            'radial-gradient':true,
-            'linear-gradient':true,
-            'animation-name':true,
-            'animation-duration':true,
-            'animation-iteration-count':true,
-            'animation-delay':true,
-            'animation-fill-mode':true,
-            'animation-direction':true,
-            'animation-timing-function':true,
-            'animation-play-state':true
-        }
+        ,cssMap:{}
+    }
+    ,browserPrefix=''
+    ,needAddPrefixStyleName={
+        'box-shadow':true,
+        'border-radius':true,
+        'border-top-left-radius':true,
+        'border-top-right-radius':true,
+        'border-bottom-left-radius':true,
+        'border-bottom-right-radius':true,
+        'focus-ring-color':true,
+        'user-select':true,
+        'radial-gradient':true,
+        'linear-gradient':true,
+        'animation-name':true,
+        'animation-duration':true,
+        'animation-iteration-count':true,
+        'animation-delay':true,
+        'animation-fill-mode':true,
+        'animation-direction':true,
+        'animation-timing-function':true,
+        'animation-play-state':true
+    }
+    ,cssAalpha = /alpha\([^)]*\)/i
+    ,cssOpacity = /opacity=([^)]*)/
+    ,cssUpperProp = /([A-Z]|^ms)/g
+    ,cssNum = /^[\-+]?(?:\d*\.)?\d+$/i
+    ,cssNumnonpx = /^-?(?:\d*\.)?\d+(?!px)[^\d\s]+$/i
+    ,cssOperator = /^([\-+])=([\-+.\de]+)/
+    ,cssExpand = [ "Top", "Right", "Bottom", "Left" ]
+    ,cssDashAlpha = /-([a-z]|[0-9])/ig
+    ,cssPrefix = /^-ms-/
+    ,cssCamelCase = function( all, letter )
+    {
+        return ( letter + "" ).toUpperCase();
+    }
+    ,cssNumber={
+        "fillOpacity": true,
+        "fontWeight": true,
+        "lineHeight": true,
+        "opacity": true,
+        "orphans": true,
+        "widows": true,
+        "zIndex": true,
+        "zoom": true
+    }
+    ,cssHooks={}
+    ,operatorValue=function ( value, increase, ret )
+    {
+        ret = ret ===undefined ? typeof value === "string" ?  cssOperator.exec( value ) : null : ret
+        if ( ret && increase>0 )value = ( +( ret[1] + 1 ) * +ret[2] ) + increase;
+        return value;
+    };
 
-        ,cssAalpha = /alpha\([^)]*\)/i
-        ,cssOpacity = /opacity=([^)]*)/
-        ,cssUpperProp = /([A-Z]|^ms)/g
-        ,cssNum = /^[\-+]?(?:\d*\.)?\d+$/i
-        ,cssNumnonpx = /^-?(?:\d*\.)?\d+(?!px)[^\d\s]+$/i
-        ,cssOperator = /^([\-+])=([\-+.\de]+)/
-        ,cssExpand = [ "Top", "Right", "Bottom", "Left" ]
-        ,cssDashAlpha = /-([a-z]|[0-9])/ig
-        ,cssPrefix = /^-ms-/
-        ,cssCamelCase = function( all, letter )
+    /**
+     * 获取元素相对文档页面边界的矩形坐标。
+     * 如果元素的 position = fixed 或者 force=== true 则相对浏览器窗口的位置
+     * @param NodeElement elem
+     * @param boolean force
+     * @returns {left,top,right,bottom,width,height}
+     */
+    Utils.getBoundingRect=function( elem , force )
+    {
+        var value={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0,'width':0,'height':0}, box, size;
+        if( Utils.isWindow(elem) )
         {
-            return ( letter + "" ).toUpperCase();
-        }
-        ,cssNumber={
-            "fillOpacity": true,
-            "fontWeight": true,
-            "lineHeight": true,
-            "opacity": true,
-            "orphans": true,
-            "widows": true,
-            "zIndex": true,
-            "zoom": true
-        }
-        ,cssHooks={}
-        ,operatorValue=function ( value, increase,ret )
-        {
-            ret = ret ===undefined ? typeof value === "string" ?  cssOperator.exec( value ) : null : ret
-            if ( ret && increase>0 )value = ( +( ret[1] + 1 ) * +ret[2] ) + increase;
+            size = Utils.getSize(elem);
+            value.left = elem.screenLeft || elem.screenX;
+            value.top = elem.screenTop || elem.screenY;
+            value.width = size.width;
+            value.height = size.height;
+            value.right = size.width + value.left;
+            value.bottom = size.height + value.top;
             return value;
         }
-        ,getPosition=function( elem )
-        {
-            var box={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0,'width':0,'height':0};
-            var size = Utils.getSize(elem);
 
-            if( Utils.isWindow(elem) )
-            {
-                box.left = elem.screenLeft || elem.screenX;
-                box.top = elem.screenTop || elem.screenY;
-                box.width = size.width;
-                box.height = size.height;
-                box.right =  size.width + box.left;
-                box.bottom =  size.height + box.top;
-                return box;
-
-            }else if( Utils.isNodeElement(elem ) )
-            {
-                elem = elem.documentElement || elem;
-                box.width = size.width;
-                box.height=size.height;
-                do {
-                    box.top += elem.offsetTop;
-                    box.left += elem.offsetLeft;
-                    elem = elem.offsetParent;
-                } while (elem);
-                box.right = box.width+box.left;
-                box.bottom = box.height+box.top;
-            }
-            return box;
-        };
-
-        /**
-         * 获取元素相对舞台坐标位置
-         * @param elem
-         * @returns {object}
-         */
+        if( !Utils.isNodeElement(elem) )throw new Error('invalid elem. elem not is NodeElement');
+        var doc =  elem.ownerDocument || elem, docElem=doc.documentElement;
+        var scroll = Utils.scroll( Utils.getWindow(doc) );
         if( "getBoundingClientRect" in document.documentElement )
         {
-            getPosition = function( elem )
-            {
-                var box,value;
-                box=value={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0,'width':0,'height':0};
+            box = elem.getBoundingClientRect();
+            var clientTop = docElem.clientTop || doc.body.clientTop || 0, clientLeft = docElem.clientLeft || doc.body.clientLeft || 0;
+            value.top = box.top + scroll.top - clientTop;
+            value.left = box.left + scroll.left - clientLeft;
+            value.right = box.right + scroll.left - clientLeft;
+            value.bottom = box.bottom + scroll.top - clientTop;
+            value.width = box.width;
+            value.height = box.height;
 
-                if( Utils.isWindow(elem) )
-                {
-                    box.left = elem.screenLeft || elem.screenX;
-                    box.top = elem.screenTop || elem.screenY;
-                    var size = Utils.getSize(window);
-                    box.width = size.width;
-                    box.height = size.height;
-                    box.right =  size.width + box.left;
-                    box.bottom = size.height + box.top;
-                    return box;
-
-                }else if( Utils.isNodeElement(elem) )
-                {
-                    var doc =  elem.ownerDocument || elem,
-                        docElem=doc.documentElement;
-
-                    box = elem.getBoundingClientRect();
-                    var clientTop = docElem.clientTop || doc.body.clientTop || 0,
-                        clientLeft = docElem.clientLeft || doc.body.clientLeft || 0,
-                        scrollTop = 0,
-                        scrollLeft = 0;
-
-                    //始终相对浏览器窗口的位置
-                    var fixed =  Utils.style(elem,'position') === 'fixed';
-                    if( !fixed ){
-                        var scroll = Utils.scroll( Utils.getWindow(doc) );
-                        scrollTop = scroll.top,
-                        scrollLeft = scroll.left;
-                    }
-
-                    value.top = box.top + scrollTop - clientTop;
-                    value.left = box.left + scrollLeft - clientLeft;
-                    value.right = box.right + scrollLeft - clientLeft;
-                    value.bottom = box.bottom + scrollTop - clientTop;
-                    value.width = box.width;
-                    value.height = box.height;
-                }
-                return value;
-            };
-        }
-
-        /**
-         * 设置获取元素相对舞台坐标位置
-         * @param elem
-         * @param number left
-         * @param number top
-         * @returns {object|boolean}
-         */
-        Utils.position=function( elem, left, top )
+        }else
         {
-            var isx=typeof left === "number";
-            var isy= typeof top === "number";
-            if( (isx || isy) && Utils.isNodeElement(elem) )
-            {
-                if( isx )Utils.style(elem, 'left', left  );
-                if( isy )Utils.style(elem, 'top' , top   );
-                return true;
-            }
-            return getPosition( elem );
+            size = Utils.getSize( elem );
+            value.width = size.width;
+            value.height=size.height;
+            do {
+                value.top += elem.offsetTop;
+                value.left += elem.offsetLeft;
+                elem = elem.offsetParent;
+            } while (elem);
+            value.right = value.width+value.left;
+            value.bottom = value.height+value.top;
         }
+
+        //始终相对浏览器窗口的位置
+        if( Utils.style(elem,'position') === 'fixed' || force===true )
+        {
+            value.top -= scroll.top;
+            value.left -= scroll.left;
+            value.right -= scroll.left;
+            value.bottom -= scroll.top;
+        }
+        return value;
+    }
 
     /**
      * 获取元素大小
@@ -1844,6 +1801,5 @@
         }
         return stylename;
     }
-
 
 })();

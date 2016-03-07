@@ -634,7 +634,7 @@
         {
              if( Utils.style(element,'display') === 'none' ||  Utils.style(element,'visibility') ==='hidden' )
                 return;
-             var pos = Utils.position(element);
+             var pos = Utils.getBoundingRect(element);
              var width = Utils.getSize( element,'width' );
              var height = Utils.getSize( element,'height' );
              if( event.pageX < pos.left || event.pageY < pos.top || event.pageX > pos.left + width ||  event.pageY > pos.top+height )
