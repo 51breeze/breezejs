@@ -7,26 +7,26 @@
  */
 
 /*
- @example
+@example
+1、提示框
+Popup.info('Hello word!',{anchor:event,vertical:'top', horizontal:'left'})
+2、警告框
+Popup.alert('Hello word!')
+3、确认框
+Popup.confirm('Hello word!',function(result){
+console.log(result);
+})
+4、模态框
+Popup.modality('<div>the html</div>')
 
- 1、提示框
- Popup.info('Hello word!',{anchor:event,vertical:'top', horizontal:'left'})
-
- 2、警告框
- Popup.alert('Hello word!')
-
- 3、确认框
- Popup.confirm('Hello word!',function(result){
-    console.log(result);
- })
-
- 除以上封装好的弹出框外，还可以根据需求自定义弹框
- Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
-
+注意：
+在使用过程中推荐使用以上几种命令来创建弹出框。
+如果有一些特殊的需求还可以自定义一些属性来达到不同的效果
+Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
  */
-
 (function(window,undefined )
 {
+    "use strict";
 
     /**
      * @private
@@ -51,6 +51,11 @@
      */
     function setPositionAndSize()
     {
+        if( Popup.LAST_INSTANCE && Popup.LAST_INSTANCE !== this )
+        {
+            Popup.LAST_INSTANCE.hidden();
+        }
+
         var skin = this.skinGroup().current(null);
         var containerHeight = skin.height();
         var containerWidth = skin.width();
@@ -107,9 +112,18 @@
 
     /**
      * 弹框组件
+     * 模态框默认位于屏幕中间方位,也可以设置锚点对象来确定弹框位置。可以自定义主题风格，此组件提供了三种风格可供选择即：标准（norm）、典型（typical）、简单（simple）。
+     * 如果在使用过程中想改变此组件的皮肤有以下两种方法可以做到：
+     *   1、直接覆盖 getDefaultSkin 这个方法
+     *   2、在页面中直通过html方式写一个皮肤，然后通过 new SkinGroup(html) 对象传给组件。具体如何使用 SkinGroup 请查看相关文档。
+     * 注意：此组件使用了皮肤分离层的设计方式，在使用时还必须遵守皮肤的使用规则。
+     *
+     * 在标准风格下需要的皮肤元素：head, label, close, cancel, submit,body
+     * 在典型风格下需要的皮肤元素：head, label, close, body
+     *
      * @param string type norm|simple|typical
-     * @param NodeElement context
-     * @returns {*}
+     * @param NodeElement context 默认为 body。每一个上下文中都可以容纳以上类型的弹框实例,相反每一个上下文中都只能有一个以上类型的实例。
+     * @returns {Popup}
      * @constructor
      */
     function Popup( type, context )
@@ -130,28 +144,30 @@
             throw new Error('invalid type');
         }
 
-        var instance = Utils.storage(context,'popup.instance'+type);
+        var name = type === Popup.MODALITY ? 'popup.modalityInstance' : 'popup.generalInstance';
+        var instance = Utils.storage(context,name);
         if( instance )return instance;
         if( !(this instanceof Popup) )
             return new Popup( type , context);
-
 
         this.__type__ = type;
         this.__horizontal__=Popup.HCENTER;
         this.__vertical__=Popup.VMIDDLE;
         this.__title__='提示信息';
         this.__anchor__=null;
+        this.__theme__=null;
         this.__callback__=null;
         this.__left__=NaN;
         this.__top__=NaN;
-        Utils.storage(context,'popup.instance'+type, this);
+        Utils.storage(context,name, this);
         return SkinComponent.call(this, new SkinGroup('<div class="popup" />', context) );
     }
 
     //弹出风格
     Popup.NORM='norm';
-    Popup.SIMPLE='simple';
     Popup.TYPICAL='typical';
+    Popup.SIMPLE='simple';
+    Popup.MODALITY='modality';
 
     //水平垂直对齐常量
     Popup.HLEFT='left';
@@ -160,39 +176,49 @@
     Popup.VTOP='top';
     Popup.VMIDDLE='middle';
     Popup.VBOTTOM='bottom';
+    Popup.LAST_INSTANCE=null;
 
     //提示框
     Popup.info=function( message , option )
     {
+        option = Utils.extend({zIndex:999} , option || {});
         var popup = Popup( Popup.SIMPLE )
         if( option.anchor instanceof MouseEvent )
         {
             popup.vertical('top').horizontal('left');
         }
+        Popup.LAST_INSTANCE= popup;
         return popup.show( Utils.sprintf('<div style="margin: 5px;">%s</div>',message) , option);
     }
 
     //警告框
     Popup.alert=function( message , option )
     {
-        return Popup( Popup.NORM ).minHeight(120).minWidth(280).show( message , option);
+        option = Utils.extend({zIndex:999,minWidth:400,minHeight:80,autoHidden:false,vertical:'top',horizontal:'center'} , option || {});
+        var popup =  Popup( Popup.NORM );
+        //Popup.LAST_INSTANCE= popup;
+        return popup.show( message , option);
     }
 
     //确认框
     Popup.confirm=function( message , option )
     {
-        if( typeof option === "function" )
-            option={callback:option};
-        option =  Utils.extend({width:400,autoHidden:false}, option || {});
-        return  Popup( Popup.TYPICAL ).show( message , option);
+        if( typeof option === "function" )option={callback:option};
+        option = Utils.extend({zIndex:999,minWidth:400,minHeight:120,autoHidden:false,vertical:'top',horizontal:'center'} , option || {});
+        var popup =  Popup( Popup.TYPICAL );
+        //Popup.LAST_INSTANCE= popup;
+        return  popup.show( message , option);
     }
 
     //模态框
     Popup.modality=function(title, content , option )
     {
-        option=option || {};
-        option =  Utils.extend({minWidth:600,minHeight:300,autoHidden:false,type:Popup.TYPICAL,style:{opacity:0.5}}, option || {});
-        var popup = Popup( option.type === Popup.NORM ? Popup.NORM : Popup.TYPICAL );
+        option =  Utils.extend({minWidth:600,minHeight:300,autoHidden:false,type:Popup.TYPICAL,style:{opacity:0.5},zIndex:900}, option || {});
+        var popup = Popup( Popup.MODALITY );
+        var theme={};
+        theme[ Popup.NORM ] = '{part head+body}';
+        theme[ Popup.TYPICAL ] = '{part head+body+footer}';
+        popup.__theme__ = theme[option.type] || '';
         popup.mask().style(option.style);
         delete option.style;
         return  popup.title( title ).show( content , option);
@@ -201,6 +227,7 @@
     Popup.prototype=  new SkinComponent();
     Popup.prototype.constructor=Popup;
     Popup.prototype.__type__=Popup.NORM;
+    Popup.prototype.__theme__=null;
     Popup.prototype.__vertical__=Popup.VMIDDLE;
     Popup.prototype.__horizontal__=Popup.HCENTER;
     Popup.prototype.componentProfile='popup';
@@ -337,10 +364,14 @@
      */
     Popup.prototype.mask=function()
     {
+        if( this.type() === Popup.SIMPLE )
+           return null;
+
         var skinGroup = this.skinGroup();
         var context = skinGroup[0].parentNode;
-        var mask = Utils.storage(context,'popup.mask');
-        if( this.type() !== Popup.SIMPLE && !mask )
+        var name = this.type() === Popup.MODALITY ? 'popup.maskmodality' : 'popup.maskalert';
+        var mask = Utils.storage(context,name);
+        if( !mask )
         {
             mask = Breeze('<div name="mask" />', skinGroup[0].parentNode ).style('cssText',"background-color:#000000;opacity:0;width:100%;height:100%;position:fixed;z-index:998;top:0px;left:0px;display:none;" );
             var callback = function(event){this.height( Utils.getSize(window,'height'));}
@@ -350,7 +381,7 @@
                 Animation.shake( skinGroup[0] );
                 event.stopPropagation();
             });
-            Utils.storage(context,'popup.mask', mask);
+            Utils.storage(context,name, mask);
         }
         return mask;
     }
@@ -362,11 +393,10 @@
      */
     Popup.prototype.hidden=function()
     {
-        var skinGroup = this.skinGroup();
-        var context = skinGroup[0].parentNode;
-        Utils.storage(context,'popup.'+this.type(), false );
-        if( this.type() !== Popup.SIMPLE )this.mask().display(false);
+        var mask = this.mask();
+        if( mask )mask.display(false);
         this.current(null).display(false);
+        if( this.hasEventListener( PopupEvent.CLOSE ) )this.dispatchEvent( new PopupEvent( PopupEvent.CLOSE ) );
         return this;
     }
 
@@ -528,62 +558,40 @@
 
     /**
      * 显示弹框
-     * @param string type 弹框类型norm | simple
+     * @param string content
+     * @param object option
      * @returns {Popup}
      * @public
      */
     Popup.prototype.show=function( content, option )
     {
-        var type =  this.type();
         var skinGroup = this.skinGroup();
-        var context = skinGroup[0].parentNode;
+        content = content || '';
+        option =  Utils.extend({autoHidden:true,zIndex:999}, option || {});
+        option.zIndex =  parseInt( option.zIndex ) || 999;
         setting(this, option);
-        if( !Utils.storage(context,'popup.'+type ) )
-        {
-            Utils.storage(context,'popup.'+type, true );
-            content = content || '';
-            option =  Utils.extend({autoHidden:true,zIndex:999}, option || {});
-            option.zIndex = parseInt( option.zIndex ) || 999;
 
-            if( skinGroup.getSkin('label') )
-                skinGroup.currentSkin('label').text( this.title() );
-            var body = skinGroup.getSkin('body') || skinGroup.getSkin('container');
-            skinGroup.current( body ).html( content );
-            skinGroup.current( null ).style('zIndex',option.zIndex).display(true);
+        if( skinGroup.getSkin('label') )skinGroup.currentSkin('label').text( this.title() );
+        var body = skinGroup.getSkin('body') || skinGroup.getSkin('container');
+        skinGroup.current( body ).html( content );
+        skinGroup.current( null ).style('zIndex',option.zIndex).display(true);
 
-            if( type !== Popup.SIMPLE )
-            {
-                this.mask().display(true).style('zIndex', option.zIndex-1 );
-            }
+        var mask = this.mask();
+        if( mask )mask.display(true).style('zIndex', option.zIndex-1 );
 
-            var size = Utils.getSize( skinGroup[0] );
-            var maxHeight =  this.maxHeight();
-            var minHeight = this.minHeight();
-            var maxWidth  =  this.maxWidth();
-            var minWidth  = this.minWidth();
+        var size = Utils.getSize( skinGroup[0] );
+        var maxHeight =  this.maxHeight();
+        var minHeight = this.minHeight();
+        var maxWidth  = this.maxWidth();
+        var minWidth  = this.minWidth();
 
-            maxHeight = isNaN(maxHeight) ? size.height : maxHeight;
-            minHeight = isNaN(minHeight) ? size.height : minHeight;
-            maxWidth = isNaN(maxWidth) ? size.width : maxWidth;
-            minWidth = isNaN(minWidth) ? size.width : minWidth;
-            skinGroup.current(null).height( Math.max( Math.min(size.height, maxHeight ) , minHeight ) );
-            skinGroup.width( Math.max( Math.min(size.width, maxWidth ) , minWidth ) );
-
-            var bodySkin  = skinGroup.getSkin('body');
-            if( bodySkin )
-            {
-                var headSkin = skinGroup.getSkin('head');
-                var footerSkin = skinGroup.getSkin('footer');
-                var headHeight =headSkin ? Utils.getSize(headSkin,'height') : 0;
-                var footerHeight = footerSkin ? Utils.getSize(footerSkin,'height') : 0;
-
-                console.log( footerHeight )
-
-
-                Utils.style( bodySkin, 'height', skinGroup.current(null).height() - headHeight - footerHeight );
-            }
-
-        }
+        maxHeight = isNaN(maxHeight) ? size.height : maxHeight;
+        minHeight = isNaN(minHeight) ? size.height : minHeight;
+        maxWidth = isNaN(maxWidth) ? size.width : maxWidth;
+        minWidth = isNaN(minWidth) ? size.width : minWidth;
+        skinGroup.current(null);
+        skinGroup.height( Math.max( Math.min(size.height, maxHeight ) , minHeight ) );
+        skinGroup.width( Math.max( Math.min(size.width, maxWidth ) , minWidth ) );
         setPositionAndSize.call(this);
         return this;
     }
@@ -597,19 +605,27 @@
     Popup.prototype.skinInstalled=function( skinGroup )
     {
         SkinComponent.prototype.skinInstalled.call(this,skinGroup);
-
         skinGroup.current(null).addEventListener(PropertyEvent.CHANGE,function(event) {
-            if( event.property==='width' || event.property==='height' )setPositionAndSize.call(this);
+            if( event.property==='width' || event.property==='height' )
+            {
+                setPositionAndSize.call(this);
+                var bodySkin  = skinGroup.getSkin('body');
+                if( bodySkin )
+                {
+                    var headSkin = skinGroup.getSkin('head');
+                    var footerSkin = skinGroup.getSkin('footer');
+                    var headHeight =headSkin ? Utils.getSize(headSkin,'height') : 0;
+                    var footerHeight = footerSkin ? Utils.getSize(footerSkin,'height') : 0;
+                    Utils.style( bodySkin, 'height', skinGroup.current(null).height() - headHeight - footerHeight );
+                }
+            }
         },false,0,this);
 
         if( skinGroup.getSkin('close') )
         {
             skinGroup.currentSkin('close').addEventListener(MouseEvent.CLICK,function(event)
             {
-                if( this.hasEventListener( PopupEvent.CLOSE ) || !this.dispatchEvent( new PopupEvent( PopupEvent.CLOSE ) ) )
-                    return;
                 this.hidden();
-
             },false,0,this);
             skinGroup.current(null);
         }
@@ -644,14 +660,19 @@
      */
     Popup.prototype.defaultSkinObject=function()
     {
-        var theme = {}
-        theme[ Popup.NORM ] = '{part head+body}';
-        theme[ Popup.TYPICAL ] = '{part head+body+footer}';
-        return new SkinObject( theme[this.type()] || '' ,{
+        var theme = this.__theme__;
+        if( typeof theme !== "string" )
+        {
+            theme={};
+            theme[ Popup.NORM ] = '{part head+body}';
+            theme[ Popup.TYPICAL ] = '{part head+body+footer}';
+            theme=theme[this.type()] || '';
+        }
+
+        return new SkinObject( theme ,{
             head: '<div>{part label+close}</div>',
             label: '<label>Title</label>',
             close: '<span>关闭</span>',
-            body:  '<div></div>',
             cancel:'<button {attr button} class="btn btn-default">取消</button>',
             submit:'<button {attr button} class="btn btn-default">确定</button>',
             footer:'<div>{part cancel+submit}</div>',

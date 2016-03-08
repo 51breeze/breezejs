@@ -5,8 +5,37 @@
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
  */
+
+
+/*
+ @example
+
+程序中使用方式
+var selection = new Selection( '#selection' )
+ selection.dataSource( [{'id':1,'label':'张三'},{'id':2,'label':'李四'},{'id':3,'label':'赵三'}] );
+ selection.selectedIndex(2).searchable(true).multiple(false)
+ selection.addEventListener( SelectionEvent.CHANGE ,function( event ){
+    console.log( event )
+ })
+ selection.display();
+
+
+页面中的使用方式
+ <div id="selection" style="width: 300px; margin: 50px;" component="selection" display="true" dataSource="json.php" labelProfile="name" searchable="true" multiple="true">
+ <script>
+ this.initializing=function()
+ {
+    this.dataRender().dataSource().rows(30)
+ }
+ </script>
+ </div>
+ */
+
+
 (function(window,undefined )
 {
+    "use strict";
+
     /**
      * 绑定组件的相关事件
      */
@@ -18,7 +47,7 @@
         {
 
             skinGroup.current(null);
-            var position = skinGroup.getBoundingRect()
+            var position = skinGroup.getBoundingRect();
             var left = position.left;
             var top  = position.top;
             var width =  skinGroup.width();
@@ -163,9 +192,10 @@
 
 
     /**
-     * 下拉选择框组件
-     * @param selector
-     * @param context
+     * 下拉选择框组件。
+     * 此组件支持列搜索、数据项订阅、运程加载数据、多选和反选功能。
+     * @param string selector
+     * @param string context
      * @returns {*}
      * @constructor
      */
@@ -179,7 +209,7 @@
     Selection.prototype=new SkinComponent();
     Selection.prototype.constructor=Selection;
     SkinComponent.prototype.componentProfile='selection';
-    SkinComponent.prototype.initializeMethod=['labelProfile','valueProfile','defaultLabel','selectedIndex','searchable','multiple','placeholder','dataSource','display'];
+    SkinComponent.prototype.initializeMethod=['labelProfile','valueProfile','defaultLabel','selectedIndex','searchable','multiple','placeholder','dataSource','dataProfile','display'];
 
     /**
      * @private
@@ -425,6 +455,22 @@
         if( typeof msg === "undefined" )
             return this.__placeholder__;
         this.__placeholder__ = msg || this.__placeholder__;
+        return this;
+    }
+
+
+    /**
+     * @public
+     * @param string dataProfile
+     * @returns Slection
+     */
+    Selection.prototype.dataProfile=function( dataProfile )
+    {
+        if( typeof dataProfile === "undefined" )
+        {
+            return this.dataRender().dataProfile();
+        }
+        this.dataRender().dataProfile( dataProfile );
         return this;
     }
 

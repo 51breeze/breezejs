@@ -7,7 +7,9 @@
  */
 
 
-(function(window,undefined){
+(function(window,undefined)
+{
+    "use strict";
 
     /**
      * 数据渲染器
@@ -90,7 +92,7 @@
     {
         if( typeof pageContaine === "string" || pageContaine instanceof Breeze )
         {
-            this.__pagination__ = new Pagination( this );
+            this.__pagination__ = new Pagination( this.dataSource() );
             this.__pagination__.viewport( pageContaine );
 
         }else if( pageContaine === false )

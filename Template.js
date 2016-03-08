@@ -303,6 +303,7 @@
         {
             event.html=make.call(this, event.template , event.variable , this.__split__ );
             event.type = TemplateEvent.DONE;
+
             if( this.hasEventListener( TemplateEvent.DONE ) && !this.dispatchEvent( event ) )
             {
                 return false;

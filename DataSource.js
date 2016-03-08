@@ -136,6 +136,7 @@
                 options.url = source;
                 source = new HttpRequest(options);
             }
+
             if ( source instanceof HttpRequest )
             {
                 this.__source__=source;

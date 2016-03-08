@@ -7,6 +7,8 @@
  */
 (function(window,undefined )
 {
+    "use strict";
+
     function Pagination( dataSource )
     {
         if( !(this instanceof  Pagination) )

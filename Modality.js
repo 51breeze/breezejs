@@ -35,6 +35,8 @@ modality.show(true)
 
 (function(window,undefined )
 {
+    "use strict";
+
     /**
      * 模态框
      * 模态框默认大小为 800*500 位于屏幕中间方位。可以自定义主题风格，此组件提供了三种风格可供选择即：标准（norm）、典型（typical）、简单（simple）。
@@ -193,7 +195,7 @@ modality.show(true)
             attributes:{
                 head:{ 'style':{'width':'100%',height:'30px',lineHeight:'30px','display':'block',backgroundColor:'#3a3a3a',color:'#d6d6db','fontSize':'14px'}  },
                 label:{ 'style':{'width':'auto','display':'block',cursor:'pointer','float':'left',margin:'0px 10px'} },
-                close:{ 'style':{'width':'auto',height:'25px',padding:"0px",margin:'0px',cursor:'pointer','float':'right',margin:'0px 10px'} },
+                close:{ 'style':{'width':'auto',height:'25px',padding:"0px",cursor:'pointer','float':'right',margin:'0px 10px'} },
                 body:{ 'style':{padding:'10px','width':'100%',height:'auto','display':'block',overflow:'auto',backgroundColor:'#ffffff'} },
                 button:{ 'style':{margin:'0px 5px', width:'auto',height:'25px',padding:"0px 10px"} },
                 container:{ 'style':{'width':'800px',height:'550px','display':'none',overflow:'hidden',"getBoundingRect":'absolute','zIndex':999,'backgroundColor':'#3a3a3a','shadow':'0px 0px 10px 2px #444444','radius':'5px'}},
@@ -255,7 +257,7 @@ modality.show(true)
         if( typeof align !== "undefined" )
         {
             if( Modality['H'+align.toUpperCase()] )
-                __horizontal__=align;
+                this.__horizontal__=align;
             return this;
         }
         return this.__horizontal__;
