@@ -12,14 +12,11 @@
     function Pagination( dataSource )
     {
         if( !(this instanceof  Pagination) )
-        {
             return new Pagination( dataSource );
-        }
 
-        if( typeof dataSource !=="undefined" && !(dataSource instanceof DataSource) )
-        {
-            throw new Error('invalid param dataSource');
-        }
+        return SkinComponent.call(this);
+
+
 
         /**
          * @private
@@ -69,178 +66,175 @@
             'require':true
         }
 
-        /**
-         * @type {Pagination}
-         */
-        var self= this;
+    }
 
-        /**
-         * @private
-         */
-        if( dataSource instanceof DataSource )
-        {
-            dataSource.addEventListener(DataSourceEvent.SELECT,function(evnet)
-            {
-                self.display( Math.ceil( this.predicts() / this.rows() ) , this.currentPages() );
+    Pagination.prototype= new SkinComponent();
+    Pagination.prototype.constructor = Pagination;
 
-            },true,100);
-        }
 
-        /**
-         * @private
-         */
-        var _changed=true;
-
-        /**
-         * 设置获取分页模板
-         * @param options
-         * @returns {*}
-         */
-        this.options=function( options )
-        {
-            if( typeof options !== "undefined" )
-            {
-                setting=Utils.extend(true,setting,options);
-                _changed=true;
-                return this;
-            }
-
-            if( _changed )
-            {
-                _changed=false;
-                for (var k in setting.template )
+    Pagination.prototype.__options__={
+        'links':7,
+        'action':{
+            'a':{'eventType':MouseEvent.CLICK,'callback':function(crrentTarget,event){
+                var dataSource = this.dataSource();
+                if( typeof dataSource !=='undefined'  )
                 {
-                    var tpl = setting.template[k];
-                    setting.skin = setting.skin.replace('{' + k + '}', tpl);
+                    dataSource.currentPages( crrentTarget.property('data-pages') )
                 }
-            }
-            return setting;
-        }
+            }},
+            'button,input':{'eventType':[MouseEvent.CLICK,KeyboardEvent.KEYPRESS],'callback':function(crrentTarget,event)
+            {
+                if( event.type===MouseEvent.CLICK || (KeyboardEvent.KEYPRESS===event.type && event.keycode==13 ) )
+                {
+                    var dataSource = this.dataSource();
+                    var viewport = this.viewport();
+                    if (typeof dataSource !== 'undefined') {
+                        var index = parseInt(Breeze('input', viewport).property('value'));
+                        dataSource.currentPages(Math.min(Math.max(index, 1), dataSource.totalPages()));
+                    }
+                }
+            }}
+        },
+        'themeSkin':'{firstPage}{prevPage}{buttons}{nextPage}{lastPage}{goto}',
+        'require':true
+    }
 
-        /**
-         * @private
-         */
-        this.viewport=function( viewport )
+    /**
+     * 设置获取分页模板
+     * @param options
+     * @returns {*}
+     */
+    Pagination.prototype.options=function( options )
+    {
+        if( typeof options !== "undefined" )
         {
-            if( typeof  viewport === "undefined" )
-               return this.template().viewport();
-            this.template().viewport( viewport );
+            this.__options__=Utils.extend(true,this.__options__,options);
             return this;
         }
 
-        /**
-         * @private
-         */
-        var _dataSource=dataSource;
-
-        /**
-         * @param dataSource
-         * @returns {*}
-         */
-        this.dataSource=function()
+        if( _changed )
         {
-            return _dataSource;
-        }
-
-        /**
-         * @private
-         * @param event
-         */
-        var action=function(event)
-        {
-            var viewport= event.viewport;
-            for( var name in setting.action )
+            _changed=false;
+            for (var k in setting.template )
             {
-                var item = setting.action[ name ]
-                Breeze( name , viewport).not('[disable]').addEventListener( item.eventType,(function(self,item)
-                {
-                    return function(event){
-                        item.callback.call(self,this,event)
-                    }
-
-                })(self,item))
-            }
-
-            for( var name in setting.style )
-            {
-                var item = setting.style[ name ]
-                Breeze( name , viewport).style( item );
+                var tpl = setting.template[k];
+                setting.skin = setting.skin.replace('{' + k + '}', tpl);
             }
         }
+        return setting;
+    }
 
-        /**
-         * @private
-         */
-        var _tpl=null;
 
-        /**
-         * @param tpl
-         * @returns {*|Template}
-         */
-        this.template=function( tpl )
+
+    /**
+     * @private
+     */
+    Pagination.prototype.__dataSource__=null;
+
+    /**
+     * @param dataSource
+     * @returns {DataSource|Pagination}
+     */
+    Pagination.prototype.dataSource=function( dataSource )
+    {
+        if( typeof dataSource !== "undefined" )
         {
-            if( tpl && tpl instanceof Template )
+            if( !(dataSource instanceof DataSource) )
+              throw new Error('invalid dataSource');
+            this.__dataSource__ = dataSource;
+            dataSource.addEventListener(DataSourceEvent.SELECT,function(evnet)
             {
-                _tpl=tpl;
+                this.display( Math.ceil( dataSource.predicts() / dataSource.rows() ) , dataSource.currentPages() );
 
-            }else if( _tpl===null )
+            },false,100,this);
+            return this;
+        }
+        return this.__dataSource__;
+    }
+
+    /**
+     * @private
+     * @param event
+     */
+    Pagination.prototype.action=function(event)
+    {
+        var viewport= event.viewport;
+        for( var name in setting.action )
+        {
+            var item = setting.action[ name ]
+            Breeze( name , viewport).not('[disable]').addEventListener( item.eventType,(function(self,item)
             {
-                _tpl = new Template();
-            }
-            _tpl.removeEventListener( TemplateEvent.REFRESH , action );
-            _tpl.addEventListener( TemplateEvent.REFRESH ,  action );
-            return _tpl;
+                return function(event){
+                    item.callback.call(self,this,event)
+                }
+
+            })(this,item));
         }
 
-        /**
-         * @private
-         */
-        var _undisplay=false;
-
-        /**
-         * @param flag
-         * @returns {boolean}
-         */
-        this.undisplay=function( flag )
+        for( var name in setting.style )
         {
-            if( typeof  flag !== "undefined" )
-            {
-                _undisplay = flag;
-                this.viewport().html('');
-            }
-            return _undisplay;
+            var item = setting.style[ name ]
+            Breeze( name , viewport).style( item );
+        }
+    }
+
+    /**
+     * @private
+     */
+    Pagination.prototype.__template__=null;
+
+    /**
+     * @param tpl
+     * @returns {*|Template}
+     */
+    Pagination.prototype.template=function( template )
+    {
+        if( template instanceof Template )
+        {
+            this.__template__=template;
+
+        }else if( this.__template__===null )
+        {
+            this.__template__ = new Template();
+        }
+        this.__template__.removeEventListener( TemplateEvent.REFRESH , action );
+        this.__template__.addEventListener( TemplateEvent.REFRESH ,  action );
+        return  this.__template__;
+    }
+
+    /**
+     * 获取数据渲染项
+     * @returns {DataRender}
+     */
+
+    /**
+     * 显示分页视图
+     * @param number totalPages  总页数
+     * @param number currentPages 当前页数
+     * @returns {*}
+     */
+    Pagination.prototype.display=function(totalPages, currentPages )
+    {
+        var options =  this.options();
+        var links = options.links;
+        var offset =  Math.max( currentPages - Math.ceil( links / 2 ), 0);
+        offset = offset+links > totalPages ? offset-(offset+links - totalPages) : offset;
+        var buttons =[];
+        for( var b=1 ; b <= links; b++ )
+        {
+            buttons.push( offset+b );
         }
 
-        /**
-         * 获取数据渲染项
-         * @returns {DataRender}
-         */
-        this.display=function(totalPages, currentPages )
-        {
-            if( this.undisplay() )
-               return false;
-
-            var options =  this.options();
-            var links = options.links;
-            var offset =  Math.max( currentPages - Math.ceil( links / 2 ), 0);
-            offset = offset+links > totalPages ? offset-(offset+links - totalPages) : offset;
-            var buttons =[];
-            for( var b=1 ; b <= links; b++ )
-            {
-                buttons.push( offset+b );
-            }
-
-            var tpl=this.template();
-            tpl.variable('totalPage', totalPages );
-            tpl.variable('firstPage', 1 );
-            tpl.variable('prevPage', Math.max( currentPages-1, 1) );
-            tpl.variable('nextPage', Math.min( currentPages+1, totalPages) );
-            tpl.variable('lastPage', totalPages );
-            tpl.variable('currentPage', currentPages );
-            tpl.variable('buttons', buttons );
-            tpl.variable('require',options.require);
-            return tpl.render( options.skin );
-        }
+        var tpl=this.template();
+        tpl.variable('totalPage', totalPages );
+        tpl.variable('firstPage', 1 );
+        tpl.variable('prevPage', Math.max( currentPages-1, 1) );
+        tpl.variable('nextPage', Math.min( currentPages+1, totalPages) );
+        tpl.variable('lastPage', totalPages );
+        tpl.variable('currentPage', currentPages );
+        tpl.variable('buttons', buttons );
+        tpl.variable('require',options.require);
+        return tpl.render( options.skin );
     }
 
     window.Pagination= Pagination;

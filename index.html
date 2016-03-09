@@ -71,7 +71,7 @@
     Breeze(function(){
 
 
-         var grid = new DataGrid('.container');
+         var grid = new DataGrid('.gridcontainer');
           grid.pagination( '.page' );
           grid.edit('edit',{callback:function(event){
 
@@ -79,12 +79,12 @@
 
           }});
 
-          grid.columnWidth('phone',300).columnWidth('name',100).columnWidth('id',50)
+          grid.columnWidth('phone',300).columnWidth('name',100).columnWidth('id',50).columnWidth('edit',80)
 
-         // grid.orderBy('phone')
-         // grid.orderBy('id')
+          grid.orderBy('phone')
+          grid.orderBy('id')
           grid.columns({'id':'序号','name':'名称','phone':'手机','edit':'操作'});
-         // grid.component('name',{'bindable':true});
+          grid.component('name',{'bindable':true});
           grid.dataSource( 'json.php' );
           grid.display();
 
@@ -168,7 +168,7 @@
 
 
 <div class="grid" id="grid">
-    <div class="container" data-bind style="width: 600px; height: 620px; "></div>
+    <div class="gridcontainer"  style="width: 600px; height: 620px; "></div>
     <div class="page"></div>
 </div>
 

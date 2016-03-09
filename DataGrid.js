@@ -51,16 +51,16 @@
         var thead = options.thead;
         var tbody = options.tbody;
         var wrap  = options.wrap;
+        var attr = {
+           'thead' :{'style':{'border':'solid 1px '+ options.themeColor, 'backgroundColor':options.themeColor} },
+           'tbody' :{'style':{'border':'solid 1px '+ options.themeColor } }
+        };
+        options.attr = Utils.extend(true, attr, options.attr );
+        options.attr.thead.style = Utils.serialize( options.attr.thead.style ,'style' );
+        options.attr.tbody.style = Utils.serialize( options.attr.tbody.style ,'style' );
 
-        if( typeof options.headHeight === "number" )
-        {
-            thead=thead.replace(/<(.*?)>/, "<\$1 height='"+ options.headHeight +"'>" );
-        }
-
-        if( typeof options.rowHeight === "number" )
-        {
-            tbody=tbody.replace(/<(.*?)>/, "<\$1 height='"+options.rowHeight+"'>" );
-        }
+        thead=thead.replace(/<(.*?)>/, "<\$1 "+Utils.serialize( options.attr.thead ,'attr' )+">" );
+        tbody=tbody.replace(/<(.*?)>/, "<\$1 "+Utils.serialize( options.attr.tbody ,'attr' )+">" );
 
         if( Utils.isObject(columns,true) )
         {
@@ -83,12 +83,9 @@
                     th = thead.replace('{value}', plus['thead'].template[ i ].join('\r\n') );
                 }
 
-                var w= options.columnWidth[i] || options.columnWidth['*'] || null;
-                if( w )
-                {
-                    th=th.replace(/<(.*?)>/, "<\$1 width='"+ w +"'>" );
-                    tb=tb.replace(/<(.*?)>/, "<\$1 width='"+ w +"'>" );
-                }
+                var w= options.columnWidth[i] || options.columnWidth['*'] || 'auto';
+                th=th.replace(/<(.*?)>/, "<\$1 width='"+ w +"' height='"+(options.headHeight || 35)+"'>" );
+                tb=tb.replace(/<(.*?)>/, "<\$1 width='"+ w +"' height='"+(options.rowHeight || 30)+"'>" );
 
                 options.thead += th.replace(/\{column\}/g, i).replace(/\{value\}/g, field );
                 options.tbody += tb.replace(/\{column\}/g, i).replace(/\{value\}/g, '{item.'+ i +'}');
@@ -173,7 +170,12 @@
         'tbody':'<td>{value}</td>',
         'tfoot':'<div>{value}</div>',
         'wrap' :'<tr>{value}</tr>',
-        'headHeight' :35,
+        'themeColor':'#cccccc',
+        'attr':{
+            thead:{align:'center'},
+            tbody:{align:'center'}
+        },
+        'headHeight':35,
         'rowHeight' :30,
         columnWidth:{}
     };
@@ -188,12 +190,9 @@
         if( typeof options !== "undefined")
         {
             var e = ['tbody','thead','wrap','tfoot'];
-            for(var i in e )
+            for(var i in e )  if( typeof options[ e[i] ] !== "undefined" )
             {
-                if( typeof options[ e[i] ] !== "undefined" )
-                {
-                    options[ e[i] ]=tagAttr( options[ e[i] ] );
-                }
+               options[ e[i] ]=tagAttr( options[ e[i] ] );
             }
             this.__options__ = Utils.extend(true, this.__options__, options );
             return this;
