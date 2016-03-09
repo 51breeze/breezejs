@@ -485,7 +485,7 @@
             'tbody':'<tbody></tbody>'
         },{
             'container':{style:"borderCollapse:collapse;",cellspacing:'0',cellpadding:'0',border:0}
-        });
+        },['thead','tbody']);
         return skinObject;
     }
 

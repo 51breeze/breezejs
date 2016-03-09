@@ -117,14 +117,18 @@
         }
 
         this.part.container = this.container;
+        var seft = this;
         for (var name in this.part)
         {
             if( !hasskinname.test(this.part[name]) )
                 this.part[name] = this.part[name].replace( addattr, '<$1 '+SkinGroup.NAME+'="'+name+'"');
-
-            if( !isattrReg.test( this.part[name] ) )
-                this.part[name] = this.part[name].replace( addattr, "<$1 {attr " + name + "}");
-
+            if( !isattrReg.test( this.part[name] ) )this.part[name] = this.part[name].replace( addattr, function(all,tag)
+            {
+                var s = name;
+                if( typeof seft.attr[name] === "undefined" && typeof seft.attr[tag] !== "undefined" )
+                    s= tag;
+                return "<"+tag+" {attr " + s + "}";
+            });
             this.part[name] = this.part[name].replace(attrReg,parser);
         }
 
@@ -146,7 +150,7 @@
      * @returns {SkinObject}
      * @constructor
      */
-    function SkinObject( container, part, attr )
+    function SkinObject( container, part, attr , require)
     {
         if( !(this instanceof SkinObject ) )
             return new SkinObject(container,part,attr);
@@ -163,6 +167,7 @@
         this.container=container;
         this.attr=attr || {};
         this.part=part || {};
+        this.require = require || [];
     }
 
     SkinObject.prototype.constructor= SkinObject;
@@ -267,6 +272,15 @@
     SkinGroup.prototype.constructor=SkinGroup;
 
     /**
+     * @param string skinName
+     * @returns {string}
+     */
+    SkinGroup.skinName = function(skinName)
+    {
+        return Utils.sprintf('[%s="%s"]',SkinGroup.NAME,skinName);
+    }
+
+    /**
      * 验证是否为一个完整的皮肤
      * @returns {boolean}
      */
@@ -274,13 +288,13 @@
     {
         if( this.__validated__ === null )
         {
-            this.__validated__=false;
             var skinObject = this.skinObject();
-            for( var name in skinObject.part )if( name !=='container' &&  getSkin(name, this.getContext() )  )
+            for( var name in skinObject.require )if( !getSkin(name, this.getContext() )  )
             {
-                this.__validated__=true;
-                break;
+               this.__validated__=false;
+               return false;
             }
+            this.__validated__=true;
         }
         return this.__validated__;
     }
@@ -368,7 +382,8 @@
      */
     function getSkin(skinName,context)
     {
-        return Utils.sizzle( Utils.sprintf('[%s="%s"]',SkinGroup.NAME,skinName), context )[0] || null;
+        var result = Utils.sizzle( SkinGroup.skinName(skinName), context );
+        return result[0] || null;
     }
 
     /**
@@ -427,6 +442,7 @@
             skinName = skinName.replace(/(\w+)\s+?(\>?)\s+?(.*)/, function (all, a, b, c) {
                 return c === '' ? " return Breeze(this.getSkinAndValidate('" + a + "'))" : "Breeze('" + c + "',this.getSkinAndValidate('" + a + "'))";
             })
+
             try {
                 this.__skin__[key] = eval(skinName + ';');
             }catch ( e )

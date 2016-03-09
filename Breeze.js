@@ -931,8 +931,9 @@
     //访问和操作属性值
     function access(name,newValue,callback,dispatchEvent)
     {
-        var write= newValue !== undefined;
+        var write= typeof newValue !== 'undefined';
         if( !write && this.length < 1 )return null;
+
         return this.forEach(function(elem)
         {
             var oldValue= callback.get.call(elem,name,this);

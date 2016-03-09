@@ -75,7 +75,7 @@
                 return context.getContext();
             context = Utils.isString(context) ? Sizzle(context,document)[0] : context;
         }
-        var target = context || this[0] || this.context;
+        var target = context || this.context;
         if( Utils.isFrame( target ) && target.contentWindow )
             return target.contentWindow.document;
         return Utils.isHTMLContainer( target ) ? target :  document ;

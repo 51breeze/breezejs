@@ -65,7 +65,7 @@
             'button':{'width':'auto','height':'22px','line-height':'22px',margin:'0px 2px','padding':'0px 2px'},
             'a[disable]':{'color':'#999999','cursor':'auto'}
         },
-        'themeSkin':'{firstPage}{prevPage}{buttons}{nextPage}{lastPage}{goto}',
+        'themeSkin':'{firstPage}{prevPage}{link}{nextPage}{lastPage}{goto}',
         'require':true
     };
 
@@ -159,15 +159,55 @@
         var links = options.links;
         var offset =  Math.max( currentPages - Math.ceil( links / 2 ), 0);
         offset = offset+links > totalPages ? offset-(offset+links - totalPages) : offset;
+
+        var skinGroup = this.skinGroup();
+        var skinObject = skinGroup.skinObject();
+
         var buttons =[];
         for( var b=1 ; b <= links; b++ )
         {
-            buttons.push( offset+b );
+            buttons.push( skinObject.part.link.replace(/\{value\}/, offset+b ) );
         }
-
-        var skin = options.themeSkin.replace(/\{(\w+)\}/g,function(all,name){
-            return options.template[name] || '';
+        skinObject.part.link = buttons.join("\r\n");
+        var skin  = options.themeSkin.replace(/\{(\w+)\}/g,function(all,name){
+            return skinObject.part[name] || '';
         })
+
+        this.skinGroup().addChild( skin );
+
+
+        var links =  skinGroup.getSkinGroup('container > '+ SkinGroup.skinName('link') );
+
+
+        var bg = skinObject.attr.a.style;
+        var ct = skinObject.attr.current.style;
+        bg = {backgroundColor:bg.backgroundColor,border:bg.border,color:bg.color};
+        ct = {backgroundColor:ct.backgroundColor,border:ct.border,color:ct.color};
+
+        links.find(':contains('+currentPages+')').style(ct).property('current',true).revert();
+        links.addEventListener(MouseEvent.CLICK,function(event){
+
+            this.find('[current]').property('current',null).style(bg).revert();
+            this.current(event.currentTarget).style(ct).property('current',true);
+
+        })
+
+
+        var pages =[SkinGroup.skinName('firstPage'),SkinGroup.skinName('prevPage'),  SkinGroup.skinName('nextPage'),  SkinGroup.skinName('lastPage')]
+         skinGroup.getSkinGroup('container > '+ pages.join(',') ).addEventListener(MouseEvent.CLICK,function(event){
+
+             var page =  currentPages;
+             switch( this.property( SkinGroup.NAME ) )
+             {
+                 case 'firstPage' : page =  1; break;
+                 case 'prevPage' : page =  currentPages-1; break;
+                 case 'nextPage' : page =  currentPages+1; break;
+                 case 'lastPage' : page =  totalPages; break;
+             }
+
+        })
+        return ;
+
 
         var tpl=this.template().viewport( this.skinGroup() );
         tpl.variable('totalPage', totalPages );
@@ -189,12 +229,24 @@
     Pagination.prototype.defaultSkinObject=function()
     {
         var skinObject=new SkinObject('',{
-            'firstPage':'',
-            'prevPage' :'',
-            'buttons'  :'',
-            'nextPage' :'',
-            'lastPage' :''
-        });
+            'firstPage':'<a>第一页</a>',
+            'prevPage' :'<a>上一页</a>',
+            'link'  :'<a>{value}</a>',
+            'nextPage' :'<a>下一页</a>',
+            'lastPage' :'<a>最后页</a>',
+            'hiddenLeft':'<a>...</a>',
+            'hiddenRight':'<a>...</a>',
+            'input':'<input />',
+            'button':'<button>跳转到</button>',
+            'goto':'{part input+button}'
+        },{
+            'a':{ style:{'width':'auto','height':'22px','line-height':'22px','padding':'3px 8px',margin:'0px 2px',cursor:'pointer','color':'#333333','backgroundColor':'#ffffff','textDecoration':'none'} },
+            'link':function(){ return {style:Utils.extend({},this.attr.a.style,{'border':'solid 1px #333333'})} },
+            'current':{ style:{'backgroundColor':'#444444','color':'#ffffff'} },
+            'input':{ style:{'width':'40px','height':'22px','line-height':'22px',margin:'0px 2px'} },
+            'button':{ style:{'width':'auto','height':'22px','line-height':'22px',margin:'0px 2px','padding':'0px 2px'} },
+            'disable':{'color':'#999999','cursor':'auto'}
+        },['firstPage','prevPage','nextPage','lastPage']);
         return skinObject;
     }
 
