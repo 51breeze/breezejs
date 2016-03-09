@@ -404,14 +404,20 @@
     }
 
     /**
-     * @param pageContaine
+     * @param selector|NodeElement viewport
+     * @param selector|NodeElement context
      * @returns {boolean|DataGrid}
      */
-    DataGrid.prototype.pagination=function( pageContaine )
+    DataGrid.prototype.pagination=function( viewport , context)
     {
-        if( typeof pageContaine === "undefined" )
+        if( typeof viewport === "undefined" )
             return this.dataRender().pagination();
-        this.dataRender().pagination( pageContaine );
+        if( viewport === true )
+        {
+            viewport="<div class='pagination'></div>";
+            context = this.skinGroup().current(null);
+        }
+        this.dataRender().pagination( viewport , context );
         return this;
     }
 

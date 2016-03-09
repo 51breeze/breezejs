@@ -85,21 +85,19 @@
     DataRender.prototype.__pagination__=null;
 
     /**
-     * @param pageContaine
+     * @param selector|NodeElement viewport
+     * @param selector|NodeElement context
      * @returns {boolean}
      */
-    DataRender.prototype.pagination=function( pageContaine )
+    DataRender.prototype.pagination=function( viewport, context )
     {
-        if( typeof pageContaine === "string" || pageContaine instanceof Breeze )
+        if( typeof viewport !== "undefined" )
         {
-            this.__pagination__ = new Pagination( this.dataSource() );
-            this.__pagination__.viewport( pageContaine );
-
-        }else if( pageContaine === false )
-        {
-            if( this.__pagination__ instanceof Pagination )
-                this.__pagination__.undisplay(true);
-            this.__pagination__=null;
+            if( (typeof viewport === "string" || viewport instanceof Breeze) )
+            {
+                this.__pagination__ = new Pagination( viewport , context ).dataSource( this.dataSource() );
+            }
+            return this;
         }
         return this.__pagination__;
     }
