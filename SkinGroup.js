@@ -150,7 +150,7 @@
      * @returns {SkinObject}
      * @constructor
      */
-    function SkinObject( container, part, attr , require)
+    function SkinObject( container, part, attr , require, styleName )
     {
         if( !(this instanceof SkinObject ) )
             return new SkinObject(container,part,attr);
@@ -168,6 +168,15 @@
         this.attr=attr || {};
         this.part=part || {};
         this.require = require || [];
+        this.styleName = styleName;
+
+        if( typeof styleName === "string" )
+        {
+            for( var name in this.attr )
+            {
+                Utils.appendStyle( styleName + ' '+ name, this.attr[name].style );
+            }
+        }
     }
 
     SkinObject.prototype.constructor= SkinObject;
@@ -259,6 +268,7 @@
             this.splice(0,this.length,skinContainer);
         }
 
+        this.context = this[0];
         this.__skin__={};
         this.__skinObject__=null;
         this.__validated__=null;
@@ -289,7 +299,7 @@
         if( this.__validated__ === null )
         {
             var skinObject = this.skinObject();
-            for( var name in skinObject.require )if( !getSkin(name, this.getContext() )  )
+            for( var index in skinObject.require )if( !getSkin(skinObject.require[index], this.getContext() )  )
             {
                this.__validated__=false;
                return false;
@@ -329,7 +339,7 @@
                 var value = attr[prop];
                 if( prop==='style' )
                 {
-                    if( !Utils.isEmpty(value) )this.style('cssText', value );
+                    if( !Utils.isEmpty(value) )this.style( value );
                 }else
                 {
                     this.property(prop, value);

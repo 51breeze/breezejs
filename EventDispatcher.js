@@ -272,11 +272,15 @@
             return true;
         }
 
-        if( !events[type] || !events[type][useCapture] || !events[type][useCapture]['listener']
-            || events[type][useCapture]['listener'].length < 1 )
+        if( !events[type] || !events[type][useCapture]  )
         {
-             delete events[type];
-             return true;
+            return false;
+        }
+
+        if( !events[type][useCapture]['listener'] || events[type][useCapture]['listener'].length < 1 )
+        {
+             delete events[type][useCapture];
+             return false;
         }
 
         events = events[type][useCapture];
@@ -288,7 +292,7 @@
             //如果有指定侦听器则删除指定的侦听器
             if(  ( !listener || events.listener[ length ].callback===listener ) && ( !target || target === dispatcher) )
             {
-                events.listener.splice(length,1);
+                 events.listener.splice(length,1);
             }
         }
 
@@ -361,8 +365,9 @@
                 events = events[ event.type ] && events[ event.type ][ step ] ? events[ event.type ][ step ]['listener'] : null;
                 if( !events || events.length < 1 )
                     continue;
-                var length= 0,listener;
 
+                events = events.slice(0);
+                var length= 0,listener;
                 while(  length < events.length )
                 {
                     listener = events[ length++ ];

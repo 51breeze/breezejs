@@ -1700,6 +1700,40 @@
 
 
     /**
+     * 返回一个从指定开始值到结束值的数组。
+     * @param number startIndex 开始索引
+     * @param number endIndex 结束索引
+     * @param increment 增量值，默认为0
+     * @returns {Array}
+     */
+    Utils.range=function(startIndex,endIndex, increment )
+    {
+        increment = parseInt(increment) || 0;
+        var arr =[];
+        while( startIndex <= endIndex )
+        {
+            arr.push( startIndex+increment );
+            startIndex++;
+        }
+        return arr;
+    }
+
+    /**
+     * 复制字符串到指定的次数
+     * @param string str
+     * @param number num
+     * @returns {string}
+     */
+    Utils.repeat=function(str, num )
+    {
+        if( typeof str === "string" )
+        {
+            return new Array( (parseInt(num) || 0)+1 ).join(str);
+        }
+        return '';
+    }
+
+    /**
      * @private
      */
     var animationSupport=null;
@@ -1800,6 +1834,45 @@
             head.appendChild( style );
         }
         return stylename;
+    }
+
+
+    /**
+     * @private
+     */
+    var headStyle =null;
+
+    /**
+     * @param string style
+     */
+    Utils.appendStyle=function( styleName, styleObject )
+    {
+        if( headStyle=== null )
+        {
+            var head = document.getElementsByTagName('head')[0];
+            headStyle = document.createElement('style');
+            document.getElementsByTagName('head')[0].appendChild( headStyle );
+        }
+
+        if( Utils.isObject(styleObject) )
+        {
+            styleObject= Utils.serialize( styleObject,'style' );
+        }
+
+        if( typeof styleObject === "string" )
+        {
+            if( !Utils.storage(headStyle, styleName) )
+            {
+                Utils.storage(headStyle, styleName, true );
+                if( styleObject.charAt(0) !=='{')
+                {
+                    styleObject='{'+styleObject+'}';
+                }
+                headStyle.appendChild( document.createTextNode( styleName+styleObject ) );
+            }
+            return true;
+        }
+        return false;
     }
 
 })();

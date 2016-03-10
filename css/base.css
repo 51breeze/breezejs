@@ -60,6 +60,7 @@
     background-color: #ebebeb;
 }
 
+.disabled,
 .list-state > dl.disabled,
 .list-state > dl[disabled]
 .list-state > li.disabled,

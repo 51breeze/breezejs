@@ -71,8 +71,7 @@
     {
         if( typeof context !== 'undefined' )
         {
-            if( context instanceof Manager )
-                return context.getContext();
+            if( context instanceof Manager )return context.getContext();
             context = Utils.isString(context) ? Sizzle(context,document)[0] : context;
         }
         var target = context || this.context;
@@ -132,12 +131,10 @@
                 if( result !== undefined )
                     break;
             }
-
             this.forEachCurrentItem = undefined;
             this.forEachNextItem    = undefined;
             this.forEachPrevItem    = undefined;
             this.forEachCurrentIndex= NaN;
-
         }
         return result === undefined ? this : result;
     }
