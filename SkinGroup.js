@@ -168,13 +168,14 @@
         this.attr=attr || {};
         this.part=part || {};
         this.require = require || [];
-        this.styleName = styleName;
-
+        this.styleName = null;
         if( typeof styleName === "string" )
         {
-            for( var name in this.attr )
+            this.styleName = styleName;
+            for( var name in this.attr ) if( !Utils.isEmpty(this.attr[name].style))
             {
-                Utils.appendStyle( styleName + ' '+ name, this.attr[name].style );
+                Utils.appendStyle( name==='container' ? styleName : styleName +' '+name.split(',').join( ','+styleName+' ' ), this.attr[name].style );
+                delete this.attr[name].style;
             }
         }
     }
@@ -182,6 +183,7 @@
     SkinObject.prototype.constructor= SkinObject;
     SkinObject.prototype.part= {};
     SkinObject.prototype.attr= {};
+    SkinObject.prototype.styleName=null;
     SkinObject.prototype.container='';
     SkinObject.prototype.created=false;
 
@@ -274,7 +276,7 @@
         this.__validated__=null;
     }
 
-    SkinGroup.NAME='skin';
+    SkinGroup.NAME='class';
     SkinGroup.prototype=new Breeze();
     SkinGroup.prototype.__skin__={};
     SkinGroup.prototype.__skinObject__=null;
@@ -287,7 +289,7 @@
      */
     SkinGroup.skinName = function(skinName)
     {
-        return Utils.sprintf('[%s="%s"]',SkinGroup.NAME,skinName);
+        return SkinGroup.NAME==='class' ? '.'+skinName : Utils.sprintf('[%s="%s"]',SkinGroup.NAME,skinName);
     }
 
     /**

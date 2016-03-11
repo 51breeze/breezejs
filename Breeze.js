@@ -907,24 +907,45 @@
                 }
             }
 
-            elem.innerHTML='';
-            if( Utils.isString(html) )
-            {
-                html = Utils.trim( html );
-                if( html === '' )
-                  return;
-            }
             if( outer && elem.parentNode && elem.parentNode.ownerDocument && Utils.contains(elem.parentNode.ownerDocument.body, elem.parentNode) )
             {
                 this.current( elem.parentNode );
             }
 
-            if( typeof html === "string" ) {
-                this.current().innerHTML = html;
-            }else {
+            if( typeof html === "string" )
+            {
+                html = Utils.trim( html );
+                var target = this.current();
+                try{
+
+                    target.innerHTML = html;
+
+                }catch(e)
+                {
+                    var nodename = Utils.nodeName( target );
+                    if( /(tr|thead|tbody|tfoot)/.exec( nodename ) )
+                    {
+                        if( !new RegExp("^<"+nodename).exec(html) )
+                        {
+                            html= Utils.sprintf('<%s>%s</%s>',nodename,html,nodename);
+                        }
+
+                        var child= Utils.createElement( html );
+                        var deep =  nodename === 'tr' ? 2 : 1,d=0;
+                        while( d < deep && child.firstChild)
+                        {
+                            d++;
+                            child=child.firstChild;
+                        }
+                        Utils.mergeAttributes(child, target);
+                        target.parentNode.replaceChild(child,  target );
+                    }
+                }
+
+            }else
+            {
                 this.addChild(html);
             }
-
         });
     }
 

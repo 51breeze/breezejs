@@ -723,7 +723,12 @@
             className='';
         }
         className === '' ? element.removeAttribute('class') : element['className'] = Utils.trim(className);
-        element.offsetWidth = element.offsetWidth;
+        try {
+            element.offsetWidth = element.offsetWidth;
+        }catch(e)
+        {
+           //Utils.style(element,'width', element.offsetWidth);
+        }
     }
 
 
@@ -1025,18 +1030,20 @@
             return target;
         }
 
-        var flag=  (typeof target.setAttribute === "function") ;
-        if( refTarget.attributes )
-        {
-            var i=0, item;
-            while( item = refTarget.attributes.item(i++) )
-            {
-               flag ? target.setAttribute(item.nodeName, item.nodeValue) : target[item.nodeName]=item.nodeValue;
-            }
-
-        }else if( Utils.isObject(refTarget,true) ) for( var key in refTarget )
+        var flag= !Utils.isObject( target );
+        if( Utils.isObject(refTarget,true) ) for( var key in refTarget )if( refTarget[key] && refTarget[key] !='' )
         {
             flag ?  target.setAttribute(key, refTarget[key] ) : target[key]=refTarget[key];
+
+        }else
+        {
+            var i=0, len=refTarget.attributes.length,item;
+            while( i<len )
+            {
+                item=refTarget.attributes.item(i++);
+                if( item.nodeValue && item.nodeValue !='' )
+                   flag ? target.setAttribute(item.nodeName, item.nodeValue) : target[item.nodeName] = item.nodeValue;
+            }
         }
         return target;
     }
@@ -1460,6 +1467,10 @@
                         elem.setAttributeNode( attrNode )
                     }
                     return elem;
+
+                }else if( /^\<(tr|td|th|thead|tbody|tfoot)/i.exec(html) )
+                {
+                    html="<table>"+ html +"</table>";
                 }
 
                 var div = document.createElement( "div")
@@ -1864,11 +1875,22 @@
             if( !Utils.storage(headStyle, styleName) )
             {
                 Utils.storage(headStyle, styleName, true );
-                if( styleObject.charAt(0) !=='{')
+
+                if( Utils.isBrowser(Utils.BROWSER_IE,9,'<') )
                 {
-                    styleObject='{'+styleObject+'}';
+                    var styleName = styleName.replace(/^\./,'').split(',');
+                    for(var i=0; i<styleName.length; i++ )
+                    {
+                        headStyle.styleSheet.addRule(styleName[i], styleObject, -1);
+                    }
+
+                }else
+                {
+                    if (styleObject.charAt(0) !== '{') {
+                        styleObject = '{' + styleObject + '}';
+                    }
+                    headStyle.appendChild(document.createTextNode(styleName + styleObject));
                 }
-                headStyle.appendChild( document.createTextNode( styleName+styleObject ) );
             }
             return true;
         }

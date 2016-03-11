@@ -36,6 +36,13 @@
     <link href="css/bootstrap.css" rel="stylesheet" />
     <link href="css/base.css" rel="stylesheet" />
     <title></title>
+
+    <style>
+        .link{
+            display: block;
+            background-color: #c9302c;
+        }
+    </style>
 </head>
 <script>
 
@@ -71,7 +78,31 @@
     Breeze(function(){
 
 
-         var grid = new DataGrid('.gridcontainer');
+
+     //  var table = document.createElement('table');
+      //  document.body.appendChild( table );
+
+
+
+
+     //   var html = Utils.createElement('<thead><tr><th>hello the table row ====</th></tr></thead>')
+       // table.appendChild( html )
+
+
+
+    //    var table = Utils.createElement('<table><th>hello the table row</th></table>')
+
+
+     //   document.body.appendChild( html );
+
+
+      //  console.log( html.outerHTML )
+
+
+
+
+
+        var grid = new DataGrid('.gridcontainer');
           grid.pagination( true );
           grid.edit('edit',{callback:function(event){
 
@@ -172,6 +203,7 @@
     <div class="gridcontainer"  style="width: 600px; height: 620px; "></div>
     <div class="page"></div>
 </div>
+
 
 </body>
 </html>

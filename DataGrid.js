@@ -472,7 +472,6 @@
         return this.__dataRender__;
     }
 
-
     /**
      * 获取默认皮肤
      * @returns {SkinObject}
@@ -488,8 +487,6 @@
         },['thead','tbody']);
         return skinObject;
     }
-
-
 
     function DataGridEvent( src, props ){ BreezeEvent.call(this, src, props);}
     DataGridEvent.prototype=new BreezeEvent();

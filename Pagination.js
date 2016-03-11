@@ -268,12 +268,13 @@
             'input':'<input />',
             'button':'<button>跳转到</button>'
         },{
-            '.pagination':{'width':'auto','height':'auto',textAlign:'center'},
-            'a,span':{ style:{'width':'auto','height':'22px','line-height':'22px','padding':'3px 8px',margin:'0px 2px',cursor:'pointer','color':'#333333','backgroundColor':'#ffffff','textDecoration':'none'} },
-            'a[skin=link]':{ style:{'border':'solid 1px #333333'}},
+            'container':{ style:{'width':'100%','height':'auto',textAlign:'center'} },
+            'a,span,input,button':{style:{display:'inline-block','height':'22px','line-height':'22px'}},
+            'a,span':{ style:{'width':'auto','padding':'0px 8px',margin:'0px 2px',cursor:'pointer','color':'#333333','backgroundColor':'#ffffff','textDecoration':'none'} },
+            'a.link':{ style:{'border':'solid 1px #333333'}},
             'a.current':{ style:{ 'backgroundColor':'#444444','color':'#ffffff' , 'border':'solid 1px #333333' }},
-            'input':{style:{'width':'40px','height':'22px','line-height':'22px',margin:'0px 2px'}},
-            'button':{style:{'width':'auto','height':'22px','line-height':'22px',margin:'0px 2px','padding':'0px 2px'}},
+            'input':{style:{'width':'40px',margin:'0px 2px'}},
+            'button':{style:{'width':'auto',margin:'0px 2px','padding':'0px 2px'}},
             'a.disabled':{style:{'color':'#999999','cursor':'auto'}}
         },['firstPage','prevPage','nextPage','lastPage'],'.pagination');
         return skinObject;

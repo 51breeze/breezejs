@@ -413,7 +413,7 @@
      * @param index
      * @returns {boolean}
      */
-    DataSource.prototype.delete=function( filter )
+    DataSource.prototype.remove=function( filter )
     {
         var index;
         var result = this.grep().execute( filter );
