@@ -1019,30 +1019,29 @@
      * 合并元素属性。
      * 将 refTarget 对象的属性合并到 target 元素
      * @param target 目标对象
-     * @param refTarget 引用对象
+     * @param oSource 引用对象
      * @returns {*}
      */
-    Utils.mergeAttributes=function(target,refTarget)
+    Utils.mergeAttributes=function(target,oSource)
     {
-        if( typeof target.mergeAttributes === "function" )
+        var iselem= !Utils.isObject( target );
+        if( Utils.isObject(oSource,true) )
         {
-            target.mergeAttributes(refTarget);
-            return target;
-        }
-
-        var flag= !Utils.isObject( target );
-        if( Utils.isObject(refTarget,true) ) for( var key in refTarget )if( refTarget[key] && refTarget[key] !='' )
-        {
-            flag ?  target.setAttribute(key, refTarget[key] ) : target[key]=refTarget[key];
+            for (var key in oSource)if (oSource[key] && oSource[key] != '')
+            {
+                iselem ? target.setAttribute(key, oSource[key]) : target[key] = oSource[key];
+            }
 
         }else
         {
-            var i=0, len=refTarget.attributes.length,item;
+            var i=0, len=oSource.attributes.length,item;
             while( i<len )
             {
-                item=refTarget.attributes.item(i++);
+                item=oSource.attributes.item(i++);
                 if( item.nodeValue && item.nodeValue !='' )
-                   flag ? target.setAttribute(item.nodeName, item.nodeValue) : target[item.nodeName] = item.nodeValue;
+                {
+                    iselem ? target.setAttribute(item.nodeName, item.nodeValue) : target[item.nodeName] = item.nodeValue;
+                }
             }
         }
         return target;
@@ -1878,7 +1877,8 @@
 
                 if( Utils.isBrowser(Utils.BROWSER_IE,9,'<') )
                 {
-                    var styleName = styleName.replace(/^\./,'').split(',');
+                    var styleName = styleName.split(',');
+                    styleObject = styleObject.replace(/^\{/,'').replace(/\}$/,'');
                     for(var i=0; i<styleName.length; i++ )
                     {
                         headStyle.styleSheet.addRule(styleName[i], styleObject, -1);
@@ -1886,7 +1886,8 @@
 
                 }else
                 {
-                    if (styleObject.charAt(0) !== '{') {
+                    if (styleObject.charAt(0) !== '{')
+                    {
                         styleObject = '{' + styleObject + '}';
                     }
                     headStyle.appendChild(document.createTextNode(styleName + styleObject));

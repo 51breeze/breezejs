@@ -46,36 +46,25 @@
      * @param tbody
      * @returns {DataGrid}
      */
-    function makeTemplate(columns, options,plus )
+    function makeTemplate(columns, options, plus )
     {
-        var thead = options.thead;
-        var tbody = options.tbody;
+        var thead = options.th;
+        var tbody = options.td;
         var wrap  = options.wrap;
-        var attr = {
-           'thead' :{'style':{'border':'solid 1px '+ options.themeColor, 'backgroundColor':options.themeColor} },
-           'tbody' :{'style':{'border':'solid 1px '+ options.themeColor } }
-        };
-        options.attr = Utils.extend(true, attr, options.attr );
-        options.attr.thead.style = Utils.serialize( options.attr.thead.style ,'style' );
-        options.attr.tbody.style = Utils.serialize( options.attr.tbody.style ,'style' );
 
-        thead=thead.replace(/<(.*?)>/, "<\$1 "+Utils.serialize( options.attr.thead ,'attr' )+">" );
-        tbody=tbody.replace(/<(.*?)>/, "<\$1 "+Utils.serialize( options.attr.tbody ,'attr' )+">" );
+        var skin= {head:'',body:'',foot:''};
 
         if( Utils.isObject(columns,true) )
         {
-            options.thead='';
-            options.tbody='';
-
             for( var i in  columns )
             {
                 var field = columns[i];
                 i = i.replace(/\s+/,'');
 
-                var tb=tbody,th=thead;
+                var td=tbody,th=thead;
                 if( plus['tbody'].template[ i ] )
                 {
-                    tb = tbody.replace('{value}', plus['tbody'].template[ i ].join('\r\n') );
+                    td = tbody.replace('{value}', plus['tbody'].template[ i ].join('\r\n') );
                 }
 
                 if( plus['thead'] && plus['thead'].template[ i ] )
@@ -85,16 +74,17 @@
 
                 var w= options.columnWidth[i] || options.columnWidth['*'] || 'auto';
                 th=th.replace(/<(.*?)>/, "<\$1 width='"+ w +"' height='"+(options.headHeight || 35)+"'>" );
-                tb=tb.replace(/<(.*?)>/, "<\$1 width='"+ w +"' height='"+(options.rowHeight || 30)+"'>" );
+                td=td.replace(/<(.*?)>/, "<\$1 width='"+ w +"' height='"+(options.rowHeight || 30)+"'>" );
 
-                options.thead += th.replace(/\{column\}/g, i).replace(/\{value\}/g, field );
-                options.tbody += tb.replace(/\{column\}/g, i).replace(/\{value\}/g, '{item.'+ i +'}');
+                skin.head += th.replace(/\{column\}/g, i).replace(/\{value\}/g, field );
+                skin.foot += td.replace(/\{column\}/g, i).replace(/\{value\}/g, field );
+                skin.body += td.replace(/\{column\}/g, i).replace(/\{value\}/g, '{item.'+ i +'}');
             }
         }
-
-        options.thead = wrap.replace('{value}', options.thead);
-        options.tbody = '<? foreach(data as key item){ ?>' + wrap.replace('{value}',options.tbody)+'<? } ?>';
-        return options;
+        skin.head = wrap.replace('{value}', skin.head);
+        skin.foot = wrap.replace('{value}', skin.foot);
+        skin.body = '<? foreach(data as key item){ ?>' + wrap.replace('{value}',skin.body)+'<? } ?>';
+        return skin;
     }
 
     /**
@@ -166,15 +156,6 @@
      * @private
      */
     DataGrid.prototype.__options__={
-        'thead':'<th>{value}</th>',
-        'tbody':'<td>{value}</td>',
-        'tfoot':'<div>{value}</div>',
-        'wrap' :'<tr>{value}</tr>',
-        'themeColor':'#cccccc',
-        'attr':{
-            thead:{align:'center'},
-            tbody:{align:'center'}
-        },
         'headHeight':35,
         'rowHeight' :30,
         columnWidth:{}
@@ -349,8 +330,6 @@
         return this;
     }
 
-
-
     /**
      * 数据属性
      * @param data
@@ -394,11 +373,12 @@
 
         }else
         {
-            var skin = makeTemplate( this.columns(), this.options(), this.plus() );
-            skinGroup.currentSkin('thead').html( skin.thead );
+            var options = Utils.extend(skinGroup.skinObject().part, this.options() );
+            var skin = makeTemplate( this.columns(), options , this.plus() );
+            skinGroup.currentSkin('thead').html( skin.head );
             skinGroup.current( null );
             dataRender.viewport( skinGroup.getSkin('tbody') );
-            dataRender.display( skin.tbody );
+            dataRender.display( skin.body );
         }
         return this;
     }
@@ -414,8 +394,8 @@
             return this.dataRender().pagination();
         if( viewport === true )
         {
-            viewport="<div class='pagination'></div>";
-            context = this.skinGroup().current(null);
+            viewport="<div></div>";
+            context = this.skinGroup().getSkinAndValidate('container').parentNode;
         }
         this.dataRender().pagination( viewport , context );
         return this;
@@ -439,7 +419,6 @@
             var plus_data = this.__plus__;
             this.__dataRender__.addEventListener(TemplateEvent.REFRESH, function (event)
             {
-
                 Breeze('[data-action]', this).forEach(function () {
 
                     var action = this.property('data-action');
@@ -481,9 +460,17 @@
     {
         var skinObject=new SkinObject('<table>{part thead+tbody}</table>',{
             'thead':'<thead></thead>',
-            'tbody':'<tbody></tbody>'
+            'tbody':'<tbody></tbody>',
+            'tfoot':'<tfoot></tfoot>',
+            'th':'<th>{value}</th>',
+            'td':'<td>{value}</td>',
+            'wrap' :'<tr>{value}</tr>'
         },{
-            'container':{style:"borderCollapse:collapse;",cellspacing:'0',cellpadding:'0',border:0}
+            'container':{border:0,cellpadding:0,cellspacing:0,style:{'borderCollapse':'collapse','borderSpacing':'0'} },
+            'th,td':{style:{'border':'solid 1px #999999'}},
+            'th':{style:{'backgroundColor':'#cccccc'}},
+            'thead':{align:'center'},
+            'tbody':{align:'center'}
         },['thead','tbody']);
         return skinObject;
     }

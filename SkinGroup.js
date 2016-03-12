@@ -53,6 +53,7 @@
     var toString=function()
     {
         var options = this;
+        var styleName = this.styleName();
         var parser = function(all, prop, item )
         {
             item= item.replace(blank,'').replace( new RegExp(prop+'.','g'),'').split('+');
@@ -82,8 +83,11 @@
 
                 if( isstyle ===true )
                 {
-                    attr.style || (attr.style={});
-                    Utils.extend(true,attr.style,refObject);
+                    if( !styleName )
+                    {
+                        attr.style || (attr.style = {});
+                        Utils.extend(true, attr.style, refObject);
+                    }
 
                 }else if( typeof refObject === "string" )
                 {
@@ -96,15 +100,22 @@
 
             if( !Utils.isEmpty(attr) )
             {
-                if( typeof attr.style === "string" && attr.style !== '' )
+                if( !styleName )
                 {
-                    attr.style= attr.style.replace(/(\w+)\s*(?=\:)/g, function (all, name) {
-                        return Utils.styleName( name );
-                    });
+                    if( typeof attr.style === "string" && attr.style !== '' )
+                    {
+                        attr.style= attr.style.replace(/(\w+)\s*(?=\:)/g, function (all, name) {
+                            return Utils.styleName( name );
+                        });
 
-                }else if( Utils.isObject(attr.style) )
+                    }else if( Utils.isObject(attr.style) )
+                    {
+                        attr.style = Utils.serialize(attr.style, 'style');
+                    }
+
+                }else if(attr.style)
                 {
-                    attr.style = Utils.serialize(attr.style, 'style');
+                    delete attr.style;
                 }
                 str += Utils.serialize(attr, 'attr');
             }
@@ -118,10 +129,37 @@
 
         this.part.container = this.container;
         var seft = this;
+
+        //合并属性,生成样式
+        for (var prop in this.attr)
+        {
+            if( styleName )
+            {
+                var sn =  styleName;
+                for( var name in this.attr ) if( !Utils.isEmpty(this.attr[name].style) )
+                {
+                    var stn = name==='container' ? sn : sn +' '+name.split(',').join( ','+sn+' ' );
+                    Utils.appendStyle( stn, this.attr[name].style );
+                }
+
+            }else if( prop.match(/\,/) )
+            {
+                var val = prop.split(',');
+                for (var p in val)
+                {
+                    p = val[p];
+                    this.attr[p] || ( this.attr[p] = {} );
+                    this.attr[p] = Utils.extend(true, {}, this.attr[p], this.attr[prop] || {} );
+                }
+            }
+        }
+
         for (var name in this.part)
         {
-            if( !hasskinname.test(this.part[name]) )
+            if( !hasskinname.test(this.part[name]) && name !== 'container')
+            {
                 this.part[name] = this.part[name].replace( addattr, '<$1 '+SkinGroup.NAME+'="'+name+'"');
+            }
             if( !isattrReg.test( this.part[name] ) )this.part[name] = this.part[name].replace( addattr, function(all,tag)
             {
                 var s = name;
@@ -150,7 +188,7 @@
      * @returns {SkinObject}
      * @constructor
      */
-    function SkinObject( container, part, attr , require, styleName )
+    function SkinObject( container, part, attr , require )
     {
         if( !(this instanceof SkinObject ) )
             return new SkinObject(container,part,attr);
@@ -168,24 +206,36 @@
         this.attr=attr || {};
         this.part=part || {};
         this.require = require || [];
-        this.styleName = null;
-        if( typeof styleName === "string" )
-        {
-            this.styleName = styleName;
-            for( var name in this.attr ) if( !Utils.isEmpty(this.attr[name].style))
-            {
-                Utils.appendStyle( name==='container' ? styleName : styleName +' '+name.split(',').join( ','+styleName+' ' ), this.attr[name].style );
-                delete this.attr[name].style;
-            }
-        }
+        this.__styleName__=null;
     }
 
     SkinObject.prototype.constructor= SkinObject;
     SkinObject.prototype.part= {};
     SkinObject.prototype.attr= {};
-    SkinObject.prototype.styleName=null;
     SkinObject.prototype.container='';
     SkinObject.prototype.created=false;
+
+
+    /**
+     * @private
+     */
+    SkinObject.prototype.__styleName__=null;
+
+    /**
+     * 为当前皮肤对象下的样式属性生成到指定样式名的样式表中
+     * @param string styleName
+     * @returns {SkinObject|string}
+     */
+    SkinObject.prototype.styleName=function( styleName )
+    {
+        if( typeof styleName !== "undefined" )
+        {
+            if( typeof styleName === "string" )
+               this.__styleName__ = styleName;
+            return this;
+        }
+        return this.__styleName__;
+    }
 
     /**
      * 将一个皮肤对象生成html格式的字符串
@@ -293,6 +343,30 @@
     }
 
     /**
+     * @private
+     */
+    SkinGroup.prototype.__styleName__=null;
+
+    /**
+     * 为当前皮肤对象下的样式属性生成到指定样式名的样式表中
+     * @param string styleName
+     * @returns {SkinGroup|string}
+     */
+    SkinGroup.prototype.styleName=function( styleName )
+    {
+        if( typeof styleName !== "undefined" )
+        {
+            if( typeof styleName === "string"  )
+            {
+                this.__styleName__ = styleName;
+                !this.skinObject() || this.skinObject().styleName(styleName);
+            }
+            return this;
+        }
+        return this.skinObject() && this.skinObject().styleName() ? this.skinObject().styleName() : this.__styleName__;
+    }
+
+    /**
      * 验证是否为一个完整的皮肤
      * @returns {boolean}
      */
@@ -319,36 +393,53 @@
     SkinGroup.prototype.createSkin=function()
     {
         var skinObject = this.skinObject();
-        var colorTheme=skinObject.part;
+
+        //不是一个完整的皮肤则生成一个皮肤
         if( !this.validateSkin() )
         {
             if(!(skinObject instanceof SkinObject))throw new Error('invalid skinObject');
             var html = skinObject.createSkin();
             if(  html != '' )
             {
+                html = Utils.createElement( html );
+                var hasContainer = Utils.nodeName( html) === '#document-fragment'  ? false : true;
                 this.html( html );
+                if( hasContainer )
+                {
+                    this.splice(0, this.length , html );
+                    this.context= html;
+                }
             }
-            colorTheme={container:''};
-        }
 
-        for(var name in colorTheme )
+        }else
         {
-            this.currentSkin( name );
-            var nodename = this.nodeName();
-            var attr = skinObject.attr[name] || skinObject.attr[nodename];
-            if(attr)for(var prop in attr )
-            {
-                var value = attr[prop];
-                if( prop==='style' )
+            var skins=skinObject.part;
+
+            //为每个皮肤设置指定的属性
+            for (var name in skins) {
+                this.currentSkin(name);
+                var nodename = this.nodeName();
+                var attr = skinObject.attr[name] || skinObject.attr[nodename];
+                if (attr)for (var prop in attr)
                 {
-                    if( !Utils.isEmpty(value) )this.style( value );
-                }else
-                {
-                    this.property(prop, value);
+                    var value = attr[prop];
+                    if (prop === 'style') {
+                        if (!this.skinName())
+                            if (!Utils.isEmpty(value))this.style(value);
+
+                    } else {
+                        this.property(prop, value);
+                    }
                 }
             }
         }
+
         this.current(null);
+        var styleName = this.styleName();
+        if( styleName )
+        {
+            this.addClass(styleName.replace(/\./, ''));
+        }
         return this;
     }
 
@@ -363,6 +454,10 @@
         if( this.__skinObject__===null && skinObject instanceof SkinObject )
         {
             this.__skinObject__= skinObject;
+            if( !skinObject.styleName() )
+            {
+                skinObject.styleName( this.styleName() );
+            }
         }
         return this.__skinObject__;
     }

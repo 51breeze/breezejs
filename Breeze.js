@@ -73,15 +73,14 @@
             result=[selector];
 
             //新创建的元素直接添加到文档中
-            if( !selector.parentNode )
-                this.addChild(result[0]);
+            if( !selector.parentNode || Utils.nodeName(  selector.parentNode ) === '#document-fragment')
+            {
+                this.addChild( result[0] );
+            }
         }
 
         //初始化元素管理器
         Manager.call(this, result );
-
-        //设置当前对象中的根元素
-        this.__rootElement__= this[0];
 
         //统计实例对象数
         this.__COUNTER__=++breezeCounter;
@@ -916,30 +915,28 @@
             {
                 html = Utils.trim( html );
                 var target = this.current();
-                try{
-
-                    target.innerHTML = html;
-
-                }catch(e)
+                var nodename = Utils.nodeName( target );
+                if( Utils.isBrowser(Utils.BROWSER_IE,10,'<') && /(tr|thead|tbody|tfoot|table)/.exec( nodename ) )
                 {
-                    var nodename = Utils.nodeName( target );
-                    if( /(tr|thead|tbody|tfoot)/.exec( nodename ) )
+                    if( !new RegExp("^<"+nodename).exec(html) )
                     {
-                        if( !new RegExp("^<"+nodename).exec(html) )
-                        {
-                            html= Utils.sprintf('<%s>%s</%s>',nodename,html,nodename);
-                        }
-
-                        var child= Utils.createElement( html );
-                        var deep =  nodename === 'tr' ? 2 : 1,d=0;
-                        while( d < deep && child.firstChild)
-                        {
-                            d++;
-                            child=child.firstChild;
-                        }
-                        Utils.mergeAttributes(child, target);
-                        target.parentNode.replaceChild(child,  target );
+                        html= Utils.sprintf('<%s>%s</%s>',nodename,html,nodename);
                     }
+
+                    var child= Utils.createElement( html );
+                    var deep =  nodename === 'tr' ? 2 : 1,d=0;
+                    while( d < deep && child.firstChild)
+                    {
+                        d++;
+                        child=child.firstChild;
+                    }
+                    Utils.mergeAttributes(child, target);
+                    target.parentNode.replaceChild(child,  target );
+                    this.splice( this.indexOf( target ), 1, child );
+
+                }else
+                {
+                    target.innerHTML = html;
                 }
 
             }else

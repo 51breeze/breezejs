@@ -43,6 +43,11 @@
      * @protected
      */
     SkinComponent.prototype.skinInstalled=function( skinGroup ){
+
+        if( !skinGroup.styleName() )
+        {
+            skinGroup.styleName( this.styleName() );
+        }
         if( !skinGroup.skinObject() )skinGroup.skinObject( this.defaultSkinObject() );
         skinGroup.createSkin();
     }
@@ -68,6 +73,28 @@
         return viewport;
     }
 
+    /**
+     * @private
+     */
+    SkinComponent.prototype.__styleName__='';
+
+    /**
+     * 样式对象是否与皮肤分离
+     * @param string styleName 指定样式名。必须按照选择器规则
+     * @returns {SkinComponent|string}
+     */
+    SkinComponent.prototype.styleName=function( styleName )
+    {
+        if( typeof styleName !== "undefined" )
+        {
+            if( typeof styleName === "string"  )
+            {
+                this.__styleName__ = styleName;
+            }
+            return this;
+        }
+        return typeof this.__styleName__ === "string" ? (this.__styleName__ === '' ? '.'+Utils.lcfirst( this.componentProfile ) : this.__styleName__) : this.__styleName__;
+    }
 
     /**
      * 获取设置皮肤组

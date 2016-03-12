@@ -79,24 +79,30 @@
 
 
 
-     //  var table = document.createElement('table');
-      //  document.body.appendChild( table );
+
+      /* var table =  Breeze('<table><thead class="thead" skin="thead"></thead><tbody class="tbody" skin="tbody"></tbody></table>','.gridcontainer');
+
+       // console.log( table[0].outerHTML )
+
+         table.context = table[0];
+
+
+         table.current('thead').html('<tr><th>the thead</th></tr>')
+
+         table.current('tbody').html('<td>the tbody</td>')
 
 
 
+        var i = 0;
 
-     //   var html = Utils.createElement('<thead><tr><th>hello the table row ====</th></tr></thead>')
-       // table.appendChild( html )
-
-
-
-    //    var table = Utils.createElement('<table><th>hello the table row</th></table>')
+        Breeze('#submit').addEventListener(MouseEvent.CLICK,function(){
 
 
-     //   document.body.appendChild( html );
+            console.log('click' )
+            table.current('tbody').html('<tr><td>the tbody ===='+i+'</td></tr><tr><td>the tbody ====9999</td></tr>')
+            i++
 
-
-      //  console.log( html.outerHTML )
+        })*/
 
 
 
@@ -104,7 +110,8 @@
 
         var grid = new DataGrid('.gridcontainer');
           grid.pagination( true );
-          grid.edit('edit',{callback:function(event){
+
+         grid.edit('edit',{callback:function(event){
 
               console.log( event, this )
 
@@ -112,12 +119,13 @@
 
           grid.columnWidth('phone',300).columnWidth('name',100).columnWidth('id',50).columnWidth('edit',80)
 
-          grid.orderBy('phone')
-          grid.orderBy('id')
+        //  grid.orderBy('phone')
+        //  grid.orderBy('id')
           grid.columns({'id':'序号','name':'名称','phone':'手机','edit':'操作'});
           grid.component('name',{'bindable':true});
           grid.dataSource( 'json.php' );
           grid.display();
+
 
 
 
