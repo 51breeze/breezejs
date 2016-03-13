@@ -499,7 +499,7 @@ var selection = new Selection( '#selection' )
         }else
         {
             dataRender.viewport( skinGroup.getSkin('list') );
-            var list = skinGroup.skinObject().get('part.option');
+            var list = skinGroup.skinObject().get('skins.option');
             if( !list )throw new Error('not found view for option');
             dataRender.display( list );
         }
@@ -517,13 +517,13 @@ var selection = new Selection( '#selection' )
         var dataProfile= this.dataRender().dataProfile();
         var labelProfile =  this.labelProfile();
         var valueProfile = this.valueProfile();
-        var skinObject=new SkinObject('{part button+group}',{
-            button:'<button type="button" class="btn btn-default">{part label+caret}</button>',
+        var skinObject=new SkinObject('{skins button+group}',{
+            button:'<button type="button" class="btn btn-default">{skins label+caret}</button>',
             label: '<span class="text-overflow" style="float: left; width: 96%"></span>',
             caret:'<span class="pull-right"><i class="caretdown"></i><span>',
             option: '<?foreach('+dataProfile+' as key item){ ?><li '+valueProfile+'="{item["'+valueProfile+'"]}" data-index="{key}">{item["'+labelProfile+'"]}</li><?}?>',
             list:'<ul class="list-state"></ul>',
-            group:'<div class="group"><input class="searchbox" style="display: none" />{part list}</div>'
+            group:'<div class="group"><input class="searchbox" style="display: none" />{skins list}</div>'
         },{
             'container':{'class':'selection text-unselect'}
         });

@@ -44,11 +44,8 @@
      */
     SkinComponent.prototype.skinInstalled=function( skinGroup ){
 
-        if( !skinGroup.styleName() )
-        {
-            skinGroup.styleName( this.styleName() );
-        }
         if( !skinGroup.skinObject() )skinGroup.skinObject( this.defaultSkinObject() );
+        if( !skinGroup.styleName() )skinGroup.styleName( this.styleName() );
         skinGroup.createSkin();
     }
 
@@ -76,7 +73,7 @@
     /**
      * @private
      */
-    SkinComponent.prototype.__styleName__='';
+    SkinComponent.prototype.__styleName__=null;
 
     /**
      * 样式对象是否与皮肤分离
@@ -87,13 +84,10 @@
     {
         if( typeof styleName !== "undefined" )
         {
-            if( typeof styleName === "string"  )
-            {
-                this.__styleName__ = styleName;
-            }
+            this.__styleName__ = styleName;
             return this;
         }
-        return typeof this.__styleName__ === "string" ? (this.__styleName__ === '' ? '.'+Utils.lcfirst( this.componentProfile ) : this.__styleName__) : this.__styleName__;
+        return typeof this.__styleName__ === "string" ? this.__styleName__ : '.'+Utils.lcfirst( this.componentProfile );
     }
 
     /**

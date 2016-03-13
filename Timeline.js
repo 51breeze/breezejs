@@ -18,7 +18,7 @@ var tl= new Timeline(60).addFrame(function(){
     'use strict';
 
      var prefix=Utils.getBrowserPrefix().replace(/-/g,''),
-         now= performance ? performance.now || performance[ prefix+'Now' ] || null : null,
+         now= window.performance ? window.performance.now || window.performance[ prefix+'Now' ] || null : null,
          requestAnimationFrame = window.requestAnimationFrame || window[prefix+'RequestAnimationFrame'] || null,
          cancelAnimationFrame  = window.cancelAnimationFrame  || window[prefix+'CancelAnimationFrame']  || null;
 

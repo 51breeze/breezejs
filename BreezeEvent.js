@@ -135,9 +135,7 @@
             return event;
 
         event=event || window.event;
-        var target = event.target || event.srcElement || event.currentTarget;
-        if( !target )
-            return null;
+        var target = event.target || event.srcElement || event.currentTarget || window;
 
         //阻止浏览浏览器的事件冒泡
         if ( event )

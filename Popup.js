@@ -104,7 +104,6 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
 
         xOffset = x+Math.floor( (width - containerWidth) * h);
         yOffset = y+Math.floor( (height - containerHeight) * v);
-
         if( isNaN(left) )skin.left(xOffset);
         if( isNaN(top) )skin.top(yOffset);
         return this;
@@ -216,12 +215,14 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         option =  Utils.extend({minWidth:600,minHeight:300,autoHidden:false,type:Popup.TYPICAL,style:{opacity:0.5},zIndex:900}, option || {});
         var popup = Popup( Popup.MODALITY );
         var theme={};
-        theme[ Popup.NORM ] = '{part head+body}';
-        theme[ Popup.TYPICAL ] = '{part head+body+footer}';
+        theme[ Popup.NORM ] = '{skins head+body}';
+        theme[ Popup.TYPICAL ] = '{skins head+body+footer}';
         popup.__theme__ = theme[option.type] || '';
         popup.mask().style(option.style);
         delete option.style;
-        return  popup.title( title ).show( content , option);
+        popup.title( title ).show( content , option);
+        return  popup;
+
     }
 
     Popup.prototype=  new SkinComponent();
@@ -373,8 +374,11 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         var mask = Utils.storage(context,name);
         if( !mask )
         {
-            mask = Breeze('<div name="mask" />', skinGroup[0].parentNode ).style('cssText',"background-color:#000000;opacity:0;width:100%;height:100%;position:fixed;z-index:998;top:0px;left:0px;display:none;" );
-            var callback = function(event){this.height( Utils.getSize(window,'height'));}
+            mask = Breeze('<div name="mask" />', skinGroup[0].parentNode )
+                .style('cssText',"background-color:#000000;opacity:0;width:100%;height:100%;position:fixed;z-index:998;top:0px;left:0px;display:none" );
+            var callback = function(event){
+                this.height( Utils.getSize(window,'height'));
+            }
             Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,callback,true,0,mask);
             callback.call(mask);
             mask.addEventListener( MouseEvent.MOUSE_DOWN,function(event){
@@ -449,7 +453,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
     /**
      * @private
      */
-    Popup.prototype.__maxHeight__=NaN;
+    Popup.prototype.__maxHeight__=600;
 
     /**
      * 最大高度
@@ -470,7 +474,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
     /**
      * @private
      */
-    Popup.prototype.__minHeight__=NaN;
+    Popup.prototype.__minHeight__=60;
 
     /**
      * 最小高度
@@ -491,7 +495,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
     /**
      * @private
      */
-    Popup.prototype.__maxWidth__=NaN;
+    Popup.prototype.__maxWidth__=600;
 
     /**
      * 最大宽度
@@ -512,7 +516,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
     /**
      * @private
      */
-    Popup.prototype.__minWidth__=NaN;
+    Popup.prototype.__minWidth__=120;
 
     /**
      * 最小宽度
@@ -648,7 +652,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
 
         Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,function(event){
             setPositionAndSize.call(this);
-        },true,0,this);
+        },false,0,this);
         return this;
     }
 
@@ -664,28 +668,31 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         if( typeof theme !== "string" )
         {
             theme={};
-            theme[ Popup.NORM ] = '{part head+body}';
-            theme[ Popup.TYPICAL ] = '{part head+body+footer}';
+            theme[ Popup.NORM ] = '{skins head+body}';
+            theme[ Popup.TYPICAL ] = '{skins head+body+footer}';
             theme=theme[this.type()] || '';
         }
 
         return new SkinObject( theme ,{
-            head: '<div>{part label+close}</div>',
+            head: '<div>{skins label+close}</div>',
             label: '<label>Title</label>',
             close: '<span>关闭</span>',
-            cancel:'<button {attr button} class="btn btn-default">取消</button>',
-            submit:'<button {attr button} class="btn btn-default">确定</button>',
-            footer:'<div>{part cancel+submit}</div>',
+            cancel:'<button>取消</button>',
+            submit:'<button>确定</button>',
+            footer:'<div>{skins cancel+submit}</div>',
             body:  '<div></div>'
         },{
-            container:{"style":"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;overflow:hidden;position:fixed;left:0px;top:0px;width:auto;height:auto;display:none;border:solid #b3b3b3 1px;backgroundColor:#ffffff"},
-            head:{'style':"width:100%;height:35px;lineHeight:35px;display:block;color:#333333;borderBottom:solid 1px #cccccc" },
-            label:{ 'style':"width:auto;display:block;float:left;margin:0px 10px" },
-            close:{ 'style':"width:auto;height:25px;padding:0px;margin:0px;cursor:pointer;float:right;margin:0px 10px" },
-            body:{ 'style':"padding:10px;width:100%;height:auto;display:block;overflow:auto;backgroundColor:#ffffff" },
-            button:{ 'style':{ width:'auto',height:'25px',lineHeight:'25px',padding:"0px 10px", margin:'5px 3px',display:'inline-block'} },
-            footer:{ 'style':{'width':'100%',height:'auto','display':'block','borderTop':'solid 1px #cccccc',padding:'0px', textAlign:'right'}}
-        });
+            'container':"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;overflow:hidden;position:fixed;left:0px;top:0px;width:auto;height:auto;display:none;border:solid #b3b3b3 1px;backgroundColor:#ffffff",
+            '.head':"width:100%;height:35px;lineHeight:35px;display:block;color:#333333;borderBottom:solid 1px #cccccc",
+            '.label':"width:auto;display:block;float:left;margin:0px 10px",
+            '.close':"width:auto;height:25px;padding:0px;margin:0px;cursor:pointer;float:right;margin:0px 10px",
+            '.body':"padding:10px;width:100%;height:auto;display:block;overflow:auto;backgroundColor:#ffffff",
+            '.cancel,.submit':"width:auto;height:25px;lineHeight:25px;padding:0px 10px;margin:5px 3px;display:inline-block;",
+            '.footer':"width:100%;height:auto;display:block;borderTop:solid 1px #cccccc;padding:0px;textAlign:right;"
+        },{
+            'cancel':{ 'class':'btn btn-default'},
+            'submit':{ 'class':'btn btn-default'}
+        },theme =='' ? [] : ['head','body']);
     }
 
     /**

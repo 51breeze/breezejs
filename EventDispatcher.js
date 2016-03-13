@@ -320,6 +320,7 @@
     {
         //初始化一个全局事件
         event= BreezeEvent.create( event );
+
         if( event === null || !event.currentTarget )
             return false;
         var targets = [[],[]];

@@ -42,7 +42,7 @@
                     var viewport = this.template().viewport();
                     if (typeof dataSource !== 'undefined') {
                         var index = parseInt(Breeze('input', viewport).property('value') );
-                        dataSource.currentPages(Math.min(Math.max(index, 1), dataSource.totalPages()));
+                        this.currentPages(Math.min(Math.max(index, 1), dataSource.totalPages()));
                     }
                 }
             }}
@@ -235,10 +235,10 @@
         if( this.__display__ !== true )
         {
             this.__display__ = true;
-            skinObject.part.links = Utils.repeat(skinObject.part.link, options.links);
+            skinObject.skins.links = Utils.repeat(skinObject.skins.link, options.links);
             var tpl = this.template().viewport(this.skinGroup());
             var skin = options.themeSkin.replace(/\{(\w+)\}/g, function (all, name) {
-                return skinObject.part[name] || '';
+                return skinObject.skins[name] || '';
             })
             tpl.render(skin);
 
@@ -264,19 +264,19 @@
             'lastPage' :'<a>最后页</a>',
             'hiddenLeft':'<span>...</span>',
             'hiddenRight':'<span>...</span>',
-            'goto':'{part input+button}',
+            'goto':'{skins input+button}',
             'input':'<input />',
             'button':'<button>跳转到</button>'
         },{
-            'container':{ style:{'width':'100%','height':'auto',textAlign:'center'} },
+            'container':{ style:{'width':'100%','height':'auto',textAlign:'center','userSelect':'none'} },
             'a,span,input,button':{style:{display:'inline-block','height':'22px','line-height':'22px'}},
             'a,span':{ style:{'width':'auto','padding':'0px 8px',margin:'0px 2px',cursor:'pointer','color':'#333333','backgroundColor':'#ffffff','textDecoration':'none'} },
             'a.link':{ style:{'border':'solid 1px #333333'}},
             'a.current':{ style:{ 'backgroundColor':'#444444','color':'#ffffff' , 'border':'solid 1px #333333' }},
-            'input':{style:{'width':'40px',margin:'0px 2px'}},
+            'input':{style:{'width':'40px',margin:'0px 2px','padding':'0px'}},
             'button':{style:{'width':'auto',margin:'0px 2px','padding':'0px 2px'}},
             'a.disabled':{style:{'color':'#999999','cursor':'auto'}}
-        },['firstPage','prevPage','nextPage','lastPage'],'.pagination');
+        },['firstPage','prevPage','nextPage','lastPage']);
         return skinObject;
     }
 

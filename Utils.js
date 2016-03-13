@@ -112,8 +112,8 @@
             value.left = box.left + scroll.left - clientLeft;
             value.right = box.right + scroll.left - clientLeft;
             value.bottom = box.bottom + scroll.top - clientTop;
-            value.width = box.width;
-            value.height = box.height;
+            value.width = box.width || box.right-box.left;
+            value.height = box.height || box.bottom-box.top;
 
         }else
         {
@@ -149,17 +149,16 @@
      */
       Utils.getSize=function( elem, prop, border )
       {
-          var size ={}
-          elem =  elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || elem;
-
+          var size ={width:0,height:0};
           if( Utils.isWindow(elem) )
           {
-              size.width=Math.max(elem.innerWidth || 0, elem.offsetWidth || 0,elem.clientWidth || 0);
-              size.height=Math.max(elem.innerHeight || 0, elem.offsetHeight || 0,elem.clientHeight || 0);
+              var docElem = elem.document.documentElement;
+              size.width=Math.max(elem.innerWidth || 0, elem.offsetWidth || 0,elem.clientWidth || 0, docElem.clientWidth || 0);
+              size.height=Math.max(elem.innerHeight || 0, elem.offsetHeight || 0,elem.clientHeight || 0, docElem.clientHeight || 0);
 
           }else if( Utils.isDocument(elem) )
           {
-               var docElem = elem.documentElement;
+                var docElem = elem.documentElement;
                 size.width=Math.max(
                     elem.body.scrollWidth  || 0, docElem.scrollWidth || 0
                     ,elem.body.offsetWidth || 0, elem.offsetWidth || 0
@@ -307,11 +306,12 @@
         //fix.cssMap['float']='cssFloat';
         getStyle= function( elem, name )
         {
-            if( name === undefined || name==='cssText')
-                return (elem.style || {} ).cssText || '';
+            if( typeof name === "undefined" ) return elem.style
+            if( name==='cssText' )return (elem.style || {} ).cssText || '';
             var ret='',computedStyle;
             if( name==='' )return '';
             computedStyle=document.defaultView.getComputedStyle( elem, null );
+
             if( cssHooks[name] && typeof cssHooks[name].get === "function" )return cssHooks[name].get.call(elem,computedStyle,name) || '';
             if( computedStyle )
             {
@@ -324,23 +324,22 @@
 
     }else
     {
+
        // fix.cssMap['float']='styleFloat';
         fix.cssMap['alpha']='opacity';
         fix.attrMap['class']='className';
         getStyle=function( elem, name )
         {
-            if( name === undefined || name==='cssText' )
-                return (elem.style || elem.currentStyle || {} ).cssText || '';
-
             var left='', rsLeft,hook=cssHooks[name]
-                ,style = elem.style ? elem.style : elem.currentStyle || elem.style;
+                ,style =  elem.currentStyle || elem.style || {};
+
+            if( typeof name === "undefined" ) return style;
+            if( name==='cssText' )return (style.style || {} ).cssText || '';
 
             name=Utils.styleName( name );
             if( name==='' )return '';
             var ret = style[ name ] || '';
-
-            if( hook && hook.get )
-                ret=hook.get.call(elem,style,name) || '';
+            if( hook && hook.get )ret=hook.get.call(elem,style,name) || '';
 
             //在ie9 以下将百分比的值转成像素的值
             if( cssNumnonpx.test( ret ) )
@@ -367,6 +366,39 @@
                 var opacity = "alpha(opacity=" + (value* 100) + ")", filter = style.filter || "";
                 style.zoom = 1;
                 style.filter = Utils.trim( filter.replace(cssAalpha,'') + " " + opacity );
+                return true;
+            }
+        };
+    }
+
+    if( Utils.isBrowser(Utils.BROWSER_IE,8,'<') )
+    {
+        cssHooks.height={
+            set: function( style, value )
+            {
+                if( /(\d+[^\%]+)\s*$/.test(value) )
+                {
+                    value = parseInt( value );
+                    var top = parseInt( Utils.style(this,'paddingTop') ) || 0;
+                    var bottom = parseInt(  Utils.style(this,'paddingBottom' ) ) || 0;
+                    value = (value-top-bottom)+'px';
+                }
+                style['height']=value
+                return true;
+            }
+        };
+
+        cssHooks.width={
+            set: function( style, value )
+            {
+                if( /(\d+[^\%]+)\s*$/.test(value) )
+                {
+                    value = parseInt( value );
+                    var top = parseInt( Utils.style(this,'paddingLeft') ) || 0;
+                    var bottom = parseInt(  Utils.style(this,'paddingRight' ) ) || 0;
+                    value = (value-top-bottom)+'px';
+                }
+                style['width']=value;
                 return true;
             }
         };
@@ -588,26 +620,16 @@
             {
                 name = 'cssText';
             }
-
-            if( name==='cssText' && typeof value === "string" )
-            {
-                value= value.replace(/(\w+)\s*(?=\:)/g, function (all, name) {
-                    return Utils.styleName( name );
-                });
-            }
-
-        }else if( Utils.isObject(name) )
-        {
-            value=name;
-            name='cssText';
         }
 
+        if( Utils.isObject(name) )value=name;
         if( Utils.isObject(value) )
         {
-            var newvalue=Utils.serialize(value,'style') ;
-            value=getStyle( elem ).replace(/;\s*$/,'');
-            value =  value =='' ? newvalue : value+';'+newvalue;
-            name='cssText';
+            for(var prop in value )
+            {
+               Utils.style(elem, prop, value[prop]);
+            }
+            return true;
         }
 
         if( !Utils.isScalar( value ) )
@@ -616,8 +638,7 @@
         }
 
         var style=elem.style;
-        var type = typeof value,ret,
-            hook=cssHooks[name];
+        var type = typeof value,ret,hook=cssHooks[name];
         if ( type === "number" && isNaN( value ) )return false;
         if ( type === "string" && (ret=cssOperator.exec( value )) )
         {
@@ -629,13 +650,44 @@
         if ( type === "number" && !cssNumber[ name ] )
             value += "px";
 
+        if( hook && hook.set && hook.set.call(elem,style,value) === true )
+        {
+            return true;
+        }
 
-        if( hook && hook.set && hook.set.call(elem,style,value,name)===true )return true;
-        name = Utils.styleName( name );
+        if( name === 'cssText' )
+        {
+            value= Utils.formatStyle( value );
+        }else
+        {
+            name= Utils.styleName( name )
+        }
+
         try{
             style[name]=value;
         }catch( e ){}
         return true;
+    }
+
+    /**
+     * 格式化 cssText 中的样式名
+     * @param cssText
+     * @returns {XML|string|void}
+     */
+    Utils.formatStyle=function( cssText )
+    {
+        if( typeof cssText !== "string" )
+           return cssText;
+        return cssText.replace(/([\w\-]+)\s*\:([^\;]*)/g, function (all, name,value) {
+
+            if( cssHooks[name] && typeof cssHooks[name].set ==="function" )
+            {
+                var obj={}
+                cssHooks[name].set(obj, value );
+                return Utils.serialize( obj,'style');
+            }
+            return Utils.styleName( name ) +':'+ value;
+        })
     }
 
     /**
@@ -910,7 +962,6 @@
         for( key in object )
         {
             val=type === 'attr' ? '"' +object[key]+'"' : object[key];
-            key=type==='style' ? Utils.styleName(key) : key;
             key=prefix ? prefix+'[' + key +']' : key;
             str=str.concat(  typeof val==='object' ? Utils.serialize( val ,type , group ? key : false ) : key + separate + val  );
         }
@@ -1871,10 +1922,10 @@
 
         if( typeof styleObject === "string" )
         {
+            styleObject=Utils.formatStyle( styleObject );
             if( !Utils.storage(headStyle, styleName) )
             {
                 Utils.storage(headStyle, styleName, true );
-
                 if( Utils.isBrowser(Utils.BROWSER_IE,9,'<') )
                 {
                     var styleName = styleName.split(',');

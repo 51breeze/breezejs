@@ -80,40 +80,16 @@
 
 
 
-      /* var table =  Breeze('<table><thead class="thead" skin="thead"></thead><tbody class="tbody" skin="tbody"></tbody></table>','.gridcontainer');
-
-       // console.log( table[0].outerHTML )
-
-         table.context = table[0];
-
-
-         table.current('thead').html('<tr><th>the thead</th></tr>')
-
-         table.current('tbody').html('<td>the tbody</td>')
-
-
-
-        var i = 0;
-
-        Breeze('#submit').addEventListener(MouseEvent.CLICK,function(){
-
-
-            console.log('click' )
-            table.current('tbody').html('<tr><td>the tbody ===='+i+'</td></tr><tr><td>the tbody ====9999</td></tr>')
-            i++
-
-        })*/
-
-
-
 
 
         var grid = new DataGrid('.gridcontainer');
           grid.pagination( true );
 
+        grid.options( {'tbodyAlign':{'phone':'center'} } )
+
          grid.edit('edit',{callback:function(event){
 
-              console.log( event, this )
+              Popup.modality('编辑','hello word,hello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello word')
 
           }});
 
@@ -125,8 +101,6 @@
           grid.component('name',{'bindable':true});
           grid.dataSource( 'json.php' );
           grid.display();
-
-
 
 
        /* var selection = new Selection( '#selection' )

@@ -342,14 +342,14 @@
      */
     Breeze.prototype.revert=function( step )
     {
-        var len= this['__reverts__'] ? this['__reverts__'].length : 0;
-        step = typeof step !== "number" ? (this['__step__'] || len)-1 : step < 0 ? step+len : step ;
-        step=  step > len ? 0 : step
-        Math.min( Math.max(step,0), len-1 );
-        if( len > 0 && this['__reverts__'][ step ] )
+        var reverts= this['__reverts__'];
+        var len=reverts ? reverts.length : 0;
+        if( len > 0 && step )
         {
-            this['__step__']=step;
-            doMake( this, this['__reverts__'][ step ],true , true );
+            step = step || -1;
+            step= step < 0 ? step+len : step;
+            step=Math.max( 0, len-step );
+            doMake( this, reverts.splice(step, len-step).shift() ,true , true );
         }
         return this;
     }
@@ -915,14 +915,16 @@
             {
                 html = Utils.trim( html );
                 var target = this.current();
-                var nodename = Utils.nodeName( target );
-                if( Utils.isBrowser(Utils.BROWSER_IE,10,'<') && /(tr|thead|tbody|tfoot|table)/.exec( nodename ) )
+
+                try{
+                    target.innerHTML = html;
+                }catch(e)
                 {
+                    var nodename = Utils.nodeName( target );
                     if( !new RegExp("^<"+nodename).exec(html) )
                     {
                         html= Utils.sprintf('<%s>%s</%s>',nodename,html,nodename);
                     }
-
                     var child= Utils.createElement( html );
                     var deep =  nodename === 'tr' ? 2 : 1,d=0;
                     while( d < deep && child.firstChild)
@@ -933,10 +935,6 @@
                     Utils.mergeAttributes(child, target);
                     target.parentNode.replaceChild(child,  target );
                     this.splice( this.indexOf( target ), 1, child );
-
-                }else
-                {
-                    target.innerHTML = html;
                 }
 
             }else

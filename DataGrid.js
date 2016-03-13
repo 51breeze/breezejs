@@ -51,7 +51,6 @@
         var thead = options.th;
         var tbody = options.td;
         var wrap  = options.wrap;
-
         var skin= {head:'',body:'',foot:''};
 
         if( Utils.isObject(columns,true) )
@@ -73,8 +72,10 @@
                 }
 
                 var w= options.columnWidth[i] || options.columnWidth['*'] || 'auto';
-                th=th.replace(/<(.*?)>/, "<\$1 width='"+ w +"' height='"+(options.headHeight || 35)+"'>" );
-                td=td.replace(/<(.*?)>/, "<\$1 width='"+ w +"' height='"+(options.rowHeight || 30)+"'>" );
+                var rowAlign= options.tbodyAlign[i] || options.tbodyAlign['*'] || 'center';
+
+                th=th.replace(/<(.*?)>/, "<\$1  width='"+ w +"' height='"+(options.headHeight || 35)+"'>" );
+                td=td.replace(/<(.*?)>/, "<\$1 align='"+rowAlign+"' width='"+ w +"' height='"+(options.rowHeight || 30)+"'>" );
 
                 skin.head += th.replace(/\{column\}/g, i).replace(/\{value\}/g, field );
                 skin.foot += td.replace(/\{column\}/g, i).replace(/\{value\}/g, field );
@@ -158,7 +159,9 @@
     DataGrid.prototype.__options__={
         'headHeight':35,
         'rowHeight' :30,
-        columnWidth:{}
+        'theadAlign':{'*':'center'},
+        'tbodyAlign':{'*':'center'},
+        'columnWidth':{}
     };
 
     /**
@@ -170,11 +173,6 @@
     {
         if( typeof options !== "undefined")
         {
-            var e = ['tbody','thead','wrap','tfoot'];
-            for(var i in e )  if( typeof options[ e[i] ] !== "undefined" )
-            {
-               options[ e[i] ]=tagAttr( options[ e[i] ] );
-            }
             this.__options__ = Utils.extend(true, this.__options__, options );
             return this;
         }
@@ -373,9 +371,15 @@
 
         }else
         {
-            var options = Utils.extend(skinGroup.skinObject().part, this.options() );
+            var options = Utils.extend(skinGroup.skinObject().skins, this.options() );
             var skin = makeTemplate( this.columns(), options , this.plus() );
             skinGroup.currentSkin('thead').html( skin.head );
+            var columnName =  Utils.toKeys(  this.columns() );
+            skinGroup.children().children().forEach(function(elem,index){
+                 var name = columnName[index];
+                 this.style('textAlign',  options.theadAlign[name] || options.theadAlign['*'] );
+            }).revert(2);
+
             skinGroup.current( null );
             dataRender.viewport( skinGroup.getSkin('tbody') );
             dataRender.display( skin.body );
@@ -458,7 +462,7 @@
      */
     DataGrid.prototype.defaultSkinObject=function()
     {
-        var skinObject=new SkinObject('<table>{part thead+tbody}</table>',{
+        var skinObject=new SkinObject('<table>{skins thead+tbody}</table>',{
             'thead':'<thead></thead>',
             'tbody':'<tbody></tbody>',
             'tfoot':'<tfoot></tfoot>',
@@ -466,11 +470,11 @@
             'td':'<td>{value}</td>',
             'wrap' :'<tr>{value}</tr>'
         },{
-            'container':{border:0,cellpadding:0,cellspacing:0,style:{'borderCollapse':'collapse','borderSpacing':'0'} },
-            'th,td':{style:{'border':'solid 1px #999999'}},
-            'th':{style:{'backgroundColor':'#cccccc'}},
-            'thead':{align:'center'},
-            'tbody':{align:'center'}
+            'container':{'borderCollapse':'collapse','borderSpacing':'0'},
+            'th,td':{'border':'solid 1px #999999','padding':'0px 2px'},
+            'th':{'backgroundColor':'#cccccc','textAlign':'center'}
+        },{
+            'container':{border:0,cellpadding:0,cellspacing:0}
         },['thead','tbody']);
         return skinObject;
     }
