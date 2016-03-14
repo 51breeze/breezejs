@@ -111,8 +111,9 @@
             var attr = this.attr[name] || (this.attr[name]={});
             if( name !== 'container' )
             {
-                var val = (attr[SkinGroup.NAME] || '')+' '+name;
-                attr[SkinGroup.NAME] = Utils.trim(val);
+                var val = attr[SkinGroup.NAME] || '';
+                val = val.replace(new RegExp('(^|\\s+)+'+name+'(\\s+|$)','ig'),' ');
+                attr[SkinGroup.NAME] = Utils.trim(val+' '+name);
             }
             if( !isattrReg.test( this.skins[name] ) )this.skins[name] = this.skins[name].replace( addattr, "<$1 {attr "+name+"}" );
             this.skins[name] = this.skins[name].replace(attrReg,parser);
@@ -276,7 +277,7 @@
         this.__validated__=null;
     }
 
-    SkinGroup.NAME='class';
+    SkinGroup.NAME='skin';
     SkinGroup.prototype=new Breeze();
     SkinGroup.prototype.__skin__={};
     SkinGroup.prototype.__skinObject__=null;

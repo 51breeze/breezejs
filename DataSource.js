@@ -8,23 +8,6 @@
 
 (function(window,undefined){
 
-
-    var defaultOption={
-        'method': HttpRequest.METHOD.GET,
-        'dataType':HttpRequest.TYPE.JSON,
-        'param':{},
-        'delimiter':'%',
-        'profile':{
-            'data':'data',     //数据集
-            'total':'total',   //数据总数
-            'offset':'offset', //数据偏移量
-            'rows'  : 'rows' , //每次摘取多少行数据
-            'status': 'code'  //请求状态
-        },
-        'successStatus' : 0 , //成功时的状态值
-        'preloadRows':100     //每次拉取的数据量
-    };
-
     /**
      * 调度事件
      * @param item
@@ -55,7 +38,26 @@
             return new DataSource(options);
         }
         EventDispatcher.call(this);
-        this.__options__ = Utils.extend(true, {}, defaultOption, options || {} );
+        this.__options__={
+            'method': HttpRequest.METHOD.GET,
+            'dataType':HttpRequest.TYPE.JSON,
+            'param':{},
+            'delimiter':'%',
+            //服务器响应后的json 对象
+            'responseProfile':{
+                'data':'data',     //数据集
+                'total':'total',   //数据总数
+                'code': 'code'     //状态码
+            },
+            //向服务器请求时需要添加的参数
+            'requestProfile':{
+                'offset':'offset', //数据偏移量
+                'rows'  : 'rows'  //每次获取取多少行数据
+            },
+            "successCode" : 0 , //成功时的状态值
+            'preloadRows':100     //每次拉取的数据量
+        };
+        this.options( options );
     }
 
     DataSource.prototype = new EventDispatcher();
@@ -80,14 +82,23 @@
     /**
      * @private
      */
-    DataSource.prototype.__options__=null;
+    DataSource.prototype.__options__={};
 
     /**
+     * @param object options
      * @returns {*}
      */
-    DataSource.prototype.options=function()
+    DataSource.prototype.options=function( options )
     {
-        return this.__options__ || defaultOption;
+        if( typeof options !== "undefined" )
+        {
+            if( Utils.isObject(options) )
+            {
+                this.__options__ = Utils.extend(true,this.__options__, options);
+            }
+            return this;
+        }
+        return this.__options__;
     }
 
     /**
@@ -157,14 +168,17 @@
                 //请求远程数据源侦听器
                 source.addEventListener( HttpEvent.SUCCESS, function (event)
                 {
-                    if (event.data[options.profile.status] != options.successStatus) {
+                    var totalProfile = options.responseProfile.total;
+                    var dataProfile = options.responseProfile.data;
+                    var stateProfile = options.responseProfile.code;
+
+                    if( event.data[ stateProfile ] != options.successCode)
+                    {
                         throw new Error('加载数据失败');
                     }
 
                     loadNum++;
                     var data = event.data;
-                    var totalProfile = options.profile.total;
-                    var dataProfile = options.profile.data;
                     var total = parseInt( data[totalProfile] ) || 0;
                     if ( total > 0 ) {
                         self.predicts( total );
@@ -201,18 +215,21 @@
                 {
                     beforehand = !!event.beforehand;
                     var offset = loadNum * rows;
-                    options.param[ options.profile.offset ]=offset;
-                    options.param[ options.profile.rows ]=rows;
-                    var data=options.param;
 
-                    if(  options.method === HttpRequest.METHOD.GET )
+                    var pageParam = {};
+                    pageParam[ options.requestProfile.offset ]=offset;
+                    pageParam[ options.requestProfile.rows ]=rows;
+                    pageParam = Utils.serialize(pageParam,'url');
+                    var url = options.url+( /\?/.test( options.url ) ? '&'+pageParam : '?'+pageParam );
+
+                    var data=options.param;
+                    if(  options.method === HttpRequest.METHOD.GET && !Utils.isEmpty(options.param) )
                     {
                         var param = Utils.serialize(options.param,'url');
-                        options.url += /\?/.test( options.url ) ? '&'+param : '?'+param;
+                        url =url+'&'+param;
                         data=null;
                     }
-
-                    source.open( options.url, options.method );
+                    source.open( url, options.method );
                     source.send( data );
                 });
             }

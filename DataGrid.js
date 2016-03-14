@@ -345,15 +345,14 @@
 
     /**
      * 获取设置数据源对象
-     * @param data
-     * @param option
+     * @param url|Array source
      * @returns {DataGrid}
      */
-    DataGrid.prototype.dataSource=function( source , option )
+    DataGrid.prototype.dataSource=function( source )
     {
         if( typeof source === "undefined" )
             return  this.dataRender().dataSource();
-        this.dataRender().dataSource().source( source , option);
+        this.dataRender().dataSource().source( source );
         return this;
     }
 

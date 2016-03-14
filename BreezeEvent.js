@@ -82,7 +82,7 @@
     /**
      * @private
      */
-    var mapeventname,onPrefix='',agreed=new RegExp( 'webkitAnimationEnd|webkitAnimationIteration|DOMContentLoaded','i');
+    var mapeventname,onPrefix='',agreed=new RegExp( 'webkitAnimationEnd|webkitAnimationIteration|DOMContentLoaded|DOMMouseScroll','i');
 
     /**
      * 统一事件名
@@ -101,6 +101,11 @@
             mapeventname[ PropertyEvent.CHANGE ] = 'input';
             mapeventname[ BreezeEvent.READY ] = 'readystatechange';
             mapeventname[ BreezeEvent.LOAD ] = 'DOMContentLoaded';
+            if( Utils.isBrowser(Utils.BROWSER_FIREFOX) )
+            {
+                mapeventname[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
+            }
+
             if( Utils.isBrowser(Utils.BROWSER_IE,9,'<') )
             {
                 onPrefix='on';
@@ -179,6 +184,11 @@
             breezeEvent.offsetY = event.offsetY;
             breezeEvent.screenX= event.screenX;
             breezeEvent.screenY= event.screenY;
+
+            if( type === MouseEvent.MOUSE_WHEEL )
+            {
+               breezeEvent.wheelDelta=event.wheelDelta || ( event.detail > 0 ? -event.detail :Math.abs( event.detail ) );
+            }
 
         }else if(KeyboardEvent.KEYPRESS===type || KeyboardEvent.KEY_UP===type || KeyboardEvent.KEY_DOWN===type)
         {
@@ -284,6 +294,7 @@
     MouseEvent.MOUSE_OUT='mouseout';
     MouseEvent.MOUSE_OUTSIDE='mouseoutside';
     MouseEvent.MOUSE_MOVE='mousemove';
+    MouseEvent.MOUSE_WHEEL='mousewheel';
     MouseEvent.CLICK='click';
     MouseEvent.DBLCLICK='dblclick';
 

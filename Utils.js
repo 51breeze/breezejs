@@ -737,7 +737,7 @@
     Utils.hasClass=function(element, className )
     {
         var value= element['className'];
-        return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
+        return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)','i').test( value ) : true ;
     }
 
     /**

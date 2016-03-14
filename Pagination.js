@@ -9,12 +9,36 @@
 {
     "use strict";
 
+
+    /**
+     * 分页组件.
+     * 此组件包含如下皮肤元素：
+     * {totalPage}{firstPage}{prevPage}{hiddenLeft}{links}{hiddenRight}{nextPage}{lastPage}{goto}
+     * 这些皮肤元素可以自由组合位置和删减以满足各种需求。
+     *
+     * 此组件支持鼠标单击和鼠标滚动事件，默认为鼠标单击事件
+     * 如果同时需要支持两种事件 只需要在 options.eventType 中设置 [MouseEvent.CLICK,MouseEvent.MOUSE_WHEEL] 即可。
+     * @param viewport
+     * @param context
+     * @returns {*}
+     * @constructor
+     */
     function Pagination( viewport , context )
     {
         if( !(this instanceof  Pagination) )
             return new Pagination( viewport , context );
+
+
+
+        this.__options__={
+            'links':7,
+            'eventType':[MouseEvent.CLICK,MouseEvent.MOUSE_WHEEL],
+            'wheelTarget':document,
+            'themeSkin':'{firstPage}{prevPage}{links}{nextPage}{lastPage}'
+        }
         return SkinComponent.call(this,viewport , context);
     }
+
     Pagination.prototype= new SkinComponent();
     Pagination.prototype.constructor = Pagination;
     Pagination.prototype.componentProfile='pagination';
@@ -24,40 +48,7 @@
     /**
      * @private
      */
-    Pagination.prototype.__options__={
-        'links':7,
-        'action':{
-            'a':{'eventType':MouseEvent.CLICK,'callback':function(crrentTarget,event){
-                var dataSource = this.dataSource();
-                if( typeof dataSource !=='undefined'  )
-                {
-                    dataSource.currentPages( crrentTarget.property('data-pages') )
-                }
-            }},
-            'button,input':{'eventType':[MouseEvent.CLICK,KeyboardEvent.KEYPRESS],'callback':function(crrentTarget,event)
-            {
-                if( event.type===MouseEvent.CLICK  || (KeyboardEvent.KEYPRESS===event.type && event.keycode==13 ) )
-                {
-                    var dataSource = this.dataSource();
-                    var viewport = this.template().viewport();
-                    if (typeof dataSource !== 'undefined') {
-                        var index = parseInt(Breeze('input', viewport).property('value') );
-                        this.currentPages(Math.min(Math.max(index, 1), dataSource.totalPages()));
-                    }
-                }
-            }}
-        },
-        style:{
-            'a,span':{'width':'auto','height':'22px','line-height':'22px','padding':'3px 8px',margin:'0px 2px',cursor:'pointer','color':'#333333','backgroundColor':'#ffffff','textDecoration':'none'},
-            'a.link':{'border':'solid 1px #333333'},
-            'a.current':{'backgroundColor':'#444444','color':'#ffffff'},
-            'input':{'width':'40px','height':'22px','line-height':'22px',margin:'0px 2px'},
-            'button':{'width':'auto','height':'22px','line-height':'22px',margin:'0px 2px','padding':'0px 2px'},
-            'a.disabled':{'color':'#999999','cursor':'auto'}
-        },
-        'themeSkin':'{totalPage}{firstPage}{prevPage}{hiddenLeft}{links}{hiddenRight}{nextPage}{lastPage}{goto}',
-        'require':true
-    };
+    Pagination.prototype.__options__={};
 
     /**
      * 设置获取分页模板
@@ -111,25 +102,53 @@
         {
             this.__template__ = new Template().addEventListener( TemplateEvent.REFRESH ,function(event)
             {
-                var dataSource = this.dataSource();
                 var self = this;
                 var totalPages = this.totalPages();
-                this.skinGroup().getSkinGroup('container > a').addEventListener( MouseEvent.CLICK,function(event){
-                    var current = self.currentPages();
-                    var page = parseInt( this.property('pageIndex') ) || current;
-                    switch( this.property(SkinGroup.NAME) )
+                var options =  this.options();
+                var eventType = new DataArray( options.eventType );
+
+                if( eventType.indexOf(MouseEvent.CLICK) >=0 )
+                {
+                    this.skinGroup().getSkinGroup('container > a').addEventListener(MouseEvent.CLICK, function (event) {
+                        var current = self.currentPages();
+                        var page = parseInt(this.property('pageIndex')) || current;
+                        switch (this.property(SkinGroup.NAME)) {
+                            case 'firstPage':
+                                page = 1;
+                                break;
+                            case 'prevPage' :
+                                page = Math.max(current - 1, 1);
+                                break;
+                            case 'nextPage' :
+                                page = Math.min(current + 1, totalPages);
+                                break;
+                            case 'lastPage' :
+                                page = totalPages;
+                                break;
+                        }
+                        if (page !== current) {
+                            self.currentPages(page);
+                        }
+                    });
+                }
+
+                if( eventType.indexOf(MouseEvent.MOUSE_WHEEL) )
+                {
+                    EventDispatcher( options.wheelTarget || document ).addEventListener(MouseEvent.MOUSE_WHEEL,function(event){
+                        var current = self.currentPages();
+                        self.currentPages( event.wheelDelta > 0 ? current-1 : current+1 );
+                    })
+                }
+
+                this.skinGroup().getSkinGroup('container > button').addEventListener( MouseEvent.CLICK,function(event){
+                    if( event.type===MouseEvent.CLICK  || (KeyboardEvent.KEYPRESS===event.type && event.keycode==13 ) )
                     {
-                        case 'firstPage': page = 1 ; break;
-                        case 'prevPage' : page = Math.max(current-1, 1) ; break;
-                        case 'nextPage' : page =Math.min(current+1, totalPages) ; break;
-                        case 'lastPage' : page = totalPages ; break;
-                    }
-                    if( page !== current )
-                    {
-                        self.currentPages( page );
+                        self.currentPages( this.current('input').property('value')  );
                     }
                 });
+
                 update.call(this, totalPages , self.currentPages() );
+
             },false,0, this);
         }
         return  this.__template__;
@@ -147,14 +166,9 @@
         var offset =  Math.max( currentPages - Math.ceil( links / 2 ), 0);
         offset = offset+links > totalPages ? offset-(offset+links - totalPages) : offset;
         links = Utils.range(1, options.links, offset);
-        var url = this.gotoUrl();
 
         this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('link') ).current('.current').removeClass('current').current(null).forEach(function(elem,index){
             this.property('pageIndex',links[index]);
-            if( url )
-            {
-                this.property()
-            }
             this.text( links[index] );
             if( currentPages == links[index] )
             {
@@ -219,29 +233,20 @@
         {
             return dataSource ? dataSource.currentPages() : this.__currentPages__;
         }
-        !dataSource || dataSource.currentPages( currentPages );
+        currentPages= Math.min( Math.max(currentPages, 1), this.totalPages() );
+        if( this.__display__ === true )
+        {
+            var event = new PaginationEvent(PaginationEvent.GOTO);
+            event.index= currentPages;
+            if( !this.dispatchEvent( event ) )
+              return this;
+        }
+        if( dataSource )
+        {
+           dataSource.currentPages(currentPages);
+        }
         this.__currentPages__ = currentPages;
         return this;
-    }
-
-    /**
-     * @private
-     */
-    Pagination.prototype.__gotoUrl__=null;
-
-    /**
-     * 设置获取总分页数
-     * @param number totalPages
-     * @returns {*}
-     */
-    Pagination.prototype.gotoUrl=function( url )
-    {
-        if( typeof url !== "undefined" )
-        {
-            this.__gotoUrl__ = url;
-            return this;
-        }
-        return  this.__gotoUrl__;
     }
 
     /**
@@ -263,8 +268,8 @@
         if( typeof currentPages === "number" )
            this.currentPages( currentPages );
 
-        totalPages =  this.totalPages();
-        currentPages =  this.currentPages();
+        totalPages = this.totalPages();
+        currentPages = this.currentPages();
 
         var options =  this.options();
         var skinGroup = this.skinGroup();
@@ -287,6 +292,7 @@
                 var skin = options.themeSkin.replace(/\{(\w+)\}/g, function (all, name) { return skinObject.skins[name] || ''; });
                 tpl.render(skin);
             }
+
         }else
         {
             update.call(this, totalPages , currentPages );
@@ -324,9 +330,20 @@
             'button':{'width':'auto',margin:'0px 2px','padding':'0px 2px'},
             '.totalPage':{float:'left','color':'#666666'},
             'a.disabled':{'color':'#999999','cursor':'auto'}
+        },{
+            'link':{'class':'link'},
+            'totalPage':{'class':'totalPage'}
         },['firstPage','prevPage','nextPage','lastPage']);
         return skinObject;
     }
+
+    function PaginationEvent(type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
+    PaginationEvent.prototype=new BreezeEvent();
+    PaginationEvent.prototype.constructor=PaginationEvent;
+    PaginationEvent.prototype.index=NaN;
+    PaginationEvent.GOTO='paginationGoto';
+
     window.Pagination= Pagination;
+    window.PaginationEvent= PaginationEvent;
 
 })( window )

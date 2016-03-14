@@ -56,14 +56,13 @@
     /**
      * 获取设置数据源
      * @param source
-     * @param option
      * @returns {*}
      */
-    DataRender.prototype.source=function( source, option )
+    DataRender.prototype.source=function( source )
     {
         if( typeof source === "undefined"  )
            return this.dataSource().source();
-        this.dataSource().source(source, option);
+        this.dataSource().source(source);
         return this;
     }
 
