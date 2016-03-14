@@ -1331,11 +1331,13 @@
      * @param flag false 为隐藏
      * @returns {Breeze}
      */
-    Breeze.prototype.display=function( flag )
+    Breeze.prototype.display=function( flag , type )
     {
         if( typeof flag === "undefined" )
+        {
             return this.style('display') != 'none';
-        return this.style('display',flag===false ? 'none' : 'block' );
+        }
+        return this.style('display',flag===false ? 'none' : type || 'block' );
     }
 
     /**

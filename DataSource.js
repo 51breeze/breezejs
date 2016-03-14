@@ -44,22 +44,18 @@
 
     /**
      * 数据源
-     * @param source
-     * @param option
+     * @param options
      * @returns {DataSource}
      * @constructor
      */
-    function DataSource(source,option)
+    function DataSource( options )
     {
         if( !(this instanceof DataSource) )
         {
-            return new DataSource(source,option);
+            return new DataSource(options);
         }
         EventDispatcher.call(this);
-        if( typeof source !== "undefined" )
-        {
-            this.source(source,option);
-        }
+        this.__options__ = Utils.extend(true, {}, defaultOption, options || {} );
     }
 
     DataSource.prototype = new EventDispatcher();
@@ -81,6 +77,18 @@
         return this.__isRemote__;
     }
 
+    /**
+     * @private
+     */
+    DataSource.prototype.__options__=null;
+
+    /**
+     * @returns {*}
+     */
+    DataSource.prototype.options=function()
+    {
+        return this.__options__ || defaultOption;
+    }
 
     /**
      * @private
@@ -130,7 +138,7 @@
         //远程数据源
         else
         {
-            var options = Utils.extend(true, {}, defaultOption, option || {} );
+            var options = this.options();
             if( typeof source === 'string' )
             {
                 options.url = source;

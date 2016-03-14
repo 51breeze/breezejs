@@ -357,7 +357,6 @@
     {
         var skinObject = this.skinObject()
         var styleSheet = skinObject.styleSheet;
-
         var sn =  this.styleName();
         for( var name in styleSheet )
         {

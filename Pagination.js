@@ -55,7 +55,7 @@
             'button':{'width':'auto','height':'22px','line-height':'22px',margin:'0px 2px','padding':'0px 2px'},
             'a.disabled':{'color':'#999999','cursor':'auto'}
         },
-        'themeSkin':'{firstPage}{prevPage}{links}{nextPage}{lastPage}{goto}',
+        'themeSkin':'{totalPage}{firstPage}{prevPage}{hiddenLeft}{links}{hiddenRight}{nextPage}{lastPage}{goto}',
         'require':true
     };
 
@@ -135,6 +135,11 @@
         return  this.__template__;
     }
 
+    /**
+     * @private
+     * @param totalPages
+     * @param currentPages
+     */
     function update(totalPages , currentPages)
     {
         var options = this.options();
@@ -142,9 +147,14 @@
         var offset =  Math.max( currentPages - Math.ceil( links / 2 ), 0);
         offset = offset+links > totalPages ? offset-(offset+links - totalPages) : offset;
         links = Utils.range(1, options.links, offset);
+        var url = this.gotoUrl();
 
         this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('link') ).current('.current').removeClass('current').current(null).forEach(function(elem,index){
             this.property('pageIndex',links[index]);
+            if( url )
+            {
+                this.property()
+            }
             this.text( links[index] );
             if( currentPages == links[index] )
             {
@@ -164,6 +174,11 @@
         {
             right.addClass('disabled');
         }
+
+        var hiddenLeft = this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('hiddenLeft') );
+        var hiddenRight = this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('hiddenRight') );
+        hiddenLeft.display( links[0] > 1, 'inline-block' )
+        hiddenRight.display( links[ links.length-1 ] < totalPages , 'inline-block');
     }
 
     /**
@@ -209,6 +224,29 @@
         return this;
     }
 
+    /**
+     * @private
+     */
+    Pagination.prototype.__gotoUrl__=null;
+
+    /**
+     * 设置获取总分页数
+     * @param number totalPages
+     * @returns {*}
+     */
+    Pagination.prototype.gotoUrl=function( url )
+    {
+        if( typeof url !== "undefined" )
+        {
+            this.__gotoUrl__ = url;
+            return this;
+        }
+        return  this.__gotoUrl__;
+    }
+
+    /**
+     * @private
+     */
     Pagination.prototype.__display__=false;
 
     /**
@@ -235,13 +273,20 @@
         if( this.__display__ !== true )
         {
             this.__display__ = true;
-            skinObject.skins.links = Utils.repeat(skinObject.skins.link, options.links);
-            var tpl = this.template().viewport(this.skinGroup());
-            var skin = options.themeSkin.replace(/\{(\w+)\}/g, function (all, name) {
-                return skinObject.skins[name] || '';
-            })
-            tpl.render(skin);
-
+            if( skinGroup.validateSkin() )
+            {
+                this.template().dispatchEvent( new TemplateEvent( TemplateEvent.REFRESH ) );
+            }else
+            {
+                skinObject.skins.links = Utils.repeat(skinObject.skins.link, options.links);
+                var tpl = this.template().viewport(this.skinGroup());
+                if( skinObject.skins['totalPage'] )
+                {
+                    skinObject.skins['totalPage']=skinObject.skins['totalPage'].replace('{total}', totalPages);
+                }
+                var skin = options.themeSkin.replace(/\{(\w+)\}/g, function (all, name) { return skinObject.skins[name] || ''; });
+                tpl.render(skin);
+            }
         }else
         {
             update.call(this, totalPages , currentPages );
@@ -257,6 +302,7 @@
     Pagination.prototype.defaultSkinObject=function()
     {
         var skinObject=new SkinObject('',{
+            'totalPage':'<span>总共{total}页</span>',
             'firstPage':'<a>第一页</a>',
             'prevPage' :'<a>上一页</a>',
             'link':'<a></a>',
@@ -268,18 +314,19 @@
             'input':'<input />',
             'button':'<button>跳转到</button>'
         },{
-            'container':{ style:{'width':'100%','height':'auto',textAlign:'center','userSelect':'none'} },
-            'a,span,input,button':{style:{display:'inline-block','height':'22px','line-height':'22px'}},
-            'a,span':{ style:{'width':'auto','padding':'0px 8px',margin:'0px 2px',cursor:'pointer','color':'#333333','backgroundColor':'#ffffff','textDecoration':'none'} },
-            'a.link':{ style:{'border':'solid 1px #333333'}},
-            'a.current':{ style:{ 'backgroundColor':'#444444','color':'#ffffff' , 'border':'solid 1px #333333' }},
-            'input':{style:{'width':'40px',margin:'0px 2px','padding':'0px'}},
-            'button':{style:{'width':'auto',margin:'0px 2px','padding':'0px 2px'}},
-            'a.disabled':{style:{'color':'#999999','cursor':'auto'}}
+            'container':{ 'width':'100%','height':'auto',textAlign:'center','userSelect':'none'} ,
+            'a':{cursor:'pointer'},
+            'a,span,input,button,.totalPage':{display:'inline-block','height':'22px','line-height':'22px'},
+            'a,span':{ 'width':'auto','padding':'0px 8px',margin:'0px 2px','color':'#333333','backgroundColor':'#ffffff','textDecoration':'none'},
+            'a.link':{ 'border':'solid 1px #333333'},
+            'a.current':{'backgroundColor':'#444444','color':'#ffffff' , 'border':'solid 1px #333333'},
+            'input':{'width':'40px',margin:'0px 2px','padding':'0px'},
+            'button':{'width':'auto',margin:'0px 2px','padding':'0px 2px'},
+            '.totalPage':{float:'left','color':'#666666'},
+            'a.disabled':{'color':'#999999','cursor':'auto'}
         },['firstPage','prevPage','nextPage','lastPage']);
         return skinObject;
     }
-
     window.Pagination= Pagination;
 
 })( window )

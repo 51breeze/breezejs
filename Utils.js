@@ -1917,32 +1917,28 @@
 
         if( Utils.isObject(styleObject) )
         {
-            styleObject= Utils.serialize( styleObject,'style' );
+            styleObject= Utils.serialize( styleObject, 'style' );
         }
 
         if( typeof styleObject === "string" )
         {
             styleObject=Utils.formatStyle( styleObject );
-            if( !Utils.storage(headStyle, styleName) )
+            if( Utils.isBrowser(Utils.BROWSER_IE,9,'<') )
             {
-                Utils.storage(headStyle, styleName, true );
-                if( Utils.isBrowser(Utils.BROWSER_IE,9,'<') )
+                var styleName = styleName.split(',');
+                styleObject = styleObject.replace(/^\{/,'').replace(/\}$/,'');
+                for(var i=0; i<styleName.length; i++ )
                 {
-                    var styleName = styleName.split(',');
-                    styleObject = styleObject.replace(/^\{/,'').replace(/\}$/,'');
-                    for(var i=0; i<styleName.length; i++ )
-                    {
-                        headStyle.styleSheet.addRule(styleName[i], styleObject, -1);
-                    }
-
-                }else
-                {
-                    if (styleObject.charAt(0) !== '{')
-                    {
-                        styleObject = '{' + styleObject + '}';
-                    }
-                    headStyle.appendChild(document.createTextNode(styleName + styleObject));
+                    headStyle.styleSheet.addRule(styleName[i], styleObject, -1);
                 }
+
+            }else
+            {
+                if (styleObject.charAt(0) !== '{')
+                {
+                    styleObject = '{' + styleObject + '}';
+                }
+                headStyle.appendChild(document.createTextNode(styleName + styleObject));
             }
             return true;
         }
