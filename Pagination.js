@@ -103,7 +103,6 @@
             this.__template__ = new Template().addEventListener( TemplateEvent.REFRESH ,function(event)
             {
                 var self = this;
-                var totalPages = this.totalPages();
                 var options =  this.options();
                 var eventType = new DataArray( options.eventType );
 
@@ -146,8 +145,7 @@
                         self.currentPages( this.current('input').property('value')  );
                     }
                 });
-
-                update.call(this, totalPages , self.currentPages() );
+                update.call(this, self.totalPages() , self.currentPages() );
 
             },false,0, this);
         }

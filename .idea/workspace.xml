@@ -2,14 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BreezeEvent.js" afterPath="$PROJECT_DIR$/BreezeEvent.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataGrid.js" afterPath="$PROJECT_DIR$/DataGrid.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataRender.js" afterPath="$PROJECT_DIR$/DataRender.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataSource.js" afterPath="$PROJECT_DIR$/DataSource.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Pagination.js" afterPath="$PROJECT_DIR$/Pagination.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SkinGroup.js" afterPath="$PROJECT_DIR$/SkinGroup.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Utils.js" afterPath="$PROJECT_DIR$/Utils.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="breezejs.iws" />
@@ -84,8 +77,8 @@
       <file leaf-file-name="Pagination.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Pagination.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.60726845" vertical-offset="2842" max-vertical-offset="8520">
-              <caret line="140" column="17" selection-start-line="140" selection-start-column="17" selection-end-line="140" selection-end-column="17" />
+            <state vertical-scroll-proportion="1.9296601" vertical-offset="1930" max-vertical-offset="8472">
+              <caret line="149" column="29" selection-start-line="149" selection-start-column="29" selection-end-line="149" selection-end-column="29" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -291,7 +284,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../weixin" />
     <property name="DefaultHtmlFileTemplate" value="Html5" />
     <property name="FullScreen" value="false" />
     <property name="options.lastSelected" value="preferences.sourceCode.General" />
@@ -880,7 +873,13 @@
       <option name="project" value="LOCAL" />
       <updated>1457928272879</updated>
     </task>
-    <option name="localTasksCounter" value="88" />
+    <task id="LOCAL-00088" summary="DataGrid">
+      <created>1457944297381</created>
+      <option name="number" value="00088" />
+      <option name="project" value="LOCAL" />
+      <updated>1457944297381</updated>
+    </task>
+    <option name="localTasksCounter" value="89" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1339,8 +1338,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Pagination.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.60726845" vertical-offset="2842" max-vertical-offset="8520">
-          <caret line="140" column="17" selection-start-line="140" selection-start-column="17" selection-end-line="140" selection-end-column="17" />
+        <state vertical-scroll-proportion="1.9296601" vertical-offset="1930" max-vertical-offset="8472">
+          <caret line="149" column="29" selection-start-line="149" selection-start-column="29" selection-end-line="149" selection-end-column="29" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
