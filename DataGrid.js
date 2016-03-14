@@ -383,6 +383,11 @@
             dataRender.viewport( skinGroup.getSkin('tbody') );
             dataRender.display( skin.body );
         }
+
+        var pt= dataRender.pagination();
+        if( pt ){
+            pt.options({'wheelTarget':[skinGroup[0],pt.skinGroup()[0]]});
+        }
         return this;
     }
 

@@ -86,7 +86,7 @@
     /**
      * @param selector|NodeElement viewport
      * @param selector|NodeElement context
-     * @returns {boolean}
+     * @returns {Pagination|DataRender}
      */
     DataRender.prototype.pagination=function( viewport, context )
     {

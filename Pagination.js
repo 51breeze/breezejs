@@ -28,12 +28,10 @@
         if( !(this instanceof  Pagination) )
             return new Pagination( viewport , context );
 
-
-
         this.__options__={
             'links':7,
             'eventType':[MouseEvent.CLICK,MouseEvent.MOUSE_WHEEL],
-            'wheelTarget':document,
+            'wheelTarget':null,
             'themeSkin':'{firstPage}{prevPage}{links}{nextPage}{lastPage}'
         }
         return SkinComponent.call(this,viewport , context);
@@ -80,7 +78,6 @@
         {
             if( !(dataSource instanceof DataSource) )
               throw new Error('invalid dataSource');
-
             this.__dataSource__ = dataSource;
             dataSource.addEventListener(DataSourceEvent.SELECT,this.display,false,100,this);
             return this;
@@ -133,10 +130,11 @@
 
                 if( eventType.indexOf(MouseEvent.MOUSE_WHEEL) )
                 {
-                    EventDispatcher( options.wheelTarget || document ).addEventListener(MouseEvent.MOUSE_WHEEL,function(event){
+                    EventDispatcher( options.wheelTarget || this.skinGroup()[0] ).addEventListener(MouseEvent.MOUSE_WHEEL,function(event){
+                        event.preventDefault();
                         var current = self.currentPages();
                         self.currentPages( event.wheelDelta > 0 ? current-1 : current+1 );
-                    })
+                    });
                 }
 
                 this.skinGroup().getSkinGroup('container > button').addEventListener( MouseEvent.CLICK,function(event){
@@ -210,7 +208,7 @@
         {
            return dataSource ? dataSource.totalPages() : this.__totalPages__;
         }
-        this.__totalPages__ = dataSource ? dataSource.totalPages() : totalPages;
+        this.__totalPages__ = totalPages;
         return this;
     }
 
@@ -231,19 +229,22 @@
         {
             return dataSource ? dataSource.currentPages() : this.__currentPages__;
         }
-        currentPages= Math.min( Math.max(currentPages, 1), this.totalPages() );
-        if( this.__display__ === true )
+
+        if( currentPages !== this.__currentPages__ )
         {
-            var event = new PaginationEvent(PaginationEvent.GOTO);
-            event.index= currentPages;
-            if( !this.dispatchEvent( event ) )
-              return this;
+            if( this.__display__ === true && this.totalPages() > 0 )
+            {
+                var event = new PaginationEvent(PaginationEvent.GOTO);
+                event.index= currentPages;
+                if( !this.dispatchEvent( event ) )
+                  return this;
+            }
+            if( dataSource )
+            {
+                dataSource.currentPages( currentPages );
+            }
+            this.__currentPages__ = currentPages;
         }
-        if( dataSource )
-        {
-           dataSource.currentPages(currentPages);
-        }
-        this.__currentPages__ = currentPages;
         return this;
     }
 
@@ -254,21 +255,12 @@
 
     /**
      * 显示分页视图
-     * @param number totalPages  总页数
-     * @param number currentPages 当前页数
      * @returns {*}
      */
-    Pagination.prototype.display=function(totalPages, currentPages )
+    Pagination.prototype.display=function()
     {
-        if( typeof totalPages === "number" )
-            this.totalPages( totalPages );
-
-        if( typeof currentPages === "number" )
-           this.currentPages( currentPages );
-
-        totalPages = this.totalPages();
-        currentPages = this.currentPages();
-
+        var totalPages = this.totalPages();
+        var currentPages = this.currentPages();
         var options =  this.options();
         var skinGroup = this.skinGroup();
         var skinObject = skinGroup.skinObject();
@@ -290,9 +282,7 @@
                 var skin = options.themeSkin.replace(/\{(\w+)\}/g, function (all, name) { return skinObject.skins[name] || ''; });
                 tpl.render(skin);
             }
-
-        }else
-        {
+        }else{
             update.call(this, totalPages , currentPages );
         }
         return this;

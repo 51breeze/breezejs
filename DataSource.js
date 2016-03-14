@@ -164,10 +164,12 @@
                 var beforehand = false;
                 var loadNum = 0;
                 var self = this;
+                var loading= false;
 
                 //请求远程数据源侦听器
                 source.addEventListener( HttpEvent.SUCCESS, function (event)
                 {
+                    loading=false;
                     var totalProfile = options.responseProfile.total;
                     var dataProfile = options.responseProfile.data;
                     var stateProfile = options.responseProfile.code;
@@ -213,6 +215,8 @@
                 //向远程服务器开始加载数据
                 this.hasEventListener(DataSourceEvent.LOAD_START) || this.addEventListener(DataSourceEvent.LOAD_START, function (event)
                 {
+                    if( loading )return;
+                    loading=true;
                     beforehand = !!event.beforehand;
                     var offset = loadNum * rows;
 
@@ -221,7 +225,6 @@
                     pageParam[ options.requestProfile.rows ]=rows;
                     pageParam = Utils.serialize(pageParam,'url');
                     var url = options.url+( /\?/.test( options.url ) ? '&'+pageParam : '?'+pageParam );
-
                     var data=options.param;
                     if(  options.method === HttpRequest.METHOD.GET && !Utils.isEmpty(options.param) )
                     {
@@ -329,7 +332,7 @@
     /**
      * @private
      */
-    DataSource.prototype.__currentPages__ = 0;
+    DataSource.prototype.__currentPages__ = 1;
 
     /**
      * 获取设置当前分页数
@@ -338,12 +341,15 @@
      */
     DataSource.prototype.currentPages=function( num )
     {
-        if( num > 0 ) {
-
-            if(  this.__currentPages__ !== num )
+        if( typeof num !== 'undefined' )
+        {
+            if( num > 0 )
             {
-                this.__currentPages__ = num;
-                this.select();
+                if( this.__currentPages__ !== num )
+                {
+                    this.__currentPages__ = num;
+                    this.select();
+                }
             }
             return this;
         }
@@ -356,9 +362,8 @@
      */
     DataSource.prototype.totalPages=function()
     {
-        return Math.ceil( this.predicts() / this.rows() );
+        return Math.max( Math.ceil( this.predicts() / this.rows() ) , 1);
     }
-
 
     /**
      * @private
@@ -494,6 +499,7 @@
         }
         return flag;
     }
+
 
     /**
      * 选择数据集

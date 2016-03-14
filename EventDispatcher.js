@@ -651,6 +651,25 @@
              }
 
         },false,0, this);
+
+        return false;
+    });
+
+    //在指定的目标元素滚动鼠标
+    EventDispatcher.SpecialEvent(MouseEvent.MOUSE_WHEEL, function(element,listener,type)
+    {
+        if( !Utils.isWindow( element ) && !Utils.isDocument(element) )
+        {
+            Breeze.rootEvent().addEventListener(MouseEvent.MOUSE_WHEEL,function(event)
+            {
+               if( Utils.contains(element, event.target) )
+               {
+                   event = BreezeEvent.create( event );
+                   event.type = MouseEvent.MOUSE_WHEEL;
+                   this.dispatchEvent( event );
+               }
+            },false,0, this);
+        }
         return false;
     });
 
