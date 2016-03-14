@@ -99,7 +99,7 @@
      * 数据源
      * @returns {DataSource|window.HttpRequest}
      */
-    DataSource.prototype.source=function( source , option )
+    DataSource.prototype.source=function( source )
     {
         if(  typeof source === "undefined"  )
             return  this.__source__;
