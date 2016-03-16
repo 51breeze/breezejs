@@ -32,7 +32,7 @@
             'links':7,
             'eventType':[MouseEvent.CLICK,MouseEvent.MOUSE_WHEEL],
             'wheelTarget':null,
-            'themeSkin':'{firstPage}{prevPage}{links}{nextPage}{lastPage}'
+            'themeSkin':'{firstPage}{prevPage}{links}{nextPage}{lastPage}{goto}'
         }
         return SkinComponent.call(this,viewport , context);
     }
@@ -116,10 +116,10 @@
                                 page = Math.max(current - 1, 1);
                                 break;
                             case 'nextPage' :
-                                page = Math.min(current + 1, totalPages);
+                                page = Math.min(current + 1, self.totalPages());
                                 break;
                             case 'lastPage' :
-                                page = totalPages;
+                                page = self.totalPages();
                                 break;
                         }
                         if (page !== current) {
@@ -230,8 +230,9 @@
             return dataSource ? dataSource.currentPages() : this.__currentPages__;
         }
 
-        if( currentPages !== this.__currentPages__ )
+        if( currentPages !== this.currentPages() )
         {
+            this.__currentPages__ = currentPages;
             if( this.__display__ === true && this.totalPages() > 0 )
             {
                 var event = new PaginationEvent(PaginationEvent.GOTO);
@@ -243,7 +244,6 @@
             {
                 dataSource.currentPages( currentPages );
             }
-            this.__currentPages__ = currentPages;
         }
         return this;
     }

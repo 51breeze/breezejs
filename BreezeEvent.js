@@ -115,7 +115,7 @@
         if( flag===true )
         {
             type= onPrefix==='on' ? type.replace(/^on/i,'') : type;
-            for(var prop in mapeventname)if( mapeventname[prop].toLowerCase() === type )return prop
+            for(var prop in mapeventname)if( mapeventname[prop].toLowerCase() === type.toLowerCase() )return prop
             return type;
         }
 
@@ -132,7 +132,7 @@
     /**
      * 根据原型事件创建一个Breeze BreezeEvent
      * @param event
-     * @returns {*}
+     * @returns {BreezeEvent}
      */
     BreezeEvent.create=function( event )
     {

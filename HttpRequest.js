@@ -174,6 +174,8 @@
                 }
                 ,done=function( status , event )
                 {
+                    isSend=false;
+                    isStoped=false;
                     var target = event ? event.target : this;
                     if( status >=300 && self.hasEventListener( HttpEvent.ERROR ) )
                     {
@@ -196,8 +198,6 @@
                             self.dispatchEvent( new HttpEvent( HttpEvent.TIMEOUT,{status:0,data:'',target:target} ) )
                         httpRequest.abort();
                     }
-                    isSend=false;
-                    isStoped=false;
                 }
                 ,stateChange=function( event )
                 {
@@ -236,7 +236,7 @@
             {
                 if( dataType === HttpRequest.TYPE.JSONP )
                    return null;
-                if ( !responseHeaders && isSend && httpRequest.readyState===4  )
+                if ( !responseHeaders && httpRequest.readyState===4  )
                 {
                     responseHeaders = {};
                     var match;
@@ -244,7 +244,7 @@
                         responseHeaders[ match[1].toLowerCase() ] = match[ 2 ];
                     }
                 }
-                return name===undefined ? responseHeaders : responseHeaders[ name.toLowerCase() ];
+                return typeof name==='undefined' ? responseHeaders : responseHeaders[ name.toLowerCase() ];
             }
 
             /**
@@ -316,6 +316,15 @@
                     httpRequest.setRequestHeader("Content-type","application/x-www-form-urlencoded");
                 }
                 return this;
+            }
+
+            /**
+             * 是否正在加载中
+             * @returns {boolean}
+             */
+            this.loading=function()
+            {
+                return isSend;
             }
 
             /**

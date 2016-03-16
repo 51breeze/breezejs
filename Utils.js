@@ -263,8 +263,10 @@
         return result;
     }
 
+
+
     // fix style name add prefix
-    if( Utils.isBrowser(Utils.BROWSER_FIREFOX,4,'>=') )
+    if( Utils.isBrowser(Utils.BROWSER_FIREFOX,4,'<=') )
     {
         browserPrefix='-moz-';
 
@@ -414,6 +416,7 @@
         set: function( style, value )
         {
             style[ Utils.styleName('userSelect') ] = value;
+            style['-moz-user-select'] = value;
             style['-webkit-touch-callout'] = value;
             style['-khtml-user-select'] = value;
             return true;
@@ -1509,12 +1512,18 @@
                 {
 
                     var elem = document.createElement( match[1] );
-                    var attr = Utils.matchAttr( html )
+                    var attr = Utils.matchAttr( html );
+                    var isset = typeof elem.setAttribute === "function";
                     for(var prop in attr )
                     {
-                        var attrNode = document.createAttribute( prop );
-                        attrNode.nodeValue=attr[ prop ];
-                        elem.setAttributeNode( attrNode )
+                        if( isset )
+                        {
+                            elem.setAttribute( prop, attr[prop] );
+                        }else{
+                            var attrNode = document.createAttribute( prop );
+                            attrNode.nodeValue=attr[ prop ];
+                            elem.setAttributeNode( attrNode )
+                        }
                     }
                     return elem;
 

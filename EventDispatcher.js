@@ -98,12 +98,6 @@
      */
     EventDispatcher.prototype.addEventListener=function(type,listener,useCapture,priority,reference)
     {
-        //如果不是侦听器对象
-        if( !(listener instanceof EventDispatcher.Listener) )
-        {
-            listener=new EventDispatcher.Listener(listener,useCapture,priority,reference);
-        }
-
         //指定一组事件
         if( type instanceof Array )
         {
@@ -115,7 +109,6 @@
        if( typeof type !== 'string' )
          return this;
 
-        listener.dispatcher=this;
         var target= this.targets()
             ,element
             ,index=0;
@@ -126,11 +119,18 @@
             if( target && target[ index ] instanceof EventDispatcher )
             {
                 target[ index ].addEventListener(type,listener,useCapture,priority);
-            }else if(  !(bindBeforeProxy[type] instanceof EventDispatcher.SpecialEvent) ||
-                !bindBeforeProxy[type].callback.call(this,element,listener,type,useCapture)  )
+
+            }else
             {
-                EventDispatcher.addEventListener.call(element, type, listener );
+                var listenerEvent=new EventDispatcher.Listener(listener,useCapture,priority,reference);
+                listenerEvent.dispatcher=this;
+                if( !(bindBeforeProxy[type] instanceof EventDispatcher.SpecialEvent) ||
+                    !bindBeforeProxy[type].callback.call(this,element,listenerEvent,type,useCapture)  )
+                {
+                    EventDispatcher.addEventListener.call(element, type, listenerEvent );
+                }
             }
+
         }while( target && index < target.length );
         return this;
     }
@@ -328,7 +328,7 @@
 
         //是否只是触发捕获阶段的事件
         var useCapture= event.bubbles === false;
-        var element = event.currentTarget,data=null;
+        var element = event.target || event.currentTarget,data=null;
 
         //只有dom 元素的事件才支持捕获和冒泡事件，否则只有目标事件
         do{
@@ -340,10 +340,9 @@
                    targets[1].push( element );
 
                 //冒泡阶段, ready 事件加进来
-                if( (!useCapture || event.type === BreezeEvent.READY ) && data[ event.type ][0] )
+                if( ( !useCapture || event.type === BreezeEvent.READY ) && data[ event.type ][0] )
                     targets[0].push( element );
             }
-
             //如果不是浏览器发出的事件无需冒泡节点
             element=is || !event.originalEvent ? null : element.parentNode;
 
@@ -361,8 +360,8 @@
             while( index < category.length && category.length > 0 )
             {
                 //获取事件数据集
-                var target = category[ index++ ];
-                var events = Utils.storage( target ,'events') || {};
+                var currentTarget = category[ index++ ];
+                var events = Utils.storage( currentTarget ,'events') || {};
                 events = events[ event.type ] && events[ event.type ][ step ] ? events[ event.type ][ step ]['listener'] : null;
                 if( !events || events.length < 1 )
                     continue;
@@ -376,9 +375,9 @@
                     var ismanager=false;
 
                     //设置 Manager 的当前元素对象
-                    if( reference && reference instanceof Manager && reference.indexOf(target) >=0 )
+                    if( reference && reference instanceof Manager && reference.indexOf(currentTarget) >=0 )
                     {
-                        reference.current( target );
+                        reference.current( currentTarget );
                         ismanager=true;
                     }
 
@@ -651,25 +650,6 @@
              }
 
         },false,0, this);
-
-        return false;
-    });
-
-    //在指定的目标元素滚动鼠标
-    EventDispatcher.SpecialEvent(MouseEvent.MOUSE_WHEEL, function(element,listener,type)
-    {
-        if( !Utils.isWindow( element ) && !Utils.isDocument(element) )
-        {
-            Breeze.rootEvent().addEventListener(MouseEvent.MOUSE_WHEEL,function(event)
-            {
-               if( Utils.contains(element, event.target) )
-               {
-                   event = BreezeEvent.create( event );
-                   event.type = MouseEvent.MOUSE_WHEEL;
-                   this.dispatchEvent( event );
-               }
-            },false,0, this);
-        }
         return false;
     });
 

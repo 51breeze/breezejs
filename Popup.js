@@ -684,14 +684,19 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         },{
             'container':"boxShadow:0px 0px 8px 0px rgba(0,0,0,.4);borderRadius:3px;zIndex:999;overflow:hidden;position:fixed;left:0px;top:0px;width:auto;height:auto;display:none;border:solid #b3b3b3 1px;backgroundColor:#ffffff",
             '.head':"width:100%;height:35px;lineHeight:35px;display:block;color:#333333;borderBottom:solid 1px #cccccc",
-            '.label':"width:auto;display:block;float:left;margin:0px 10px",
-            '.close':"width:auto;height:25px;padding:0px;margin:0px;cursor:pointer;float:right;margin:0px 10px",
+            '.head > .label':"width:auto;display:block;float:left;margin:0px 10px",
+            '.head > .close':"width:auto;height:25px;padding:0px;margin:0px;cursor:pointer;float:right;margin:0px 10px",
             '.body':"padding:10px;width:100%;height:auto;display:block;overflow:auto;backgroundColor:#ffffff",
             '.cancel,.submit':"width:auto;height:25px;lineHeight:25px;padding:0px 10px;margin:5px 3px;display:inline-block;",
             '.footer':"width:100%;height:auto;display:block;borderTop:solid 1px #cccccc;padding:0px;textAlign:right;"
         },{
-            'cancel':{ 'class':'btn btn-default'},
-            'submit':{ 'class':'btn btn-default'}
+            'head':{ 'class':'head'},
+            'body':{ 'class':'body'},
+            'footer':{ 'class':'footer'},
+            'label':{ 'class':'label'},
+            'close':{ 'class':'close'},
+            'cancel':{ 'class':'cancel btn btn-default'},
+            'submit':{ 'class':'submit btn btn-default'}
         },theme =='' ? [] : ['head','body']);
     }
 
