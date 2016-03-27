@@ -32,10 +32,11 @@
         segments = typeof segments === "number" ? segments : this.segments();
         var source =this.source();
         var options = this.options();
-        var rows = options.preloadRows || 100;
+        var rows = this.preloadRows();
         var offset = segments * rows;
         var cached = this.__cached__;
-        if( cached[offset] === true || !this.isRemote() )
+
+        if(  cached.loadSegmented.indexOf( segments )>=0 || !this.isRemote() )
             return false;
 
         if( source.loading() )
@@ -58,8 +59,9 @@
         }
         if( dispatch.call(this,null,DataSourceEvent.LOAD_START) )
         {
-            cached[offset]=true;
-            cached.lastSegments=segments;
+            cached.loadSegmented.push( segments );
+            cached.loadSegmented.sort();
+            cached.lastSegments = segments;
             source.open( url, options.method );
             source.send( data );
         }
@@ -96,11 +98,10 @@
                 'offset':'offset', //数据偏移量
                 'rows'  : 'rows'  //每次获取取多少行数据
             },
-            "successCode" : 0 , //成功时的状态值
-            'preloadRows':100   //每次拉取的数据量
+            "successCode" : 0 //成功时的状态值
         };
         this.options( options );
-        this.__cached__={'queues':[],'lastSegments':null};
+        this.__cached__={'queues':[],'lastSegments':null,'loadSegmented':new DataArray() };
     }
 
     DataSource.prototype = new EventDispatcher();
@@ -152,7 +153,7 @@
     DataSource.prototype.segments=function( page )
     {
         page = Math.max( (page || this.__currentPages__) , 1 );
-        return Math.floor( (page-1) * this.rows() / ( this.options().preloadRows || 100) );
+        return Math.floor( (page-1) * this.rows() / this.preloadRows() );
     }
 
     /**
@@ -211,8 +212,8 @@
             {
                 this.__source__=source;
                 this.__isRemote__=true;
-                var lastOffset=0;
-                var lastLenght = 0;
+                var sort=[];
+                var cached = this.__cached__;
 
                 //请求远程数据源侦听器
                 source.addEventListener( HttpEvent.SUCCESS, function (event)
@@ -220,8 +221,6 @@
                     var totalProfile = options.responseProfile.total;
                     var dataProfile = options.responseProfile.data;
                     var stateProfile = options.responseProfile.code;
-                    var cached = this.__cached__;
-                    var offset = cached.lastSegments * options.preloadRows;
                     var queue = cached.queues;
 
                     if( event.data[ stateProfile ] != options.successCode)
@@ -236,39 +235,7 @@
                     }
 
                     data = typeof data[dataProfile] !== 'undefined' ? data[dataProfile] : data;
-
-                    var len = this.length;
-                    if( offset > len && lastOffset > 0 )
-                    {
-                        offset = lastOffset;
-                    }else{
-                        offset = Math.min( offset, this.length );
-                    }
-
-                    console.log( offset, this.length ,lastOffset, lastLenght,  '======offset=======' , cached.lastSegments * options.preloadRows )
-                    this.splice( offset  , 0, data);
-
-                    //console.log( this.toArray() )
-                    lastLenght = this.length - len;
-                    lastOffset = offset;
-
-                    //没有可加载的数据，直接删除事件侦听
-                    if ( !(data instanceof Array) || this.length >= this.predicts() )
-                    {
-                        this.removeEventListener(DataSourceEvent.LOAD_START);
-                    }
-
-                   dispatch.call(this, data, DataSourceEvent.LOAD_COMPLETE, len, event);
-                   var next = this.segments( this.currentPages() + this.preloadPages() );
-                   var prev = this.segments( this.currentPages() - this.preloadPages() );
-                   if( next != cached.lastSegments )
-                   {
-                       queue.push( next );
-                   }
-                   if( prev != cached.lastSegments )
-                   {
-                       queue.push( prev );
-                   }
+                    this.splice(  cached.loadSegmented.indexOf( cached.lastSegments ) * this.preloadRows()  , 0, data);
 
                     //do order by
                     var orderBy = this.orderBy();
@@ -276,15 +243,23 @@
                     {
                         this.orderBy(b,orderBy[b], true);
                     }
-                    if ( this.__fetched__ === true )
+                    !this.__fetched__ || this.select();
+
+                    //没有可加载的数据，直接删除事件侦听
+                    if ( !(data instanceof Array) || this.length >= this.predicts() )
                     {
-                        this.select();
+                        this.removeEventListener(DataSourceEvent.LOAD_START);
                     }
 
-                    if( queue.length > 0 )
-                    {
-                        doload.call(this, queue.shift() );
-                    }
+                    //调度完成事件
+                   dispatch.call(this, data, DataSourceEvent.LOAD_COMPLETE, len, event);
+
+                   //执行队列中的请求。
+                   var next = this.segments( this.currentPages() + this.preloadPages() );
+                   var prev = this.segments( this.currentPages() - this.preloadPages() );
+                   next == cached.lastSegments || queue.push( next );
+                   prev == cached.lastSegments || queue.push( prev );
+                   queue.length == 0 || doload.call(this, queue.shift() );
 
                 }, false,0,this);
             }
@@ -314,7 +289,7 @@
     /**
      * @private
      */
-    DataSource.prototype.__pageRows__= 20;
+    DataSource.prototype.__rows__= 20;
 
     /**
      * 每页显示数据行数
@@ -324,10 +299,31 @@
     DataSource.prototype.rows=function( rows )
     {
         if( rows >= 0 ) {
-            this.__pageRows__ = rows;
+            this.__rows__ = rows;
+            this.__preloadRows__ = Math.max(this.__preloadRows__,rows);
             return this;
         }
-        return this.__pageRows__;
+        return this.__rows__;
+    }
+
+    /**
+     * @private
+     */
+    DataSource.prototype.__preloadRows__= 100;
+
+    /**
+     * 每页显示数据行数
+     * @param number rows
+     * @returns {DataSource}
+     */
+    DataSource.prototype.preloadRows=function( preloadRows )
+    {
+        if( preloadRows > 0 )
+        {
+            this.__preloadRows__ = Math.max(preloadRows, this.__rows__ );
+            return this;
+        }
+        return this.__preloadRows__;
     }
 
     /**
@@ -557,28 +553,19 @@
     {
         var page = this.currentPages();
         var rows=this.rows(),start=( page-1 ) * rows;
-        var preloadRows=  this.options().preloadRows;
+        var preloadRows=  this.preloadRows();
         var segments= this.segments();
-        var maxSegments = Math.ceil( this.length / preloadRows );
-        var minSegments = Math.floor( this.length / preloadRows );
         var cached = this.__cached__;
+        var index = cached.loadSegmented.indexOf( segments );
+        start  = index * preloadRows + (start % preloadRows);
 
-
-     // console.log(  (start % preloadRows)  + ( Math.min( Math.floor( start / preloadRows ), minSegments )  * preloadRows) ,'===')
-
-       // start = start - Math.min( maxSegments , segments ) * preloadRows;
-       // start = start + Math.min( minSegments , segments ) * preloadRows;
-
-        start= (start % preloadRows)  + ( Math.min( Math.floor( start / preloadRows ), minSegments )  * preloadRows)
-
+       //start= (start % preloadRows)+Math.min( Math.floor( start / preloadRows ), Math.floor( this.length / preloadRows ) )  * preloadRows;
 
         this.__fetched__ = true;
-        var dispatcher = ( this.isRemote() !==true || start+rows <= this.length || ( this.length > start && page === this.totalPages() ) );
-
-        console.log(  'dispatcher', dispatcher, cached.lastSegments,  this.length, start , maxSegments,minSegments )
+        var dispatcher = start>=0 && ( start+rows <= this.length || ( this.length > start && page === this.totalPages() ) );
 
         //发送数据
-        if( dispatcher && this.hasEventListener(DataSourceEvent.SELECT) )
+        if( ( !this.isRemote() || dispatcher ) && this.hasEventListener(DataSourceEvent.SELECT) )
         {
             var result = this.grep().execute( filter );
             this.__fetched__= false;
@@ -587,12 +574,10 @@
             var event = new DataSourceEvent( DataSourceEvent.SELECT )
             event.data = data;
             this.dispatchEvent( event);
-
-            console.log( start, end, data)
         }
 
         //向服务端加载数据
-        if( this.length <= this.predicts() && this.isRemote() === true && segments != cached.lastSegments )
+        if( this.length <= this.predicts() && this.isRemote() && segments != cached.lastSegments )
         {
             doload.call(this);
         }

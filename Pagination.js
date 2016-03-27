@@ -74,16 +74,46 @@
      */
     Pagination.prototype.dataSource=function( dataSource )
     {
-        if( typeof dataSource !== "undefined" )
+        if( dataSource instanceof DataSource )
         {
-            if( !(dataSource instanceof DataSource) )
-              throw new Error('invalid dataSource');
             this.__dataSource__ = dataSource;
-            dataSource.addEventListener(DataSourceEvent.SELECT,this.display,false,100,this);
+            var initialized = false;
+            dataSource.addEventListener(DataSourceEvent.SELECT,function()
+            {
+                var totalPages = this.totalPages();
+                var currentPages = this.currentPages();
+                if( initialized === false )
+                {
+                    initialized = true;
+                    var options =  this.options();
+                    var skinGroup = this.skinGroup();
+                    var skinObject = skinGroup.skinObject();
+
+                    if( this.skinGroup().validateSkin() )
+                    {
+                        this.template().dispatchEvent( TemplateEvent.REFRESH );
+                    }else
+                    {
+                        skinObject.skins.links = Utils.repeat(skinObject.skins.link, Math.min(options.links,totalPages) );
+                        var tpl = this.template().viewport(this.skinGroup());
+                        if( skinObject.skins['totalPage'] )
+                        {
+                            skinObject.skins['totalPage']=skinObject.skins['totalPage'].replace('{total}', totalPages);
+                        }
+                        var skin = options.themeSkin.replace(/\{(\w+)\}/g, function (all, name) { return skinObject.skins[name] || ''; });
+                        tpl.render(skin);
+                    }
+                }
+                update.call(this, totalPages , currentPages );
+
+            },false,100,this);
             return this;
         }
+        if( !(this.__dataSource__ instanceof DataSource) )throw new Error('invalid dataSource');
         return this.__dataSource__;
     }
+
+
 
     /**
      * @private
@@ -158,10 +188,11 @@
     function update(totalPages , currentPages)
     {
         var options = this.options();
-        var links = options.links;
+        var links = Math.min( options.links,totalPages);
         var offset =  Math.max( currentPages - Math.ceil( links / 2 ), 0);
+
         offset = offset+links > totalPages ? offset-(offset+links - totalPages) : offset;
-        links = Utils.range(1, options.links, offset);
+        links = Utils.range(1,links , offset);
 
         this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('link') ).current('.current').removeClass('current').current(null).forEach(function(elem,index){
             this.property('pageIndex',links[index]);
@@ -249,42 +280,12 @@
     }
 
     /**
-     * @private
-     */
-    Pagination.prototype.__display__=false;
-
-    /**
      * 显示分页视图
-     * @returns {*}
+     * @returns {Pagination}
      */
     Pagination.prototype.display=function()
     {
-        var totalPages = this.totalPages();
-        var currentPages = this.currentPages();
-        var options =  this.options();
-        var skinGroup = this.skinGroup();
-        var skinObject = skinGroup.skinObject();
-
-        if( this.__display__ !== true )
-        {
-            this.__display__ = true;
-            if( skinGroup.validateSkin() )
-            {
-                this.template().dispatchEvent( new TemplateEvent( TemplateEvent.REFRESH ) );
-            }else
-            {
-                skinObject.skins.links = Utils.repeat(skinObject.skins.link, options.links);
-                var tpl = this.template().viewport(this.skinGroup());
-                if( skinObject.skins['totalPage'] )
-                {
-                    skinObject.skins['totalPage']=skinObject.skins['totalPage'].replace('{total}', totalPages);
-                }
-                var skin = options.themeSkin.replace(/\{(\w+)\}/g, function (all, name) { return skinObject.skins[name] || ''; });
-                tpl.render(skin);
-            }
-        }else{
-            update.call(this, totalPages , currentPages );
-        }
+        this.dataSource().select();
         return this;
     }
 

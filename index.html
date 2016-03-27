@@ -78,10 +78,9 @@
     Breeze(function(){
 
 
-
-
         var grid = new DataGrid('.gridcontainer');
           grid.pagination( true );
+      //   grid.dataSource().rows(5).preloadRows(10);
 
         grid.options( {'tbodyAlign':{'phone':'center'} } )
 
@@ -99,7 +98,7 @@
           grid.columns({'id':'序号','name':'名称','phone':'手机','edit':'操作'});
           grid.component('name',{'bindable':true});
           grid.dataSource( 'json.php' );
-          grid.pagination().currentPages(6)
+          grid.pagination().currentPages(3)
           grid.display();
 
 
