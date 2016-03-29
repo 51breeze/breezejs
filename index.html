@@ -77,10 +77,24 @@
 
     Breeze(function(){
 
-
         var grid = new DataGrid('.gridcontainer');
           grid.pagination( true );
-      //   grid.dataSource().rows(5).preloadRows(10);
+         grid.dataSource().preloadRows(20);
+        grid.dataSource().preloadPages(1);
+
+        var popup=null
+        grid.dataSource().addEventListener(DataSourceEvent.WAITING,function(event){
+
+            if( event.waiting ){
+                popup = Popup.modality('编辑','loadding....');
+
+            }else if(popup)
+            {
+                popup.hidden();
+            }
+            console.log('loadding....')
+
+        })
 
         grid.options( {'tbodyAlign':{'phone':'center'} } )
 

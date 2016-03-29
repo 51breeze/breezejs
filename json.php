@@ -1,7 +1,7 @@
 <?php
 
 
-sleep( 0 );
+sleep(1);
 
 
 $data =  array();

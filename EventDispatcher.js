@@ -107,8 +107,9 @@
         }
 
        if( typeof type !== 'string' )
-         return this;
-
+       {
+          throw new Error('invalid event type.')
+       }
         var target= this.targets()
             ,element
             ,index=0;

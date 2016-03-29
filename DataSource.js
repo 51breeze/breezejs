@@ -30,21 +30,20 @@
     function doload( segments )
     {
         segments = typeof segments === "number" ? segments : this.segments();
-        var source =this.source();
-        var options = this.options();
-        var rows = this.preloadRows();
-        var offset = segments * rows;
         var cached = this.__cached__;
+        if( cached.lastSegments == segments || cached.loadSegmented.indexOf( segments )>=0 || !this.isRemote() )
+            return true;
 
-        if(  cached.loadSegmented.indexOf( segments )>=0 || !this.isRemote() )
-            return false;
-
+        var source =this.source();
         if( source.loading() )
         {
             cached.queues.push(segments);
             return false;
         }
 
+        var options = this.options();
+        var rows = this.preloadRows();
+        var offset = segments * rows;
         var pageParam = {};
         pageParam[ options.requestProfile.offset ]=offset;
         pageParam[ options.requestProfile.rows ]=rows;
@@ -57,17 +56,53 @@
             url =url+'&'+param;
             data=null;
         }
-        if( dispatch.call(this,null,DataSourceEvent.LOAD_START) )
+
+        if( dispatch.call(this,null,DataSourceEvent.LOAD_START,NaN,null) )
         {
-            cached.loadSegmented.push( segments );
-            cached.loadSegmented.sort();
             cached.lastSegments = segments;
             source.open( url, options.method );
             source.send( data );
+            return true;
         }
-        return true;
+        return false;
     }
 
+    //预加载数据
+    function preloadData()
+    {
+        var cached = this.__cached__;
+        var segments= this.segments();
+        if( this.isRemote() && this.length <= this.predicts() )
+        {
+            var queue = cached.queues;
+            var num = this.preloadPages();
+            var c = this.currentPages();
+            var p = 0;
+            var indexOf = queue.indexOf || DataArray.prototype.indexOf;
+            var t = Math.floor( this.predicts() / this.preloadRows() );
+            cached.loadSegmented.indexOf(segments)>=0 || queue.push( segments );
+
+            while( num > p )
+            {
+                ++p;
+                var next = this.segments( c+p ) ;
+                var prev = this.segments( c-p );
+                if( next != cached.lastSegments && segments != next && next <= t && indexOf.call(queue,next) < 0  )
+                {
+                    queue.push( next );
+                }
+                if( prev != cached.lastSegments && segments != prev && prev >=0 && indexOf.call(queue,prev) < 0 )
+                {
+                    queue.push( prev );
+                }
+            }
+            var flag=true;
+            while( queue.length > 0 && flag )
+            {
+                flag = doload.call(this, queue.shift() );
+            }
+        }
+    }
 
     /**
      * 数据源
@@ -147,16 +182,6 @@
     }
 
     /**
-     * 根据当前加载的页码，计算当前向服务器请求的段数
-     * @returns {number}
-     */
-    DataSource.prototype.segments=function( page )
-    {
-        page = Math.max( (page || this.__currentPages__) , 1 );
-        return Math.floor( (page-1) * this.rows() / this.preloadRows() );
-    }
-
-    /**
      * @private
      */
     DataSource.prototype.__source__=null;
@@ -212,7 +237,6 @@
             {
                 this.__source__=source;
                 this.__isRemote__=true;
-                var sort=[];
                 var cached = this.__cached__;
 
                 //请求远程数据源侦听器
@@ -221,7 +245,6 @@
                     var totalProfile = options.responseProfile.total;
                     var dataProfile = options.responseProfile.data;
                     var stateProfile = options.responseProfile.code;
-                    var queue = cached.queues;
 
                     if( event.data[ stateProfile ] != options.successCode)
                     {
@@ -235,7 +258,12 @@
                     }
 
                     data = typeof data[dataProfile] !== 'undefined' ? data[dataProfile] : data;
-                    this.splice(  cached.loadSegmented.indexOf( cached.lastSegments ) * this.preloadRows()  , 0, data);
+                    var lastSegments = cached.lastSegments;
+                    cached.loadSegmented.push( lastSegments );
+                    cached.loadSegmented=cached.loadSegmented.sort(function(a,b){return a-b});
+
+                    var offset = cached.loadSegmented.indexOf( lastSegments ) * this.preloadRows();
+                    this.splice( offset , 0, data);
 
                     //do order by
                     var orderBy = this.orderBy();
@@ -243,6 +271,7 @@
                     {
                         this.orderBy(b,orderBy[b], true);
                     }
+
                     !this.__fetched__ || this.select();
 
                     //没有可加载的数据，直接删除事件侦听
@@ -252,14 +281,10 @@
                     }
 
                     //调度完成事件
-                   dispatch.call(this, data, DataSourceEvent.LOAD_COMPLETE, len, event);
+                    dispatch.call(this, data, DataSourceEvent.LOAD_COMPLETE, offset, event);
 
-                   //执行队列中的请求。
-                   var next = this.segments( this.currentPages() + this.preloadPages() );
-                   var prev = this.segments( this.currentPages() - this.preloadPages() );
-                   next == cached.lastSegments || queue.push( next );
-                   prev == cached.lastSegments || queue.push( prev );
-                   queue.length == 0 || doload.call(this, queue.shift() );
+                   //预加载数据
+                   preloadData.call(this);
 
                 }, false,0,this);
             }
@@ -388,8 +413,7 @@
         {
             if( num > 0 )
             {
-                var source = this.source()
-                if( this.__currentPages__ !== num && ( !this.isRemote() || !source.loading() ) )
+                if( this.__currentPages__ !== num && !this.__fetched__)
                 {
                     this.__currentPages__ = num;
                     this.select();
@@ -397,7 +421,19 @@
             }
             return this;
         }
-        return Math.min( Math.max(this.__currentPages__,1) , this.totalPages() );
+        var c =  Math.max(this.__currentPages__,1);
+        return Math.min( c  , this.totalPages() || c  );
+    }
+
+    /**
+     * 根据当前加载的页码，计算当前向服务器请求的段数
+     * @returns {number}
+     */
+    DataSource.prototype.segments=function( page )
+    {
+        page = Math.max( (page || this.__currentPages__) , 1 );
+        page = Math.min( page, this.totalPages() || page);
+        return Math.floor( (page-1) * this.rows() / this.preloadRows() );
     }
 
     /**
@@ -406,7 +442,7 @@
      */
     DataSource.prototype.totalPages=function()
     {
-        return Math.max( Math.ceil( this.predicts() / this.rows() ) , 1);
+        return this.predicts() >0 ? Math.max( Math.ceil( this.predicts() / this.rows() ) , 1) : NaN ;
     }
 
     /**
@@ -544,7 +580,6 @@
         return flag;
     }
 
-
     /**
      * 选择数据集
      * @returns {DataSource}
@@ -557,30 +592,30 @@
         var segments= this.segments();
         var cached = this.__cached__;
         var index = cached.loadSegmented.indexOf( segments );
-        start  = index * preloadRows + (start % preloadRows);
-
-       //start= (start % preloadRows)+Math.min( Math.floor( start / preloadRows ), Math.floor( this.length / preloadRows ) )  * preloadRows;
-
+        var offset  = index * preloadRows + (start % preloadRows);
         this.__fetched__ = true;
-        var dispatcher = start>=0 && ( start+rows <= this.length || ( this.length > start && page === this.totalPages() ) );
+        var waiting = !this.isRemote() || offset < 0 || this.length<1 || (this.length < offset+rows && this.totalPages()>page);
+
+        if( this.__lastWaiting__!= waiting && this.isRemote() && this.hasEventListener(DataSourceEvent.WAITING) )
+        {
+            this.__lastWaiting__= waiting;
+            var event = new DataSourceEvent(DataSourceEvent.WAITING);
+            event.waiting=waiting;
+            this.dispatchEvent(event);
+        }
 
         //发送数据
-        if( ( !this.isRemote() || dispatcher ) && this.hasEventListener(DataSourceEvent.SELECT) )
+        if( !waiting && this.hasEventListener(DataSourceEvent.SELECT) )
         {
             var result = this.grep().execute( filter );
             this.__fetched__= false;
-            var end = Math.min( start+rows, this.length );
-            var data = result.slice( start, end );
-            var event = new DataSourceEvent( DataSourceEvent.SELECT )
+            var end = Math.min( offset+rows, this.length );
+            var data = result.slice( offset, end );
+            var event = new DataSourceEvent( DataSourceEvent.SELECT );
             event.data = data;
             this.dispatchEvent( event);
         }
-
-        //向服务端加载数据
-        if( this.length <= this.predicts() && this.isRemote() && segments != cached.lastSegments )
-        {
-            doload.call(this);
-        }
+        preloadData.call(this);
         return this;
     }
 
@@ -588,8 +623,8 @@
     DataSourceEvent.prototype=new BreezeEvent();
     DataSourceEvent.prototype.constructor=DataSourceEvent;
     DataSourceEvent.prototype.index=NaN;
-    DataSourceEvent.prototype.beforehand=false;
     DataSourceEvent.prototype.data=null;
+    DataSourceEvent.prototype.waiting=false;
 
     DataSourceEvent.INSERT='dataSourceItemInsert';
     DataSourceEvent.DELETE='dataSourceItemDelete';
@@ -598,9 +633,9 @@
     DataSourceEvent.LOAD_START='dataSourceLoadStart';
     DataSourceEvent.LOAD_COMPLETE='dataSourceLoadComplete';
     DataSourceEvent.CHANGED='dataSourceChanged';
+    DataSourceEvent.WAITING='dataSourceWaiting';
 
     window.DataSource=DataSource;
     window.DataSourceEvent=DataSourceEvent;
-
 
 })(window)
