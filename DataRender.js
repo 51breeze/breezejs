@@ -40,7 +40,7 @@
         if( !(this.__dataSource__ instanceof DataSource) )
         {
             this.__dataSource__ = new DataSource()
-            .addEventListener(DataSourceEvent.SELECT,function(event)
+            .addEventListener(DataSourceEvent.FETCH,function(event)
             {
                 var data = event.data;
                 var view = this.view();
@@ -73,7 +73,7 @@
     DataRender.prototype.display=function( view )
     {
         this.view( view );
-        this.dataSource().select();
+        this.dataSource().fetch();
         return this;
     }
 

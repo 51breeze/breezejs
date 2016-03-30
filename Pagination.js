@@ -78,7 +78,7 @@
         {
             this.__dataSource__ = dataSource;
             var initialized = false;
-            dataSource.addEventListener(DataSourceEvent.SELECT,function()
+            dataSource.addEventListener(DataSourceEvent.FETCH,function()
             {
                 var totalPages = this.totalPages();
                 var currentPages = this.currentPages();
@@ -189,8 +189,7 @@
     {
         var options = this.options();
         var links = Math.min( options.links,totalPages);
-        var offset =  Math.max( currentPages - Math.ceil( links / 2 ), 0);
-
+        var offset =  Math.max( currentPages - Math.ceil( links / 2 ), 0 );
         offset = offset+links > totalPages ? offset-(offset+links - totalPages) : offset;
         links = Utils.range(1,links , offset);
 
@@ -285,7 +284,7 @@
      */
     Pagination.prototype.display=function()
     {
-        this.dataSource().select();
+        this.dataSource().fetch();
         return this;
     }
 

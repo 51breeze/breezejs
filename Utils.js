@@ -411,14 +411,14 @@
 
         get: function( style, name )
         {
-            return style[ fix.cssMap.select ] || '';
+            return style[ fix.cssMap.fetch ] || '';
         },
         set: function( style, value )
         {
             style[ Utils.styleName('userSelect') ] = value;
-            style['-moz-user-select'] = value;
+            style['-moz-user-fetch'] = value;
             style['-webkit-touch-callout'] = value;
-            style['-khtml-user-select'] = value;
+            style['-khtml-user-fetch'] = value;
             return true;
         }
     }
@@ -1265,7 +1265,7 @@
         var nodename=Utils.nodeName( parentNode );
         if( nodename=='input' || nodename=='button' || Utils.isEmpty(nodename) || parentNode===childNode || Utils.contains(childNode,parentNode) )
             return false;
-        if( nodename=='select' )
+        if( nodename=='fetch' )
             return Utils.nodeName( childNode )==='option';
         else if( nodename=='textarea' )
             return childNode && childNode.nodeType===3;

@@ -137,7 +137,7 @@
                 if (tag === 'input') {
                     attr.push('value="{value}" name="{column}"');
 
-                } else if (tag === 'select' || tag === 'textarea') {
+                } else if (tag === 'fetch' || tag === 'textarea') {
                     attr.push('name="{column}"');
                 }
                 return b + ( category === 'tbody' ? ' data-index="{key}" ' : ' data-column="{column}"' ) + ' data-action="' + action + '" ' + attr.join(' ');

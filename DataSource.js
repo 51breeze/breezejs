@@ -10,10 +10,8 @@
 
     /**
      * 调度事件
-     * @param item
-     * @param type
      */
-    var dispatch=function(data,type,index,event)
+    var dispatch=function(type,data,index,event)
     {
         if( this.hasEventListener(type) )
         {
@@ -26,8 +24,21 @@
         return true;
     }
 
-    //向远程服务器开始加载数据
-    function doload( segments )
+    /**
+     * 修改、插入、删除后是否需要刷新当前渲染的数据
+     */
+    var callfetch=function(flag, type, result, index )
+    {
+        if( flag && dispatch.call(this, type, result, index) && this.__fetchCalled__)
+        {
+            this.fetch();
+        }
+    }
+
+    /**
+     * 向远程服务器开始加载数据
+     */
+    var doload = function ( segments )
     {
         segments = typeof segments === "number" ? segments : this.segments();
         var cached = this.__cached__;
@@ -57,7 +68,7 @@
             data=null;
         }
 
-        if( dispatch.call(this,null,DataSourceEvent.LOAD_START,NaN,null) )
+        if( dispatch.call(this,DataSourceEvent.LOAD_START) )
         {
             cached.lastSegments = segments;
             source.open( url, options.method );
@@ -67,8 +78,10 @@
         return false;
     }
 
-    //预加载数据
-    function preloadData()
+    /**
+     * 预加载数据
+     */
+    var preloadData =function()
     {
         var cached = this.__cached__;
         var segments= this.segments();
@@ -265,26 +278,30 @@
                     var offset = cached.loadSegmented.indexOf( lastSegments ) * this.preloadRows();
                     this.splice( offset , 0, data);
 
-                    //do order by
-                    var orderBy = this.orderBy();
-                    if(orderBy)for(var b in orderBy)
-                    {
-                        this.orderBy(b,orderBy[b], true);
-                    }
-
-                    !this.__fetched__ || this.select();
-
                     //没有可加载的数据，直接删除事件侦听
                     if ( !(data instanceof Array) || this.length >= this.predicts() )
                     {
                         this.removeEventListener(DataSourceEvent.LOAD_START);
                     }
 
-                    //调度完成事件
-                    dispatch.call(this, data, DataSourceEvent.LOAD_COMPLETE, offset, event);
+                    //对数据进行排序
+                    var orderBy = this.orderBy();
+                    if(orderBy)for(var b in orderBy)
+                    {
+                        this.orderBy(b,orderBy[b], true);
+                    }
 
-                   //预加载数据
-                   preloadData.call(this);
+                    //更新视图的数据
+                    if( this.__fetched__ && this.__fetchCalled__ )
+                    {
+                        this.fetch();
+                    }
+
+                    //调度完成事件
+                    dispatch.call(this,DataSourceEvent.LOAD_COMPLETE,data, offset, event);
+
+                    //预加载数据
+                    preloadData.call(this);
 
                 }, false,0,this);
             }
@@ -416,7 +433,7 @@
                 if( this.__currentPages__ !== num && !this.__fetched__)
                 {
                     this.__currentPages__ = num;
-                    this.select();
+                    this.fetch();
                 }
             }
             return this;
@@ -454,20 +471,20 @@
      * @param column
      * @param type
      */
-    DataSource.prototype.orderBy=function(column,type,flag)
+    DataSource.prototype.orderBy=function(column,type)
     {
         if( typeof type === "undefined" )
         {
-            return  typeof column === "undefined" || !this.__orderBy__ ? this.__orderBy__ : this.__orderBy__[column];
-        }
-        if( typeof column === "string" )
+            return  typeof column === "undefined" ? this.__orderBy__ : this.__orderBy__[column] || null;
+
+        }else if( typeof column === "string" )
         {
-            this.__orderBy__ || ( this.__orderBy__={} );
-            if( this.__orderBy__[ column ] !==type || flag===true )
+            type = type || DataArray.ASC;
+            if( this.__orderBy__[ column ] !==type )
             {
                 this.__orderBy__[ column ]=type;
-                this.orderBy(column,type);
-                this.select();
+                this.__orderByChanged__=true;
+                !this.__fetchCalled__ || this.fetch();
             }
         }
         return this;
@@ -505,15 +522,20 @@
      * @param index
      * @returns {DataSource}
      */
-    DataSource.prototype.insert=function(item,index)
+    DataSource.prototype.append=function(item,index)
     {
         if( item )
         {
+            var oldlen= this.length;
             index = typeof index === 'number' ? index : this.length;
             index = index < 0 ? index + this.length+1 : index;
             index = Math.min( this.length, Math.max( index, 0 ) )
             this.splice(index,0,item);
-            dispatch.call(this,item,DataSourceEvent.INSERT,index);
+            if( this.isRemote() && this.__predicts__>0 )
+            {
+                this.__predicts__+= this.length - oldlen;
+            }
+            callfetch.call(this,true,DataSourceEvent.APPEND,item,index);
         }
         return this;
     }
@@ -538,11 +560,7 @@
                 throw new Error('index invalid');
             }
         }
-        if( result.length > 1  )
-        {
-            index = NaN;
-        }
-        dispatch.call(this,result,DataSourceEvent.DELETE,index);
+        callfetch.call(this,result.length > 0,DataSourceEvent.REMOVE,result);
         return this;
     }
 
@@ -551,7 +569,7 @@
      * @param index
      * @returns {boolean}
      */
-    DataSource.prototype.update=function( data, filter )
+    DataSource.prototype.alter=function( data, filter )
     {
         var result = this.grep().execute(filter);
         var flag=false;
@@ -569,23 +587,27 @@
                 }
             }
         }
-        if( flag )
-        {
-            var index = NaN;
-            if (result.length === 1) {
-                index = this.indexOf(result[0]);
-            }
-            dispatch.call(this, result, DataSourceEvent.UPDATE, index);
-        }
+        callfetch.call(this,flag, DataSourceEvent.ALTER, result )
         return flag;
     }
+
 
     /**
      * 选择数据集
      * @returns {DataSource}
      */
-    DataSource.prototype.select=function( filter )
+    DataSource.prototype.fetch=function( filter )
     {
+        if( this.__orderByChanged__ )
+        {
+            this.__orderByChanged__=false;
+            var orderby = this.orderBy();
+            for(var column in orderby )
+            {
+                DataArray.prototype.orderBy.call(this,column, orderby[column] );
+            }
+        }
+
         var page = this.currentPages();
         var rows=this.rows(),start=( page-1 ) * rows;
         var preloadRows=  this.preloadRows();
@@ -605,13 +627,13 @@
         }
 
         //发送数据
-        if( !waiting && this.hasEventListener(DataSourceEvent.SELECT) )
+        if( !waiting && this.hasEventListener(DataSourceEvent.FETCH) )
         {
             var result = this.grep().execute( filter );
             this.__fetched__= false;
             var end = Math.min( offset+rows, this.length );
             var data = result.slice( offset, end );
-            var event = new DataSourceEvent( DataSourceEvent.SELECT );
+            var event = new DataSourceEvent( DataSourceEvent.FETCH );
             event.data = data;
             this.dispatchEvent( event);
         }
@@ -626,13 +648,12 @@
     DataSourceEvent.prototype.data=null;
     DataSourceEvent.prototype.waiting=false;
 
-    DataSourceEvent.INSERT='dataSourceItemInsert';
-    DataSourceEvent.DELETE='dataSourceItemDelete';
-    DataSourceEvent.UPDATE='dataSourceItemUpdate';
-    DataSourceEvent.SELECT = 'dataSourceSelect';
+    DataSourceEvent.APPEND='dataSourceItemAppend';
+    DataSourceEvent.REMOVE='dataSourceItemrRemove';
+    DataSourceEvent.ALTER='dataSourceItemAlter';
+    DataSourceEvent.FETCH = 'dataSourceFetch';
     DataSourceEvent.LOAD_START='dataSourceLoadStart';
     DataSourceEvent.LOAD_COMPLETE='dataSourceLoadComplete';
-    DataSourceEvent.CHANGED='dataSourceChanged';
     DataSourceEvent.WAITING='dataSourceWaiting';
 
     window.DataSource=DataSource;

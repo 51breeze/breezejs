@@ -106,7 +106,8 @@
     DataArray.prototype.orderBy=function(column,type)
     {
         type =type && DataArray.DESC === type.toLowerCase() ?  DataArray.DESC :  DataArray.ASC;
-        this.sort(function(a,b){
+        DataArray.prototype.sort.call(this,function(a,b)
+        {
             if( typeof a[ column ] === "undefined" )
                return 0;
 
@@ -191,7 +192,7 @@
      */
     DataArray.prototype.forEach=function( callback )
     {
-        var items=this.slice(0),
+        var items=DataArray.prototype.slice.call(this,0),
             index = 0,
             len=items.length;
         for( ; index < len ; index++ )

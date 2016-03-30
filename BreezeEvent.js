@@ -210,7 +210,7 @@
 
     BreezeEvent.SUBMIT='submit';
     BreezeEvent.RESIZE='resize';
-    BreezeEvent.SELECT='select';
+    BreezeEvent.FETCH='fetch';
     BreezeEvent.UNLOAD='unload';
     BreezeEvent.LOAD='load';
     BreezeEvent.READY_STATE_CHANGE='readystatechange';
