@@ -118,6 +118,21 @@
     }
 
     /**
+     * 对数据进行排序
+     */
+    var doOrderBy=function()
+    {
+        if( this.length > 0 && this.length >= this.predicts() )
+        {
+            var orderby = this.orderBy();
+            for(var column in orderby )
+            {
+                DataArray.prototype.orderBy.call(this,column, orderby[column] );
+            }
+        }
+    }
+
+    /**
      * 数据源
      * @param options
      * @returns {DataSource}
@@ -228,13 +243,7 @@
             var len = this.length;
             this.splice(0, len, source);
             this.__source__=source;
-
-            //do order by
-            var orderBy = this.orderBy();
-            if(orderBy)for(var b in orderBy)
-            {
-                this.orderBy(b,orderBy[b], true);
-            }
+            doOrderBy.call(this);
         }
         //远程数据源
         else
@@ -277,6 +286,8 @@
 
                     var offset = cached.loadSegmented.indexOf( lastSegments ) * this.preloadRows();
                     this.splice( offset , 0, data);
+
+                    doOrderBy.call(this);
 
                     //没有可加载的数据，直接删除事件侦听
                     if ( !(data instanceof Array) || this.length >= this.predicts() )
@@ -461,6 +472,7 @@
     DataSource.prototype.__orderBy__={};
 
     /**
+     * 对数据进行排序。只有数据源全部加载完成的情况下调用此方法才有效（本地数据源除外）。
      * @param column
      * @param type
      */
@@ -476,7 +488,7 @@
             if( this.__orderBy__[ column ] !==type )
             {
                 this.__orderBy__[ column ]=type;
-                this.__orderByChanged__=true;
+                doOrderBy.call(this);
                 !this.__fetchCalled__ || this.fetch();
             }
         }
@@ -591,17 +603,6 @@
      */
     DataSource.prototype.fetch=function( filter )
     {
-        if( this.__orderByChanged__ )
-        {
-            this.__orderByChanged__=false;
-            var orderby = this.orderBy();
-            for(var column in orderby )
-            {
-                DataArray.prototype.orderBy.call(this,column, orderby[column] );
-            }
-        }
-
-        this.__fetchCalled__=true;
         var page = this.currentPages();
         var rows=this.rows(),start=( page-1 ) * rows;
         var preloadRows=  this.preloadRows();
@@ -610,6 +611,7 @@
         var index = cached.loadSegmented.indexOf( segments );
         var offset  = index * preloadRows + (start % preloadRows);
         this.__fetched__ = true;
+        this.__fetchCalled__=true;
         var waiting = !this.isRemote() || offset < 0 || this.length<1 || (this.length < offset+rows && this.totalPages()>page);
 
         if( this.__lastWaiting__!= waiting && this.isRemote() && this.hasEventListener(DataSourceEvent.WAITING) )

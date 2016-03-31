@@ -106,29 +106,27 @@
     DataArray.prototype.orderBy=function(column,type)
     {
         type =type && DataArray.DESC === type.toLowerCase() ?  DataArray.DESC :  DataArray.ASC;
-        DataArray.prototype.sort.call(this,function(a,b)
-        {
-            if( typeof a[ column ] === "undefined" )
-               return 0;
+        DataArray.prototype.sort.call(this,function(a,b){
 
+            if( typeof a[ column ] === "undefined" )return 0;
             var a1,b2;
-           if( type === DataArray.ASC )
-           {
-               a1=a[ column ];
-               b2=b[ column ];
-           }else
-           {
-               b2=a[ column ];
-               a1=b[ column ];
-           }
+            if( type === DataArray.ASC )
+            {
+                a1=a[ column ];
+                b2=b[ column ];
+            }else
+            {
+                b2=a[ column ];
+                a1=b[ column ];
+            }
+            a = parseFloat( a1 );
+            if( !isNaN( a ) )
+            {
+                return (parseFloat( a ) || 0)-( parseFloat( b2 ) ||0 );
+            }
+            return type === DataArray.ASC ? a1.localeCompare( b2 ): b2.localeCompare( a1 );
 
-           if( !isNaN( parseFloat( a1 ) ) )
-           {
-              return ( parseFloat( b2 ) ||0 )-(parseFloat( a1 ) || 0);
-           }
-           return type === DataArray.ASC ? a1.localeCompare( b2 ): b2.localeCompare( a1 );
-
-        })
+        });
         return this;
     }
 
