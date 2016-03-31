@@ -205,7 +205,7 @@
             return false;
 
         //是否有指定的目标对象
-        listener.target || (listener.target = this);
+        listener.currentTarget || (listener.currentTarget = this);
 
         //获取事件数据集
         var events = Utils.storage( this,'events') || {};
@@ -325,11 +325,16 @@
         if( event === null || !event.currentTarget )
             return false;
         var targets = [[],[]];
-        var is= event.currentTarget instanceof EventDispatcher;
+        var is= !event.originalEvent || event.originalEvent instanceof BreezeEvent || event.currentTarget instanceof EventDispatcher;
 
         //是否只是触发捕获阶段的事件
         var useCapture= event.bubbles === false;
         var element = event.target || event.currentTarget,data=null;
+
+        if( event.currentTarget &&  (event.currentTarget == event.currentTarget.window || event.currentTarget.documentElement) )
+        {
+            element = event.currentTarget;
+        }
 
         //只有dom 元素的事件才支持捕获和冒泡事件，否则只有目标事件
         do{
@@ -342,10 +347,12 @@
 
                 //冒泡阶段, ready 事件加进来
                 if( ( !useCapture || event.type === BreezeEvent.READY ) && data[ event.type ][0] )
+                {
                     targets[0].push( element );
+                }
             }
             //如果不是浏览器发出的事件无需冒泡节点
-            element=is || !event.originalEvent ? null : element.parentNode;
+            element=is ? null : element.parentNode;
 
         }while( element );
 
@@ -375,10 +382,12 @@
                     var reference = listener.reference || listener.dispatcher;
                     var ismanager=false;
 
+                    event.currentTarget = listener.currentTarget;
+
                     //设置 Manager 的当前元素对象
-                    if( reference && reference instanceof Manager && reference.indexOf(currentTarget) >=0 )
+                    if( reference && reference instanceof Manager && reference.indexOf( event.currentTarget ) >=0 )
                     {
-                        reference.current( currentTarget );
+                        reference.current( event.currentTarget );
                         ismanager=true;
                     }
 
@@ -426,8 +435,8 @@
         this.useCapture=!!useCapture;
         this.priority=parseInt(priority) || 0;
         this.reference=reference || null;
-        this.target = null;
         this.dispatcher=null;
+        this.currentTarget=null;
     }
     EventDispatcher.Listener.prototype.constructor= EventDispatcher.Listener;
     EventDispatcher.Listener.prototype.useCapture=false;
@@ -435,7 +444,7 @@
     EventDispatcher.Listener.prototype.reference=null;
     EventDispatcher.Listener.prototype.priority=0;
     EventDispatcher.Listener.prototype.callback=null;
-    EventDispatcher.Listener.prototype.target=null;
+    EventDispatcher.Listener.prototype.currentTarget=null;
 
     /**
      * 特定事件扩展器

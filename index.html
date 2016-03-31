@@ -74,13 +74,14 @@
 
 
 
-
     Breeze(function(){
+
+
 
         var grid = new DataGrid('.gridcontainer');
           grid.pagination( true );
          grid.dataSource().preloadRows(100);
-        grid.dataSource().preloadPages(3);
+         grid.dataSource().preloadPages(3);
 
         var popup=null
         grid.dataSource().addEventListener(DataSourceEvent.WAITING,function(event){
@@ -99,6 +100,8 @@
         grid.options( {'tbodyAlign':{'phone':'center'} } )
 
          grid.edit('edit',{callback:function(event){
+
+
 
               Popup.modality('编辑','hello word,hello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello word')
 

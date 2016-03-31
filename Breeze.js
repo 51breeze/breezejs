@@ -222,15 +222,14 @@
     }
     ,getChildNodes=function(element,selector,flag)
     {
-        var ret=[]
-            ,isfn=Utils.isFunction(selector);
+        var ret=[],isfn=Utils.isFunction(selector);
         if( element.hasChildNodes() )
         {
             var len=element.childNodes.length,index= 0,node;
             while( index < len )
             {
                 node=element.childNodes.item(index);
-                if( ( isfn && selector.call(this,node,index) ) || selector==='*' || node.nodeType===1  )
+                if( ( isfn && selector.call(this,node,index) ) || ( !isfn && (selector==='*' || node.nodeType===1) )  )
                      ret.push( node )
                 if( flag===true && ret.length >0 )break;
                 ++index;
@@ -344,11 +343,11 @@
     {
         var reverts= this['__reverts__'];
         var len=reverts ? reverts.length : 0;
-        if( len > 0 && step )
+        if( len > 0 )
         {
             step = step || -1;
             step= step < 0 ? step+len : step;
-            step=Math.max( 0, len-step );
+            step=step >= len ? 0 : step;
             doMake( this, reverts.splice(step, len-step).shift() ,true , true );
         }
         return this;
@@ -802,19 +801,13 @@
             if( !childElemnet )return -1;
             this.current( childElemnet.parentNode );
         }
-        return this.forEach(function(parent)
+
+        var parent = this.current();
+        if( childElemnet.parentNode===parent )
         {
-            if( childElemnet.parentNode===parent )
-            {
-                var index=-1;
-                getChildNodes(parent,function(node){
-                      if( node.nodeType === 1 )index++;
-                      return node===childElemnet;
-                },true)
-                return index;
-            }
-            return -1;
-        });
+            return this.indexOf.call( getChildNodes(parent), childElemnet );
+        }
+        return -1;
     }
 
     /**

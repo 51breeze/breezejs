@@ -2,7 +2,7 @@
 
 
 
-sleep(1);
+sleep(0);
 
 
 $data =  array();

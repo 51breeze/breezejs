@@ -55,6 +55,7 @@
 
         if( Utils.isObject(columns,true) )
         {
+            var isset=false;
             for( var i in  columns )
             {
                 var field = columns[i];
@@ -73,9 +74,17 @@
 
                 var w= options.columnWidth[i] || options.columnWidth['*'] || 'auto';
                 var rowAlign= options.tbodyAlign[i] || options.tbodyAlign['*'] || 'center';
+                var headAlign= options.theadAlign[i] || options.theadAlign['*'] || 'center';
 
-                th=th.replace(/<(.*?)>/, "<\$1  width='"+ w +"' height='"+(options.headHeight || 35)+"'>" );
-                td=td.replace(/<(.*?)>/, "<\$1 align='"+rowAlign+"' width='"+ w +"' height='"+(options.rowHeight || 30)+"'>" );
+                if( !isset )
+                {
+                    isset= true;
+                    th=th.replace(/<(.*?)>/, "<\$1 height='"+(options.headHeight || 35)+"'>" );
+                    td=td.replace(/<(.*?)>/, "<\$1 height='"+(options.rowHeight || 30)+"'>" );
+                }
+
+                th=th.replace(/<(.*?)>/, "<\$1 align='"+headAlign+"' width='"+ w +"'>" );
+                td=td.replace(/<(.*?)>/, "<\$1 align='"+rowAlign+"'>" );
 
                 skin.head += th.replace(/\{column\}/g, i).replace(/\{value\}/g, field );
                 skin.foot += td.replace(/\{column\}/g, i).replace(/\{value\}/g, field );
@@ -385,8 +394,16 @@
         }
 
         var pt= dataRender.pagination();
-        if( pt ){
-            pt.options({'wheelTarget':[skinGroup[0],pt.skinGroup()[0]]});
+        if( pt )
+        {
+            var opt = pt.options();
+            if( !opt['wheelTarget'] )
+            {
+                opt['wheelTarget'] = [
+                    skinGroup[0],
+                    pt.skinGroup()[0]
+                ];
+            }
         }
         return this;
     }
@@ -413,6 +430,99 @@
      * @type {null}
      * @private
      */
+    DataGrid.prototype.__resizeEnable__=false;
+
+    /**
+     * 允许调整行高和列宽
+     * @param enable
+     * @returns {*}
+     */
+    DataGrid.prototype.resizeEnable=function( enable )
+    {
+        if( typeof enable !== "undefined"  )
+        {
+            this.__resizeEnable__ = !!enable;
+            return this;
+        }
+        return this.__resizeEnable__;
+    }
+
+    var resize = function()
+    {
+        var htarget = Breeze('thead > tr > th',this);
+        var vtarget = Breeze('thead > tr > th:nth-child(1),tbody > tr > td:nth-child(1)',this);
+        Breeze('td,th',this).addEventListener(MouseEvent.MOUSE_DOWN,function(event){
+
+            var rect = this.getBoundingRect();
+            var space = 2;
+            var h = (rect.left+space > event.pageX && rect.left-space < event.pageX) || (rect.right+space > event.pageX && rect.right-space < event.pageX)
+            var v = (rect.top+space > event.pageY && rect.top-space < event.pageY) || (rect.bottom+space > event.pageY && rect.bottom-space < event.pageY)
+
+            if( h || v )
+            {
+                var downEvent=event;
+                var index = -1
+                if( h )
+                {
+                    this.current( event.currentTarget.parentNode );
+                    index = this.getChildIndex( event.currentTarget );
+
+                }else if( v )
+                {
+                    index = vtarget.getElementIndex( event.currentTarget.parentNode.firstChild );
+                }
+
+                var last = 0;
+                var resize = function(event)
+                {
+                    var val=0;
+                    if( h )
+                    {
+                        htarget.index( index );
+                        val =  downEvent.pageX - event.pageX;
+                        if( rect.left+space > downEvent.pageX && index > 0 )
+                        {
+                            htarget.style('width', '+='+(val-last) );
+                            htarget.index(index-1).style('width', '-='+(val-last) );
+
+                        }else if( rect.left-space < downEvent.pageX && index < htarget.length )
+                        {
+                            htarget.style('width', '-='+(val-last) );
+                            htarget.index(index+1).style('width', '+='+(val-last) )
+
+                        }
+
+                    }else if( v )
+                    {
+                        vtarget.index( index );
+                        val =  downEvent.pageY - event.pageY;
+                        if( rect.top+space > downEvent.pageY && index > 0 )
+                        {
+                            vtarget.style('height', '+='+(val-last) );
+                            vtarget.index(index-1).style('height', '-='+(val-last) );
+
+                        }else if( rect.top-space < downEvent.pageY && index < vtarget.length )
+                        {
+                            vtarget.style('height', '-='+(val-last) );
+                            vtarget.index(index+1).style('height', '+='+(val-last) )
+                        }
+                    }
+                    last= val;
+                }
+
+                Breeze.rootEvent()
+                    .addEventListener(MouseEvent.MOUSE_MOVE,resize)
+                    .addEventListener(MouseEvent.MOUSE_UP,function(event){
+                        this.removeEventListener(MouseEvent.MOUSE_MOVE,resize);
+                    });
+            }
+        })
+    }
+
+    /**
+     * @type {null}
+     * @private
+     */
     DataGrid.prototype.__dataRender__=null;
 
     /**
@@ -425,6 +535,7 @@
         {
             this.__dataRender__=new DataRender();
             var plus_data = this.__plus__;
+            var self = this;
             this.__dataRender__.addEventListener(TemplateEvent.REFRESH, function (event)
             {
                 Breeze('[data-action]', this).forEach(function () {
@@ -445,7 +556,7 @@
                                     {
                                         option.callback.call(self,this, event );
                                     }
-                                })
+                                });
                         }
                     }
 
@@ -454,6 +565,11 @@
                         this.dispatchEvent( DataGridEvent.PLUS_INITIALIZED );
                     }
                 })
+
+                if( self.resizeEnable() )
+                {
+                    resize.call(this);
+                }
             });
         }
         return this.__dataRender__;
@@ -474,7 +590,7 @@
             'td':'<td>{value}</td>',
             'wrap' :'<tr>{value}</tr>'
         },{
-            'container':{'borderCollapse':'collapse','borderSpacing':'0'},
+            'container':{'borderCollapse':'collapse','borderSpacing':'0','userSelect':'none'},
             'th,td':{'border':'solid 1px #999999','padding':'0px 2px'},
             'th':{'backgroundColor':'#cccccc','textAlign':'center'}
         },{

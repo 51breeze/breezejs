@@ -158,19 +158,22 @@
                     });
                 }
 
-                if( eventType.indexOf(MouseEvent.MOUSE_WHEEL) )
+                if( eventType.indexOf(MouseEvent.MOUSE_WHEEL)>=0 )
                 {
                     EventDispatcher( options.wheelTarget || this.skinGroup()[0] ).addEventListener(MouseEvent.MOUSE_WHEEL,function(event){
                         event.preventDefault();
                         var current = self.currentPages();
                         self.currentPages( event.wheelDelta > 0 ? current-1 : current+1 );
                     });
+
+
                 }
 
-                this.skinGroup().getSkinGroup('container > button').addEventListener( MouseEvent.CLICK,function(event){
+                this.skinGroup().getSkinGroup('container > button,input').addEventListener( [MouseEvent.CLICK,KeyboardEvent.KEYPRESS],function(event)
+                {
                     if( event.type===MouseEvent.CLICK  || (KeyboardEvent.KEYPRESS===event.type && event.keycode==13 ) )
                     {
-                        self.currentPages( this.current('input').property('value')  );
+                        self.currentPages( this.current('input').property('value') );
                     }
                 });
                 update.call(this, self.totalPages() , self.currentPages() );

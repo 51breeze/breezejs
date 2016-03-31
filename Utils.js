@@ -72,10 +72,10 @@
         "zoom": true
     }
     ,cssHooks={}
-    ,operatorValue=function ( value, increase, ret )
+    ,increase=function ( value, inc, ret )
     {
         ret = ret ===undefined ? typeof value === "string" ?  cssOperator.exec( value ) : null : ret
-        if ( ret && increase>0 )value = ( +( ret[1] + 1 ) * +ret[2] ) + increase;
+        if ( ret && inc>0 )value = ( +( ret[1] + 1 ) * +ret[2] ) + inc;
         return value;
     };
 
@@ -643,9 +643,13 @@
         var style=elem.style;
         var type = typeof value,ret,hook=cssHooks[name];
         if ( type === "number" && isNaN( value ) )return false;
+
+
+
         if ( type === "string" && (ret=cssOperator.exec( value )) )
         {
-            value =operatorValue(value, parseFloat( getStyle( elem, name ) ) , ret );
+            var inc = name === 'width' || name ==='height' ? Utils.getSize(elem,name) : getStyle( elem, name );
+            value =increase(value, parseFloat( inc ) , ret );
             type = "number";
         }
 

@@ -284,13 +284,6 @@
                         this.removeEventListener(DataSourceEvent.LOAD_START);
                     }
 
-                    //对数据进行排序
-                    var orderBy = this.orderBy();
-                    if(orderBy)for(var b in orderBy)
-                    {
-                        this.orderBy(b,orderBy[b], true);
-                    }
-
                     //更新视图的数据
                     if( this.__fetched__ && this.__fetchCalled__ )
                     {
@@ -608,6 +601,7 @@
             }
         }
 
+        this.__fetchCalled__=true;
         var page = this.currentPages();
         var rows=this.rows(),start=( page-1 ) * rows;
         var preloadRows=  this.preloadRows();
