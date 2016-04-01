@@ -86,7 +86,7 @@
     /**
      * 数据双向绑定器
      * @param propertyObject  一个数据对象, 可以是空。 如果此对象是一个单一的对象则会把此对象上的所有属性继承到绑定器上。
-     *                      如果是一个DOM元素则会监听当前元素所的属性的变更并传送到被绑定的对象中。
+     *                      如果是一个DOM元素则会监听当前元素的属性变更并传送到被绑定的对象中。
      * @constructor
      */
     function Bindable( propertyObject )
@@ -160,10 +160,10 @@
      * @public
      * @param object targetObject 数据对象，允许是一个 DOM元素、EventDispatcher、Object。 如果是 Object 则表示为单向绑定，否则都为双向绑定。
      * @param string property 需要绑定的属性名,允是一个*代表绑定所有属性
-     * @param function|string custom 如果是函数发生变更时调用，如果是一个属性名发生变更时赋值
+     * @param function|string callback 如果是函数发生变更时调用，如果是一个属性名发生变更时赋值
      * @returns {Bindable}
      */
-    Bindable.prototype.bind=function(targetObject,property,custom)
+    Bindable.prototype.bind=function(targetObject,property,callback)
     {
         property =  property || 'value';
         if( targetObject instanceof EventDispatcher )
@@ -178,7 +178,7 @@
         if( typeof targetObject === 'object' )
         {
             var obj =this.subscription().get( targetObject ) || ( this.subscription().set(targetObject, (obj={}) ) );
-            obj[ property ] = custom;
+            obj[ property ] = callback;
         }
         return this;
     }
@@ -209,10 +209,8 @@
      */
     Bindable.prototype.commitProperty=function(name,value)
     {
-        if( typeof value === 'undefined' )
-            return this[ name ];
         var old = this[name];
-        if( old !== value )
+        if( typeof value !== 'undefined' && old !== value )
         {
             this[ name ] = value;
             var ev = new PropertyEvent(PropertyEvent.COMMIT);
@@ -220,8 +218,9 @@
             ev.newValue = value;
             ev.oldValue = old;
             this.dispatchEvent( ev );
+            return true;
         }
-        return this;
+        return false;
     }
 
     /**

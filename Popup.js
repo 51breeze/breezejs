@@ -400,7 +400,9 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         var mask = this.mask();
         if( mask )mask.display(false);
         this.current(null).display(false);
-        if( this.hasEventListener( PopupEvent.CLOSE ) )this.dispatchEvent( new PopupEvent( PopupEvent.CLOSE ) );
+        if( this.hasEventListener( PopupEvent.CLOSE ) ){
+            this.dispatchEvent( new PopupEvent( PopupEvent.CLOSE ) );
+        }
         return this;
     }
 
@@ -474,7 +476,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
     /**
      * @private
      */
-    Popup.prototype.__minHeight__=60;
+    Popup.prototype.__minHeight__=30;
 
     /**
      * 最小高度
@@ -593,6 +595,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         minHeight = isNaN(minHeight) ? size.height : minHeight;
         maxWidth = isNaN(maxWidth) ? size.width : maxWidth;
         minWidth = isNaN(minWidth) ? size.width : minWidth;
+
         skinGroup.current(null);
         skinGroup.height( Math.max( Math.min(size.height, maxHeight ) , minHeight ) );
         skinGroup.width( Math.max( Math.min(size.width, maxWidth ) , minWidth ) );

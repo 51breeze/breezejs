@@ -504,7 +504,15 @@
     {
         var index = parseInt(index);
         if( isNaN(index) )return index;
-        return ( this.currentPages()-1 ) * this.rows() + index;
+        var start=( this.currentPages()-1 ) * this.rows();
+        var offset = this.__cached__.loadSegmented.indexOf( this.segments() );
+        if( offset>=0 )
+        {
+            var preloadRows=this.preloadRows();
+            index += ( start % preloadRows );
+            return offset * preloadRows + index;
+        }
+        return NaN;
     }
 
     /**

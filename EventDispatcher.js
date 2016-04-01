@@ -321,23 +321,17 @@
     {
         //初始化一个全局事件
         event= BreezeEvent.create( event );
-
-        if( event === null || !event.currentTarget )
-            return false;
+        if( event === null)return false;
         var targets = [[],[]];
-        var is= !event.originalEvent || event.originalEvent instanceof BreezeEvent || event.currentTarget instanceof EventDispatcher;
+        var is= !event.originalEvent || event.originalEvent instanceof BreezeEvent || event.currentTarget /*instanceof EventDispatcher*/;
 
         //是否只是触发捕获阶段的事件
         var useCapture= event.bubbles === false;
-        var element = event.target || event.currentTarget,data=null;
-
-        if( event.currentTarget &&  (event.currentTarget == event.currentTarget.window || event.currentTarget.documentElement) )
-        {
-            element = event.currentTarget;
-        }
+        var element = event.currentTarget || event.target ,data=null;
 
         //只有dom 元素的事件才支持捕获和冒泡事件，否则只有目标事件
-        do{
+        while( element )
+        {
             data = Utils.storage( element ,'events');
             if( data && data[ event.type ] )
             {
@@ -353,8 +347,7 @@
             }
             //如果不是浏览器发出的事件无需冒泡节点
             element=is ? null : element.parentNode;
-
-        }while( element );
+        };
 
         //捕获阶段的事件先从根触发
         if( targets[1].length > 1 )
@@ -381,7 +374,6 @@
                     listener = events[ length++ ];
                     var reference = listener.reference || listener.dispatcher;
                     var ismanager=false;
-
                     event.currentTarget = listener.currentTarget;
 
                     //设置 Manager 的当前元素对象

@@ -111,7 +111,7 @@
           grid.orderBy('id','desc')
 
           grid.columns({'id':'序号','name':'名称','phone':'手机','edit':'操作'});
-          grid.component('name',{'bindable':true});
+          grid.editableByColumn('name');
           grid.dataSource( 'json.php' );
           grid.pagination().currentPages(33)
           grid.display();

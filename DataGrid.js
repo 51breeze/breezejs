@@ -144,7 +144,7 @@
                     attr.push('data-bind="{column}"');
                 }
                 if (tag === 'input') {
-                    attr.push('value="{value}" name="{column}"');
+                    attr.push('value="{value}"');
 
                 } else if (tag === 'fetch' || tag === 'textarea') {
                     attr.push('name="{column}"');
@@ -331,11 +331,49 @@
             'dataGroup':[],
             'property':{},
             'callback':null,
-            'editable':true,
-            'bindable':false
+            'editable':true
         }, option );
         return this;
     }
+
+
+    /**
+     * 设置指定的列可以编辑
+     * @param column
+     * @param option
+     * @returns {DataGrid}
+     */
+    DataGrid.prototype.editableByColumn=function(column,option)
+    {
+        var source= this.dataSource()
+        this.plus('editable',column,{
+            'eventType':[MouseEvent.CLICK],
+            'template':'<span data-index="{forIndex}">{value}</span>',
+            'dataGroup':[],
+            'property':{},
+            'callback':function(event){
+
+                var item = source.getItemByViewIndex( this.property('data-index') );
+                var popup = Popup.info('<input style="width: 100%;" value="'+item[column]+'" />',
+                    {
+                        'anchor':event.currentTarget.parentNode,
+                        'vertical':'top',
+                        'minHeight':38
+                    }
+                );
+                popup.addEventListener(PopupEvent.CLOSE,function(event){
+
+                      popup.removeEventListener(PopupEvent.CLOSE)
+                      var value =  this.skinGroup().current('input').value();
+                      item[column]=value;
+                      source.fetch();
+
+                },false,0,popup)
+            }
+        }, option );
+        return this;
+    }
+
 
     /**
      * 数据属性
@@ -548,13 +586,12 @@
                         {
                             var option = item.option[action];
                             if (option.style)this.style(option.style);
-
                             if( !this.hasEventListener(option.eventType) )
                                 this.addEventListener(option.eventType, function (event)
                                 {
                                     if (typeof option.callback === 'function')
                                     {
-                                        option.callback.call(self,this, event );
+                                        option.callback.call(this, event );
                                     }
                                 });
                         }

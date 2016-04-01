@@ -140,7 +140,8 @@
             return event;
 
         event=event || window.event;
-        var target = event.target || event.srcElement || event.currentTarget || window;
+        var target = event.target || event.srcElement || event.currentTarget;
+        if( !target )return null;
 
         //阻止浏览浏览器的事件冒泡
         if ( event )
@@ -149,7 +150,7 @@
             !event.stopPropagation ? event.cancelBubble=true : event.stopPropagation();
         }
 
-        var breezeEvent={},currentTarget=event.currentTarget || target;
+        var breezeEvent={};
         var type = BreezeEvent.eventType(event.type,true);
         if( type === null )
            return null
@@ -195,9 +196,15 @@
             breezeEvent=new KeyboardEvent( event );
             breezeEvent.keycode = event.keyCode || event.keycode;
         }
+
+        var currentTarget = event.currentTarget || target;
+        if( currentTarget == currentTarget.window || currentTarget.documentElement )
+        {
+            breezeEvent.currentTarget=currentTarget;
+        }
+
         breezeEvent.type=type;
-        breezeEvent.target=target || this;
-        breezeEvent.currentTarget=currentTarget || this;
+        breezeEvent.target=target;
         breezeEvent.timeStamp = event.timeStamp;
         breezeEvent.relatedTarget= event.relatedTarget;
         breezeEvent.altkey= !!event.altkey;
