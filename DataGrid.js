@@ -345,7 +345,7 @@
      */
     DataGrid.prototype.editableByColumn=function(column,option)
     {
-        var source= this.dataSource()
+        var source= this.dataSource();
         this.plus('editable',column,{
             'eventType':[MouseEvent.CLICK],
             'template':'<span data-index="{forIndex}">{value}</span>',
@@ -359,8 +359,8 @@
                         'anchor':event.currentTarget.parentNode,
                         'vertical':'top',
                         'minHeight':38
-                    }
-                );
+                    });
+
                 popup.addEventListener(PopupEvent.CLOSE,function(event){
 
                       popup.removeEventListener(PopupEvent.CLOSE)

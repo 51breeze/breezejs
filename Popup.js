@@ -220,9 +220,8 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         popup.__theme__ = theme[option.type] || '';
         popup.mask().style(option.style);
         delete option.style;
-        popup.title( title ).show( content , option);
+        popup.title( title ).show( content , option );
         return  popup;
-
     }
 
     Popup.prototype=  new SkinComponent();
