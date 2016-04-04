@@ -92,7 +92,7 @@
     DataArray.prototype.indexOf=function(searchElement)
     {
         var i=0;
-        for( ; i<this.length; i++ )if( this[i]==searchElement )
+        for( ; i<this.length; i++ )if( this[i]===searchElement )
             return i;
         return -1;
     }

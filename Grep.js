@@ -46,6 +46,13 @@
             {
                 command.push( 'this[' + i + '].value.call(this,arguments[0])' );
 
+            }else if( item.operational=='index' || item.operational=='notindex')
+            {
+                var index= "arguments[1]";
+                var flag = item.operational === 'notindex' ? '!' : '';
+                value = value.split(',');
+                command.push( flag+"("+value[0]+" >= "+index+" && "+value[1]+" <= "+index+")" );
+
             }else
             {
                 refvalue= "arguments[0][\"" + item.column + "\"]";
@@ -62,6 +69,12 @@
                     {
                         command.push(flag+"new RegExp( "+value+" ).test("+refvalue+")");
                     }
+
+                }else if( item.operational=='range' || item.operational=='notrange')
+                {
+                    var flag = item.operational === 'notrange' ? '!' : '';
+                    value = value.split(',');
+                    command.push( flag+"("+value[0]+" >= "+refvalue+" && "+value[1]+" <= "+refvalue+")" );
 
                 }else
                 {
@@ -91,70 +104,6 @@
             throw new Error('invalid param.');
         }
 
-        var _filter=null;
-
-        /**
-         * 获取设置过滤器
-         * @param filter
-         * @returns {*}
-         */
-        this.filter=function( filter )
-        {
-            if( typeof filter === "undefined" )
-            {
-                var index = this.index();
-                if( index instanceof Array )
-                {
-                    filter=index;
-                }else
-                {
-                    filter = _filter || ( _filter = createFilter.call(this) )
-                }
-
-            }else if ( typeof filter === 'string' && filter!='' )
-            {
-                if( filter.match(/^\s*(\d+)(\,(\d+))?\s*$/ ) )
-                {
-                    this.index(RegExp.$1,RegExp.$3);
-                    return null;
-                }
-
-                filter = filter.replace(/(\w+)\s*(?=[\=\!\<\>]+)/g,function(a,b){
-                    return "arguments[0]['"+b+"']";
-                }).replace(/(\w+)\s+(notlike|like)\s+([\'\"])([^\3]*)\3/g,function(a,b,c,d,e){
-
-                    e= e.replace(/(%)?([^%]*)(%)?/,function(a,b,c,d){
-                        return typeof b==='undefined' ? '^'+c : typeof d==='undefined' ? c+'$' : c;
-                    });
-                    return "new RegExp('"+e+"').test(arguments[0]['"+b+"'])";
-                }).replace(/\s+(or|and)\s+/gi,function(a,b){
-                    return b.toLowerCase()=='or' ? ' || ' : ' && ';
-                }).replace(/([\!\>\<]?[\=]+)/g,function(a,b){
-                    return b.length === 1 ? '==' : b;
-                });
-                filter=_filter=new Function('return !!('+filter+')');
-
-            }else if( filter === null )
-            {
-                _filter=null;
-            }
-            return filter;
-        }
-
-
-        /**
-         * @returns {Grep}
-         */
-        this.clean=function()
-        {
-            for(var i=0; i<this.length; i++)
-            {
-                delete this[i];
-            }
-            _filter=null;
-            this.length=0;
-            return this;
-        }
         /**
          * @returns {*}
          */
@@ -172,6 +121,87 @@
      */
     Grep.prototype.length=0;
 
+
+    Grep.prototype.__filter__=null;
+
+    /**
+     * 获取设置过滤器
+     * @param filter
+     * @returns {*}
+     */
+    Grep.prototype.filter=function( filter )
+    {
+        if( typeof filter === "undefined" )
+        {
+            this.__filter__ = createFilter.call(this);
+
+        }else if ( typeof filter === 'string' && filter!='' )
+        {
+
+            var old = filter;
+            filter = filter.replace(/(\w+)\s*([\>\<\=\!])/g,function(a,b,c)
+            {
+                c = c.length==1 && c=='=' ? '==' : c;
+                return "arguments[0]['"+b+"']" + c;
+
+            }).replace(/(not[\s]*)?(index)\(([\d\,\s]+)\)/ig,function(a,b,c,d)
+            {
+                var value = d.split(',');
+                var start = parseInt( value[0] ) || 0;
+                var end = parseInt( value[1] ) || start+1;
+                var flag = typeof b=== "undefined" ? '' : '!';
+                return flag+"( arguments[1] >= "+start+" && arguments[1] < "+end+") ";
+
+            }).replace(/(\w+)\s+(not[\s]*)?(like|range|in)\(([^\)]*?)\)/ig,function(a,b,c,d,e)
+            {
+                var flag = typeof c=== "undefined" ? '' : '!';
+                var refvalue = "arguments[0]['"+b+"']";
+                if( /like/i.test(d) )
+                {
+                    e= e.replace(/(%)?([^%]*?)(%)?/,function(a,b,c,d){
+                        return typeof b==='undefined' ? '^'+c : typeof d==='undefined' ? c+'$' : c;
+                    });
+                    e = flag+"new RegExp('"+e+"').test("+refvalue+")";
+
+                }else if( /in/i.test(d) )
+                {
+                    e = flag+"( ["+e+"].indexOf("+refvalue+") >=0 )";
+
+                }else
+                {
+                    var value = e.split(',');
+                    e = flag+"("+refvalue+" >= "+value[0]+" && "+refvalue+" < "+value[1]+")";
+                }
+                return e;
+
+            }).replace(/\s+(or|and)\s+/gi,function(a,b)
+            {
+                return b.toLowerCase()=='or' ? ' || ' : ' && ';
+            })
+            console.log( filter )
+            this.__filter__=new Function('try{ return !!('+filter+') }catch(e){ throw new Error("syntax error is in grep:'+old+'");}');
+
+        }else if( filter === null )
+        {
+            this.__filter__=null;
+        }
+        return this.__filter__;
+    }
+
+    /**
+     * @returns {Grep}
+     */
+    Grep.prototype.clean=function()
+    {
+        for(var i=0; i<this.length; i++)
+        {
+            delete this[i];
+        }
+        this.__filter__=null;
+        this.length=0;
+        return this;
+    }
+
     /**
      * 查询数据
      * @param data
@@ -181,21 +211,13 @@
     Grep.prototype.execute=function( filter )
     {
         var data=this.data();
-        var result=null;
         filter = this.filter( filter );
-        if( typeof filter !== "function" )
-        {
-            var index = this.index()
-            if( index instanceof Array )
-            {
-                return data instanceof Array || data instanceof DataSource ?  data.slice(index[0],index[1]) : data;
-            }
-            return data;
-        }
+        if( !filter )return data;
+        var result=null;
         if( data instanceof Array || data instanceof DataSource )
         {
             result=[];
-            for(var i=0; i<data.length; i++ ) if( !!filter.call( this,data[i] ) )
+            for(var i=0; i<data.length; i++ ) if( !!filter.call( this, data[i], i) )
             {
                 result.push( data[i] );
             }
@@ -207,27 +229,41 @@
         return result;
     }
 
-
     /**
-     * @private
-     */
-    var _slice=null;
-
-    /**
+     * 指定范围
+     * @param column
      * @param start
      * @param end
+     * @param logic
      * @returns {*}
      */
-    Grep.prototype.index=function(start,end)
+    Grep.prototype.range=function(column,start,end,logic)
     {
-        if(  start > 0 || end > 0 )
+        if(  start >= 0 || end > 0 )
+        {
+            where.call(this,column,start+','+end,'range',logic);
+            return this;
+        }
+    }
+
+
+    /**
+     * 指定数据索引范围
+     * @param column
+     * @param start
+     * @param end
+     * @param logic
+     * @returns {*}
+     */
+    Grep.prototype.index=function(start,end,logic)
+    {
+        if(  start >= 0 || end > 0 )
         {
             end =  parseInt(end) || 1 ;
             start =  parseInt(start) || 0;
-            _slice = [start, start+end];
+            where.call(this,'index',start+','+start+end,'index',logic);
             return this;
         }
-        return _slice;
     }
 
     /**

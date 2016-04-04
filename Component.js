@@ -223,11 +223,11 @@
      * @returns {Component|Breeze|EventDispatcher}
      * @public
      */
-    Component.prototype.addEventListener=function(type,listener,useCapture,priority,reference)
+    /*Component.prototype.addEventListener=function(type,listener,useCapture,priority,reference)
     {
         this.viewport().addEventListener(type,listener,useCapture,priority,reference);
         return this;
-    }
+    }*/
 
     /**
      *
@@ -235,10 +235,10 @@
      * @param useCapture
      * @returns {boolean}
      */
-    Component.prototype.hasEventListener=function( type, useCapture)
+    /*Component.prototype.hasEventListener=function( type, useCapture)
     {
        return this.viewport().hasEventListener( type, useCapture);
-    }
+    }*/
 
     /**
      *
@@ -248,20 +248,20 @@
      * @returns {boolean}
      * @public
      */
-    Component.prototype.removeEventListener=function(type,listener,useCapture)
+    /*Component.prototype.removeEventListener=function(type,listener,useCapture)
     {
         return this.viewport().removeEventListener(type,listener,useCapture);
-    }
+    }*/
 
     /**
      * @param event
      * @returns {boolean}
      * @public
      */
-    Component.prototype.dispatchEvent=function( event )
+    /*Component.prototype.dispatchEvent=function( event )
     {
         return this.viewport().dispatchEvent( event );
-    }
+    }*/
 
     /**
      * @private

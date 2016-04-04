@@ -347,28 +347,27 @@
     {
         var source= this.dataSource();
         this.plus('editable',column,{
-            'eventType':[MouseEvent.CLICK],
+            'eventType':[MouseEvent.DBLCLICK],
             'template':'<span data-index="{forIndex}">{value}</span>',
             'dataGroup':[],
             'property':{},
             'callback':function(event){
 
-                var item = source.getItemByViewIndex( this.property('data-index') );
-                var popup = Popup.info('<input style="width: 100%;" value="'+item[column]+'" />',
-                    {
-                        'anchor':event.currentTarget.parentNode,
-                        'vertical':'top',
-                        'minHeight':38
-                    });
-
-                popup.addEventListener(PopupEvent.CLOSE,function(event){
-
-                      popup.removeEventListener(PopupEvent.CLOSE)
-                      var value =  this.skinGroup().current('input').value();
-                      item[column]=value;
-                      source.fetch();
-
-                },false,0,popup)
+                var index =source.viewIndex( this.property('data-index') );
+                var item = source[index];
+                Popup.info('<input style="width: 100%;" value="'+item[column]+'" />',
+                {
+                    'anchor':event.currentTarget.parentNode,
+                    'vertical':'top',
+                    'callback':function(flag){
+                        var value =  this.skinGroup().current('input').value();
+                        var d={};
+                        d[column] = value;
+                        console.log(index)
+                        source.alter(d,'index('+index+')');
+                    },
+                    'minHeight':38
+                });
             }
         }, option );
         return this;
@@ -576,7 +575,7 @@
             var self = this;
             this.__dataRender__.addEventListener(TemplateEvent.REFRESH, function (event)
             {
-                Breeze('[data-action]', this).forEach(function () {
+                Breeze('[data-action]', this.viewport() ).forEach(function () {
 
                     var action = this.property('data-action');
                     for(var i in plus_data )
@@ -586,14 +585,14 @@
                         {
                             var option = item.option[action];
                             if (option.style)this.style(option.style);
-                            if( !this.hasEventListener(option.eventType) )
-                                this.addEventListener(option.eventType, function (event)
-                                {
-                                    if (typeof option.callback === 'function')
-                                    {
-                                        option.callback.call(this, event );
-                                    }
-                                });
+                            if( !this.hasEventListener(option.eventType) && typeof option.callback === 'function' )
+                            {
+                                this.addEventListener(option.eventType,(function(option){
+                                   return function (event){
+                                      option.callback.call(this, event, option);
+                                   }
+                                })(option));
+                            }
                         }
                     }
 

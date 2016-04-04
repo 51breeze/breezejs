@@ -5,9 +5,17 @@
 sleep(0);
 
 
-$data =  array();
 
+
+$data =  array();
 $total = 647;
+
+if( $_SERVER['REQUEST_METHOD'] == 'POST' )
+{
+    echo json_encode( array('code'=>0,'data'=>null,'msg'=>'ok','total'=>$total ) );
+    EXIT;
+}
+
 
 $offset = intval($_GET['offset']);
 $rows   = intval($_GET['rows']);

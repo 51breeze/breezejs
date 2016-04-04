@@ -394,13 +394,18 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
      * @returns {Popup}
      * @public
      */
-    Popup.prototype.hidden=function()
+    Popup.prototype.hidden=function( flag )
     {
         var mask = this.mask();
         if( mask )mask.display(false);
-        this.current(null).display(false);
-        if( this.hasEventListener( PopupEvent.CLOSE ) ){
-            this.dispatchEvent( new PopupEvent( PopupEvent.CLOSE ) );
+
+        var callback =  this.callback();
+        if( !callback || callback.call(this, !!flag ) !== false )
+        {
+            this.current(null).display(false);
+            if( this.hasEventListener( PopupEvent.CLOSE ) ){
+                this.dispatchEvent( new PopupEvent( PopupEvent.CLOSE ) );
+            }
         }
         return this;
     }
@@ -631,7 +636,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         {
             skinGroup.currentSkin('close').addEventListener(MouseEvent.CLICK,function(event)
             {
-                this.hidden();
+               this.hidden();
             },false,0,this);
             skinGroup.current(null);
         }
@@ -644,10 +649,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
                 var type  = name.toUpperCase();
                 if( this.hasEventListener( PopupEvent[type] ) && !this.dispatchEvent( new PopupEvent( PopupEvent[type]  ) ) )
                     return;
-                var callback =  this.callback();
-                if( callback && callback( PopupEvent.SUBMIT === PopupEvent[type] ) === false )
-                    return;
-                this.hidden();
+                this.hidden( PopupEvent.SUBMIT === PopupEvent[type] );
 
             },false,0,this);
         }

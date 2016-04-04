@@ -27,11 +27,12 @@
     /**
      * 修改、插入、删除后是否需要刷新当前渲染的数据
      */
-    var callfetch=function(flag, type, result, index )
+    var doupdate=function(flag, type, result, index )
     {
-        if( flag && dispatch.call(this, type, result, index) && this.__fetchCalled__)
+        if( flag && dispatch.call(this, type, result, index) )
         {
-            this.fetch();
+            synch.call(this, result, type);
+            !this.__fetchCalled__ || this.fetch();
         }
     }
 
@@ -76,6 +77,44 @@
             return true;
         }
         return false;
+    }
+
+    /**
+     * 同步数据
+     */
+    var synch = function( data, action )
+    {
+        var options = this.options()
+        var source = this.source();
+        var url = options.url;
+        if( typeof options.synch.url === "string" )
+        {
+            url = options.synch.url
+        }
+        action = action.match(/append|remove|alter/i)[0].toLowerCase()
+        var param  = Utils.extend(options.synch.param,{action:action});
+        if( action === 'remove' )
+        {
+            if( typeof data[options.synch.primary] === "undefined" )
+            {
+                throw new Error('data primary not exists. '+options.synch.primary)
+            }
+            var id=[];
+            for(var i in data )
+            {
+                ids.push( data[i][ options.synch.primary ] )
+            }
+            data = {'id':id.join(',')};
+
+        }else
+        {
+            data= {'data': data instanceof Array && data.length > 1 ? data : data[0] };
+        }
+
+        param = Utils.serialize(param,'url');
+        url = /\?/.test(url) ? url+'&'+param : url+'?'+param;
+        source.open(url, options.synch.method,options.asynchrony);
+        source.send( data );
     }
 
     /**
@@ -160,6 +199,12 @@
             'requestProfile':{
                 'offset':'offset', //数据偏移量
                 'rows'  : 'rows'  //每次获取取多少行数据
+            },
+            'synch':{
+                'method': HttpRequest.METHOD.POST,
+                'param' :{},
+                'asynchrony' :false,
+                'primary' :'id'
             },
             "successCode" : 0 //成功时的状态值
         };
@@ -548,7 +593,7 @@
             {
                 this.__predicts__+= this.length - oldlen;
             }
-            callfetch.call(this,true,DataSourceEvent.APPEND,item,index);
+            doupdate.call(this,true,DataSourceEvent.APPEND,item,index);
         }
         return this;
     }
@@ -573,7 +618,7 @@
                 throw new Error('index invalid');
             }
         }
-        callfetch.call(this,result.length > 0,DataSourceEvent.REMOVE,result);
+        doupdate.call(this,result.length > 0,DataSourceEvent.REMOVE,result);
         return this;
     }
 
@@ -592,15 +637,19 @@
             {
                 if( typeof result[i][c] !== "undefined" )
                 {
-                    result[i][c] = data[c];
-                    flag=true;
+                    if( result[i][c] != data[c] )
+                    {
+                        result[i][c] = data[c];
+                        flag=true;
+                    }
+
                 }else
                 {
                     throw new Error('unknown column this '+c );
                 }
             }
         }
-        callfetch.call(this,flag, DataSourceEvent.ALTER, result )
+        doupdate.call(this,flag, DataSourceEvent.ALTER, result )
         return flag;
     }
 
