@@ -31,7 +31,8 @@
     {
         if( flag && dispatch.call(this, type, result, index) )
         {
-            synch.call(this, result, type);
+            var synchronize = this.synchronize();
+            if( synchronize )dosynch.call(this, result, type,index,synchronize);
             !this.__fetchCalled__ || this.fetch();
         }
     }
@@ -82,27 +83,30 @@
     /**
      * 同步数据
      */
-    var synch = function( data, action )
+    var dosynch = function( data, action, index, options )
     {
-        var options = this.options()
         var source = this.source();
-        var url = options.url;
-        if( typeof options.synch.url === "string" )
+        var url = options.url || this.options().url;
+
+        if( typeof url !== "string" )
         {
-            url = options.synch.url
+            throw new Error('invalid url');
         }
+
         action = action.match(/append|remove|alter/i)[0].toLowerCase()
-        var param  = Utils.extend(options.synch.param,{action:action});
+        var param  = opt.param;
+        param[ options.requestProfile.action ] = action;
+
         if( action === 'remove' )
         {
-            if( typeof data[options.synch.primary] === "undefined" )
-            {
-                throw new Error('data primary not exists. '+options.synch.primary)
-            }
             var id=[];
             for(var i in data )
             {
-                ids.push( data[i][ options.synch.primary ] )
+                if( typeof data[i][options.synch.primary] === "undefined" )
+                {
+                    throw new Error('data primary not exists. '+options.synch.primary)
+                }
+                id.push( data[i][ options.synch.primary ] )
             }
             data = {'id':id.join(',')};
 
@@ -188,7 +192,7 @@
             'method': HttpRequest.METHOD.GET,
             'dataType':HttpRequest.TYPE.JSON,
             'param':{},
-            'delimiter':'%',
+            'url':null,
             //服务器响应后的json 对象
             'responseProfile':{
                 'data':'data',     //数据集
@@ -198,13 +202,7 @@
             //向服务器请求时需要添加的参数
             'requestProfile':{
                 'offset':'offset', //数据偏移量
-                'rows'  : 'rows'  //每次获取取多少行数据
-            },
-            'synch':{
-                'method': HttpRequest.METHOD.POST,
-                'param' :{},
-                'asynchrony' :false,
-                'primary' :'id'
+                'rows'  :'rows'  //每次获取取多少行数据
             },
             "successCode" : 0 //成功时的状态值
         };
@@ -252,6 +250,41 @@
             return this;
         }
         return this.__options__;
+    }
+
+    DataSource.prototype.__synchronize__=null;
+
+    /**
+     * @param object options
+     * @returns {*}
+     */
+    DataSource.prototype.synchronize=function( options )
+    {
+        if( typeof options !== "undefined" )
+        {
+            if( options )
+            {
+                this.__synchronize__ = Utils.extend(true,{
+                    'method': HttpRequest.METHOD.POST,
+                    'dataType':HttpRequest.TYPE.JSON,
+                    'param':{},
+                    'url':null,
+                    //服务器响应后的json 对象
+                    'responseProfile':{
+                        'data':'data', //需要更新到前端的数据集，如果不需要请在服务端不要返回此数据
+                        'code': 'code' //状态码
+                    },
+                    //向服务器请求时需要添加的参数
+                    'requestProfile':{
+                        'action':'action'
+                    },
+                    'primary':'id',
+                    "successCode" : 0 //成功时的状态值
+                }, Utils.isObject(options) ? options : {});
+            }
+            return this;
+        }
+        return this.__synchronize__;
     }
 
     /**
@@ -324,28 +357,29 @@
                         this.predicts( total );
                     }
 
-                    data = typeof data[dataProfile] !== 'undefined' ? data[dataProfile] : data;
-                    var lastSegments = cached.lastSegments;
-                    cached.loadSegmented.push( lastSegments );
-                    cached.loadSegmented=cached.loadSegmented.sort(function(a,b){return a-b});
-
-                    var offset = cached.loadSegmented.indexOf( lastSegments ) * this.preloadRows();
-                    this.splice( offset , 0, data);
-
-                    doOrderBy.call(this);
-
-                    //没有可加载的数据，直接删除事件侦听
-                    if ( !(data instanceof Array) || this.length >= this.predicts() )
+                    data = typeof data[dataProfile] !== 'undefined' ? data[dataProfile] : null;
+                    if( data )
                     {
-                        this.removeEventListener(DataSourceEvent.LOAD_START);
-                    }
+                        var lastSegments = cached.lastSegments;
+                        cached.loadSegmented.push( lastSegments );
+                        cached.loadSegmented=cached.loadSegmented.sort(function(a,b){return a-b});
+                        var offset = cached.loadSegmented.indexOf( lastSegments ) * this.preloadRows();
+                        this.splice( offset , 0, data);
 
-                    //更新视图的数据
-                    if( this.__fetched__ && this.__fetchCalled__ )
-                    {
-                        this.fetch();
-                    }
+                        doOrderBy.call(this);
 
+                        //没有可加载的数据，直接删除事件侦听
+                        if ( !(data instanceof Array) || this.length >= this.predicts() )
+                        {
+                            this.removeEventListener(DataSourceEvent.LOAD_START);
+                        }
+
+                        //更新视图的数据
+                        if( this.__fetched__ && this.__fetchCalled__ )
+                        {
+                            this.fetch();
+                        }
+                    }
                     //调度完成事件
                     dispatch.call(this,DataSourceEvent.LOAD_COMPLETE,data, offset, event);
 
@@ -435,7 +469,6 @@
         }
         return this.__predicts__ || this.length;
     }
-
 
     /**
      * @private

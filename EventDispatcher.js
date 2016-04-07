@@ -44,7 +44,7 @@
                    return Utils.isEventElement(item);
                 });
 
-            }else if( Utils.isEventElement(targets) )
+            }else if( Utils.isEventElement(targets) || targets instanceof EventDispatcher )
             {
                 this.__targets__=[ targets ];
             }
@@ -76,17 +76,30 @@
      */
     EventDispatcher.prototype.hasEventListener=function( type, useCapture )
     {
-        var target=  this.targets() || [this];
-        var events = Utils.storage( target[0] , 'events' );
-        if( !events || !events[type] )
-            return false;
-
-        if( typeof useCapture === "undefined" )
-        {
-            return !!(events[type][0] || events[type][1]);
-        }
         useCapture = Number( useCapture || 0 );
-        return !!events[type][useCapture];
+        var target= this.targets()
+            ,element
+            ,index=0;
+        do{
+            element= target ? target[ index ] : this;
+            if( !element )continue;
+
+            if( target && target[ index ] instanceof EventDispatcher )
+            {
+                if(target[index].hasEventListener( type, useCapture))return true;
+
+            }else
+            {
+                var events = Utils.storage( element, 'events' );
+                if( events && events[type] && events[type][useCapture] )
+                {
+                    return true;
+                }
+            }
+            index++;
+
+        }while( target && index < target.length );
+        return false;
     }
 
     /**
@@ -115,11 +128,12 @@
             ,index=0;
 
         do{
-            element= target ? target[ index++] : this;
+
+            element= target ? target[ index ] : this;
             if( !element )continue;
             if( target && target[ index ] instanceof EventDispatcher )
             {
-                target[ index ].addEventListener(type,listener,useCapture,priority);
+                target[ index ].addEventListener(type,listener,useCapture,priority,reference);
 
             }else
             {
@@ -131,6 +145,7 @@
                     EventDispatcher.addEventListener.call(element, type, listenerEvent );
                 }
             }
+            index++;
 
         }while( target && index < target.length );
         return this;
@@ -148,7 +163,7 @@
         var b=0;
         var element;
         do{
-             element = target ? target[b++] : this;
+             element = target ? target[b] : this;
              if( target && target[b] instanceof EventDispatcher )
              {
                  target[b].removeEventListener(type,listener,useCapture)
@@ -157,6 +172,7 @@
              {
                 EventDispatcher.removeEventListener.call(element,type,listener,useCapture, this );
              }
+             b++;
         }while( target && b < target.length )
         return true;
     }
@@ -170,20 +186,23 @@
     {
         if( !(event instanceof BreezeEvent) )
             throw new Error('invalid event.')
+
         var target = this.targets();
         var i=0;
         var element;
         do{
-            element = target && target.length>0 ? target[i++] : this;
-            if( event.propagationStopped===true ||
-                ( target && target[i] instanceof EventDispatcher && !target[i].dispatchEvent(event) ) )
+            element = target && target.length>0 ? target[i] : this;
+            if( target && target[i] instanceof EventDispatcher )
             {
-                return false;
+                target[i].dispatchEvent(event);
+            }else
+            {
+                event.currentTarget=element;
+                event.target = event.target || element;
+                EventDispatcher.dispatchEvent( event );
             }
-            event.currentTarget=element;
-            event.target = event.target || element;
-            EventDispatcher.dispatchEvent( event );
-        }while( target && i < target.length );
+            i++;
+        }while( target && i < target.length && !event.propagationStopped );
         return !event.propagationStopped;
     }
 
@@ -382,7 +401,6 @@
                         reference.current( event.currentTarget );
                         ismanager=true;
                     }
-
                     //调度侦听项
                     listener.callback.call( reference , event );
 
@@ -548,7 +566,7 @@
             }
         }
         //ie9以下用 readyState来判断，其它浏览器都使用 load or DOMContentLoaded
-        if( ( eventType && /load/i.test(eventType) )  || ( readyState && /loaded|complete/.test( readyState ) ) )
+        if( ( eventType && /load/i.test(eventType) )  || ( readyState && /loaded|complete|4/.test( readyState ) ) )
         {
             event.type = type;
             EventDispatcher.dispatchEvent( event );
@@ -571,15 +589,15 @@
                 }
             };
 
+            //HTMLIFrameElement
             if( element.contentWindow )
             {
                 this.addEventListener( BreezeEvent.READY, listener ,true, 10000 );
-
-            }else
+            }
+            else
             {
-                handle({'srcElement':element,'type':type});
-                EventDispatcher.addEventListener.call(element, type,             listener,  handle );
                 EventDispatcher.addEventListener.call(element, BreezeEvent.READY ,listener, handle );
+                EventDispatcher.addEventListener.call(element, type,listener,handle );
             }
             return true;
         })
@@ -603,7 +621,7 @@
             }
         }
 
-        EventDispatcher.addEventListener.call(win,'load', listener, handle );
+        EventDispatcher.addEventListener.call(win,'DOMContentLoaded', listener, handle );
         EventDispatcher.addEventListener.call(doc, type , listener, handle );
 
         //ie9 以下，并且是一个顶级文档或者窗口对象

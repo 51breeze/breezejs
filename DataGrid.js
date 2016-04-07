@@ -351,23 +351,27 @@
             'template':'<span data-index="{forIndex}">{value}</span>',
             'dataGroup':[],
             'property':{},
-            'callback':function(event){
+            'callback':function(event,option){
 
                 var index =source.viewIndex( this.property('data-index') );
                 var item = source[index];
-                Popup.info('<input style="width: 100%;" value="'+item[column]+'" />',
+                console.log( item, index,  source)
+                if( item )
                 {
-                    'anchor':event.currentTarget.parentNode,
-                    'vertical':'top',
-                    'callback':function(flag){
-                        var value =  this.skinGroup().current('input').value();
-                        var d={};
-                        d[column] = value;
-                        console.log(index)
-                        source.alter(d,'index('+index+')');
-                    },
-                    'minHeight':38
-                });
+                    Popup.info('<input style="width: 100%;" value="'+item[column]+'" />',
+                    {
+                        'anchor':event.currentTarget.parentNode,
+                        'vertical':'top',
+                        'callback':function(flag){
+                            var value =  this.skinGroup().current('input').value();
+                            var d={};
+                            d[column] = value;
+                            console.log(index)
+                            source.alter(d,'index('+index+')');
+                        },
+                        'minHeight':38
+                    });
+                }
             }
         }, option );
         return this;

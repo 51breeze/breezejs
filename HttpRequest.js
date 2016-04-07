@@ -192,8 +192,8 @@
 
                     }else
                     {
-                        if( status===0 && self.hasEventListener( HttpEvent.CANCEL ) )
-                            self.dispatchEvent( new HttpEvent( HttpEvent.CANCEL ,{status:-1,data:'',target:target}) )
+                        if( status===0 && self.hasEventListener( HttpEvent.CANCELED ) )
+                            self.dispatchEvent( new HttpEvent( HttpEvent.CANCELED ,{status:-1,data:'',target:target}) )
                         else( self.hasEventListener( HttpRequest.TIMEOUT ) )
                             self.dispatchEvent( new HttpEvent( HttpEvent.TIMEOUT,{status:0,data:'',target:target} ) )
                         httpRequest.abort();

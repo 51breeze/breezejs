@@ -443,7 +443,7 @@ modality.show(true)
     ModalityEvent.prototype.constructor=ModalityEvent;
 
     //取消事件触发时调度
-    ModalityEvent.CANCEL='modalityCancel';
+    ModalityEvent.CANCELED='modalityCancel';
     //模态框关闭时调度
     ModalityEvent.CLOSE='modalityClose';
     //提交事件触发时调度

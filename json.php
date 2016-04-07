@@ -1,9 +1,13 @@
 <?php
 
 
+sleep( mt_rand(1,8) );
 
-sleep(0);
 
+
+header('Content-Type:text/javascript');
+echo 'jsonp([{"jjj":"111"}], "'.$_GET['k'].'");';
+exit;
 
 
 

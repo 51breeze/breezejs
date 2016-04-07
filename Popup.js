@@ -715,7 +715,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
     PopupEvent.prototype.constructor=PopupEvent;
 
     //取消事件触发时调度
-    PopupEvent.CANCEL='popupCancel';
+    PopupEvent.CANCELED='popupCancel';
     //模态框关闭时调度
     PopupEvent.CLOSE='popupClose';
     //提交事件触发时调度

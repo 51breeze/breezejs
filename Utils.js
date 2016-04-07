@@ -966,7 +966,7 @@
             joint=' ';
             group=false;
         }
-        for( key in object )
+        if( Utils.isObject(object,true) )for( key in object )
         {
             val=type === 'attr' ? '"' +object[key]+'"' : object[key];
             key=prefix ? prefix+'[' + key +']' : key;
@@ -1314,7 +1314,7 @@
      */
     Utils.isEventElement=function( element )
     {
-        return Utils.isNodeElement(element) || Utils.isWindow(element) ? !!(element.addEventListener || element.attachEvent) : false;
+        return  !!(element.addEventListener || element.attachEvent);
     }
 
     /**

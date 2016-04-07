@@ -100,7 +100,7 @@
             mapeventname={};
             mapeventname[ PropertyEvent.CHANGE ] = 'input';
             mapeventname[ BreezeEvent.READY ] = 'readystatechange';
-            mapeventname[ BreezeEvent.LOAD ] = 'DOMContentLoaded';
+            //mapeventname[ BreezeEvent.LOAD ] = 'DOMContentLoaded';
             if( Utils.isBrowser(Utils.BROWSER_FIREFOX) )
             {
                 mapeventname[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
@@ -311,9 +311,8 @@
     HttpEvent.prototype.data=null;
     HttpEvent.SUCCESS = 'httpSuccess';
     HttpEvent.ERROR   = 'httpError';
-    HttpEvent.CANCEL  = 'httpCancel';
+    HttpEvent.CANCELED  = 'httpCanceled';
     HttpEvent.TIMEOUT = 'httpTimeout';
-    HttpEvent.OPEN    = 'httpOpen';
     HttpEvent.DONE    = 'done';
 
 

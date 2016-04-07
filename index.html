@@ -13,6 +13,7 @@
     <script src="Manager.js" ></script>
     <script src="Dictionary.js" ></script>
     <script src="HttpRequest.js" ></script>
+    <script src="Http.js" ></script>
     <script src="Breeze.js" ></script>
     <script src="SkinGroup.js" ></script>
     <script src="Component.js" ></script>
@@ -37,15 +38,9 @@
     <link href="css/base.css" rel="stylesheet" />
     <title></title>
 
-    <style>
-        .link{
-            display: block;
-            background-color: #c9302c;
-        }
-    </style>
+   <script type="text/plain"></script>
 </head>
 <script>
-
 
     var data=[
         {name:'a','phone':'1'},
@@ -77,7 +72,7 @@
 
     Breeze(function(){
 
-        var grid = new DataGrid('.gridcontainer');
+       /* var grid = new DataGrid('.gridcontainer');
           grid.pagination( true );
          grid.dataSource().preloadRows(100);
          grid.dataSource().preloadPages(3);
@@ -116,7 +111,7 @@
           grid.display();
 
         grid.dataRender().dataSource().orderBy('id','desc' );
-
+*/
 
 
        /* var selection = new Selection( '#selection' )
@@ -137,7 +132,7 @@
 
         modal.addEventListener(ModalityEvent.CANCEL,function(event){
 
-         console.log('CANCEL')
+         console.log('CANCELED')
          event.stopPropagation()
 
          })*/
@@ -176,6 +171,20 @@
         //Popup.modality('窗口','<h1>Hello here</h1>')
         //Popup.modality('窗口2','<h1 class="hh1">Hello here2</h1>')
 
+
+        var h = new Http( {dataType:'jsonp',timeout:4});
+
+        h.addEventListener(HttpEvent.SUCCESS,function(event){
+
+            console.log( event.data )
+
+        }).addEventListener(HttpEvent.TIMEOUT,function(event){
+
+            console.log( event.type ,'====')
+        })
+
+        h.send('json.php',{"offset":0,"rows":100})
+        h.send('json.php',{"offset":100,"rows":100})
 
 
     })
