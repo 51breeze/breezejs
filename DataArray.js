@@ -105,28 +105,26 @@
      */
     DataArray.prototype.orderBy=function(column,type)
     {
-        type =type && DataArray.DESC === type.toLowerCase() ?  DataArray.DESC :  DataArray.ASC;
-        DataArray.prototype.sort.call(this,function(a,b){
+        var orderGroup=column,
+            orderby=['var a=arguments[0],b=arguments[1],s=0;'];
+        if( typeof column !== "object" )
+        {
+            orderGroup={};
+            orderGroup[ column ] = type;
+        }
 
-            if( typeof a[ column ] === "undefined" )return 0;
-            var a1,b2;
-            if( type === DataArray.ASC )
-            {
-                a1=a[ column ];
-                b2=b[ column ];
-            }else
-            {
-                b2=a[ column ];
-                a1=b[ column ];
-            }
-            a = parseFloat( a1 );
-            if( !isNaN( a ) )
-            {
-                return (parseFloat( a ) || 0)-( parseFloat( b2 ) ||0 );
-            }
-            return type === DataArray.ASC ? a1.localeCompare( b2 ): b2.localeCompare( a1 );
+        for(var c in orderGroup )
+        {
+             type = DataArray.DESC === orderGroup[c].toLowerCase() ?  DataArray.DESC :  DataArray.ASC;
+             orderby.push( type===DataArray.DESC ? "Utils.compare(b['"+c+"'],a['"+c+"']):s;" : "Utils.compare(a['"+c+"'],b['"+c+"']):s;");
+        }
 
-        });
+        orderby = orderby.join("\r\ns=s==0?")
+        orderby+="\r\n  return s;";
+        var fn = new Function( orderby );
+        console.log( fn )
+
+        var s = DataArray.prototype.sort.call(this, fn);
         return this;
     }
 

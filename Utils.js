@@ -1958,4 +1958,27 @@
         return false;
     }
 
+
+    /**
+     * 比较两个两个字符串的值。
+     * 如果 a > b 返回 1 a<b 返回 -1 否则返回 0
+     * 比较的优先级数字优先于字符串。字母及汉字是按本地字符集排序。
+     * @param a
+     * @param b
+     * @returns {*}
+     */
+    Utils.compare=function(a,b)
+    {
+        var c = parseFloat( a ), d = parseFloat( b );
+        if( isNaN(c) && isNaN(d) )
+        {
+            return a.localeCompare(b);
+
+        }else if( !isNaN(c) && !isNaN(d) )
+        {
+            return c > d ? 1 : (c < d ? -1 : 0);
+        }
+        return isNaN(c) ? 1 : -1;
+    }
+
 })();

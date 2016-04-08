@@ -1,18 +1,18 @@
 <?php
 
 
-sleep( mt_rand(1,8) );
+//sleep( mt_rand(0,10) );
 
-
+/*
 
 header('Content-Type:text/javascript');
 echo 'jsonp([{"jjj":"111"}], "'.$_GET['k'].'");';
-exit;
+exit;*/
 
 
 
 $data =  array();
-$total = 647;
+$total = 10;
 
 if( $_SERVER['REQUEST_METHOD'] == 'POST' )
 {
@@ -32,6 +32,19 @@ for( $i=0; $i< $total; $i++ )
         'name'=> mt_rand(10000,999999),
         'phone'=> mt_rand(10000000,999999999),
     );
+}
+
+
+if( isset($_GET['orderby']) )
+{
+    $type = $_GET['orderby']['id'];
+    usort($data,function($a,$b)use($type){
+
+        $s = $type==='desc' ? $b['id'] - $a['id'] :  $a['id']-$b['id'];
+
+        return $s;
+
+    });
 }
 
 $data=array_slice($data,$offset,$rows);

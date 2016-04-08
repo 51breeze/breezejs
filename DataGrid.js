@@ -305,12 +305,17 @@
      */
     DataGrid.prototype.orderBy=function(column,option)
     {
-        this.plus('orderBy',column,{
+        var dataSource=this.dataRender().dataSource();
+        var type = typeof option === "string" ? option : 'asc';
+        dataSource.orderBy(column, type);
+        this.plus('orderBy'+column,column,{
             'template':'<span style="cursor:default;display:block;">{value}</span>',
-            'callback':function(breeze,event){
-                var column = breeze.property('data-column');
-                this.__orderType__[column] === 'asc' ? this.__orderType__[column]='desc' : this.__orderType__[column]='asc';
-                this.dataRender().dataSource().orderBy(column,  this.__orderType__[column] );
+            'type':type,
+            'column':column,
+            'callback':function(event,options)
+            {
+                options['type'] = options['type'] === DataArray.ASC ? DataArray.DESC : DataArray.ASC;
+                dataSource.orderBy(options.column,  options['type'] , true);
             },
             'eventType':MouseEvent.CLICK
         },option,'thead');

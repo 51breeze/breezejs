@@ -43,36 +43,25 @@
 <script>
 
     var data=[
-        {name:'a','phone':'1'},
+        {name:'a','phone':'10'},
         {name:'eeeee','phone':1},
-        {name:'c','phone':'3'},
-        {name:'c','phone':'4'},
-        {name:'c','phone':'2'},
-        {name:'a','phone':'1'},
-        {name:'c','phone':'3'},
-        {name:'c','phone':'4'},
-        {name:'c','phone':'2'},
-        {name:'a','phone':'1'},
-        {name:'c','phone':'3'},
-        {name:'c','phone':'4'},
-        {name:'c','phone':'2'},
-        {name:'a','phone':'1'},
-        {name:'c','phone':'3'},
-        {name:'c','phone':'4'},
-        {name:'c','phone':'2'},
-        {name:'a','phone':'1'},
-        {name:'c','phone':'3'},
-        {name:'c','phone':'4'},
-        {name:'c','phone':'2'},
-        {name:'c','phone':'2'},
-        {name:'b','phone':'8'}
+        {name:'c','phone':'60'},
+        {name:'c','phone':'20'},
+        {name:'a','phone':'ssssss'},
+        {name:'c','phone':'30'},
+        {name:'c','phone':'12'},
+        {name:'a','phone':'13'},
+        {name:'c','phone':'19'},
+        {name:'b','phone':'8'},
+        {name:'d','phone':'4333'}
     ]
 
 
 
     Breeze(function(){
 
-       /* var grid = new DataGrid('.gridcontainer');
+
+        var grid = new DataGrid('.gridcontainer');
           grid.pagination( true );
          grid.dataSource().preloadRows(100);
          grid.dataSource().preloadPages(3);
@@ -102,16 +91,20 @@
           grid.columnWidth('phone',300).columnWidth('name',100).columnWidth('id',50).columnWidth('edit',80)
 
         //  grid.orderBy('phone')
-          grid.orderBy('id','desc')
+          grid.orderBy('id','asc')
+          grid.orderBy('phone','desc')
+
+          //grid.dataRender().dataSource().orderBy('id','desc' );
+       // grid.dataRender().dataSource().orderBy('phone','asc' );
 
           grid.columns({'id':'序号','name':'名称','phone':'手机','edit':'操作'});
           grid.editableByColumn('name');
           grid.dataSource( 'json.php' );
-          grid.pagination().currentPages(33)
+          grid.pagination().currentPages(1)
           grid.display();
 
-        grid.dataRender().dataSource().orderBy('id','desc' );
-*/
+
+
 
 
        /* var selection = new Selection( '#selection' )
@@ -170,21 +163,6 @@
 
         //Popup.modality('窗口','<h1>Hello here</h1>')
         //Popup.modality('窗口2','<h1 class="hh1">Hello here2</h1>')
-
-
-        var h = new Http( {dataType:'jsonp',timeout:4});
-
-        h.addEventListener(HttpEvent.SUCCESS,function(event){
-
-            console.log( event.data )
-
-        }).addEventListener(HttpEvent.TIMEOUT,function(event){
-
-            console.log( event.type ,'====')
-        })
-
-        h.send('json.php',{"offset":0,"rows":100})
-        h.send('json.php',{"offset":100,"rows":100})
 
 
     })

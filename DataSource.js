@@ -57,24 +57,14 @@
         var options = this.options();
         var rows = this.preloadRows();
         var offset = segments * rows;
-        var pageParam = {};
-        pageParam[ options.requestProfile.offset ]=offset;
-        pageParam[ options.requestProfile.rows ]=rows;
-        pageParam = Utils.serialize(pageParam,'url');
-        var url = options.url+( /\?/.test( options.url ) ? '&'+pageParam : '?'+pageParam );
-        var data=options.param;
-        if(  options.method === HttpRequest.METHOD.GET && !Utils.isEmpty(options.param) )
-        {
-            var param = Utils.serialize(options.param,'url');
-            url =url+'&'+param;
-            data=null;
-        }
+        var param = Utils.extend({},options.param,{orderby:this.orderBy()});
+        param[ options.requestProfile.offset ]=offset;
+        param[ options.requestProfile.rows ]=rows;
 
         if( dispatch.call(this,DataSourceEvent.LOAD_START) )
         {
             cached.lastSegments = segments;
-            source.open( url, options.method );
-            source.send( data );
+            source.send( options.url,param ,options.method );
             return true;
         }
         return false;
@@ -117,8 +107,7 @@
 
         param = Utils.serialize(param,'url');
         url = /\?/.test(url) ? url+'&'+param : url+'?'+param;
-        source.open(url, options.synch.method,options.asynchrony);
-        source.send( data );
+        source.send( url, data , options.synch.method);
     }
 
     /**
@@ -165,14 +154,12 @@
      */
     var doOrderBy=function()
     {
-        if( this.length > 0 && this.length >= this.predicts() )
-        {
-            var orderby = this.orderBy();
-            for(var column in orderby )
-            {
-                DataArray.prototype.orderBy.call(this,column, orderby[column] );
-            }
-        }
+        //if( this.length > 0 && this.length >= this.predicts() )
+       // {
+            DataArray.prototype.orderBy.call(this,this.orderBy() );
+            return true;
+        //}
+        return false;
     }
 
     /**
@@ -330,10 +317,10 @@
             if( typeof source === 'string' )
             {
                 options.url = source;
-                source = new HttpRequest(options);
+                source = new Http(options);
             }
 
-            if ( source instanceof HttpRequest )
+            if ( source instanceof Http )
             {
                 this.__source__=source;
                 this.__isRemote__=true;
@@ -551,10 +538,11 @@
 
     /**
      * 对数据进行排序。只有数据源全部加载完成的情况下调用此方法才有效（本地数据源除外）。
-     * @param column
-     * @param type
+     * @param column 数据字段
+     * @param flag   是否清空之前排序的字段
+     * @param type   排序类型
      */
-    DataSource.prototype.orderBy=function(column,type)
+    DataSource.prototype.orderBy=function(column,type,flag)
     {
         if( typeof type === "undefined" )
         {
@@ -563,10 +551,20 @@
         }else if( typeof column === "string" )
         {
             type = type || DataArray.ASC;
+
+            if(flag)this.__orderBy__={};
             if( this.__orderBy__[ column ] !==type )
             {
                 this.__orderBy__[ column ]=type;
-                doOrderBy.call(this);
+                if( this.length > 0 && this.length < this.predicts() )
+                {
+                    this.splice(0,this.length);
+                    this.__cached__.loadSegmented.splice(0,this.__cached__.loadSegmented.length);
+                    this.__cached__.lastSegments=null;
+                }else
+                {
+                    doOrderBy.call(this);
+                }
                 !this.__fetchCalled__ || this.fetch();
             }
         }
@@ -734,9 +732,9 @@
     DataSourceEvent.prototype.data=null;
     DataSourceEvent.prototype.waiting=false;
 
-    DataSourceEvent.APPEND='dataSourceItemAppend';
-    DataSourceEvent.REMOVE='dataSourceItemrRemove';
-    DataSourceEvent.ALTER='dataSourceItemAlter';
+    DataSourceEvent.APPEND='dataSourceAppend';
+    DataSourceEvent.REMOVE='dataSourceRemove';
+    DataSourceEvent.ALTER='dataSourceAlter';
     DataSourceEvent.FETCH = 'dataSourceFetch';
     DataSourceEvent.LOAD_START='dataSourceLoadStart';
     DataSourceEvent.LOAD_COMPLETE='dataSourceLoadComplete';

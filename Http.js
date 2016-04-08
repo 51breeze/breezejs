@@ -32,41 +32,19 @@
             }
         }
 
-    
-    /**
-     * 验证URL的有效性
-     * @param url
-     * @returns {boolean}
-     */
-    var validateUrl=function(url,dataType)
-    {
-        if( typeof url ==='string' )
-        {
-            //当请求类型不是 jsonp 时并且是一个完整的http url 时判断是否跨域
-            var isurl;
-            if( dataType !== 'jsonp' && ( isurl=patternUrl.exec( url.toLowerCase() ) ) )
-            {
-                var cross = !!(( isurl[ 1 ] != localUrlParts[ 1 ] || isurl[ 2 ] != localUrlParts[ 2 ] ||
-                    ( isurl[ 3 ] || ( isurl[ 1 ] === "http:" ? 80 : 443 ) ) !=
-                        ( localUrlParts[ 3 ] || ( localUrlParts[ 1 ] === "http:" ? 80 : 443 ) ) ) );
-                if( cross )
-                    throw new Error('Http does not support cross-domain,if necessary set "dataType" for the "jsonp"')
-            }
-
-        }else
-        {
-            throw new Error('Http url cannot for empty and url must is a string');
-        }
-        return true;
-    }
-
     var dispatchEvent=function( type, data, status,xhr)
     {
+        if( this.__xhrs__ && this.__xhrs__.length >0 )
+        {
+            var index = this.__xhrs__.indexOf( xhr );
+            this.__xhrs__.splice(index,1);
+        }
         if( this.hasEventListener( type ) )
         {
             var event = new HttpEvent( type );
             event.data = data || null
-            event.status = status || 0
+            event.status = status || 0;
+            event.url=xhr.__url__ || null;
             this.dispatchEvent( event );
         }
         if(xhr && xhr.__timeoutTimer__ )
@@ -90,7 +68,6 @@
             headers[ match[1].toLowerCase() ] = match[ 2 ];
         }
         this.__responseHeaders__=headers;
-
         if( xhr.status >=200 && xhr.status < 300 )
         {
             result = xhr.responseXML;
@@ -151,12 +128,12 @@
     }
 
     /**
-     * 当前Http状态
+     * 当前Http 是否有正请求的任务
      * @returns {boolean}
      */
-    Http.prototype.status=function()
+    Http.prototype.loading=function()
     {
-       return !!this.__sended__;
+       return (this.__xhrs__ && this.__xhrs__.length>0);
     }
 
     /**
@@ -164,21 +141,21 @@
      * @param data
      * @returns {boolean}
      */
-    Http.prototype.send=function( url, data )
+    Http.prototype.send=function( url, data, method)
     {
         if( typeof url !== "string" )
           throw new Error('url must is string');
 
         var options= this.__options__;
         var async = !!options.async;
-        var method = options.method;
+        var method = method || options.method;
 
         try{
             var xhr
             if( options.dataType === 'jsonp' )
             {
                 xhr =new ScriptRequest();
-                EventDispatcher(xhr).addEventListener([BreezeEvent.LOAD,HttpEvent.SUCCESS],function(event){
+                xhr.addEventListener([BreezeEvent.LOAD,HttpEvent.SUCCESS],function(event){
                     dispatchEvent.call(this,event.type,event.data || null,4,xhr);
                 },false,0,this);
 
@@ -244,6 +221,8 @@
         var self = this;
         var x = this.__xhrs__ || (this.__xhrs__=[]);
         x.push(xhr);
+
+        xhr.__url__=url;
 
         //设置请求超时
         xhr.__timeoutTimer__=setTimeout( (function(xhr){
