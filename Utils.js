@@ -715,6 +715,15 @@
      */
     Utils.property=function(element,prop,val)
     {
+       if( Utils.isObject(prop) )
+       {
+           for(var p in prop)
+           {
+               Utils.property(element,p,prop[p]);
+           }
+           return true;
+       }
+
         prop = fix.attrMap[ prop ] || prop;
         var is= prop === 'value' && !Utils.isFormElement(element) ? false : __property__[prop];
         var elem= Utils.isNodeElement(element);
@@ -950,7 +959,7 @@
      */
     Utils.serialize=function( object, type ,group )
     {
-        if( typeof object === "string" )
+        if( typeof object === "string" || !object )
            return object;
         var str=[],key,joint='&',separate='=',val='',prefix=Utils.isBoolean(group) ? null : group;
         type = type || 'url';
@@ -1082,7 +1091,7 @@
      */
     Utils.mergeAttributes=function(target,oSource)
     {
-        var iselem= !Utils.isObject( target );
+        var iselem= Utils.isNodeElement( target );
         if( Utils.isObject(oSource,true) )
         {
             for (var key in oSource)if (oSource[key] && oSource[key] != '')

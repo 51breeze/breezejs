@@ -178,7 +178,6 @@
             {
                 return b.toLowerCase()=='or' ? ' || ' : ' && ';
             })
-            console.log( filter )
             this.__filter__=new Function('try{ return !!('+filter+') }catch(e){ throw new Error("syntax error is in grep:'+old+'");}');
 
         }else if( filter === null )

@@ -105,25 +105,20 @@
      */
     DataArray.prototype.orderBy=function(column,type)
     {
-        var orderGroup=column,
-            orderby=['var a=arguments[0],b=arguments[1],s=0;'];
+        var orderGroup=column,orderby=['var a=arguments[0],b=arguments[1],s=0;'];
         if( typeof column !== "object" )
         {
             orderGroup={};
             orderGroup[ column ] = type;
         }
-
         for(var c in orderGroup )
         {
              type = DataArray.DESC === orderGroup[c].toLowerCase() ?  DataArray.DESC :  DataArray.ASC;
              orderby.push( type===DataArray.DESC ? "Utils.compare(b['"+c+"'],a['"+c+"']):s;" : "Utils.compare(a['"+c+"'],b['"+c+"']):s;");
         }
-
         orderby = orderby.join("\r\ns=s==0?")
         orderby+="\r\n  return s;";
         var fn = new Function( orderby );
-        console.log( fn )
-
         var s = DataArray.prototype.sort.call(this, fn);
         return this;
     }
@@ -138,7 +133,6 @@
          {
              callback=function( item ){ return !!item; }
          }
-
          var index = 0;
          while( index < this.length )
          {

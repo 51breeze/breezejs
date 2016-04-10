@@ -27,12 +27,12 @@
     /**
      * 修改、插入、删除后是否需要刷新当前渲染的数据
      */
-    var doupdate=function(flag, type, result, index )
+    var doupdate=function(flag, type, result, index)
     {
         if( flag && dispatch.call(this, type, result, index) )
         {
-            var synchronize = this.synchronize();
-            if( synchronize )dosynch.call(this, result, type,index,synchronize);
+            var synch = this.options().synch;
+            if( synch && synch.enable )dosynch.call(this, result, type,index,synch);
             !this.__fetchCalled__ || this.fetch();
         }
     }
@@ -73,41 +73,20 @@
     /**
      * 同步数据
      */
-    var dosynch = function( data, action, index, options )
+    var dosynch = function( data, action, index, setting )
     {
         var source = this.source();
-        var url = options.url || this.options().url;
-
+        var url = setting.url || this.options().url;
         if( typeof url !== "string" )
         {
             throw new Error('invalid url');
         }
-
         action = action.match(/append|remove|alter/i)[0].toLowerCase()
-        var param  = opt.param;
-        param[ options.requestProfile.action ] = action;
-
-        if( action === 'remove' )
-        {
-            var id=[];
-            for(var i in data )
-            {
-                if( typeof data[i][options.synch.primary] === "undefined" )
-                {
-                    throw new Error('data primary not exists. '+options.synch.primary)
-                }
-                id.push( data[i][ options.synch.primary ] )
-            }
-            data = {'id':id.join(',')};
-
-        }else
-        {
-            data= {'data': data instanceof Array && data.length > 1 ? data : data[0] };
-        }
-
+        var param  = setting.param || {};
+            param[ setting.actionProfile ] = action;
         param = Utils.serialize(param,'url');
         url = /\?/.test(url) ? url+'&'+param : url+'?'+param;
-        source.send( url, data , options.synch.method);
+        source.send( url, data , setting.method );
     }
 
     /**
@@ -121,7 +100,7 @@
         {
             var queue = cached.queues;
             var num = this.preloadPages();
-            var c = this.currentPages();
+            var c = this.currentPage();
             var p = 0;
             var indexOf = queue.indexOf || DataArray.prototype.indexOf;
             var t = Math.floor( this.predicts() / this.preloadRows() );
@@ -154,11 +133,11 @@
      */
     var doOrderBy=function()
     {
-        //if( this.length > 0 && this.length >= this.predicts() )
-       // {
+        if( this.length > 0 && this.length >= this.predicts() )
+        {
             DataArray.prototype.orderBy.call(this,this.orderBy() );
             return true;
-        //}
+        }
         return false;
     }
 
@@ -179,6 +158,14 @@
             'method': HttpRequest.METHOD.GET,
             'dataType':HttpRequest.TYPE.JSON,
             'param':{},
+            'primary':'id',
+            'synch':{
+                'enable':false,
+                'param':{},
+                'method': HttpRequest.METHOD.POST,
+                'actionProfile':'action',
+                'url':null
+            },
             'url':null,
             //服务器响应后的json 对象
             'responseProfile':{
@@ -237,41 +224,6 @@
             return this;
         }
         return this.__options__;
-    }
-
-    DataSource.prototype.__synchronize__=null;
-
-    /**
-     * @param object options
-     * @returns {*}
-     */
-    DataSource.prototype.synchronize=function( options )
-    {
-        if( typeof options !== "undefined" )
-        {
-            if( options )
-            {
-                this.__synchronize__ = Utils.extend(true,{
-                    'method': HttpRequest.METHOD.POST,
-                    'dataType':HttpRequest.TYPE.JSON,
-                    'param':{},
-                    'url':null,
-                    //服务器响应后的json 对象
-                    'responseProfile':{
-                        'data':'data', //需要更新到前端的数据集，如果不需要请在服务端不要返回此数据
-                        'code': 'code' //状态码
-                    },
-                    //向服务器请求时需要添加的参数
-                    'requestProfile':{
-                        'action':'action'
-                    },
-                    'primary':'id',
-                    "successCode" : 0 //成功时的状态值
-                }, Utils.isObject(options) ? options : {});
-            }
-            return this;
-        }
-        return this.__synchronize__;
     }
 
     /**
@@ -358,6 +310,7 @@
                         //没有可加载的数据，直接删除事件侦听
                         if ( !(data instanceof Array) || this.length >= this.predicts() )
                         {
+                            this.__loadcomplete__=true;
                             this.removeEventListener(DataSourceEvent.LOAD_START);
                         }
 
@@ -454,7 +407,7 @@
             this.__predicts__ = num;
             return this;
         }
-        return this.__predicts__ || this.length;
+        return Math.max(this.__predicts__ ,this.length);
     }
 
     /**
@@ -486,28 +439,28 @@
     /**
      * @private
      */
-    DataSource.prototype.__currentPages__ = 1;
+    DataSource.prototype.__currentPage__ = 1;
 
     /**
      * 获取设置当前分页数
      * @param num
      * @returns {*}
      */
-    DataSource.prototype.currentPages=function( num )
+    DataSource.prototype.currentPage=function( num )
     {
         if( typeof num !== 'undefined' )
         {
             if( num > 0 )
             {
-                if( this.__currentPages__ !== num && !this.__fetched__)
+                if( this.__currentPage__ !== num && !this.__fetched__)
                 {
-                    this.__currentPages__ = num;
+                    this.__currentPage__ = num;
                     this.fetch();
                 }
             }
             return this;
         }
-        var c =  Math.max(this.__currentPages__,1);
+        var c =  Math.max(this.__currentPage__,1);
         return Math.min( c  , this.totalPages() || c  );
     }
 
@@ -517,7 +470,7 @@
      */
     DataSource.prototype.segments=function( page )
     {
-        page = Math.max( (page || this.__currentPages__) , 1 );
+        page = Math.max( (page || this.__currentPage__) , 1 );
         page = Math.min( page, this.totalPages() || page);
         return Math.floor( (page-1) * this.rows() / this.preloadRows() );
     }
@@ -580,7 +533,7 @@
     {
         var index = parseInt(index);
         if( isNaN(index) )return index;
-        var start=( this.currentPages()-1 ) * this.rows();
+        var start=( this.currentPage()-1 ) * this.rows();
         var offset = this.__cached__.loadSegmented.indexOf( this.segments() );
         if( offset>=0 )
         {
@@ -605,6 +558,8 @@
         return null;
     }
 
+    DataSource.prototype.__increment__=0;
+
     /**
      * 添加数据项到指定的索引位置
      * @param item
@@ -615,6 +570,35 @@
     {
         if( item )
         {
+            var primary = this.options().primary;
+            var increment= this.__increment__;
+            if( primary  )
+            {
+                if( (!this.isRemote() || !this.__loadcomplete__) || increment==0 )
+                {
+                    this.forEach(function(item){
+                        if( typeof item[primary] === "undefined" )
+                            throw new Error('primary field not exists.');
+                        increment=Math.max(item[primary],increment);
+                    });
+                }
+
+                if( item instanceof Array )
+                {
+                    for(var i=0; i<item.length; i++)
+                    {
+                        increment++;
+                        item[i][primary] = increment;
+                    }
+                    this.__increment__=increment;
+                }else
+                {
+                    increment++;
+                    item[primary] = increment;
+                    this.__increment__=increment;
+                }
+            }
+
             var oldlen= this.length;
             index = typeof index === 'number' ? index : this.length;
             index = index < 0 ? index + this.length+1 : index;
@@ -622,7 +606,7 @@
             this.splice(index,0,item);
             if( this.isRemote() && this.__predicts__>0 )
             {
-                this.__predicts__+= this.length - oldlen;
+                this.__predicts__ +=(this.length - oldlen);
             }
             doupdate.call(this,true,DataSourceEvent.APPEND,item,index);
         }
@@ -638,18 +622,29 @@
     {
         var index;
         var result = this.grep().execute( filter );
+        var synch = this.synchronize();
+        var primary = synch.primary;
+        var d = []
         for(var i=0; i<result.length ; i++)
         {
             index = this.indexOf( result[i] );
             if( index >=0 && index < this.length )
             {
+                if( typeof result[i][primary] === "undefined" )
+                {
+                    throw new Error('data primary not exists. '+primary)
+                }
+                d.push( result[i][primary] );
                 this.splice(index,1);
+
             }else
             {
                 throw new Error('index invalid');
             }
         }
-        doupdate.call(this,result.length > 0,DataSourceEvent.REMOVE,result);
+        result={}
+        result[primary] = d.join(',');
+        doupdate.call(this,d.length > 0,DataSourceEvent.REMOVE,result);
         return this;
     }
 
@@ -662,8 +657,11 @@
     {
         var result = this.grep().execute(filter);
         var flag=false;
+        var update=[];
         for(var i=0; i<result.length ; i++)
         {
+            var d={}
+            update.push( d );
             for( var c in data )
             {
                 if( typeof result[i][c] !== "undefined" )
@@ -671,16 +669,16 @@
                     if( result[i][c] != data[c] )
                     {
                         result[i][c] = data[c];
+                        d[c] = data[c];
                         flag=true;
                     }
-
                 }else
                 {
                     throw new Error('unknown column this '+c );
                 }
             }
         }
-        doupdate.call(this,flag, DataSourceEvent.ALTER, result )
+        doupdate.call(this,flag, DataSourceEvent.ALTER,  update.length >1 ? {'data':update} : update[0] );
         return flag;
     }
 
@@ -691,7 +689,7 @@
      */
     DataSource.prototype.fetch=function( filter )
     {
-        var page = this.currentPages();
+        var page = this.currentPage();
         var rows=this.rows(),start=( page-1 ) * rows;
         var preloadRows=  this.preloadRows();
         var segments= this.segments();
@@ -700,9 +698,10 @@
         var offset  = index * preloadRows + (start % preloadRows);
         this.__fetched__ = true;
         this.__fetchCalled__=true;
-        var waiting = !this.isRemote() || offset < 0 || this.length<1 || (this.length < offset+rows && this.totalPages()>page);
-
-        if( this.__lastWaiting__!= waiting && this.isRemote() && this.hasEventListener(DataSourceEvent.WAITING) )
+        var waiting = !this.isRemote() || offset < 0 || (this.length<1 && !this.__loadcomplete__) ||
+            (this.length < offset+rows && this.totalPages()>page);
+        if( this.__lastWaiting__!= waiting && this.isRemote()
+            && this.hasEventListener(DataSourceEvent.WAITING) )
         {
             this.__lastWaiting__= waiting;
             var event = new DataSourceEvent(DataSourceEvent.WAITING);

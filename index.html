@@ -63,8 +63,12 @@
 
         var grid = new DataGrid('.gridcontainer');
           grid.pagination( true );
+        grid.pagination().options({'themeSkin':'{firstPage}{prevPage}{links}{nextPage}{lastPage}{goto}'})
+
          grid.dataSource().preloadRows(100);
          grid.dataSource().preloadPages(3);
+
+        grid.dataSource().options({'synch':{'enable':true}})
 
         var popup=null
         grid.dataSource().addEventListener(DataSourceEvent.WAITING,function(event){
@@ -88,19 +92,21 @@
 
           }});
 
-          grid.columnWidth('phone',300).columnWidth('name',100).columnWidth('id',50).columnWidth('edit',80)
+        grid.remove('edit');
+        grid.add('edit');
 
-        //  grid.orderBy('phone')
+          grid.columnWidth('phone',300).columnWidth('name',100).columnWidth('id',50).columnWidth('edit',120)
+
           grid.orderBy('id','asc')
           grid.orderBy('phone','desc')
 
-          //grid.dataRender().dataSource().orderBy('id','desc' );
-       // grid.dataRender().dataSource().orderBy('phone','asc' );
 
           grid.columns({'id':'序号','name':'名称','phone':'手机','edit':'操作'});
           grid.editableByColumn('name');
+          grid.editableByColumn('phone');
+
           grid.dataSource( 'json.php' );
-          grid.pagination().currentPages(1)
+          grid.pagination().currentPage(1)
           grid.display();
 
 
@@ -186,7 +192,6 @@
 
 <div class="grid" id="grid">
     <div class="gridcontainer"  style="width: 600px; height: 620px; "></div>
-    <div class="page"></div>
 </div>
 
 

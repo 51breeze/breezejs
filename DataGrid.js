@@ -9,36 +9,6 @@
 {
     "use strict";
 
-    function mergeOption(target,column,option)
-    {
-        var opt={}
-        if( typeof column === 'string' )
-        {
-            if( Utils.isFunction(option) )
-            {
-                opt.column=column;
-                opt.callback=option;
-
-            }else if( Utils.isObject(option) )
-            {
-                opt=option;
-            }
-
-        }else if( Utils.isObject(column) )
-        {
-            opt=column;
-        }
-        return Utils.extend( target, opt  );
-    }
-
-    var tagReg = /<?(\w+)(\s+[^>])\/?>?/;
-    var tagAttr=function( tag )
-    {
-        var match =  tag.match( tagReg );
-        return '<'+match[1]+match[2]+'>{value}</'+match[1]+'>';
-    }
-
-
     /**
      * 编译一个显示列名行的模板
      * @param columns
@@ -132,31 +102,39 @@
      */
     DataGrid.prototype.plus=function(action,column,defualt,option,category)
     {
-        if( arguments.length > 0 )
+        if( arguments.length > 0 && typeof column === "string" )
         {
             category = category || 'tbody';
-            option = mergeOption(defualt, column, option || {});
+            option = Utils.extend(defualt,option || {});
+            if( typeof option.template !== "string" )
+               throw new Error('invalid html template.')
+
             option.template = option.template.replace(/(\<\s*(\w+))/ig, function (a, b, c) {
 
-                var attr = [];
+                var attr = ['data-action="'+ action +'"','data-column="{column}"'];
                 var tag = c.toLowerCase();
-                if (option.bindable) {
+                if( category === 'tbody' )
+                {
+                    attr.push('data-index="{forIndex}"');
+                }
+                if (option.bindable)
+                {
                     attr.push('data-bind="{column}"');
                 }
+
                 if (tag === 'input') {
                     attr.push('value="{value}"');
-
                 } else if (tag === 'fetch' || tag === 'textarea') {
                     attr.push('name="{column}"');
                 }
-                return b + ( category === 'tbody' ? ' data-index="{key}" ' : ' data-column="{column}"' ) + ' data-action="' + action + '" ' + attr.join(' ');
+                return b +" "+attr.join(' ');
             });
+
             var data = this.__plus__[category] || ( this.__plus__[category] = {'template': {}, 'option': {}} );
-            if (!data.template[column]) {
-                data.template[column] = [];
-            }
+            data.template[column] || ( data.template[column] = []);
             data.template[column].push(option.template);
-            data.option[action] = option;
+            data.option[action] || (data.option[action]={});
+            data.option[action][column] = option;
             return this;
         }
         return this.__plus__;
@@ -245,6 +223,7 @@
      */
     DataGrid.prototype.edit=function(column,option)
     {
+        typeof option !== "function" || (option={'callback':option});
         this.plus('edit',column,{
             'template':'<a style="cursor:pointer;">编辑</a>',
             'callback':null,
@@ -260,9 +239,36 @@
      */
     DataGrid.prototype.remove=function(column,option)
     {
+        typeof option !== "function" || (option={'callback':option});
+        var dataSource=this.dataRender().dataSource();
         this.plus('remove',column,{
             'template':'<a style="cursor:pointer;">删除</a>',
-            'callback':null,
+            'callback':function(event,option){
+                 var index =dataSource.viewIndex( this.property('data-index') );
+                 dataSource.remove('index('+index+')');
+            },
+            'eventType':MouseEvent.CLICK
+        },option);
+        return this;
+    }
+
+    /**
+     * 在模板中添加需要插入数据的操作
+     * @param column
+     * @param option
+     */
+    DataGrid.prototype.add=function(column,option)
+    {
+        typeof option !== "function" || (option={'callback':option});
+        var dataSource=this.dataRender().dataSource();
+        this.plus('add',column,{
+            'template':'<a style="cursor:pointer;">增加</a>',
+            'callback':function(event,option){
+                 var index =dataSource.viewIndex( this.property('data-index') );
+                 var item = dataSource[index];
+                 item = Utils.extend({},item);
+                 dataSource.append( item, index+1);
+            },
             'eventType':MouseEvent.CLICK
         },option);
         return this;
@@ -306,16 +312,15 @@
     DataGrid.prototype.orderBy=function(column,option)
     {
         var dataSource=this.dataRender().dataSource();
-        var type = typeof option === "string" ? option : 'asc';
+        var type = typeof option === "string" && option.toLowerCase()===DataArray.DESC  ? 'desc' : 'asc';
         dataSource.orderBy(column, type);
-        this.plus('orderBy'+column,column,{
+        this.plus('orderby',column,{
             'template':'<span style="cursor:default;display:block;">{value}</span>',
             'type':type,
-            'column':column,
-            'callback':function(event,options)
+            'callback':function(event,option)
             {
-                options['type'] = options['type'] === DataArray.ASC ? DataArray.DESC : DataArray.ASC;
-                dataSource.orderBy(options.column,  options['type'] , true);
+                option['type'] = option['type'] === DataArray.ASC ? DataArray.DESC : DataArray.ASC;
+                dataSource.orderBy(column,  option['type'] , true);
             },
             'eventType':MouseEvent.CLICK
         },option,'thead');
@@ -353,14 +358,11 @@
         var source= this.dataSource();
         this.plus('editable',column,{
             'eventType':[MouseEvent.DBLCLICK],
-            'template':'<span data-index="{forIndex}">{value}</span>',
-            'dataGroup':[],
-            'property':{},
+            'template':'<span>{value}</span>',
             'callback':function(event,option){
 
                 var index =source.viewIndex( this.property('data-index') );
                 var item = source[index];
-                console.log( item, index,  source)
                 if( item )
                 {
                     Popup.info('<input style="width: 100%;" value="'+item[column]+'" />',
@@ -371,7 +373,6 @@
                             var value =  this.skinGroup().current('input').value();
                             var d={};
                             d[column] = value;
-                            console.log(index)
                             source.alter(d,'index('+index+')');
                         },
                         'minHeight':38
@@ -580,41 +581,42 @@
         if( this.__dataRender__===null )
         {
             this.__dataRender__=new DataRender();
-            var plus_data = this.__plus__;
+            var plus = this.__plus__;
             var self = this;
+
             this.__dataRender__.addEventListener(TemplateEvent.REFRESH, function (event)
             {
-                Breeze('[data-action]', this.viewport() ).forEach(function () {
+                Breeze('[data-action]', this.viewport() ).forEach(function (){
 
                     var action = this.property('data-action');
-                    for(var i in plus_data )
+                    var column = this.property('data-column');
+                    for(var i in plus )
                     {
-                        var item = plus_data[ i ];
-                        if ( item.option[action] )
+                        var item = plus[ i ];
+                        if ( item.option[action] && item.option[action][column])
                         {
-                            var option = item.option[action];
+                            var option = item.option[action][column];
                             if (option.style)this.style(option.style);
                             if( !this.hasEventListener(option.eventType) && typeof option.callback === 'function' )
                             {
-                                this.addEventListener(option.eventType,(function(option){
-                                   return function (event){
+                                this.addEventListener(option.eventType,function (event){
                                       option.callback.call(this, event, option);
-                                   }
-                                })(option));
+                                });
                             }
                         }
                     }
-
-                    if( this.hasEventListener(DataGridEvent.PLUS_INITIALIZED) )
-                    {
-                        this.dispatchEvent( DataGridEvent.PLUS_INITIALIZED );
-                    }
                 })
+
+                if( this.hasEventListener(DataGridEvent.PLUS_INITIALIZED) )
+                {
+                    this.dispatchEvent( DataGridEvent.PLUS_INITIALIZED );
+                }
 
                 if( self.resizeEnable() )
                 {
                     resize.call(this);
                 }
+
             });
         }
         return this.__dataRender__;

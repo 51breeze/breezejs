@@ -183,9 +183,9 @@
 
         }else
         {
+            data = Utils.serialize( data ,'url') || null;
             if( method === Http.METHOD.GET && data)
             {
-                data = Utils.serialize( data ,'url');
                 if( data !='' )url+=/\?/.test(url) ? '&'+data : '?'+data;
                 data=null;
             }
