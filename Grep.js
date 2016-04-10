@@ -209,7 +209,7 @@
      */
     Grep.prototype.execute=function( filter )
     {
-        var data=this.data();
+        var data= this instanceof Array ? this : this.data();
         filter = this.filter( filter );
         if( !filter )return data;
         var result=null;

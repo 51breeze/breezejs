@@ -70,23 +70,76 @@
         return false;
     }
 
+    var lastSynch=null;
+
     /**
      * 同步数据
      */
     var dosynch = function( data, action, index, setting )
     {
-        var source = this.source();
+        var options = this.options();
+        var primary = options.primary;
         var url = setting.url || this.options().url;
+        action = action.match(/append|remove|alter/i)[0].toLowerCase();
+
+        url = url[action] || url;
         if( typeof url !== "string" )
         {
             throw new Error('invalid url');
         }
-        action = action.match(/append|remove|alter/i)[0].toLowerCase()
+
+        lastSynch = new Http();
+        lastSynch.addEventListener( [HttpEvent.SUCCESS,HttpEvent.ERROR,HttpEvent.TIMEOUT] , function(event){
+
+            var error='service error.';
+            var status = 504;
+            if( event.type === HttpEvent.SUCCESS)
+            {
+                var result = event.data;
+                code = result[ options.responseProfile.code ];
+                if( options.successCode == code )
+                {
+                    result = result[ options.responseProfile.data ];
+                    if( action == 'append' && result && primary)
+                    {
+                        data = data instanceof Array ? data : [data];
+                        if( data.length<1 && ( typeof result === "string" || typeof result === "number" ) )
+                        {
+                            data[0][primary] = result;
+
+                        }else if( Utils.isObject(result) )
+                        {
+                            for(var i=0; i<data.length; i++) if( result[ data[i][primary] ] )
+                            {
+                                data[i][primary]=result[ data[i][primary] ];
+                            }
+                        }
+                        dispatch.call(this, DataSourceEvent.SYNCH_SUCCESS,result,index,event);
+                        !this.__fetchCalled__ || this.fetch();
+                    }
+                    return;
+                }
+                error = result[ options.responseProfile.error ];
+
+            } else if( event.type === HttpEvent.TIMEOUT)
+            {
+                error='timeOut';
+                status = 403;
+            }
+            var e = new DataSourceEvent( DataSourceEvent.SYNCH_FAILED )
+            e.originalEvent=event;
+            e.status =status;
+            e.error= error;
+            this.dispatchEvent( e );
+
+        },false,0, this);
+
         var param  = setting.param || {};
-            param[ setting.actionProfile ] = action;
+        param[ setting.actionProfile ] = action;
         param = Utils.serialize(param,'url');
         url = /\?/.test(url) ? url+'&'+param : url+'?'+param;
-        source.send( url, data , setting.method );
+
+        lastSynch.send( url, data , setting.method );
     }
 
     /**
@@ -161,6 +214,7 @@
             'primary':'id',
             'synch':{
                 'enable':false,
+                'asynch':false,
                 'param':{},
                 'method': HttpRequest.METHOD.POST,
                 'actionProfile':'action',
@@ -171,7 +225,8 @@
             'responseProfile':{
                 'data':'data',     //数据集
                 'total':'total',   //数据总数
-                'code': 'code'     //状态码
+                'code': 'code',     //状态码
+                'error': 'error'    //错误消息
             },
             //向服务器请求时需要添加的参数
             'requestProfile':{
@@ -738,6 +793,8 @@
     DataSourceEvent.LOAD_START='dataSourceLoadStart';
     DataSourceEvent.LOAD_COMPLETE='dataSourceLoadComplete';
     DataSourceEvent.WAITING='dataSourceWaiting';
+    DataSourceEvent.SYNCH_SUCCESS='dataSourceSynchSuccess';
+    DataSourceEvent.SYNCH_FAILED='dataSourceSynchfailed';
 
     window.DataSource=DataSource;
     window.DataSourceEvent=DataSourceEvent;
