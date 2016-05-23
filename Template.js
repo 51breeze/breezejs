@@ -64,7 +64,7 @@
         }
         return val;
     }
-    Variable.prototype.isObject=Utils.isObject;
+    Variable.prototype.isObject=Breeze.isObject;
     Variable.prototype.error=function(){return '';}
 
     var getTemplateContent=function( source )
@@ -73,7 +73,7 @@
         template = container = source;
         if( typeof source === 'string' )
         {
-            source= Utils.trim( source );
+            source= Breeze.trim( source );
             if( source.charAt(0) !== '<' )
             {
                 container = Sizzle( source )[0] || '';
@@ -88,7 +88,7 @@
 
         if( typeof container !== "string" )
         {
-            var nodename = Utils.nodeName(container);
+            var nodename = Breeze.nodeName(container);
             template = nodename === 'noscript' ? nodename.innerHTML : container.value;
         }
 
@@ -96,7 +96,7 @@
         {
             throw new Error('invalid template.')
         }
-        return Utils.trim( template );
+        return Breeze.trim( template );
     },
     jscodeReg = /^\s*(if|foreach|for|else|do|switch|case|break|var|function|while|{|})(.*)?/,
     funReg = /^([\w\.]+)\s*\(/,
@@ -199,9 +199,9 @@
            return new Template( view, options );
         }
 
-        if( typeof options !=="undefined" && Utils.isObject(options) )
+        if( typeof options !=="undefined" && Breeze.isObject(options) )
         {
-            var o = Utils.extend({}, _options,options);
+            var o = Breeze.extend({}, _options,options);
             // _split=new RegExp(o.left+'([^'+o.right+']+)'+o.right+'|'+o.shortLeft+'([^'+o.shortRight+']+)'+o.shortRight,'gi');
             this.__split__=new RegExp(o.left+'(.*?)'+o.right+'|'+o.shortLeft+'(.*?)'+o.shortRight,'gi');
         }
@@ -229,7 +229,7 @@
             return this;
 
         if( !(viewport instanceof Breeze) )
-            viewport = Breeze( viewport , context );
+            viewport = Element( viewport , context );
 
         if( viewport.length > 0 )
         {
@@ -346,13 +346,13 @@
                 item = item[ prop[index] ];
                 if( !item )return '';
             }
-            if( item !='' && Utils.isObject( item ,true) )
+            if( item !='' && Breeze.isObject( item ,true) )
             {
-                if( Utils.isObject(item.style,true) )
+                if( Breeze.isObject(item.style,true) )
                 {
-                    item.style=Utils.serialize( item.style , 'style')
+                    item.style=Breeze.serialize( item.style , 'style')
                 }
-                item = Utils.serialize( item , 'attr' );
+                item = Breeze.serialize( item , 'attr' );
             }
             data[key]=item;
             return item.replace(tplReg,parser);

@@ -6,1107 +6,744 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function(window,undefined )
+(function( module ,undefined  )
 {
-
     "use strict";
 
-    if( typeof Sizzle==='undefined' )
-        throw new Error('Breeze require Sizzle engine ');
+    module.Breeze={};
 
-    /**
-     * @private
-     */
-    var version='1.0.0'
-    ,isSimple = /^.[^:#\[\.,]*$/
-    ,breezeCounter=0
-
-    /**
-     * Breeze Class
-     * @param selector
-     * @param context
-     * @constructor
-     */
-    ,Breeze=function(selector,context)
-    {
-        if( typeof selector === 'function' )
-            return Breeze.ready( selector );
-
-        if( selector instanceof Breeze )
-        {
-            selector=selector.toArray();
+    var Breeze= module.Breeze
+    ,fix={
+        attrMap:{
+            'tabindex'       : 'tabIndex',
+            'readonly'       : 'readOnly',
+            'for'            : 'htmlFor',
+            'maxlength'      : 'maxLength',
+            'cellspacing'    : 'cellSpacing',
+            'cellpadding'    : 'cellPadding',
+            'rowspan'        : 'rowSpan',
+            'colspan'        : 'colSpan',
+            'usemap'         : 'useMap',
+            'frameborder'    : 'frameBorder',
+            'class'          : 'className',
+            'contenteditable': 'contentEditable'
         }
-
-        if( !(this instanceof Breeze) )
-            return new Breeze( selector,context );
-
-        this.length=0;
-        if( !Utils.isDefined(selector) && !Utils.isDefined(context) )
-            return this;
-
-        var result=selector;
-        this.context = this.getContext( context );
-        this.selector = selector;
-        if( Utils.isString( selector ) )
-        {
-            selector=Utils.trim(selector);
-            if( selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 )
-            {
-                selector =  Utils.createElement(selector);
-
-            }else if( selector==='body' || selector==='window' || selector==='document' )
-            {
-                var win = Utils.getWindow( this.context ) || window;
-                result= [  win[ selector ] || win.document[selector] || win ];
-            }else
-            {
-                result= Sizzle( selector, this.context );
-            }
-        }
-
-        if( Utils.isWindow(selector) || Utils.isDocument( selector ) )
-        {
-            result=[selector];
-
-        }else if( Utils.isNodeElement(selector) )
-        {
-            result=[selector];
-
-            //新创建的元素直接添加到文档中
-            if( !selector.parentNode || Utils.nodeName(  selector.parentNode ) === '#document-fragment')
-            {
-                this.addChild( result[0] );
-            }
-        }
-
-        //初始化元素管理器
-        Manager.call(this, result );
-
-        //统计实例对象数
-        this.__COUNTER__=++breezeCounter;
+        ,cssMap:{}
     }
-
-    /**
-     * 重新编译元素到Breeze对象上
-     * @param target
-     * @param elems
-     * @param reverted
-     * @returns {Breeze}
-     */
-    ,doMake=function( target, elems ,clear , reverted ,uniqueSort )
-    {
-        if( clear===true )
-        {
-            var revers=target.splice(0,target.length,elems);
-            if( reverted !== true )
-            {
-                if( !target['__reverts__'] )
-                    target['__reverts__']=[];
-                target['__reverts__'].push( revers );
-            }
-        }
-
-        if( uniqueSort && target.length > 1 )
-        {
-            var ret=Sizzle.uniqueSort( target.toArray() );
-            if( ret.length !== target.length ){
-               return doMake(target,ret,true,true,false);
-            }
-        }
-        target.current(null);
-        return target;
+    ,browserPrefix=''
+    ,needAddPrefixStyleName={
+        'box-shadow':true,
+        'border-radius':true,
+        'border-top-left-radius':true,
+        'border-top-right-radius':true,
+        'border-bottom-left-radius':true,
+        'border-bottom-right-radius':true,
+        'focus-ring-color':true,
+        'user-select':true,
+        'radial-gradient':true,
+        'linear-gradient':true,
+        'animation-name':true,
+        'animation-duration':true,
+        'animation-iteration-count':true,
+        'animation-delay':true,
+        'animation-fill-mode':true,
+        'animation-direction':true,
+        'animation-timing-function':true,
+        'animation-play-state':true
     }
-
-    ,doGrep=function( elements, strainer, invert )
+    ,cssAalpha = /alpha\([^)]*\)/i
+    ,cssOpacity = /opacity=([^)]*)/
+    ,cssUpperProp = /([A-Z]|^ms)/g
+    ,cssNum = /^[\-+]?(?:\d*\.)?\d+$/i
+    ,cssNumnonpx = /^-?(?:\d*\.)?\d+(?!px)[^\d\s]+$/i
+    ,cssOperator = /^([\-+])=([\-+.\de]+)/
+    ,cssExpand = [ "Top", "Right", "Bottom", "Left" ]
+    ,cssDashAlpha = /-([a-z]|[0-9])/ig
+    ,cssPrefix = /^-ms-/
+    ,cssCamelCase = function( all, letter )
     {
-        if( !Utils.isFunction(strainer) )
-            return elements;
-        var ret,matches = [],i = 0,length = elements.length,expect = !invert;
-        for( ; i < length; i++ )
-        {
-            ret = !strainer( elements[ i ], i );
-            if ( ret !== expect )matches.push( elements[ i ] );
-        }
-        return matches;
+        return ( letter + "" ).toUpperCase();
     }
-
-    ,doFilter=function( elements, strainer, exclude )
-    {
-        //自定义过滤器
-        if ( Utils.isFunction( strainer ) )
-        {
-            return doGrep( elements, function( elem, i ){
-                return !!strainer.call( elem, i) !== exclude;
-            });
-        }
-
-        //是否为指定的元素
-        if ( Utils.isHTMLElement( strainer ) )
-        {
-            return doGrep( elements, function( elem ) {
-                return ( elem === strainer ) !== exclude;
-            });
-        }
-
-        //保留指定匹配选择器的元素
-        if ( typeof strainer === "string" )
-        {
-            if ( isSimple.test( strainer ) ) {
-                return doFind( elements,strainer );
-            }
-            strainer = doFind( elements, strainer );
-            if( !exclude )return strainer;
-        }
-
-        //排除匹配指定选择器的元素
-        return doGrep( elements, function( elem ) {
-            return ( Utils.inObject( strainer, elem ) >= 0 ) !== exclude;
-        });
+    ,cssNumber={
+        "fillOpacity": true,
+        "fontWeight": true,
+        "lineHeight": true,
+        "opacity": true,
+        "orphans": true,
+        "widows": true,
+        "zIndex": true,
+        "zoom": true
     }
-
-    ,doFind = function( elements, selector )
+    ,cssHooks={}
+    ,increase=function ( value, inc, ret )
     {
-        var ret=[];
-        if( typeof selector === "function" )
-        {
-            ret=doGrep( elements, selector );
-
-        }else if( typeof selector === "string" )
-        {
-            ret=elements.length === 1 && Sizzle.matchesSelector( elements[ 0 ], selector ) ? [ elements[ 0 ] ] : Sizzle.matches( selector, elements );
-        }else
-        {
-            ret=doGrep( elements, function( elem ) { return elem.nodeType === 1; } );
-        }
-        return ret;
-    }
-
-    /**
-     * 递归查找指定属性名的节点元素
-     * @param propName
-     * @param flag
-     * @param strainer
-     * @returns {Array}
-     */
-    ,doRecursion=function(propName,flag,strainer,notSort)
-    {
-        var target,len=!!this.forEachCurrentItem ? 1 : this.length,i= 0,currentItem,
-            ret=[],hasStrainer=Utils.isFunction( strainer);
-        for( ; i< len ; i++)
-        {
-            target= currentItem=this.forEachCurrentItem || this[i];
-            while( currentItem && ( currentItem=currentItem[ propName ] ) )
-            {
-                hasStrainer ? flag=strainer.call( target ,currentItem,ret ) :
-                              currentItem.nodeType===1 && ( ret=ret.concat( currentItem ) );
-                if( flag !== true )break;
-            }
-        }
-        if( ret.length > 1 && !notSort )ret=Sizzle.uniqueSort( ret );
-        return ret;
-    }
-
-    ,dispatchEventAll=function(target,event)
-    {
-        if( target instanceof EventDispatcher &&  target.hasEventListener( event.type ) && !target.dispatchEvent( event ) )
-          return false;
-        return true;
-    }
-   ,dispatchElementEvent=function( target, parent, child , type )
-    {
-        var event=new ElementEvent( type )
-        event.parent=parent;
-        event.child=child
-        event.dispatcher=target;
-        return dispatchEventAll(target, event );
-    }
-    ,getChildNodes=function(element,selector,flag)
-    {
-        var ret=[],isfn=Utils.isFunction(selector);
-        if( element.hasChildNodes() )
-        {
-            var len=element.childNodes.length,index= 0,node;
-            while( index < len )
-            {
-                node=element.childNodes.item(index);
-                if( ( isfn && selector.call(this,node,index) ) || ( !isfn && (selector==='*' || node.nodeType===1) )  )
-                     ret.push( node )
-                if( flag===true && ret.length >0 )break;
-                ++index;
-            }
-        }
-        return ret;
+        ret = ret ===undefined ? typeof value === "string" ?  cssOperator.exec( value ) : null : ret
+        if ( ret && inc>0 )value = ( +( ret[1] + 1 ) * +ret[2] ) + inc;
+        return value;
     };
 
-
     /**
-     * @private
+     * 获取元素相对文档页面边界的矩形坐标。
+     * 如果元素的 position = fixed 或者 force=== true 则相对浏览器窗口的位置
+     * @param NodeElement elem
+     * @param boolean force
+     * @returns {left,top,right,bottom,width,height}
      */
-    var __rootEvent__;
-
-    /**
-     * 全局事件调度器
-     * @returns {EventDispatcher}
-     */
-    Breeze.rootEvent=function()
+    Breeze.getBoundingRect=function( elem , force )
     {
-        if( !__rootEvent__ )
-            __rootEvent__=new EventDispatcher( window );
-        return __rootEvent__;
+        var value={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0,'width':0,'height':0}, box, size;
+        if( Breeze.isWindow(elem) )
+        {
+            size = Breeze.getSize(elem);
+            value.left = elem.screenLeft || elem.screenX;
+            value.top = elem.screenTop || elem.screenY;
+            value.width = size.width;
+            value.height = size.height;
+            value.right = size.width + value.left;
+            value.bottom = size.height + value.top;
+            return value;
+        }
+
+        if( !Breeze.isNodeElement(elem) )throw new Error('invalid elem. elem not is NodeElement');
+        var doc =  elem.ownerDocument || elem, docElem=doc.documentElement;
+        var scroll = Breeze.scroll( Breeze.getWindow(doc) );
+        if( "getBoundingClientRect" in document.documentElement )
+        {
+            box = elem.getBoundingClientRect();
+            var clientTop = docElem.clientTop || doc.body.clientTop || 0, clientLeft = docElem.clientLeft || doc.body.clientLeft || 0;
+            value.top = box.top + scroll.top - clientTop;
+            value.left = box.left + scroll.left - clientLeft;
+            value.right = box.right + scroll.left - clientLeft;
+            value.bottom = box.bottom + scroll.top - clientTop;
+            value.width = box.width || box.right-box.left;
+            value.height = box.height || box.bottom-box.top;
+
+        }else
+        {
+            size = Breeze.getSize( elem );
+            value.width = size.width;
+            value.height=size.height;
+            do {
+                value.top += elem.offsetTop;
+                value.left += elem.offsetLeft;
+                elem = elem.offsetParent;
+            } while (elem);
+            value.right = value.width+value.left;
+            value.bottom = value.height+value.top;
+        }
+
+        //始终相对浏览器窗口的位置
+        if( Breeze.style(elem,'position') === 'fixed' || force===true )
+        {
+            value.top -= scroll.top;
+            value.left -= scroll.left;
+            value.right -= scroll.left;
+            value.bottom -= scroll.top;
+        }
+        return value;
     }
 
     /**
-     * 文档准备就绪时回调
-     * @param callback
-     * @return {EventDispatcher}
+     * 获取元素大小
+     * @param NodeElement elem
+     * @param string prop  width|height
+     * @param boolean border 默认为ture 包括边框，false 不包括边框
+     * @returns {*|number}
      */
-    Breeze.ready=function( callback )
-    {
-        return Breeze.rootEvent().addEventListener( BreezeEvent.READY , callback );
-    }
+      Breeze.getSize=function( elem, prop, border )
+      {
+          var size ={width:0,height:0};
+          if( Breeze.isWindow(elem) )
+          {
+              var docElem = elem.document.documentElement;
+              size.width=Math.max(elem.innerWidth || 0, elem.offsetWidth || 0,elem.clientWidth || 0, docElem.clientWidth || 0);
+              size.height=Math.max(elem.innerHeight || 0, elem.offsetHeight || 0,elem.clientHeight || 0, docElem.clientHeight || 0);
 
+          }else if( Breeze.isDocument(elem) )
+          {
+                var docElem = elem.documentElement;
+                size.width=Math.max(
+                    elem.body.scrollWidth  || 0, docElem.scrollWidth || 0
+                    ,elem.body.offsetWidth || 0, elem.offsetWidth || 0
+                    ,elem.body.clientWidth || 0, elem.clientWidth || 0
+                );
+                size.height+=docElem.clientLeft || 0;
 
-    //======================================================================================
-    //  Extends module class
-    //======================================================================================
+                size.height=Math.max(
+                    elem.body.scrollHeight  || 0, docElem.scrollHeight || 0
+                    ,elem.body.offsetHeight || 0, elem.offsetHeight || 0
+                    ,elem.body.clientHeight || 0, elem.clientHeight || 0
+                );
+               size.height+=docElem.clientTop || 0;
+
+          }else if ( typeof elem.offsetWidth !== "undefined"  )
+          {
+              size.width = elem.offsetWidth;
+              size.height = elem.offsetHeight;
+              border = arguments[ arguments.length-1 ] !== false;
+
+              var margin= Breeze.isBrowser( Breeze.BROWSER_IE, 9 ,'<');
+              for ( var i=0 ; i < 4; i ++ )
+              {
+                    //val -= parseFloat( Breeze.style( elem, "padding" + cssExpand[ i ] ) ) || 0;
+                    //如果没有指定带 border 宽，默认不带边框的宽
+                    if( !border )
+                    {
+                        size[ i%2==0 ? 'width' : 'height' ]-= parseFloat( Breeze.style( elem, "border"+cssExpand[ i ]+"Width" ) ) || 0;
+                    }
+
+                    //ie9 以下 offsetWidth 会包括 margin 边距。
+                    if( margin )
+                    {
+                        size[ i%2==0 ? 'width' : 'height']-= parseFloat( Breeze.style( elem, "margin"+cssExpand[ i ]  ) ) || 0;
+                    }
+              }
+
+          }else
+          {
+             size.width = parseInt( Breeze.style(elem,'width') ) || 0;
+             size.height = parseInt( Breeze.style(elem,'height') ) || 0;
+             for ( var i=0 ; i < 4; i ++  )
+             {
+                size[ i%2==0 ? 'width' : 'height'] += parseFloat( Breeze.style( elem, "padding" + cssExpand[ i ] ) ) || 0;
+             }
+          }
+          return typeof prop === "string" ? size[ prop.toLowerCase() ] || 0 : size;
+      };
 
     /**
-     * Extends EventDispatcher Class
-     * @type {EventDispatcher}
-     */
-    Breeze.prototype=new Manager();
-
-    //============================================================
-    //  Defined Instance Propertys
-    //============================================================
-
-    //Breeze 构造方法
-    Breeze.prototype.constructor=Breeze;
-
-    //每个Breeze对象的DOM元素的作用域
-    Breeze.prototype.context=null;
-
-    //使用的选择器
-    Breeze.prototype.selector=null;
-
-    //============================================================
-    //  Defined Public Method
-    //============================================================
-
-    /**
-     * 返回此对象名称
-     * @returns {string}
-     */
-    Breeze.prototype.toString=function()
-    {
-        return 'breeze_'+this.__COUNTER__;
-    }
-
-    /**
-     * 判断指定的选择器是否在当前匹配的项中。
-     * @param selector
+     * @param name
      * @returns {*}
      */
-    Breeze.prototype.has=function( selector )
+    Breeze.attrMap=function( name )
     {
-        if( typeof selector === "undefined" )
-            throw  new Error('invalid selector');
-        var is = Utils.isFunction(selector);
-        var result=false;
-        this.forEach(function(elem)
+        return fix.attrMap[name] || name;
+    }
+
+    /**
+     * 一组代表某个浏览器的常量
+     * @type {string}
+     */
+    Breeze.BROWSER_IE='IE';
+    Breeze.BROWSER_FIREFOX='FIREFOX';
+    Breeze.BROWSER_CHROME='CHROME';
+    Breeze.BROWSER_OPERA='OPERA';
+    Breeze.BROWSER_SAFARI='SAFARI';
+    Breeze.BROWSER_MOZILLA='MOZILLA';
+
+
+    /**
+     * @private;
+     */
+    var _client;
+
+    /**
+     * 判断是否为指定的浏览器
+     * @param type
+     * @returns {string|null}
+     */
+    Breeze.isBrowser=function( type,version,expr ){
+        expr = expr || '<';
+        if( typeof _client === 'undefined' )
         {
-            var ret = is ? !!selector.call( elem ) : Sizzle.matchesSelector( elem , selector );
-            if( ret ) {
-                result=true;
-                return result;
-            }
-        });
+            _client = {};
+            var ua = navigator.userAgent.toLowerCase();
+            var s;
+            (s = ua.match(/msie ([\d.]+)/))             ? _client[Breeze.BROWSER_IE]       = parseFloat(s[1]) :
+                (s = ua.match(/firefox\/([\d.]+)/))         ? _client[Breeze.BROWSER_FIREFOX]  = parseFloat(s[1]) :
+                    (s = ua.match(/chrome\/([\d.]+)/))          ? _client[Breeze.BROWSER_CHROME]   = parseFloat(s[1]) :
+                        (s = ua.match(/opera.([\d.]+)/))            ? _client[Breeze.BROWSER_OPERA]    = parseFloat(s[1]) :
+                            (s = ua.match(/version\/([\d.]+).*safari/)) ? _client[Breeze.BROWSER_SAFARI]   = parseFloat(s[1]) :
+                                (s = ua.match(/^mozilla\/([\d.]+)/))        ? _client[Breeze.BROWSER_MOZILLA]  = parseFloat(s[1]) : null ;
+        }
+        var result =_client[type];
+        if( typeof result !== "undefined" && typeof version !== 'undefined' )
+        {
+            version = parseFloat(version);
+            if( isNaN(version) )return false;
+            eval('result = result ' + expr.replace(/\s*/, '') + ' version;');
+        }
         return result;
     }
 
-    /**
-     * 指定的选择器是否为当前作用域的子级
-     * @param selector
-     * @returns {boolean}
-     */
-    Breeze.prototype.contains=function( selector )
+    // fix style name add prefix
+    if( Breeze.isBrowser(Breeze.BROWSER_FIREFOX,4,'<=') )
     {
-        return Sizzle( selector, this.getContext() ).length > 0;
+        browserPrefix='-moz-';
+
+    }else if( Breeze.isBrowser(Breeze.BROWSER_SAFARI) || Breeze.isBrowser(Breeze.BROWSER_CHROME) )
+    {
+        browserPrefix='-webkit-';
+
+    }else if(Breeze.isBrowser(Breeze.BROWSER_OPERA))
+    {
+        browserPrefix='-o-';
+
+    }else if(Breeze.isBrowser(Breeze.BROWSER_IE,9,'>='))
+    {
+        browserPrefix='-ms-';
     }
 
     /**
-     * 回撒到指定步骤的选择器所匹配的元素,不包含初始化的步骤。
-     * @param step
-     * @returns {Breeze}
+     * 获取浏览器前缀
+     * @returns {string}
      */
-    Breeze.prototype.revert=function( step )
+    Breeze.getBrowserPrefix=function()
     {
-        var reverts= this['__reverts__'];
-        var len=reverts ? reverts.length : 0;
-        if( len > 0 )
+        return browserPrefix;
+    }
+
+    /**
+     * @private;
+     */
+    var getStyle;
+
+    /**
+     * 获取元素的样式
+     * @param elem
+     * @param name
+     * @returns {*}
+     */
+    if( document.defaultView && document.defaultView.getComputedStyle )
+    {
+        //fix.cssMap['float']='cssFloat';
+        getStyle= function( elem, name )
         {
-            step = step || -1;
-            step= step < 0 ? step+len : step;
-            step=step >= len ? 0 : step;
-            doMake( this, reverts.splice(step, len-step).shift() ,true , true );
-        }
-        return this;
-    }
+            if( typeof name === "undefined" ) return elem.style
+            if( name==='cssText' )return (elem.style || {} ).cssText || '';
+            var ret='',computedStyle;
+            if( name==='' )return '';
+            computedStyle=document.defaultView.getComputedStyle( elem, null );
 
-    //==================================================
-    // 筛选匹配元素
-    //==================================================
-
-    /**
-     * 筛选指定开始和结束索引值的元素。
-     * @returns {Breeze}
-     */
-    Breeze.prototype.range=function(startIndex,endIndex)
-    {
-        return doMake( this, this.slice(startIndex,endIndex),true );
-    }
-
-    /**
-     * 筛选元素等于指定的索引
-     * @param index
-     * @returns {Breeze}
-     */
-    Breeze.prototype.eq=function( index )
-    {
-        if( typeof index !== "number" || typeof this[index] === "undefined")
-           throw new Error('invalid index');
-        return doMake( this,[ this[index] ],true);
-    }
-
-    /**
-     * 筛选大于索引的元素
-     * @param index
-     * @returns {Breeze}
-     */
-    Breeze.prototype.gt=function( index )
-    {
-        return doMake( this, doGrep(this,function(elem,i){
-            return i > index;
-        }),true);
-    }
-
-    /**
-     * 筛选小于索引的元素
-     * @param index
-     * @returns {Breeze}
-     */
-    Breeze.prototype.lt=function( index )
-    {
-        return doMake( this, doGrep(this,function(elem,i){
-            return i < index;
-        }),true);
-    }
-
-    /**
-     * 筛选元素不等于指定筛选器的元素
-     * @param index
-     * @returns {Breeze}
-     */
-    Breeze.prototype.not=function( selector , returned )
-    {
-        if( !Utils.isDefined(selector) )
-            throw new Error('invalid selector')
-
-        var results=this.toArray();
-        if( Utils.isNumber(selector) )
-        {
-            selector=[ this[ selector ] ];
-        }
-
-        if( Utils.isSelector( selector ) )
-        {
-            selector= doFind(this, selector );
-        }
-        doGrep(selector,function(a){
-            results=doGrep(results,function(b){
-                return a !== b;
-            })
-        });
-        return returned ? results : doMake( this, results ,true );
-    }
-
-    /**
-     * 从元素集中来检索符合回调函数的元素
-     * @param elems
-     * @param callback
-     * @param invert
-     * @returns {Breeze}
-     */
-    Breeze.prototype.grep=function( strainer, invert , returned )
-    {
-        var results = doGrep(this,strainer,invert);
-        return returned ? results : doMake( this, results ,true );
-    }
-
-    /**
-     * 查找当前匹配的第一个元素下的指定选择器的元素
-     * @param selector
-     * @returns {Breeze}
-     */
-    Breeze.prototype.find=function( selector , returned )
-    {
-        if( !Utils.isString(selector) )
-         throw new Error('invalid selector')
-        var results = Sizzle( selector , this.getContext() );
-        return returned ? results : doMake( this, results ,true );
-    }
-
-    /**
-     * 返回符合过滤器条件的元素集
-     * @param strainer
-     * @returns {Breeze}
-     */
-    Breeze.prototype.filter=function(strainer, returned )
-    {
-        var results = doFilter(this,strainer,false);
-        return returned ? results : doMake( this, results ,true );
-    }
-
-    /**
-     * 查找所有匹配元素的父级元素或者指定selector的父级元素（不包括祖辈元素）
-     * @param selector
-     * @returns {Breeze}
-     */
-    Breeze.prototype.parent=function(selector, returned )
-    {
-        var results=doRecursion.call(this,'parentNode',false);
-        results=Utils.isString(selector) ? doFind(results,selector) : results;
-        return returned ? results : doMake( this, results ,true );
-    }
-
-    /**
-     * 查找所有匹配元素的祖辈元素或者指定selector的祖辈元素。
-     * @param selector
-     * @returns {Breeze}
-     */
-    Breeze.prototype.parents=function( selector , returned )
-    {
-        var is = Utils.isFunction(selector);
-        var results=doRecursion.call(this,'parentNode',true, selector===undefined ? null : function(element,ret)
-        {
-            if(  ( is && ( element=selector.call(this,element) ) ) ||
-                 ( element.nodeType===1 && Sizzle.matchesSelector( element, selector ) ) )
+            if( cssHooks[name] && typeof cssHooks[name].get === "function" )return cssHooks[name].get.call(elem,computedStyle,name) || '';
+            if( computedStyle )
             {
-                ret.push(element);
-                return false;
+                name=Breeze.styleName( name );
+                ret = computedStyle.getPropertyValue( name );
+                ret = ret === "" && Breeze.hasStyle(elem) ? elem.style[name] : ret;
             }
-            return true;
-        });
-        return returned ? results : doMake( this, results ,true );
-    }
-
-    /**
-     * 获取所有匹配元素向上的所有同辈元素,或者指定selector的同辈元素
-     * @param name
-     * @returns {Breeze}
-     */
-    Breeze.prototype.prevAll=function( selector, returned )
-    {
-        var results=doRecursion.call(this,'previousSibling',true);
-        results=Utils.isString(selector) ? doFind(results,selector) : results
-        return returned ? results : doMake( this, results ,true );
-    }
-
-    /**
-     * 获取所有匹配元素紧邻的上一个同辈元素,或者指定selector的同辈元素
-     * @param name
-     * @returns {Breeze}
-     */
-    Breeze.prototype.prev=function(selector,returned)
-    {
-        var results=doRecursion.call(this,'previousSibling',false);
-        results=Utils.isString(selector) ? doFind(results,selector) : results;
-        return returned ? results : doMake( this, results ,true );
-    }
-
-    /**
-     * 获取所有匹配元素向下的所有同辈元素或者指定selector的同辈元素
-     * @param name
-     * @returns {Breeze}
-     */
-    Breeze.prototype.nextAll=function( selector ,returned )
-    {
-        var results=doRecursion.call(this,'nextSibling',true);
-        results=Utils.isString(selector) ? doFind(results,selector) : results;
-        return returned ? results : doMake( this, results ,true );
-    }
-
-    /**
-     * 获取每一个匹配元素紧邻的下一个同辈元素或者指定selector的同辈元素
-     * @param name
-     * @returns {Breeze}
-     */
-    Breeze.prototype.next=function(selector, returned )
-    {
-        var results=doRecursion.call(this,'nextSibling',false);
-        results=Utils.isString(selector) ? doFind(results,selector) : results
-        return returned ? results : doMake( this, results ,true );
-    }
-
-    /**
-     * 获取每一个匹配元素的所有同辈元素
-     * @param name
-     * @returns {Breeze}
-     */
-    Breeze.prototype.siblings=function(selector,returned)
-    {
-        var results=[].concat( doRecursion.call(this,'previousSibling',true,null,true) , doRecursion.call(this,'nextSibling',true,null,true) )
-        results=Sizzle.uniqueSort( results );
-        if( Utils.isString(selector) )results= doFind(results,selector);
-        return returned ? results : doMake( this, results ,true );
-    }
-
-    /**
-     * 查找所有匹配元素的所有子级元素，不包括孙元素
-     * @param selector 如果是 * 返回包括文本节点的所有元素。不指定返回所有HTMLElement 元素。
-     * @returns {Breeze}
-     */
-    Breeze.prototype.children=function( selector , returned )
-    {
-        var has=true;
-        if( Utils.isString( selector ) )
-        {
-            selector=Utils.trim(selector);
-            has = selector !== '*';
+            return ret;
         };
 
-        var results=[];
-        this.forEach(function(element)
-        {
-           if( !Utils.isFrame( element ) )
-               results=results.concat( selector==='*' ?  Sizzle( '*' ,element) : DataArray.prototype.slice.call( element.childNodes,0 ) );
-        })
-        if( this.length > 1 && !has )results= Sizzle.uniqueSort(results);
-        if( has )results=doFind(results,selector);
-        return returned ? results : doMake( this, results ,true );
-    }
-
-    //=================================================
-    // DOM Element 操作,这是一些破坏性的操作
-    //=================================================
-
-    // 外部操作
-    /**
-     * 为当前所匹配每个项的位置添加元素
-     * @param element 要添加的元素
-     * @param index 是否添加到元素的前面
-     * @returns {Breeze}
-     */
-    Breeze.prototype.addElementAt=function( element,index )
+    }else
     {
-        var before = !!index;
-        if( typeof index === 'number' )
+
+       // fix.cssMap['float']='styleFloat';
+        fix.cssMap['alpha']='opacity';
+        fix.attrMap['class']='className';
+        getStyle=function( elem, name )
         {
-            this.index( index );
-            before=false;
-        }
-        this.forEach(function(parent){
-            this.current( parent.parentNode ).addChildAt( element, before ? parent : parent.nextSibling );
-        })
-        return this;
-    }
+            var left='', rsLeft,hook=cssHooks[name]
+                ,style =  elem.currentStyle || elem.style || {};
 
-    /**
-     * 删除当前匹配的元素
-     * @param index 删除指定位置的元素,如果不指定则会删除所有匹配的元素。
-     * @returns {Breeze}
-     */
-    Breeze.prototype.removeElement=function( index )
-    {
-        if( typeof index==='number' )
-            this.index( index );
-        this.forEach(function(element){
-            this.removeChildAt( element );
-        })
-        return this;
-    }
+            if( typeof name === "undefined" ) return style;
+            if( name==='cssText' )return (style.style || {} ).cssText || '';
 
-    //内部操作
+            name=Breeze.styleName( name );
+            if( name==='' )return '';
+            var ret = style[ name ] || '';
+            if( hook && hook.get )ret=hook.get.call(elem,style,name) || '';
 
-
-    /**
-     * 移除指定的子级元素
-     * @param childElemnet|selector
-     * @returns {Breeze}
-     */
-    Breeze.prototype.removeChild=function( childElemnet )
-    {
-        if( typeof childElemnet==='string' )
-        {
-            this.forEach(function(elem)
+            //在ie9 以下将百分比的值转成像素的值
+            if( cssNumnonpx.test( ret ) )
             {
-                var children=Sizzle(childElemnet,elem), b=0,len=children.length;
-                for( ; b<len ; b++)if( children[i] && children[i].nodeType===1 && children[i].parentNode )
+                left = elem.style.left;
+                rsLeft = elem.runtimeStyle && elem.runtimeStyle.left;
+                if ( rsLeft )elem.runtimeStyle.left = elem.currentStyle.left;
+                elem.style.left = name === "fontSize" ? "1em" : ret;
+                ret = elem.style.pixelLeft + "px";
+                elem.style.left = left;
+                if ( rsLeft )elem.runtimeStyle.left = rsLeft;
+            }
+            return ret;
+        };
+
+        cssHooks.opacity={
+            get: function( style )
+            {
+                return cssOpacity.test( style.filter || "" ) ? parseFloat( RegExp.$1 ) / 100 : 1;
+            },
+            set: function( style, value )
+            {
+                value=isNaN(value) ? 1 : Math.max( ( value > 1 ? ( Math.min(value,100) / 100 ) : value ) , 0 )
+                var opacity = "alpha(opacity=" + (value* 100) + ")", filter = style.filter || "";
+                style.zoom = 1;
+                style.filter = Breeze.trim( filter.replace(cssAalpha,'') + " " + opacity );
+                return true;
+            }
+        };
+    }
+
+    if( Breeze.isBrowser(Breeze.BROWSER_IE,8,'<') )
+    {
+        cssHooks.height={
+            set: function( style, value )
+            {
+                if( /(\d+[^\%]+)\s*$/.test(value) )
                 {
-                    this.removeChildAt( children[i] );
+                    value = parseInt( value );
+                    var top = parseInt( Breeze.style(this,'paddingTop') ) || 0;
+                    var bottom = parseInt(  Breeze.style(this,'paddingBottom' ) ) || 0;
+                    value = (value-top-bottom)+'px';
                 }
-            })
-
-        }else
-        {
-            this.removeChildAt( childElemnet );
-        }
-        return this;
-    }
-
-    /**
-     * 移除子级元素
-     * @param childElemnet|index|fn  允许是一个节点元素或者是相对于节点列表中的索引位置（不包括文本节点）。
-     *        也可以是一个回调函数过滤要删除的子节点元素。
-     * @returns {Breeze}
-     */
-    Breeze.prototype.removeChildAt=function( index )
-    {
-        var is=false;
-        if(  index !== undefined && index.parentNode ){
-            this.current( index.parentNode )
-            is=true;
-        }else if( !Utils.isNumber( index ) )
-            throw new Error('Invalid param the index. in removeChildAt');
-
-        return this.forEach(function(parent)
-        {
-            var child= is ? index : this.getChildAt( index );
-            if( removeChild(this,parent,child) && is )
-              return this;
-        });
-    }
-
-    var removeChild= function(target,parent,child)
-    {
-        if( child && parent.hasChildNodes() && child.parentNode === parent &&
-            dispatchElementEvent(target,parent,child,ElementEvent.BEFORE_CHILD_REMOVE ) )
-        {
-            var result=parent.removeChild( child );
-            dispatchElementEvent(target,parent,child,ElementEvent.CHILD_REMOVE );
-            return !!result;
-        }
-        return false;
-    }
-
-    /**
-     * 添加子级元素（所有已匹配的元素）
-     * @param childElemnet
-     * @returns {Breeze}
-     */
-    Breeze.prototype.addChild=function( childElemnet )
-    {
-        return this.addChildAt(childElemnet,-1);
-    }
-
-    /**
-     * 在指定位置加子级元素（所有已匹配的元素）。
-     * 如果 childElemnet 是一个已存在的元素，那么会先删除后再添加到当前匹配的元素中后返回，后续匹配的元素不会再添加此元素。
-     * @param childElemnet 要添加的子级元素
-     * @param index | refChild | fn(node,index,parent)  要添加到的索引位置
-     * @returns {Breeze}
-     */
-    Breeze.prototype.addChildAt=function(childElemnet,index)
-    {
-        if( childElemnet instanceof Breeze )
-        {
-            childElemnet=childElemnet.toArray();
-            for( var c=0; c<childElemnet.length; c++)
-            {
-                 this.addChildAt( childElemnet[c], index );
+                style['height']=value
+                return true;
             }
-            return this;
-        }
+        };
 
-        if( index===undefined )
-            throw new Error('Invalid param the index. in addChildAt');
-
-        var isElement= childElemnet && childElemnet.nodeType && typeof childElemnet.nodeName === 'string';
-
-        //如果没有父级元素则设置上下文为父级元素
-        if( this.length === 0 && !this.current() )
-        {
-            var context = this.getContext();
-            this.current( context === document ? document.body : context );
-        }
-
-        return this.forEach(function(parent)
-        {
-            if( !Utils.isHTMLElement( parent ) )
+        cssHooks.width={
+            set: function( style, value )
             {
-                throw new Error('invalid parent HTMLElement.');
-            }
-
-            try{
-                var child=isElement ? childElemnet : Utils.createElement( childElemnet );
-            }catch(e){
-                throw new Error('The childElemnet not is HTMLElement. in addChildAt');
-            }
-
-            if( child.parentNode !== parent && dispatchElementEvent(this,parent,child,ElementEvent.BEFORE_CHILD_ADD ) )
-            {
-                if( child.parentNode )
+                if( /(\d+[^\%]+)\s*$/.test(value) )
                 {
-                   this.removeChildAt( child );
+                    value = parseInt( value );
+                    var top = parseInt( Breeze.style(this,'paddingLeft') ) || 0;
+                    var bottom = parseInt(  Breeze.style(this,'paddingRight' ) ) || 0;
+                    value = (value-top-bottom)+'px';
                 }
-                this.current(parent);
-                var refChild=index && index.parentNode && index.parentNode===parent ? index : null;
-                    !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
-                    refChild && (refChild=index.nextSibling);
-                parent.insertBefore( child , refChild || null );
-                dispatchElementEvent(this,parent,child,ElementEvent.CHILD_ADD );
+                style['width']=value;
+                return true;
             }
-            if( isElement ) return this;
-        })
+        };
     }
 
-    /**
-     * 返回指定索引位置的子级元素( 匹配选择器的第一个元素 )
-     * 此方法只会计算节点类型为1的元素。
-     * @param index | refChild | fn(node,index,parent)
-     * @returns {Node|null}
-     */
-    Breeze.prototype.getChildAt=function( index )
-    {
-        return this.forEach(function(parent)
-        {
-            var childNodes,child=null;
-            if( parent.hasChildNodes() )
-            {
-                if( typeof index === 'function' )
-                {
-                    child=getChildNodes.call(this, parent ,index ,true)[0];
+    //set hooks
+    cssHooks.userSelect={
 
-                }else if( typeof index === 'number' )
-                {
-                    childNodes=getChildNodes.call(this,parent);
-                    index=index < 0 ? index+childNodes.length : index;
-                    child=index >= 0 && index < childNodes.length ? childNodes[index] : null;
-                }
-            }
-            return child;
-        })
-    }
-
-    /**
-     * 返回子级元素的索引位置( 匹配选择器的第一个元素 )
-     * @param childElemnet | selector
-     * @returns {Number}
-     */
-    Breeze.prototype.getChildIndex=function( childElemnet )
-    {
-        if( typeof childElemnet==='string' )
+        get: function( style, name )
         {
-            childElemnet=Sizzle.matches( childElemnet, this.toArray() )[0];
-            if( !childElemnet )return -1;
-            this.current( childElemnet.parentNode );
+            return style[ fix.cssMap.fetch ] || '';
+        },
+        set: function( style, value )
+        {
+            style[ Breeze.styleName('userSelect') ] = value;
+            style['-moz-user-fetch'] = value;
+            style['-webkit-touch-callout'] = value;
+            style['-khtml-user-fetch'] = value;
+            return true;
         }
+    }
 
-        var parent = this.current();
-        if( childElemnet.parentNode===parent )
+    cssHooks.triangle={
+
+        get: function( style, name )
         {
-            return this.indexOf.call( getChildNodes(parent), childElemnet );
+            return Breeze.storage(this,'style-triangle') || '';
+        },
+        set: function( style, value )
+        {
+            Breeze.storage(this,'style-triangle', value);
+            // 40px #000 0ang
+            value=value.match(/(\S+)/g);
+            var size = value[0];
+            var color = value[1] || '#000';
+            var ang  = parseInt(value[2]) || 0;
+            var px =  value.match(/(px|em|rem)$/) || 'px';
+            size = parseInt( size ) || 4;
+            size = size+px;
+            style['display'] = 'inline-block';
+            style['border-top'] = size+' solid '+color;
+            style['border-right'] = size+' solid transparent';
+            style['border-left'] = size+' solid transparent';
+            return true;
         }
-        return -1;
     }
 
-    /**
-     * 返回指定的元素在当前匹配项中的位置
-     * @param childElemnet | selector
-     * @returns {Number}
-     */
-    Breeze.prototype.getElementIndex=function( elemnet )
-    {
-        var index = 0;
-        for(; index< this.length ; index++) if( elemnet === this[index] )
+   cssHooks.radialGradient=cssHooks.linearGradient={
+
+        get: function( style, name )
         {
-           return index;
-        }
-        return -1;
-    }
-
-    /**
-     * 用指定的元素来包裹当前所有匹配到的元素
-     * @param element
-     * @returns {Breeze}
-     */
-    Breeze.prototype.wrap=function( element )
-    {
-       var is=Utils.isFunction( element );
-       return this.forEach(function(elem,index)
-       {
-            var wrap=Utils.createElement( is ? element.call(this,elem,index) : element );
-            this.current( elem.parentNode ).addChildAt( wrap , elem );
-            this.current( wrap ).addChildAt( elem ,-1);
-       });
-    }
-
-    /**
-     * 取消当前所有匹配元素的父级元素。不指定选择器则默认为父级元素，否则为指定选择器的祖辈元素。
-     * 父级或者祖辈元素只能是body的子元素。
-     * @param selector
-     * @returns {Breeze}
-     */
-    Breeze.prototype.unwrap=function( selector )
-    {
-        var is= typeof selector === "undefined";
-        return this.forEach(function(elem)
+            return  Breeze.storage(this,name) || '';
+        },
+        set: function( style, value, name )
         {
-            var parent= is ?  elem.parentNode : this.parent( selector , true)[0];
-            if( parent && parent.ownerDocument && Sizzle.contains( parent.ownerDocument.body, parent ) )
-            {
-               var children=this.current( parent ).children('*',true);
-               if( parent.parentNode )
-               {
-                   this.current( parent.parentNode );
-                   var len=children.length,i=0;
-                   while( i<len ){
-                      this.addChildAt( children[ i++ ], parent );
-                   }
-                   this.removeChildAt( parent );
-               }
-            }
-        });
-    }
+            value = Breeze.trim(value);
+            Breeze.storage(this,name,value);
 
-    /**
-     * 获取或者设置 html
-     * @param html
-     * @returns {string | Breeze}
-     */
-    Breeze.prototype.html=function( html , outer )
-    {
-        outer = !!outer;
-        var write= typeof html !== "undefined";
-        if( !write && this.length < 1 ) return '';
-
-        return this.forEach(function(elem)
-        {
-            if( !write || Utils.isBoolean(html) )
+            if( Breeze.isBrowser(Breeze.BROWSER_SAFARI,5.1,'<') || Breeze.isBrowser(Breeze.BROWSER_CHROME,10,'<') )
             {
-                html = html===true ? Utils.getHtml(elem,true) : elem.innerHTML;
-                return html;
-            }
-
-            if( elem.hasChildNodes() )
-            {
-                var nodes=elem.childNodes;
-                var len=nodes.length,b=0;
-                for( ; b < len ; b++ ) if( nodes[b] )
+                var position='';
+                var deg= 0;
+                if(name==='radialGradient')
                 {
-                   if( !removeChild( this, elem, nodes[b] ) )
-                     return this;
-                }
-            }
-
-            if( outer && elem.parentNode && elem.parentNode.ownerDocument && Utils.contains(elem.parentNode.ownerDocument.body, elem.parentNode) )
-            {
-                this.current( elem.parentNode );
-            }
-
-            if( typeof html === "string" )
-            {
-                html = Utils.trim( html );
-                var target = this.current();
-
-                try{
-                    target.innerHTML = html;
-                }catch(e)
-                {
-                    var nodename = Utils.nodeName( target );
-                    if( !new RegExp("^<"+nodename).exec(html) )
-                    {
-                        html= Utils.sprintf('<%s>%s</%s>',nodename,html,nodename);
+                    position=value.match(/([^\#]*)/);
+                    if( position ){
+                        position = position[1].replace(/\,\s*$/,'');
+                        value=value.replace(/([^\#]*)/,'')
                     }
-                    var child= Utils.createElement( html );
-                    var deep =  nodename === 'tr' ? 2 : 1,d=0;
-                    while( d < deep && child.firstChild)
+                    value = value.split(',');
+                }else
+                {
+                    var deg = value.match(/^(\d+)deg/);
+                    value = value.split(',');
+                    if( deg )
                     {
-                        d++;
-                        child=child.firstChild;
+                        deg = deg[1]
+                        value.splice(0,1);
                     }
-                    Utils.mergeAttributes(child, target);
-                    target.parentNode.replaceChild(child,  target );
-                    this.splice( this.indexOf( target ), 1, child );
+                    deg=parseFloat(deg) || 0;
                 }
+                var color = [];
+                for(var i=0; i<value.length; i++)
+                {
+                    var item = Breeze.trim(value[i]).split(/\s+/,2);
+                    if( i===0 )color.push("from("+item[0]+")");
+                    if( !(i===0 || i===value.length-1 ) || typeof item[1] !== "undefined"  )
+                    {
+                        var num = (parseFloat(item[1]) || 0) / 100;
+                        color.push( "color-stop("+num+","+item[0]+")" );
+                    }
+                    if( i===value.length-1 )
+                        color.push("to("+item[0]+")");
+                }
+
+                var width= Breeze.getSize(this,'width');
+                var height=  Breeze.getSize(this,'height');
+                if(name==='radialGradient')
+                {
+                    position = position.split(/\,/,2)
+                    var point = Breeze.trim(position[0]).split(/\s+/,2);
+                    if(point.length===1)point.push('50%');
+                    var point = point.join(' ');
+                    position=point+',0, '+point+', '+width/2;
+                    value=Breeze.sprintf("%s,%s,%s",'radial',position,color.join(',') );
+
+                }else{
+
+                    var x1=Math.cos(  deg*(Math.PI/180) );
+                    var y1=Math.sin(  deg*(Math.PI/180) );
+                    value=Breeze.sprintf("%s,0% 0%,%s %s,%s",'linear',Math.round(x1*width),Math.round(y1*height),color.join(',') );
+                }
+                name='gradient';
+
+            }else if( !value.match(/^(left|top|right|bottom|\d+)/) && name==='linearGradient' )
+            {
+                value= '0deg,'+value;
+
+            }else if( name==='linearGradient' )
+            {
+                value= value.replace(/^(\d+)(deg)?/,'$1deg')
+            }
+
+            var prop = 'background-image';
+            if(  Breeze.isBrowser(Breeze.BROWSER_IE,10,'<') )
+            {
+                value=value.split(',')
+                var deg = value.splice(0,1).toString();
+                deg = parseFloat( deg ) || 0;
+                var color=[];
+                for(var i=0; i<value.length; i++)
+                {
+                    var item = Breeze.trim(value[i]).split(/\s+/,2);
+                    color.push( i%1===1 ? "startColorstr='"+item[0]+"'" :  "endColorstr='"+item[0]+"'" );
+                }
+                var type = deg % 90===0 ? '1' : '0';
+                var linear = name==='linearGradient' ? '1' : '2';
+                value = 'alpha(opacity=100 style='+linear+' startx=0,starty=5,finishx=90,finishy=60);';
+                value= style.filter || '';
+                value += Breeze.sprintf(";progid:DXImageTransform.Microsoft.gradient(%s, GradientType=%s);",color.join(','), type );
+                value += "progid:DXImageTransform.Microsoft.gradient(enabled = false);";
+                prop='filter';
 
             }else
             {
-                this.addChild(html);
+                value= Breeze.sprintf('%s(%s)', Breeze.styleName( name ) , value ) ;
             }
-        });
-    }
-
-    //访问和操作属性值
-    function access(name,newValue,callback,dispatchEvent)
-    {
-        var write= typeof newValue !== 'undefined';
-        if( !write && this.length < 1 )return null;
-
-        return this.forEach(function(elem)
-        {
-            var oldValue= callback.get.call(elem,name,this);
-            if( !write ) return oldValue;
-            if( oldValue !== newValue )
-            {
-                callback.set.call(elem,name,newValue);
-                if( dispatchEvent )
-                {
-                    var event = dispatchEvent===StyleEvent.CHANGE ?  new StyleEvent( StyleEvent.CHANGE ) :  new PropertyEvent( PropertyEvent.CHANGE );
-                    event.property = name;
-                    event.newValue = newValue;
-                    event.oldValue = oldValue;
-                    dispatchEventAll(this, event);
-                }
-            }
-        });
-    }
-
-    /**
-     * 设置所有匹配元素的样式
-     * @param name
-     * @param value
-     * @returns {Breeze}
-     */
-    Breeze.prototype.style=function( name,value )
-    {
-        if( typeof name === 'string' &&  /^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/.test(name)  )
-        {
-            value=name;
-            name='cssText';
+            style[ prop ] = value ;
+            return true;
         }
-        else if( Utils.isObject(name) )
-        {
-            value=name;
-            name='cssText';
-        }
-        return access.call(this,name,value,{
-            get:function(prop){
-                return Utils.style(this,prop) || '';
-            },
-            set:function(prop,newValue){
-                Utils.style(this,prop,newValue);
-            }
-        }, StyleEvent.CHANGE ) || '';
+    }
+
+    var iscsstext=/^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/;
+
+
+    /**
+     * 选择元素
+     * @param selector
+     * @param context
+     * @returns {*}
+     */
+    Breeze.sizzle=function(selector,context)
+    {
+        return Sizzle( selector , context );
     }
 
     /**
-     * 为当前每个元素设置数据缓存
+     * 判断元素是否匹配指定的选择器
+     * @param element
+     * @param selector
+     * @returns {*}
+     */
+    Breeze.has=function(element,selector)
+    {
+       return Sizzle.matchesSelector( element , selector );
+    }
+
+    /**
+     * 统一规范的样式名
      * @param name
-     * @param value
-     * @returns {Breeze}
-     */
-    Breeze.prototype.data=function(name,value)
-    {
-        return access.call(this,name,value,{
-            get:function(prop){
-                return Utils.storage(this,prop);
-            },
-            set:function(prop,newValue){
-                Utils.storage(this,prop,newValue);
-            }
-        });
-    }
-
-    /**
-     * 为每一个元素设置属性值
-     * @param name
-     * @param value
-     * @returns {Breeze}
-     */
-    Breeze.prototype.property=function(name,value )
-    {
-        name = Utils.attrMap( name );
-        var lower=name.toLowerCase();
-        if( lower==='innerhtml' )
-          return this.html(value);
-        return access.call(this,name,value,{
-            get:function(prop){
-                return Utils.property(this,prop);
-            },
-            set:function(prop,newValue){
-                if( lower === 'style' )
-                    throw new Error('the style property names only use style method to operate in property');
-                Utils.property(this,prop,newValue);
-            }
-        },PropertyEvent.CHANGE);
-    }
-
-    /**
-     * 判断当前匹配元素是否有指定的属性名
-     * @param prop
-     * @returns {boolean}
-     */
-    Breeze.prototype.hasProperty=function(prop)
-    {
-        return Utils.hasAttribute(this.current(),prop);
-    }
-
-    /**
-     * 获取匹配第一个元素的节点名称
      * @returns {string}
-     * @public
      */
-    Breeze.prototype.nodeName=function()
+    Breeze.styleName=function( name )
     {
-        return Utils.nodeName( this.current() );
+        if( typeof name !=='string' )
+            return name;
+
+        if( name === 'cssText')
+            return name;
+
+        name=fix.cssMap[name] || name;
+        name=name.replace( cssPrefix, "ms-" ).replace( cssDashAlpha, cssCamelCase );
+        name = name.replace( cssUpperProp, "-$1" ).toLowerCase();
+
+        if( needAddPrefixStyleName[name] ===true )
+            return browserPrefix+name;
+        return name;
     }
 
     /**
-     * 获取设置当前元素的内容值。如果元素是表单元素则写读value否则为text属性。
-     * @returns {string|Breeze}
+     * 设置元素的样式
+     * @param elem
+     * @param name|cssText|object 当前name的参数是 cssText|object 时会忽略value 参数
+     * @param value 需要设置的值
      */
-    Breeze.prototype.content=function( value )
+    Breeze.style=function( elem, name, value )
     {
-        return access.call(this,'content',value,{
-            get:function(prop){
-                return ( Utils.isFormElement( this ) ? this.value : Sizzle.getText(this) ) || '';
-            },
-            set:function(prop,newValue)
+        if ( !Breeze.hasStyle(elem) )
+            return false;
+
+        //清空样式
+        if( typeof name === 'string'  )
+        {
+            if( iscsstext.test(name) )
             {
-                if( Utils.isFormElement( this ) )
-                {
-                    this.value=newValue;
-                }else
-                {
-                    typeof this.textContent === "string" ? this.textContent=newValue : this.innerText=newValue;
-                }
+                value = name;
+                name = 'cssText';
+
+            }else if( name.toLowerCase()==='csstext' )
+            {
+                name = 'cssText';
             }
-        },PropertyEvent.CHANGE) || '';
+        }
+
+        if( Breeze.isObject(name) )value=name;
+        if( Breeze.isObject(value) )
+        {
+            for(var prop in value )
+            {
+               Breeze.style(elem, prop, value[prop]);
+            }
+            return true;
+        }
+
+        if( !Breeze.isScalar( value ) )
+        {
+            return getStyle(elem,name);
+        }
+
+        var style=elem.style;
+        var type = typeof value,ret,hook=cssHooks[name];
+        if ( type === "number" && isNaN( value ) )return false;
+
+
+
+        if ( type === "string" && (ret=cssOperator.exec( value )) )
+        {
+            var inc = name === 'width' || name ==='height' ? Breeze.getSize(elem,name) : getStyle( elem, name );
+            value =increase(value, parseFloat( inc ) , ret );
+            type = "number";
+        }
+
+        if ( value == null )return false;
+        if ( type === "number" && !cssNumber[ name ] )
+            value += "px";
+
+        if( hook && hook.set && hook.set.call(elem,style,value) === true )
+        {
+            return true;
+        }
+
+        if( name === 'cssText' )
+        {
+            value= Breeze.formatStyle( value );
+        }else
+        {
+            name= Breeze.styleName( name )
+        }
+
+        try{
+            style[name]=value;
+        }catch( e ){}
+        return true;
     }
 
     /**
-     * 获取设置当前元素的内容值。如果元素是表单元素则写读value否则为text属性。
-     * @returns {string|Breeze}
+     * 格式化 cssText 中的样式名
+     * @param cssText
+     * @returns {XML|string|void}
      */
-    Breeze.prototype.text=function( value )
+    Breeze.formatStyle=function( cssText )
     {
-        return access.call(this,'text',value,{
-            get:function(){
-                return Sizzle.getText(this)  || '';
-            },
-            set:function(prop,newValue)
+        if( typeof cssText !== "string" )
+           return cssText;
+        return cssText.replace(/([\w\-]+)\s*\:([^\;]*)/g, function (all, name,value) {
+
+            if( cssHooks[name] && typeof cssHooks[name].set ==="function" )
             {
-                typeof this.textContent === "string" ? this.textContent=newValue : this.innerText=newValue;
+                var obj={}
+                cssHooks[name].set(obj, value );
+                return Breeze.serialize( obj,'style');
             }
-        },PropertyEvent.CHANGE) || '';
+            return Breeze.styleName( name ) +':'+ value;
+        })
     }
 
     /**
-     * 获取设置表单元素的值。此方法只会对表单元素有用。
-     * @returns {string|Breeze}
+     * @private
      */
-    Breeze.prototype.value=function( value )
+    var __property__={
+        'className':true,
+        'innerHTML':true,
+        'value'    :true
+    }
+
+    /**
+     * 设置获取元素的属性
+     * @param element
+     * @param prop
+     * @param val
+     * @returns {*}
+     */
+    Breeze.property=function(element,prop,val)
     {
-        return access.call(this,'value',value,{
-            get:function(prop){
-                return this.hasAttribute('value') ? this.value : null;
-            },
-            set:function(prop,newValue)
-            {
-                if( this.hasAttribute('value') )this.value=newValue;
-            }
-        },PropertyEvent.CHANGE) || null;
+       if( Breeze.isObject(prop) )
+       {
+           for(var p in prop)
+           {
+               Breeze.property(element,p,prop[p]);
+           }
+           return true;
+       }
+
+        prop = fix.attrMap[ prop ] || prop;
+        var is= prop === 'value' && !Breeze.isFormElement(element) ? false : __property__[prop];
+        var elem= Breeze.isNodeElement(element);
+        if( typeof val === "undefined" )
+        {
+            return ( is || !elem ? element[prop] : element.getAttribute(prop) ) || null;
+        }
+        if( val === null )
+        {
+            elem ? element.removeAttribute(prop) : delete element[prop];
+            return true;
+        }
+
+        if( prop === 'className')
+        {
+            return Breeze.addClass(element,val);
+        }
+        is || !elem ? element[prop] = val : element.setAttribute(prop, val);
+        return true;
     }
 
     /**
@@ -1114,10 +751,10 @@
      * @param className
      * @returns {boolean}
      */
-    Breeze.prototype.hasClass=function( className )
+    Breeze.hasClass=function(element, className )
     {
-        var value=this.property('class');
-        return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
+        var value= element['className'];
+        return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)','i').test( value ) : true ;
     }
 
     /**
@@ -1125,12 +762,16 @@
      * @param className
      * @returns {Breeze}
      */
-    Breeze.prototype.addClass=function( className )
+    Breeze.addClass=function(element, className )
     {
-        this.forEach(function(elem){
-            Utils.addClass(elem,className);
-        });
-        return this;
+        if( typeof className==='string' && !Breeze.hasClass(element,className) )
+        {
+            var oldClass=element['className'];
+            oldClass= [ Breeze.trim( oldClass ) ];
+            oldClass.push( className );
+            element['className'] = Breeze.trim( oldClass.join(' ') );
+        }
+        return true;
     }
 
     /**
@@ -1138,251 +779,1216 @@
      * @param className
      * @returns {Breeze}
      */
-    Breeze.prototype.removeClass=function(className)
+    Breeze.removeClass=function(element,className)
     {
-        this.forEach(function(elem){
-            Utils.removeClass(elem,className);
-        })
-        return this;
+        if( typeof className === 'string' )
+        {
+            var value=element['className'] || '';
+            var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
+            className=value.replace(reg, '');
+
+        }else
+        {
+            className='';
+        }
+        className === '' ? element.removeAttribute('class') : element['className'] = Breeze.trim(className);
+        try {
+            element.offsetWidth = element.offsetWidth;
+        }catch(e)
+        {
+           //Breeze.style(element,'width', element.offsetWidth);
+        }
     }
 
-    var __size__=function(prop,value)
-    {
-        var border = typeof value==='boolean' ? value : ( value===undefined || value==='border' );
-        value = (value===undefined || value==='border' || typeof value==='boolean') ? undefined : parseFloat( value );
-        return access.call(this,prop, value,{
-            get:function(prop){
-                return Utils.getSize(this, prop, border );
-            },
-            set:function(prop,newValue,oldValue,target){
-                Utils.style(this,prop,newValue);
-            }
-        },PropertyEvent.CHANGE) || 0;
-    }
-
-    /**
-     * @private
-     */
-    var __position__=function(prop,value)
-    {
-        return access.call(this,prop, value,{
-            get:function(prop){
-                return Utils.getBoundingRect(this)[ prop ];
-            },
-            set:function(prop,newValue){
-                if( Utils.style(this,'position')==='static' )Utils.style(this,'position','relative');
-                return Utils.style(this,prop,parseInt(newValue) || 0 );
-            }
-        },PropertyEvent.CHANGE) || 0;
-    }
 
     /**
-     * 设置所有匹配元素的宽度
-     * @param val
-     * @returns {Breeze}
-     */
-    Breeze.prototype.width=function( value )
-    {
-        return __size__.call(this,'width',value);
-    }
-
-    /**
-     * 获取匹配第一个元素的高度
-     * @param border 是否包括边框的宽度
-     * @returns {Number}
-     */
-    Breeze.prototype.height=function( value )
-    {
-        return __size__.call(this,'height',value);
-    }
-
-    /**
-     * 获取设置滚动条的位置
+     * 获取或者设置滚动条的位置
+     * @param NodeElement element
      * @param number left
      * @param number top
-     * @returns {Breeze|{left:number,top:number,height:number,width:number}}
+     * @returns {left:number,top:number,height:number,width:number}
      */
-    Breeze.prototype.scroll=function( left, top )
+    Breeze.scroll=function(element, left, top)
     {
-        var scroll = Utils.scroll( this.current() );
-        if( typeof left === "number" || typeof top === "number" )
+        element = element.defaultView || element.parentWindow || element;
+        var l= typeof left === "number",t=typeof top === "number";
+        if( l || t )
         {
-            if( scroll.left != left || pos.top!=top )
+            if( !(l && t) )
             {
-                Utils.scroll( this.current(), left, top );
-                var event = new PropertyEvent( PropertyEvent.CHANGE );
-                event.property = 'scroll';
-                event.newValue = {left:left,top:top};
-                event.oldValue = scroll;
-                dispatchEventAll(this, event);
+                var pos = Breeze.scroll(element);
+                l || (left=pos.left);
+                t || (top=pos.top);
             }
-            return this;
+
+            left = Math.max(left,0);
+            top = Math.max(top,0);
+
+            if( typeof element.scrollTo === "function" )
+            {
+                element.scrollTo(left,top);
+            }else
+            {
+                element.scrollTop = top;
+                element.scrollLeft = left;
+            }
+            return true;
+        }
+
+        var scroll={};
+        if( Breeze.isWindow( element ) )
+        {
+            scroll.left = element.pageXOffset || element.document.documentElement.scrollLeft || element.document.body.scrollLeft;
+            scroll.top =  element.pageYOffset  || element.document.documentElement.scrollTop || element.document.body.scrollTop;
+            scroll.height = element.document.documentElement.scrollHeight || element.document.body.scrollHeight;
+            scroll.width = element.document.documentElement.scrollWidth || element.document.body.scrollWidth;
+
+        }else
+        {
+            scroll.left = element.scrollLeft;
+            scroll.top =  element.scrollTop;
+            scroll.height = element.scrollHeight;
+            scroll.width = element.scrollWidth;
         }
         return scroll;
     }
 
     /**
-     * 设置元素相对舞台的位置
-     * @param left
-     * @param top
+     * 把颜色的值转成16进制形式 #ffffff
+     * @param color
+     * @returns {string}
+     */
+    Breeze.toHexColor = function( color )
+    {
+        var colorArr,strHex = "#", i,hex;
+        if( /^\s*RGB/i.test( color ) )
+        {
+            colorArr = color.replace(/(?:[\(\)\s]|RGB)*/gi,"").split(",")
+            for( i=0; i< colorArr.length && strHex.length <= 7 ; i++ )
+            {
+                hex = Number( colorArr[i] ).toString( 16 );
+                if( hex === "0" )hex += hex;
+                strHex += hex;
+            }
+
+        }else
+        {
+            colorArr = color.replace(/^\s*#/,"").split("");
+            for( i=0; i<colorArr.length && strHex.length <= 7 ; i++)
+            {
+                strHex += ( colorArr[i]+colorArr[i] );
+            }
+        }
+        return strHex;
+    };
+
+    /**
+     * 把颜色的值转成RGB形式 rgb(255,255,255)
+     * @param color
+     * @returns {string}
+     */
+    Breeze.toRgbColor = function( color )
+    {
+        if( color )
+        {
+            color=Breeze.toHEX( color );
+            var colorArr = [],i=1;
+            for( ; i<7; i+=2 )colorArr.push( parseInt( "0x"+color.slice(i,i+2) ) );
+            return "RGB(" + colorArr.join(",") + ")";
+        }
+        return color;
+    };
+
+    /**
+     * 判断元素是否有Style
+     * @param elem
+     * @returns {boolean}
+     */
+    Breeze.hasStyle=function( elem )
+    {
+        return !( !elem || !elem.nodeType || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style );
+    }
+
+    /**
+     * 取得当前的时间戳
+     * @returns {number}
+     */
+    Breeze.timed=function()
+    {
+        return ( new Date() ).getTime();
+    }
+
+    /**
+     * 将字符串的首字母转换为大写
+     * @param str
+     * @returns {string}
+     */
+    Breeze.ucfirst=function( str )
+    {
+        return str.charAt(0).toUpperCase()+str.substr(1);
+    }
+
+    /**
+     * 将字符串的首字母转换为小写
+     * @param str
+     * @returns {string}
+     */
+    Breeze.lcfirst=function( str )
+    {
+        return str.charAt(0).toLowerCase()+str.substr(1);
+    }
+
+    /**
+     * 获取元素所在的窗口对象
+     * @param elem
+     * @returns {window|null}
+     */
+    Breeze.getWindow=function ( elem )
+    {
+        if( typeof elem !== "object" )
+          return null;
+        elem= elem.ownerDocument || elem ;
+        return elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || null;
+    }
+
+    /**
+     * 把一个对象序列化为一个字符串
+     * @param object 要序列化的对象
+     * @param type   要序列化那种类型,可用值为：url 请求的查询串,style 样式字符串。 默认为 url 类型
+     * @param group  是否要用分组，默认是分组（只限url 类型）
+     * @return string
+     */
+    Breeze.serialize=function( object, type ,group )
+    {
+        if( typeof object === "string" || !object )
+           return object;
+        var str=[],key,joint='&',separate='=',val='',prefix=Breeze.isBoolean(group) ? null : group;
+        type = type || 'url';
+        group = ( group !== false );
+        if( type==='style' )
+        {
+            joint=';';
+            separate=':';
+            group=false;
+        }else if(type === 'attr' )
+        {
+            separate='=';
+            joint=' ';
+            group=false;
+        }
+        if( Breeze.isObject(object,true) )for( key in object )
+        {
+            val=type === 'attr' ? '"' +object[key]+'"' : object[key];
+            key=prefix ? prefix+'[' + key +']' : key;
+            str=str.concat(  typeof val==='object' ? Breeze.serialize( val ,type , group ? key : false ) : key + separate + val  );
+        }
+        return str.join( joint );
+    }
+
+    /**
+     * 将一个已序列化的字符串反序列化为一个对象
+     * @param str
+     * @returns {{}}
+     */
+    Breeze.unserialize=function( str )
+    {
+         var object={},index,joint='&',separate='=',val,ref,last,group=false;
+         if( /[\w\-]+\s*\=.*?(?=\&|$)/.test( str ) )
+         {
+             str=str.replace(/^&|&$/,'')
+             group=true;
+
+         }else if( /[\w\-\_]+\s*\:.*?(?=\;|$)/.test( str ) )
+         {
+             joint=';';
+             separate=':';
+             str=str.replace(/^;|;$/,'')
+         }
+
+        str=str.split( joint )
+        for( index in str )
+        {
+            val=str[index].split( separate )
+            if( group &&  /\]\s*$/.test( val[0] ) )
+            {
+                ref=object,last;
+                val[0].replace(/\w+/ig,function(key){
+                    last=ref;
+                    ref=!ref[ key ] ? ref[ key ]={} : ref[ key ];
+                })
+                last && ( last[ RegExp.lastMatch ]=val[1] );
+            }else
+            {
+               object[ val[0] ]=val[1];
+            }
+        }
+        return object;
+    }
+
+    var getAttrExp = /(\w+)(\s*=\s*([\"\'])([^\3]*?)[^\\]\3)?/g;
+    var lrQuoteExp = /^[\'\"]|[\'\"]$/g;
+
+    /**
+     * 匹配字符串中的属性
+     * @param strAttr
+     * @return {}
+     */
+    Breeze.matchAttr=function(strAttr)
+    {
+        if( typeof strAttr === "string" && /[\S]*/.test(strAttr) )
+        {
+            var i=  strAttr.charAt(0)==='<' ? 1 : 0;
+            var attr=strAttr.replace(/=\s*(\w+)/g,'="$1"').match( getAttrExp );
+            strAttr={};
+            if( attr && attr.length > 0 )
+            {
+                var item;
+                while( item=attr[i++] )
+                {
+                    var val  =  item.split('=');
+                    if( val.length > 0 )
+                    {
+                        var prop = Breeze.trim( val[0] );
+                        strAttr[ prop ]='';
+                        if( typeof val[1] === "string" )
+                        {
+                            strAttr[ prop ]=val[1].replace( lrQuoteExp ,'').replace(/\\([\'\"])/g,'$1');
+                        }
+                    }
+                }
+            }
+            return strAttr;
+        }
+        return null;
+    }
+
+
+    /**
+     * 克隆节点元素
+     * @param nodeElement
+     * @returns {Node}
+     */
+    Breeze.clone=function( nodeElement ,deep )
+    {
+        if( !Breeze.isXMLDoc( nodeElement ) && nodeElement.cloneNode )
+        {
+            return nodeElement.cloneNode( !!deep );
+        }
+        if( typeof nodeElement.nodeName==='string' )
+        {
+            var node = document.createElement( nodeElement.nodeName  );
+            if( node )Breeze.mergeAttributes(node,nodeElement);
+            return node;
+        }
+        return null;
+    }
+
+    /**
+     * 合并元素属性。
+     * 将 refTarget 对象的属性合并到 target 元素
+     * @param target 目标对象
+     * @param oSource 引用对象
      * @returns {*}
      */
-    Breeze.prototype.getBoundingRect=function()
+    Breeze.mergeAttributes=function(target,oSource)
     {
-        return Utils.getBoundingRect( this.current() );
+        var iselem= Breeze.isNodeElement( target );
+        if( Breeze.isObject(oSource,true) )
+        {
+            for (var key in oSource)if (oSource[key] && oSource[key] != '')
+            {
+                iselem ? target.setAttribute(key, oSource[key]) : target[key] = oSource[key];
+            }
+
+        }else
+        {
+            var i=0, len=oSource.attributes.length,item;
+            while( i<len )
+            {
+                item=oSource.attributes.item(i++);
+                if( item.nodeValue && item.nodeValue !='' )
+                {
+                    iselem ? target.setAttribute(item.nodeName, item.nodeValue) : target[item.nodeName] = item.nodeValue;
+                }
+            }
+        }
+        return target;
     }
 
     /**
-     * 获取或者设置相对于父元素的左边位置
-     * @param val 如果是布尔类型则会返回坐标位置。 true 相对于本地, false 相对于全局的坐标位置，默认为 false。
-     * @returns {number|Breeze}
+     * 判断元素是否有指定的属性名
+     * @param element
+     * @param name
+     * @returns {boolean}
      */
-    Breeze.prototype.left=function( val )
+    Breeze.hasAttribute=function(element,name)
     {
-        return __position__.call(this,'left',val)
+       return typeof element.hasAttributes === 'function' ? element.hasAttributes( name ) : !!element[name];
     }
 
     /**
-     * 获取或者设置相对于父元素的顶边位置
-     * @param val 如果是布尔类型则会返回坐标位置。 true 相对于本地, false 相对于全局的坐标位置，默认为 false。
-     * @returns {number|Breeze}
+     * 判断变量是否已定义
+     * @param val,...
+     * @returns {boolean}
      */
-    Breeze.prototype.top=function( val )
+    Breeze.isDefined=function()
     {
-        return __position__.call(this,'top',val)
+        var i=arguments.length;
+        while( i>0 ) if( typeof arguments[ --i ] === 'undefined' )
+            return false;
+        return true;
     }
 
     /**
-     * 获取或者设置相对于父元素的右边位置
-     * @param val 如果是布尔类型则会返回坐标位置。 true 相对于本地, false 相对于全局的坐标位置，默认为 false。
-     * @returns {number|Breeze}
+     * 判断是否为数组
+     * @param val
+     * @returns {boolean}
      */
-    Breeze.prototype.right=function( val )
+    Breeze.isArray=function( val )
     {
-        return __position__.call(this,'right',val)
+        return val instanceof Array;
     }
 
     /**
-     * 获取或者设置相对于父元素的底端位置
-     * @param val 如果是布尔类型则会返回坐标位置。 true 相对于本地, false 相对于全局的坐标位置，默认为 false。
-     * @returns {number|Breeze}
+     * 判断是否为函数
+     * @param val
+     * @returns {boolean}
      */
-    Breeze.prototype.bottom=function( val )
+    Breeze.isFunction=function( val ){
+        return typeof val === 'function';
+    }
+
+    /**
+     * 判断是否为布尔类型
+     * @param val
+     * @returns {boolean}
+     */
+    Breeze.isBoolean=function( val ){
+        return typeof val === 'boolean';
+    }
+
+    /**
+     * 判断是否为字符串
+     * @param val
+     * @returns {boolean}
+     */
+    Breeze.isString=function( val )
     {
-        return __position__.call(this,'bottom',val)
+        return typeof val === 'string';
+    }
+
+    /**
+     * 判断是否为一个标量
+     * 只有对象类型或者Null不是标量
+     * @param {boolean}
+     */
+    Breeze.isScalar=function( val )
+    {
+        var t=typeof val;
+        return t==='string' || t==='number' || t==='float' || t==='boolean';
+    }
+
+    /**
+     * 判断是否为数字类型
+     * @param val
+     * @returns {boolean}
+     */
+    Breeze.isNumber=function( val )
+    {
+        return typeof val === 'number';
+    }
+
+    /**
+     * 判断是否为一个空值
+     * @param val
+     * @param flag 当有true时是否包含为0的值
+     * @returns {boolean}
+     */
+    Breeze.isEmpty=function( val , flag )
+    {
+        if( val===null || val==='' || val===false || ( val==0 && !flag ) || typeof val === 'undefined' )
+            return true;
+
+        if( Breeze.isObject(val,true) )
+        {
+            var ret;
+            for( ret in val )break;
+            return ret===undefined;
+        }
+        return false;
+    }
+
+    /**
+     * 判断是否为一个可遍历的对象
+     * @param val
+     * @param flag
+     * @returns {boolean}
+     */
+    Breeze.isObject=function( val , flag )
+    {
+        return val && typeof val === "object" ? !!( val.constructor === Object || ( flag && Breeze.isArray(val) ) ) : false;
+    }
+
+    /**
+     * 判断在指定的父元素中是否包含指定的子元素
+     * @param parent
+     * @param child
+     * @returns {boolean}
+     */
+    Breeze.contains=function( parent, child )
+    {
+        if( Breeze.isHTMLContainer(parent) && Breeze.isNodeElement(child) )
+            return Sizzle.contains(parent,child);
+        return false;
+    }
+
+    var formPatternReg=/select|input|textarea|button/i;
+
+    /**
+     * 判断是否为一个表单元素
+     * @param element
+     * @returns {boolean}
+     */
+    Breeze.isFormElement=function(element,exclude)
+    {
+        if( element && typeof element.nodeName ==='string' )
+        {
+            var ret=formPatternReg.test( element.nodeName );
+            return ret && exclude !== undefined ? exclude !== Breeze.nodeName( element )  : ret;
+        }
+        return false;
+    }
+
+    /**
+     * 以小写的形式返回元素的节点名
+     * @param element
+     * @returns {string}
+     */
+    Breeze.nodeName=function( element )
+    {
+        return  element && typeof element.nodeName=== "string" && element.nodeName!='' ? element.nodeName.toLowerCase() : '';
+    }
+
+    /**
+     * 判断在父节点中是否可以添加移除子节点
+     * @param parentNode
+     * @param childNode
+     */
+    Breeze.isAddRemoveChildNode=function(parentNode,childNode)
+    {
+        var nodename=Breeze.nodeName( parentNode );
+        if( nodename=='input' || nodename=='button' || Breeze.isEmpty(nodename) || parentNode===childNode || Breeze.contains(childNode,parentNode) )
+            return false;
+        if( nodename=='fetch' )
+            return Breeze.nodeName( childNode )==='option';
+        else if( nodename=='textarea' )
+            return childNode && childNode.nodeType===3;
+        return true;
+    }
+
+    /**
+     * 判断是否为一个HtmlElement类型元素,document 不属性于 HtmlElement
+     * @param element
+     * @returns {boolean}
+     */
+    Breeze.isHTMLElement=function( element )
+    {
+        return typeof HTMLElement==='object' ? element instanceof HTMLElement : ( element && element.nodeType === 1 && typeof element.nodeName === "string" );
+    }
+
+    /**
+     * 判断是否为一个节点类型元素
+     * @param element
+     * @returns {boolean}
+     */
+    Breeze.isNodeElement=function( element )
+    {
+        return typeof Node !== "undefined" ? element instanceof Node :
+            !!( element && element.nodeType && typeof element.nodeName === "string" && (typeof element.tagName === "string" || element.nodeType===9) );
+    }
+
+    /**
+     * 判断是否为一个html容器元素。
+     * @param element
+     * @returns {boolean|*|boolean}
+     */
+    Breeze.isHTMLContainer=function( element )
+    {
+       return Breeze.isHTMLElement( element ) || Breeze.isDocument(element);
+    }
+
+    /**
+     * 判断是否为一个事件元素
+     * @param element
+     * @returns {boolean}
+     */
+    Breeze.isEventElement=function( element )
+    {
+        return  !!(element.addEventListener || element.attachEvent);
+    }
+
+    /**
+     * 判断是否为窗口对象
+     * @param obj
+     * @returns {boolean}
+     */
+    Breeze.isWindow=function( obj ) {
+        return obj != null && obj == obj.window;
+    }
+
+    /**
+     * 决断是否为文档对象
+     * @param obj
+     * @returns {*|boolean}
+     */
+    Breeze.isDocument=function( obj )
+    {
+        return obj && obj.nodeType===9;
+    }
+
+    /**
+     * 查找指定的值是否在指定的对象中,如果存在返回对应的键名否则返回null。
+     * @param object
+     * @param val
+     * @returns {*}
+     */
+    Breeze.inObject=function( object, val )
+    {
+        var key;
+        if( Breeze.isObject(object,true) )for( key in object  ) if( object[ key ]===val )
+            return key;
+        return null;
+    }
+
+
+    /**
+     * 返回一个对象的所有键名。
+     * @param object
+     * @returns {Array}
+     */
+    Breeze.toKeys=function( object )
+    {
+        var keys=[];
+        if( Breeze.isObject( object ) )
+           for(var i in object)keys.push(i);
+        return keys;
+    }
+
+    /**
+     * @type {RegExp}
+     */
+    var TRIM_LEFT = /^\s+/,TRIM_RIGHT = /\s+$/;
+
+    /**
+     * 去掉左右的空白
+     * @param val
+     * @returns {string}
+     */
+    Breeze.trim=function( val )
+    {
+        return typeof val==='string' ? val.replace( TRIM_LEFT, "" ).replace( TRIM_RIGHT, "" ) : '';
+    }
+
+    /**
+     * 合并其它参数到指定的 target 对象中
+     * 如果只有一个参数则只对 Breeze 本身进行扩展。
+     * @returns Object
+     */
+    Breeze.extend=function(){
+
+        var options, name, src, copy, copyIsArray, clone,
+            target = arguments[0] || {},
+            i = 1,
+            length = arguments.length,
+            deep = false;
+
+        if ( typeof target === "boolean" )
+        {
+            deep = target;
+            target = arguments[1] || {};
+            i++;
+        }
+
+        if ( length === i )
+        {
+            target = this;
+            --i;
+        }else if ( typeof target !== "object" &&  typeof target !== "function" )
+        {
+            target = {};
+        }
+
+        for ( ; i < length; i++ ) {
+            // Only deal with non-null/undefined values
+            if ( (options = arguments[ i ]) != null ) {
+                // Extend the base object
+                for ( name in options ) {
+                    src = target[ name ];
+                    copy = options[ name ];
+
+                    // Prevent never-ending loop
+                    if ( target === copy ) {
+                        continue;
+                    }
+
+                    // Recurse if we're merging plain objects or arrays
+                    if ( deep && copy && ( Breeze.isObject(copy) || (copyIsArray = Breeze.isArray(copy)) ) )
+                    {
+                        if ( copyIsArray ) {
+                            copyIsArray = false;
+                            clone = src && Breeze.isArray(src) ? src : [];
+                        } else {
+                            clone = src && Breeze.isObject(src) ? src : {};
+                        }
+
+                        // Never move original objects, clone them
+                        target[ name ] = Breeze.extend( deep, clone, copy );
+
+                        // Don't bring in undefined values
+                    } else if ( copy !== undefined )
+                    {
+                        target[ name ] = copy;
+                    }
+                }
+            }
+        }
+        return target;
+    }
+
+    /**
+     * @private
+     * @type {RegExp}
+     */
+    var selectorExpr = /^(?:#([\w-]+)|\:?(\w+.*?)|\.([\w-]+)|(\[[\w-]+.*?\]))$/;
+
+    /**
+     * 判断是否为一个有效的选择器
+     * @param selector
+     * @returns {boolean}
+     */
+    Breeze.isSelector=function( selector )
+    {
+        return typeof selector === "string" ? selectorExpr.test( selector ) : false;
+    }
+
+    /**
+     * 设置获取元素的内容
+     * @param element
+     * @param html
+     * @param outer
+     * @returns {*}
+     */
+    Breeze.getHtml=function(element, outer )
+    {
+        var html=element.innerHTML;
+        if( outer === true )
+        {
+            if( typeof element.outerHTML==='string' )
+            {
+                html=element.outerHTML;
+            }else
+            {
+                var cloneElem=Breeze.clone( element,true),div
+                if( cloneElem )
+                {
+                    div=document.createElement( 'div' )
+                    div.appendChild( cloneElem );
+                    html=div.innerHTML;
+                }
+            }
+        }
+        return html;
+    }
+
+    /**
+     * @type {RegExp}
+     */
+    var singleTagExp=/^<(\w+)(.*?)\/\s*>$/;
+
+    /**
+     * 创建HTML元素
+     * @param html 一个html字符串
+     * @returns {Node}
+     */
+    Breeze.createElement=function( html )
+    {
+        if( Breeze.isString(html) )
+        {
+            html=Breeze.trim( html );
+            if( html !== '' )
+            {
+                var match;
+                if( html.charAt(0) !== "<" && html.charAt( html.length - 1 ) !== ">" && html.length >=2 )
+                {
+                    return document.createElement( html );
+
+                }else if( html.charAt(0) === "<" && ( match=singleTagExp.exec(html) ) )
+                {
+
+                    var elem = document.createElement( match[1] );
+                    var attr = Breeze.matchAttr( html );
+                    var isset = typeof elem.setAttribute === "function";
+                    for(var prop in attr )
+                    {
+                        if( isset )
+                        {
+                            elem.setAttribute( prop, attr[prop] );
+                        }else{
+                            var attrNode = document.createAttribute( prop );
+                            attrNode.nodeValue=attr[ prop ];
+                            elem.setAttributeNode( attrNode )
+                        }
+                    }
+                    return elem;
+
+                }else if( /^\<(tr|td|th|thead|tbody|tfoot)/i.exec(html) )
+                {
+                    html="<table>"+ html +"</table>";
+                }
+
+                var div = document.createElement( "div")
+                    div.innerHTML =  html;
+                var len=div.childNodes.length;
+
+                if(  len > 1 )
+                {
+                    var fragment= document.createDocumentFragment();
+                    while( len > 0 )
+                    {
+                        --len;
+                        fragment.appendChild( div.childNodes.item(0) );
+                    }
+                    return fragment;
+                }
+                div=div.childNodes.item(0);
+                return div.parentNode.removeChild( div );
+            }
+
+        }else if ( Breeze.isNodeElement(html) )
+           return  html.parentNode ? Breeze.clone(html,true) : html;
+
+        throw new Error('Uitls.createElement param invalid')
+    }
+
+    /**
+     * 格式化输出
+     * @format
+     * @param [...]
+     * @returns {string}
+     */
+    Breeze.sprintf=function()
+    {
+        var str='',i= 1,len=arguments.length,param
+        if( len > 0 )
+        {
+           str=arguments[0];
+           for( ; i< len ; i++ )
+           {
+                param=arguments[i];
+                str=str.replace(/%(s|d|f)/,function(all,method)
+                {
+                    if( method==='d' ){
+                        param=parseInt(param);
+                        return isNaN(param) ? '' : param;
+                    }else if(method==='f')
+                    {
+                        param=parseFloat(param);
+                        return isNaN(param) ? '' : param;
+                    }
+                    return param;
+                })
+           }
+           str.replace(/%(s|d|f)/g,'');
+        }
+        return str;
+    }
+
+    var crc32Table = "00000000 77073096 EE0E612C 990951BA 076DC419 706AF48F E963A535 9E6495A3 0EDB8832 79DCB8A4 " +
+        "E0D5E91E 97D2D988 09B64C2B 7EB17CBD E7B82D07 90BF1D91 1DB71064 6AB020F2 F3B97148 84BE41DE 1ADAD47D " +
+        "6DDDE4EB F4D4B551 83D385C7 136C9856 646BA8C0 FD62F97A 8A65C9EC 14015C4F 63066CD9 FA0F3D63 8D080DF5 " +
+        "3B6E20C8 4C69105E D56041E4 A2677172 3C03E4D1 4B04D447 D20D85FD A50AB56B 35B5A8FA 42B2986C DBBBC9D6 " +
+        "ACBCF940 32D86CE3 45DF5C75 DCD60DCF ABD13D59 26D930AC 51DE003A C8D75180 BFD06116 21B4F4B5 56B3C423 " +
+        "CFBA9599 B8BDA50F 2802B89E 5F058808 C60CD9B2 B10BE924 2F6F7C87 58684C11 C1611DAB B6662D3D 76DC4190 " +
+        "01DB7106 98D220BC EFD5102A 71B18589 06B6B51F 9FBFE4A5 E8B8D433 7807C9A2 0F00F934 9609A88E E10E9818 " +
+        "7F6A0DBB 086D3D2D 91646C97 E6635C01 6B6B51F4 1C6C6162 856530D8 F262004E 6C0695ED 1B01A57B 8208F4C1 " +
+        "F50FC457 65B0D9C6 12B7E950 8BBEB8EA FCB9887C 62DD1DDF 15DA2D49 8CD37CF3 FBD44C65 4DB26158 3AB551CE " +
+        "A3BC0074 D4BB30E2 4ADFA541 3DD895D7 A4D1C46D D3D6F4FB 4369E96A 346ED9FC AD678846 DA60B8D0 44042D73 " +
+        "33031DE5 AA0A4C5F DD0D7CC9 5005713C 270241AA BE0B1010 C90C2086 5768B525 206F85B3 B966D409 CE61E49F " +
+        "5EDEF90E 29D9C998 B0D09822 C7D7A8B4 59B33D17 2EB40D81 B7BD5C3B C0BA6CAD EDB88320 9ABFB3B6 03B6E20C " +
+        "74B1D29A EAD54739 9DD277AF 04DB2615 73DC1683 E3630B12 94643B84 0D6D6A3E 7A6A5AA8 E40ECF0B 9309FF9D " +
+        "0A00AE27 7D079EB1 F00F9344 8708A3D2 1E01F268 6906C2FE F762575D 806567CB 196C3671 6E6B06E7 FED41B76 " +
+        "89D32BE0 10DA7A5A 67DD4ACC F9B9DF6F 8EBEEFF9 17B7BE43 60B08ED5 D6D6A3E8 A1D1937E 38D8C2C4 4FDFF252 " +
+        "D1BB67F1 A6BC5767 3FB506DD 48B2364B D80D2BDA AF0A1B4C 36034AF6 41047A60 DF60EFC3 A867DF55 316E8EEF " +
+        "4669BE79 CB61B38C BC66831A 256FD2A0 5268E236 CC0C7795 BB0B4703 220216B9 5505262F C5BA3BBE B2BD0B28 " +
+        "2BB45A92 5CB36A04 C2D7FFA7 B5D0CF31 2CD99E8B 5BDEAE1D 9B64C2B0 EC63F226 756AA39C 026D930A 9C0906A9 " +
+        "EB0E363F 72076785 05005713 95BF4A82 E2B87A14 7BB12BAE 0CB61B38 92D28E9B E5D5BE0D 7CDCEFB7 0BDBDF21 " +
+        "86D3D2D4 F1D4E242 68DDB3F8 1FDA836E 81BE16CD F6B9265B 6FB077E1 18B74777 88085AE6 FF0F6A70 66063BCA " +
+        "11010B5C 8F659EFF F862AE69 616BFFD3 166CCF45 A00AE278 D70DD2EE 4E048354 3903B3C2 A7672661 D06016F7 " +
+        "4969474D 3E6E77DB AED16A4A D9D65ADC 40DF0B66 37D83BF0 A9BCAE53 DEBB9EC5 47B2CF7F 30B5FFE9 BDBDF21C " +
+        "CABAC28A 53B39330 24B4A3A6 BAD03605 CDD70693 54DE5729 23D967BF B3667A2E C4614AB8 5D681B02 2A6F2B94 " +
+        "B40BBE37 C30C8EA1 5A05DF1B 2D02EF8D";
+
+    Breeze.crc32 = function(  str, crc )
+    {
+        if( crc === undefined ) crc = 0;
+        var n = 0; //a number between 0 and 255
+        var x = 0; //an hex number
+        var iTop = str.length;
+        crc = crc ^ (-1);
+        for( var i = 0; i < iTop; i++ )
+        {
+            n = ( crc ^ str.charCodeAt( i ) ) & 0xFF;
+            x = "0x" + crc32Table.substr( n * 9, 8 );
+            crc = ( crc >>> 8 ) ^ x;
+        }
+        return Math.abs( crc ^ (-1) );
+    };
+
+    /**
+     * 导入一个可执行的脚本文件。通常是 js,css 文件。
+     * @param file 脚本的文件地址。
+     * @param callback 成功时的回调函数。
+     */
+    Breeze.require=function( file , callback )
+    {
+        var script;
+        if( typeof file !== 'string' )
+        {
+            script=file;
+            file= file.src || file.href;
+        }
+
+        var type = file.match(/\.(css|js)(\?.*?)?$/i)
+        if( !type )throw new Error('import script file format of invalid');
+
+        file+=( !type[2] ? '?t=' : '&t=')+Breeze.timed();
+
+        type=type[1];
+        type=type.toLowerCase() === 'css' ? 'link' : 'script';
+
+        if( !script )
+        {
+            var head=document.getElementsByTagName('head')[0];
+            var ref=Sizzle( type +':last,:last-child',head )[0];
+            ref = ref ? ref.nextSibling : null;
+            script=document.createElement( type );
+            head.insertBefore(script,ref);
+        }
+
+        script.onload=script.onreadystatechange=function(event)
+        {
+            if( !script.readyState || /loaded|complete/.test( script.readyState ) )
+            {
+               script.onload=script.onreadystatechange=null;
+               if( typeof callback ==='function' )
+                   callback( event );
+            }
+        }
+
+        if( type==='link' )
+        {
+            script.setAttribute('rel', 'stylesheet');
+            script.setAttribute('type','text/css');
+            script.setAttribute('href', file );
+        }else
+        {
+            script.setAttribute('type','text/javascript');
+            script.setAttribute('src', file );
+        }
+    }
+
+    /**
+     * 判断是否为一个框架元素
+     * @param element
+     * @returns {boolean}
+     */
+    Breeze.isFrame=function( element )
+    {
+        if( element && typeof element.nodeName ==='string' )
+        {
+            var nodename = element.nodeName.toLowerCase()
+            if( nodename === 'iframe' || nodename==='frame' )
+               return true;
+        }
+        return false;
+    };
+
+
+    /**
+     * 在指定的元素对象上设置数据
+     * @param target 目标对象
+     * @param name  属性名
+     * @param value 数据
+     * @type {*}
+     */
+    Breeze.storage=function(target,name,value)
+    {
+        if( typeof target !== "object" )
+          return false;
+
+        target = target.storage || (target.storage={});
+        if( typeof name === 'string' )
+        {
+            var namespace = name.split('.');
+            var i = 0, len = namespace.length-1;
+
+            while( i<len )
+            {
+                name = namespace[i++];
+                target= target[ name ] || (target[ name ] = {});
+            }
+            name = namespace[ len++ ];
+
+            if( value === null )
+            {
+                if( typeof target[ name ] !== 'undefined' ){
+                    delete target[ name ];
+                    return true;
+                }
+                return false;
+                
+            }else if( typeof value === 'undefined' )
+            {
+                return target[ name ] || null ;
+            }
+            target[ name ] = value;
+            return value;
+
+        }else if( typeof name === "object" )
+        {
+            target.storage = name;
+            return name;
+        }
+        return target;
+    }
+
+    /**
+     * 根据指定的参数值转成对应的布尔值
+     * @param val
+     * @returns {boolean}
+     */
+    Breeze.boolean=function( val )
+    {
+        return typeof val==='string' && /^\s*(0+|false|null)\s*$/.test(val) ? false : !!val;
+    }
+
+    /**
+     * 将指定的标量转成数组
+     * @param val
+     * @returns {boolean}
+     */
+    Breeze.toArray=function( val , separator )
+    {
+        return val instanceof Array ? val : String(val).split(separator || ',');
+    }
+
+
+    /**
+     * 返回一个从指定开始值到结束值的数组。
+     * @param number startIndex 开始索引
+     * @param number endIndex 结束索引
+     * @param increment 增量值，默认为0
+     * @returns {Array}
+     */
+    Breeze.range=function(startIndex,endIndex, increment )
+    {
+        increment = parseInt(increment) || 0;
+        var arr =[];
+        while( startIndex <= endIndex )
+        {
+            arr.push( startIndex+increment );
+            startIndex++;
+        }
+        return arr;
+    }
+
+    /**
+     * 复制字符串到指定的次数
+     * @param string str
+     * @param number num
+     * @returns {string}
+     */
+    Breeze.repeat=function(str, num )
+    {
+        if( typeof str === "string" )
+        {
+            return new Array( (parseInt(num) || 0)+1 ).join(str);
+        }
+        return '';
     }
 
     /**
      * @private
      */
-    var __point__=function(left,top,local)
+    var animationSupport=null;
+
+    /**
+     * 判断是否支持css3动画
+     * @returns {boolean}
+     */
+    Breeze.isAnimationSupport=function()
     {
-        var target=this.current();
-        var point={}
-        point['x']=left || 0;
-        point['y']=top || 0;
-        if( target && target.parentNode )
+        if( animationSupport === null )
         {
-            var offset=Utils.getBoundingRect( target.parentNode );
-            if( local )
+             var prefix = Breeze.getBrowserPrefix();
+             var div = Breeze.createElement('div');
+             var prop = prefix+'animation-play-state';
+             div.style[prop] = 'paused';
+             animationSupport = div.style[prop] === 'paused';
+        }
+        return animationSupport;
+    }
+
+    /**
+     * @private
+     */
+    var createdAnimationStyle={};
+
+    /**
+     * @private
+     */
+    var defaultOptions= {
+        'duration':'1s',
+        'repeats':'1',
+        'reverse':'normal',
+        'delay':'0s',
+        'timing':'ease',
+        'state':'running',
+        'mode':'forwards'
+    };
+
+    /**
+     * 生成css3样式动画
+     * properties={
+     *    '0%':'left:10px;',
+     *    '100%':'left:100px;'
+     * }
+     */
+    Breeze.CSS3Animation=function(properties, options )
+    {
+        if( !Breeze.isAnimationSupport() )
+           return false;
+
+        options = Breeze.extend(defaultOptions,options || {})
+        var  css=[];
+        for( var i in properties )
+        {
+            if( typeof  properties[i] === "string" )
             {
-                point['x']+=offset['x'];
-                point['y']+=offset['y'];
-            }else
-            {
-                point['x']-=offset['x'];
-                point['y']-=offset['y'];
+                css.push( i + ' {');
+                css.push( properties[i] );
+                css.push( '}' );
             }
         }
-        return point;
-    }
 
-    /**
-     * 将本地坐标点转成相对视图的全局点
-     *  @param left
-     *  @param top
-     *  @returns {object} left top
-     */
-    Breeze.prototype.localToGlobal=function( left,top  )
-    {
-       return __point__.call(this,left,top,true);
-    }
-
-    /**
-     *  将视图的全局点转成相对本地坐标点
-     *  @param left
-     *  @param top
-     *  @returns {object}  left top
-     */
-    Breeze.prototype.globalToLocal=function( left,top )
-    {
-        return __point__.call(this,left,top,false);
-    }
-
-    /**
-     * 设置当前元素的显示或者隐藏
-     * @param flag false 为隐藏
-     * @returns {Breeze}
-     */
-    Breeze.prototype.display=function( flag , type )
-    {
-        if( typeof flag === "undefined" )
+        var prefix = Breeze.getBrowserPrefix()
+        var stylename = 'A'+Breeze.crc32( css.join('') ) ;
+        if( createdAnimationStyle[ stylename ] !==true )
         {
-            return this.style('display') != 'none';
+            createdAnimationStyle[ stylename ]=true;
+            css.unshift('@'+prefix+'keyframes ' + stylename + '{');
+            css.push('}');
+            css.push( '.'+stylename+'{' );
+
+            var repeats = options.repeats < 0 ? 'infinite' : options.repeats;
+            var timing=options.timing.replace(/([A-Z])/,function(all,a){
+                return '-'+a.toLowerCase();
+            });
+
+            var param = {
+                'name':stylename,
+                'duration':options.duration,
+                'iteration-count': repeats,  //infinite
+                'delay':options.delay,
+                'fill-mode':options.mode,  //both backwards none forwards
+                'direction': options.reverse,  // alternate-reverse  reverse alternate normal
+                'timing-function': timing,  //ease  ease-in  ease-out  cubic-bezier  linear
+                'play-state':options.state //paused running
+            }
+            for( var p in  param )
+            {
+                css.push(prefix+'animation-'+p+':'+param[p]+';');
+            }
+            css.push('}');
+            css = css.join("\r\n");
+            var head = document.getElementsByTagName('head')[0];
+            var style = document.createElement('style');
+            style.setAttribute('id',stylename);
+            style.innerHTML= css;
+            head.appendChild( style );
         }
-        return this.style('display',flag===false ? 'none' : type || 'block' );
+        return stylename;
     }
 
+
     /**
-     * 执行一个动画
-     * @param options
-     * @param callback
+     * @private
+     */
+    var headStyle =null;
+
+    /**
+     * @param string style
+     */
+    Breeze.appendStyle=function( styleName, styleObject )
+    {
+        if( headStyle=== null )
+        {
+            var head = document.getElementsByTagName('head')[0];
+            headStyle = document.createElement('style');
+            document.getElementsByTagName('head')[0].appendChild( headStyle );
+        }
+
+        if( Breeze.isObject(styleObject) )
+        {
+            styleObject= Breeze.serialize( styleObject, 'style' );
+        }
+
+        if( typeof styleObject === "string" )
+        {
+            styleObject=Breeze.formatStyle( styleObject );
+            if( Breeze.isBrowser(Breeze.BROWSER_IE,9,'<') )
+            {
+                var styleName = styleName.split(',');
+                styleObject = styleObject.replace(/^\{/,'').replace(/\}$/,'');
+                for(var i=0; i<styleName.length; i++ )
+                {
+                    headStyle.styleSheet.addRule(styleName[i], styleObject, -1);
+                }
+
+            }else
+            {
+                if (styleObject.charAt(0) !== '{')
+                {
+                    styleObject = '{' + styleObject + '}';
+                }
+                headStyle.appendChild(document.createTextNode(styleName + styleObject));
+            }
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
+     * 比较两个两个字符串的值。
+     * 如果 a > b 返回 1 a<b 返回 -1 否则返回 0
+     * 比较的优先级数字优先于字符串。字母及汉字是按本地字符集排序。
+     * @param a
+     * @param b
      * @returns {*}
      */
-    Breeze.prototype.animation=function( options ,callback )
+    Breeze.compare=function(a,b)
     {
-        var tl=  new Timeline().bind( this.toArray() )
-        options=[].concat( options );
-        for( var i in options )
+        var c = parseFloat( a ), d = parseFloat( b );
+        if( isNaN(c) && isNaN(d) )
         {
-            var d = options[i].duration;
-            delete options[i].duration
-            tl.addKeyFrame( options[i] , d );
-        }
-        if( typeof callback === 'function' )
+            return a.localeCompare(b);
+
+        }else if( !isNaN(c) && !isNaN(d) )
         {
-           tl.addEventListener(TimelineEvent.FINISH,callback);
+            return c > d ? 1 : (c < d ? -1 : 0);
         }
-        tl.play();
-        return tl;
+        return isNaN(c) ? 1 : -1;
     }
 
-    /**
-     * 将一个元素淡入
-     * @param duration
-     * @param callback
-     * @returns {Breeze}
-     */
-    Breeze.prototype.fadeIn=function(duration,callback)
-    {
-        this.style('opacity',0);
-        this.animation({'opacity':1,'duration':duration},callback);
-        return this;
-    }
-
-    /**
-     * 将一个元素淡出
-     * @param duration
-     * @param callback
-     * @returns {Breeze}
-     */
-    Breeze.prototype.fadeOut=function(duration,callback)
-    {
-        this.style('opacity',1);
-        this.animation({'opacity':0,'duration':duration},callback);
-        return this;
-    }
-
-    window.Breeze=Breeze;
-
-})( window )
+})( typeof exports === "object" ? exports :  window );

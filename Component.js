@@ -29,7 +29,7 @@
         {
             if( !(viewport instanceof Breeze) )
             {
-                viewport = Breeze( viewport , context );
+                viewport = Element( viewport , context );
             }
             if( viewport.length !==1 )
             {
@@ -50,7 +50,7 @@
     {
         if( typeof subClass === "function" && subClass.prototype && subClass.prototype.componentProfile )
         {
-            return Utils.storage( element, subClass.prototype.componentProfile );
+            return Breeze.storage( element, subClass.prototype.componentProfile );
         }
         return null;
     }
@@ -279,10 +279,10 @@
 
         __initialize__=true;
         Breeze.rootEvent().dispatchEvent( new BreezeEvent( Component.INITIALIZE_START ) );
-        Breeze('['+Component.NAME+']').forEach(function(element){
+        Element('['+Component.NAME+']').forEach(function(element){
 
             var name= this.property( Component.NAME );
-            var className = typeof window[ name ] === "function"  ? window[ name ] : window[ Utils.ucfirst(name) ];
+            var className = typeof window[ name ] === "function"  ? window[ name ] : window[ Breeze.ucfirst(name) ];
 
             if( typeof className !== "function" )
             {
@@ -303,7 +303,7 @@
                 {
                     var type = element.getAttribute('type');
                     type = !type || type == 'text/javascript';
-                    if (Utils.nodeName(child) === 'script' && type) {
+                    if (Breeze.nodeName(child) === 'script' && type) {
                         element.removeChild(child);
                         new Function( child.innerHTML ).call(instance);
                     }
@@ -316,7 +316,7 @@
             for( ; index < instance.initializeMethod.length; index++)
             {
                 var method = instance.initializeMethod[ index ];
-                var value = Utils.property(element,method);
+                var value = Breeze.property(element,method);
 
                 if( method && value !==null && typeof instance[ method ] === "function" )
                 {

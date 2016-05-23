@@ -45,7 +45,7 @@
     function getOwner(target)
     {
         var parent=target;
-        while( Utils.contains( target.ownerDocument.body, parent ) )
+        while( Breeze.contains( target.ownerDocument.body, parent ) )
         {
             parent= parent.parentNode;
             var layout = Component.getInstance(parent, Layout );
@@ -73,7 +73,7 @@
 
         Component.call(this,  skinGroup );
         target=this.current();
-        if( !Utils.isHTMLElement(target) || !target.parentNode || !Utils.contains( target.ownerDocument.body, target ) )
+        if( !Breeze.isHTMLElement(target) || !target.parentNode || !Breeze.contains( target.ownerDocument.body, target ) )
         {
             throw new Error('Invalid element for Layout');
         }
@@ -88,7 +88,7 @@
             this.owner = owner;
         }
 
-        Utils.style(target,'position', 'absolute' );
+        Breeze.style(target,'position', 'absolute' );
         this.viewport( target.parentNode );
     }
 
@@ -174,15 +174,15 @@
     Layout.prototype.getViewportSize=function()
     {
         var viewport = this.viewport();
-        var scroll = Utils.scroll(viewport)
+        var scroll = Breeze.scroll(viewport)
         var height=scroll.top;
-        height+=Utils.getSize( viewport === viewport.ownerDocument.body ? window : viewport,'height');
+        height+=Breeze.getSize( viewport === viewport.ownerDocument.body ? window : viewport,'height');
         var width = scroll.left;
-        width+=Utils.getSize( viewport === viewport.ownerDocument.body ? window : viewport,'width');
+        width+=Breeze.getSize( viewport === viewport.ownerDocument.body ? window : viewport,'width');
 
         for( var index=0 ; index < padding.length ; index++ )
         {
-            var val = parseInt( Utils.style( viewport, 'padding'+ padding[ index ] ) ) || 0;
+            var val = parseInt( Breeze.style( viewport, 'padding'+ padding[ index ] ) ) || 0;
             index < 2 ? width-=val : height-=val;
         }
         return {'width':width,'height':height};
@@ -199,7 +199,7 @@
         {
             var percent = this.percentWidth();
             percent = isNaN(percent) ? 100 : percent;
-            width = percent===0 ?  parseInt( Utils.style(this.current(),'width') ) :  percent  / 100 * parentWidth;
+            width = percent===0 ?  parseInt( Breeze.style(this.current(),'width') ) :  percent  / 100 * parentWidth;
         }
         var left = this.left() || 0;
         var right = this.right() || 0;
@@ -220,7 +220,7 @@
         {
             var percent = this.percentHeight();
             percent = isNaN(percent) ? 100 : percent;
-            height=  percent===0 ?  parseInt( Utils.style(this.current(),'height') ) :  percent / 100 * parentHeight;
+            height=  percent===0 ?  parseInt( Breeze.style(this.current(),'height') ) :  percent / 100 * parentHeight;
         }
         var bottom = this.bottom() || 0;
         var top = this.top() || 0;
@@ -352,7 +352,7 @@
             {
                 var child = target.childNodes.item( index );
                 this.current( child );
-                if( Utils.isHTMLElement(child) && this.property('includeLayout' )!=='false' )
+                if( Breeze.isHTMLElement(child) && this.property('includeLayout' )!=='false' )
                 {
                     this.style('position','absolute')
                     var childWidth = this.width() ||  this.calculateWidth( parentWidth );
@@ -458,10 +458,10 @@
                 }else
                 {
 
-                    Utils.style(child.target,'left', child.left + xOffset );
-                    Utils.style(child.target,'top', child.top + yOffset );
-                    Utils.style(child.target,'width',child.width);
-                    Utils.style(child.target,'height',child.height);
+                    Breeze.style(child.target,'left', child.left + xOffset );
+                    Breeze.style(child.target,'top', child.top + yOffset );
+                    Breeze.style(child.target,'width',child.width);
+                    Breeze.style(child.target,'height',child.height);
                 }
             }
         }
@@ -654,7 +654,7 @@
         var old = this.property('horizontal') || horizontal[0];
         if( typeof val !== "undefined" )
         {
-            if ( val !== old && Utils.inObject(horizontal,val) !== null && this !== rootLayout )
+            if ( val !== old && Breeze.inObject(horizontal,val) !== null && this !== rootLayout )
             {
                 this.property('horizontal',val);
                 dispatchLayoutEvent(this, 'horizontal', val, old);
@@ -674,7 +674,7 @@
         var old = this.property('vertical') || vertical[0];
         if( typeof val !== "undefined" )
         {
-            if ( val !== old && Utils.inObject(vertical,val) !== null && this !== rootLayout )
+            if ( val !== old && Breeze.inObject(vertical,val) !== null && this !== rootLayout )
             {
                 this.property('vertical',val);
                 dispatchLayoutEvent(this, 'vertical', val, old);

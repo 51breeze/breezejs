@@ -1,5 +1,5 @@
 /*
- * BreezeJS HttpRequest class.
+ * BreezeJS Http class.
  * version: 1.0 Beta
  * Copyright © 2015 BreezeJS All rights reserved.
  * Released under the MIT license
@@ -208,15 +208,15 @@
         }
         EventDispatcher.call(this);
         this.__options__={
-            'method': HttpRequest.METHOD.GET,
-            'dataType':HttpRequest.TYPE.JSON,
+            'method': Http.METHOD.GET,
+            'dataType':Http.TYPE.JSON,
             'param':{},
             'primary':'id',
             'synch':{
                 'enable':false,
                 'asynch':false,
                 'param':{},
-                'method': HttpRequest.METHOD.POST,
+                'method': Http.METHOD.POST,
                 'actionProfile':'action',
                 'url':null
             },
@@ -288,7 +288,7 @@
 
     /**
      * 数据源
-     * @returns {DataSource|window.HttpRequest}
+     * @returns {DataSource|window.Http}
      */
     DataSource.prototype.source=function( source )
     {
@@ -304,7 +304,7 @@
         {
             this.splice(0, this.length);
             this.removeEventListener(DataSourceEvent.LOAD_START);
-            if (this.__source__ instanceof HttpRequest)
+            if (this.__source__ instanceof Http)
                 this.__source__.removeEventListener(HttpEvent.SUCCESS);
             return this;
         }

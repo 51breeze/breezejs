@@ -87,7 +87,7 @@
             this.__styleName__ = styleName;
             return this;
         }
-        return typeof this.__styleName__ === "string" ? this.__styleName__ : '.'+Utils.lcfirst( this.componentProfile );
+        return typeof this.__styleName__ === "string" ? this.__styleName__ : '.'+Breeze.lcfirst( this.componentProfile );
     }
 
     /**

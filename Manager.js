@@ -72,12 +72,12 @@
         if( typeof context !== 'undefined' )
         {
             if( context instanceof Manager )return context.getContext();
-            context = Utils.isString(context) ? Sizzle(context,document)[0] : context;
+            context = Breeze.isString(context) ? Sizzle(context,document)[0] : context;
         }
         var target = context || this.context;
-        if( Utils.isFrame( target ) && target.contentWindow )
+        if( Breeze.isFrame( target ) && target.contentWindow )
             return target.contentWindow.document;
-        return Utils.isHTMLContainer( target ) ? target :  document ;
+        return Breeze.isHTMLContainer( target ) ? target :  document ;
     }
 
     /**

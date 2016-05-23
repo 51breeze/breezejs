@@ -35,7 +35,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
      */
     function setting(object,option)
     {
-        if( Utils.isObject(option) )
+        if( Breeze.isObject(option) )
         {
             for( var prop in option ) if( typeof object[prop] === "function" )
             {
@@ -68,7 +68,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         if( (containerHeight < 1 || containerWidth < 1) && (halign==='left' && valign==='top') && !anchor && !( isNaN(left) || isNaN(top) ) )
             return this;
 
-        var windowSize = Utils.getSize( window );
+        var windowSize = Breeze.getSize( window );
         var width      = windowSize.width;
         var height     = windowSize.height;
         var x = 0;
@@ -92,7 +92,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
                 height = containerHeight;
             }else
             {
-                var rect = Utils.getBoundingRect(anchor,true);
+                var rect = Breeze.getBoundingRect(anchor,true);
                 x += rect.left;
                 y += rect.top;
                 containerWidth = rect.width;
@@ -133,7 +133,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
            context = document.body;
         }
 
-        if( !Utils.isNodeElement(context) )
+        if( !Breeze.isNodeElement(context) )
         {
             throw new Error('invalid context');
         }
@@ -144,7 +144,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         }
 
         var name = type === Popup.MODALITY ? 'popup.modalityInstance' : 'popup.generalInstance';
-        var instance = Utils.storage(context,name);
+        var instance = Breeze.storage(context,name);
         if( instance )return instance;
         if( !(this instanceof Popup) )
             return new Popup( type , context);
@@ -158,7 +158,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         this.__callback__=null;
         this.__left__=NaN;
         this.__top__=NaN;
-        Utils.storage(context,name, this);
+        Breeze.storage(context,name, this);
         return SkinComponent.call(this, new SkinGroup('<div class="popup" />', context) );
     }
 
@@ -180,20 +180,20 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
     //提示框
     Popup.info=function( message , option )
     {
-        option = Utils.extend({zIndex:999} , option || {});
+        option = Breeze.extend({zIndex:999} , option || {});
         var popup = Popup( Popup.SIMPLE )
         if( option.anchor instanceof MouseEvent )
         {
             popup.vertical('top').horizontal('left');
         }
         Popup.LAST_INSTANCE= popup;
-        return popup.show( Utils.sprintf('<div style="margin: 5px;">%s</div>',message) , option);
+        return popup.show( Breeze.sprintf('<div style="margin: 5px;">%s</div>',message) , option);
     }
 
     //警告框
     Popup.alert=function( message , option )
     {
-        option = Utils.extend({zIndex:999,minWidth:400,minHeight:80,autoHidden:false,vertical:'top',horizontal:'center'} , option || {});
+        option = Breeze.extend({zIndex:999,minWidth:400,minHeight:80,autoHidden:false,vertical:'top',horizontal:'center'} , option || {});
         var popup =  Popup( Popup.NORM );
         //Popup.LAST_INSTANCE= popup;
         return popup.show( message , option);
@@ -203,7 +203,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
     Popup.confirm=function( message , option )
     {
         if( typeof option === "function" )option={callback:option};
-        option = Utils.extend({zIndex:999,minWidth:400,minHeight:120,autoHidden:false,vertical:'top',horizontal:'center'} , option || {});
+        option = Breeze.extend({zIndex:999,minWidth:400,minHeight:120,autoHidden:false,vertical:'top',horizontal:'center'} , option || {});
         var popup =  Popup( Popup.TYPICAL );
         //Popup.LAST_INSTANCE= popup;
         return  popup.show( message , option);
@@ -212,7 +212,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
     //模态框
     Popup.modality=function(title, content , option )
     {
-        option =  Utils.extend({minWidth:600,minHeight:300,autoHidden:false,type:Popup.TYPICAL,style:{opacity:0.5},zIndex:900}, option || {});
+        option =  Breeze.extend({minWidth:600,minHeight:300,autoHidden:false,type:Popup.TYPICAL,style:{opacity:0.5},zIndex:900}, option || {});
         var popup = Popup( Popup.MODALITY );
         var theme={};
         theme[ Popup.NORM ] = '{skins head+body}';
@@ -370,13 +370,13 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         var skinGroup = this.skinGroup();
         var context = skinGroup[0].parentNode;
         var name = this.type() === Popup.MODALITY ? 'popup.maskmodality' : 'popup.maskalert';
-        var mask = Utils.storage(context,name);
+        var mask = Breeze.storage(context,name);
         if( !mask )
         {
-            mask = Breeze('<div name="mask" />', skinGroup[0].parentNode )
+            mask = Element('<div name="mask" />', skinGroup[0].parentNode )
                 .style('cssText',"background-color:#000000;opacity:0;width:100%;height:100%;position:fixed;z-index:998;top:0px;left:0px;display:none" );
             var callback = function(event){
-                this.height( Utils.getSize(window,'height'));
+                this.height( Breeze.getSize(window,'height'));
             }
             Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,callback,true,0,mask);
             callback.call(mask);
@@ -384,7 +384,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
                 Animation.shake( skinGroup[0] );
                 event.stopPropagation();
             });
-            Utils.storage(context,name, mask);
+            Breeze.storage(context,name, mask);
         }
         return mask;
     }
@@ -556,7 +556,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
     {
         if( typeof val !== "undefined" )
         {
-            if( !Utils.isNodeElement(val) && !(val instanceof MouseEvent) )
+            if( !Breeze.isNodeElement(val) && !(val instanceof MouseEvent) )
             {
                 throw new Error('invalid anchor. the val only can is NodeElement or MouseEvent');
             }
@@ -577,7 +577,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
     {
         var skinGroup = this.skinGroup();
         content = content || '';
-        option =  Utils.extend({autoHidden:true,zIndex:999}, option || {});
+        option =  Breeze.extend({autoHidden:true,zIndex:999}, option || {});
         option.zIndex =  parseInt( option.zIndex ) || 999;
         setting(this, option);
 
@@ -589,7 +589,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         var mask = this.mask();
         if( mask )mask.display(true).style('zIndex', option.zIndex-1 );
 
-        var size = Utils.getSize( skinGroup[0] );
+        var size = Breeze.getSize( skinGroup[0] );
         var maxHeight =  this.maxHeight();
         var minHeight = this.minHeight();
         var maxWidth  = this.maxWidth();
@@ -625,9 +625,9 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
                 {
                     var headSkin = skinGroup.getSkin('head');
                     var footerSkin = skinGroup.getSkin('footer');
-                    var headHeight =headSkin ? Utils.getSize(headSkin,'height') : 0;
-                    var footerHeight = footerSkin ? Utils.getSize(footerSkin,'height') : 0;
-                    Utils.style( bodySkin, 'height', skinGroup.current(null).height() - headHeight - footerHeight );
+                    var headHeight =headSkin ? Breeze.getSize(headSkin,'height') : 0;
+                    var footerHeight = footerSkin ? Breeze.getSize(footerSkin,'height') : 0;
+                    Breeze.style( bodySkin, 'height', skinGroup.current(null).height() - headHeight - footerHeight );
                 }
             }
         },false,0,this);
@@ -645,7 +645,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
         {
             skinGroup.getSkinGroup('footer > button').addEventListener(MouseEvent.CLICK,function(event)
             {
-                var name =  Utils.property(event.currentTarget ,  SkinGroup.NAME ) || '';
+                var name =  Breeze.property(event.currentTarget ,  SkinGroup.NAME ) || '';
                 var type  = name.toUpperCase();
                 if( this.hasEventListener( PopupEvent[type] ) && !this.dispatchEvent( new PopupEvent( PopupEvent[type]  ) ) )
                     return;

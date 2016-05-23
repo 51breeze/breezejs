@@ -60,8 +60,8 @@ var selection = new Selection( '#selection' )
             skinGroup.width( width );
             skinGroup.getBoundingRect(left, top + height + 3 );
 
-            var windowWidth = Utils.getSize(window,'width');
-            var windowHeight = Utils.getSize(window,'height');
+            var windowWidth = Breeze.getSize(window,'width');
+            var windowHeight = Breeze.getSize(window,'height');
             var inputHeight =  skinGroup.getSkinGroup('group > input').height();
             var maxHeight = windowHeight - ( top + height + 3 + inputHeight + 5 );
             skinGroup.currentSkin('list').style('maxHeight',maxHeight);
@@ -80,7 +80,7 @@ var selection = new Selection( '#selection' )
         //搜索框
         if( this.searchable() )
         {
-            Breeze('input', skinGroup.getSkin('group') ).property('placeholder', this.placeholder() ).display(true)
+            Element('input', skinGroup.getSkin('group') ).property('placeholder', this.placeholder() ).display(true)
             .addEventListener(PropertyEvent.CHANGE,function(event){
                 if( event.property==='value')
                 {
@@ -95,8 +95,8 @@ var selection = new Selection( '#selection' )
         //点击下拉列表外隐藏列表
         EventDispatcher( skinGroup.getSkin('group') ).addEventListener( MouseEvent.MOUSE_OUTSIDE , function(event){
 
-            if( !Utils.contains( skinGroup[0],  event.target ) )
-               Utils.style(event.currentTarget,'display','none');
+            if( !Breeze.contains( skinGroup[0],  event.target ) )
+               Breeze.style(event.currentTarget,'display','none');
         });
     }
 

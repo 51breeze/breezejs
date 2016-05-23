@@ -23,7 +23,7 @@
         var wrap  = options.wrap;
         var skin= {head:'',body:'',foot:''};
 
-        if( Utils.isObject(columns,true) )
+        if( Breeze.isObject(columns,true) )
         {
             var isset=false;
             for( var i in  columns )
@@ -105,7 +105,7 @@
         if( arguments.length > 0 && typeof column === "string" )
         {
             category = category || 'tbody';
-            option = Utils.extend(defualt,option || {});
+            option = Breeze.extend(defualt,option || {});
             if( typeof option.template !== "string" )
                throw new Error('invalid html template.')
 
@@ -160,7 +160,7 @@
     {
         if( typeof options !== "undefined")
         {
-            this.__options__ = Utils.extend(true, this.__options__, options );
+            this.__options__ = Breeze.extend(true, this.__options__, options );
             return this;
         }
         return this.__options__;
@@ -266,7 +266,7 @@
             'callback':function(event,option){
                  var index =dataSource.viewIndex( this.property('data-index') );
                  var item = dataSource[index];
-                 item = Utils.extend({},item);
+                 item = Breeze.extend({},item);
                  dataSource.append( item, index+1);
             },
             'eventType':MouseEvent.CLICK
@@ -291,7 +291,7 @@
             return this.__columns__;
         }
         this.__columns__ = columns;
-        if ( Utils.isString(columns) )
+        if ( Breeze.isString(columns) )
         {
             this.__columns__ = columns.split(',')
         }
@@ -426,10 +426,10 @@
 
         }else
         {
-            var options = Utils.extend(skinGroup.skinObject().skins, this.options() );
+            var options = Breeze.extend(skinGroup.skinObject().skins, this.options() );
             var skin = makeTemplate( this.columns(), options , this.plus() );
             skinGroup.currentSkin('thead').html( skin.head );
-            var columnName =  Utils.toKeys(  this.columns() );
+            var columnName =  Breeze.toKeys(  this.columns() );
             skinGroup.children().children().forEach(function(elem,index){
                  var name = columnName[index];
                  this.style('textAlign',  options.theadAlign[name] || options.theadAlign['*'] );
@@ -496,9 +496,9 @@
 
     var resize = function()
     {
-        var htarget = Breeze('thead > tr > th',this);
-        var vtarget = Breeze('thead > tr > th:nth-child(1),tbody > tr > td:nth-child(1)',this);
-        Breeze('td,th',this).addEventListener(MouseEvent.MOUSE_DOWN,function(event){
+        var htarget = Element('thead > tr > th',this);
+        var vtarget = Element('thead > tr > th:nth-child(1),tbody > tr > td:nth-child(1)',this);
+        Element('td,th',this).addEventListener(MouseEvent.MOUSE_DOWN,function(event){
 
             var rect = this.getBoundingRect();
             var space = 2;
@@ -586,7 +586,7 @@
 
             this.__dataRender__.addEventListener(TemplateEvent.REFRESH, function (event)
             {
-                Breeze('[data-action]', this.viewport() ).forEach(function (){
+                Element('[data-action]', this.viewport() ).forEach(function (){
 
                     var action = this.property('data-action');
                     var column = this.property('data-column');

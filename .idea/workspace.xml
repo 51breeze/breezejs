@@ -2,7 +2,29 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="Default">
+      <change type="DELETED" beforePath="E:\webroot\breezejs\HttpRequest.js" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Animation.js" afterPath="$PROJECT_DIR$/Animation.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Bindable.js" afterPath="$PROJECT_DIR$/Bindable.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BreezeEvent.js" afterPath="$PROJECT_DIR$/BreezeEvent.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Component.js" afterPath="$PROJECT_DIR$/Component.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataArray.js" afterPath="$PROJECT_DIR$/DataArray.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataGrid.js" afterPath="$PROJECT_DIR$/DataGrid.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataSource.js" afterPath="$PROJECT_DIR$/DataSource.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/EventDispatcher.js" afterPath="$PROJECT_DIR$/EventDispatcher.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Http.js" afterPath="$PROJECT_DIR$/Http.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Layout.js" afterPath="$PROJECT_DIR$/Layout.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Manager.js" afterPath="$PROJECT_DIR$/Manager.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Modality.js" afterPath="$PROJECT_DIR$/Modality.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Pagination.js" afterPath="$PROJECT_DIR$/Pagination.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Popup.js" afterPath="$PROJECT_DIR$/Popup.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Selection.js" afterPath="$PROJECT_DIR$/Selection.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SkinComponent.js" afterPath="$PROJECT_DIR$/SkinComponent.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SkinGroup.js" afterPath="$PROJECT_DIR$/SkinGroup.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Template.js" afterPath="$PROJECT_DIR$/Template.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Timeline.js" afterPath="$PROJECT_DIR$/Timeline.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/Breeze.js" afterPath="$PROJECT_DIR$/Element.js" />
+      <change type="MOVED" beforePath="E:\webroot\breezejs\Utils.js" afterPath="$PROJECT_DIR$/Breeze.js" />
     </list>
     <ignored path="breezejs.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -26,55 +48,100 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="DataArray.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/DataArray.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="182" column="24" selection-start="4608" selection-end="4608" vertical-scroll-proportion="0.0" vertical-offset="4368" max-vertical-offset="4944">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Http.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Http.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="92" column="13" selection-start="2720" selection-end="2720" vertical-scroll-proportion="0.0" vertical-offset="2208" max-vertical-offset="10224">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="BreezeEvent.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/BreezeEvent.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="316" column="35" selection-start="10438" selection-end="10438" vertical-scroll-proportion="0.0" vertical-offset="7584" max-vertical-offset="8184">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DataSource.js" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/DataSource.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="282" column="0" selection-start="8702" selection-end="8702" vertical-scroll-proportion="0.7810651" vertical-offset="6096" max-vertical-offset="19224">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="Manager.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Manager.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="108" column="22" selection-start="3304" selection-end="3304" vertical-scroll-proportion="0.0" vertical-offset="2592" max-vertical-offset="3576">
+            <state line="75" column="9" selection-start="2412" selection-end="2412" vertical-scroll-proportion="-1.7931035" vertical-offset="1696" max-vertical-offset="3576">
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Modality.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Modality.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="158" column="11" selection-start="5129" selection-end="5129" vertical-scroll-proportion="-5.206897" vertical-offset="3490" max-vertical-offset="11064">
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+                <marker date="1464018261605" expanded="true" signature="6396:6436" placeholder="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Pagination.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Pagination.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="149" column="56" selection-start="5489" selection-end="5489" vertical-scroll-proportion="-5.034483" vertical-offset="3284" max-vertical-offset="9384">
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Popup.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Popup.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="375" column="27" selection-start="10501" selection-end="10501" vertical-scroll-proportion="-3.5517242" vertical-offset="8794" max-vertical-offset="17568">
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+                <marker date="1464018278915" expanded="true" signature="5455:5467" placeholder="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Selection.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Selection.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="82" column="20" selection-start="2309" selection-end="2309" vertical-scroll-proportion="-3.5517242" vertical-offset="1762" max-vertical-offset="13176">
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+                <marker date="1464018294403" expanded="true" signature="15030:15053" placeholder="..." />
+                <marker date="1464018294403" expanded="true" signature="15433:15446" placeholder="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SkinComponent.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/SkinComponent.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="89" column="88" selection-start="2509" selection-end="2509" vertical-scroll-proportion="-5.1034484" vertical-offset="1840" max-vertical-offset="3600">
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SkinGroup.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/SkinGroup.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="529" column="13" selection-start="16870" selection-end="16870" vertical-scroll-proportion="-14.034483" vertical-offset="12289" max-vertical-offset="13032">
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Timeline.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Timeline.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="830" column="34" selection-start="21805" selection-end="21805" vertical-scroll-proportion="-41.03448" vertical-offset="17540" max-vertical-offset="21696">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Component.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Component.js">
+      <file leaf-file-name="TouchEvent.js" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/TouchEvent.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="123" column="29" selection-start="3420" selection-end="3420" vertical-scroll-proportion="0.0" vertical-offset="2952" max-vertical-offset="8400">
+            <state line="22" column="39" selection-start="893" selection-end="893" vertical-scroll-proportion="0.6213592" vertical-offset="0" max-vertical-offset="7776">
               <folding />
             </state>
           </provider>
@@ -83,35 +150,10 @@
       <file leaf-file-name="Breeze.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Breeze.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="385" column="21" selection-start="10548" selection-end="10548" vertical-scroll-proportion="0.0" vertical-offset="9240" max-vertical-offset="33456">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Pagination.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Pagination.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="138" column="50" selection-start="4974" selection-end="4974" vertical-scroll-proportion="0.0" vertical-offset="3312" max-vertical-offset="9384">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Grep.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Grep.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="209" column="19" selection-start="6282" selection-end="6282" vertical-scroll-proportion="0.0" vertical-offset="5016" max-vertical-offset="9192">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Utils.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Utils.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="971" column="34" selection-start="30723" selection-end="30723" vertical-scroll-proportion="0.0" vertical-offset="23304" max-vertical-offset="47976">
-              <folding />
+            <state line="1512" column="11" selection-start="44749" selection-end="44749" vertical-scroll-proportion="0.0" vertical-offset="36063" max-vertical-offset="48000">
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -146,39 +188,40 @@
         <option value="$PROJECT_DIR$/SkinFactory.js" />
         <option value="$PROJECT_DIR$/666.html" />
         <option value="$PROJECT_DIR$/66699.php" />
-        <option value="$PROJECT_DIR$/Template.js" />
         <option value="$PROJECT_DIR$/base.css" />
         <option value="$PROJECT_DIR$/bootstrap.css" />
         <option value="$PROJECT_DIR$/css/bootstrap.css" />
         <option value="$PROJECT_DIR$/SkinThemes.js" />
         <option value="$PROJECT_DIR$/ColorThemes.js" />
         <option value="$PROJECT_DIR$/css/base.css" />
-        <option value="$PROJECT_DIR$/Selection.js" />
-        <option value="$PROJECT_DIR$/Manager.js" />
-        <option value="$PROJECT_DIR$/Animation.js" />
-        <option value="$PROJECT_DIR$/Modality.js" />
-        <option value="$PROJECT_DIR$/Layout.js" />
-        <option value="$PROJECT_DIR$/SkinComponent.js" />
-        <option value="$PROJECT_DIR$/SkinGroup.js" />
-        <option value="$PROJECT_DIR$/Timeline.js" />
         <option value="$PROJECT_DIR$/DataRender.js" />
         <option value="$PROJECT_DIR$/HttpRequest.js" />
-        <option value="$PROJECT_DIR$/Breeze.js" />
-        <option value="$PROJECT_DIR$/Bindable.js" />
-        <option value="$PROJECT_DIR$/Popup.js" />
         <option value="$PROJECT_DIR$/test.js" />
-        <option value="$PROJECT_DIR$/EventDispatcher.js" />
-        <option value="$PROJECT_DIR$/BreezeEvent.js" />
         <option value="$PROJECT_DIR$/json.php" />
         <option value="$PROJECT_DIR$/DataArray.js" />
-        <option value="$PROJECT_DIR$/Component.js" />
         <option value="$PROJECT_DIR$/Utils.js" />
-        <option value="$PROJECT_DIR$/Http.js" />
-        <option value="$PROJECT_DIR$/Pagination.js" />
-        <option value="$PROJECT_DIR$/DataGrid.js" />
         <option value="$PROJECT_DIR$/index.html" />
         <option value="$PROJECT_DIR$/Grep.js" />
         <option value="$PROJECT_DIR$/DataSource.js" />
+        <option value="$PROJECT_DIR$/Breeze.js" />
+        <option value="$PROJECT_DIR$/Element.js" />
+        <option value="$PROJECT_DIR$/Animation.js" />
+        <option value="$PROJECT_DIR$/Bindable.js" />
+        <option value="$PROJECT_DIR$/BreezeEvent.js" />
+        <option value="$PROJECT_DIR$/EventDispatcher.js" />
+        <option value="$PROJECT_DIR$/Http.js" />
+        <option value="$PROJECT_DIR$/Layout.js" />
+        <option value="$PROJECT_DIR$/Manager.js" />
+        <option value="$PROJECT_DIR$/Pagination.js" />
+        <option value="$PROJECT_DIR$/SkinComponent.js" />
+        <option value="$PROJECT_DIR$/Timeline.js" />
+        <option value="$PROJECT_DIR$/Component.js" />
+        <option value="$PROJECT_DIR$/DataGrid.js" />
+        <option value="$PROJECT_DIR$/Modality.js" />
+        <option value="$PROJECT_DIR$/Popup.js" />
+        <option value="$PROJECT_DIR$/Selection.js" />
+        <option value="$PROJECT_DIR$/SkinGroup.js" />
+        <option value="$PROJECT_DIR$/Template.js" />
       </list>
     </option>
   </component>
@@ -688,21 +731,26 @@
       <created>1460294332833</created>
       <updated>1460294332833</updated>
     </task>
-    <option name="localTasksCounter" value="97" />
+    <task id="LOCAL-00097" summary="Default">
+      <created>1463674062950</created>
+      <updated>1463674062950</updated>
+    </task>
+    <option name="localTasksCounter" value="98" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1456" height="876" extended-state="0" />
+    <frame x="-8" y="-8" width="1456" height="876" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="更改" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.0" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="运行" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="版本控制" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.74965227" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="找到" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.7938719" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.31088826" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.23710601" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="调试" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -711,14 +759,13 @@
       <window_info id="消息" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32729805" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.08163265" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.0861678" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32993197" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="找到" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.7948718" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
@@ -799,32 +846,12 @@
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Editable.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ColorThemes.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Dictionary.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
-      </provider>
-    </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/lib.d.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/sizzle.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DOMCore.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
       </provider>
@@ -839,64 +866,14 @@
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Tween.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
-      </provider>
-    </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DOMEvents.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Layout.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="190" column="7" selection-start="5359" selection-end="5359" vertical-scroll-proportion="0.0" vertical-offset="3989" max-vertical-offset="17040" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Modality.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="52" column="7" selection-start="1579" selection-end="1579" vertical-scroll-proportion="0.0" vertical-offset="1248" max-vertical-offset="11064" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SkinGroup.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="108" column="36" selection-start="4091" selection-end="4091" vertical-scroll-proportion="0.0" vertical-offset="2119" max-vertical-offset="12888" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Animation.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="5160" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Bindable.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="42" column="25" selection-start="1306" selection-end="1306" vertical-scroll-proportion="0.0" vertical-offset="384" max-vertical-offset="5688" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SkinComponent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="97" column="28" selection-start="2665" selection-end="2665" vertical-scroll-proportion="0.0" vertical-offset="1947" max-vertical-offset="3456" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Template.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="194" column="13" selection-start="5339" selection-end="5339" vertical-scroll-proportion="-0.6783708" vertical-offset="5139" max-vertical-offset="9360" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Popup.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="193" column="10" selection-start="5518" selection-end="5518" vertical-scroll-proportion="0.0" vertical-offset="4255" max-vertical-offset="17424" />
-      </provider>
-    </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/HTML5.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="2165" column="25" selection-start="38185" selection-end="38185" vertical-scroll-proportion="0.0" vertical-offset="51608" max-vertical-offset="52320" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Timeline.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="240" column="23" selection-start="6077" selection-end="6077" vertical-scroll-proportion="0.0" vertical-offset="5523" max-vertical-offset="21696" />
       </provider>
     </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DHTML.js">
@@ -909,19 +886,9 @@
         <state line="119" column="58" selection-start="2191" selection-end="2191" vertical-scroll-proportion="0.0" vertical-offset="2619" max-vertical-offset="4584" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/HttpRequest.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="292" column="0" selection-start="10851" selection-end="10851" vertical-scroll-proportion="0.0" vertical-offset="7728" max-vertical-offset="9888" />
-      </provider>
-    </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/AJAX.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="67" column="9" selection-start="938" selection-end="938" vertical-scroll-proportion="0.0" vertical-offset="1659" max-vertical-offset="2880" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="412" column="9" selection-start="12733" selection-end="12733" vertical-scroll-proportion="0.0" vertical-offset="9175" max-vertical-offset="16248" />
       </provider>
     </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/php/lib/php.jar!/com/jetbrains/php/lang/psi/stubs/data/standard_8.php">
@@ -934,52 +901,9 @@
         <state line="45" column="0" selection-start="758" selection-end="758" vertical-scroll-proportion="0.0" vertical-offset="780" max-vertical-offset="1464" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Selection.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="523" column="12" selection-start="15150" selection-end="15150" vertical-scroll-proportion="0.0" vertical-offset="12175" max-vertical-offset="13032" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Component.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="123" column="29" selection-start="3420" selection-end="3420" vertical-scroll-proportion="0.0" vertical-offset="2383" max-vertical-offset="8256">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Utils.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="971" column="34" selection-start="30723" selection-end="30723" vertical-scroll-proportion="0.0" vertical-offset="22639" max-vertical-offset="47832">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="417" column="19" selection-start="7192" selection-end="7192" vertical-scroll-proportion="0.0" vertical-offset="9771" max-vertical-offset="22488" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Breeze.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="385" column="21" selection-start="10548" selection-end="10548" vertical-scroll-proportion="0.0" vertical-offset="8859" max-vertical-offset="33312">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DataRender.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="96" column="49" selection-start="2368" selection-end="2368" vertical-scroll-proportion="0.0" vertical-offset="1851" max-vertical-offset="3000" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Pagination.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="138" column="50" selection-start="4974" selection-end="4974" vertical-scroll-proportion="0.0" vertical-offset="3120" max-vertical-offset="9240">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DataGrid.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="158" column="23" selection-start="5236" selection-end="5236" vertical-scroll-proportion="0.33333334" vertical-offset="3415" max-vertical-offset="15792" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
@@ -987,44 +911,240 @@
         <state line="63" column="50" selection-start="1924" selection-end="1924" vertical-scroll-proportion="-5.25" vertical-offset="1365" max-vertical-offset="4896" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Http.js">
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DOMCore.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="92" column="13" selection-start="2720" selection-end="2720" vertical-scroll-proportion="0.0" vertical-offset="1827" max-vertical-offset="10080">
+        <state line="811" column="0" selection-start="14883" selection-end="14883" vertical-scroll-proportion="0.0" vertical-offset="19235" max-vertical-offset="25920">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Grep.js">
+    <entry file="file://$PROJECT_DIR$/Tween.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="209" column="19" selection-start="6282" selection-end="6282" vertical-scroll-proportion="0.0" vertical-offset="4707" max-vertical-offset="9048">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4368">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/DataArray.js">
+    <entry file="file://$PROJECT_DIR$/Animation.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="182" column="24" selection-start="4608" selection-end="4608" vertical-scroll-proportion="0.0" vertical-offset="3987" max-vertical-offset="4800">
+        <state line="47" column="34" selection-start="1400" selection-end="1406" vertical-scroll-proportion="-3.6206896" vertical-offset="918" max-vertical-offset="5160">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Manager.js">
+    <entry file="file://$PROJECT_DIR$/Bindable.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="108" column="22" selection-start="3304" selection-end="3304" vertical-scroll-proportion="0.0" vertical-offset="2216" max-vertical-offset="3432">
+        <state line="172" column="26" selection-start="5257" selection-end="5257" vertical-scroll-proportion="0.5862069" vertical-offset="4018" max-vertical-offset="5688">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/BreezeEvent.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="316" column="35" selection-start="10438" selection-end="10438" vertical-scroll-proportion="0.0" vertical-offset="7179" max-vertical-offset="8040">
+        <state line="178" column="34" selection-start="5518" selection-end="5518" vertical-scroll-proportion="0.5862069" vertical-offset="4162" max-vertical-offset="8040">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ColorThemes.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="2.0" vertical-offset="116" max-vertical-offset="3840">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Component.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="281" column="16" selection-start="6808" selection-end="6808" vertical-scroll-proportion="-105.75862" vertical-offset="610" max-vertical-offset="8400">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DataArray.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="182" column="24" selection-start="4610" selection-end="4610" vertical-scroll-proportion="-1.7241379" vertical-offset="4124" max-vertical-offset="4800">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DataGrid.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="495" column="0" selection-start="14493" selection-end="14493" vertical-scroll-proportion="0.21682848" vertical-offset="11746" max-vertical-offset="15936">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+            <marker date="1464018261647" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1464018261647" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1464018261647" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1464018261647" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1464018261647" expanded="false" signature="-1:-1" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DataRender.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="96" column="49" selection-start="2368" selection-end="2368" vertical-scroll-proportion="0.3058637" vertical-offset="1967" max-vertical-offset="3000">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/DataSource.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="282" column="0" selection-start="8702" selection-end="8702" vertical-scroll-proportion="0.7810651" vertical-offset="6096" max-vertical-offset="19224">
+        <state line="635" column="27" selection-start="18076" selection-end="18076" vertical-scroll-proportion="0.5862069" vertical-offset="15130" max-vertical-offset="19224">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Dictionary.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="2.0" vertical-offset="116" max-vertical-offset="2640">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Editable.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="2.0" vertical-offset="116" max-vertical-offset="2712">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Element.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="134" column="0" selection-start="3649" selection-end="3649" vertical-scroll-proportion="-4.62069" vertical-offset="2948" max-vertical-offset="33264">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="663" column="33" selection-start="20322" selection-end="20322" vertical-scroll-proportion="-3.3793104" vertical-offset="15572" max-vertical-offset="16248">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Grep.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="209" column="19" selection-start="6282" selection-end="6282" vertical-scroll-proportion="-0.8448276" vertical-offset="4823" max-vertical-offset="9048">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Http.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="359" column="36" selection-start="9404" selection-end="9404" vertical-scroll-proportion="-113.034485" vertical-offset="2060" max-vertical-offset="10224">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Layout.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="676" column="39" selection-start="18922" selection-end="18922" vertical-scroll-proportion="-201.58621" vertical-offset="4532" max-vertical-offset="17184">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Manager.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="75" column="9" selection-start="2412" selection-end="2412" vertical-scroll-proportion="-1.7931035" vertical-offset="1696" max-vertical-offset="3576">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Modality.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="158" column="11" selection-start="5129" selection-end="5129" vertical-scroll-proportion="-5.206897" vertical-offset="3490" max-vertical-offset="11064">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+            <marker date="1464018261605" expanded="true" signature="6396:6436" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Pagination.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="149" column="56" selection-start="5489" selection-end="5489" vertical-scroll-proportion="-5.034483" vertical-offset="3284" max-vertical-offset="9384">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Popup.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="375" column="27" selection-start="10501" selection-end="10501" vertical-scroll-proportion="-3.5517242" vertical-offset="8794" max-vertical-offset="17568">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+            <marker date="1464018278915" expanded="true" signature="5455:5467" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Selection.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="82" column="20" selection-start="2309" selection-end="2309" vertical-scroll-proportion="-3.5517242" vertical-offset="1762" max-vertical-offset="13176">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+            <marker date="1464018294403" expanded="true" signature="15030:15053" placeholder="..." />
+            <marker date="1464018294403" expanded="true" signature="15433:15446" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SkinComponent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="89" column="88" selection-start="2509" selection-end="2509" vertical-scroll-proportion="-5.1034484" vertical-offset="1840" max-vertical-offset="3600">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Breeze.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1512" column="11" selection-start="44749" selection-end="44749" vertical-scroll-proportion="0.0" vertical-offset="36063" max-vertical-offset="48000">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SkinGroup.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="529" column="13" selection-start="16870" selection-end="16870" vertical-scroll-proportion="-14.034483" vertical-offset="12289" max-vertical-offset="13032">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Template.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="236" column="24" selection-start="6750" selection-end="6750" vertical-scroll-proportion="0.5275081" vertical-offset="5338" max-vertical-offset="9360">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Timeline.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="830" column="34" selection-start="21805" selection-end="21805" vertical-scroll-proportion="-41.03448" vertical-offset="17540" max-vertical-offset="21696">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/TouchEvent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="22" column="39" selection-start="893" selection-end="893" vertical-scroll-proportion="0.6213592" vertical-offset="0" max-vertical-offset="7776">
           <folding />
         </state>
       </provider>
