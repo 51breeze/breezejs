@@ -72,8 +72,13 @@
             }
         }
 
-        //初始化元素管理器
-        Manager.call(this, result );
+        this.forEachCurrentItem=undefined;
+        this.forEachPrevItem=undefined;
+        this.forEachNextItem=undefined;
+        this.forEachCurrentIndex=NaN;
+        this.splice.call(this,0,0,result);
+
+        EventDispatcher.call(this);
 
         //统计实例对象数
         this.__COUNTER__=++breezeCounter;
@@ -267,7 +272,16 @@
      * Extends EventDispatcher Class
      * @type {EventDispatcher}
      */
-    Element.prototype=new Manager();
+    Element.prototype= new EventDispatcher()
+    Element.prototype.slice= DataArray.prototype.slice;
+    Element.prototype.concat= DataArray.prototype.concat;
+    Element.prototype.indexOf= DataArray.prototype.indexOf;
+    Element.prototype.splice= DataArray.prototype.splice;
+    Element.prototype.toArray= DataArray.prototype.toArray;
+    Element.prototype.forEachCurrentItem=undefined;
+    Element.prototype.forEachPrevItem=undefined;
+    Element.prototype.forEachNextItem=undefined;
+    Element.prototype.forEachCurrentIndex=NaN;
 
     //============================================================
     //  Defined Instance Propertys
@@ -285,6 +299,113 @@
     //============================================================
     //  Defined Public Method
     //============================================================
+
+    /**
+     * 返回设置当前元素
+     * @param element
+     * @returns {*}
+     */
+    Element.prototype.current=function( element )
+    {
+        if( typeof element !== "undefined" )
+        {
+            var index = element === null ? NaN : this.indexOf( element );
+            if( index >= 0 )
+            {
+                this.forEachCurrentItem=element;
+                this.forEachCurrentIndex= index;
+
+            }else if( typeof element=== "string" )
+            {
+                element=Sizzle(element, this.getContext() );
+                this.forEachCurrentItem = element ? element[0] : undefined;
+                this.forEachCurrentIndex = NaN;
+
+            }else
+            {
+                this.forEachCurrentItem = element || undefined;
+                this.forEachCurrentIndex = NaN;
+            }
+            return this;
+        }
+        return this.forEachCurrentItem || this[0];
+    }
+
+    /**
+     * 获取上下文。
+     * @returns {HTMLElement}
+     */
+    Element.prototype.getContext=function( context )
+    {
+        if( typeof context !== 'undefined' )
+        {
+            if( context instanceof Element )return context.getContext();
+            context = Breeze.isString(context) ? Sizzle(context,document)[0] : context;
+        }
+        var target = context || this.context;
+        if( Breeze.isFrame( target ) && target.contentWindow )
+            return target.contentWindow.document;
+        return Breeze.isHTMLContainer( target ) ? target :  document ;
+    }
+
+    /**
+     * 设置获取当前元素的索引
+     * @param index
+     * @returns {*}
+     */
+    Element.prototype.index=function( index )
+    {
+        if( typeof index !== "undefined" )
+        {
+            if( index >= 0 && index < this.length && typeof this[index] !== "undefined" )
+            {
+                this.forEachCurrentItem= this[ index ];
+                this.forEachCurrentIndex= index;
+                return this;
+            }
+            throw new Error('Out range of index')
+        }
+        return this.forEachCurrentIndex;
+    }
+
+    /**
+     * 遍历元素
+     * @param callback
+     * @param refObject
+     * @returns {*}
+     */
+    Element.prototype.forEach=function(callback , refObject )
+    {
+        var  result;
+        refObject=refObject || this;
+
+        if( this.forEachCurrentItem !== undefined && this.forEachPrevItem !== this.forEachCurrentItem )
+        {
+            result=callback.call( refObject ,this.forEachCurrentItem,this.forEachCurrentIndex);
+
+        }else
+        {
+            var items=this.slice(0),
+                index = 0,
+                len=items.length;
+
+            for( ; index < len ; index++ )
+            {
+                this.forEachCurrentItem=items[ index ];
+                this.forEachCurrentIndex=index;
+                this.forEachNextItem=items[ index+1 ] === 'undefined' ? undefined : items[ index+1 ] ;
+                result=callback.call( refObject ,this.forEachCurrentItem,index);
+                this.forEachPrevItem=this.forEachCurrentItem;
+                if( result !== undefined )
+                    break;
+            }
+            this.forEachCurrentItem = undefined;
+            this.forEachNextItem    = undefined;
+            this.forEachPrevItem    = undefined;
+            this.forEachCurrentIndex= NaN;
+        }
+        return result === undefined ? this : result;
+    }
 
     /**
      * 返回此对象名称

@@ -32,7 +32,7 @@
             return new EventDispatcher(targets);
 
         this.__targets__=[];
-        if( typeof Manager !== "undefined" && this instanceof Manager )
+        if( typeof Element !== "undefined" && this instanceof Element )
         {
             this.__targets__ = this;
 
