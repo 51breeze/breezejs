@@ -563,9 +563,35 @@
      * @param context
      * @returns {*}
      */
-    Breeze.sizzle=function(selector,context)
+    Breeze.sizzle=function(selector, context, results, seed )
     {
         return Sizzle( selector , context );
+    }
+
+    /**
+     * @private
+     */
+    var __rootEvent__;
+
+    /**
+     * 全局事件调度器
+     * @returns {EventDispatcher}
+     */
+    Breeze.rootEvent=function()
+    {
+        if( !__rootEvent__ )
+            __rootEvent__=new EventDispatcher( window );
+        return __rootEvent__;
+    }
+
+    /**
+     * 文档准备就绪时回调
+     * @param callback
+     * @return {EventDispatcher}
+     */
+    Breeze.ready=function( callback )
+    {
+        return Element.rootEvent().addEventListener( BreezeEvent.READY , callback );
     }
 
     /**
@@ -945,10 +971,10 @@
      */
     Breeze.getWindow=function ( elem )
     {
-        if( typeof elem !== "object" )
-          return null;
+        var win=typeof window !== "undefined" ? window : null;
+        if( typeof elem !== "object" )return win;
         elem= elem.ownerDocument || elem ;
-        return elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || null;
+        return elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || win;
     }
 
     /**
@@ -1286,6 +1312,7 @@
         return true;
     }
 
+    var ishtmlobject = typeof HTMLElement==='object';
     /**
      * 判断是否为一个HtmlElement类型元素,document 不属性于 HtmlElement
      * @param element
@@ -1293,7 +1320,9 @@
      */
     Breeze.isHTMLElement=function( element )
     {
-        return typeof HTMLElement==='object' ? element instanceof HTMLElement : ( element && element.nodeType === 1 && typeof element.nodeName === "string" );
+        if( typeof element !== "object" )
+           return false;
+        return ishtmlobject ? element instanceof HTMLElement : ( element.nodeType === 1 && typeof element.nodeName === "string" );
     }
 
     /**
@@ -1303,18 +1332,21 @@
      */
     Breeze.isNodeElement=function( element )
     {
+        if( typeof element !== "object" ) return false;
         return typeof Node !== "undefined" ? element instanceof Node :
-            !!( element && element.nodeType && typeof element.nodeName === "string" && (typeof element.tagName === "string" || element.nodeType===9) );
+            !!( element.nodeType && typeof element.nodeName === "string" && (typeof element.tagName === "string" || element.nodeType===9) );
     }
 
     /**
      * 判断是否为一个html容器元素。
+     * HTMLElement和document属于Html容器
      * @param element
      * @returns {boolean|*|boolean}
      */
     Breeze.isHTMLContainer=function( element )
     {
-       return Breeze.isHTMLElement( element ) || Breeze.isDocument(element);
+       if( typeof element !== "object" ) return false;
+       return Breeze.isHTMLElement(element) || Breeze.isDocument( element );;
     }
 
     /**

@@ -194,6 +194,27 @@
         return this;
     }
 
+    /**
+     * 去掉重复的元素
+     * @returns {DataArray}
+     */
+    DataArray.prototype.unique=function()
+    {
+        var arr= this.slice(0);
+        for (var i = 0; i<arr.length; i++)
+        {
+           for(var b=i+1; b<arr.length; b++ )
+           {
+               if( arr[i]===arr[b] )
+               {
+                   arr.splice(b,1);
+               }
+           }
+        }
+        this.splice(0,this.length, arr);
+        return this;
+    }
+
     DataArray.DESC='desc';
     DataArray.ASC='asc';
     window.DataArray=DataArray;

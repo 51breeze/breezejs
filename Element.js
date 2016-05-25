@@ -16,72 +16,16 @@
     var version='1.0.0'
     ,isSimple = /^.[^:#\[\.,]*$/
     ,breezeCounter=0
-
-    /**
-     * Element Class
-     * @param selector
-     * @param context
-     * @constructor
-     */
-    ,Element=function(selector,context)
+    ,getContext=function( context )
     {
-        if( selector instanceof Element )
-        {
-            selector=selector.toArray();
-        }
-
-        if( !(this instanceof Element) )
-            return new Element( selector,context );
-
-        this.length=0;
-        if( !Breeze.isDefined(selector) && !Breeze.isDefined(context) )
-            return this;
-
-        var result=selector;
-        this.context = this.getContext( context );
-        this.selector = selector;
-        if( Breeze.isString( selector ) )
-        {
-            selector=Breeze.trim(selector);
-            if( selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 )
-            {
-                selector =  Breeze.createElement(selector);
-
-            }else if( selector==='body' || selector==='window' || selector==='document' )
-            {
-                var win = Breeze.getWindow( this.context ) || window;
-                result= [  win[ selector ] || win.document[selector] || win ];
-            }else
-            {
-                result= Sizzle( selector, this.context );
-            }
-        }
-
-        if( Breeze.isWindow(selector) || Breeze.isDocument( selector ) )
-        {
-            result=[selector];
-
-        }else if( Breeze.isNodeElement(selector) )
-        {
-            result=[selector];
-
-            //新创建的元素直接添加到文档中
-            if( !selector.parentNode || Breeze.nodeName(  selector.parentNode ) === '#document-fragment')
-            {
-                this.addChild( result[0] );
-            }
-        }
-
-        this.forEachCurrentItem=undefined;
-        this.forEachPrevItem=undefined;
-        this.forEachNextItem=undefined;
-        this.forEachCurrentIndex=NaN;
-        this.splice.call(this,0,0,result);
-
-        EventDispatcher.call(this);
-
-        //统计实例对象数
-        this.__COUNTER__=++breezeCounter;
+        if( typeof context === 'undefined' )
+            return document;
+        if( context instanceof Element )return context.getContext();
+        context = typeof context=== "string" ? Breeze.sizzle(context,document)[0] : context;
+        if( Breeze.isFrame( context ) && context.contentWindow )
+            return context.contentWindow.document;
+        if( Breeze.isWindow(context) )context=context.document;
+        return Breeze.isHTMLContainer( context ) ? context : document;
     }
 
     /**
@@ -103,7 +47,6 @@
                 target['__reverts__'].push( revers );
             }
         }
-
         if( uniqueSort && target.length > 1 )
         {
             var ret=Sizzle.uniqueSort( target.toArray() );
@@ -139,7 +82,7 @@
         }
 
         //是否为指定的元素
-        if ( Breeze.isHTMLElement( strainer ) )
+        if ( Breeze.isNodeElement( strainer ) )
         {
             return doGrep( elements, function( elem ) {
                 return ( elem === strainer ) !== exclude;
@@ -171,7 +114,7 @@
 
         }else if( typeof selector === "string" )
         {
-            ret=elements.length === 1 && Sizzle.matchesSelector( elements[ 0 ], selector ) ? [ elements[ 0 ] ] : Sizzle.matches( selector, elements );
+            ret= Breeze.sizzle( selector, null, null, elements );
         }else
         {
             ret=doGrep( elements, function( elem ) { return elem.nodeType === 1; } );
@@ -200,7 +143,7 @@
                 if( flag !== true )break;
             }
         }
-        if( ret.length > 1 && !notSort )ret=Sizzle.uniqueSort( ret );
+        if( ret.length > 1 && !notSort )ret=DataArray.prototype.unique.call(ret);
         return ret;
     }
 
@@ -236,33 +179,70 @@
         return ret;
     };
 
-
     /**
-     * @private
+     * Element Class
+     * @param selector
+     * @param context
+     * @constructor
      */
-    var __rootEvent__;
-
-    /**
-     * 全局事件调度器
-     * @returns {EventDispatcher}
-     */
-    Element.rootEvent=function()
+    function Element(selector,context)
     {
-        if( !__rootEvent__ )
-            __rootEvent__=new EventDispatcher( window );
-        return __rootEvent__;
-    }
+        if( selector instanceof Element )
+        {
+            selector=selector.toArray();
+        }
 
-    /**
-     * 文档准备就绪时回调
-     * @param callback
-     * @return {EventDispatcher}
-     */
-    Element.ready=function( callback )
-    {
-        return Element.rootEvent().addEventListener( BreezeEvent.READY , callback );
-    }
+        if( !(this instanceof Element) )
+            return new Element( selector,context );
 
+        this.length=0;
+        if( typeof selector === 'undefined' &&  typeof context === "undefined" )return this;
+
+        var result=selector;
+        this.context = getContext( context );
+        this.selector = selector;
+        if( typeof selector === "string" )
+        {
+            selector=Breeze.trim(selector);
+            if( selector.charAt(0) === "<" && selector.charAt( selector.length - 1 ) === ">" && selector.length >= 3 )
+            {
+                selector =  Breeze.createElement(selector);
+
+            }else if( selector==='body' || selector==='window' || selector==='document' )
+            {
+                var win = Breeze.getWindow( this.context ) || window;
+                result= [  win[ selector ] || win.document[selector] || win ];
+            }else
+            {
+                result= Breeze.sizzle( selector, this.context );
+            }
+        }
+
+        if( Breeze.isWindow(selector) || Breeze.isDocument( selector ) )
+        {
+            result=[selector];
+
+        }else if( Breeze.isNodeElement(selector) )
+        {
+            result=[selector];
+
+            //新创建的元素直接添加到文档中
+            if( !selector.parentNode || Breeze.nodeName(  selector.parentNode ) === '#document-fragment')
+            {
+                this.addChild( result[0] );
+            }
+        }
+
+        this.forEachCurrentItem=undefined;
+        this.forEachPrevItem=undefined;
+        this.forEachNextItem=undefined;
+        this.forEachCurrentIndex=NaN;
+        this.splice.call(this,0,0,result);
+        EventDispatcher.call(this);
+
+        //统计实例对象数
+        this.__COUNTER__=++breezeCounter;
+    }
 
     //======================================================================================
     //  Extends module class
@@ -301,7 +281,7 @@
     //============================================================
 
     /**
-     * 返回设置当前元素
+     * 设置获取当前游标位置的元素
      * @param element
      * @returns {*}
      */
@@ -317,7 +297,7 @@
 
             }else if( typeof element=== "string" )
             {
-                element=Sizzle(element, this.getContext() );
+                element=Breeze.sizzle(element, this.context );
                 this.forEachCurrentItem = element ? element[0] : undefined;
                 this.forEachCurrentIndex = NaN;
 
@@ -329,23 +309,6 @@
             return this;
         }
         return this.forEachCurrentItem || this[0];
-    }
-
-    /**
-     * 获取上下文。
-     * @returns {HTMLElement}
-     */
-    Element.prototype.getContext=function( context )
-    {
-        if( typeof context !== 'undefined' )
-        {
-            if( context instanceof Element )return context.getContext();
-            context = Breeze.isString(context) ? Sizzle(context,document)[0] : context;
-        }
-        var target = context || this.context;
-        if( Breeze.isFrame( target ) && target.contentWindow )
-            return target.contentWindow.document;
-        return Breeze.isHTMLContainer( target ) ? target :  document ;
     }
 
     /**
@@ -429,7 +392,7 @@
         var result=false;
         this.forEach(function(elem)
         {
-            var ret = is ? !!selector.call( elem ) : Sizzle.matchesSelector( elem , selector );
+            var ret = is ? !!selector.call( elem ) :  Breeze.sizzle( selector, document, null, [ elem ] ).length > 0;
             if( ret ) {
                 result=true;
                 return result;
@@ -443,9 +406,10 @@
      * @param selector
      * @returns {boolean}
      */
-    Element.prototype.contains=function( selector )
+    Element.prototype.contains=function( child, parent )
     {
-        return Sizzle( selector, this.getContext() ).length > 0;
+        parent = parent || this.context;
+        return Breeze.sizzle( selector, parent ).length > 0;
     }
 
     /**
@@ -470,15 +434,6 @@
     //==================================================
     // 筛选匹配元素
     //==================================================
-
-    /**
-     * 筛选指定开始和结束索引值的元素。
-     * @returns {Element}
-     */
-    Element.prototype.range=function(startIndex,endIndex)
-    {
-        return doMake( this, this.slice(startIndex,endIndex),true );
-    }
 
     /**
      * 筛选元素等于指定的索引
@@ -566,7 +521,7 @@
     {
         if( !Breeze.isString(selector) )
          throw new Error('invalid selector')
-        var results = Sizzle( selector , this.getContext() );
+        var results = Breez.sizzle( selector , this.context );
         return returned ? results : doMake( this, results ,true );
     }
 
@@ -693,9 +648,8 @@
         this.forEach(function(element)
         {
            if( !Breeze.isFrame( element ) )
-               results=results.concat( selector==='*' ?  Sizzle( '*' ,element) : DataArray.prototype.slice.call( element.childNodes,0 ) );
+               results=results.concat( selector==='*' ?  Breeze.sizzle( '*' ,element) : DataArray.prototype.slice.call( element.childNodes,0 ) );
         })
-        if( this.length > 1 && !has )results= Sizzle.uniqueSort(results);
         if( has )results=doFind(results,selector);
         return returned ? results : doMake( this, results ,true );
     }
@@ -839,7 +793,7 @@
         //如果没有父级元素则设置上下文为父级元素
         if( this.length === 0 && !this.current() )
         {
-            var context = this.getContext();
+            var context = this.context;
             this.current( context === document ? document.body : context );
         }
 
@@ -910,7 +864,7 @@
     {
         if( typeof childElemnet==='string' )
         {
-            childElemnet=Sizzle.matches( childElemnet, this.toArray() )[0];
+            childElemnet= Breeze.sizzle( childElemnet, null, null, this.toArray() )[0];
             if( !childElemnet )return -1;
             this.current( childElemnet.parentNode );
         }
