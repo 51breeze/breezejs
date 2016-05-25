@@ -20,7 +20,7 @@
     {
         if( typeof context === 'undefined' )
             return document;
-        if( context instanceof Element )return context.getContext();
+        if( context instanceof Element )return context.context;
         context = typeof context=== "string" ? Breeze.sizzle(context,document)[0] : context;
         if( Breeze.isFrame( context ) && context.contentWindow )
             return context.contentWindow.document;
