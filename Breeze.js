@@ -670,9 +670,6 @@
         var style=elem.style;
         var type = typeof value,ret,hook=cssHooks[name];
         if ( type === "number" && isNaN( value ) )return false;
-
-
-
         if ( type === "string" && (ret=cssOperator.exec( value )) )
         {
             var inc = name === 'width' || name ==='height' ? Breeze.getSize(elem,name) : getStyle( elem, name );
@@ -1531,6 +1528,24 @@
         }
         return html;
     }
+
+    /**
+     * 获取元素的文本内容
+     * @param elem
+     * @returns {*}
+     */
+    Breeze.getText = function( elem )
+    {
+        var ret = "",nodeType = elem.nodeType;
+        if( nodeType === 1 || nodeType === 9 || nodeType === 11 )
+        {
+            return typeof elem.textContent === "string" ? elem.textContent : elem.innerText;
+        } else if ( nodeType === 3 || nodeType === 4 )
+        {
+            return elem.nodeValue;
+        }
+        return ret;
+    };
 
     /**
      * @type {RegExp}

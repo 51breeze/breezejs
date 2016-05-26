@@ -49,7 +49,7 @@
         }
         if( uniqueSort && target.length > 1 )
         {
-            var ret=Sizzle.uniqueSort( target.toArray() );
+            var ret= DataArray.prototype.unique.call( target.toArray() );
             if( ret.length !== target.length ){
                return doMake(target,ret,true,true,false);
             }
@@ -1016,7 +1016,7 @@
             if( !write ) return oldValue;
             if( oldValue !== newValue )
             {
-                callback.set.call(elem,name,newValue);
+                callback.set.call(elem,name,newValue,this);
                 if( dispatchEvent )
                 {
                     var event = dispatchEvent===StyleEvent.CHANGE ?  new StyleEvent( StyleEvent.CHANGE ) :  new PropertyEvent( PropertyEvent.CHANGE );
@@ -1075,6 +1075,29 @@
         });
     }
 
+    //fix attr name
+    var attrFix={
+      'map':{
+        'tabindex'      : 'tabIndex',
+        'readonly'       : 'readOnly',
+        'for'            : 'htmlFor',
+        'maxlength'      : 'maxLength',
+        'cellspacing'    : 'cellSpacing',
+        'cellpadding'    : 'cellPadding',
+        'rowspan'        : 'rowSpan',
+        'colspan'        : 'colSpan',
+        'usemap'         : 'useMap',
+        'frameborder'    : 'frameBorder',
+        'class'          : 'className',
+        'contenteditable': 'contentEditable'
+      },
+      'attrtrue':{
+          'className':true,
+          'innerHTML':true,
+          'value'    :true
+      }
+    }
+
     /**
      * 为每一个元素设置属性值
      * @param name
@@ -1083,18 +1106,40 @@
      */
     Element.prototype.property=function(name,value )
     {
-        name = Breeze.attrMap( name );
+        name = attrFix.map[name] || name;
         var lower=name.toLowerCase();
         if( lower==='innerhtml' )
-          return this.html(value);
+        {
+            return this.html(value);
+        }else if( lower==='value' )
+        {
+            return this.value( value );
+        }
+
         return access.call(this,name,value,{
-            get:function(prop){
-                return Breeze.property(this,prop);
+            get:function(prop)
+            {
+                prop = attrFix.map[ prop ] || prop;
+                return ( attrFix.attrtrue[prop] ? this[prop] : this.getAttribute(prop) ) || null;
             },
-            set:function(prop,newValue){
+            set:function(prop,newValue,obj){
+
                 if( lower === 'style' )
                     throw new Error('the style property names only use style method to operate in property');
-                Breeze.property(this,prop,newValue);
+                prop = attrFix.map[ prop ] || prop;
+                if( prop === 'className')
+                {
+                     obj.addClass(newValue);
+
+                }else if( newValue === null )
+                {
+                    this.removeAttribute(prop);
+
+                }else
+                {
+                    attrFix.attrtrue[prop] ? this[prop] = val : this.setAttribute(prop, newValue);
+                }
+                return true;
             }
         },PropertyEvent.CHANGE);
     }
@@ -1106,7 +1151,8 @@
      */
     Element.prototype.hasProperty=function(prop)
     {
-        return Breeze.hasAttribute(this.current(),prop);
+        var elem = this.current();
+        return typeof elem.hasAttributes === 'function' ? elem.hasAttributes( name ) : !!elem[name];
     }
 
     /**
@@ -1116,34 +1162,12 @@
      */
     Element.prototype.nodeName=function()
     {
-        return Breeze.nodeName( this.current() );
+        var elem= this.current();
+        return elem && typeof elem.nodeName=== "string" && elem.nodeName!='' ? elem.nodeName.toLowerCase() : '';
     }
 
     /**
-     * 获取设置当前元素的内容值。如果元素是表单元素则写读value否则为text属性。
-     * @returns {string|Element}
-     */
-    Element.prototype.content=function( value )
-    {
-        return access.call(this,'content',value,{
-            get:function(prop){
-                return ( Breeze.isFormElement( this ) ? this.value : Sizzle.getText(this) ) || '';
-            },
-            set:function(prop,newValue)
-            {
-                if( Breeze.isFormElement( this ) )
-                {
-                    this.value=newValue;
-                }else
-                {
-                    typeof this.textContent === "string" ? this.textContent=newValue : this.innerText=newValue;
-                }
-            }
-        },PropertyEvent.CHANGE) || '';
-    }
-
-    /**
-     * 获取设置当前元素的内容值。如果元素是表单元素则写读value否则为text属性。
+     * 获取设置当前元素的文本内容。
      * @returns {string|Element}
      */
     Element.prototype.text=function( value )
@@ -1194,8 +1218,17 @@
      */
     Element.prototype.addClass=function( className )
     {
+        if( typeof className !== "string" )
+            throw new Error('invaild class name');
         this.forEach(function(elem){
-            Breeze.addClass(elem,className);
+
+            if( !this.hasClass( className ) )
+            {
+                var oldClass=Breeze.trim( elem['className'] );
+                oldClass= [ Breeze.trim( oldClass ) ];
+                oldClass.push( className );
+                elem['className'] = Breeze.trim( oldClass.join(' ') );
+            }
         });
         return this;
     }
@@ -1207,8 +1240,19 @@
      */
     Element.prototype.removeClass=function(className)
     {
+        var all = typeof className !== 'string';
         this.forEach(function(elem){
-            Breeze.removeClass(elem,className);
+            var val='';
+            if( !all )
+            {
+                var value=elem['className'] || '';
+                var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
+                val=value.replace(reg, '');
+            }
+            val === '' ? elem.removeAttribute('class') : elem['className'] = Breeze.trim(val);
+            try {
+                elem.offsetWidth = element.offsetWidth;
+            }catch(e){}
         })
         return this;
     }
@@ -1387,17 +1431,25 @@
     }
 
     /**
-     * 设置当前元素的显示或者隐藏
-     * @param flag false 为隐藏
+     * 显示元素
      * @returns {Element}
      */
-    Element.prototype.display=function( flag , type )
+    Element.prototype.show=function()
     {
-        if( typeof flag === "undefined" )
-        {
-            return this.style('display') != 'none';
-        }
-        return this.style('display',flag===false ? 'none' : type || 'block' );
+        var type = this.data('__display__') || 'block';
+        this.style('display', type );
+        return this;
+    }
+
+    /**
+     * 隐藏当前元素
+     * @returns {Element}
+     */
+    Element.prototype.hide=function()
+    {
+        this.data('__display__', this.style('display') || 'block' );
+        this.style('display', 'none' );
+        return this;
     }
 
     /**
