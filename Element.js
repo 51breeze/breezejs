@@ -946,12 +946,25 @@
         outer = !!outer;
         var write= typeof html !== "undefined";
         if( !write && this.length < 1 ) return '';
-
         return this.forEach(function(elem)
         {
             if( !write || Breeze.isBoolean(html) )
             {
-                html = html===true ? Breeze.getHtml(elem,true) : elem.innerHTML;
+                var html=element.innerHTML;
+                if( html === true )
+                {
+                    if( typeof elem.outerHTML==='string' )
+                    {
+                        html=elem.outerHTML;
+                    }else
+                    {
+                        var cloneElem=Breeze.clone( elem, true)
+                        if( cloneElem )
+                        {
+                            html=document.createElement( 'div' ).appendChild( cloneElem ).innerHTML;
+                        }
+                    }
+                }
                 return html;
             }
 
@@ -1047,13 +1060,101 @@
             value=name;
             name='cssText';
         }
+
         return access.call(this,name,value,{
-            get:function(prop){
-                return Breeze.style(this,prop) || '';
+            get:function( name )
+            {
+                var fix= Breeze.fix();
+                var elem = this;
+                if( document.defaultView && document.defaultView.getComputedStyle )
+                {
+                    if( typeof name === "undefined" ) return elem.style
+                    if( name==='cssText' )return (elem.style || {} ).cssText || '';
+                    var ret='',computedStyle;
+                    if( name==='' )return '';
+                    computedStyle=document.defaultView.getComputedStyle( elem, null );
+                    if( fix.cssHooks[name] && typeof fix.cssHooks[name].get === "function" )return fix.cssHooks[name].get.call(elem,computedStyle,name) || '';
+                    if( computedStyle )
+                    {
+                        name=Breeze.styleName( name );
+                        ret = computedStyle.getPropertyValue( name );
+                        ret = ret === "" ? elem.style[name] : ret;
+                    }
+                    return ret;
+                }
+
+                var left='', rsLeft,hook=fix.cssHooks[name]
+                    ,style =  elem.currentStyle || elem.style || {};
+
+                if( typeof name === "undefined" ) return style;
+                if( name==='cssText' )return (style.style || {} ).cssText || '';
+
+                name=Breeze.styleName( name );
+                if( name==='' )return '';
+                var ret = style[ name ] || '';
+                if( hook && hook.get )ret=hook.get.call(elem,style,name) || '';
+
+                //在ie9 以下将百分比的值转成像素的值
+                if( /^-?(?:\d*\.)?\d+(?!px)[^\d\s]+$/i.test( ret ) )
+                {
+                    left = elem.style.left;
+                    rsLeft = elem.runtimeStyle && elem.runtimeStyle.left;
+                    if ( rsLeft )elem.runtimeStyle.left = elem.currentStyle.left;
+                    elem.style.left = name === "fontSize" ? "1em" : ret;
+                    ret = elem.style.pixelLeft + "px";
+                    elem.style.left = left;
+                    if ( rsLeft )elem.runtimeStyle.left = rsLeft;
+                }
+                return ret;
+
             },
-            set:function(prop,newValue){
-                Breeze.style(this,prop,newValue);
+            set:function(name,value,obj){
+
+                var fix= Breeze.fix();
+                var style=this.style;
+                var type = typeof value,ret,hook=fix.cssHooks[name];
+                if ( type === "number" && isNaN( value ) )return false;
+
+                //增量值
+                if ( type === "string" && (ret=/^([\-+])=([\-+.\de]+)/.exec( value )) )
+                {
+                    var inc = name === 'width' || name ==='height' ? obj.size()[name] : obj.style( name );
+                    value = ( +( ret[1] + 1 ) * +ret[2] ) + inc;
+                    type = "number";
+                }
+
+                if ( value == null )return false;
+                if ( type === "number" && !fix.cssNumber[ name ] )
+                    value += "px";
+
+                if( hook && hook.set && hook.set.call(elem,style,value) === true )
+                {
+                    return true;
+                }
+
+                if( name === 'cssText' )
+                {
+                    value=value.replace(/([\w\-]+)\s*\:([^\;]*)/g, function (all, name,value) {
+
+                        if( fix.cssHooks[name] && typeof fix.cssHooks[name].set ==="function" )
+                        {
+                            var obj={}
+                            fix.cssHooks[name].set(obj, value );
+                            return Breeze.serialize( obj,'style');
+                        }
+                        return Breeze.styleName( name ) +':'+ value;
+                    });
+
+                }else
+                {
+                    name= Breeze.styleName( name )
+                }
+                try{
+                    style[name]=value;
+                }catch( e ){}
+                return true;
             }
+
         }, StyleEvent.CHANGE ) || '';
     }
 
@@ -1075,29 +1176,6 @@
         });
     }
 
-    //fix attr name
-    var attrFix={
-      'map':{
-        'tabindex'      : 'tabIndex',
-        'readonly'       : 'readOnly',
-        'for'            : 'htmlFor',
-        'maxlength'      : 'maxLength',
-        'cellspacing'    : 'cellSpacing',
-        'cellpadding'    : 'cellPadding',
-        'rowspan'        : 'rowSpan',
-        'colspan'        : 'colSpan',
-        'usemap'         : 'useMap',
-        'frameborder'    : 'frameBorder',
-        'class'          : 'className',
-        'contenteditable': 'contentEditable'
-      },
-      'attrtrue':{
-          'className':true,
-          'innerHTML':true,
-          'value'    :true
-      }
-    }
-
     /**
      * 为每一个元素设置属性值
      * @param name
@@ -1106,7 +1184,8 @@
      */
     Element.prototype.property=function(name,value )
     {
-        name = attrFix.map[name] || name;
+        var fix =  Breeze.fix();
+        name =  fix.attrMap[name] || name;
         var lower=name.toLowerCase();
         if( lower==='innerhtml' )
         {
@@ -1119,14 +1198,12 @@
         return access.call(this,name,value,{
             get:function(prop)
             {
-                prop = attrFix.map[ prop ] || prop;
-                return ( attrFix.attrtrue[prop] ? this[prop] : this.getAttribute(prop) ) || null;
+                return ( fix.attrtrue[prop] ? this[prop] : this.getAttribute(prop) ) || null;
             },
             set:function(prop,newValue,obj){
 
                 if( lower === 'style' )
                     throw new Error('the style property names only use style method to operate in property');
-                prop = attrFix.map[ prop ] || prop;
                 if( prop === 'className')
                 {
                      obj.addClass(newValue);
@@ -1137,7 +1214,7 @@
 
                 }else
                 {
-                    attrFix.attrtrue[prop] ? this[prop] = val : this.setAttribute(prop, newValue);
+                    fix.attrtrue[prop] ? this[prop] = val : this.setAttribute(prop, newValue);
                 }
                 return true;
             }
@@ -1174,7 +1251,15 @@
     {
         return access.call(this,'text',value,{
             get:function(){
-                return Sizzle.getText(this)  || '';
+                var ret = "",nodeType = this.nodeType;
+                if( nodeType === 1 || nodeType === 9 || nodeType === 11 )
+                {
+                    return typeof this.textContent === "string" ? this.textContent : this.innerText;
+                } else if ( nodeType === 3 || nodeType === 4 )
+                {
+                    return this.nodeValue;
+                }
+                return ret;
             },
             set:function(prop,newValue)
             {
@@ -1257,13 +1342,82 @@
         return this;
     }
 
+    /**
+     * 获取元素大小
+     * @param border 是否包含边框
+     * @returns {*|number}
+     */
+    Element.prototype.size=function( border )
+    {
+        var size ={width:0,height:0};
+        if( Breeze.isWindow(elem) )
+        {
+            var docElem = elem.document.documentElement;
+            size.width=Math.max(elem.innerWidth || 0, elem.offsetWidth || 0,elem.clientWidth || 0, docElem.clientWidth || 0);
+            size.height=Math.max(elem.innerHeight || 0, elem.offsetHeight || 0,elem.clientHeight || 0, docElem.clientHeight || 0);
+
+        }else if( Breeze.isDocument(elem) )
+        {
+            var docElem = elem.documentElement;
+            size.width=Math.max(
+                elem.body.scrollWidth  || 0, docElem.scrollWidth || 0
+                ,elem.body.offsetWidth || 0, elem.offsetWidth || 0
+                ,elem.body.clientWidth || 0, elem.clientWidth || 0
+            );
+            size.height+=docElem.clientLeft || 0;
+
+            size.height=Math.max(
+                elem.body.scrollHeight  || 0, docElem.scrollHeight || 0
+                ,elem.body.offsetHeight || 0, elem.offsetHeight || 0
+                ,elem.body.clientHeight || 0, elem.clientHeight || 0
+            );
+            size.height+=docElem.clientTop || 0;
+
+        }else if ( typeof elem.offsetWidth !== "undefined"  )
+        {
+            size.width = elem.offsetWidth;
+            size.height = elem.offsetHeight;
+            border = border !== false;
+            var margin= Breeze.isBrowser( Breeze.BROWSER_IE, 9 ,'<');
+            var pos = [ "Top", "Right", "Bottom", "Left" ];
+            for ( var i=0 ; i < 4; i ++ )
+            {
+                if( !border )
+                {
+                    size[ i%2==0 ? 'width' : 'height' ]-= parseFloat( Breeze.style( elem, "border"+pos[ i ]+"Width" ) ) || 0;
+                }
+                if( margin )
+                {
+                    size[ i%2==0 ? 'width' : 'height']-= parseFloat( Breeze.style( elem, "margin"+pos[ i ]  ) ) || 0;
+                }
+            }
+
+        }else
+        {
+            size.width = parseInt( Breeze.style(elem,'width') ) || 0;
+            size.height = parseInt( Breeze.style(elem,'height') ) || 0;
+            for ( var i=0 ; i < 4; i ++  )
+            {
+                size[ i%2==0 ? 'width' : 'height'] += parseFloat( Breeze.style( elem, "padding" + cssExpand[ i ] ) ) || 0;
+            }
+        }
+        return size;
+    }
+
+
+    /**
+     * @param prop
+     * @param value
+     * @returns {*|number}
+     * @private
+     */
     var __size__=function(prop,value)
     {
         var border = typeof value==='boolean' ? value : ( value===undefined || value==='border' );
         value = (value===undefined || value==='border' || typeof value==='boolean') ? undefined : parseFloat( value );
         return access.call(this,prop, value,{
-            get:function(prop){
-                return Breeze.getSize(this, prop, border );
+            get:function(prop,obj){
+                return obj.size(border)[prop];
             },
             set:function(prop,newValue,oldValue,target){
                 Breeze.style(this,prop,newValue);
@@ -1315,32 +1469,122 @@
      */
     Element.prototype.scroll=function( left, top )
     {
-        var scroll = Breeze.scroll( this.current() );
-        if( typeof left === "number" || typeof top === "number" )
+        var value = true;
+        if( typeof left === "undefined" && typeof  top === "undefined" )
         {
-            if( scroll.left != left || pos.top!=top )
-            {
-                Breeze.scroll( this.current(), left, top );
-                var event = new PropertyEvent( PropertyEvent.CHANGE );
-                event.property = 'scroll';
-                event.newValue = {left:left,top:top};
-                event.oldValue = scroll;
-                dispatchEventAll(this, event);
-            }
-            return this;
+            value=undefined;
         }
-        return scroll;
+        return access.call(this,'scroll', value,
+        {
+            get:function(prop)
+            {
+                var scroll={};
+                var element = this.defaultView || this.parentWindow || this;
+                if( Breeze.isWindow( element ) )
+                {
+                    scroll.left = element.pageXOffset || element.document.documentElement.scrollLeft || element.document.body.scrollLeft;
+                    scroll.top =  element.pageYOffset  || element.document.documentElement.scrollTop || element.document.body.scrollTop;
+                    scroll.height = element.document.documentElement.scrollHeight || element.document.body.scrollHeight;
+                    scroll.width = element.document.documentElement.scrollWidth || element.document.body.scrollWidth;
+
+                }else
+                {
+                    scroll.left = element.scrollLeft;
+                    scroll.top =  element.scrollTop;
+                    scroll.height = element.scrollHeight;
+                    scroll.width = element.scrollWidth;
+                }
+                return scroll;
+            },
+
+            set:function(prop,newValue,obj){
+
+                var element = this.defaultView || this.parentWindow || this;
+                if( obj.style('position')==='static' )obj.style('position','relative');
+                if( !(left && top) )
+                {
+                    var pos = Breeze.scroll(element);
+                    left ||(left=pos.left);
+                    top || (top=pos.top);
+                }
+
+                left = Math.max(left,0);
+                top = Math.max(top,0);
+
+                if( typeof element.scrollTo === "function" )
+                {
+                    element.scrollTo(left,top);
+                }else
+                {
+                    element.scrollTop = top;
+                    element.scrollLeft = left;
+                }
+                return true;
+            }
+
+        },PropertyEvent.CHANGE) || 0;
     }
 
     /**
-     * 设置元素相对舞台的位置
-     * @param left
-     * @param top
-     * @returns {*}
+     * 获取元素相对文档页面边界的矩形坐标。
+     * 如果元素的 position = fixed 或者 force=== true 则相对浏览器窗口的位置
+     * @param NodeElement elem
+     * @param boolean force
+     * @returns {left,top,right,bottom,width,height}
      */
-    Element.prototype.getBoundingRect=function()
+    Element.prototype.getBoundingRect=function( force )
     {
-        return Breeze.getBoundingRect( this.current() );
+        var value={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0,'width':0,'height':0}, box, size;
+        var elem= this.current();
+        if( Breeze.isWindow(elem) )
+        {
+            size = Breeze.getSize(elem);
+            value.left = elem.screenLeft || elem.screenX;
+            value.top = elem.screenTop || elem.screenY;
+            value.width = size.width;
+            value.height = size.height;
+            value.right = size.width + value.left;
+            value.bottom = size.height + value.top;
+            return value;
+        }
+
+        if( !Breeze.isNodeElement(elem) )throw new Error('invalid elem. elem not is NodeElement');
+        var doc =  elem.ownerDocument || elem, docElem=doc.documentElement;
+        var scroll = Breeze.scroll( Breeze.getWindow(doc) );
+        if( "getBoundingClientRect" in document.documentElement )
+        {
+            box = elem.getBoundingClientRect();
+            var clientTop = docElem.clientTop || doc.body.clientTop || 0, clientLeft = docElem.clientLeft || doc.body.clientLeft || 0;
+            value.top = box.top + scroll.top - clientTop;
+            value.left = box.left + scroll.left - clientLeft;
+            value.right = box.right + scroll.left - clientLeft;
+            value.bottom = box.bottom + scroll.top - clientTop;
+            value.width = box.width || box.right-box.left;
+            value.height = box.height || box.bottom-box.top;
+
+        }else
+        {
+            size = Breeze.getSize( elem );
+            value.width = size.width;
+            value.height=size.height;
+            do {
+                value.top += elem.offsetTop;
+                value.left += elem.offsetLeft;
+                elem = elem.offsetParent;
+            } while (elem);
+            value.right = value.width+value.left;
+            value.bottom = value.height+value.top;
+        }
+
+        //始终相对浏览器窗口的位置
+        if( Breeze.style(elem,'position') === 'fixed' || force===true )
+        {
+            value.top -= scroll.top;
+            value.left -= scroll.left;
+            value.right -= scroll.left;
+            value.bottom -= scroll.top;
+        }
+        return value;
     }
 
     /**
@@ -1394,7 +1638,7 @@
         point['y']=top || 0;
         if( target && target.parentNode )
         {
-            var offset=Breeze.getBoundingRect( target.parentNode );
+            var offset=this.getBoundingRect();
             if( local )
             {
                 point['x']+=offset['x'];

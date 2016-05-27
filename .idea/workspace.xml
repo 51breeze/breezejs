@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="架构调整">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Fix-ie.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Breeze.js" afterPath="$PROJECT_DIR$/Breeze.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Element.js" afterPath="$PROJECT_DIR$/Element.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
@@ -28,10 +29,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="Element.js" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="Element.js" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Element.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="1051" column="33" selection-start="31924" selection-end="31924" vertical-scroll-proportion="0.0" vertical-offset="24836" max-vertical-offset="36312">
+            <state line="1646" column="13" selection-start="51834" selection-end="51834" vertical-scroll-proportion="0.66615146" vertical-offset="39073" max-vertical-offset="42168">
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -42,7 +43,7 @@
       <file leaf-file-name="Grep.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Grep.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="377" column="10" selection-start="9800" selection-end="9800" vertical-scroll-proportion="0.0" vertical-offset="4032" max-vertical-offset="9048">
+            <state line="377" column="10" selection-start="9800" selection-end="9800" vertical-scroll-proportion="0.0" vertical-offset="9048" max-vertical-offset="9192">
               <folding />
             </state>
           </provider>
@@ -60,25 +61,25 @@
       <file leaf-file-name="sizzle.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/sizzle.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="944" column="33" selection-start="26961" selection-end="26961" vertical-scroll-proportion="0.0" vertical-offset="22335" max-vertical-offset="49440">
+            <state line="944" column="33" selection-start="26961" selection-end="26961" vertical-scroll-proportion="0.0" vertical-offset="22656" max-vertical-offset="49656">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Breeze.js" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="Breeze.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Breeze.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="701" column="0" selection-start="23302" selection-end="23302" vertical-scroll-proportion="0.70324576" vertical-offset="16225" max-vertical-offset="48984">
+            <state line="1403" column="5" selection-start="41371" selection-end="41371" vertical-scroll-proportion="-24.793104" vertical-offset="32809" max-vertical-offset="33744">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="HTML5.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/HTML5.js">
+      <file leaf-file-name="Fix-ie.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Fix-ie.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="1007" column="28" selection-start="16038" selection-end="16038" vertical-scroll-proportion="0.0" vertical-offset="23939" max-vertical-offset="52320">
+            <state line="9" column="38" selection-start="222" selection-end="222" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1608">
               <folding />
             </state>
           </provider>
@@ -93,19 +94,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="EventDispatcher.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="57" column="7" selection-start="1413" selection-end="1413" vertical-scroll-proportion="0.0" vertical-offset="1368" max-vertical-offset="16392">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="DataArray.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/DataArray.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="208" column="16" selection-start="5270" selection-end="5270" vertical-scroll-proportion="0.0" vertical-offset="4551" max-vertical-offset="5304">
+            <state line="208" column="16" selection-start="5270" selection-end="5270" vertical-scroll-proportion="0.0" vertical-offset="4992" max-vertical-offset="5448">
               <folding />
             </state>
           </provider>
@@ -134,8 +126,6 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/Cache.js" />
-        <option value="$PROJECT_DIR$/Factory.js" />
         <option value="$PROJECT_DIR$/ElementInstance.js" />
         <option value="$PROJECT_DIR$/Single.js" />
         <option value="$PROJECT_DIR$/CacheProxy.js" />
@@ -182,8 +172,11 @@
         <option value="$PROJECT_DIR$/Template.js" />
         <option value="$PROJECT_DIR$/EventDispatcher.js" />
         <option value="$PROJECT_DIR$/DataArray.js" />
-        <option value="$PROJECT_DIR$/Element.js" />
+        <option value="$PROJECT_DIR$/Fix.js" />
+        <option value="$PROJECT_DIR$/Fix-ie9.js" />
+        <option value="$PROJECT_DIR$/Fix-ie.js" />
         <option value="$PROJECT_DIR$/Breeze.js" />
+        <option value="$PROJECT_DIR$/Element.js" />
       </list>
     </option>
   </component>
@@ -226,6 +219,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -246,7 +240,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -713,7 +706,11 @@
       <created>1464190778635</created>
       <updated>1464190778635</updated>
     </task>
-    <option name="localTasksCounter" value="102" />
+    <task id="LOCAL-00102" summary="架构调整">
+      <created>1464275337844</created>
+      <updated>1464275337844</updated>
+    </task>
+    <option name="localTasksCounter" value="103" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -723,11 +720,12 @@
       <window_info id="更改" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.0" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="运行" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="版本控制" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.74965227" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="找到" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.7938719" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.17621776" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.252149" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="调试" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -736,14 +734,13 @@
       <window_info id="消息" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32729805" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.08163265" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.0861678" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32993197" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="找到" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.7938719" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
@@ -780,18 +777,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Breeze.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="1324" column="11" selection-start="40076" selection-end="40076" vertical-scroll-proportion="0.0" vertical-offset="31776" max-vertical-offset="48000">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DataRender.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
@@ -940,9 +925,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Editable.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="2.0" vertical-offset="116" max-vertical-offset="2712">
-          <folding />
-        </state>
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="2.0" vertical-offset="116" max-vertical-offset="2712" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Http.js">
@@ -1008,9 +991,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/TouchEvent.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="69" column="44" selection-start="2818" selection-end="2818" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="7776">
-          <folding />
-        </state>
+        <state line="69" column="44" selection-start="2818" selection-end="2818" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="7776" />
       </provider>
     </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DOMCore.js">
@@ -1083,19 +1064,26 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Element.js">
+    <entry file="file://$PROJECT_DIR$/Fix-ie.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="1051" column="33" selection-start="31924" selection-end="31924" vertical-scroll-proportion="0.0" vertical-offset="24836" max-vertical-offset="36312">
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
+        <state line="9" column="38" selection-start="222" selection-end="222" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1608">
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Breeze.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="701" column="0" selection-start="23302" selection-end="23302" vertical-scroll-proportion="0.70324576" vertical-offset="16225" max-vertical-offset="48984">
+        <state line="1403" column="5" selection-start="41371" selection-end="41371" vertical-scroll-proportion="-24.793104" vertical-offset="32809" max-vertical-offset="33744">
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Element.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1646" column="13" selection-start="51834" selection-end="51834" vertical-scroll-proportion="0.66615146" vertical-offset="39073" max-vertical-offset="42168">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
