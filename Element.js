@@ -16,6 +16,7 @@
     var version='1.0.0'
     ,isSimple = /^.[^:#\[\.,]*$/
     ,breezeCounter=0
+    ,fix=Breeze.fix()
     ,getContext=function( context )
     {
         if( typeof context === 'undefined' )
@@ -434,42 +435,6 @@
     //==================================================
     // 筛选匹配元素
     //==================================================
-
-    /**
-     * 筛选元素等于指定的索引
-     * @param index
-     * @returns {Element}
-     */
-    Element.prototype.eq=function( index )
-    {
-        if( typeof index !== "number" || typeof this[index] === "undefined")
-           throw new Error('invalid index');
-        return doMake( this,[ this[index] ],true);
-    }
-
-    /**
-     * 筛选大于索引的元素
-     * @param index
-     * @returns {Element}
-     */
-    Element.prototype.gt=function( index )
-    {
-        return doMake( this, doGrep(this,function(elem,i){
-            return i > index;
-        }),true);
-    }
-
-    /**
-     * 筛选小于索引的元素
-     * @param index
-     * @returns {Element}
-     */
-    Element.prototype.lt=function( index )
-    {
-        return doMake( this, doGrep(this,function(elem,i){
-            return i < index;
-        }),true);
-    }
 
     /**
      * 筛选元素不等于指定筛选器的元素
@@ -979,21 +944,14 @@
                 }
             }
 
-            if( outer && elem.parentNode && elem.parentNode.ownerDocument && Breeze.contains(elem.parentNode.ownerDocument.body, elem.parentNode) )
-            {
-                this.current( elem.parentNode );
-            }
-
             if( typeof html === "string" )
             {
                 html = Breeze.trim( html );
-                var target = this.current();
-
                 try{
-                    target.innerHTML = html;
+                    elem.innerHTML = html;
                 }catch(e)
                 {
-                    var nodename = Breeze.nodeName( target );
+                    var nodename = this.nodeName();
                     if( !new RegExp("^<"+nodename).exec(html) )
                     {
                         html= Breeze.sprintf('<%s>%s</%s>',nodename,html,nodename);
@@ -1005,38 +963,44 @@
                         d++;
                         child=child.firstChild;
                     }
-                    Breeze.mergeAttributes(child, target);
-                    target.parentNode.replaceChild(child,  target );
-                    this.splice( this.indexOf( target ), 1, child );
+                    Breeze.mergeAttributes(child, elem);
+                    elem.parentNode.replaceChild(child,  elem );
                 }
 
             }else
             {
                 this.addChild(html);
+                return true;
             }
         });
     }
 
     //访问和操作属性值
-    function access(name,newValue,callback,dispatchEvent)
+    function access(name, newValue, callback, eventType, fnName )
     {
         var write= typeof newValue !== 'undefined';
         if( !write && this.length < 1 )return null;
-
+        var getter = callback.get;
+        var setter = callback.set;
+        if( typeof fnName === "string" && fix.fnHooks[fnName] )
+        {
+            getter = typeof fix.fnHooks[fnName].get === "function" ? fix.fnHooks[fnName].get : getter ;
+            setter = typeof fix.fnHooks[fnName].set === "function" ? fix.fnHooks[fnName].set : setter ;
+        }
         return this.forEach(function(elem)
         {
-            var oldValue= callback.get.call(elem,name,this);
+            var oldValue= getter.call(elem,name,this);
             if( !write ) return oldValue;
             if( oldValue !== newValue )
             {
-                callback.set.call(elem,name,newValue,this);
-                if( dispatchEvent )
+                setter.call(elem,name,newValue,this);
+                if( eventType )
                 {
-                    var event = dispatchEvent===StyleEvent.CHANGE ?  new StyleEvent( StyleEvent.CHANGE ) :  new PropertyEvent( PropertyEvent.CHANGE );
+                    var event = eventType===StyleEvent.CHANGE ?  new StyleEvent( StyleEvent.CHANGE ) :  new PropertyEvent( PropertyEvent.CHANGE );
                     event.property = name;
                     event.newValue = newValue;
                     event.oldValue = oldValue;
-                    dispatchEventAll(this, event);
+                    !this.hasEventListener( event.type ) || this.dispatchEvent( event );
                 }
             }
         });
@@ -1050,7 +1014,7 @@
      */
     Element.prototype.style=function( name,value )
     {
-        if( typeof name === 'string' &&  /^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/.test(name)  )
+        if( typeof name === 'string' && /^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/.test(name)  )
         {
             value=name;
             name='cssText';
@@ -1064,59 +1028,20 @@
         return access.call(this,name,value,{
             get:function( name )
             {
-                var fix= Breeze.fix();
-                var elem = this;
-                if( document.defaultView && document.defaultView.getComputedStyle )
-                {
-                    if( typeof name === "undefined" ) return elem.style
-                    if( name==='cssText' )return (elem.style || {} ).cssText || '';
-                    var ret='',computedStyle;
-                    if( name==='' )return '';
-                    computedStyle=document.defaultView.getComputedStyle( elem, null );
-                    if( fix.cssHooks[name] && typeof fix.cssHooks[name].get === "function" )return fix.cssHooks[name].get.call(elem,computedStyle,name) || '';
-                    if( computedStyle )
-                    {
-                        name=Breeze.styleName( name );
-                        ret = computedStyle.getPropertyValue( name );
-                        ret = ret === "" ? elem.style[name] : ret;
-                    }
-                    return ret;
-                }
-
-                var left='', rsLeft,hook=fix.cssHooks[name]
-                    ,style =  elem.currentStyle || elem.style || {};
-
-                if( typeof name === "undefined" ) return style;
-                if( name==='cssText' )return (style.style || {} ).cssText || '';
-
                 name=Breeze.styleName( name );
-                if( name==='' )return '';
-                var ret = style[ name ] || '';
-                if( hook && hook.get )ret=hook.get.call(elem,style,name) || '';
-
-                //在ie9 以下将百分比的值转成像素的值
-                if( /^-?(?:\d*\.)?\d+(?!px)[^\d\s]+$/i.test( ret ) )
-                {
-                    left = elem.style.left;
-                    rsLeft = elem.runtimeStyle && elem.runtimeStyle.left;
-                    if ( rsLeft )elem.runtimeStyle.left = elem.currentStyle.left;
-                    elem.style.left = name === "fontSize" ? "1em" : ret;
-                    ret = elem.style.pixelLeft + "px";
-                    elem.style.left = left;
-                    if ( rsLeft )elem.runtimeStyle.left = rsLeft;
-                }
-                return ret;
-
+                var getter = fix.cssHooks[name] && typeof fix.cssHooks[name].get === "function" ? fix.cssHooks[name].get : null;
+                if( getter )return getter.call(this,name);
+                var currentStyle =  document.defaultView && document.defaultView.getComputedStyle ? document.defaultView.getComputedStyle( this , null ) : this.currentStyle;
+                return currentStyle[name] ?  currentStyle[name] : this.style[name];
             },
             set:function(name,value,obj){
 
-                var fix= Breeze.fix();
-                var style=this.style;
-                var type = typeof value,ret,hook=fix.cssHooks[name];
-                if ( type === "number" && isNaN( value ) )return false;
+                var type = typeof value,ret;
+                if ( type === "number" && isNaN( value ) )
+                    return false;
 
                 //增量值
-                if ( type === "string" && (ret=/^([\-+])=([\-+.\de]+)/.exec( value )) )
+                if ( type === "string" && (ret=/^([\-+])=([\-+.\de]+)/.exec( value ) ) )
                 {
                     var inc = name === 'width' || name ==='height' ? obj.size()[name] : obj.style( name );
                     value = ( +( ret[1] + 1 ) * +ret[2] ) + inc;
@@ -1127,35 +1052,29 @@
                 if ( type === "number" && !fix.cssNumber[ name ] )
                     value += "px";
 
-                if( hook && hook.set && hook.set.call(elem,style,value) === true )
-                {
-                    return true;
-                }
-
                 if( name === 'cssText' )
                 {
                     value=value.replace(/([\w\-]+)\s*\:([^\;]*)/g, function (all, name,value) {
-
                         if( fix.cssHooks[name] && typeof fix.cssHooks[name].set ==="function" )
                         {
                             var obj={}
-                            fix.cssHooks[name].set(obj, value );
+                            fix.cssHooks[name].set.call(obj, name, value );
                             return Breeze.serialize( obj,'style');
                         }
                         return Breeze.styleName( name ) +':'+ value;
                     });
-
-                }else
-                {
-                    name= Breeze.styleName( name )
                 }
+
+                if( fix.cssHooks[name] && typeof fix.cssHooks[name].set === "function" && hook.set.call(this,name,value) === true )
+                    return true;
+
                 try{
-                    style[name]=value;
+                    this.style[ Breeze.styleName( name ) ]=value;
                 }catch( e ){}
                 return true;
             }
 
-        }, StyleEvent.CHANGE ) || '';
+        }, StyleEvent.CHANGE , 'style' ) || '';
     }
 
     /**

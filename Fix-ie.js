@@ -24,6 +24,30 @@
         }
     };
 
+    //获取元素样式
+    fix.fnHooks.style.get=function( name )
+    {
+        var hook=fix.cssHooks[name],style =  elem.currentStyle || elem.style || {};
+        if( typeof name === "undefined" ) return style;
+        if( name==='cssText' )return (style.style || {} ).cssText || '';
+
+        name=Breeze.styleName( name );
+        if( name==='' )return '';
+        var ret = style[ name ] || '';
+        if( hook && typeof hook.get === "function" )ret=hook.get.call(elem,style,name) || '';
+
+        if( /^-?(?:\d*\.)?\d+(?!px)[^\d\s]+$/i.test( ret ) )
+        {
+            var left = style.left;
+            var rsLeft = elem.runtimeStyle && elem.runtimeStyle.left;
+            if ( rsLeft )elem.runtimeStyle.left = left;
+            style.left = name === "fontSize" ? "1em" : ret;
+            ret = style.pixelLeft + "px";
+            style.left = left;
+        }
+        return ret;
+    }
+
     if( Breeze.isBrowser(Breeze.BROWSER_IE,8,'<') )
     {
         fix.cssHooks.height={
