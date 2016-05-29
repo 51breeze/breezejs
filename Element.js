@@ -1012,7 +1012,7 @@
      * @param value
      * @returns {Element}
      */
-    Element.prototype.style=function( name,value )
+    Element.prototype.style=function( name, value )
     {
         if( typeof name === 'string' && /^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/.test(name)  )
         {
@@ -1028,15 +1028,16 @@
         return access.call(this,name,value,{
             get:function( name )
             {
-                name=Breeze.styleName( name );
                 var getter = fix.cssHooks[name] && typeof fix.cssHooks[name].get === "function" ? fix.cssHooks[name].get : null;
-                if( getter )return getter.call(this,name);
-                var currentStyle =  document.defaultView && document.defaultView.getComputedStyle ? document.defaultView.getComputedStyle( this , null ) : this.currentStyle;
+                var currentStyle = document.defaultView && document.defaultView.getComputedStyle ? document.defaultView.getComputedStyle( this , null ) : this.currentStyle || this.style;
+                if( getter )return getter.call(this,currentStyle,name);
+                name=Breeze.styleName( name );
                 return currentStyle[name] ?  currentStyle[name] : this.style[name];
             },
             set:function(name,value,obj){
 
                 var type = typeof value,ret;
+                var elem = this;
                 if ( type === "number" && isNaN( value ) )
                     return false;
 
@@ -1058,15 +1059,15 @@
                         if( fix.cssHooks[name] && typeof fix.cssHooks[name].set ==="function" )
                         {
                             var obj={}
-                            fix.cssHooks[name].set.call(obj, name, value );
+                            fix.cssHooks[name].set.call(elem,obj,value );
                             return Breeze.serialize( obj,'style');
                         }
                         return Breeze.styleName( name ) +':'+ value;
                     });
                 }
 
-                if( fix.cssHooks[name] && typeof fix.cssHooks[name].set === "function" && hook.set.call(this,name,value) === true )
-                    return true;
+                if( fix.cssHooks[name] && typeof fix.cssHooks[name].set === "function" )
+                    fix.cssHooks[name].set.call(this,this.style,value);
 
                 try{
                     this.style[ Breeze.styleName( name ) ]=value;
