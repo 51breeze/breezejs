@@ -4,17 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <script src="sizzle.js" ></script>
-    <script src="Utils.js" ></script>
+    <script src="Breeze.js" ></script>
     <script src="BreezeEvent.js" ></script>
     <script src="Grep.js" ></script>
     <script src="DataArray.js" ></script>
 
     <script src="EventDispatcher.js" ></script>
-    <script src="Manager.js" ></script>
     <script src="Dictionary.js" ></script>
-    <script src="HttpRequest.js" ></script>
     <script src="Http.js" ></script>
-    <script src="Breeze.js" ></script>
+    <script src="Element.js" ></script>
     <script src="SkinGroup.js" ></script>
     <script src="Component.js" ></script>
     <script src="SkinComponent.js" ></script>
@@ -57,11 +55,17 @@
     ]
 
 
+    Breeze.ready(function(){
 
-    Breeze(function(){
+        console.log(  Element('#grid').prev().current() )
+
+    })
 
 
-        var grid = new DataGrid('.gridcontainer');
+   // Breeze(function(){
+
+
+       /* var grid = new DataGrid('.gridcontainer');
           grid.pagination( true );
         grid.pagination().options({'themeSkin':'{firstPage}{prevPage}{links}{nextPage}{lastPage}{goto}'})
 
@@ -90,9 +94,9 @@
 
               Popup.modality('编辑','hello word,hello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello wordhello word')
 
-          }});
+          }});*/
 
-        grid.remove('edit');
+       /* grid.remove('edit');
         grid.add('edit');
 
           grid.columnWidth('phone',300).columnWidth('name',100).columnWidth('id',50).columnWidth('edit',120)
@@ -107,7 +111,7 @@
 
           grid.dataSource( 'json.php' );
           grid.pagination().currentPage(1)
-          grid.display();
+          grid.display();*/
 
 
 
@@ -171,7 +175,7 @@
         //Popup.modality('窗口2','<h1 class="hh1">Hello here2</h1>')
 
 
-    })
+   // })
 
 
 </script>
@@ -188,11 +192,7 @@
 
 
 <button id="submit">点击</button>
-
-
-<div class="grid" id="grid">
-    <div class="gridcontainer"  style="width: 600px; height: 620px; "></div>
-</div>
+<div class="grid" id="grid"><div class="gridcontainer"  style="width: 600px; height: 620px; "></div></div>
 
 
 </body>

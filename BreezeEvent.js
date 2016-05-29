@@ -146,8 +146,8 @@
         //阻止浏览浏览器的事件冒泡
         if ( event )
         {
-            !event.stopImmediatePropagation || event.stopImmediatePropagation();
-            !event.stopPropagation ? event.cancelBubble=true : event.stopPropagation();
+            //!event.stopImmediatePropagation || event.stopImmediatePropagation();
+            //!event.stopPropagation ? event.cancelBubble=true : event.stopPropagation();
         }
 
         var breezeEvent={};

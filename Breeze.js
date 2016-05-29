@@ -146,9 +146,9 @@
     //set hooks
     fix.cssHooks.userSelect={
 
-        get: function( style, name )
+        get: function( style )
         {
-            return style[ fix.cssMap.fetch ] || '';
+            return style[ Breeze.styleName('userSelect') ] || '';
         },
         set: function( style, value )
         {
@@ -370,7 +370,7 @@
      */
     Breeze.ready=function( callback )
     {
-        return Element.rootEvent().addEventListener( BreezeEvent.READY , callback );
+        return Breeze.rootEvent().addEventListener( BreezeEvent.READY , callback );
     }
 
     /**

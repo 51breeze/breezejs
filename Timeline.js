@@ -17,7 +17,7 @@ var tl= new Timeline(60).addFrame(function(){
 {
     'use strict';
 
-     var prefix=Breeze.getBrowserPrefix().replace(/-/g,''),
+     var prefix=Breeze.fix().cssPrefixName.replace(/-/g,''),
          now= window.performance ? window.performance.now || window.performance[ prefix+'Now' ] || null : null,
          requestAnimationFrame = window.requestAnimationFrame || window[prefix+'RequestAnimationFrame'] || null,
          cancelAnimationFrame  = window.cancelAnimationFrame  || window[prefix+'CancelAnimationFrame']  || null;

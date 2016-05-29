@@ -62,7 +62,7 @@
     EventDispatcher.prototype.targets=function()
     {
         var result= this.__targets__;
-        if( typeof result !== "undefined" && result instanceof Manager && result.forEachCurrentItem )
+        if( typeof result !== "undefined" && result instanceof Element )
         {
             result= [ result.forEachCurrentItem ];
         }
@@ -396,7 +396,7 @@
                     event.currentTarget = listener.currentTarget;
 
                     //设置 Manager 的当前元素对象
-                    if( reference && reference instanceof Manager && reference.indexOf( event.currentTarget ) >=0 )
+                    if( reference && reference instanceof Element && reference.indexOf( event.currentTarget ) >=0 )
                     {
                         reference.current( event.currentTarget );
                         ismanager=true;
