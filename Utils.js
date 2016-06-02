@@ -833,7 +833,7 @@
      * @param element
      * @returns {boolean}
      */
-    Utils.isEventElement=function(element )
+    Utils.isEventElement=function( element )
     {
         return  !!(element.addEventListener || element.attachEvent);
     }
