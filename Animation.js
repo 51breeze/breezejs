@@ -32,7 +32,7 @@
     {
         options = options || {};
         options.duration = (parseFloat(duration) || 1);
-        if( Breeze.isAnimationSupport() && options.engine !=='timeline'  )
+        if( Utils.isAnimationSupport() && options.engine !=='timeline'  )
         {
             options.duration = (parseFloat(duration) || 1) + 's';
             var properties = null;
@@ -45,21 +45,21 @@
                     properties = {'0%': 'opacity:1;', '100%': 'opacity:0;'};
                     break;
             }
-            var stylename = Breeze.CSS3Animation(properties, options);
+            var stylename = Utils.CSS3Animation(properties, options);
 
             if( options.callback && typeof options.callback === "function" )
             {
-                var prefix =Breeze.getBrowserPrefix().replace(/-/g,'');
-                var end = Breeze.lcfirst( prefix+'AnimationEnd' );
-                var iteration = Breeze.lcfirst( prefix+'AnimationIteration' );
+                var prefix =Utils.getBrowserPrefix().replace(/-/g,'');
+                var end = Utils.lcfirst( prefix+'AnimationEnd' );
+                var iteration = Utils.lcfirst( prefix+'AnimationIteration' );
                 EventDispatcher(this).addEventListener([end,iteration],function(event){
                     options.callback.call(this, event.type === end );
                     this.removeEventListener(end);
                     this.removeEventListener(iteration);
                 });
             }
-            Breeze.removeClass(this, stylename);
-            Breeze.addClass(this, stylename);
+            Utils.removeClass(this, stylename);
+            Utils.addClass(this, stylename);
             return stylename;
 
         }else
@@ -68,7 +68,7 @@
             var tl = createTimeline( options );
             tl.addKeyFrame(KeyFrame(options.duration * 60).motions(function(t,d,f){
                 var value = name === 'fadeOut' ? f(t,1,-1,d) : f(t,0,1,d);
-                Breeze.style(element,'opacity',value);
+                Utils.style(element,'opacity',value);
             }))
             if( options.state )tl.play();
             return tl;
@@ -109,8 +109,8 @@
         options.duration = duration;
 
         var tl =createTimeline(options);
-        var width = Breeze.getSize(element,'width');
-        var height =  Breeze.getSize(element,'height');
+        var width = Utils.getSize(element,'width');
+        var height =  Utils.getSize(element,'height');
         var motion = new Motions( element )
 
         if( typeof options.width === "number")motion.set('width', width, options.width )
@@ -118,7 +118,7 @@
 
         if( options.point > 1  )
         {
-            var position = Breeze.style(element,'position');
+            var position = Utils.style(element,'position');
             var propX = 'left';
             var propY = 'top';
             if (position === 'static' || position === '')
@@ -127,8 +127,8 @@
                 propY = 'marginTop';
             }
 
-            var fromX = parseInt(Breeze.style(element, propX)) || 0;
-            var fromY = parseInt(Breeze.style(element, propY)) || 0;
+            var fromX = parseInt(Utils.style(element, propX)) || 0;
+            var fromY = parseInt(Utils.style(element, propY)) || 0;
             var toX = 0;
             var toY = 0;
 
@@ -160,7 +160,7 @@
         options.duration = duration;
 
         var tl =createTimeline(options);
-        var position = Breeze.getBoundingRect(element);
+        var position = Utils.getBoundingRect(element);
         var motion = new Motions( element )
 
         if( typeof options.x === "number" )motion.set('left', position.left, options.x )
@@ -182,7 +182,7 @@
         options.duration = duration || 0.2;
         options.fps = options.fps || 30;
         var tl =createTimeline(options);
-        var position = Breeze.getBoundingRect(element);
+        var position = Utils.getBoundingRect(element);
         var size = options.size || 4;
         var keyframe = KeyFrame( options.duration * 60 )
 
@@ -191,12 +191,12 @@
             var i = tl.current();
             if( i >= tl.length()-1 )
             {
-                Breeze.style(element,'left', position.left);
-                Breeze.style(element,'top', position.top);
+                Utils.style(element,'left', position.left);
+                Utils.style(element,'top', position.top);
             }else {
                 var prop = i % 2 == 0 ? 'left' : 'top';
                 var val = position[prop];
-                Breeze.style(element,prop,i % 4 < 2 ?val: val + size);
+                Utils.style(element,prop,i % 4 < 2 ?val: val + size);
             }
         }
 

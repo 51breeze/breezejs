@@ -50,7 +50,7 @@
     {
         if( typeof subClass === "function" && subClass.prototype && subClass.prototype.componentProfile )
         {
-            return Breeze.storage( element, subClass.prototype.componentProfile );
+            return Utils.storage( element, subClass.prototype.componentProfile );
         }
         return null;
     }
@@ -278,11 +278,11 @@
           return ;
 
         __initialize__=true;
-        Breeze.rootEvent().dispatchEvent( new BreezeEvent( Component.INITIALIZE_START ) );
+        Utils.rootEvent().dispatchEvent( new BreezeEvent( Component.INITIALIZE_START ) );
         Element('['+Component.NAME+']').forEach(function(element){
 
             var name= this.property( Component.NAME );
-            var className = typeof window[ name ] === "function"  ? window[ name ] : window[ Breeze.ucfirst(name) ];
+            var className = typeof window[ name ] === "function"  ? window[ name ] : window[ Utils.ucfirst(name) ];
 
             if( typeof className !== "function" )
             {
@@ -303,7 +303,7 @@
                 {
                     var type = element.getAttribute('type');
                     type = !type || type == 'text/javascript';
-                    if (Breeze.nodeName(child) === 'script' && type) {
+                    if (Utils.nodeName(child) === 'script' && type) {
                         element.removeChild(child);
                         new Function( child.innerHTML ).call(instance);
                     }
@@ -316,7 +316,7 @@
             for( ; index < instance.initializeMethod.length; index++)
             {
                 var method = instance.initializeMethod[ index ];
-                var value = Breeze.property(element,method);
+                var value = Utils.property(element,method);
 
                 if( method && value !==null && typeof instance[ method ] === "function" )
                 {
@@ -326,11 +326,11 @@
             instance.initialized();
             instance.initializeCompleted=true;
         })
-        Breeze.rootEvent().dispatchEvent( new ComponentEvent( ComponentEvent.INITIALIZE_COMPLETED ) )
+        Utils.rootEvent().dispatchEvent( new ComponentEvent( ComponentEvent.INITIALIZE_COMPLETED ) )
     }
 
     //初始化组件
-    Breeze.rootEvent().addEventListener( BreezeEvent.READY,function(){Component.initialize();},false,100);
+    Utils.rootEvent().addEventListener( BreezeEvent.READY,function(){Component.initialize();},false,100);
 
     function ComponentEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
     ComponentEvent.prototype=new BreezeEvent();

@@ -114,7 +114,7 @@
         for(var c in orderGroup )
         {
              type = DataArray.DESC === orderGroup[c].toLowerCase() ?  DataArray.DESC :  DataArray.ASC;
-             orderby.push( type===DataArray.DESC ? "Breeze.compare(b['"+c+"'],a['"+c+"']):s;" : "Breeze.compare(a['"+c+"'],b['"+c+"']):s;");
+             orderby.push( type===DataArray.DESC ? "Utils.compare(b['"+c+"'],a['"+c+"']):s;" : "Utils.compare(a['"+c+"'],b['"+c+"']):s;");
         }
         orderby = orderby.join("\r\ns=s==0?")
         orderby+="\r\n  return s;";

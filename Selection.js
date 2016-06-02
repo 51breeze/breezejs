@@ -60,15 +60,15 @@ var selection = new Selection( '#selection' )
             skinGroup.width( width );
             skinGroup.getBoundingRect(left, top + height + 3 );
 
-            var windowWidth = Breeze.getSize(window,'width');
-            var windowHeight = Breeze.getSize(window,'height');
+            var windowWidth = Utils.getSize(window,'width');
+            var windowHeight = Utils.getSize(window,'height');
             var inputHeight =  skinGroup.getSkinGroup('group > input').height();
             var maxHeight = windowHeight - ( top + height + 3 + inputHeight + 5 );
             skinGroup.currentSkin('list').style('maxHeight',maxHeight);
             skinGroup.current(null);
         }
 
-        Breeze.rootEvent().addEventListener(BreezeEvent.RESIZE,resize);
+        Utils.rootEvent().addEventListener(BreezeEvent.RESIZE,resize);
 
         //点击显示下拉列表
         EventDispatcher( skinGroup.getSkin('button') ).addEventListener(MouseEvent.CLICK,function(event){
@@ -95,8 +95,8 @@ var selection = new Selection( '#selection' )
         //点击下拉列表外隐藏列表
         EventDispatcher( skinGroup.getSkin('group') ).addEventListener( MouseEvent.MOUSE_OUTSIDE , function(event){
 
-            if( !Breeze.contains( skinGroup[0],  event.target ) )
-               Breeze.style(event.currentTarget,'display','none');
+            if( !Utils.contains( skinGroup[0],  event.target ) )
+               Utils.style(event.currentTarget,'display','none');
         });
     }
 

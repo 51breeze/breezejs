@@ -5,7 +5,7 @@
         throw new Error('invaild module');
     }
 
-    var fix = Breeze.fix();
+    var fix = Utils.fix();
     var cssOpacity = /opacity=([^)]*)/;
     var cssAalpha = /alpha\([^)]*\)/i;
     fix.cssMap['alpha']='opacity';
@@ -19,7 +19,7 @@
             value=isNaN(value) ? 1 : Math.max( ( value > 1 ? ( Math.min(value,100) / 100 ) : value ) , 0 )
             var opacity = "alpha(opacity=" + (value* 100) + ")", filter = style.filter || "";
             style.zoom = 1;
-            style.filter = Breeze.trim( filter.replace(cssAalpha,'') + " " + opacity );
+            style.filter = Utils.trim( filter.replace(cssAalpha,'') + " " + opacity );
             return true;
         }
     };
@@ -36,7 +36,7 @@
 
         }else
         {
-            name=Breeze.styleName( name );
+            name=Utils.styleName( name );
             ret = currentStyle[name] ?  currentStyle[name] : this.style[name];
         }
 
@@ -56,7 +56,7 @@
         return ret;
     }
 
-    if( Breeze.isBrowser(Breeze.BROWSER_IE,8,'<') )
+    if( Utils.isBrowser(Utils.BROWSER_IE,8,'<') )
     {
         fix.cssHooks.height.set=function( style, value )
         {

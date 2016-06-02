@@ -41,10 +41,10 @@
             if(  targets instanceof Array )
             {
                 this.__targets__=DataArray.prototype.filter.call(targets,function(item){
-                   return Breeze.isEventElement(item);
+                   return Utlils.isEventElement(item);
                 });
 
-            }else if( Breeze.isEventElement(targets) || targets instanceof EventDispatcher )
+            }else if( Utlils.isEventElement(targets) || targets instanceof EventDispatcher )
             {
                 this.__targets__=[ targets ];
             }
@@ -90,7 +90,7 @@
 
             }else
             {
-                var events = Breeze.storage( element, 'events' );
+                var events = Utlils.storage( element, 'events' );
                 if( events && events[type] && events[type][useCapture] )
                 {
                     return true;
@@ -220,19 +220,19 @@
             throw new Error('listener invalid, must is EventDispatcher.Listener');
         }
 
-        if( !Breeze.isEventElement( this ) && !(this instanceof EventDispatcher) )
+        if( !Utlils.isEventElement( this ) && !(this instanceof EventDispatcher) )
             return false;
 
         //是否有指定的目标对象
         listener.currentTarget || (listener.currentTarget = this);
 
         //获取事件数据集
-        var events = Breeze.storage( this,'events') || {};
+        var events = Utlils.storage( this,'events') || {};
         var capture= Number( listener.useCapture );
 
         if( !events[ type ]  )
         {
-            Breeze.storage( this,'events',events);
+            Utlils.storage( this,'events',events);
             events[ type ]=[]
             events=events[ type ][ capture ]={'listener':[],'handle':null};
 
@@ -280,7 +280,7 @@
         }
 
         //获取事件数据集
-        var events = Breeze.storage(this,'events') || {};
+        var events = Utlils.storage(this,'events') || {};
         var old = events;
         useCapture= Number( useCapture ) || 0;
         if( type ==='*')
@@ -351,7 +351,7 @@
         //只有dom 元素的事件才支持捕获和冒泡事件，否则只有目标事件
         while( element )
         {
-            data = Breeze.storage( element ,'events');
+            data = Utlils.storage( element ,'events');
             if( data && data[ event.type ] )
             {
                 //捕获阶段
@@ -381,7 +381,7 @@
             {
                 //获取事件数据集
                 var currentTarget = category[ index++ ];
-                var events = Breeze.storage( currentTarget ,'events') || {};
+                var events = Utlils.storage( currentTarget ,'events') || {};
                 events = events[ event.type ] && events[ event.type ][ step ] ? events[ event.type ][ step ]['listener'] : null;
                 if( !events || events.length < 1 )
                     continue;
@@ -423,7 +423,7 @@
     {
         if( typeof type  !== "string" )
           return false;
-        var events = Breeze.storage( this, 'events' ) || {}
+        var events = Utlils.storage( this, 'events' ) || {}
         return !!events[ type ];
     }
 
@@ -549,11 +549,11 @@
     var readyState=function( event , type )
     {
         var target=  event.srcElement || event.target;
-        var nodeName=  Breeze.nodeName( target );
+        var nodeName=  Utlils.nodeName( target );
         var readyState=target.readyState;
         var eventType= event.type || null;
 
-        if( Breeze.isBrowser(Breeze.BROWSER_IE,9) )
+        if( Utlils.isBrowser(Utlils.BROWSER_IE,9) )
         {
             //iframe
             if( nodeName==='iframe' )
@@ -625,7 +625,7 @@
         EventDispatcher.addEventListener.call(doc, type , listener, handle );
 
         //ie9 以下，并且是一个顶级文档或者窗口对象
-        if( Breeze.isBrowser(Breeze.BROWSER_IE,9) && !element.contentWindow )
+        if( Utlils.isBrowser(Utlils.BROWSER_IE,9) && !element.contentWindow )
         {
             var toplevel = false;
             try {
@@ -655,13 +655,13 @@
     //在指定的目标元素外按下鼠标
     EventDispatcher.SpecialEvent(MouseEvent.MOUSE_OUTSIDE, function(element,listener,type)
     {
-        Breeze.rootEvent().addEventListener(MouseEvent.MOUSE_DOWN,function(event)
+        Utlils.rootEvent().addEventListener(MouseEvent.MOUSE_DOWN,function(event)
         {
-             if( Breeze.style(element,'display') === 'none' ||  Breeze.style(element,'visibility') ==='hidden' )
+             if( Utlils.style(element,'display') === 'none' ||  Utlils.style(element,'visibility') ==='hidden' )
                 return;
-             var pos = Breeze.getBoundingRect(element);
-             var width = Breeze.getSize( element,'width' );
-             var height = Breeze.getSize( element,'height' );
+             var pos = Utlils.getBoundingRect(element);
+             var width = Utlils.getSize( element,'width' );
+             var height = Utlils.getSize( element,'height' );
              if( event.pageX < pos.left || event.pageY < pos.top || event.pageX > pos.left + width ||  event.pageY > pos.top+height )
              {
                  event = BreezeEvent.create( event );

@@ -34,7 +34,7 @@
         {
             if( typeof options !== "undefined" )
             {
-                _options = Breeze.extend(true, _options, options)
+                _options = Utils.extend(true, _options, options)
                 return this;
             }
             return _options;

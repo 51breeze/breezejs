@@ -23,7 +23,7 @@
         var wrap  = options.wrap;
         var skin= {head:'',body:'',foot:''};
 
-        if( Breeze.isObject(columns,true) )
+        if( Utils.isObject(columns,true) )
         {
             var isset=false;
             for( var i in  columns )
@@ -105,7 +105,7 @@
         if( arguments.length > 0 && typeof column === "string" )
         {
             category = category || 'tbody';
-            option = Breeze.extend(defualt,option || {});
+            option = Utils.extend(defualt,option || {});
             if( typeof option.template !== "string" )
                throw new Error('invalid html template.')
 
@@ -160,7 +160,7 @@
     {
         if( typeof options !== "undefined")
         {
-            this.__options__ = Breeze.extend(true, this.__options__, options );
+            this.__options__ = Utils.extend(true, this.__options__, options );
             return this;
         }
         return this.__options__;
@@ -266,7 +266,7 @@
             'callback':function(event,option){
                  var index =dataSource.viewIndex( this.property('data-index') );
                  var item = dataSource[index];
-                 item = Breeze.extend({},item);
+                 item = Utils.extend({},item);
                  dataSource.append( item, index+1);
             },
             'eventType':MouseEvent.CLICK
@@ -291,7 +291,7 @@
             return this.__columns__;
         }
         this.__columns__ = columns;
-        if ( Breeze.isString(columns) )
+        if ( Utils.isString(columns) )
         {
             this.__columns__ = columns.split(',')
         }
@@ -426,10 +426,10 @@
 
         }else
         {
-            var options = Breeze.extend(skinGroup.skinObject().skins, this.options() );
+            var options = Utils.extend(skinGroup.skinObject().skins, this.options() );
             var skin = makeTemplate( this.columns(), options , this.plus() );
             skinGroup.currentSkin('thead').html( skin.head );
-            var columnName =  Breeze.toKeys(  this.columns() );
+            var columnName =  Utils.toKeys(  this.columns() );
             skinGroup.children().children().forEach(function(elem,index){
                  var name = columnName[index];
                  this.style('textAlign',  options.theadAlign[name] || options.theadAlign['*'] );
@@ -557,7 +557,7 @@
                     last= val;
                 }
 
-                Breeze.rootEvent()
+                Utils.rootEvent()
                     .addEventListener(MouseEvent.MOUSE_MOVE,resize)
                     .addEventListener(MouseEvent.MOUSE_UP,function(event){
                         this.removeEventListener(MouseEvent.MOUSE_MOVE,resize);

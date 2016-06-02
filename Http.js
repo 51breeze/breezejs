@@ -96,7 +96,7 @@
         {
             return new Http( options );
         }
-        this.__options__ = Breeze.extend(true,setting,options);
+        this.__options__ = Utils.extend(true,setting,options);
         var dataType= this.__options__.dataType.toLowerCase();
         this.__options__.dataType= dataType;
         EventDispatcher.call(this);
@@ -183,7 +183,7 @@
 
         }else
         {
-            data = Breeze.serialize( data ,'url') || null;
+            data = Utils.serialize( data ,'url') || null;
             if( method === Http.METHOD.GET && data)
             {
                 if( data !='' )url+=/\?/.test(url) ? '&'+data : '?'+data;
@@ -357,7 +357,7 @@
         }
 
         var param = [];
-        !data || param.push( Breeze.serialize(data,'url') );
+        !data || param.push( Utils.serialize(data,'url') );
         param.push( 'k='+ this.key() );
         param=param.join('&');
         url+=!/\?/.test(url) ? '?'+param : '&'+param;

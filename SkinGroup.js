@@ -82,25 +82,25 @@
                 if( isstyle ===true )
                 {
                     attr.style || (attr.style = {});
-                    Breeze.extend(true, attr.style, refObject);
+                    Utils.extend(true, attr.style, refObject);
 
                 }else if( typeof refObject === "string" )
                 {
                     str+=refObject;
-                }else if ( Breeze.isObject(refObject, true) )
+                }else if ( Utils.isObject(refObject, true) )
                 {
-                    Breeze.extend(true,attr,refObject);
+                    Utils.extend(true,attr,refObject);
                 }
             }
 
-            if( !Breeze.isEmpty(attr) )
+            if( !Utils.isEmpty(attr) )
             {
-                !Breeze.isObject(attr.style) || ( attr.style = Breeze.serialize(attr.style, 'style') );
+                !Utils.isObject(attr.style) || ( attr.style = Utils.serialize(attr.style, 'style') );
                 if( typeof attr.style === "string" && attr.style !== '' )
                 {
-                    attr.style= Breeze.formatStyle( attr.style )
+                    attr.style= Utils.formatStyle( attr.style )
                 }
-                str += Breeze.serialize(attr, 'attr');
+                str += Utils.serialize(attr, 'attr');
             }
             return str.replace(htmlReg,parser);
         }
@@ -113,7 +113,7 @@
             {
                 var val = attr[SkinGroup.NAME] || '';
                 val = val.replace(new RegExp('(^|\\s+)+'+name+'(\\s+|$)','ig'),' ');
-                attr[SkinGroup.NAME] = Breeze.trim(val+' '+name);
+                attr[SkinGroup.NAME] = Utils.trim(val+' '+name);
             }
             if( !isattrReg.test( this.skins[name] ) )this.skins[name] = this.skins[name].replace( addattr, "<$1 {attr "+name+"}" );
             this.skins[name] = this.skins[name].replace(attrReg,parser);
@@ -144,7 +144,7 @@
 
         if( typeof container !== "string" )
         {
-            var nodename = Breeze.nodeName( container );
+            var nodename = Utils.nodeName( container );
             if( nodename === 'noscript' || nodename === 'script' || nodename === 'textarea' )
             {
                 container =  nodename === 'textarea' ? container.value : container.innerHTML;
@@ -256,7 +256,7 @@
     {
         if( !(this instanceof SkinGroup) )
             return new SkinGroup( viewport,context );
-        Breeze.call(this, viewport instanceof Breeze ? viewport[0] : viewport , context );
+        Utils.call(this, viewport instanceof Breeze ? viewport[0] : viewport , context );
         if (this.length != 1)
             throw new Error('invalid viewport');
 
@@ -266,7 +266,7 @@
             viewport = this[0];
             this.skinObject( new SkinObject(  nodename==='textarea' ? viewport.value : viewport.innerHTML) );
             this.skinObject().created=true;
-            var skinContainer =  Breeze.createElement( this.skinObject().createSkin() );
+            var skinContainer =  Utils.createElement( this.skinObject().createSkin() );
             this.parent().addChildAt( skinContainer, viewport );
             this.splice(0,this.length,skinContainer);
         }
@@ -290,7 +290,7 @@
      */
     SkinGroup.skinName = function(skinName)
     {
-        return SkinGroup.NAME==='class' ? '.'+skinName : Breeze.sprintf('[%s="%s"]',SkinGroup.NAME,skinName);
+        return SkinGroup.NAME==='class' ? '.'+skinName : Utils.sprintf('[%s="%s"]',SkinGroup.NAME,skinName);
     }
 
     /**
@@ -362,7 +362,7 @@
         for( var name in styleSheet )
         {
             var stn = name==='container' ? sn : sn +' '+name.split(',').join( ','+sn+' ' );
-            Breeze.appendStyle( stn, styleSheet[name] );
+            Utils.appendStyle( stn, styleSheet[name] );
         }
 
         //不是一个完整的皮肤则生成一个皮肤
@@ -372,8 +372,8 @@
             var html = skinObject.createSkin();
             if(  html != '' )
             {
-                html = Breeze.createElement( html );
-                var hasContainer = Breeze.nodeName( html) === '#document-fragment'  ? false : true;
+                html = Utils.createElement( html );
+                var hasContainer = Utils.nodeName( html) === '#document-fragment'  ? false : true;
                 this.html( html );
                 if( hasContainer )
                 {
@@ -396,7 +396,7 @@
                     var value = attr[prop];
                     if (prop === 'style') {
                         if (!this.skinName())
-                            if (!Breeze.isEmpty(value))this.style(value);
+                            if (!Utils.isEmpty(value))this.style(value);
 
                     } else {
                         this.property(prop, value);
@@ -444,11 +444,11 @@
     SkinGroup.prototype.addChildSkin=function( childSkin , skinName, index )
     {
         index = isNaN(index) ? -1 : index ;
-        childSkin = Breeze.createElement( childSkin );
+        childSkin = Utils.createElement( childSkin );
         this.addChildAt(  childSkin , index );
         if( typeof skinName === "string" )
         {
-            Breeze.property(childSkin,SkinGroup.NAME, skinName);
+            Utils.property(childSkin,SkinGroup.NAME, skinName);
         }
         return childSkin;
     }
@@ -461,7 +461,7 @@
      */
     function getSkin(skinName,context)
     {
-        var result = Breeze.sizzle( SkinGroup.skinName(skinName), context );
+        var result = Utils.sizzle( SkinGroup.skinName(skinName), context );
         return result[0] || null;
     }
 

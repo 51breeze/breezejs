@@ -21,7 +21,7 @@
         var links = Math.min( options.links,totalPages);
         var offset =  Math.max( currentPages - Math.ceil( links / 2 ), 0 );
         offset = offset+links > totalPages ? offset-(offset+links - totalPages) : offset;
-        links = Breeze.range(1,links , offset);
+        links = Utils.range(1,links , offset);
 
         var info = options.profile.info.replace("{totalPage}", this.totalPages() )
             .replace("{totalRows}", this.totalRows() )
@@ -106,7 +106,7 @@
     {
         if( typeof options !== "undefined" )
         {
-            if( Breeze.isObject(options) )this.__options__=Breeze.extend(true,this.__options__,options);
+            if( Utils.isObject(options) )this.__options__=Utils.extend(true,this.__options__,options);
             return this;
         }
         return this.__options__;
@@ -147,7 +147,7 @@
 
                     }else
                     {
-                        skinObject.skins.links = Breeze.repeat(skinObject.skins.link,options.links );
+                        skinObject.skins.links = Utils.repeat(skinObject.skins.link,options.links );
                         var tpl = this.template().viewport(this.skinGroup());
                         var skin = options.themeSkin.replace(/\{(\w+)\}/g, function (all, name) { return skinObject.skins[name] || ''; });
                         tpl.render(skin);

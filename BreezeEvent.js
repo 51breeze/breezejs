@@ -29,7 +29,7 @@
 
         }else
         {
-            if ( Breeze.isObject(bubbles) )
+            if ( Utils.isObject(bubbles) )
             {
                 for(var i in bubbles)this[i]=bubbles[i];
 
@@ -101,12 +101,12 @@
             mapeventname[ PropertyEvent.CHANGE ] = 'input';
             mapeventname[ BreezeEvent.READY ] = 'readystatechange';
             //mapeventname[ BreezeEvent.LOAD ] = 'DOMContentLoaded';
-            if( Breeze.isBrowser(Breeze.BROWSER_FIREFOX) )
+            if( Utils.isBrowser(Utils.BROWSER_FIREFOX) )
             {
                 mapeventname[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
             }
 
-            if( Breeze.isBrowser(Breeze.BROWSER_IE,9,'<') )
+            if( Utils.isBrowser(Utils.BROWSER_IE,9,'<') )
             {
                 onPrefix='on';
             }
@@ -158,14 +158,14 @@
        var className = !agreed.test(type) ? type.match( __eventClassName__ ) : null;
        if( className && className[1] )
        {
-           className=Breeze.ucfirst( className[1] )+'Event';
+           className=Utils.ucfirst( className[1] )+'Event';
            if( window[className] )
            {
                breezeEvent=new window[className]( event )
            }
            if( breezeEvent instanceof PropertyEvent )
            {
-               breezeEvent.property= Breeze.isFormElement(target) ? 'value' : 'innerHTML';
+               breezeEvent.property= Utils.isFormElement(target) ? 'value' : 'innerHTML';
                breezeEvent.newValue=target[ breezeEvent.property ];
            }
 
@@ -176,7 +176,7 @@
             breezeEvent.pageY= event.y || event.clientY || event.pageY;
             if( typeof event.offsetX==='undefined' && target )
             {
-                var offset=Breeze.getBoundingRect( target );
+                var offset=Utils.getBoundingRect( target );
                 event.offsetX=breezeEvent.pageX-offset.left;
                 event.offsetY=breezeEvent.pageY-offset.top;
             }
