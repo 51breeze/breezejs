@@ -29,7 +29,7 @@
         {
             if( !(viewport instanceof Breeze) )
             {
-                viewport = Element( viewport , context );
+                viewport = Breeze( viewport , context );
             }
             if( viewport.length !==1 )
             {
@@ -279,7 +279,7 @@
 
         __initialize__=true;
         Utils.rootEvent().dispatchEvent( new BreezeEvent( Component.INITIALIZE_START ) );
-        Element('['+Component.NAME+']').forEach(function(element){
+        Breeze('['+Component.NAME+']').forEach(function(element){
 
             var name= this.property( Component.NAME );
             var className = typeof window[ name ] === "function"  ? window[ name ] : window[ Utils.ucfirst(name) ];

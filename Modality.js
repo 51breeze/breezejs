@@ -152,7 +152,7 @@ modality.show(true)
         if( this.type() !== Modality.SIMPLE )
         {
             var selector=Utils.sprintf('[%s=head] > [%s=close],[%s=footer] button', SkinGroup.NAME,SkinGroup.NAME,SkinGroup.NAME );
-            Element(selector,skinGroup).addEventListener(MouseEvent.CLICK,function(event)
+            Breeze(selector,skinGroup).addEventListener(MouseEvent.CLICK,function(event)
             {
                 event.stopPropagation();
                 var type =  Utils.property(event.target,SkinGroup.NAME);

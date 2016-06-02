@@ -496,9 +496,9 @@
 
     var resize = function()
     {
-        var htarget = Element('thead > tr > th',this);
-        var vtarget = Element('thead > tr > th:nth-child(1),tbody > tr > td:nth-child(1)',this);
-        Element('td,th',this).addEventListener(MouseEvent.MOUSE_DOWN,function(event){
+        var htarget = Breeze('thead > tr > th',this);
+        var vtarget = Breeze('thead > tr > th:nth-child(1),tbody > tr > td:nth-child(1)',this);
+        Breeze('td,th',this).addEventListener(MouseEvent.MOUSE_DOWN,function(event){
 
             var rect = this.getBoundingRect();
             var space = 2;
@@ -586,7 +586,7 @@
 
             this.__dataRender__.addEventListener(TemplateEvent.REFRESH, function (event)
             {
-                Element('[data-action]', this.viewport() ).forEach(function (){
+                Breeze('[data-action]', this.viewport() ).forEach(function (){
 
                     var action = this.property('data-action');
                     var column = this.property('data-column');

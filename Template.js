@@ -229,7 +229,7 @@
             return this;
 
         if( !(viewport instanceof Breeze) )
-            viewport = Element( viewport , context );
+            viewport = Breeze( viewport , context );
 
         if( viewport.length > 0 )
         {

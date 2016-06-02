@@ -266,7 +266,7 @@
             viewport = this[0];
             this.skinObject( new SkinObject(  nodename==='textarea' ? viewport.value : viewport.innerHTML) );
             this.skinObject().created=true;
-            var skinContainer =  Utils.createElement( this.skinObject().createSkin() );
+            var skinContainer =  Utils.createBreeze( this.skinObject().createSkin() );
             this.parent().addChildAt( skinContainer, viewport );
             this.splice(0,this.length,skinContainer);
         }
@@ -278,7 +278,7 @@
     }
 
     SkinGroup.NAME='skin';
-    SkinGroup.prototype=new Element();
+    SkinGroup.prototype=new Breeze();
     SkinGroup.prototype.__skin__={};
     SkinGroup.prototype.__skinObject__=null;
     SkinGroup.prototype.__validated__=null;
@@ -372,7 +372,7 @@
             var html = skinObject.createSkin();
             if(  html != '' )
             {
-                html = Utils.createElement( html );
+                html = Utils.createBreeze( html );
                 var hasContainer = Utils.nodeName( html) === '#document-fragment'  ? false : true;
                 this.html( html );
                 if( hasContainer )
@@ -444,7 +444,7 @@
     SkinGroup.prototype.addChildSkin=function( childSkin , skinName, index )
     {
         index = isNaN(index) ? -1 : index ;
-        childSkin = Utils.createElement( childSkin );
+        childSkin = Utils.createBreeze( childSkin );
         this.addChildAt(  childSkin , index );
         if( typeof skinName === "string" )
         {
@@ -519,7 +519,7 @@
         if(  !this.__skin__[ key ] || flag===true )
         {
             skinName = skinName.replace(/(\w+)\s+?(\>?)\s+?(.*)/, function (all, a, b, c) {
-                return c === '' ? " return Element(this.getSkinAndValidate('" + a + "'))" : "Element('" + c + "',this.getSkinAndValidate('" + a + "'))";
+                return c === '' ? " return Breeze(this.getSkinAndValidate('" + a + "'))" : "Breeze('" + c + "',this.getSkinAndValidate('" + a + "'))";
             })
 
             try {

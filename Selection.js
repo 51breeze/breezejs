@@ -80,7 +80,7 @@ var selection = new Selection( '#selection' )
         //搜索框
         if( this.searchable() )
         {
-            Element('input', skinGroup.getSkin('group') ).property('placeholder', this.placeholder() ).display(true)
+            Breeze('input', skinGroup.getSkin('group') ).property('placeholder', this.placeholder() ).display(true)
             .addEventListener(PropertyEvent.CHANGE,function(event){
                 if( event.property==='value')
                 {
