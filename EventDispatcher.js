@@ -22,7 +22,7 @@
     /**
      * EventDispatcher Class
      * 事件调度器，所有需要实现事件调度的类都必须继承此类。
-     * @param object
+     * @param HTMLElement|Array target 元素目标对象,允许一个元素或者一组元素
      * @returns {EventDispatcher}
      * @constructor
      */
@@ -30,13 +30,12 @@
     {
         if( !(this instanceof EventDispatcher) )
             return new EventDispatcher(target);
-
-        target=Utils.isEventElement( target ) ? [ target ] : [this];
+        target=Utils.isEventElement( target ) ? [ target ] : ( target instanceof Array ? target : [this] );
         this.target=function()
         {
             if( this instanceof Breeze )
             {
-                return this.forEachCurrentItem ? [ this.forEachCurrentItem ] : this;
+                return this.forEachCurrentItem ? [ this.forEachCurrentItem ] : ( this.length > 0 ? this : [this] );
             }
             return target;
         }
@@ -160,7 +159,7 @@
             throw new Error('listener invalid, must is EventDispatcher.Listener');
         }
 
-        if( !Utils.isEventElement( this ) && !(this instanceof EventDispatcher) )
+        if( !Utils.isEventElement( this ) )
             return false;
 
         //是否有指定的目标对象
@@ -201,20 +200,22 @@
 
     /**
      * 添加侦听器到元素中
-     * @param listener
-     * @param handle
+     * @param string type 事件类型, 如果是一个'*'则表示删除所有的事件
+     * @param function listener 可选，如果指定则只删除此侦听器
+     * @param EventDispatcher eventDispatcher 可选，如果指定则只删除本对象中的元素事件
      * @returns {boolean}
      */
-    EventDispatcher.removeEventListener=function( type, listener, target )
+    EventDispatcher.removeEventListener=function(type, listener, eventDispatcher )
     {
         //获取事件数据集
         var events = Utils.storage(this,'events') || {};
         var old = events;
+
         if( type ==='*')
         {
             for(var t in events )
             {
-                EventDispatcher.removeEventListener.call(this,t,listener,target);
+                EventDispatcher.removeEventListener.call(this,t,listener,eventDispatcher);
             }
             return true;
         }
@@ -226,13 +227,16 @@
 
         events = events[type];
         var length= events.listener.length,dispatcher;
+        var haslistener = typeof listener === "undefined";
+        var hasdispatcher = typeof eventDispatcher === "undefined";
         while( length > 0 )
         {
             --length;
             dispatcher=events.listener[ length ].dispatcher;
 
             //如果有指定侦听器则删除指定的侦听器
-            if(  ( !listener || events.listener[ length ].callback===listener ) && ( !target || target === dispatcher) )
+            if(  ( haslistener || events.listener[ length ].callback===listener ) &&
+                 ( hasdispatcher || eventDispatcher === dispatcher) )
             {
                  events.listener.splice(length,1);
             }
@@ -536,16 +540,15 @@
                 }
                 doCheck();
             }
+            handle({'srcElement':doc,'type':type});
         }
-        handle({'srcElement':doc,'type':type});
         return true;
     });
-
 
     //在指定的目标元素外按下鼠标
     EventDispatcher.SpecialEvent(MouseEvent.MOUSE_OUTSIDE, function(element,listener,type)
     {
-        Utils.rootEvent().addEventListener(MouseEvent.MOUSE_DOWN,function(event)
+        EventDispatcher.rootEvent().addEventListener(MouseEvent.MOUSE_DOWN,function(event)
         {
              var elem =  Breeze( element );
              if( elem.style('display') === 'none' ||  elem.style('visibility') ==='hidden' )
@@ -563,6 +566,22 @@
         },false,0, this);
         return false;
     });
+
+    /**
+     * @private
+     */
+    var __rootEvent__;
+
+    /**
+     * 全局事件调度器
+     * @returns {EventDispatcher}
+     */
+    EventDispatcher.rootEvent=function()
+    {
+        if( !__rootEvent__ )
+            __rootEvent__=new EventDispatcher( window );
+        return __rootEvent__;
+    }
 
     window.EventDispatcher=EventDispatcher;
 

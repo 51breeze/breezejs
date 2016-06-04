@@ -835,7 +835,7 @@
      */
     Utils.isEventElement=function( element )
     {
-        return  !!(element.addEventListener || element.attachEvent);
+        return (element && ( typeof element.addEventListener === "function" || typeof element.attachEvent=== "function" ) );
     }
 
     /**
@@ -844,7 +844,7 @@
      * @returns {boolean}
      */
     Utils.isWindow=function(obj ) {
-        return obj != null && obj == obj.window;
+        return (obj != null && obj === obj.window);
     }
 
     /**
