@@ -21,7 +21,7 @@
         if( typeof context === 'undefined' )
             return document;
         if( context instanceof Breeze )return context.context;
-        context = typeof context=== "string" ? Utils.sizzle(context,document)[0] : context;
+        context = typeof context=== "string" ? Utils.querySelector(context,document)[0] : context;
         if( Utils.isFrame( context ) && context.contentWindow )
             return context.contentWindow.document;
         if( Utils.isWindow(context) )context=context.document;
@@ -76,7 +76,7 @@
 
         }else if( type === "string" )
         {
-            ret= Utils.sizzle( selector, null, null, elements );
+            ret= Utils.querySelector( selector, null, null, elements );
         }
         return ret;
     }
@@ -179,7 +179,7 @@
                 result= [  win[ selector ] || win.document[selector] || win ];
             }else
             {
-                result= Utils.sizzle( selector, this.context );
+                result= Utils.querySelector( selector, this.context );
             }
         }
 
@@ -262,7 +262,7 @@
 
             }else if( typeof element=== "string" )
             {
-                element=Utils.sizzle(element, this.context );
+                element=Utils.querySelector(element, this.context );
                 this.forEachCurrentItem = element ? element[0] : undefined;
                 this.forEachCurrentIndex = NaN;
 
@@ -357,7 +357,7 @@
         var result=false;
         this.forEach(function(elem)
         {
-            var ret = is ? !!selector.call( elem ) :  Utils.sizzle( selector, document, null, [ elem ] ).length > 0;
+            var ret = is ? !!selector.call( elem ) :  Utils.querySelector( selector, document, null, [ elem ] ).length > 0;
             if( ret ) {
                 result=true;
                 return result;
@@ -373,7 +373,7 @@
      */
     Breeze.prototype.contains=function(child )
     {
-        return Utils.sizzle( child, this.current() ).length > 0;
+        return Utils.querySelector( child, this.current() ).length > 0;
     }
 
     /**
@@ -442,7 +442,7 @@
         var isfun = Utils.isFunction(selector);
         var results=doRecursion.call(this,'parentNode',true,function(element,ret)
         {
-            if( ( isfun && selector.call( element ) ) || Sizzle.sizzle( selector, null,null, [element] ).length===1 )
+            if( ( isfun && selector.call( element ) ) || Sizzle.querySelector( selector, null,null, [element] ).length===1 )
             {
                 ret.push(element);
                 return false;
@@ -475,7 +475,7 @@
         var results=doRecursion.call(this,'previousSibling',true,function(element,ret)
         {
             if( ( type==='function' && selector.call( element ) ) ||
-                ( type==='string' && Sizzle.sizzle( selector, null,null, [element] ).length===1) ||
+                ( type==='string' && Sizzle.querySelector( selector, null,null, [element] ).length===1) ||
                   element.nodeType==1 )
             {
                 ret.push(element);
@@ -601,7 +601,7 @@
         {
             this.forEach(function(elem)
             {
-                var children=Utils.sizzle(childElemnet,elem), b=0,len=children.length;
+                var children=Utils.querySelector(childElemnet,elem), b=0,len=children.length;
                 for( ; b<len ; b++)if( children[i] && children[i].nodeType===1 && children[i].parentNode )
                 {
                     this.removeChildAt( children[i] );
@@ -758,7 +758,7 @@
     {
         if( typeof childElemnet==='string' )
         {
-            childElemnet= Utils.sizzle( childElemnet, null, null, this.toArray() )[0];
+            childElemnet= Utils.querySelector( childElemnet, null, null, this.toArray() )[0];
             if( !childElemnet )return -1;
             this.current( childElemnet.parentNode );
         }
@@ -1596,6 +1596,50 @@
         this.animation({'opacity':0,'duration':duration},callback);
         return this;
     }
+
+
+    /**
+     * @private
+     */
+    var __rootEvent__=null;
+
+    /**
+     * 全局事件
+     * @returns {EventDispatcher}
+     */
+    Breeze.rootEvent=function()
+    {
+        if( __rootEvent__ === null ) {
+            __rootEvent__ = EventDispatcher(window);
+        }
+        return __rootEvent__;
+    }
+
+
+    /**
+     * 扩展鼠标在元素外按下时的事件
+     */
+    EventDispatcher.SpecialEvent(MouseEvent.MOUSE_OUTSIDE, function(element,listener,type)
+    {
+        Breeze.rootEvent().addEventListener(MouseEvent.MOUSE_DOWN,function(event)
+        {
+            var elem =  Breeze( element );
+            if( elem.style('display') === 'none' ||  elem.style('visibility') ==='hidden' )
+                return;
+
+            var pos = elem.getBoundingRect();
+            var size = elem.size( element,'width' );
+            if( event.pageX < pos.left || event.pageY < pos.top || event.pageX > pos.left + size.width ||  event.pageY > pos.top+size.height )
+            {
+                event = BreezeEvent.create( event );
+                event.type = MouseEvent.MOUSE_OUTSIDE;
+                this.dispatchEvent( event );
+            }
+
+        },false,0, this);
+        return false;
+    });
+
 
     module.Breeze=Breeze;
 

@@ -267,13 +267,46 @@
 
     /**
      * 选择元素
-     * @param selector
-     * @param context
-     * @returns {*}
+     * @param mixed selector CSS3选择器
+     * @param mixed context  上下文
+     * @returns []
      */
-    Utils.sizzle=function(selector, context, results, seed )
+    Utils.querySelector=function(selector, context)
     {
-        return Sizzle( selector, context, results, seed );
+        if( typeof Sizzle === "function" )
+        {
+            return Sizzle( selector, context);
+        }
+
+        //如果选择器不是一个字符串
+        if( typeof selector !== "string" )
+        {
+            return selector && typeof selector.nodeName === "string" && selector.nodeType ?  [ selector ] : [];
+        }
+
+        var results;
+        var has = false;
+
+        //设置上下文
+        if( context && typeof context.nodeName === "string" && context.nodeType && context.nodeType != 9 )
+        {
+            var id = context.getAttribute('id');
+            if( !id || id =='')
+            {
+                has = true;
+                id = 'q'+( new Date().getTime() );
+                context.setAttribute('id', id);
+            }
+            selector = '#'+id+' '+selector;
+
+        }else if( typeof context === "string" )
+        {
+            selector = context+' '+selector;
+        }
+
+        results = Array.prototype.slice.call( document.querySelectorAll(selector) );
+        if(has)context.removeAttribute('id');
+        return results;
     }
 
 

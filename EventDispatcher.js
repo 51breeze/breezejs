@@ -545,44 +545,6 @@
         return true;
     });
 
-    //在指定的目标元素外按下鼠标
-    EventDispatcher.SpecialEvent(MouseEvent.MOUSE_OUTSIDE, function(element,listener,type)
-    {
-        EventDispatcher.rootEvent().addEventListener(MouseEvent.MOUSE_DOWN,function(event)
-        {
-             var elem =  Breeze( element );
-             if( elem.style('display') === 'none' ||  elem.style('visibility') ==='hidden' )
-                 return;
-
-             var pos = elem.getBoundingRect();
-             var size = elem.size( element,'width' );
-             if( event.pageX < pos.left || event.pageY < pos.top || event.pageX > pos.left + size.width ||  event.pageY > pos.top+size.height )
-             {
-                 event = BreezeEvent.create( event );
-                 event.type = MouseEvent.MOUSE_OUTSIDE;
-                 this.dispatchEvent( event );
-             }
-
-        },false,0, this);
-        return false;
-    });
-
-    /**
-     * @private
-     */
-    var __rootEvent__;
-
-    /**
-     * 全局事件调度器
-     * @returns {EventDispatcher}
-     */
-    EventDispatcher.rootEvent=function()
-    {
-        if( !__rootEvent__ )
-            __rootEvent__=new EventDispatcher( window );
-        return __rootEvent__;
-    }
-
     window.EventDispatcher=EventDispatcher;
 
 })(window)

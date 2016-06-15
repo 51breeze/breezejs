@@ -5,19 +5,24 @@
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
  */
-(function(window,undefined){
+(function(window,undefined)
+{
+    'use strict';
 
     /**
-     * BreezeEvent Class
-     * 事件对象,处理指定类型的事件分发。
-     * @param src
-     * @param props
+     *  BreezeEvent Class
+     *  事件对象,处理指定类型的事件分发。
+     * @param type
+     * @param bubbles
+     * @param cancelable
+     * @returns {BreezeEvent}
      * @constructor
      */
     function BreezeEvent( type, bubbles,cancelable )
     {
         if ( !(this instanceof BreezeEvent) )
             return new BreezeEvent(  type, bubbles,cancelable );
+
         this.type = type ? type : null;
         if ( type && type.type )
         {
@@ -41,6 +46,10 @@
         }
     };
 
+    /**
+     * event property
+     * @public
+     */
     BreezeEvent.prototype = {
         target:null,
         bubbles:true, // true 只触发冒泡阶段的事件 , false 只触发捕获阶段的事件
@@ -80,9 +89,20 @@
 
 
     /**
+     * map event name
      * @private
      */
-    var mapeventname,onPrefix='',agreed=new RegExp( 'webkitAnimationEnd|webkitAnimationIteration|DOMContentLoaded|DOMMouseScroll','i');
+    var mapeventname={},onPrefix= Utils.isBrowser(Utils.BROWSER_IE,9,'<') ? 'on' : '';
+    mapeventname[ PropertyEvent.CHANGE ] = 'input';
+    mapeventname[ BreezeEvent.READY ] = 'readystatechange';
+    mapeventname['webkitAnimationEnd'] = 'webkitAnimationEnd';
+    mapeventname['webkitAnimationIteration'] = 'webkitAnimationIteration';
+    mapeventname['DOMContentLoaded'] = 'DOMContentLoaded';
+    if( Utils.isBrowser(Utils.BROWSER_FIREFOX) )
+    {
+        mapeventname[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
+    }
+
 
     /**
      * 统一事件名
@@ -95,23 +115,6 @@
         if( typeof type !== "string" )
            return null;
 
-        if( !mapeventname )
-        {
-            mapeventname={};
-            mapeventname[ PropertyEvent.CHANGE ] = 'input';
-            mapeventname[ BreezeEvent.READY ] = 'readystatechange';
-            //mapeventname[ BreezeEvent.LOAD ] = 'DOMContentLoaded';
-            if( Utils.isBrowser(Utils.BROWSER_FIREFOX) )
-            {
-                mapeventname[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
-            }
-
-            if( Utils.isBrowser(Utils.BROWSER_IE,9,'<') )
-            {
-                onPrefix='on';
-            }
-        }
-
         if( flag===true )
         {
             type= onPrefix==='on' ? type.replace(/^on/i,'') : type;
@@ -119,8 +122,14 @@
             return type;
         }
 
-        type = mapeventname[ type ] || type;
-        type= !agreed.test( type ) ? type.toLowerCase() : type;
+        if( typeof mapeventname[ type ] !== "undefined" )
+        {
+            type = mapeventname[ type ];
+
+        }else
+        {
+            type=type.toLowerCase();
+        }
         return onPrefix+type;
     }
 
