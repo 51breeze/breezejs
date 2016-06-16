@@ -18,6 +18,29 @@
      * @type {}
      */
     bindBeforeProxy={}
+    ,storage=function(name, value)
+    {
+        if( typeof this !== "object" )
+            return false;
+
+        var obj = this.__event__ || (this.__event__={});
+        if( value === null )
+        {
+            if( typeof obj[ name ] !== 'undefined' )
+            {
+                delete obj[ name ];
+                return true;
+            }
+            return false;
+
+        }else if( typeof value === 'undefined' )
+        {
+            return obj[ name ] || null ;
+        }
+        obj[ name ] = value;
+        return true;
+    }
+
 
     /**
      * EventDispatcher Class
@@ -55,7 +78,7 @@
             ,index=0;
         while( index < target.length )
         {
-            var events = Utils.storage( target[ index ], 'events' );
+            var events = storage.call( target[ index ] );
             if( events && events[type] )
             {
                 return true;
@@ -166,11 +189,11 @@
         listener.currentTarget || (listener.currentTarget = this);
 
         //获取事件数据集
-        var events = Utils.storage( this,'events') || {};
+        var events = storage.call( this ) || {};
 
         if( !events[ type ]  )
         {
-            Utils.storage( this,'events',events);
+            storage.call( this, events );
             events[ type ]={'listener':[],'handle':handle || EventDispatcher.dispatchEvent};
             events = events[ type ];
 
@@ -208,7 +231,7 @@
     EventDispatcher.removeEventListener=function(type, listener, eventDispatcher )
     {
         //获取事件数据集
-        var events = Utils.storage(this,'events') || {};
+        var events = storage.call(this) || {};
         var old = events;
 
         if( type ==='*')
@@ -277,7 +300,7 @@
         if( event === null)return false;
 
         var element = event.currentTarget,
-            events= Utils.storage( element ,'events.'+ event.type );
+            events= storage.call( element , event.type );
 
         events =events ? events.listener.slice(0) : [];
         var length= 0,listener;
@@ -317,7 +340,7 @@
     {
         if( typeof type  !== "string" )
           return false;
-        var events = Utils.storage( this, 'events' ) || {}
+        var events = storage.call( this ) || {}
         return !!events[ type ];
     }
 

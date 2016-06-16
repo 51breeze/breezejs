@@ -92,15 +92,19 @@
      * map event name
      * @private
      */
-    var mapeventname={},onPrefix= Utils.isBrowser(Utils.BROWSER_IE,9,'<') ? 'on' : '';
+    var mapeventname={},onPrefix='',s;
     mapeventname[ PropertyEvent.CHANGE ] = 'input';
     mapeventname[ BreezeEvent.READY ] = 'readystatechange';
     mapeventname['webkitAnimationEnd'] = 'webkitAnimationEnd';
     mapeventname['webkitAnimationIteration'] = 'webkitAnimationIteration';
     mapeventname['DOMContentLoaded'] = 'DOMContentLoaded';
-    if( Utils.isBrowser(Utils.BROWSER_FIREFOX) )
+    if( navigator.userAgent.match(/firefox\/([\d.]+)/i) )
     {
         mapeventname[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
+
+    }else if( (s = navigator.userAgent.match(/msie ([\d.]+)/i)) && s[1] < 9 )
+    {
+        onPrefix='on';
     }
 
 
@@ -172,10 +176,13 @@
            {
                breezeEvent=new window[className]( event )
            }
-           if( breezeEvent instanceof PropertyEvent )
+           if( breezeEvent instanceof PropertyEvent && breezeEvent.originalEvent )
            {
-               breezeEvent.property= Utils.isFormElement(target) ? 'value' : 'innerHTML';
-               breezeEvent.newValue=target[ breezeEvent.property ];
+               if( typeof breezeEvent.originalEvent.propertyName === "string" )
+               {
+                   breezeEvent.property = breezeEvent.originalEvent.propertyName;
+                   breezeEvent.newValue = target[ breezeEvent.property ];
+               }
            }
 
        }else if( /^mouse|click$/i.test(type) )
