@@ -2,11 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/EventDispatcher-IE9.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Utils.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Breeze.js" afterPath="$PROJECT_DIR$/Breeze.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BreezeEvent.js" afterPath="$PROJECT_DIR$/BreezeEvent.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/EventDispatcher.js" afterPath="$PROJECT_DIR$/EventDispatcher.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/Breeze.js" afterPath="$PROJECT_DIR$/Element.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/Utils.js" afterPath="$PROJECT_DIR$/Breeze.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Timeline.js" afterPath="$PROJECT_DIR$/Timeline.js" />
     </list>
     <ignored path="breezejs.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -44,9 +46,11 @@
         <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="492" column="0" selection-start-line="492" selection-start-column="0" selection-end-line="492" selection-end-column="0" />
+              <caret line="438" column="0" selection-start-line="438" selection-start-column="0" selection-end-line="438" selection-end-column="0" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
+                <marker date="1466419928771" expanded="true" signature="252:340" placeholder="/** 特定的一些事件类型。 ...*/" />
+                <marker date="1466419928771" expanded="true" signature="403:470" placeholder="{...}" />
               </folding>
             </state>
           </provider>
@@ -55,8 +59,8 @@
       <file leaf-file-name="BreezeEvent.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/BreezeEvent.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5063291">
-              <caret line="26" column="32" selection-start-line="26" selection-start-column="32" selection-end-line="26" selection-end-column="32" />
+            <state vertical-scroll-proportion="0.5316456">
+              <caret line="334" column="35" selection-start-line="334" selection-start-column="35" selection-end-line="334" selection-end-column="35" />
               <folding />
             </state>
           </provider>
@@ -108,8 +112,51 @@
         <entry file="file://$PROJECT_DIR$/Timeline.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="851" column="5" selection-start-line="851" selection-start-column="5" selection-end-line="851" selection-end-column="5" />
-              <folding />
+              <caret line="850" column="5" selection-start-line="850" selection-start-column="5" selection-end-line="850" selection-end-column="5" />
+              <folding>
+                <marker date="1466392591576" expanded="true" signature="1432:1479" placeholder="/** @private ...*/" />
+                <marker date="1466392591576" expanded="true" signature="1591:1656" placeholder="/** @private ...*/" />
+                <marker date="1466392591576" expanded="true" signature="1925:1991" placeholder="/** @private ...*/" />
+                <marker date="1466392591576" expanded="true" signature="2195:2262" placeholder="/** @private ...*/" />
+                <marker date="1466392591576" expanded="true" signature="2558:2668" placeholder="/** 时间轴事件 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="4027:4110" placeholder="/** 重复播放多少次-1为无限循环播放 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="4386:4436" placeholder="/** 动画函数 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="4765:4846" placeholder="/** 当播放头到达结尾时是否需要倒转播放 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="5066:5130" placeholder="/** 播放头是处于正序播放还是倒序播放的状态 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="5227:5280" placeholder="/** 开始播放时间轴 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="5434:5473" placeholder="/** @pirvate ...*/" />
+                <marker date="1466392591576" expanded="true" signature="6001:6054" placeholder="/** 停止播放时间轴 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="6240:6290" placeholder="/** 暂停播放 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="6621:6682" placeholder="/** 获取已播放的时长,以毫秒为单位 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="6783:6833" placeholder="/** 获取心跳间隔 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="6944:7010" placeholder="/** 获取当前动画需要持续的总时长,以毫秒为单位。 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="7169:7233" placeholder="/** 根据侦格索引返回当前时间。以毫秒为单位。 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="7358:7409" placeholder="/** 时间轴侦格的总长度。 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="7500:7589" placeholder="/** 设置播放时的延时时间 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="7825:7886" placeholder="/** 跳转到指定祯并播放 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="12629:12677" placeholder="/** 跳转到指定祯并停止 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="13111:13164" placeholder="/** 每秒播放多少侦 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="13427:13544" placeholder="/** 是否严格按时间来播放 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="13764:13815" placeholder="/** 当前播放到的侦 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="13907:14025" placeholder="/** 添加关键侦 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="14840:14932" placeholder="/** 根据名称或者索引获取关键侦 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="15388:15553" placeholder="/** 删除关键侦或者裁剪时间轴 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="16936:17003" placeholder="/** 关键侦构造函数 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="17560:17633" placeholder="/** 紧邻的上一个关键侦 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="17736:17809" placeholder="/** 紧邻的下一个关键侦 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="17912:17983" placeholder="/** 获取时间轴对象 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="18212:18286" placeholder="/** 当前关键需要播放的总时长 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="18438:18514" placeholder="/** 动作入口 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="19946:20020" placeholder="/** 关键侦在侦格上的开始位置 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="20109:20183" placeholder="/** 关键侦在侦格上的结束位置 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="20268:20355" placeholder="/** 关键侦在侦格上持续的长度 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="20755:20871" placeholder="/** 设置获取运动属性对象 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="21249:21338" placeholder="/** 设置获取关键侦名称 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="21552:21651" placeholder="/** 目标运动属性对象 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="22157:22235" placeholder="/** 运动目标对象 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="22325:22483" placeholder="/** 设置运动属性方位 ...*/" />
+                <marker date="1466392591576" expanded="true" signature="23046:23135" placeholder="/** 获取运动属性 ...*/" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -118,7 +165,7 @@
         <entry file="file://$PROJECT_DIR$/Breeze.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="818" column="39" selection-start-line="818" selection-start-column="35" selection-end-line="818" selection-end-column="39" />
+              <caret line="1142" column="39" selection-start-line="1142" selection-start-column="39" selection-end-line="1142" selection-end-column="39" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -225,6 +272,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -245,8 +294,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scratches" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -311,12 +358,6 @@
       <created>1441265503149</created>
       <option name="number" value="Default" />
       <updated>1441265503149</updated>
-    </task>
-    <task id="LOCAL-00061" summary="sss">
-      <created>1454144615407</created>
-      <option name="number" value="00061" />
-      <option name="project" value="LOCAL" />
-      <updated>1454144615407</updated>
     </task>
     <task id="LOCAL-00062" summary="sss">
       <created>1454327584800</created>
@@ -606,18 +647,23 @@
       <option name="project" value="LOCAL" />
       <updated>1465988297931</updated>
     </task>
-    <option name="localTasksCounter" value="110" />
+    <task id="LOCAL-00110" summary="架构调整">
+      <created>1466060082489</created>
+      <option name="number" value="00110" />
+      <option name="project" value="LOCAL" />
+      <updated>1466060082490</updated>
+    </task>
+    <option name="localTasksCounter" value="111" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.13113007" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25426438" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.36525613" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.08163265" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -638,6 +684,7 @@
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="消息" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32729805" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="运行" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.36525613" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="找到" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.7938719" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -909,7 +956,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.62711865">
           <caret line="1" column="9" selection-start-line="1" selection-start-column="3" selection-end-line="1" selection-end-column="9" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -952,9 +998,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="89" column="88" selection-start-line="89" selection-start-column="88" selection-end-line="89" selection-end-column="88" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -962,9 +1005,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="521" column="100" selection-start-line="521" selection-start-column="100" selection-end-line="521" selection-end-column="100" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -979,8 +1019,51 @@
     <entry file="file://$PROJECT_DIR$/Timeline.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="851" column="5" selection-start-line="851" selection-start-column="5" selection-end-line="851" selection-end-column="5" />
-          <folding />
+          <caret line="850" column="5" selection-start-line="850" selection-start-column="5" selection-end-line="850" selection-end-column="5" />
+          <folding>
+            <marker date="1466392591576" expanded="true" signature="1432:1479" placeholder="/** @private ...*/" />
+            <marker date="1466392591576" expanded="true" signature="1591:1656" placeholder="/** @private ...*/" />
+            <marker date="1466392591576" expanded="true" signature="1925:1991" placeholder="/** @private ...*/" />
+            <marker date="1466392591576" expanded="true" signature="2195:2262" placeholder="/** @private ...*/" />
+            <marker date="1466392591576" expanded="true" signature="2558:2668" placeholder="/** 时间轴事件 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="4027:4110" placeholder="/** 重复播放多少次-1为无限循环播放 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="4386:4436" placeholder="/** 动画函数 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="4765:4846" placeholder="/** 当播放头到达结尾时是否需要倒转播放 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="5066:5130" placeholder="/** 播放头是处于正序播放还是倒序播放的状态 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="5227:5280" placeholder="/** 开始播放时间轴 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="5434:5473" placeholder="/** @pirvate ...*/" />
+            <marker date="1466392591576" expanded="true" signature="6001:6054" placeholder="/** 停止播放时间轴 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="6240:6290" placeholder="/** 暂停播放 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="6621:6682" placeholder="/** 获取已播放的时长,以毫秒为单位 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="6783:6833" placeholder="/** 获取心跳间隔 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="6944:7010" placeholder="/** 获取当前动画需要持续的总时长,以毫秒为单位。 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="7169:7233" placeholder="/** 根据侦格索引返回当前时间。以毫秒为单位。 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="7358:7409" placeholder="/** 时间轴侦格的总长度。 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="7500:7589" placeholder="/** 设置播放时的延时时间 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="7825:7886" placeholder="/** 跳转到指定祯并播放 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="12629:12677" placeholder="/** 跳转到指定祯并停止 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="13111:13164" placeholder="/** 每秒播放多少侦 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="13427:13544" placeholder="/** 是否严格按时间来播放 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="13764:13815" placeholder="/** 当前播放到的侦 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="13907:14025" placeholder="/** 添加关键侦 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="14840:14932" placeholder="/** 根据名称或者索引获取关键侦 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="15388:15553" placeholder="/** 删除关键侦或者裁剪时间轴 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="16936:17003" placeholder="/** 关键侦构造函数 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="17560:17633" placeholder="/** 紧邻的上一个关键侦 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="17736:17809" placeholder="/** 紧邻的下一个关键侦 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="17912:17983" placeholder="/** 获取时间轴对象 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="18212:18286" placeholder="/** 当前关键需要播放的总时长 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="18438:18514" placeholder="/** 动作入口 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="19946:20020" placeholder="/** 关键侦在侦格上的开始位置 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="20109:20183" placeholder="/** 关键侦在侦格上的结束位置 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="20268:20355" placeholder="/** 关键侦在侦格上持续的长度 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="20755:20871" placeholder="/** 设置获取运动属性对象 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="21249:21338" placeholder="/** 设置获取关键侦名称 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="21552:21651" placeholder="/** 目标运动属性对象 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="22157:22235" placeholder="/** 运动目标对象 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="22325:22483" placeholder="/** 设置运动属性方位 ...*/" />
+            <marker date="1466392591576" expanded="true" signature="23046:23135" placeholder="/** 获取运动属性 ...*/" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -1015,9 +1098,11 @@
     <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="492" column="0" selection-start-line="492" selection-start-column="0" selection-end-line="492" selection-end-column="0" />
+          <caret line="438" column="0" selection-start-line="438" selection-start-column="0" selection-end-line="438" selection-end-column="0" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
+            <marker date="1466419928771" expanded="true" signature="252:340" placeholder="/** 特定的一些事件类型。 ...*/" />
+            <marker date="1466419928771" expanded="true" signature="403:470" placeholder="{...}" />
           </folding>
         </state>
       </provider>
@@ -1033,7 +1118,7 @@
     <entry file="file://$PROJECT_DIR$/Breeze.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="818" column="39" selection-start-line="818" selection-start-column="35" selection-end-line="818" selection-end-column="39" />
+          <caret line="1142" column="39" selection-start-line="1142" selection-start-column="39" selection-end-line="1142" selection-end-column="39" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
@@ -1050,8 +1135,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/BreezeEvent.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5063291">
-          <caret line="26" column="32" selection-start-line="26" selection-start-column="32" selection-end-line="26" selection-end-column="32" />
+        <state vertical-scroll-proportion="0.5316456">
+          <caret line="334" column="35" selection-start-line="334" selection-start-column="35" selection-end-line="334" selection-end-column="35" />
           <folding />
         </state>
       </provider>

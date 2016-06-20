@@ -22,7 +22,6 @@
     {
         if( typeof this !== "object" )
             return false;
-
         var obj = this.__event__ || (this.__event__={});
         if( value === null )
         {
@@ -53,7 +52,7 @@
     {
         if( !(this instanceof EventDispatcher) )
             return new EventDispatcher(target);
-        target=Utils.isEventElement( target ) ? [ target ] : ( target instanceof Array ? target : [this] );
+        target=target instanceof Array ? target : ( target ? [ target ] : [this] );
         this.target=function()
         {
             if( this instanceof Breeze )
@@ -105,21 +104,24 @@
             return this;
         }
 
-       if( typeof type !== 'string' )
-       {
+        if( typeof type !== 'string' )
+        {
           throw new Error('invalid event type.')
-       }
+        }
+
         var target= this.target()
             ,index=0;
 
         while(  index < target.length )
         {
-            var listenerEvent=new EventDispatcher.Listener(listener,useCapture,priority,reference);
-            listenerEvent.dispatcher=this;
+            var listener=new EventDispatcher.Listener(listener,useCapture,priority,reference);
+            listener.dispatcher=this;
+            listener.currentTarget=target[index];
+            listener.type=type;
             if( !(bindBeforeProxy[type] instanceof EventDispatcher.SpecialEvent) ||
-                !bindBeforeProxy[type].callback.call(this,target[index],listenerEvent,type)  )
+                !bindBeforeProxy[type].callback.call(this,listener, dispatchEvent, addEventListener, removeEventListener)  )
             {
-                EventDispatcher.addEventListener.call(target[index], type, listenerEvent );
+                addEventListener.call(target[index], listener );
             }
             index++;
         };
@@ -138,7 +140,7 @@
         var b=0;
         while( b < target.length )
         {
-             EventDispatcher.removeEventListener.call(target[b],type,listener,this);
+             removeEventListener.call(target[b],type,listener,this);
              b++;
         }
         return true;
@@ -162,7 +164,7 @@
             element =  target[i] ;
             event.currentTarget=element;
             event.target = event.target || element;
-            EventDispatcher.dispatchEvent( event );
+            dispatchEvent( event );
             i++;
         };
         return !event.propagationStopped;
@@ -174,7 +176,7 @@
      * @param handle
      * @returns {boolean}
      */
-    EventDispatcher.addEventListener=function( type, listener, handle )
+    var addEventListener=function( listener, handle )
     {
         //是否为侦听对象
         if( !(listener instanceof  EventDispatcher.Listener) )
@@ -185,16 +187,15 @@
         if( !Utils.isEventElement( this ) )
             return false;
 
-        //是否有指定的目标对象
-        listener.currentTarget || (listener.currentTarget = this);
-
         //获取事件数据集
         var events = storage.call( this ) || {};
+
+        var type = listener.type;
 
         if( !events[ type ]  )
         {
             storage.call( this, events );
-            events[ type ]={'listener':[],'handle':handle || EventDispatcher.dispatchEvent};
+            events[ type ]={'listener':[],'handle':handle || EventDispatcher.dispatchEvent };
             events = events[ type ];
 
         }else
@@ -228,7 +229,7 @@
      * @param EventDispatcher eventDispatcher 可选，如果指定则只删除本对象中的元素事件
      * @returns {boolean}
      */
-    EventDispatcher.removeEventListener=function(type, listener, eventDispatcher )
+    var removeEventListener=function(type, listener, eventDispatcher )
     {
         //获取事件数据集
         var events = storage.call(this) || {};
@@ -293,7 +294,7 @@
      * @param listeners
      * @returns {boolean}
      */
-    EventDispatcher.dispatchEvent=function( event )
+    var dispatchEvent=function( event )
     {
         //初始化一个全局事件
         event= BreezeEvent.create( event );
@@ -314,7 +315,7 @@
                 continue;
 
             //设置 Breeze 的当前元素对象
-            if( reference && reference instanceof Breeze && reference.indexOf( event.currentTarget ) >=0 )
+            if( reference && typeof Breeze !== "undefined" && reference instanceof Breeze && reference.indexOf( event.currentTarget ) >=0 )
             {
                 reference.current( event.currentTarget );
                 is=true;
@@ -331,18 +332,6 @@
         return true;
     }
 
-    /**
-     * 判断元素是不注册了指定类型的事件
-     * @param type
-     * @returns {*}
-     */
-    EventDispatcher.hasEventListener=function( type )
-    {
-        if( typeof type  !== "string" )
-          return false;
-        var events = storage.call( this ) || {}
-        return !!events[ type ];
-    }
 
     /**
      * 事件侦听器
@@ -364,6 +353,7 @@
         this.reference=reference || null;
         this.dispatcher=null;
         this.currentTarget=null;
+        this.type=null;
     }
     EventDispatcher.Listener.prototype.constructor= EventDispatcher.Listener;
     EventDispatcher.Listener.prototype.useCapture=false;
@@ -372,18 +362,28 @@
     EventDispatcher.Listener.prototype.priority=0;
     EventDispatcher.Listener.prototype.callback=null;
     EventDispatcher.Listener.prototype.currentTarget=null;
+    EventDispatcher.Listener.prototype.type=null;
 
     /**
      * 特定事件扩展器
-     * @param type
-     * @param callback
-     * @param handle
+     * @param string type
+     * @param function callback 一个回调函数如果返回真，则认为是一个已处理好的事件，事件调度器不会再次添加到侦听器队列中。
+     * 此回调函数会注入以下参数
+     * EventDispatcher.Listener listener 侦听器对象
+     * function dispatchEvent 内置事件调度器
+     * function addEventListener 内置添加事件侦听器
+     * function removeEventListener 内置移除事件侦听器
+     * 内置事件处理器调用必须用 DOMElement 迭代到内部对象 dispatchEvent.call(DOMElement,...)
+     * function(listener,dispatchEvent, addEventListener, removeEventListener)
+     * {
+     *    //todo...
+     * }
      * @returns {EventDispatcher.SpecialEvent}
      * @constructor
      */
     EventDispatcher.SpecialEvent=function(type,callback)
     {
-        if( !(this instanceof  EventDispatcher.SpecialEvent) )
+        if( !(this instanceof EventDispatcher.SpecialEvent) )
         {
             return new EventDispatcher.SpecialEvent(type,callback);
         }
@@ -458,113 +458,35 @@
     }
     EventDispatcher.SpecialEvent.prototype.constructor=EventDispatcher.SpecialEvent;
 
-    /**
-     * 监测加载对象上的就绪状态
-     * @param event
-     * @param type
-     */
-    var readyState=function( event , type )
-    {
-        var target=  event.srcElement || event.target;
-        var nodeName=  Utils.nodeName( target );
-        var readyState=target.readyState;
-        var eventType= event.type || null;
 
-        if( Utils.isBrowser(Utils.BROWSER_IE,9) )
-        {
-            //iframe
-            if( nodeName==='iframe' )
-            {
-                readyState=target.contentWindow.document.readyState;
-            }//window
-            else if( target.window && target.document )
-            {
-                readyState=target.document.readyState;
-            }
-        }
-        //ie9以下用 readyState来判断，其它浏览器都使用 load or DOMContentLoaded
-        if( ( eventType && /load/i.test(eventType) )  || ( readyState && /loaded|complete|4/.test( readyState ) ) )
-        {
-            event.type = type;
-            EventDispatcher.dispatchEvent( event );
-            EventDispatcher.removeEventListener.call(target, type  );
-        }
-    }
-
-    //定义 load 事件
-    EventDispatcher.SpecialEvent(BreezeEvent.LOAD,
-        function(element,listener,type)
-        {
-            var handle=function(event)
-            {
-                event= BreezeEvent.create( event );
-                if( event )
-                {
-                    event.currentTarget= element;
-                    event.target=element;
-                    readyState.call(this,event,BreezeEvent.LOAD );
-                }
-            };
-
-            //HTMLIFrameElement
-            if( element.contentWindow )
-            {
-                this.addEventListener( BreezeEvent.READY, listener ,true, 10000 );
-            }
-            else
-            {
-                EventDispatcher.addEventListener.call(element, BreezeEvent.READY ,listener, handle );
-                EventDispatcher.addEventListener.call(element, type,listener,handle );
-            }
-            return true;
-        });
 
     // 定义ready事件
     EventDispatcher.SpecialEvent(BreezeEvent.READY,
-        function(element,listener,type)
+        function(listener, dispatch, add, remove )
     {
+        var element = listener.currentTarget;
         var doc = element.contentWindow ?  element.contentWindow.document : element.ownerDocument || element.document || element,
             win= doc && doc.nodeType===9 ? doc.defaultView || doc.parentWindow : window;
 
         if( !win || !doc )return;
         var handle=function(event)
         {
-            event= BreezeEvent.create( event )
+            event= BreezeEvent.create( event );
             if( event )
             {
-                event.currentTarget= doc;
-                event.target=doc;
-                readyState.call(this,event,BreezeEvent.READY);
+                dispatch( event );
+                remove.call(doc,'DOMContentLoaded');
+                remove.call(win,'load');
             }
         }
 
-        EventDispatcher.addEventListener.call(win,'DOMContentLoaded', listener, handle );
-        EventDispatcher.addEventListener.call(doc, type , listener, handle );
+        //add document
+        listener.type='DOMContentLoaded';
+        add.call(doc,listener, handle );
 
-        //ie9 以下，并且是一个顶级文档或者窗口对象
-        if( Utils.isBrowser(Utils.BROWSER_IE,9) && !element.contentWindow )
-        {
-            var toplevel = false;
-            try {
-                toplevel = window.frameElement == null;
-            } catch(e) {}
-
-            if ( toplevel && document.documentElement.doScroll )
-            {
-                var doCheck=function()
-                {
-                    try {
-                        document.documentElement.doScroll("left");
-                    } catch(e) {
-                        setTimeout( doCheck, 1 );
-                        return;
-                    }
-                    handle( {'srcElement':doc,'type':type} );
-                }
-                doCheck();
-            }
-            handle({'srcElement':doc,'type':type});
-        }
+        //add window
+        listener.type='load';
+        add.call(win,listener, handle );
         return true;
     });
 

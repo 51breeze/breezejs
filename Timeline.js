@@ -267,7 +267,7 @@ var tl= new Timeline(60).addFrame(function(){
      * 获取已播放的时长,以毫秒为单位
      * @returns {number|*}
      */
-    Timeline.prototype.timed=function()
+    Timeline.prototype.time=function()
     {
         return Math.round( this.__time__ );
     }

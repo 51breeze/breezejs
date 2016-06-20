@@ -94,7 +94,7 @@
      */
     var mapeventname={},onPrefix='',s;
     mapeventname[ PropertyEvent.CHANGE ] = 'input';
-    mapeventname[ BreezeEvent.READY ] = 'readystatechange';
+    mapeventname[ BreezeEvent.READY ] = 'DOMContentLoaded';
     mapeventname['webkitAnimationEnd'] = 'webkitAnimationEnd';
     mapeventname['webkitAnimationIteration'] = 'webkitAnimationIteration';
     mapeventname['DOMContentLoaded'] = 'DOMContentLoaded';
@@ -105,6 +105,7 @@
     }else if( (s = navigator.userAgent.match(/msie ([\d.]+)/i)) && s[1] < 9 )
     {
         onPrefix='on';
+        mapeventname[ BreezeEvent.READY ] = 'readystatechange';
     }
 
 
@@ -221,6 +222,7 @@
 
         breezeEvent.type=type;
         breezeEvent.target=target;
+        breezeEvent.currentTarget= breezeEvent.currentTarget || target;
         breezeEvent.timeStamp = event.timeStamp;
         breezeEvent.relatedTarget= event.relatedTarget;
         breezeEvent.altkey= !!event.altkey;
