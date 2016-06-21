@@ -107,354 +107,6 @@
         return this.forEachCurrentItem || this[0];
     }
 
-    /**
-     * 判断元素是否有Style
-     * @returns {boolean}
-     */
-    Breeze.prototype.hasStyle=function()
-    {
-        var elem = this.current();
-        return !( !elem || !elem.nodeType || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style );
-    }
-
-    /**
-     * 获取元素所在的窗口对象
-     * @param elem
-     * @returns {window|null}
-     */
-    Breeze.prototype.getWindow=function()
-    {
-        var elem = this.current();
-        if( typeof elem !== "object" )return null;
-        elem= elem.ownerDocument || elem ;
-        return elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || window || null;
-    }
-
-    //form elements
-    var formPatternReg=/select|input|textarea|button/i;
-
-    /**
-     * 判断是否为一个表单元素
-     * @returns {boolean}
-     */
-    Breeze.prototype.isFormElement=function( exclude )
-    {
-        var elem = this.current();
-        if( elem && typeof elem.nodeName ==='string' )
-        {
-            var ret=formPatternReg.test( elem.nodeName );
-            return ret && typeof exclude === 'string' ? exclude.toLowerCase() !== this.nodeName() : ret;
-        }
-        return false;
-    }
-
-    /**
-     * 以小写的形式返回元素的节点名
-     * @returns {string}
-     */
-    Breeze.prototype.nodeName=function()
-    {
-        var elem = this.current();
-        return elem && typeof elem.nodeName=== "string" && elem.nodeName!='' ? elem.nodeName.toLowerCase() : '';
-    }
-
-    /**
-     * @private
-     * @type {boolean}
-     */
-    var ishtmlobject = typeof HTMLElement==='object';
-
-    /**
-     * 判断是否为一个HtmlElement类型元素,document 不属性于 HtmlElement
-     * @returns {boolean}
-     */
-    Breeze.prototype.isHTMLElement=function()
-    {
-        var elem = this.current();
-        if( typeof elem !== "object" )return false;
-        return ishtmlobject ? elem instanceof HTMLElement : ( elem.nodeType === 1 && typeof elem.nodeName === "string" );
-    }
-
-    /**
-     * 判断是否为一个节点类型元素
-     * document window 不属于节点类型元素
-     * @returns {boolean}
-     */
-    Breeze.prototype.isNodeElement=function()
-    {
-        var elem = this.current();
-        if( typeof elem !== "object" ) return false;
-        return typeof Node !== "undefined" ? elem instanceof Node :
-            !!( elem.nodeType && typeof elem.nodeName === "string" && (typeof elem.tagName === "string" || elem.nodeType===9) );
-    }
-
-    /**
-     * 判断是否为一个html容器元素。
-     * HTMLElement和document属于Html容器
-     * @param element
-     * @returns {boolean|*|boolean}
-     */
-    Breeze.prototype.isHTMLContainer=function()
-    {
-        var elem = this.current();
-        if( typeof elem !== "object" ) return false;
-        return this.isHTMLElement() || this.isDocument();
-    }
-
-    /**
-     * 判断是否为一个事件元素
-     * @param element
-     * @returns {boolean}
-     */
-    Breeze.prototype.isEventElement=function()
-    {
-        var elem = this.current();
-        return (elem && ( typeof elem.addEventListener === "function" || typeof elem.attachEvent=== "function" ) );
-    }
-
-    /**
-     * 判断是否为窗口对象
-     * @param obj
-     * @returns {boolean}
-     */
-    Breeze.prototype.isWindow=function()
-    {
-        var elem = this.current();
-        return ( elem && elem === elem.window );
-    }
-
-    /**
-     * 决断是否为文档对象
-     * @returns {*|boolean}
-     */
-    Breeze.prototype.isDocument=function()
-    {
-        var elem = this.current();
-        return elem && elem.nodeType===9;
-    }
-
-    /**
-     * 判断是否为一个框架元素
-     * @returns {boolean}
-     */
-    Breeze.prototype.isFrame=function()
-    {
-        var nodename = this.nodeName();
-        return (nodename === 'iframe' || nodename==='frame');
-    };
-
-    /**
-     * 在指定的元素对象上设置数据
-     * @param name  属性名
-     * @param value 数据
-     * @type {*}
-     */
-    Breeze.prototype.storage=function( name, value)
-    {
-        var target = this.current();
-        if( typeof target !== "object" )
-            return false;
-
-        target = target.storage || (target.storage={});
-        if( typeof name === 'string' )
-        {
-            var namespace = name.split('.');
-            var i = 0, len = namespace.length-1;
-
-            while( i<len )
-            {
-                name = namespace[i++];
-                target= target[ name ] || (target[ name ] = {});
-            }
-            name = namespace[ len++ ];
-
-            if( value === null )
-            {
-                if( typeof target[ name ] !== 'undefined' ){
-                    delete target[ name ];
-                    return true;
-                }
-                return false;
-
-            }else if( typeof value === 'undefined' )
-            {
-                return target[ name ] || null ;
-            }
-            target[ name ] = value;
-            return value;
-
-        }else if( typeof name === "object" )
-        {
-            target.storage = name;
-            return name;
-        }
-        return target;
-    }
-
-
-    /**
-     * 设置所有匹配元素的样式
-     * @param name
-     * @param value
-     * @returns {Breeze}
-     */
-    Breeze.prototype.css=function( name, value )
-    {
-        if( typeof name === 'string' && /^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/.test(name)  )
-        {
-            value=name;
-            name='cssText';
-        }
-        else if( Breeze.isObject(name) )
-        {
-            value=name;
-            name='cssText';
-        }
-
-        if( typeof value === "undefined" )
-        {
-            var elem = this.current();
-            var getter = fix.cssHooks[name] && typeof fix.cssHooks[name].get === "function" ? fix.cssHooks[name].get : null;
-            var currentStyle = document.defaultView && document.defaultView.getComputedStyle ? document.defaultView.getComputedStyle( elem , null ) : elem.currentStyle || elem.style;
-            if( getter )return getter.call(elem,currentStyle,name);
-            name=Breeze.styleName( name );
-            return currentStyle[name] ?  currentStyle[name] : elem.style[name];
-
-        }else
-        {
-            this.forEach(function(elem)
-            {
-                var type = typeof value,ret;
-                if ( type === "number" && isNaN( value ) )
-                {
-                    throw new Error('invaild value');
-                    return false;
-                }
-
-                //增量值
-                if ( type === "string" && (ret=/^([\-+])=([\-+.\de]+)/.exec( value ) ) )
-                {
-                    var inc = name === 'width' || name ==='height' ? obj.size()[name] : obj.style( name );
-                    value = ( +( ret[1] + 1 ) * +ret[2] ) + inc;
-                    type = "number";
-                }
-
-                if ( value == null )return false;
-                if ( type === "number" && !fix.cssNumber[ name ] )
-                    value += "px";
-
-                if( name === 'cssText' )
-                {
-                    value=value.replace(/([\w\-]+)\s*\:([^\;]*)/g, function (all, name,value) {
-                        if( fix.cssHooks[name] && typeof fix.cssHooks[name].set ==="function" )
-                        {
-                            var obj={}
-                            fix.cssHooks[name].set.call(elem,obj,value );
-                            return Breeze.serialize( obj,'style');
-                        }
-                        return Breeze.styleName( name ) +':'+ value;
-                    });
-                }
-
-                if( fix.cssHooks[name] && typeof fix.cssHooks[name].set === "function" )
-                    fix.cssHooks[name].set.call(elem,elem.style,value);
-
-                try{
-                    elem.style[ Breeze.styleName( name ) ]=value;
-                }catch( e ){}
-            });
-        }
-        return this;
-    }
-
-
-
-    /**
-     * 为每一个元素设置属性值
-     * @param name
-     * @param value
-     * @returns {Breeze}
-     */
-    Breeze.prototype.property=function(name, value )
-    {
-        name =  fix.attrMap[name] || name;
-        var lower=name.toLowerCase();
-
-        if( typeof value === "undefined" )
-        {
-            var elem =  this.current();
-            return ( fix.attrtrue[name] ? elem[name] : elem.getAttribute(name) ) || null;
-        }
-
-
-        this.forEach(function(elem){
-
-            if( prop === 'className')
-            {
-                this.addClass(newValue);
-
-            }else if( value === null )
-            {
-                this.removeAttribute(name);
-
-            }else
-            {
-                fix.attrtrue[prop] ? this[prop] = val : this.setAttribute(prop, newValue);
-            }
-
-        })
-
-        return access.call(this,name,value,{
-
-
-            set:function(prop,newValue,obj){
-
-
-
-
-                if( prop === 'className')
-                {
-                    obj.addClass(newValue);
-
-                }else if( newValue === null )
-                {
-                    this.removeAttribute(prop);
-
-                }else
-                {
-                    fix.attrtrue[prop] ? this[prop] = val : this.setAttribute(prop, newValue);
-                }
-
-
-                return true;
-            }
-
-        },PropertyEvent.CHANGE);
-    }
-
-    /**
-     * 判断当前匹配元素是否有指定的属性名
-     * @param prop
-     * @returns {boolean}
-     */
-    Breeze.prototype.hasProperty=function( prop )
-    {
-        var elem = this.current();
-        return elem && typeof elem.hasAttributes === 'function' ? elem.hasAttributes( name ) : !!elem[name];
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
     var fix={
         attrMap:{
             'tabindex'       : 'tabIndex',
@@ -712,6 +364,9 @@
 
 
     //=================================================静态方法===============================================
+
+
+
 
     /**
      * 选择元素
@@ -1038,6 +693,179 @@
                     iselem ? target.setAttribute(item.nodeName, item.nodeValue) : target[item.nodeName] = item.nodeValue;
                 }
             }
+        }
+        return target;
+    }
+
+    /**
+     * 判断元素是否有Style
+     * @returns {boolean}
+     */
+    Breeze.hasStyle=function( elem )
+    {
+        return !( !elem || !elem.nodeType || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style );
+    }
+
+    /**
+     * 获取元素所在的窗口对象
+     * @param elem
+     * @returns {window|null}
+     */
+    Breeze.getWindow=function( elem )
+    {
+        if( typeof elem !== "object" )return null;
+        elem= elem.ownerDocument || elem ;
+        return elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || window || null;
+    }
+
+    //form elements
+    var formPatternReg=/select|input|textarea|button/i;
+
+    /**
+     * 判断是否为一个表单元素
+     * @returns {boolean}
+     */
+    Breeze.isFormElement=function(elem, exclude )
+    {
+        if( elem && typeof elem.nodeName ==='string' )
+        {
+            var ret=formPatternReg.test( elem.nodeName );
+            return ret && typeof exclude === 'string' ? exclude.toLowerCase() !== this.nodeName() : ret;
+        }
+        return false;
+    }
+
+    /**
+     * 以小写的形式返回元素的节点名
+     * @returns {string}
+     */
+    Breeze.nodeName=function( elem )
+    {
+        return elem && typeof elem.nodeName=== "string" && elem.nodeName!='' ? elem.nodeName.toLowerCase() : '';
+    }
+
+    /**
+     * @private
+     * @type {boolean}
+     */
+    var ishtmlobject = typeof HTMLElement==='object';
+
+    /**
+     * 判断是否为一个HtmlElement类型元素,document 不属性于 HtmlElement
+     * @returns {boolean}
+     */
+    Breeze.isHTMLElement=function( elem )
+    {
+        if( typeof elem !== "object" )return false;
+        return ishtmlobject ? elem instanceof HTMLElement : ( elem.nodeType === 1 && typeof elem.nodeName === "string" );
+    }
+
+    /**
+     * 判断是否为一个节点类型元素
+     * document window 不属于节点类型元素
+     * @returns {boolean}
+     */
+    Breeze.isNodeElement=function( elem )
+    {
+        if( typeof elem !== "object" ) return false;
+        return typeof Node !== "undefined" ? elem instanceof Node :
+            !!( elem.nodeType && typeof elem.nodeName === "string" && (typeof elem.tagName === "string" || elem.nodeType===9) );
+    }
+
+    /**
+     * 判断是否为一个html容器元素。
+     * HTMLElement和document属于Html容器
+     * @param element
+     * @returns {boolean|*|boolean}
+     */
+    Breeze.isHTMLContainer=function( elem )
+    {
+        if( typeof elem !== "object" ) return false;
+        return this.isHTMLElement() || this.isDocument();
+    }
+
+    /**
+     * 判断是否为一个事件元素
+     * @param element
+     * @returns {boolean}
+     */
+    Breeze.isEventElement=function(elem)
+    {
+        return (elem && ( typeof elem.addEventListener === "function" || typeof elem.attachEvent=== "function" ) );
+    }
+
+    /**
+     * 判断是否为窗口对象
+     * @param obj
+     * @returns {boolean}
+     */
+    Breeze.prototype.isWindow=function( elem )
+    {
+        return ( elem && elem === elem.window );
+    }
+
+    /**
+     * 决断是否为文档对象
+     * @returns {*|boolean}
+     */
+    Breeze.prototype.isDocument=function( elem )
+    {
+        return elem && elem.nodeType===9;
+    }
+
+    /**
+     * 判断是否为一个框架元素
+     * @returns {boolean}
+     */
+    Breeze.prototype.isFrame=function( elem )
+    {
+        var nodename = Breeze.nodeName(elem);
+        return (nodename === 'iframe' || nodename==='frame');
+    };
+
+    /**
+     * 在指定的元素对象上设置数据
+     * @param name  属性名
+     * @param value 数据
+     * @type {*}
+     */
+    Breeze.storage=function(target, name, value)
+    {
+        if( typeof target !== "object" )
+            return false;
+
+        target = target.storage || (target.storage={});
+        if( typeof name === 'string' )
+        {
+            var namespace = name.split('.');
+            var i = 0, len = namespace.length-1;
+
+            while( i<len )
+            {
+                name = namespace[i++];
+                target= target[ name ] || (target[ name ] = {});
+            }
+            name = namespace[ len++ ];
+
+            if( value === null )
+            {
+                if( typeof target[ name ] !== 'undefined' ){
+                    delete target[ name ];
+                    return true;
+                }
+                return false;
+
+            }else if( typeof value === 'undefined' )
+            {
+                return target[ name ] || null ;
+            }
+            target[ name ] = value;
+            return value;
+
+        }else if( typeof name === "object" )
+        {
+            target.storage = name;
+            return name;
         }
         return target;
     }

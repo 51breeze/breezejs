@@ -6,10 +6,24 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function(window,undefined)
+(function(factory){
+
+    if( typeof define === "function" )
+    {
+        define( ['BreezeEvent'] , factory );
+
+    }else if (typeof exports === 'object')
+    {
+        module.exports = factory;
+
+    }else
+    {
+        factory();
+    }
+
+})(function( undefined )
 {
     "use strict";
-
     var
 
     /**
@@ -53,14 +67,9 @@
         if( !(this instanceof EventDispatcher) )
             return new EventDispatcher(target);
         target=target instanceof Array ? target : ( target ? [ target ] : [this] );
-        this.target=function()
-        {
-            if( this instanceof Breeze )
-            {
-                return this.forEachCurrentItem ? [ this.forEachCurrentItem ] : ( this.length > 0 ? this : [this] );
-            }
-            return target;
-        }
+        this.target = typeof Breeze !=="undefined" && this instanceof Breeze ?
+            function(){ return this.forEachCurrentItem ? [ this.forEachCurrentItem ] : ( this.length > 0 ? this : [this] ) } :
+            function(){  return target };
     };
 
     //Constructor
@@ -370,9 +379,9 @@
      * @param function callback 一个回调函数如果返回真，则认为是一个已处理好的事件，事件调度器不会再次添加到侦听器队列中。
      * 此回调函数会注入以下参数
      * EventDispatcher.Listener listener 侦听器对象
-     * function dispatchEvent 内置事件调度器
-     * function addEventListener 内置添加事件侦听器
-     * function removeEventListener 内置移除事件侦听器
+     * function dispatchEvent(event) 内置事件调度器
+     * function addEventListener(listener, handle) 内置添加事件侦听器
+     * function removeEventListener(type, listener, eventDispatcher) 内置移除事件侦听器
      * 内置事件处理器调用必须用 DOMElement 迭代到内部对象 dispatchEvent.call(DOMElement,...)
      * function(listener,dispatchEvent, addEventListener, removeEventListener)
      * {
@@ -458,11 +467,8 @@
     }
     EventDispatcher.SpecialEvent.prototype.constructor=EventDispatcher.SpecialEvent;
 
-
-
     // 定义ready事件
-    EventDispatcher.SpecialEvent(BreezeEvent.READY,
-        function(listener, dispatch, add, remove )
+    EventDispatcher.SpecialEvent(BreezeEvent.READY,function(listener, dispatch, add, remove )
     {
         var element = listener.currentTarget;
         var doc = element.contentWindow ?  element.contentWindow.document : element.ownerDocument || element.document || element,
@@ -490,6 +496,9 @@
         return true;
     });
 
-    window.EventDispatcher=EventDispatcher;
-
-})(window)
+    if( typeof window !== "undefined" )
+    {
+        window.EventDispatcher = EventDispatcher;
+    }
+    return EventDispatcher;
+})

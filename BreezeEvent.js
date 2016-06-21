@@ -5,7 +5,23 @@
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
  */
-(function(window,undefined)
+
+(function(factory){
+
+    if( typeof define === "function" )
+    {
+        define( ['Utils'] , factory );
+
+    }else if (typeof exports === 'object')
+    {
+        module.exports = factory;
+
+    }else
+    {
+        factory();
+    }
+
+})(function(Utils,undefined)
 {
     'use strict';
 
@@ -343,12 +359,28 @@
     KeyboardEvent.KEY_DOWN='keydown';
 
 
-    window.KeyboardEvent=KeyboardEvent;
-    window.HttpEvent=HttpEvent;
-    window.BreezeEvent=BreezeEvent;
-    window.ElementEvent=ElementEvent;
-    window.PropertyEvent=PropertyEvent;
-    window.StyleEvent=StyleEvent;
-    window.MouseEvent=MouseEvent;
+    if( typeof window !== "undefined" ) {
 
-})(window)
+        window.KeyboardEvent = KeyboardEvent;
+        window.HttpEvent = HttpEvent;
+        window.BreezeEvent = BreezeEvent;
+        window.ElementEvent = ElementEvent;
+        window.PropertyEvent = PropertyEvent;
+        window.StyleEvent = StyleEvent;
+        window.MouseEvent = MouseEvent;
+
+        define('MouseEvent', function(){ return MouseEvent } );
+    }
+
+
+    return {
+        KeyboardEvent:KeyboardEvent,
+        HttpEvent:HttpEvent,
+        BreezeEvent:BreezeEvent,
+        ElementEvent:ElementEvent,
+        PropertyEvent:PropertyEvent,
+        StyleEvent:StyleEvent,
+        MouseEvent:MouseEvent
+    }
+
+})

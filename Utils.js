@@ -6,13 +6,27 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function( module ,undefined  )
+
+(function(factory){
+
+    if( typeof define === "function" )
+    {
+        define( [] , factory );
+
+    }else if (typeof exports === 'object')
+    {
+        module.exports = factory;
+
+    }else
+    {
+        factory();
+    }
+
+})(function( undefined )
 {
     "use strict";
 
-    module.Utils={};
-
-    var Utils= module.Utils
+    var Utils= {}
     ,fix={
         attrMap:{
             'tabindex'       : 'tabIndex',
@@ -1469,4 +1483,10 @@
         return isNaN(c) ? 1 : -1;
     }
 
-})( window );
+    if( typeof window !== "undefined" )
+    {
+        window.Utils = Utils;
+    }
+    return Utils;
+
+});
