@@ -780,7 +780,6 @@
             if( !childElemnet )return -1;
             this.current( childElemnet.parentNode );
         }
-
         var parent = this.current();
         if( childElemnet.parentNode===parent )
         {

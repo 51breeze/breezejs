@@ -56,6 +56,25 @@
         return ret;
     }
 
+    if( Breeze.isBrowser( Breeze.BROWSER_IE, 9 ,'<') )
+    {
+        (fix.cssHooks.width || (fix.cssHooks.width={}) ).get= function (style)
+        {
+            var val = parseInt(fix.getsizeval.call(this, 'Width') || style['width']) || 0;
+            val -= (parseFloat(style["borderTopWidth"]) || 0);
+            val -= (parseFloat(style["borderBottomWidth"]) || 0);
+            return val;
+        }
+
+        (fix.cssHooks.height || (fix.cssHooks.height={}) ).get=function (style)
+        {
+            var val = parseInt( fix.getsizeval.call(this, 'Height') || style['height'] ) || 0;
+            val -= (parseFloat(style["borderTopWidth"]) || 0);
+            val -= (parseFloat(style["borderBottomWidth"]) || 0);
+            return val;
+        }
+    }
+
     if( Utils.isBrowser(Utils.BROWSER_IE,8,'<') )
     {
         fix.cssHooks.height.set=function( style, value )

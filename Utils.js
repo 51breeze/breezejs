@@ -278,83 +278,49 @@
         }
     }
 
+
     /**
      * 选择元素
-     * @param mixed selector 必须，CSS3选择器
+     * @param mixed selector CSS3选择器
      * @param mixed context  上下文
-     * @param array results  已有的元素结果集
-     * @param array seed     返回与结果集中交集的元素
-     * @returns {*}
+     * @returns []
      */
-    Utils.sizzle=function(selector, context, results, seed )
+    Breeze.querySelector=function(selector, context)
     {
         if( typeof Sizzle === "function" )
         {
-            return Sizzle( selector, context, results, seed );
+            return Sizzle( selector, context);
         }
 
         //如果选择器不是一个字符串
         if( typeof selector !== "string" )
         {
-            if( selector && typeof selector.nodeName === "string" && selector.nodeType )
-            {
-                results=[ selector ];
-
-            }else
-            {
-                return [];
-            }
+            return selector && typeof selector.nodeName === "string" && selector.nodeType ?  [ selector ] : [];
         }
 
-        //获取元素
-        if( !( results instanceof Array ) )
+        var results;
+        var has = false;
+
+        //设置上下文
+        if( context && typeof context.nodeName === "string" && context.nodeType && context.nodeType != 9 )
         {
-            results=[];
-            var uid = 'q'+( new Date().getTime() );
-            var id;
-            var has = false;
-
-            //设置上下文
-            if( context && typeof context.nodeName === "string" && context.nodeType && context.nodeType != 9 )
+            var id = context.getAttribute('id');
+            if( !id || id =='')
             {
-                id = context.getAttribute('id');
-                if( !id || id =='') {
-                    id = uid;
-                    has = true;
-                    context.setAttribute('id', id);
-                }
-                selector = '#'+id+' '+selector;
-
-            }else if( typeof context === "string" )
-            {
-                selector = context+' '+selector;
+                has = true;
+                id = 'q'+( new Date().getTime() );
+                context.setAttribute('id', id);
             }
-            results = results.concat.apply( results, Array.prototype.slice.call( document.querySelectorAll(selector) ) );
-            if(has)context.removeAttribute('id');
-        }
+            selector = '#'+id+' '+selector;
 
-        //只返回对照表里的元素
-        if( (seed instanceof Array) && seed.length > 0 )
+        }else if( typeof context === "string" )
         {
-            var i=0;
-            var data=[];
-            seed = seed.slice();
-            for( ;i<seed.length; i++)
-            {
-                for(var b=0; b< results.length; b++ )
-                {
-                    if( seed[i] === results[b] )
-                    {
-                        data.push( results[b] );
-                        results.splice(b,1);
-                        seed.splice(i,1);
-                    }
-                }
-            }
-            results = data;
+            selector = context+' '+selector;
         }
+
+        results = Array.prototype.slice.call( document.querySelectorAll(selector) );
+        if(has)context.removeAttribute('id');
         return results;
-
     }
 
     /**

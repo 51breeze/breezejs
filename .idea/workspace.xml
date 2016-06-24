@@ -4,9 +4,11 @@
     <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Breeze.js" afterPath="$PROJECT_DIR$/Breeze.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BreezeEvent.js" afterPath="$PROJECT_DIR$/BreezeEvent.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Element.js" afterPath="$PROJECT_DIR$/Element.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/EventDispatcher.js" afterPath="$PROJECT_DIR$/EventDispatcher.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Fix-ie.js" afterPath="$PROJECT_DIR$/Fix-ie.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Utils.js" afterPath="$PROJECT_DIR$/Utils.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
     </list>
     <ignored path="breezejs.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -32,7 +34,7 @@
         <entry file="file://$PROJECT_DIR$/Element.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="23" selection-end-column="2" />
+              <caret line="7" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="23" selection-end-column="2" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -44,7 +46,7 @@
         <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="447" column="0" selection-start-line="447" selection-start-column="0" selection-end-line="447" selection-end-column="0" />
+              <caret line="448" column="0" selection-start-line="448" selection-start-column="0" selection-end-line="448" selection-end-column="0" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -55,8 +57,8 @@
       <file leaf-file-name="BreezeEvent.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/BreezeEvent.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.73532796">
-              <caret line="355" column="37" selection-start-line="355" selection-start-column="37" selection-end-line="355" selection-end-column="37" />
+            <state vertical-scroll-proportion="0.71116227">
+              <caret line="360" column="0" selection-start-line="360" selection-start-column="0" selection-end-line="360" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -118,11 +120,109 @@
         <entry file="file://$PROJECT_DIR$/Breeze.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="970" column="39" selection-start-line="970" selection-start-column="39" selection-end-line="970" selection-end-column="39" />
+              <caret line="1347" column="7" selection-start-line="1347" selection-start-column="7" selection-end-line="1347" selection-end-column="7" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
-                <marker date="1466497998969" expanded="true" signature="26382:26392" placeholder="{...}" />
-                <marker date="1466497998969" expanded="true" signature="26382:26421" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="236:357" placeholder="/** Breeze class ...*/" />
+                <marker date="1466763133588" expanded="true" signature="401:700" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="451:514" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="566:694" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="39042:39118" placeholder="/** 判断变量是否已定义 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="39155:39308" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="39314:39384" placeholder="/** 判断是否为数组 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="39423:39467" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="39473:39543" placeholder="/** 判断是否为函数 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="39580:39629" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="39635:39707" placeholder="/** 判断是否为布尔类型 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="39743:39791" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="39797:39868" placeholder="/** 判断是否为字符串 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="39908:39955" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="39961:40037" placeholder="/** 判断是否为一个标量 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="40077:40187" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="40193:40265" placeholder="/** 判断是否为数字类型 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="40305:40352" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="40358:40465" placeholder="/** 判断是否为一个空值 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="40511:40824" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="40692:40796" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="40830:40925" placeholder="/** 判断是否为一个可遍历的对象 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="40972:41104" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="41111:41225" placeholder="/** 查找指定的值是否在指定的对象中,如果存在返回对应的键名否则返回null。 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="41273:41432" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="41439:41515" placeholder="/** 返回一个对象的所有键名。 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="41556:41690" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="41696:41729" placeholder="/** @type {RegExp} ...*/" />
+                <marker date="1466763133588" expanded="true" signature="41783:41852" placeholder="/** 去掉左右的空白 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="41888:41995" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="42001:42098" placeholder="/** 合并其它参数到指定的 target 对象中 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="42127:43756" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="42365:42461" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="42499:42555" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="42635:42671" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="42715:43727" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="42783:43717" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="42841:43703" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="42972:43029" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="43159:43563" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="43204:43355" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="43361:43464" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="43615:43685" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="43762:43811" placeholder="/** @private ...*/" />
+                <marker date="1466763133588" expanded="true" signature="43898:43979" placeholder="/** 判断是否为一个有效的选择器 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="44026:44118" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="44124:44208" placeholder="/** 格式化输出 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="44243:45001" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="44326:44975" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="44401:44925" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="44519:44911" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="44559:44687" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="44729:44859" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="45008:45115" placeholder="/** 导入一个可执行的脚本文件。通常是 js,css 文件。 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="45166:46601" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="45235:45312" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="45619:45915" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="45989:46262" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="46087:46252" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="46300:46465" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="46478:46595" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="46608:46687" placeholder="/** 根据指定的参数值转成对应的布尔值 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="46726:46826" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="46832:46905" placeholder="/** 将指定的标量转成数组 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="46956:47044" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="47051:47217" placeholder="/** 返回一个从指定开始值到结束值的数组。 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="47282:47508" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="47399:47482" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="47514:47619" placeholder="/** 复制字符串到指定的次数 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="47662:47812" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="47710:47787" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="47818:47845" placeholder="/** @private ...*/" />
+                <marker date="1466763133588" expanded="true" signature="47882:47939" placeholder="/** 判断是否支持css3动画 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="47985:48340" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="48035:48301" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="48346:48373" placeholder="/** @private ...*/" />
+                <marker date="1466763133588" expanded="true" signature="48413:48440" placeholder="/** @private ...*/" />
+                <marker date="1466763133588" expanded="true" signature="48465:48648" placeholder="{&quot;duration&quot;: '1s'...}" />
+                <marker date="1466763133588" expanded="true" signature="48655:48773" placeholder="/** 生成css3样式动画 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="48834:50818" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="49031:49236" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="49098:49226" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="49402:50786" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="49745:49804" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="49832:50341" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="50389:50470" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="50825:50852" placeholder="/** @private ...*/" />
+                <marker date="1466763133588" expanded="true" signature="50883:50921" placeholder="/** @param string style ...*/" />
+                <marker date="1466763133588" expanded="true" signature="50983:52208" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="51025:51237" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="51290:51368" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="51424:52180" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="51557:51878" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="51763:51863" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="51895:52145" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="51964:52042" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="52215:52374" placeholder="/** 比较两个两个字符串的值。 ...*/" />
+                <marker date="1466763133588" expanded="true" signature="52413:52705" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="52512:52563" placeholder="{...}" />
+                <marker date="1466763133588" expanded="true" signature="52605:52665" placeholder="{...}" />
               </folding>
             </state>
           </provider>
@@ -190,7 +290,7 @@
   <component name="ProjectFrameBounds">
     <option name="x" value="-8" />
     <option name="y" value="-8" />
-    <option name="width" value="1932" />
+    <option name="width" value="1936" />
     <option name="height" value="1056" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -227,7 +327,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -249,6 +348,7 @@
         </subPane>
       </pane>
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -313,12 +413,6 @@
       <created>1441265503149</created>
       <option name="number" value="Default" />
       <updated>1441265503149</updated>
-    </task>
-    <task id="LOCAL-00063" summary="sss">
-      <created>1454496998725</created>
-      <option name="number" value="00063" />
-      <option name="project" value="LOCAL" />
-      <updated>1454496998725</updated>
     </task>
     <task id="LOCAL-00064" summary="sss">
       <created>1455534951478</created>
@@ -608,14 +702,20 @@
       <option name="project" value="LOCAL" />
       <updated>1466420471858</updated>
     </task>
-    <option name="localTasksCounter" value="112" />
+    <task id="LOCAL-00112" summary="架构调整">
+      <created>1466506417333</created>
+      <option name="number" value="00112" />
+      <option name="project" value="LOCAL" />
+      <updated>1466506417333</updated>
+    </task>
+    <option name="localTasksCounter" value="113" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1932" height="1056" extended-state="0" />
-    <editor active="false" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25694445" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2595949" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -1000,7 +1100,7 @@
     <entry file="file://$PROJECT_DIR$/Element.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="23" selection-end-column="2" />
+          <caret line="7" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="23" selection-end-column="2" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
@@ -1010,7 +1110,7 @@
     <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="447" column="0" selection-start-line="447" selection-start-column="0" selection-end-line="447" selection-end-column="0" />
+          <caret line="448" column="0" selection-start-line="448" selection-start-column="0" selection-end-line="448" selection-end-column="0" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
@@ -1028,11 +1128,109 @@
     <entry file="file://$PROJECT_DIR$/Breeze.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="970" column="39" selection-start-line="970" selection-start-column="39" selection-end-line="970" selection-end-column="39" />
+          <caret line="1347" column="7" selection-start-line="1347" selection-start-column="7" selection-end-line="1347" selection-end-column="7" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
-            <marker date="1466497998969" expanded="true" signature="26382:26392" placeholder="{...}" />
-            <marker date="1466497998969" expanded="true" signature="26382:26421" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="236:357" placeholder="/** Breeze class ...*/" />
+            <marker date="1466763133588" expanded="true" signature="401:700" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="451:514" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="566:694" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="39042:39118" placeholder="/** 判断变量是否已定义 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="39155:39308" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="39314:39384" placeholder="/** 判断是否为数组 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="39423:39467" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="39473:39543" placeholder="/** 判断是否为函数 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="39580:39629" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="39635:39707" placeholder="/** 判断是否为布尔类型 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="39743:39791" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="39797:39868" placeholder="/** 判断是否为字符串 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="39908:39955" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="39961:40037" placeholder="/** 判断是否为一个标量 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="40077:40187" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="40193:40265" placeholder="/** 判断是否为数字类型 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="40305:40352" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="40358:40465" placeholder="/** 判断是否为一个空值 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="40511:40824" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="40692:40796" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="40830:40925" placeholder="/** 判断是否为一个可遍历的对象 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="40972:41104" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="41111:41225" placeholder="/** 查找指定的值是否在指定的对象中,如果存在返回对应的键名否则返回null。 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="41273:41432" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="41439:41515" placeholder="/** 返回一个对象的所有键名。 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="41556:41690" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="41696:41729" placeholder="/** @type {RegExp} ...*/" />
+            <marker date="1466763133588" expanded="true" signature="41783:41852" placeholder="/** 去掉左右的空白 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="41888:41995" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="42001:42098" placeholder="/** 合并其它参数到指定的 target 对象中 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="42127:43756" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="42365:42461" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="42499:42555" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="42635:42671" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="42715:43727" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="42783:43717" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="42841:43703" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="42972:43029" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="43159:43563" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="43204:43355" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="43361:43464" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="43615:43685" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="43762:43811" placeholder="/** @private ...*/" />
+            <marker date="1466763133588" expanded="true" signature="43898:43979" placeholder="/** 判断是否为一个有效的选择器 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="44026:44118" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="44124:44208" placeholder="/** 格式化输出 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="44243:45001" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="44326:44975" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="44401:44925" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="44519:44911" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="44559:44687" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="44729:44859" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="45008:45115" placeholder="/** 导入一个可执行的脚本文件。通常是 js,css 文件。 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="45166:46601" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="45235:45312" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="45619:45915" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="45989:46262" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="46087:46252" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="46300:46465" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="46478:46595" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="46608:46687" placeholder="/** 根据指定的参数值转成对应的布尔值 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="46726:46826" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="46832:46905" placeholder="/** 将指定的标量转成数组 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="46956:47044" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="47051:47217" placeholder="/** 返回一个从指定开始值到结束值的数组。 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="47282:47508" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="47399:47482" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="47514:47619" placeholder="/** 复制字符串到指定的次数 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="47662:47812" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="47710:47787" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="47818:47845" placeholder="/** @private ...*/" />
+            <marker date="1466763133588" expanded="true" signature="47882:47939" placeholder="/** 判断是否支持css3动画 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="47985:48340" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="48035:48301" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="48346:48373" placeholder="/** @private ...*/" />
+            <marker date="1466763133588" expanded="true" signature="48413:48440" placeholder="/** @private ...*/" />
+            <marker date="1466763133588" expanded="true" signature="48465:48648" placeholder="{&quot;duration&quot;: '1s'...}" />
+            <marker date="1466763133588" expanded="true" signature="48655:48773" placeholder="/** 生成css3样式动画 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="48834:50818" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="49031:49236" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="49098:49226" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="49402:50786" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="49745:49804" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="49832:50341" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="50389:50470" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="50825:50852" placeholder="/** @private ...*/" />
+            <marker date="1466763133588" expanded="true" signature="50883:50921" placeholder="/** @param string style ...*/" />
+            <marker date="1466763133588" expanded="true" signature="50983:52208" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="51025:51237" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="51290:51368" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="51424:52180" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="51557:51878" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="51763:51863" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="51895:52145" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="51964:52042" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="52215:52374" placeholder="/** 比较两个两个字符串的值。 ...*/" />
+            <marker date="1466763133588" expanded="true" signature="52413:52705" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="52512:52563" placeholder="{...}" />
+            <marker date="1466763133588" expanded="true" signature="52605:52665" placeholder="{...}" />
           </folding>
         </state>
       </provider>
@@ -1047,8 +1245,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/BreezeEvent.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.73532796">
-          <caret line="355" column="37" selection-start-line="355" selection-start-column="37" selection-end-line="355" selection-end-column="37" />
+        <state vertical-scroll-proportion="0.71116227">
+          <caret line="360" column="0" selection-start-line="360" selection-start-column="0" selection-end-line="360" selection-end-column="0" />
           <folding />
         </state>
       </provider>
