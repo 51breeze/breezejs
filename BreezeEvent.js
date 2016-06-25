@@ -10,7 +10,7 @@
 
     if( typeof define === "function" )
     {
-        define( ['Utils'] , factory );
+        define( [] , factory );
 
     }else if (typeof exports === 'object')
     {
@@ -21,7 +21,7 @@
         factory();
     }
 
-})(function(Utils,undefined)
+})(function(undefined)
 {
     'use strict';
 
@@ -50,7 +50,7 @@
 
         }else
         {
-            if ( Utils.isObject(bubbles) )
+            if ( bubbles && typeof bubbles === "object" )
             {
                 for(var i in bubbles)this[i]=bubbles[i];
 
@@ -188,7 +188,7 @@
        var className = !agreed.test(type) ? type.match( __eventClassName__ ) : null;
        if( className && className[1] )
        {
-           className=Utils.ucfirst( className[1] )+'Event';
+           className=className[1].charAt(0).toUpperCase()+className[1].substr(1)+'Event';
            if( window[className] )
            {
                breezeEvent=new window[className]( event )
@@ -209,9 +209,8 @@
             breezeEvent.pageY= event.y || event.clientY || event.pageY;
             if( typeof event.offsetX==='undefined' && target )
             {
-                var offset=Utils.getBoundingRect( target );
-                event.offsetX=breezeEvent.pageX-offset.left;
-                event.offsetY=breezeEvent.pageY-offset.top;
+                event.offsetX=breezeEvent.pageX-target.offsetLeft;
+                event.offsetY=breezeEvent.pageY-target.offsetTop;
             }
 
             breezeEvent.offsetX = event.offsetX;
@@ -368,10 +367,17 @@
         window.PropertyEvent = PropertyEvent;
         window.StyleEvent = StyleEvent;
         window.MouseEvent = MouseEvent;
-
-        define('MouseEvent', function(){ return MouseEvent } );
     }
 
+    if( typeof define === "function" )
+    {
+        define('KeyboardEvent', function(){ return KeyboardEvent } );
+        define('HttpEvent', function(){ return HttpEvent } );
+        define('ElementEvent', function(){ return ElementEvent } );
+        define('PropertyEvent', function(){ return PropertyEvent } );
+        define('StyleEvent', function(){ return StyleEvent } );
+        define('MouseEvent', function(){ return MouseEvent } );
+    }
 
     return {
         KeyboardEvent:KeyboardEvent,

@@ -24,6 +24,7 @@
 })(function( undefined )
 {
     "use strict";
+
     var
 
     /**
@@ -193,12 +194,8 @@
             throw new Error('listener invalid, must is EventDispatcher.Listener');
         }
 
-        if( !Utils.isEventElement( this ) )
-            return false;
-
         //获取事件数据集
         var events = storage.call( this ) || {};
-
         var type = listener.type;
 
         if( !events[ type ]  )
