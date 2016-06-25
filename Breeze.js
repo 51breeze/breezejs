@@ -5,7 +5,24 @@
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
  */
-(function( undefined  )
+
+
+(function( factory ){
+
+    if( typeof define === "function" )
+    {
+        define( ['core/EventDispatcher','core/DataArray'] , factory );
+
+    }else if (typeof exports === 'object')
+    {
+        module.exports = factory;
+
+    }else
+    {
+        factory();
+    }
+
+})(function( undefined  )
 {
     "use strict";
 
@@ -244,7 +261,9 @@
     }
 
 
-    //访问器
+    /**
+     * @private
+     */
     var access=function(callback, name, newValue)
     {
         var write= typeof newValue !== 'undefined';
@@ -2102,4 +2121,6 @@
         return false;
     }
 
-})();
+    if( typeof window !== "undefined" )window.Breeze=Breeze;
+    return Breeze;
+});

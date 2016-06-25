@@ -34,10 +34,10 @@
      * @returns {Event}
      * @constructor
      */
-    function BreezeEvent( type, bubbles,cancelable )
+    function Event(type, bubbles, cancelable )
     {
-        if ( !(this instanceof BreezeEvent) )
-            return new BreezeEvent(  type, bubbles,cancelable );
+        if ( !(this instanceof Event) )
+            return new Event(  type, bubbles,cancelable );
 
         this.type = type ? type : null;
         if ( type && type.type )
@@ -66,7 +66,7 @@
      * event property
      * @public
      */
-    BreezeEvent.prototype = {
+    Event.prototype = {
         target:null,
         bubbles:true, // true 只触发冒泡阶段的事件 , false 只触发捕获阶段的事件
         cancelable:true, // 是否可以取消浏览器默认关联的事件
@@ -110,7 +110,7 @@
      */
     var mapeventname={},onPrefix='',s;
     mapeventname[ PropertyEvent.CHANGE ] = 'input';
-    mapeventname[ BreezeEvent.READY ] = 'DOMContentLoaded';
+    mapeventname[ Event.READY ] = 'DOMContentLoaded';
     mapeventname['webkitAnimationEnd'] = 'webkitAnimationEnd';
     mapeventname['webkitAnimationIteration'] = 'webkitAnimationIteration';
     mapeventname['DOMContentLoaded'] = 'DOMContentLoaded';
@@ -121,7 +121,7 @@
     }else if( (s = navigator.userAgent.match(/msie ([\d.]+)/i)) && s[1] < 9 )
     {
         onPrefix='on';
-        mapeventname[ BreezeEvent.READY ] = 'readystatechange';
+        mapeventname[ Event.READY ] = 'readystatechange';
     }
 
 
@@ -131,7 +131,7 @@
      * @param flag
      * @returns {*}
      */
-    BreezeEvent.eventType=function(type,flag)
+    Event.eventType=function(type, flag)
     {
         if( typeof type !== "string" )
            return null;
@@ -162,11 +162,11 @@
     /**
      * 根据原型事件创建一个Breeze BreezeEvent
      * @param event
-     * @returns {BreezeEvent}
+     * @returns {Event}
      */
-    BreezeEvent.create=function( event )
+    Event.create=function(event )
     {
-        if( event instanceof BreezeEvent )
+        if( event instanceof Event )
             return event;
 
         event=event || window.event;
@@ -181,7 +181,7 @@
         }
 
         var breezeEvent={};
-        var type = BreezeEvent.eventType(event.type,true);
+        var type = Event.eventType(event.type,true);
         if( type === null )
            return null
 
@@ -248,145 +248,26 @@
         return breezeEvent;
     }
 
-    BreezeEvent.SUBMIT='submit';
-    BreezeEvent.RESIZE='resizeEnable';
-    BreezeEvent.FETCH='fetch';
-    BreezeEvent.UNLOAD='unload';
-    BreezeEvent.LOAD='load';
-    BreezeEvent.READY_STATE_CHANGE='readystatechange';
-    BreezeEvent.RESET='reset';
-    BreezeEvent.FOCUS='focus';
-    BreezeEvent.BLUR='blur';
-    BreezeEvent.ERROR='error';
-    BreezeEvent.COPY='copy';
-    BreezeEvent.BEFORECOPY='beforecopy';
-    BreezeEvent.CUT='cut';
-    BreezeEvent.BEFORECUT='beforecut';
-    BreezeEvent.PASTE='paste';
-    BreezeEvent.BEFOREPASTE='beforepaste';
-    BreezeEvent.SELECTSTART='selectstart';
-    BreezeEvent.READY='ready';
-    BreezeEvent.SCROLL='scroll';
+    Event.SUBMIT='submit';
+    Event.RESIZE='resizeEnable';
+    Event.FETCH='fetch';
+    Event.UNLOAD='unload';
+    Event.LOAD='load';
+    Event.RESET='reset';
+    Event.FOCUS='focus';
+    Event.BLUR='blur';
+    Event.ERROR='error';
+    Event.COPY='copy';
+    Event.BEFORECOPY='beforecopy';
+    Event.CUT='cut';
+    Event.BEFORECUT='beforecut';
+    Event.PASTE='paste';
+    Event.BEFOREPASTE='beforepaste';
+    Event.SELECTSTART='selectstart';
+    Event.READY='ready';
+    Event.SCROLL='scroll';
 
-    /**
-     * ElementEvent
-     * @param type
-     * @param bubbles
-     * @param cancelable
-     * @constructor
-     */
-    function ElementEvent( type, bubbles,cancelable ){ BreezeEvent.call(this, type, bubbles,cancelable );}
-    ElementEvent.prototype=new BreezeEvent();
-    ElementEvent.prototype.parent=null;
-    ElementEvent.prototype.child=null;
-    ElementEvent.prototype.constructor=ElementEvent;
-    ElementEvent.CHILD_ADD='elementChildAdd';
-    ElementEvent.CHILD_REMOVE='elementChildRemove';
-    ElementEvent.BEFORE_CHILD_ADD='elementBeforeChildAdd';
-    ElementEvent.BEFORE_CHILD_REMOVE='elementBeforeChildRemove';
-
-    /**
-     * PropertyEvent
-     * @param type
-     * @param bubbles
-     * @param cancelable
-     * @constructor
-     */
-    function PropertyEvent( type, bubbles,cancelable ){ BreezeEvent.call(this, type, bubbles,cancelable );}
-    PropertyEvent.prototype=new BreezeEvent();
-    PropertyEvent.prototype.property=null;
-    PropertyEvent.prototype.newValue=null;
-    PropertyEvent.prototype.oldValue=null;
-    PropertyEvent.prototype.constructor=PropertyEvent;
-    PropertyEvent.CHANGE='propertyChange';
-    PropertyEvent.COMMIT='propertyCommit';
-
-    /**
-     * StyleEvent
-     * @param type
-     * @param bubbles
-     * @param cancelable
-     * @constructor
-     */
-    function StyleEvent( type, bubbles,cancelable ){ PropertyEvent.call(this, type, bubbles,cancelable );}
-    StyleEvent.prototype=new PropertyEvent();
-    StyleEvent.prototype.constructor=StyleEvent;
-    StyleEvent.CHANGE='styleChange';
-
-    /**
-     * MouseEvent
-     * @param src
-     * @param props
-     * @constructor
-     */
-    function MouseEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this,  type, bubbles,cancelable );}
-    MouseEvent.prototype=new BreezeEvent();
-    MouseEvent.prototype.constructor=MouseEvent;
-    MouseEvent.prototype.pageX= NaN
-    MouseEvent.prototype.pageY= NaN
-    MouseEvent.prototype.offsetX=NaN
-    MouseEvent.prototype.offsetY=NaN;
-    MouseEvent.prototype.screenX= NaN;
-    MouseEvent.prototype.screenY= NaN;
-    MouseEvent.MOUSE_DOWN='mousedown';
-    MouseEvent.MOUSE_UP='mouseup';
-    MouseEvent.MOUSE_OVER='mouseover';
-    MouseEvent.MOUSE_OUT='mouseout';
-    MouseEvent.MOUSE_OUTSIDE='mouseoutside';
-    MouseEvent.MOUSE_MOVE='mousemove';
-    MouseEvent.MOUSE_WHEEL='mousewheel';
-    MouseEvent.CLICK='click';
-    MouseEvent.DBLCLICK='dblclick';
-
-
-    function HttpEvent( type, bubbles,cancelable ){ BreezeEvent.call(this,  type, bubbles,cancelable );}
-    HttpEvent.prototype=new BreezeEvent();
-    HttpEvent.prototype.data=null;
-    HttpEvent.prototype.url=null;
-    HttpEvent.SUCCESS = 'httpSuccess';
-    HttpEvent.ERROR   = 'httpError';
-    HttpEvent.CANCELED  = 'httpCanceled';
-    HttpEvent.TIMEOUT = 'httpTimeout';
-    HttpEvent.DONE    = 'httpDone';
-
-
-    function KeyboardEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this,  type, bubbles,cancelable );}
-    KeyboardEvent.prototype=new BreezeEvent();
-    KeyboardEvent.prototype.constructor=KeyboardEvent;
-    KeyboardEvent.KEYPRESS='keypress';
-    KeyboardEvent.KEY_UP='keyup';
-    KeyboardEvent.KEY_DOWN='keydown';
-
-
-    if( typeof window !== "undefined" ) {
-
-        window.KeyboardEvent = KeyboardEvent;
-        window.HttpEvent = HttpEvent;
-        window.BreezeEvent = BreezeEvent;
-        window.ElementEvent = ElementEvent;
-        window.PropertyEvent = PropertyEvent;
-        window.StyleEvent = StyleEvent;
-        window.MouseEvent = MouseEvent;
-    }
-
-    if( typeof define === "function" )
-    {
-        define('KeyboardEvent', function(){ return KeyboardEvent } );
-        define('HttpEvent', function(){ return HttpEvent } );
-        define('ElementEvent', function(){ return ElementEvent } );
-        define('PropertyEvent', function(){ return PropertyEvent } );
-        define('StyleEvent', function(){ return StyleEvent } );
-        define('MouseEvent', function(){ return MouseEvent } );
-    }
-
-    return {
-        KeyboardEvent:KeyboardEvent,
-        HttpEvent:HttpEvent,
-        BreezeEvent:BreezeEvent,
-        ElementEvent:ElementEvent,
-        PropertyEvent:PropertyEvent,
-        StyleEvent:StyleEvent,
-        MouseEvent:MouseEvent
-    }
+    if( typeof window !== "undefined" )window.Event = Event;
+    return Event
 
 })
