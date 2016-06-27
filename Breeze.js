@@ -113,158 +113,10 @@
     };
 
 
-    // fix style name add prefix
-    if( Breeze.isBrowser(Breeze.BROWSER_FIREFOX,4,'<=') )
-    {
-        fix.cssPrefixName='-moz-';
-
-    }else if( Breeze.isBrowser(Breeze.BROWSER_SAFARI) || Breeze.isBrowser(Breeze.BROWSER_CHROME) )
-    {
-        fix.cssPrefixName='-webkit-';
-
-    }else if(Breeze.isBrowser(Breeze.BROWSER_OPERA))
-    {
-        fix.cssPrefixName='-o-';
-
-    }else if(Breeze.isBrowser(Breeze.BROWSER_IE,9,'>='))
-    {
-        fix.cssPrefixName='-ms-';
-    }
-
-    //set hooks for userSelect style
-    fix.cssHooks.userSelect={
-
-        get: function( style )
-        {
-            return style[ Breeze.styleName('userSelect') ] || '';
-        },
-        set: function( style, value )
-        {
-            style[ Breeze.styleName('userSelect') ] = value;
-            style['-moz-user-fetch'] = value;
-            style['-webkit-touch-callout'] = value;
-            style['-khtml-user-fetch'] = value;
-            return true;
-        }
-    }
-
-    //set hooks for radialGradient and linearGradient style
-    fix.cssHooks.radialGradient=fix.cssHooks.linearGradient={
-
-        get: function( style, name )
-        {
-            return  Breeze.storage(this,name) || '';
-        },
-        set: function( style, value, name )
-        {
-            value = Breeze.trim(value);
-            Breeze.storage(this,name,value);
-            if( Breeze.isBrowser(Breeze.BROWSER_SAFARI,5.1,'<') || Breeze.isBrowser(Breeze.BROWSER_CHROME,10,'<') )
-            {
-                var position='';
-                var deg= 0;
-                if(name==='radialGradient')
-                {
-                    position=value.match(/([^\#]*)/);
-                    if( position ){
-                        position = position[1].replace(/\,\s*$/,'');
-                        value=value.replace(/([^\#]*)/,'')
-                    }
-                    value = value.split(',');
-                }else
-                {
-                    var deg = value.match(/^(\d+)deg/);
-                    value = value.split(',');
-                    if( deg )
-                    {
-                        deg = deg[1]
-                        value.splice(0,1);
-                    }
-                    deg=parseFloat(deg) || 0;
-                }
-                var color = [];
-                for(var i=0; i<value.length; i++)
-                {
-                    var item = Breeze.trim(value[i]).split(/\s+/,2);
-                    if( i===0 )color.push("from("+item[0]+")");
-                    if( !(i===0 || i===value.length-1 ) || typeof item[1] !== "undefined"  )
-                    {
-                        var num = (parseFloat(item[1]) || 0) / 100;
-                        color.push( "color-stop("+num+","+item[0]+")" );
-                    }
-                    if( i===value.length-1 )
-                        color.push("to("+item[0]+")");
-                }
-
-                var width= Breeze.getSize(this,'width');
-                var height=  Breeze.getSize(this,'height');
-                if(name==='radialGradient')
-                {
-                    position = position.split(/\,/,2)
-                    var point = Breeze.trim(position[0]).split(/\s+/,2);
-                    if(point.length===1)point.push('50%');
-                    var point = point.join(' ');
-                    position=point+',0, '+point+', '+width/2;
-                    value=Breeze.sprintf("%s,%s,%s",'radial',position,color.join(',') );
-
-                }else{
-
-                    var x1=Math.cos(  deg*(Math.PI/180) );
-                    var y1=Math.sin(  deg*(Math.PI/180) );
-                    value=Breeze.sprintf("%s,0% 0%,%s %s,%s",'linear',Math.round(x1*width),Math.round(y1*height),color.join(',') );
-                }
-                name='gradient';
-
-            }else if( !value.match(/^(left|top|right|bottom|\d+)/) && name==='linearGradient' )
-            {
-                value= '0deg,'+value;
-
-            }else if( name==='linearGradient' )
-            {
-                value= value.replace(/^(\d+)(deg)?/,'$1deg')
-            }
-
-            var prop = 'background-image';
-            if(  Breeze.isBrowser(Breeze.BROWSER_IE,10,'<') )
-            {
-                value=value.split(',')
-                var deg = value.splice(0,1).toString();
-                deg = parseFloat( deg ) || 0;
-                var color=[];
-                for(var i=0; i<value.length; i++)
-                {
-                    var item = Breeze.trim(value[i]).split(/\s+/,2);
-                    color.push( i%1===1 ? "startColorstr='"+item[0]+"'" :  "endColorstr='"+item[0]+"'" );
-                }
-                var type = deg % 90===0 ? '1' : '0';
-                var linear = name==='linearGradient' ? '1' : '2';
-                value = 'alpha(opacity=100 style='+linear+' startx=0,starty=5,finishx=90,finishy=60);';
-                value= style.filter || '';
-                value += Breeze.sprintf(";progid:DXImageTransform.Microsoft.gradient(%s, GradientType=%s);",color.join(','), type );
-                value += "progid:DXImageTransform.Microsoft.gradient(enabled = false);";
-                prop='filter';
-
-            }else
-            {
-                value= Breeze.sprintf('%s(%s)', Breeze.styleName( name ) , value ) ;
-            }
-            style[ prop ] = value ;
-            return true;
-        }
-    }
-
-    fix.cssHooks.width= {
-        get:function(style){ return parseInt( fix.getsizeval.call(this,'Width') || style['width'] ) || 0 }
-    }
-    fix.cssHooks.height={
-        get:function (style){return parseInt( fix.getsizeval.call(this,'Height') || style['height'] ) || 0;}
-    }
-
-
     /**
      * @private
      */
-    var access=function(callback, name, newValue)
+    function access(callback, name, newValue)
     {
         var write= typeof newValue !== 'undefined';
         if( !write && this.length < 1 )return null;
@@ -301,7 +153,7 @@
     /**
      * @private
      */
-    var removeChild= function(parent,child)
+    function removeChild(parent,child)
     {
         if( child && parent.hasChildNodes() && child.parentNode === parent &&
             dispatchElementEvent.call(this,parent,child,ElementEvent.BEFORE_CHILD_REMOVE) )
@@ -315,7 +167,7 @@
     /**
      * @private
      */
-    var getChildNodes=function(element,selector,flag)
+    function getChildNodes(element,selector,flag)
     {
         var ret=[],isfn=Breeze.isFunction(selector);
         if( element.hasChildNodes() )
@@ -336,7 +188,7 @@
     /**
      * @private
      */
-    var dispatchElementEvent=function(parent, child , type )
+    function dispatchElementEvent(parent, child , type )
     {
         if( this instanceof EventDispatcher && this.hasEventListener( type )  )
         {
@@ -346,6 +198,86 @@
             return this.dispatchEvent( event );
         }
         return true;
+    }
+
+    /**
+     *  @private
+     */
+    function doMake( target, elems ,clear , reverted ,uniqueSort )
+    {
+        if( clear===true )
+        {
+            var revers=target.splice(0,target.length,elems);
+            if( reverted !== true )
+            {
+                if( !target['__reverts__'] )
+                    target['__reverts__']=[];
+                target['__reverts__'].push( revers );
+            }
+        }
+        if( uniqueSort && target.length > 1 )
+        {
+            var ret= DataArray.prototype.unique.call( target.toArray() );
+            if( ret.length !== target.length ){
+                return doMake(target,ret,true,true,false);
+            }
+        }
+        target.current(null);
+        return target;
+    }
+
+    /**
+     *  @private
+     */
+    function doGrep( elements, selector )
+    {
+        var ret=[];
+        var type = typeof selector;
+        if( type === 'undefined' )
+        {
+            selector = function( elem ) { return elem.nodeType === 1; }
+            type='function';
+        }
+        if( type === "function" )
+        {
+            var i= 0, length=elements.length;
+            for( ; i < length; i++ )
+            {
+                if ( selector( elements[ i ], i ) )ret.push( elements[ i ] );
+            }
+
+        }else if( type === "string" )
+        {
+            ret= Breeze.querySelector( selector, null, null, elements );
+        }
+        return ret;
+    }
+
+    /**
+     *  @private
+     */
+    function doRecursion(propName,flag,strainer,notSort)
+    {
+        var target,len=!!this.forEachCurrentItem ? 1 : this.length,i= 0,currentItem,
+            ret=[],hasStrainer=Breeze.isFunction( strainer);
+        for( ; i< len ; i++)
+        {
+            target= currentItem=this.forEachCurrentItem || this[i];
+            while( currentItem && ( currentItem=currentItem[ propName ] ) )
+            {
+                if( hasStrainer )
+                {
+                    flag=strainer.call( target ,currentItem,ret );
+
+                }else if( currentItem.nodeType===1 )
+                {
+                    ret=ret.concat( currentItem );
+                }
+                if( flag !== true )break;
+            }
+        }
+        if( ret.length > 1 && !notSort )ret=DataArray.prototype.unique.call(ret);
+        return ret;
     }
 
     
@@ -368,6 +300,11 @@
             this.context=context;
             Array.prototype.apply(this, Breeze.querySelector(selector, context) );
         }
+
+        this.forEachCurrentItem=undefined;
+        this.forEachCurrentIndex=NaN;
+        this.forEachPrevItem=undefined;
+        this.forEachNextItem=undefined;
     };
 
     Breeze.prototype= new EventDispatcher();
@@ -378,12 +315,12 @@
     Breeze.prototype.forEachPrevItem=undefined;
     Breeze.prototype.forEachNextItem=undefined;
 
-    Breeze.prototype.slice= DataArray.prototype.slice;
-    Breeze.prototype.concat= DataArray.prototype.concat;
-    Breeze.prototype.indexOf= DataArray.prototype.indexOf;
-    Breeze.prototype.splice= DataArray.prototype.splice;
-    Breeze.prototype.toArray= DataArray.prototype.toArray;
-
+    Breeze.prototype.length=0;
+    Breeze.prototype.slice= Array.prototype.slice;
+    Breeze.prototype.concat=Array.prototype.concat;
+    Breeze.prototype.indexOf= Array.prototype.indexOf;
+    Breeze.prototype.splice= Array.prototype.splice;
+    Breeze.prototype.toArray= Array.prototype.slice;
 
     /**
      * 遍历元素
@@ -441,8 +378,8 @@
 
             }else if( typeof element=== "string" )
             {
-                element=Breeze.querySelector(element, this.context );
-                this.forEachCurrentItem = element ? element[0] : undefined;
+                element=Breeze.querySelector(element, this.context || document );
+                this.forEachCurrentItem = element && element.length > 0 ? element[0] : undefined;
                 this.forEachCurrentIndex = NaN;
 
             }else
@@ -628,7 +565,7 @@
             value=Breeze.serialize( name,'style');
             name='cssText';
         }
-        return access('style',name,value);
+        return access.call(this,'style',name,value);
     }
 
 
@@ -673,6 +610,391 @@
     {
         return access('value','value',value);
     }
+
+
+    /**
+     * 判断是否有指定的类名
+     * @param className
+     * @returns {boolean}
+     */
+    Breeze.prototype.hasClass=function( className )
+    {
+        var elem = this.current();
+        var value=elem['className'] || '';
+        return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
+    }
+
+
+    /**
+     * 添加指定的类名
+     * @param className
+     * @returns {Breeze}
+     */
+    Breeze.prototype.addClass=function( className )
+    {
+        if( typeof className !== "string" )
+            throw new Error('invaild class name');
+        className = Breeze.trim( className );
+        this.forEach(function(elem){
+
+            if( !this.hasClass( className ) )
+            {
+                var oldClass=Breeze.trim( elem['className'] );
+                var old = oldClass;
+                oldClass= [ Breeze.trim( oldClass ) ];
+                oldClass.push( className );
+                elem['className'] = Breeze.trim( oldClass.join(' ') );
+
+                var event = new StyleEvent( StyleEvent.CHANGE );
+                event.property = 'classname';
+                event.newValue = className;
+                event.oldValue = old;
+                !this.hasEventListener( StyleEvent.CHANGE ) || this.dispatchEvent( event );
+            }
+        });
+        return this;
+    }
+
+    /**
+     * 移除指定的类名或者清除所有的类名。
+     * @param className
+     * @returns {Breeze}
+     */
+    Breeze.prototype.removeClass=function( className )
+    {
+        var all = typeof className !== 'string';
+        return this.forEach(function(elem){
+            var val='';
+            var value=elem['className'] || '';
+            if( !all )
+            {
+                var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
+                val=value.replace(reg, '');
+            }
+            val === '' ? elem.removeAttribute('class') : elem['className'] = Breeze.trim(val);
+            try {
+                elem.offsetWidth = elem.offsetWidth;
+                var event = new StyleEvent( StyleEvent.CHANGE );
+                event.property = 'classname';
+                event.newValue = val;
+                event.oldValue = value;
+                !this.hasEventListener( StyleEvent.CHANGE ) || this.dispatchEvent( event );
+            }catch(e){}
+        })
+    }
+
+    /**
+     * 获取设置元素宽度
+     * @param value
+     * @returns {int|Breeze}
+     */
+    Breeze.prototype.width=function( value )
+    {
+        return access.call(this,'style','width',value);
+    }
+
+    /**
+     * 获取设置元素高度
+     * @param value
+     * @returns {int|Breeze}
+     */
+    Breeze.prototype.height=function( value )
+    {
+        return access.call(this,'style','height',value);
+    }
+
+    /**
+     * @private
+     */
+    Breeze.prototype.__scroll__={
+        get:function(prop){
+            var e = this.defaultView || this.parentWindow || this;
+            var p= 'scroll'+Breeze.ucfirst(prop);
+            return Breeze.isWindow( e ) ? e[prop==='top'?'pageYOffset':'pageXOffset'] || e.document.documentElement[p] || e.document.body[p] : e[p] ;
+        },
+        set:function(prop,newValue,obj){
+            var e = this.defaultView || this.parentWindow || this;
+            if( obj.style('position')==='static' )obj.style('position','relative');
+            if(typeof e.scrollTo === "function")
+            {
+                var param = [newValue,NaN];
+                if( prop==='top' )param = param.reverse();
+                e.scrollTo.apply(e, param );
+            } else
+            {
+                e['scroll'+prop] = newValue;
+            }
+        }
+    }
+
+    /**
+     * 获取设置滚动条顶部的位置
+     * @param value
+     */
+    Breeze.prototype.scrollTop=function(value)
+    {
+        return access.call(this,'scroll','top',value);
+    }
+
+    /**
+     * 获取设置滚动条左部的位置
+     * @param value
+     */
+    Breeze.prototype.scrollLeft=function(value)
+    {
+        return access.call(this,'scroll','left',value);
+    }
+
+    /**
+     * 获取滚动条的宽度
+     * @param value
+     */
+    Breeze.prototype.scrollWidth=function()
+    {
+        return access.call(this,'scroll','width');
+    }
+
+    /**
+     * 获取滚动条的高度
+     * @param value
+     */
+    Breeze.prototype.scrollHeight=function()
+    {
+        return access.call(this,'scroll','height');
+    }
+
+    //============================================元素选择===================================
+
+    /**
+     * 指定的选择器是否为当前作用域的子级
+     * @param selector
+     * @returns {boolean}
+     */
+    Breeze.prototype.contains=function( child )
+    {
+        if( Breeze.isNodeElement(child) )
+        {
+            var parent = this.current();
+            if('contains' in parent) {
+                return parent.contains( child );
+            }
+            else {
+                return !!(parent.compareDocumentPosition(child) & 16);
+            }
+        }
+        return Breeze.querySelector( child, this.current() ).length > 0;
+    }
+
+    /**
+     * 回撒到指定步骤的选择器所匹配的元素,不包含初始化的步骤。
+     * @param step
+     * @returns {Breeze}
+     */
+    Breeze.prototype.revert=function( step )
+    {
+        var reverts= this['__reverts__'] || ( this['__reverts__']=[] );
+        var len=reverts.length;
+        if( len > 0 )
+        {
+            step = step || -1;
+            step= step < 0 ? step+len : step;
+            step=step >= len ? 0 : step;
+            doMake( this, reverts.splice(step, len-step).shift() ,true , true );
+        }
+        return this;
+    }
+
+
+    /**
+     * 查找当前匹配的第一个元素下的指定选择器的元素
+     * @param selector
+     * @returns {Breeze}
+     */
+    Breeze.prototype.find=function( selector )
+    {
+        return doMake( this, doGrep(this,selector) ,true );
+    }
+
+    /**
+     * 查找所有匹配元素的父级元素或者指定selector的父级元素（不包括祖辈元素）
+     * @param selector
+     * @returns {Breeze}
+     */
+    Breeze.prototype.parent=function( selector )
+    {
+        var results=doRecursion.call(this,'parentNode',false);
+        results= typeof selector !== "undefined" ? doGrep(results,selector) : results;
+        return doMake( this, results ,true );
+    }
+
+    /**
+     * 查找所有匹配元素的祖辈元素或者指定 selector 的祖辈元素。
+     * 如果指定了 selector 则返回最近的祖辈元素
+     * @param selector
+     * @returns {Breeze}
+     */
+    Breeze.prototype.parents=function(selector )
+    {
+        var isfun = Breeze.isFunction(selector);
+        var results=doRecursion.call(this,'parentNode',true,function(element,ret)
+        {
+            if( ( isfun && selector.call( element ) ) || Breeze.querySelector( selector, null,null, [element] ).length===1 )
+            {
+                ret.push(element);
+                return false;
+            }
+            return true;
+        });
+        return doMake( this, results ,true );
+    }
+
+    /**
+     * 获取所有匹配元素向上的所有同辈元素,或者指定selector的同辈元素
+     * @param selector
+     * @returns {Breeze}
+     */
+    Breeze.prototype.prevAll=function( selector )
+    {
+        var results=doRecursion.call(this,'previousSibling',true);
+        results=typeof selector !== "undefined" ? doGrep(results,selector) : results
+        return doMake( this, results ,true );
+    }
+
+    /**
+     * 获取所有匹配元素紧邻的上一个同辈元素,或者指定selector的同辈元素
+     * @param selector
+     * @returns {Breeze}
+     */
+    Breeze.prototype.prev=function( selector )
+    {
+        var type = typeof  selector;
+        var results=doRecursion.call(this,'previousSibling',true,function(element,ret)
+        {
+            if( ( type==='function' && selector.call( element ) ) ||
+                ( type==='string' && Breeze.querySelector( selector, null,null, [element] ).length===1) ||
+                element.nodeType==1 )
+            {
+                ret.push(element);
+                return false;
+            }
+            return true;
+        });
+        results=typeof selector !== "undefined" ? doGrep(results,selector) : results;
+        return  doMake( this, results ,true );
+    }
+
+    /**
+     * 获取所有匹配元素向下的所有同辈元素或者指定selector的同辈元素
+     * @param selector
+     * @returns {Breeze}
+     */
+    Breeze.prototype.nextAll=function( selector )
+    {
+        var results=doRecursion.call(this,'nextSibling',true);
+        results=typeof selector !== "undefined" ? doGrep(results,selector) : results;
+        return doMake( this, results ,true );
+    }
+
+    /**
+     * 获取每一个匹配元素紧邻的下一个同辈元素或者指定selector的同辈元素
+     * @param selector
+     * @returns {Breeze}
+     */
+    Breeze.prototype.next=function( selector )
+    {
+        var results=doRecursion.call(this,'nextSibling',false);
+        results=typeof selector !== "undefined" ? doGrep(results,selector) : results
+        return doMake( this, results ,true );
+    }
+
+    /**
+     * 获取每一个匹配元素的所有同辈元素
+     * @param selector
+     * @returns {Breeze}
+     */
+    Breeze.prototype.siblings=function( selector )
+    {
+        var results=[].concat( doRecursion.call(this,'previousSibling',true,null,true) , doRecursion.call(this,'nextSibling',true,null,true) )
+        if( results.length > 1 )results=DataArray.prototype.unique.call( results );
+        if( typeof selector !== "undefined" )results= doGrep(results,selector);
+        return doMake( this, results ,true );
+    }
+
+    /**
+     * 查找所有匹配元素的所有子级元素，不包括孙元素
+     * @param selector 如果是 * 返回包括文本节点的所有元素。不指定返回所有HTMLElement 元素。
+     * @returns {Breeze}
+     */
+    Breeze.prototype.children=function( selector )
+    {
+        var has=true;
+        if(  typeof selector === 'string' )
+        {
+            selector=Breeze.trim(selector);
+            has = selector !== '*';
+        };
+
+        var results=[];
+        this.forEach(function(element)
+        {
+            if( !Breeze.isFrame( element ) )
+                results=results.concat( Array.prototype.slice.call( element.childNodes,0 ) );
+        })
+        if( has )results=doGrep(results,selector);
+        return doMake( this, results ,true );
+    }
+
+
+
+
+
+    //========================操作元素===========================
+
+
+    /**
+     * 用指定的元素来包裹当前所有匹配到的元素
+     * @param element
+     * @returns {Breeze}
+     */
+    Breeze.prototype.wrap=function( element )
+    {
+        var is=Breeze.isFunction( element );
+        return this.forEach(function(elem,index)
+        {
+            var wrap=Breeze.createElement( is ? element.call(this,elem) : element );
+            this.current( elem.parentNode ).addChildAt( wrap , elem );
+            this.current( wrap ).addChildAt( elem ,-1);
+        });
+    }
+
+    /**
+     * 取消当前所有匹配元素的父级元素。不指定选择器则默认为父级元素，否则为指定选择器的祖辈元素。
+     * 父级或者祖辈元素只能是body的子元素。
+     * @param selector
+     * @returns {Breeze}
+     */
+    Breeze.prototype.unwrap=function( selector )
+    {
+        var is= typeof selector === "undefined";
+        return this.forEach(function(elem)
+        {
+            var parent= is ?  elem.parentNode : this.parent( selector );
+            if( parent && parent.ownerDocument && Sizzle.contains( parent.ownerDocument.body, parent ) )
+            {
+                var children=this.current( parent ).children('*',true);
+                if( parent.parentNode )
+                {
+                    this.current( parent.parentNode );
+                    var len=children.length,i=0;
+                    while( i<len ){
+                        this.addChildAt( children[ i++ ], parent );
+                    }
+                    this.removeChildAt( parent );
+                }
+            }
+        });
+    }
+
 
     /**
      * 获取或者设置 html
@@ -826,7 +1148,7 @@
      * @param index | refChild | fn(node,index,parent)
      * @returns {Node|null}
      */
-    Breeze.prototype.getChildAt=function(index )
+    Breeze.prototype.getChildAt=function( index )
     {
         return this.forEach(function(parent)
         {
@@ -919,162 +1241,10 @@
     }
 
 
-    /**
-     * 判断是否有指定的类名
-     * @param className
-     * @returns {boolean}
-     */
-    Breeze.prototype.hasClass=function( className )
-    {
-        var elem = this.current();
-        var value=elem['className'] || '';
-        return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
-    }
-
-
-    /**
-     * 添加指定的类名
-     * @param className
-     * @returns {Breeze}
-     */
-    Breeze.prototype.addClass=function( className )
-    {
-        if( typeof className !== "string" )
-            throw new Error('invaild class name');
-        className = Breeze.trim( className );
-        this.forEach(function(elem){
-
-            if( !this.hasClass( className ) )
-            {
-                var oldClass=Breeze.trim( elem['className'] );
-                var old = oldClass;
-                oldClass= [ Breeze.trim( oldClass ) ];
-                oldClass.push( className );
-                elem['className'] = Breeze.trim( oldClass.join(' ') );
-
-                var event = new StyleEvent( StyleEvent.CHANGE );
-                event.property = 'classname';
-                event.newValue = className;
-                event.oldValue = old;
-                !this.hasEventListener( StyleEvent.CHANGE ) || this.dispatchEvent( event );
-            }
-        });
-        return this;
-    }
-
-    /**
-     * 移除指定的类名或者清除所有的类名。
-     * @param className
-     * @returns {Breeze}
-     */
-    Breeze.prototype.removeClass=function( className )
-    {
-        var all = typeof className !== 'string';
-        return this.forEach(function(elem){
-            var val='';
-            var value=elem['className'] || '';
-            if( !all )
-            {
-                var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
-                val=value.replace(reg, '');
-            }
-            val === '' ? elem.removeAttribute('class') : elem['className'] = Breeze.trim(val);
-            try {
-                elem.offsetWidth = elem.offsetWidth;
-                var event = new StyleEvent( StyleEvent.CHANGE );
-                event.property = 'classname';
-                event.newValue = val;
-                event.oldValue = value;
-                !this.hasEventListener( StyleEvent.CHANGE ) || this.dispatchEvent( event );
-            }catch(e){}
-        })
-    }
-
-    /**
-     * 获取设置元素宽度
-     * @param value
-     * @returns {int|Breeze}
-     */
-    Breeze.prototype.width=function( value )
-    {
-         return this.style('width',value);
-    }
-
-    /**
-     * 获取设置元素高度
-     * @param value
-     * @returns {int|Breeze}
-     */
-    Breeze.prototype.height=function( value )
-    {
-        return this.style('height',value);
-    }
-
-    /**
-     * @private
-     */
-    Breeze.prototype.__scroll__={
-        get:function(prop){
-            var e = this.defaultView || this.parentWindow || this;
-            var p= 'scroll'+Breeze.ucfirst(prop);
-            return Breeze.isWindow( e ) ? e[prop==='top'?'pageYOffset':'pageXOffset'] || e.document.documentElement[p] || e.document.body[p] : e[p] ;
-        },
-        set:function(prop,newValue,obj){
-            var e = this.defaultView || this.parentWindow || this;
-            if( obj.style('position')==='static' )obj.style('position','relative');
-            if(typeof e.scrollTo === "function")
-            {
-                var param = [newValue,NaN];
-                if( prop==='top' )param = param.reverse();
-                e.scrollTo.apply(e, param );
-            } else
-            {
-                e['scroll'+prop] = newValue;
-            }
-        }
-    }
-
-    /**
-     * 获取设置滚动条顶部的位置
-     * @param value
-     */
-    Breeze.prototype.scrollTop=function(value)
-    {
-        return access.call(this,'scroll','top',value);
-    }
-
-    /**
-     * 获取设置滚动条左部的位置
-     * @param value
-     */
-    Breeze.prototype.scrollLeft=function(value)
-    {
-        return access.call(this,'scroll','left',value);
-    }
-
-    /**
-     * 获取滚动条的宽度
-     * @param value
-     */
-    Breeze.prototype.scrollWidth=function()
-    {
-        return access.call(this,'scroll','width');
-    }
-
-    /**
-     * 获取滚动条的高度
-     * @param value
-     */
-    Breeze.prototype.scrollHeight=function()
-    {
-        return access.call(this,'scroll','height');
-    }
 
 
 
      //========================================= 静态方法 ============================================
-     //==============================================================================================
-
 
     /**
      * 一组代表某个浏览器的常量
@@ -1555,8 +1725,6 @@
         var nodename =Breeze.nodeName(elem);
         return (nodename === 'iframe' || nodename==='frame');
     };
-
-
 
 
     /**
@@ -2119,6 +2287,154 @@
             return true;
         }
         return false;
+    }
+
+
+    // fix style name add prefix
+    if( Breeze.isBrowser(Breeze.BROWSER_FIREFOX,4,'<=') )
+    {
+        fix.cssPrefixName='-moz-';
+
+    }else if( Breeze.isBrowser(Breeze.BROWSER_SAFARI) || Breeze.isBrowser(Breeze.BROWSER_CHROME) )
+    {
+        fix.cssPrefixName='-webkit-';
+
+    }else if(Breeze.isBrowser(Breeze.BROWSER_OPERA))
+    {
+        fix.cssPrefixName='-o-';
+
+    }else if(Breeze.isBrowser(Breeze.BROWSER_IE,9,'>='))
+    {
+        fix.cssPrefixName='-ms-';
+    }
+
+    //set hooks for userSelect style
+    fix.cssHooks.userSelect={
+
+        get: function( style )
+        {
+            return style[ Breeze.styleName('userSelect') ] || '';
+        },
+        set: function( style, value )
+        {
+            style[ Breeze.styleName('userSelect') ] = value;
+            style['-moz-user-fetch'] = value;
+            style['-webkit-touch-callout'] = value;
+            style['-khtml-user-fetch'] = value;
+            return true;
+        }
+    }
+
+    //set hooks for radialGradient and linearGradient style
+    fix.cssHooks.radialGradient=fix.cssHooks.linearGradient={
+
+        get: function( style, name )
+        {
+            return  Breeze.storage(this,name) || '';
+        },
+        set: function( style, value, name )
+        {
+            value = Breeze.trim(value);
+            Breeze.storage(this,name,value);
+            if( Breeze.isBrowser(Breeze.BROWSER_SAFARI,5.1,'<') || Breeze.isBrowser(Breeze.BROWSER_CHROME,10,'<') )
+            {
+                var position='';
+                var deg= 0;
+                if(name==='radialGradient')
+                {
+                    position=value.match(/([^\#]*)/);
+                    if( position ){
+                        position = position[1].replace(/\,\s*$/,'');
+                        value=value.replace(/([^\#]*)/,'')
+                    }
+                    value = value.split(',');
+                }else
+                {
+                    var deg = value.match(/^(\d+)deg/);
+                    value = value.split(',');
+                    if( deg )
+                    {
+                        deg = deg[1]
+                        value.splice(0,1);
+                    }
+                    deg=parseFloat(deg) || 0;
+                }
+                var color = [];
+                for(var i=0; i<value.length; i++)
+                {
+                    var item = Breeze.trim(value[i]).split(/\s+/,2);
+                    if( i===0 )color.push("from("+item[0]+")");
+                    if( !(i===0 || i===value.length-1 ) || typeof item[1] !== "undefined"  )
+                    {
+                        var num = (parseFloat(item[1]) || 0) / 100;
+                        color.push( "color-stop("+num+","+item[0]+")" );
+                    }
+                    if( i===value.length-1 )
+                        color.push("to("+item[0]+")");
+                }
+
+                var width= Breeze.getSize(this,'width');
+                var height=  Breeze.getSize(this,'height');
+                if(name==='radialGradient')
+                {
+                    position = position.split(/\,/,2)
+                    var point = Breeze.trim(position[0]).split(/\s+/,2);
+                    if(point.length===1)point.push('50%');
+                    var point = point.join(' ');
+                    position=point+',0, '+point+', '+width/2;
+                    value=Breeze.sprintf("%s,%s,%s",'radial',position,color.join(',') );
+
+                }else{
+
+                    var x1=Math.cos(  deg*(Math.PI/180) );
+                    var y1=Math.sin(  deg*(Math.PI/180) );
+                    value=Breeze.sprintf("%s,0% 0%,%s %s,%s",'linear',Math.round(x1*width),Math.round(y1*height),color.join(',') );
+                }
+                name='gradient';
+
+            }else if( !value.match(/^(left|top|right|bottom|\d+)/) && name==='linearGradient' )
+            {
+                value= '0deg,'+value;
+
+            }else if( name==='linearGradient' )
+            {
+                value= value.replace(/^(\d+)(deg)?/,'$1deg')
+            }
+
+            var prop = 'background-image';
+            if(  Breeze.isBrowser(Breeze.BROWSER_IE,10,'<') )
+            {
+                value=value.split(',')
+                var deg = value.splice(0,1).toString();
+                deg = parseFloat( deg ) || 0;
+                var color=[];
+                for(var i=0; i<value.length; i++)
+                {
+                    var item = Breeze.trim(value[i]).split(/\s+/,2);
+                    color.push( i%1===1 ? "startColorstr='"+item[0]+"'" :  "endColorstr='"+item[0]+"'" );
+                }
+                var type = deg % 90===0 ? '1' : '0';
+                var linear = name==='linearGradient' ? '1' : '2';
+                value = 'alpha(opacity=100 style='+linear+' startx=0,starty=5,finishx=90,finishy=60);';
+                value= style.filter || '';
+                value += Breeze.sprintf(";progid:DXImageTransform.Microsoft.gradient(%s, GradientType=%s);",color.join(','), type );
+                value += "progid:DXImageTransform.Microsoft.gradient(enabled = false);";
+                prop='filter';
+
+            }else
+            {
+                value= Breeze.sprintf('%s(%s)', Breeze.styleName( name ) , value ) ;
+            }
+            style[ prop ] = value ;
+            return true;
+        }
+    }
+
+    fix.cssHooks.width= {
+        get:function(style){ return parseInt( fix.getsizeval.call(this,'Width') || style['width'] ) || 0 }
+    }
+    fix.cssHooks.height={
+        get:function (style){return parseInt( fix.getsizeval.call(this,'Height') || style['height'] ) || 0;}
     }
 
     if( typeof window !== "undefined" )window.Breeze=Breeze;
