@@ -203,27 +203,11 @@
     /**
      *  @private
      */
-    function doMake( target, elems ,clear , reverted ,uniqueSort )
+    function doMake( elems )
     {
-        if( clear===true )
-        {
-            var revers=target.splice(0,target.length,elems);
-            if( reverted !== true )
-            {
-                if( !target['__reverts__'] )
-                    target['__reverts__']=[];
-                target['__reverts__'].push( revers );
-            }
-        }
-        if( uniqueSort && target.length > 1 )
-        {
-            var ret= DataArray.prototype.unique.call( target.toArray() );
-            if( ret.length !== target.length ){
-                return doMake(target,ret,true,true,false);
-            }
-        }
-        target.current(null);
-        return target;
+        ( this.__reverts__ || (this.__reverts__ = []) ).push( this.splice(0,this.length,elems) );
+        this.current(null);
+        return this;
     }
 
     /**
@@ -256,27 +240,25 @@
     /**
      *  @private
      */
-    function doRecursion(propName,flag,strainer,notSort)
+    function doRecursion(propName,strainer)
     {
-        var target,len=!!this.forEachCurrentItem ? 1 : this.length,i= 0,currentItem,
-            ret=[],hasStrainer=Breeze.isFunction( strainer);
-        for( ; i< len ; i++)
+        var currentItem,ret=[];
+        if(typeof strainer !== "function")strainer=function(){ return this.nodeType===1 }
+        this.forEach(function(elem)
         {
-            target= currentItem=this.forEachCurrentItem || this[i];
+            currentItem=elem;
             while( currentItem && ( currentItem=currentItem[ propName ] ) )
             {
-                if( hasStrainer )
+                var r = strainer.call( currentItem );
+                if( r !== false )
                 {
-                    flag=strainer.call( target ,currentItem,ret );
-
-                }else if( currentItem.nodeType===1 )
+                    ret.concat(currentItem);
+                }else if (r===null)
                 {
-                    ret=ret.concat( currentItem );
+                    currentItem=null;
                 }
-                if( flag !== true )break;
             }
-        }
-        if( ret.length > 1 && !notSort )ret=DataArray.prototype.unique.call(ret);
+        })
         return ret;
     }
 
@@ -792,18 +774,17 @@
      */
     Breeze.prototype.revert=function( step )
     {
-        var reverts= this['__reverts__'] || ( this['__reverts__']=[] );
-        var len=reverts.length;
-        if( len > 0 )
+        var reverts= this.__reverts__;
+        if( reverts && reverts.length > 0 )
         {
+            var len=reverts.length;
             step = step || -1;
             step= step < 0 ? step+len : step;
             step=step >= len ? 0 : step;
-            doMake( this, reverts.splice(step, len-step).shift() ,true , true );
+            this.splice(0,this.length, reverts.splice(step, len-step).shift() );
         }
         return this;
     }
-
 
     /**
      * 查找当前匹配的第一个元素下的指定选择器的元素
@@ -812,7 +793,11 @@
      */
     Breeze.prototype.find=function( selector )
     {
-        return doMake( this, doGrep(this,selector) ,true );
+        var ret=[];
+        this.forEach(function(elem){
+            ret = ret.concat( Breeze.querySelector(selector, elem.parentNode || elem ) );
+        })
+        return doMake.call( this, ret );
     }
 
     /**
@@ -822,8 +807,8 @@
      */
     Breeze.prototype.parent=function( selector )
     {
-        var results=doRecursion.call(this,'parentNode',false);
-        results= typeof selector !== "undefined" ? doGrep(results,selector) : results;
+        var s = typeof selector === "string" ? function(){return null} : selector;
+        var results=doRecursion.call(this,'parentNode',s);
         return doMake( this, results ,true );
     }
 
@@ -927,20 +912,18 @@
      */
     Breeze.prototype.children=function( selector )
     {
-        var has=true;
-        if(  typeof selector === 'string' )
-        {
-            selector=Breeze.trim(selector);
-            has = selector !== '*';
-        };
+        if( typeof selector === 'undefined' ){
+            selector= '*';
+        }
 
         var results=[];
         this.forEach(function(element)
         {
             if( !Breeze.isFrame( element ) )
-                results=results.concat( Array.prototype.slice.call( element.childNodes,0 ) );
+            {
+                results=results.concat( Breeze.querySelector(selector,element) );
+            }
         })
-        if( has )results=doGrep(results,selector);
         return doMake( this, results ,true );
     }
 
@@ -1322,7 +1305,7 @@
             if( !id || id =='')
             {
                 has = true;
-                id = 'q'+( new Date().getTime() );
+                id = 'sq'+Math.random() * 100000000;
                 context.setAttribute('id', id);
             }
             selector = '#'+id+' '+selector;
