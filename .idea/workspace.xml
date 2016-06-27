@@ -1,39 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/sizzle.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/events/ElementEvent.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/events/Event.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/events/HttpEvent.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/events/KeyboardEvent.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/events/MouseEvent.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/events/PropertyEvent.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/events/StyleEvent.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/events/TouchEvent.js" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/DataArray.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/EventDispatcher.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Template.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/css/base.css" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/css/bootstrap.css" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/css/fonts/glyphicons-halflings-regular.eot" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/css/fonts/glyphicons-halflings-regular.svg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/css/fonts/glyphicons-halflings-regular.ttf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/css/fonts/glyphicons-halflings-regular.woff" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/css/fonts/glyphicons-halflings-regular.woff2" afterPath="" />
+    <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="架构调整">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/BreezeEvent.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/Bindable.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/DataArray.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/EventDispatcher.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/Grep.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/Http.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/Template.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/sizzle.js" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Breeze.js" afterPath="$PROJECT_DIR$/Breeze.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BreezeEvent.js" afterPath="$PROJECT_DIR$/BreezeEvent.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Element.js" afterPath="$PROJECT_DIR$/Element.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/Bindable.js" afterPath="$PROJECT_DIR$/core/Bindable.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/DataArray.js" afterPath="$PROJECT_DIR$/core/DataArray.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/EventDispatcher.js" afterPath="$PROJECT_DIR$/core/EventDispatcher.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/Grep.js" afterPath="$PROJECT_DIR$/core/Grep.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/Http.js" afterPath="$PROJECT_DIR$/core/Http.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/Template.js" afterPath="$PROJECT_DIR$/core/Template.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/TouchEvent.js" afterPath="$PROJECT_DIR$/events/TouchEvent.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/sizzle.js" afterPath="$PROJECT_DIR$/core/sizzle.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/Component.js" afterPath="$PROJECT_DIR$/components/Component.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/Editable.js" afterPath="$PROJECT_DIR$/components/Editable.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/Layout.js" afterPath="$PROJECT_DIR$/components/Layout.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/Modality.js" afterPath="$PROJECT_DIR$/components/Modality.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/Pagination.js" afterPath="$PROJECT_DIR$/components/Pagination.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/Popup.js" afterPath="$PROJECT_DIR$/components/Popup.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/Selection.js" afterPath="$PROJECT_DIR$/components/Selection.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/SkinComponent.js" afterPath="$PROJECT_DIR$/components/SkinComponent.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/SkinGroup.js" afterPath="$PROJECT_DIR$/components/SkinGroup.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/core/Bindable.js" afterPath="$PROJECT_DIR$/Bindable.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/core/DataArray.js" afterPath="$PROJECT_DIR$/DataArray.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/core/EventDispatcher.js" afterPath="$PROJECT_DIR$/EventDispatcher.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/core/Grep.js" afterPath="$PROJECT_DIR$/Grep.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/core/Http.js" afterPath="$PROJECT_DIR$/Http.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/core/Template.js" afterPath="$PROJECT_DIR$/Template.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/core/sizzle.js" afterPath="$PROJECT_DIR$/sizzle.js" />
     </list>
     <ignored path="breezejs.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -55,11 +51,91 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="EventDispatcher.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/EventDispatcher.js">
+      <file leaf-file-name="Component.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/components/Component.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="21" column="5" selection-start-line="10" selection-start-column="3" selection-end-line="21" selection-end-column="5" />
+              <caret line="302" column="17" selection-start-line="302" selection-start-column="17" selection-end-line="302" selection-end-column="17" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Bindable.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Bindable.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DataArray.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/DataArray.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="EventDispatcher.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Grep.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Grep.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Http.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Http.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="sizzle.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/sizzle.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Template.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Template.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DataRender.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/DataRender.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.48156682">
+              <caret line="19" column="40" selection-start-line="19" selection-start-column="40" selection-end-line="19" selection-end-column="40" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -67,104 +143,17 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Http.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/Http.js">
+      <file leaf-file-name="DataSource.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/DataSource.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="320" column="44" selection-start-line="320" selection-start-column="36" selection-end-line="320" selection-end-column="44" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Grep.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/Grep.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="1" column="9" selection-start-line="1" selection-start-column="3" selection-end-line="1" selection-end-column="9" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Bindable.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/Bindable.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="96" column="32" selection-start-line="96" selection-start-column="24" selection-end-line="96" selection-end-column="32" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Template.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/Template.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="236" column="24" selection-start-line="236" selection-start-column="24" selection-end-line="236" selection-end-column="24" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="sizzle.js" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/core/sizzle.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.45503598">
-              <caret line="20" column="21" selection-start-line="20" selection-start-column="21" selection-end-line="20" selection-end-column="21" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DataArray.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/DataArray.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="59" column="4" selection-start-line="59" selection-start-column="4" selection-end-line="59" selection-end-column="4" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="KeyboardEvent.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/events/KeyboardEvent.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="25" column="2" selection-start-line="25" selection-start-column="2" selection-end-line="25" selection-end-column="2" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="TouchEvent.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/events/TouchEvent.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="23" column="40" selection-start-line="23" selection-start-column="40" selection-end-line="23" selection-end-column="40" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="StyleEvent.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/events/StyleEvent.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="29" column="22" selection-start-line="29" selection-start-column="22" selection-end-line="29" selection-end-column="22" />
+              <caret line="794" column="48" selection-start-line="794" selection-start-column="48" selection-end-line="794" selection-end-column="48" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
-  </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="JavaScript File" />
-      </list>
-    </option>
   </component>
   <component name="FindManager">
     <FindUsagesManager>
@@ -181,6 +170,7 @@
         <option value="$PROJECT_DIR$/index.html" />
         <option value="$PROJECT_DIR$/Animation.js" />
         <option value="$PROJECT_DIR$/Bindable.js" />
+        <option value="$PROJECT_DIR$/DataArray.js" />
         <option value="$PROJECT_DIR$/Editable.js" />
         <option value="$PROJECT_DIR$/Fix-ie.js" />
         <option value="$PROJECT_DIR$/Http.js" />
@@ -195,20 +185,11 @@
         <option value="$PROJECT_DIR$/DataGrid.js" />
         <option value="$PROJECT_DIR$/Modality.js" />
         <option value="$PROJECT_DIR$/Selection.js" />
+        <option value="$PROJECT_DIR$/Utils.js" />
         <option value="$PROJECT_DIR$/Element.js" />
+        <option value="$PROJECT_DIR$/Breeze.js" />
         <option value="$PROJECT_DIR$/EventDispatcher.js" />
         <option value="$PROJECT_DIR$/BreezeEvent.js" />
-        <option value="$PROJECT_DIR$/Utils.js" />
-        <option value="$PROJECT_DIR$/DataArray.js" />
-        <option value="$PROJECT_DIR$/Breeze.js" />
-        <option value="$PROJECT_DIR$/events/HttpEvent.js" />
-        <option value="$PROJECT_DIR$/events/HttpEvent6.js" />
-        <option value="$PROJECT_DIR$/events/HttpEvent1.js" />
-        <option value="$PROJECT_DIR$/events/PropertyEvent222.js" />
-        <option value="$PROJECT_DIR$/events/StyleEvent222.js" />
-        <option value="$PROJECT_DIR$/events/StyleEventsss.js" />
-        <option value="$PROJECT_DIR$/events/Event.js" />
-        <option value="$PROJECT_DIR$/events/KeyboardEvent.js" />
       </list>
     </option>
   </component>
@@ -224,8 +205,8 @@
   <component name="ProjectFrameBounds">
     <option name="x" value="-8" />
     <option name="y" value="-8" />
-    <option name="width" value="1382" />
-    <option name="height" value="744" />
+    <option name="width" value="1936" />
+    <option name="height" value="1056" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <OptionsSetting value="true" id="Add" />
@@ -275,7 +256,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="breeze" />
+              <option name="myItemId" value="breezejs" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -297,16 +278,159 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="F:\yejun\breeze\core" />
-      <recent name="F:\yejun\breeze" />
+      <recent name="E:\nodejs\breezejs" />
+      <recent name="E:\nodejs\breezejs\components" />
       <recent name="E:\workspace\breezejs\css" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="F:\yejun\breeze\core" />
-      <recent name="F:\yejun\breeze\events" />
       <recent name="E:\webroot\breezejs" />
       <recent name="E:\workspace\breezejs" />
     </key>
+  </component>
+  <component name="RestoreUpdateTree" date="Moments ago" ActionInfo="_Update">
+    <UpdatedFiles>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Updated from server" />
+        <option name="myStatusName" value="Changed on server" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="CHANGED_ON_SERVER" />
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Updated" />
+          <option name="myStatusName" value="Changed" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="UPDATED" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/workspace.xml</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/Breeze.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/BreezeEvent.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/Element.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/Utils.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/index.html</PATH>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Created" />
+          <option name="myStatusName" value="Created" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="CREATED" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/core/Bindable.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/core/DataArray.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/core/EventDispatcher.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/core/Grep.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/core/Http.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/core/Template.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/core/sizzle.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/events/ElementEvent.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/events/Event.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/events/HttpEvent.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/events/KeyboardEvent.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/events/MouseEvent.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/events/PropertyEvent.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/events/StyleEvent.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/events/TouchEvent.js</PATH>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Deleted" />
+          <option name="myStatusName" value="Deleted" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="true" />
+          <option name="myId" value="REMOVED_FROM_REPOSITORY" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/Bindable.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/DataArray.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/EventDispatcher.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/Grep.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/Http.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/Template.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/TouchEvent.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/css/base.css</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/css/bootstrap.css</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/css/fonts/glyphicons-halflings-regular.eot</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/css/fonts/glyphicons-halflings-regular.svg</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/css/fonts/glyphicons-halflings-regular.ttf</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/css/fonts/glyphicons-halflings-regular.woff</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/css/fonts/glyphicons-halflings-regular.woff2</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/sizzle.js</PATH>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Restored" />
+          <option name="myStatusName" value="Will be restored" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="RESTORED" />
+        </FILE-GROUP>
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Modified" />
+        <option name="myStatusName" value="Modified" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MODIFIED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Skipped" />
+        <option name="myStatusName" value="Skipped" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SKIPPED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with conflicts" />
+        <option name="myStatusName" value="Will be merged with conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_CONFLICTS" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with tree conflicts" />
+        <option name="myStatusName" value="Merged with tree conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_TREE_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with property conflicts" />
+        <option name="myStatusName" value="Will be merged with property conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_PROPERTY_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged" />
+        <option name="myStatusName" value="Will be merged" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Not in repository" />
+        <option name="myStatusName" value="Not in repository" />
+        <option name="mySupportsDeletion" value="true" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="UNKNOWN" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally added" />
+        <option name="myStatusName" value="Locally added" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_ADDED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally removed" />
+        <option name="myStatusName" value="Locally removed" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_REMOVED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Switched" />
+        <option name="myStatusName" value="Switched" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SWITCHED" />
+      </FILE-GROUP>
+    </UpdatedFiles>
   </component>
   <component name="RunManager">
     <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug">
@@ -641,23 +765,23 @@
       <updated>1466506417333</updated>
     </task>
     <task id="LOCAL-00113" summary="架构调整">
-      <created>1466856391914</created>
+      <created>1466763224492</created>
       <option name="number" value="00113" />
       <option name="project" value="LOCAL" />
-      <updated>1466856391916</updated>
+      <updated>1466763224492</updated>
     </task>
     <option name="localTasksCounter" value="114" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2753404" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.26226014" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.08163265" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.0" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -714,6 +838,55 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DHTML.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1656" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DataGrid.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DOMCore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DataRender.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/E4X.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -791,31 +964,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Component.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-97.77966">
-          <caret line="281" column="16" selection-start-line="281" selection-start-column="16" selection-end-line="281" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/DataGrid.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-4.559322">
           <caret line="588" column="24" selection-start-line="588" selection-start-column="24" selection-end-line="588" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DataRender.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.62711865">
-          <caret line="1" column="9" selection-start-line="1" selection-start-column="3" selection-end-line="1" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DataSource.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-5.016949">
-          <caret line="781" column="62" selection-start-line="781" selection-start-column="56" selection-end-line="781" selection-end-column="62" />
         </state>
       </provider>
     </entry>
@@ -826,13 +978,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Editable.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.62711865">
-          <caret line="36" column="34" selection-start-line="36" selection-start-column="34" selection-end-line="36" selection-end-column="34" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Fix-ie.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-0.91525424">
@@ -840,244 +985,203 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Layout.js">
+    <entry file="file://$PROJECT_DIR$/Element.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-4.559322">
-          <caret line="354" column="40" selection-start-line="354" selection-start-column="32" selection-end-line="354" selection-end-column="40" />
+        <state vertical-scroll-proportion="0.025345622">
+          <caret line="7" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="23" selection-end-column="2" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Pagination.js">
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DHTML.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.62711865">
-          <caret line="149" column="56" selection-start-line="149" selection-start-column="56" selection-end-line="149" selection-end-column="56" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Popup.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-4.559322">
-          <caret line="135" column="33" selection-start-line="135" selection-start-column="25" selection-end-line="135" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Selection.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="82" column="20" selection-start-line="82" selection-start-column="20" selection-end-line="82" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SkinComponent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="89" column="88" selection-start-line="89" selection-start-column="88" selection-end-line="89" selection-end-column="88" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SkinGroup.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="521" column="100" selection-start-line="521" selection-start-column="100" selection-end-line="521" selection-end-column="100" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Timeline.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="850" column="5" selection-start-line="850" selection-start-column="5" selection-end-line="850" selection-end-column="5" />
+        <state vertical-scroll-proportion="0.025345622">
+          <caret line="1810" column="34" selection-start-line="1810" selection-start-column="22" selection-end-line="1810" selection-end-column="34" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DOMEvents.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
+        <state vertical-scroll-proportion="0.025345622">
           <caret line="158" column="74" selection-start-line="158" selection-start-column="64" selection-end-line="158" selection-end-column="74" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DHTML.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="1810" column="34" selection-start-line="1810" selection-start-column="22" selection-end-line="1810" selection-end-column="34" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="132" column="0" selection-start-line="132" selection-start-column="0" selection-end-line="132" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Modality.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="200" column="103" selection-start-line="200" selection-start-column="103" selection-end-line="200" selection-end-column="103" />
-          <folding>
-            <marker date="1466839962143" expanded="true" signature="6390:6430" placeholder="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/BreezeEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="368" column="39" selection-start-line="368" selection-start-column="39" selection-end-line="368" selection-end-column="39" />
+        <state vertical-scroll-proportion="0.025345622">
+          <caret line="846" column="0" selection-start-line="846" selection-start-column="0" selection-end-line="846" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Utils.js">
+    <entry file="file://$PROJECT_DIR$/Timeline.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.69449717">
-          <caret line="846" column="19" selection-start-line="846" selection-start-column="19" selection-end-line="846" selection-end-column="19" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Element.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="242" column="59" selection-start-line="238" selection-start-column="1" selection-end-line="242" selection-end-column="59" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="0.025345622">
+          <caret line="850" column="5" selection-start-line="850" selection-start-column="5" selection-end-line="850" selection-end-column="5" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Breeze.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="22" column="5" selection-start-line="11" selection-start-column="3" selection-end-line="22" selection-end-column="5" />
+          <caret line="24" column="25" selection-start-line="24" selection-start-column="25" selection-end-line="24" selection-end-column="25" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/events/HttpEvent.js">
+    <entry file="file://$PROJECT_DIR$/components/Modality.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="27" column="21" selection-start-line="26" selection-start-column="3" selection-end-line="27" selection-end-column="21" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/events/ElementEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="29" column="38" selection-start-line="29" selection-start-column="38" selection-end-line="29" selection-end-column="38" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/events/PropertyEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="34" column="2" selection-start-line="34" selection-start-column="2" selection-end-line="34" selection-end-column="2" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/events/MouseEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="21" column="19" selection-start-line="21" selection-start-column="19" selection-end-line="21" selection-end-column="19" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/events/Event.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="271" column="0" selection-start-line="271" selection-start-column="0" selection-end-line="271" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/events/StyleEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="29" column="22" selection-start-line="29" selection-start-column="22" selection-end-line="29" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/events/KeyboardEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="25" column="2" selection-start-line="25" selection-start-column="2" selection-end-line="25" selection-end-column="2" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/events/TouchEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="23" column="40" selection-start-line="23" selection-start-column="40" selection-end-line="23" selection-end-column="40" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/DataArray.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="59" column="4" selection-start-line="59" selection-start-column="4" selection-end-line="59" selection-end-column="4" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/EventDispatcher.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="21" column="5" selection-start-line="10" selection-start-column="3" selection-end-line="21" selection-end-column="5" />
+          <caret line="55" column="34" selection-start-line="55" selection-start-column="34" selection-end-line="55" selection-end-column="34" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <marker date="1464846839815" expanded="true" signature="6390:6430" placeholder="..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/Http.js">
+    <entry file="file://$PROJECT_DIR$/components/Pagination.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="320" column="44" selection-start-line="320" selection-start-column="36" selection-end-line="320" selection-end-column="44" />
+          <caret line="149" column="56" selection-start-line="149" selection-start-column="56" selection-end-line="149" selection-end-column="56" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/Grep.js">
+    <entry file="file://$PROJECT_DIR$/components/Popup.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="1" column="9" selection-start-line="1" selection-start-column="3" selection-end-line="1" selection-end-column="9" />
+          <caret line="135" column="33" selection-start-line="135" selection-start-column="25" selection-end-line="135" selection-end-column="33" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/Bindable.js">
+    <entry file="file://$PROJECT_DIR$/components/Selection.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="96" column="32" selection-start-line="96" selection-start-column="24" selection-end-line="96" selection-end-column="32" />
+          <caret line="82" column="20" selection-start-line="82" selection-start-column="20" selection-end-line="82" selection-end-column="20" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/Template.js">
+    <entry file="file://$PROJECT_DIR$/components/SkinComponent.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="236" column="24" selection-start-line="236" selection-start-column="24" selection-end-line="236" selection-end-column="24" />
+          <caret line="89" column="88" selection-start-line="89" selection-start-column="88" selection-end-line="89" selection-end-column="88" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/sizzle.js">
+    <entry file="file://$PROJECT_DIR$/components/SkinGroup.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.45503598">
-          <caret line="20" column="21" selection-start-line="20" selection-start-column="21" selection-end-line="20" selection-end-column="21" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="521" column="100" selection-start-line="521" selection-start-column="100" selection-end-line="521" selection-end-column="100" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/Layout.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="354" column="40" selection-start-line="354" selection-start-column="32" selection-end-line="354" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/Editable.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="36" column="34" selection-start-line="36" selection-start-column="34" selection-end-line="36" selection-end-column="34" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/Component.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="302" column="17" selection-start-line="302" selection-start-column="17" selection-end-line="302" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Bindable.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DataArray.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Grep.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Http.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sizzle.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Template.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DataSource.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="794" column="48" selection-start-line="794" selection-start-column="48" selection-end-line="794" selection-end-column="48" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DataRender.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.48156682">
+          <caret line="19" column="40" selection-start-line="19" selection-start-column="40" selection-end-line="19" selection-end-column="40" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

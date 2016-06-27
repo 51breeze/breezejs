@@ -11,7 +11,7 @@
 
     if( typeof define === "function" )
     {
-        define( ['core/EventDispatcher','core/DataArray'] , factory );
+        define( ['EventDispatcher','DataArray'] , factory );
 
     }else if (typeof exports === 'object')
     {

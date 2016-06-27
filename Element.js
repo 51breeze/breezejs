@@ -10,7 +10,7 @@
 {
     if (typeof define === 'function' && define.amd)
     {
-        define( ['Breeze','core/DataArray','core/EventDispatcher'], factory );
+        define( ['Breeze','DataArray','EventDispatcher'], factory );
 
     } else if (typeof exports === 'object') {
 
