@@ -3,25 +3,14 @@
  */
 
 
-require(['./EventDispatcher','./events/MouseEvent'],function(e){
+require(['./EventDispatcher'],function(e){
 
-    e( document ).addEventListener(BreezeEvent.READY,function( event ){
+    e( document.body ).addEventListener(BreezeEvent.READY,function( event ){
 
-        console.log( event ,'====ok=====')
 
-    })
-
-    document.addEventListener('readystatechange',function(){
-
-        console.log( document.readyState , '=====')
+        console.log( event.target, '====ok=====')
 
     })
-
-    e( document ).addEventListener('click',function(ev){
-            console.log( ev)
-        })
-
-
 
 });
 

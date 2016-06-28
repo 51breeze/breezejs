@@ -10,7 +10,7 @@
 
     if( typeof define === "function" )
     {
-        define( ['./events/BreezeEvent'] , factory );
+        define( ['./events/BreezeEvent','./events/MouseEvent','./events/KeyboardEvent','./events/PropertyEvent'] , factory );
 
     }else if (typeof exports === 'object')
     {
@@ -198,6 +198,7 @@
         //获取事件数据集
         var type = listener.type;
         var events = storage.call( this );
+
         handle = handle || dispatchEvent;
         events = events[ type ] || ( events[ type ]={'listener':[],'handle':handle } );
 
@@ -303,18 +304,16 @@
         events =events ? events.listener.slice(0) : [];
         var length= 0,listener;
 
-        while(  length < events.length )
+        while( length < events.length )
         {
             listener = events[ length++ ];
             var reference = listener.reference || listener.dispatcher;
             var is=false;
-            if( event.currentTarget !== listener.currentTarget )
-                continue;
 
             //设置 Breeze 的当前元素对象
-            if( reference && typeof Breeze !== "undefined" && reference instanceof Breeze && reference.indexOf( event.currentTarget ) >=0 )
+            if( reference && typeof Breeze !== "undefined" && reference instanceof Breeze && reference.indexOf( listener.currentTarget ) >=0 )
             {
-                reference.current( event.currentTarget );
+                reference.current( listener.currentTarget );
                 is=true;
             }
             //调度侦听项
@@ -468,29 +467,19 @@
             event= BreezeEvent.create( event );
             if( event )
             {
+                event.currentTarget = event.currentTarget || doc;
+                event.target = event.target || event.currentTarget;
                 dispatch( event );
                 remove.call(doc,'DOMContentLoaded');
                 remove.call(win,'load');
             }
         }
-
-        //add document
-        listener.type='DOMContentLoaded';
         add.call(doc,listener, handle );
-
-        //add window
-        listener.type='load';
         add.call(win,listener, handle );
-
-        listener.type=BreezeEvent.READY;
-        add.call(element,listener, handle );
 
         if( doc.readyState === 'complete' )
         {
-            var e = new BreezeEvent( BreezeEvent.READY );
-            e.target = element;
-            e.currentTarget = element;
-            handle( e );
+            handle( BreezeEvent.READY );
         }
         return true;
     });

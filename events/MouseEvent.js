@@ -2,7 +2,7 @@
 
     if( typeof define === "function" )
     {
-        define( ['events/BreezeEvent'] , factory );
+        define( ['./BreezeEvent'] , factory );
 
     }else if (typeof exports === 'object')
     {
@@ -13,7 +13,7 @@
         factory();
     }
 
-})(function(event){
+})(function(){
 
     /**
      * MouseEvent
@@ -22,7 +22,7 @@
      * @constructor
      */
     function MouseEvent( type, bubbles,cancelable  ){ event.call(this,  type, bubbles,cancelable );}
-    MouseEvent.prototype=new event();
+    MouseEvent.prototype=new BreezeEvent();
     MouseEvent.prototype.constructor=MouseEvent;
     MouseEvent.prototype.pageX= NaN
     MouseEvent.prototype.pageY= NaN

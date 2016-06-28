@@ -31,6 +31,6 @@
     PropertyEvent.CHANGE='propertyChange';
     PropertyEvent.COMMIT='propertyCommit';
     if( typeof window !== "undefined" )window.PropertyEvent=PropertyEvent;
-    BreezeEvent.fix[ PropertyEvent.CHANGE ] = 'input';
+    BreezeEvent.fix.map[ PropertyEvent.CHANGE ] = 'input';
     return PropertyEvent;
 })

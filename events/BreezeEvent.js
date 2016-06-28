@@ -111,13 +111,13 @@
     var fix=BreezeEvent.fix={
         map:{},
         onPrefix:'',
+        hooks:{},
         eventname:{
             'webkitAnimationEnd':true,
             'webkitAnimationIteration':true,
             'DOMContentLoaded':true
         }
     }
-    fix.map[ BreezeEvent.READY ]='DOMContentLoaded';
     if( navigator.userAgent.match(/msie ([\d.]+)/i) && RegExp.$1 < 9 )
     {
         fix.onPrefix='on';
@@ -136,7 +136,11 @@
         if( flag===true )
         {
             type= fix.onPrefix==='on' ? type.replace(/^on/i,'') : type;
-            for(var prop in fix.map)if( fix.map[prop].toLowerCase() === type.toLowerCase() )return prop
+            var lowre =  type.toLowerCase();
+            for(var prop in fix.map)if( prop.toLowerCase() === lowre )
+            {
+                return fix.map[prop];
+            }
             return type;
         }
         return fix.eventname[ type ]===true ? type : fix.onPrefix+type.toLowerCase();
@@ -147,14 +151,13 @@
      * @param event
      * @returns {BreezeEvent}
      */
-    BreezeEvent.create=function(event )
+    BreezeEvent.create=function( event )
     {
         if( event instanceof BreezeEvent )
             return event;
 
         event=event || window.event;
         var target = event.target || event.srcElement || event.currentTarget;
-        if( !target )return null;
 
         //阻止浏览浏览器的事件冒泡
         if ( event )
@@ -163,29 +166,13 @@
             //!event.stopPropagation ? event.cancelBubble=true : event.stopPropagation();
         }
 
-        var breezeEvent={};
-        var type = BreezeEvent.eventType(event.type,true);
-        if( type === null )
-           return null
+        var breezeEvent;
+       // var type = BreezeEvent.eventType(event.type || event,true);
+        var type = event.type || event;
+        if( type === null )return null;
 
-       var className = !map[type] ? type.match( /^([A-Z]?[a-z]+)(?=[A-Z])/ ) : null;
-       if( className && className[1] )
-       {
-           className=className[1].charAt(0).toUpperCase()+className[1].substr(1)+'Event';
-           if( window[className] )
-           {
-               breezeEvent=new window[className]( event )
-           }
-           if( breezeEvent instanceof PropertyEvent && breezeEvent.originalEvent )
-           {
-               if( typeof breezeEvent.originalEvent.propertyName === "string" )
-               {
-                   breezeEvent.property = breezeEvent.originalEvent.propertyName;
-                   breezeEvent.newValue = target[ breezeEvent.property ];
-               }
-           }
-
-       }else if( /^mouse|click$/i.test(type) )
+        //鼠标事件
+       if( /^mouse|click$/i.test(type) )
        {
             breezeEvent=new MouseEvent( event );
             breezeEvent.pageX= event.x || event.clientX || event.pageX;
@@ -206,20 +193,35 @@
                breezeEvent.wheelDelta=event.wheelDelta || ( event.detail > 0 ? -event.detail :Math.abs( event.detail ) );
             }
 
-        }else if(KeyboardEvent.KEY_PRESS===type || KeyboardEvent.KEY_UP===type || KeyboardEvent.KEY_DOWN===type)
+        }
+        //键盘事件
+        else if(KeyboardEvent.KEY_PRESS===type || KeyboardEvent.KEY_UP===type || KeyboardEvent.KEY_DOWN===type)
         {
             breezeEvent=new KeyboardEvent( event );
             breezeEvent.keycode = event.keyCode || event.keycode;
+
+        }
+        //属性事件
+        else if( PropertyEvent.CHANGE === type || PropertyEvent.COMMIT === type )
+        {
+           breezeEvent=new PropertyEvent( event );
+           if( typeof breezeEvent.originalEvent.propertyName === "string" )
+           {
+               breezeEvent.property = breezeEvent.originalEvent.propertyName;
+               breezeEvent.newValue = target[ breezeEvent.property ];
+           }
+        }
+        //标准事件
+        else
+        {
+            breezeEvent = typeof fix.hooks[type] === "function" ? fix.hooks[type]( event ) : new BreezeEvent( event );
         }
 
-
-
-
-
+        //如果触发事件元素是 window 或者 document
         var currentTarget = event.currentTarget || target;
-        if( currentTarget == currentTarget.window || currentTarget.documentElement )
+        if( currentTarget && (currentTarget == currentTarget.window || currentTarget.documentElement) )
         {
-            breezeEvent.currentTarget=currentTarget;
+            breezeEvent.currentTarget= currentTarget;
         }
 
         breezeEvent.type=type;
@@ -254,6 +256,8 @@
     BreezeEvent.READY='ready';
     BreezeEvent.SCROLL='scroll';
 
+
+    fix.map[ BreezeEvent.READY ]='DOMContentLoaded';
     if( typeof window !== "undefined" )window.BreezeEvent = BreezeEvent;
     return BreezeEvent;
 
