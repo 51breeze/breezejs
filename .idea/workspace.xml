@@ -1,20 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Breeze.js" afterPath="$PROJECT_DIR$/Breeze.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/events/BreezeEvent.js" afterPath="$PROJECT_DIR$/events/BreezeEvent.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/EventDispatcher-IE9.js" afterPath="$PROJECT_DIR$/EventDispatcher-IE9.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/EventDispatcher.js" afterPath="$PROJECT_DIR$/EventDispatcher.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/components/Layout.js" afterPath="$PROJECT_DIR$/components/Layout.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/components/Modality.js" afterPath="$PROJECT_DIR$/components/Modality.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/events/MouseEvent.js" afterPath="$PROJECT_DIR$/events/MouseEvent.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/components/Selection.js" afterPath="$PROJECT_DIR$/components/Selection.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Timeline.js" afterPath="$PROJECT_DIR$/Timeline.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/encodings.xml" afterPath="$PROJECT_DIR$/.idea/encodings.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.js" afterPath="$PROJECT_DIR$/main.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sizzle.js" afterPath="$PROJECT_DIR$/sizzle.js" />
+    <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="Default">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="breezejs.iws" />
@@ -71,7 +58,7 @@
       <file leaf-file-name="main.js" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="0" selection-start="237" selection-end="237" vertical-scroll-proportion="0.52249634" vertical-offset="0" max-vertical-offset="720">
+            <state line="22" column="0" selection-start="317" selection-end="317" vertical-scroll-proportion="0.7213353" vertical-offset="31" max-vertical-offset="720">
               <folding />
             </state>
           </provider>
@@ -477,7 +464,11 @@
       <created>1464873424975</created>
       <updated>1464873424976</updated>
     </task>
-    <option name="localTasksCounter" value="108" />
+    <task id="LOCAL-00108" summary="Default">
+      <created>1467128486636</created>
+      <updated>1467128486637</updated>
+    </task>
+    <option name="localTasksCounter" value="109" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -492,13 +483,13 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="消息" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32729805" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.1239255" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="调试" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.0144605115" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="消息" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32729805" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.08163265" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -534,9 +525,9 @@
     <MESSAGE value="SkinThemes.js&#10;" />
     <MESSAGE value="Merge branch 'master' of https://github.com/51breeze/breezejs&#10;&#10;Conflicts:&#10;&#9;.idea/workspace.xml&#10;&#9;SkinThemes.js&#10;" />
     <MESSAGE value="sss" />
-    <MESSAGE value="Default" />
     <MESSAGE value="架构调整" />
-    <option name="LAST_COMMIT_MESSAGE" value="架构调整" />
+    <MESSAGE value="Default" />
+    <option name="LAST_COMMIT_MESSAGE" value="Default" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -812,7 +803,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="237" selection-end="237" vertical-scroll-proportion="0.52249634" vertical-offset="0" max-vertical-offset="720">
+        <state line="22" column="0" selection-start="317" selection-end="317" vertical-scroll-proportion="0.7213353" vertical-offset="31" max-vertical-offset="720">
           <folding />
         </state>
       </provider>
