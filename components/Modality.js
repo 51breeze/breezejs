@@ -155,7 +155,7 @@ modality.show(true)
             Breeze(selector,skinGroup).addEventListener(MouseEvent.CLICK,function(event)
             {
                 event.stopPropagation();
-                var type =  Utils.property(event.target,SkinGroup.NAME);
+                var type =  Utils.property(event.getEventTarget,SkinGroup.NAME);
                 if( typeof type === "string" )
                 {
                     var uptype=type.toUpperCase();

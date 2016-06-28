@@ -95,7 +95,7 @@ var selection = new Selection( '#selection' )
         //点击下拉列表外隐藏列表
         EventDispatcher( skinGroup.getSkin('group') ).addEventListener( MouseEvent.MOUSE_OUTSIDE , function(event){
 
-            if( !Utils.contains( skinGroup[0],  event.target ) )
+            if( !Utils.contains( skinGroup[0],  event.getEventTarget ) )
                Utils.style(event.currentTarget,'display','none');
         });
     }

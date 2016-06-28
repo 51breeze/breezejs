@@ -722,7 +722,7 @@ var tl= new Timeline(60).addFrame(function(){
                if( motion instanceof Motions )
                {
                    var properties = motion.get();
-                   var target = motion.target();
+                   var target = motion.getEventTarget();
                    var i= 0, l= properties.length;
                    for( ; i<l; i++ )
                    {
@@ -846,7 +846,7 @@ var tl= new Timeline(60).addFrame(function(){
      * @read-only
      * @returns {null|NodeElement}
      */
-    Motions.prototype.target=function()
+    Motions.prototype.getEventTarget=function()
     {
         return this.__target__;
     }

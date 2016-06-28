@@ -68,10 +68,10 @@
     {
         if( !(this instanceof EventDispatcher) )
             return new EventDispatcher(target);
-        target=target instanceof Array ? target : ( target ? [ target ] : [this] );
-        this.target = typeof Breeze !=="undefined" && this instanceof Breeze ?
-            function(){ return this.forEachCurrentItem ? [ this.forEachCurrentItem ] : ( this.length > 0 ? this : [this] ) } :
-            function(){  return target };
+        target  = typeof target !== "undefined" ? ( target instanceof Array ? target :  [ target ]  ) : null;
+        this.getEventTarget = target ?
+            function(){ return target.length > 0 ? target : [this] } :
+            function(){return this.forEachCurrentItem ? [ this.forEachCurrentItem ] : ( this.length > 0 ? this : [this] )}
     };
 
     //Constructor
@@ -84,7 +84,7 @@
      */
     EventDispatcher.prototype.hasEventListener=function( type  )
     {
-        var target= this.target()
+        var target= this.getEventTarget()
             ,index=0;
         while( index < target.length )
         {
@@ -120,9 +120,8 @@
           throw new Error('invalid event type.')
         }
 
-        var target= this.target()
+        var target= this.getEventTarget()
             ,index=0;
-
         while(  index < target.length )
         {
             var listener=new EventDispatcher.Listener(listener,useCapture,priority,reference);
@@ -147,7 +146,7 @@
      */
     EventDispatcher.prototype.removeEventListener=function(type,listener)
     {
-        var target= this.target();
+        var target= this.getEventTarget();
         var b=0;
         while( b < target.length )
         {
@@ -167,14 +166,14 @@
         if( !(event instanceof BreezeEvent) )
             throw new Error('invalid event.')
 
-        var target = this.target();
+        var target = this.getEventTarget();
         var i=0;
         var element;
         while( i < target.length && !event.propagationStopped )
         {
             element =  target[i] ;
             event.currentTarget=element;
-            event.target = event.target || element;
+            event.getEventTarget = event.getEventTarget || element;
             dispatchEvent( event );
             i++;
         };
@@ -468,7 +467,7 @@
             if( event )
             {
                 event.currentTarget = event.currentTarget || doc;
-                event.target = event.target || event.currentTarget;
+                event.getEventTarget = event.getEventTarget || event.currentTarget;
                 dispatch( event );
                 remove.call(doc,'DOMContentLoaded');
                 remove.call(win,'load');

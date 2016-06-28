@@ -21,7 +21,7 @@
      * @param props
      * @constructor
      */
-    function MouseEvent( type, bubbles,cancelable  ){ event.call(this,  type, bubbles,cancelable );}
+    function MouseEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this,  type, bubbles,cancelable );}
     MouseEvent.prototype=new BreezeEvent();
     MouseEvent.prototype.constructor=MouseEvent;
     MouseEvent.prototype.pageX= NaN

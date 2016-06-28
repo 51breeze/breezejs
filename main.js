@@ -3,14 +3,21 @@
  */
 
 
-require(['./EventDispatcher'],function(e){
-
-    e( document.body ).addEventListener(BreezeEvent.READY,function( event ){
+require(['./Breeze'],function(b){
 
 
-        console.log( event.target, '====ok=====')
+    Breeze.ready(function(){
+
+       Breeze('div p').width(200)
+       Breeze('div p').height(200)
+
+        console.log( Breeze('div p').parent() )
+
+
+      // Breeze('div p').parent().style('backgroundColor','red')
 
     })
+
 
 });
 

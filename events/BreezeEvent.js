@@ -67,7 +67,7 @@
      * @public
      */
     BreezeEvent.prototype = {
-        target:null,
+        getEventTarget:null,
         bubbles:true, // true 只触发冒泡阶段的事件 , false 只触发捕获阶段的事件
         cancelable:true, // 是否可以取消浏览器默认关联的事件
         currentTarget:null,
@@ -157,7 +157,7 @@
             return event;
 
         event=event || window.event;
-        var target = event.target || event.srcElement || event.currentTarget;
+        var target = event.getEventTarget || event.srcElement || event.currentTarget;
 
         //阻止浏览浏览器的事件冒泡
         if ( event )
@@ -225,7 +225,7 @@
         }
 
         breezeEvent.type=type;
-        breezeEvent.target=target;
+        breezeEvent.getEventTarget=target;
         breezeEvent.currentTarget= breezeEvent.currentTarget || target;
         breezeEvent.timeStamp = event.timeStamp;
         breezeEvent.relatedTarget= event.relatedTarget;
