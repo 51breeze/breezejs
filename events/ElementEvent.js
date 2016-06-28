@@ -11,7 +11,7 @@
 
     if( typeof define === "function" )
     {
-        define( ['events/Event'] , factory );
+        define( ['events/BreezeEvent'] , factory );
 
     }else if (typeof exports === 'object')
     {

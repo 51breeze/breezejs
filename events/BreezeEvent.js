@@ -31,13 +31,13 @@
      * @param type
      * @param bubbles
      * @param cancelable
-     * @returns {Event}
+     * @returns {BreezeEvent}
      * @constructor
      */
-    function Event(type, bubbles, cancelable )
+    function BreezeEvent(type, bubbles, cancelable )
     {
-        if ( !(this instanceof Event) )
-            return new Event(  type, bubbles,cancelable );
+        if ( !(this instanceof BreezeEvent) )
+            return new BreezeEvent(  type, bubbles,cancelable );
 
         this.type = type ? type : null;
         if ( type && type.type )
@@ -66,7 +66,7 @@
      * event property
      * @public
      */
-    Event.prototype = {
+    BreezeEvent.prototype = {
         target:null,
         bubbles:true, // true 只触发冒泡阶段的事件 , false 只触发捕获阶段的事件
         cancelable:true, // 是否可以取消浏览器默认关联的事件
@@ -108,22 +108,21 @@
      * map event name
      * @private
      */
-    var mapeventname={},onPrefix='',s;
-    mapeventname[ PropertyEvent.CHANGE ] = 'input';
-    mapeventname[ Event.READY ] = 'DOMContentLoaded';
-    mapeventname['webkitAnimationEnd'] = 'webkitAnimationEnd';
-    mapeventname['webkitAnimationIteration'] = 'webkitAnimationIteration';
-    mapeventname['DOMContentLoaded'] = 'DOMContentLoaded';
-    if( navigator.userAgent.match(/firefox\/([\d.]+)/i) )
-    {
-        mapeventname[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
-
-    }else if( (s = navigator.userAgent.match(/msie ([\d.]+)/i)) && s[1] < 9 )
-    {
-        onPrefix='on';
-        mapeventname[ Event.READY ] = 'readystatechange';
+    var fix=BreezeEvent.fix={
+        map:{},
+        onPrefix:'',
+        eventname:{
+            'webkitAnimationEnd':true,
+            'webkitAnimationIteration':true,
+            'DOMContentLoaded':true
+        }
     }
-
+    fix.map[ BreezeEvent.READY ]='DOMContentLoaded';
+    if( navigator.userAgent.match(/msie ([\d.]+)/i) && RegExp.$1 < 9 )
+    {
+        fix.onPrefix='on';
+        fix.map[ BreezeEvent.READY ] = 'readystatechange';
+    }
 
     /**
      * 统一事件名
@@ -131,42 +130,26 @@
      * @param flag
      * @returns {*}
      */
-    Event.eventType=function(type, flag)
+    BreezeEvent.eventType=function( type, flag )
     {
-        if( typeof type !== "string" )
-           return null;
-
+        if( typeof type !== "string" )return null;
         if( flag===true )
         {
-            type= onPrefix==='on' ? type.replace(/^on/i,'') : type;
-            for(var prop in mapeventname)if( mapeventname[prop].toLowerCase() === type.toLowerCase() )return prop
+            type= fix.onPrefix==='on' ? type.replace(/^on/i,'') : type;
+            for(var prop in fix.map)if( fix.map[prop].toLowerCase() === type.toLowerCase() )return prop
             return type;
         }
-
-        if( typeof mapeventname[ type ] !== "undefined" )
-        {
-            type = mapeventname[ type ];
-
-        }else
-        {
-            type=type.toLowerCase();
-        }
-        return onPrefix+type;
+        return fix.eventname[ type ]===true ? type : fix.onPrefix+type.toLowerCase();
     }
-
-    /**
-     * @private
-     */
-    var __eventClassName__=/^([A-Z]?[a-z]+)(?=[A-Z])/;
 
     /**
      * 根据原型事件创建一个Breeze BreezeEvent
      * @param event
-     * @returns {Event}
+     * @returns {BreezeEvent}
      */
-    Event.create=function(event )
+    BreezeEvent.create=function(event )
     {
-        if( event instanceof Event )
+        if( event instanceof BreezeEvent )
             return event;
 
         event=event || window.event;
@@ -181,11 +164,11 @@
         }
 
         var breezeEvent={};
-        var type = Event.eventType(event.type,true);
+        var type = BreezeEvent.eventType(event.type,true);
         if( type === null )
            return null
 
-       var className = !agreed.test(type) ? type.match( __eventClassName__ ) : null;
+       var className = !map[type] ? type.match( /^([A-Z]?[a-z]+)(?=[A-Z])/ ) : null;
        if( className && className[1] )
        {
            className=className[1].charAt(0).toUpperCase()+className[1].substr(1)+'Event';
@@ -223,11 +206,15 @@
                breezeEvent.wheelDelta=event.wheelDelta || ( event.detail > 0 ? -event.detail :Math.abs( event.detail ) );
             }
 
-        }else if(KeyboardEvent.KEYPRESS===type || KeyboardEvent.KEY_UP===type || KeyboardEvent.KEY_DOWN===type)
+        }else if(KeyboardEvent.KEY_PRESS===type || KeyboardEvent.KEY_UP===type || KeyboardEvent.KEY_DOWN===type)
         {
             breezeEvent=new KeyboardEvent( event );
             breezeEvent.keycode = event.keyCode || event.keycode;
         }
+
+
+
+
 
         var currentTarget = event.currentTarget || target;
         if( currentTarget == currentTarget.window || currentTarget.documentElement )
@@ -248,26 +235,26 @@
         return breezeEvent;
     }
 
-    Event.SUBMIT='submit';
-    Event.RESIZE='resizeEnable';
-    Event.FETCH='fetch';
-    Event.UNLOAD='unload';
-    Event.LOAD='load';
-    Event.RESET='reset';
-    Event.FOCUS='focus';
-    Event.BLUR='blur';
-    Event.ERROR='error';
-    Event.COPY='copy';
-    Event.BEFORECOPY='beforecopy';
-    Event.CUT='cut';
-    Event.BEFORECUT='beforecut';
-    Event.PASTE='paste';
-    Event.BEFOREPASTE='beforepaste';
-    Event.SELECTSTART='selectstart';
-    Event.READY='ready';
-    Event.SCROLL='scroll';
+    BreezeEvent.SUBMIT='submit';
+    BreezeEvent.RESIZE='resizeEnable';
+    BreezeEvent.FETCH='fetch';
+    BreezeEvent.UNLOAD='unload';
+    BreezeEvent.LOAD='load';
+    BreezeEvent.RESET='reset';
+    BreezeEvent.FOCUS='focus';
+    BreezeEvent.BLUR='blur';
+    BreezeEvent.ERROR='error';
+    BreezeEvent.COPY='copy';
+    BreezeEvent.BEFORECOPY='beforecopy';
+    BreezeEvent.CUT='cut';
+    BreezeEvent.BEFORECUT='beforecut';
+    BreezeEvent.PASTE='paste';
+    BreezeEvent.BEFOREPASTE='beforepaste';
+    BreezeEvent.SELECTSTART='selectstart';
+    BreezeEvent.READY='ready';
+    BreezeEvent.SCROLL='scroll';
 
-    if( typeof window !== "undefined" )window.Event = Event;
-    return Event
+    if( typeof window !== "undefined" )window.BreezeEvent = BreezeEvent;
+    return BreezeEvent;
 
 })

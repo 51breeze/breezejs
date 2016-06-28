@@ -221,9 +221,9 @@
                     });
                 }
 
-                this.skinGroup().getSkinGroup('container > button,input').addEventListener( [MouseEvent.CLICK,KeyboardEvent.KEYPRESS],function(event)
+                this.skinGroup().getSkinGroup('container > button,input').addEventListener( [MouseEvent.CLICK,KeyboardEvent.KEY_PRESS],function(event)
                 {
-                    if( event.type===MouseEvent.CLICK  || (KeyboardEvent.KEYPRESS===event.type && event.keycode==13 ) )
+                    if( event.type===MouseEvent.CLICK  || (KeyboardEvent.KEY_PRESS===event.type && event.keycode==13 ) )
                     {
                         self.currentPage( this.current('input').property('value') );
                     }

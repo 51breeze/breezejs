@@ -10,7 +10,7 @@
 
     if( typeof define === "function" )
     {
-        define( ['Events/BreezeEvent'] , factory );
+        define( ['./events/BreezeEvent'] , factory );
 
     }else if (typeof exports === 'object')
     {
@@ -38,6 +38,7 @@
         if( typeof this !== "object" )
             return false;
         var obj = this.__event__ || (this.__event__={});
+        if( typeof name === "undefined"  )return obj;
         if( value === null )
         {
             if( typeof obj[ name ] !== 'undefined' )
@@ -195,25 +196,16 @@
         }
 
         //获取事件数据集
-        var events = storage.call( this ) || {};
         var type = listener.type;
-
-        if( !events[ type ]  )
-        {
-            storage.call( this, events );
-            events[ type ]={'listener':[],'handle':handle || EventDispatcher.dispatchEvent };
-            events = events[ type ];
-
-        }else
-        {
-            events = events[ type ];
-        }
+        var events = storage.call( this );
+        handle = handle || dispatchEvent;
+        events = events[ type ] || ( events[ type ]={'listener':[],'handle':handle } );
 
         //如果不是 EventDispatcher 则在第一个事件中添加事件代理。
         if( events['listener'].length===0 && !(this instanceof EventDispatcher) )
         {
-            var eventType= BreezeEvent.eventType(type);
-            document.addEventListener ? this.addEventListener(eventType,handle,listener.useCapture) : this.attachEvent(eventType,handle);
+            type= BreezeEvent.eventType( type );
+            document.addEventListener ? this.addEventListener(type,handle,listener.useCapture) : this.attachEvent(type,handle);
         }
 
         //添加到元素
@@ -238,7 +230,7 @@
     var removeEventListener=function(type, listener, eventDispatcher )
     {
         //获取事件数据集
-        var events = storage.call(this) || {};
+        var events = storage.call(this);
         var old = events;
 
         if( type ==='*')
@@ -307,16 +299,15 @@
         if( event === null)return false;
 
         var element = event.currentTarget,
-            events= storage.call( element , event.type );
-
+            events= storage.call( element ,  event.type );
         events =events ? events.listener.slice(0) : [];
         var length= 0,listener;
+
         while(  length < events.length )
         {
             listener = events[ length++ ];
             var reference = listener.reference || listener.dispatcher;
             var is=false;
-
             if( event.currentTarget !== listener.currentTarget )
                 continue;
 
@@ -471,7 +462,7 @@
         var doc = element.contentWindow ?  element.contentWindow.document : element.ownerDocument || element.document || element,
             win= doc && doc.nodeType===9 ? doc.defaultView || doc.parentWindow : window;
 
-        if( !win || !doc )return;
+        if( !win || !doc )return true;
         var handle=function(event)
         {
             event= BreezeEvent.create( event );
@@ -490,6 +481,17 @@
         //add window
         listener.type='load';
         add.call(win,listener, handle );
+
+        listener.type=BreezeEvent.READY;
+        add.call(element,listener, handle );
+
+        if( doc.readyState === 'complete' )
+        {
+            var e = new BreezeEvent( BreezeEvent.READY );
+            e.target = element;
+            e.currentTarget = element;
+            handle( e );
+        }
         return true;
     });
 

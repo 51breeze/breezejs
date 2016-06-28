@@ -2,7 +2,7 @@
 
     if( typeof define === "function" )
     {
-        define( ['events/Event'] , factory );
+        define( ['events/BreezeEvent'] , factory );
 
     }else if (typeof exports === 'object')
     {
@@ -31,5 +31,6 @@
     PropertyEvent.CHANGE='propertyChange';
     PropertyEvent.COMMIT='propertyCommit';
     if( typeof window !== "undefined" )window.PropertyEvent=PropertyEvent;
+    BreezeEvent.fix[ PropertyEvent.CHANGE ] = 'input';
     return PropertyEvent;
 })

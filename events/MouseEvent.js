@@ -2,7 +2,7 @@
 
     if( typeof define === "function" )
     {
-        define( ['events/Event'] , factory );
+        define( ['events/BreezeEvent'] , factory );
 
     }else if (typeof exports === 'object')
     {
@@ -40,5 +40,9 @@
     MouseEvent.CLICK='click';
     MouseEvent.DBLCLICK='dblclick';
     if( typeof window !== "undefined" )window.MouseEvent=MouseEvent;
+    if( navigator.userAgent.match(/firefox\/([\d.]+)/i) )
+    {
+       BreezeEvent.fix[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
+    }
     return MouseEvent;
 })

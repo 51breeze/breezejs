@@ -89,7 +89,7 @@
      * @param searchElement
      * @returns {number}
      */
-    DataArray.prototype.indexOf=function(searchElement)
+    DataArray.prototype.indexOf=Array.prototype.indexOf || function(searchElement)
     {
         var i=0;
         for( ; i<this.length; i++ )if( this[i]===searchElement )
@@ -180,7 +180,7 @@
      * @param refObject
      * @returns {*}
      */
-    DataArray.prototype.forEach=function( callback )
+    DataArray.prototype.forEach=Array.prototype.forEach || function( callback )
     {
         var items=DataArray.prototype.slice.call(this,0),
             index = 0,

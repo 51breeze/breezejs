@@ -240,23 +240,22 @@
     /**
      *  @private
      */
-    function doRecursion(propName,strainer)
+    function doRecursion(propName,strainer, deep )
     {
         var currentItem,ret=[];
-        if(typeof strainer !== "function")strainer=function(){ return this.nodeType===1 }
+        var s = strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :
+                strainer === "undefined" ? function(){return this.nodeType===1} : strainer ;
         this.forEach(function(elem)
         {
-            currentItem=elem;
-            while( currentItem && ( currentItem=currentItem[ propName ] ) )
+            if( elem && elem.nodeType )
             {
-                var r = strainer.call( currentItem );
-                if( r !== false )
+                currentItem=elem;
+                do
                 {
-                    ret.concat(currentItem);
-                }else if (r===null)
-                {
-                    currentItem=null;
-                }
+                    currentItem = currentItem[propName];
+                    if( s.call(currentItem) )ret.concat( currentItem );
+
+                } while (deep && currentItem)
             }
         })
         return ret;
@@ -298,11 +297,11 @@
     Breeze.prototype.forEachNextItem=undefined;
 
     Breeze.prototype.length=0;
-    Breeze.prototype.slice= Array.prototype.slice;
-    Breeze.prototype.concat=Array.prototype.concat;
-    Breeze.prototype.indexOf= Array.prototype.indexOf;
-    Breeze.prototype.splice= Array.prototype.splice;
-    Breeze.prototype.toArray= Array.prototype.slice;
+    Breeze.prototype.slice= DataArray.prototype.slice;
+    Breeze.prototype.concat=DataArray.prototype.concat;
+    Breeze.prototype.indexOf= DataArray.prototype.indexOf;
+    Breeze.prototype.splice= DataArray.prototype.splice;
+    Breeze.prototype.toArray= DataArray.prototype.slice;
 
     /**
      * 遍历元素
@@ -748,26 +747,6 @@
     //============================================元素选择===================================
 
     /**
-     * 指定的选择器是否为当前作用域的子级
-     * @param selector
-     * @returns {boolean}
-     */
-    Breeze.prototype.contains=function( child )
-    {
-        if( Breeze.isNodeElement(child) )
-        {
-            var parent = this.current();
-            if('contains' in parent) {
-                return parent.contains( child );
-            }
-            else {
-                return !!(parent.compareDocumentPosition(child) & 16);
-            }
-        }
-        return Breeze.querySelector( child, this.current() ).length > 0;
-    }
-
-    /**
      * 回撒到指定步骤的选择器所匹配的元素,不包含初始化的步骤。
      * @param step
      * @returns {Breeze}
@@ -807,9 +786,7 @@
      */
     Breeze.prototype.parent=function( selector )
     {
-        var s = typeof selector === "string" ? function(){return null} : selector;
-        var results=doRecursion.call(this,'parentNode',s);
-        return doMake( this, results ,true );
+        return doMake.call( this, DataArray.prototype.unique.call( doRecursion.call(this,'parentNode',selector ) ) );
     }
 
     /**
@@ -818,19 +795,9 @@
      * @param selector
      * @returns {Breeze}
      */
-    Breeze.prototype.parents=function(selector )
+    Breeze.prototype.parents=function( selector )
     {
-        var isfun = Breeze.isFunction(selector);
-        var results=doRecursion.call(this,'parentNode',true,function(element,ret)
-        {
-            if( ( isfun && selector.call( element ) ) || Breeze.querySelector( selector, null,null, [element] ).length===1 )
-            {
-                ret.push(element);
-                return false;
-            }
-            return true;
-        });
-        return doMake( this, results ,true );
+        return doMake.call( this, DataArray.prototype.unique.call( doRecursion.call(this,'parentNode', selector, true ) ) );
     }
 
     /**
@@ -840,9 +807,7 @@
      */
     Breeze.prototype.prevAll=function( selector )
     {
-        var results=doRecursion.call(this,'previousSibling',true);
-        results=typeof selector !== "undefined" ? doGrep(results,selector) : results
-        return doMake( this, results ,true );
+        return doMake.call( this, doRecursion.call(this,'previousSibling', selector, true ) );
     }
 
     /**
@@ -852,20 +817,7 @@
      */
     Breeze.prototype.prev=function( selector )
     {
-        var type = typeof  selector;
-        var results=doRecursion.call(this,'previousSibling',true,function(element,ret)
-        {
-            if( ( type==='function' && selector.call( element ) ) ||
-                ( type==='string' && Breeze.querySelector( selector, null,null, [element] ).length===1) ||
-                element.nodeType==1 )
-            {
-                ret.push(element);
-                return false;
-            }
-            return true;
-        });
-        results=typeof selector !== "undefined" ? doGrep(results,selector) : results;
-        return  doMake( this, results ,true );
+        return doMake.call( this, doRecursion.call(this,'previousSibling', selector ) );
     }
 
     /**
@@ -875,9 +827,7 @@
      */
     Breeze.prototype.nextAll=function( selector )
     {
-        var results=doRecursion.call(this,'nextSibling',true);
-        results=typeof selector !== "undefined" ? doGrep(results,selector) : results;
-        return doMake( this, results ,true );
+        return doMake.call( this, doRecursion.call(this,'nextSibling', selector , true ) );
     }
 
     /**
@@ -887,9 +837,7 @@
      */
     Breeze.prototype.next=function( selector )
     {
-        var results=doRecursion.call(this,'nextSibling',false);
-        results=typeof selector !== "undefined" ? doGrep(results,selector) : results
-        return doMake( this, results ,true );
+        return doMake.call( this, doRecursion.call(this,'nextSibling', selector ) );
     }
 
     /**
@@ -899,40 +847,37 @@
      */
     Breeze.prototype.siblings=function( selector )
     {
-        var results=[].concat( doRecursion.call(this,'previousSibling',true,null,true) , doRecursion.call(this,'nextSibling',true,null,true) )
-        if( results.length > 1 )results=DataArray.prototype.unique.call( results );
-        if( typeof selector !== "undefined" )results= doGrep(results,selector);
-        return doMake( this, results ,true );
+        var results=[].concat( doRecursion.call(this,'previousSibling',selector,true) , doRecursion.call(this,'nextSibling',selector, true) );
+        return doMake.call( this, results );
     }
 
     /**
      * 查找所有匹配元素的所有子级元素，不包括孙元素
-     * @param selector 如果是 * 返回包括文本节点的所有元素。不指定返回所有HTMLElement 元素。
+     * @param selector 如果是 * 返回包括文本节点的所有元素。不指定返回所有HTMLElement元素。
      * @returns {Breeze}
      */
     Breeze.prototype.children=function( selector )
     {
-        if( typeof selector === 'undefined' ){
-            selector= '*';
+        if( typeof selector === 'undefined' )
+        {
+            selector= function(){ return this.nodeType===1 };
         }
-
+        var is= typeof selector;
         var results=[];
         this.forEach(function(element)
         {
-            if( !Breeze.isFrame( element ) )
+            if( !Breeze.isFrame( element ) && element.hasChildNodes() )
             {
-                results=results.concat( Breeze.querySelector(selector,element) );
+                results =  is ? this.concat.call( results, new DataArray( this.slice.call( element.childNodes() ) ).filter( selector ) ) :
+                                this.concat.call( results, this.slice.call( element.childNodes() ) );
             }
-        })
-        return doMake( this, results ,true );
+        });
+        return doMake.call( this, DataArray.prototype.unique.call(results) );
     }
 
 
 
-
-
     //========================操作元素===========================
-
 
     /**
      * 用指定的元素来包裹当前所有匹配到的元素
@@ -942,7 +887,7 @@
     Breeze.prototype.wrap=function( element )
     {
         var is=Breeze.isFunction( element );
-        return this.forEach(function(elem,index)
+        return this.forEach(function(elem)
         {
             var wrap=Breeze.createElement( is ? element.call(this,elem) : element );
             this.current( elem.parentNode ).addChildAt( wrap , elem );
@@ -961,10 +906,10 @@
         var is= typeof selector === "undefined";
         return this.forEach(function(elem)
         {
-            var parent= is ?  elem.parentNode : this.parent( selector );
-            if( parent && parent.ownerDocument && Sizzle.contains( parent.ownerDocument.body, parent ) )
+            var parent= is ?  elem.parentNode : doRecursion.call(this,'parentNode',selector )[0];
+            if( parent && parent.ownerDocument && Breeze.contains( parent.ownerDocument.body, parent ) )
             {
-                var children=this.current( parent ).children('*',true);
+                var children=parent.hasChildNodes() ? this.slice.call( parent.childNodes ) : [];
                 if( parent.parentNode )
                 {
                     this.current( parent.parentNode );
@@ -1282,43 +1227,79 @@
      * @param mixed context  上下文
      * @returns []
      */
-    Breeze.querySelector=function(selector, context)
+    Breeze.querySelector=function(selector, context, results, seed )
     {
         if( typeof Sizzle === "function" )
         {
-            return Sizzle( selector, context);
+            return Sizzle( selector, context, results, seed);
         }
 
-        //如果选择器不是一个字符串
-        if( typeof selector !== "string" )
+        if( !(results instanceof Array) )
         {
-            return selector && typeof selector.nodeName === "string" && selector.nodeType ?  [ selector ] : [];
-        }
-
-        var results;
-        var has = false;
-
-        //设置上下文
-        if( context && typeof context.nodeName === "string" && context.nodeType && context.nodeType != 9 )
-        {
-            var id = context.getAttribute('id');
-            if( !id || id =='')
+            //如果选择器不是一个字符串
+            if (typeof selector !== "string")
             {
-                has = true;
-                id = 'sq'+Math.random() * 100000000;
-                context.setAttribute('id', id);
-            }
-            selector = '#'+id+' '+selector;
+                results = selector && typeof selector.nodeName === "string" && selector.nodeType ? [selector] : [];
 
-        }else if( typeof context === "string" )
-        {
-            selector = context+' '+selector;
+            }else
+            {
+                var has = false;
+                //设置上下文
+                if (context && typeof context.nodeName === "string" && context.nodeType === 1) {
+                    var id = context.getAttribute('id');
+                    if (!id || id == '') {
+                        has = true;
+                        id = 'sq_' + Math.random() * 1000000;
+                        context.setAttribute('id', id);
+                    }
+                    selector = '#' + id + ' ' + selector;
+
+                } else if (typeof context === "string") {
+                    selector = context + ' ' + selector;
+                }
+                results = document.querySelectorAll(selector);
+                if(has)context.removeAttribute('id');
+            }
         }
 
-        results = Array.prototype.slice.call( document.querySelectorAll(selector) );
-        if(has)context.removeAttribute('id');
+        if( seed instanceof Array )
+        {
+            var i=0;
+            while( i<results.length )
+            {
+                if( seed.indexOf( results[i] ) === false )
+                {
+                    results.splice(i,1);
+
+                }else
+                {
+                    i++;
+                }
+            }
+        }
         return results;
     }
+
+    /**
+     * 指定的选择器是否为当前作用域的子级
+     * @param parent
+     * @param child
+     * @returns {boolean}
+     */
+    Breeze.contains=function(parent, child )
+    {
+        if( Breeze.isNodeElement(child) )
+        {
+            if('contains' in parent) {
+                return parent.contains( child );
+            }
+            else {
+                return !!(parent.compareDocumentPosition(child) & 16);
+            }
+        }
+        return Breeze.querySelector( child, parent ).length > 0;
+    }
+
 
     /**
      * @type {RegExp}
