@@ -11,7 +11,10 @@
     function DataArray()
     {
         if( !(this instanceof DataArray) )
-           return new DataArray();
+        {
+            var d = new DataArray();
+            return d.concat.apply(d, arguments);
+        }
         Array.call(this);
         this.length = 0;
         this.concat.apply(this,arguments);

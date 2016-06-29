@@ -6,22 +6,28 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function( factory ){
+(function( global, factory ){
 
     if( typeof define === "function" )
     {
-        define( ['EventDispatcher','DataArray','./events/StyleEvent','./events/PropertyEvent'] , factory );
+        define(['EventDispatcher','DataArray','./events/StyleEvent','./events/PropertyEvent'] , function(){
+           return factory( global );
+        });
 
-    }else if (typeof exports === 'object')
+    }else if( typeof module === "object" && typeof module.exports === "object"  )
     {
-        module.exports = factory;
+        module.exports = global.document ? factory( global ) :
+        function( w ) {
+            if ( !w.document )throw new Error( "Breeze requires a window with a document" );
+            return factory( w );
+        };
 
     }else
     {
-        factory();
+        factory( global );
     }
 
-})(function( undefined  )
+})(typeof window !== "undefined" ? window : this,function( window, undefined  )
 {
     "use strict";
 
@@ -225,7 +231,7 @@
                 currentItem=elem;
                 do{
                     currentItem = currentItem[propName];
-                    if( s.call(currentItem) )ret = ret.concat( currentItem );
+                    if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );
                 } while (deep && currentItem)
             }
         })
@@ -263,9 +269,8 @@
         this.forEachCurrentIndex=NaN;
         this.forEachPrevItem=null;
         this.forEachNextItem=null;
-
     };
-    if( typeof window !== "undefined" )window.Breeze=Breeze;
+
     Breeze.prototype= new EventDispatcher();
     Breeze.prototype.constructor = Breeze;
     Breeze.prototype.context = document;
@@ -311,9 +316,9 @@
                 if( result !== undefined )
                     break;
             }
-            this.forEachCurrentItem = undefined;
-            this.forEachNextItem    = undefined;
-            this.forEachPrevItem    = undefined;
+            this.forEachCurrentItem = null;
+            this.forEachNextItem    = null;
+            this.forEachPrevItem    = null;
             this.forEachCurrentIndex= NaN;
         }
         return typeof result === 'undefined' ? this : result;
@@ -328,22 +333,30 @@
     {
         if( typeof element !== "undefined" )
         {
-            var index = element === null ? NaN : this.indexOf( element );
-            if( index >= 0 )
+            if( element === null )
             {
-                this.forEachCurrentItem=element;
-                this.forEachCurrentIndex= index;
+                this.forEachCurrentItem=null;
+                this.forEachCurrentIndex= NaN;
 
             }else if( typeof element=== "string" )
             {
                 element=Breeze.querySelector(element, this.context || document );
-                this.forEachCurrentItem = element && element.length > 0 ? element[0] : undefined;
+                this.forEachCurrentItem = element && element.length > 0 ? element[0] : null;
                 this.forEachCurrentIndex = NaN;
 
             }else
             {
-                this.forEachCurrentItem = element || undefined;
-                this.forEachCurrentIndex = NaN;
+                var index = element === null ? NaN : this.indexOf( element );
+                if( index >= 0 )
+                {
+                    this.forEachCurrentItem=element;
+                    this.forEachCurrentIndex= index;
+
+                }else
+                {
+                    this.forEachCurrentItem = element || null;
+                    this.forEachCurrentIndex = NaN;
+                }
             }
             return this;
         }
@@ -937,7 +950,7 @@
     {
         var ret=[];
         this.forEach(function(elem){
-            ret = ret.concat( Breeze.querySelector(selector, elem.parentNode || elem ) );
+            ret = ret.concat.apply(ret,Breeze.querySelector(selector, elem ) );
         })
         return doMake.call( this, ret );
     }
@@ -949,8 +962,7 @@
      */
     Breeze.prototype.parent=function( selector )
     {
-        var r = doRecursion.call(this,'parentNode',selector )
-        return doMake.call( this, new DataArray( r ).unique().toArray() );
+        return doMake.call( this, DataArray( doRecursion.call(this,'parentNode',selector ) ).unique().toArray() );
     }
 
     /**
@@ -961,7 +973,7 @@
      */
     Breeze.prototype.parents=function( selector )
     {
-        return doMake.call( this, DataArray.prototype.unique.call( doRecursion.call(this,'parentNode', selector, true ) ) );
+        return doMake.call( this, DataArray( doRecursion.call(this,'parentNode',selector, true ) ).unique().toArray() );
     }
 
     /**
@@ -1032,11 +1044,11 @@
         {
             if( !Breeze.isFrame( element ) && element.hasChildNodes() )
             {
-                results =  is ? this.concat.call( results, new DataArray( this.slice.call( element.childNodes() ) ).filter( selector ) ) :
+                results =  is ? this.concat.call( results, DataArray( this.slice.call( element.childNodes() ) ).filter( selector ) ) :
                                 this.concat.call( results, this.slice.call( element.childNodes() ) );
             }
         });
-        return doMake.call( this, DataArray.prototype.unique.call(results) );
+        return doMake.call( this, DataArray(results).unique().toArray() );
     }
 
 
@@ -1442,7 +1454,7 @@
                     var id = context.getAttribute('id');
                     if (!id || id == '') {
                         has = true;
-                        id = 'sq_' + Math.random() * 1000000;
+                        id = 'sq_' + Math.ceil( Math.random() * 1000000);
                         context.setAttribute('id', id);
                     }
                     selector = '#' + id + ' ' + selector;
@@ -2594,6 +2606,7 @@
         get:function (style){return parseInt( fix.getsizeval.call(this,'Height') || style['height'] ) || 0;}
     }
 
-
+    //defined global variable
+    if( typeof window.document !== "undefined" )window.Breeze=Breeze;
     return Breeze;
 });

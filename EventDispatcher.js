@@ -6,22 +6,24 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function(factory){
+(function(global, factory){
 
     if( typeof define === "function" )
     {
-        define( ['./events/BreezeEvent','./events/MouseEvent','./events/KeyboardEvent','./events/PropertyEvent'] , factory );
+        define(['./events/BreezeEvent','./events/MouseEvent','./events/KeyboardEvent'] , function(b, c){
+            return factory( global );
+        });
 
-    }else if (typeof exports === 'object')
+    }else if( typeof module === "object" && typeof module.exports === "object"  )
     {
-        module.exports = factory;
+        module.exports = factory( global )
 
     }else
     {
-        factory();
+        factory( global );
     }
 
-})(function( undefined )
+})(typeof window !== "undefined" ? window : this,function(window, undefined )
 {
     "use strict";
 
@@ -69,7 +71,7 @@
         if( !(this instanceof EventDispatcher) )
             return new EventDispatcher(target);
         target  = typeof target !== "undefined" ? ( target instanceof Array ? target :  [ target ]  ) : null;
-        this.getEventTarget = target ?
+        this.getProxyTarget = target ?
             function(){ return target.length > 0 ? target : [this] } :
             function(){return this.forEachCurrentItem ? [ this.forEachCurrentItem ] : ( this.length > 0 ? this : [this] )}
     };
@@ -84,7 +86,7 @@
      */
     EventDispatcher.prototype.hasEventListener=function( type  )
     {
-        var target= this.getEventTarget()
+        var target= this.getProxyTarget()
             ,index=0;
         while( index < target.length )
         {
@@ -105,13 +107,13 @@
      * @param priority
      * @returns {EventDispatcher}
      */
-    EventDispatcher.prototype.addEventListener=function(type,listener,useCapture,priority,reference)
+    EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,priority,reference)
     {
         //指定一组事件
         if( type instanceof Array )
         {
             var len=type.length;
-            while( len > 0 )this.addEventListener( type[--len],listener,useCapture,priority,reference);
+            while( len > 0 )this.addEventListener( type[--len],callback,useCapture,priority,reference);
             return this;
         }
 
@@ -120,11 +122,11 @@
           throw new Error('invalid event type.')
         }
 
-        var target= this.getEventTarget()
+        var target= this.getProxyTarget()
             ,index=0;
         while(  index < target.length )
         {
-            var listener=new EventDispatcher.Listener(listener,useCapture,priority,reference);
+            var listener=new EventDispatcher.Listener(callback,useCapture,priority,reference);
             listener.dispatcher=this;
             listener.currentTarget=target[index];
             listener.type=type;
@@ -146,7 +148,7 @@
      */
     EventDispatcher.prototype.removeEventListener=function(type,listener)
     {
-        var target= this.getEventTarget();
+        var target= this.getProxyTarget();
         var b=0;
         while( b < target.length )
         {
@@ -166,14 +168,14 @@
         if( !(event instanceof BreezeEvent) )
             throw new Error('invalid event.')
 
-        var target = this.getEventTarget();
+        var target = this.getProxyTarget();
         var i=0;
         var element;
         while( i < target.length && !event.propagationStopped )
         {
             element =  target[i] ;
             event.currentTarget=element;
-            event.getEventTarget = event.getEventTarget || element;
+            event.target = event.target || element;
             dispatchEvent( event );
             i++;
         };
@@ -296,8 +298,8 @@
     {
         //初始化一个全局事件
         event= BreezeEvent.create( event );
-        if( event === null)return false;
 
+        if( event === null)return false;
         var element = event.currentTarget,
             events= storage.call( element ,  event.type );
         events =events ? events.listener.slice(0) : [];
@@ -341,7 +343,9 @@
     EventDispatcher.Listener=function(callback,useCapture,priority,reference)
     {
         if( typeof callback !=='function' )
-            throw new Error('callback not is function in EventDispatcher.Listener')
+        {
+            throw new Error('callback not is function in EventDispatcher.Listener');
+        }
         this.callback=callback;
         this.useCapture=!!useCapture;
         this.priority=parseInt(priority) || 0;
@@ -467,7 +471,7 @@
             if( event )
             {
                 event.currentTarget = event.currentTarget || doc;
-                event.getEventTarget = event.getEventTarget || event.currentTarget;
+                event.target = event.target || event.currentTarget;
                 dispatch( event );
                 remove.call(doc,'DOMContentLoaded');
                 remove.call(win,'load');
@@ -483,7 +487,7 @@
         return true;
     });
 
-    if( typeof window !== "undefined" )
+    if( typeof window.document !== "undefined" )
     {
         window.EventDispatcher = EventDispatcher;
     }

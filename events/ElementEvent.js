@@ -7,22 +7,25 @@
  * @param cancelable
  * @constructor
  */
-(function(factory){
 
-    if( typeof define === "function" )
-    {
-        define( ['events/BreezeEvent'] , factory );
+(function(global,factory){
 
-    }else if (typeof exports === 'object')
-    {
-        module.exports = factory;
+        if( typeof define === "function" )
+        {
+            define(['./BreezeEvent'] , function(){
+                return factory( global );
+            });
 
-    }else
-    {
-        factory();
-    }
+        }else if( typeof module === "object" && typeof module.exports === "object"  )
+        {
+            module.exports = factory( global );
 
-})(function(event){
+        }else
+        {
+            factory( global );
+        }
+
+})(typeof window !== "undefined" ? window : this,function(event){
 
     function ElementEvent( type, bubbles,cancelable ){ event.call(this, type, bubbles,cancelable );}
     ElementEvent.prototype=new event();
@@ -34,6 +37,6 @@
     ElementEvent.BEFORE_CHILD_ADD='elementBeforeChildAdd';
     ElementEvent.BEFORE_CHILD_REMOVE='elementBeforeChildRemove';
 
-    if( typeof window !== "undefined" )window.ElementEvent=ElementEvent;
+    if( typeof window.document !== "undefined" )window.ElementEvent=ElementEvent;
     return ElementEvent;
 })

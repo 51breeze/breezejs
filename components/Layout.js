@@ -449,7 +449,7 @@
             for( ; index < children.length ; index++ )
             {
                 var child = children[index];
-                var instance = Component.getInstance(child.getEventTarget,Layout)
+                var instance = Component.getInstance(child.getProxyTarget,Layout)
                 if( instance )
                 {
                     instance.moveTo(child.left + xOffset, child.top + yOffset );
@@ -458,10 +458,10 @@
                 }else
                 {
 
-                    Utils.style(child.getEventTarget,'left', child.left + xOffset );
-                    Utils.style(child.getEventTarget,'top', child.top + yOffset );
-                    Utils.style(child.getEventTarget,'width',child.width);
-                    Utils.style(child.getEventTarget,'height',child.height);
+                    Utils.style(child.target,'left', child.left + xOffset );
+                    Utils.style(child.target,'top', child.top + yOffset );
+                    Utils.style(child.target,'width',child.width);
+                    Utils.style(child.target,'height',child.height);
                 }
             }
         }

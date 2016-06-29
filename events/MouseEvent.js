@@ -1,19 +1,21 @@
-(function(factory){
+(function(global,factory){
 
     if( typeof define === "function" )
     {
-        define( ['./BreezeEvent'] , factory );
+        define(['./BreezeEvent'] , function(){
+            return factory( global );
+        });
 
-    }else if (typeof exports === 'object')
+    }else if( typeof module === "object" && typeof module.exports === "object"  )
     {
-        module.exports = factory;
+        module.exports = factory( global );
 
     }else
     {
-        factory();
+        factory( global );
     }
 
-})(function(){
+})(typeof window !== "undefined" ? window : this,function(){
 
     /**
      * MouseEvent
@@ -39,10 +41,12 @@
     MouseEvent.MOUSE_WHEEL='mousewheel';
     MouseEvent.CLICK='click';
     MouseEvent.DBLCLICK='dblclick';
-    if( typeof window !== "undefined" )window.MouseEvent=MouseEvent;
+
     if( navigator.userAgent.match(/firefox\/([\d.]+)/i) )
     {
        BreezeEvent.fix[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
     }
+
+    if( typeof window.document !== "undefined" )window.MouseEvent=MouseEvent;
     return MouseEvent;
 })

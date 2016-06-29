@@ -1,19 +1,21 @@
-(function(factory){
+(function(global,factory){
 
     if( typeof define === "function" )
     {
-        define( ['events/BreezeEvent'] , factory );
+        define(['./BreezeEvent'] , function(){
+            return factory( global );
+        });
 
-    }else if (typeof exports === 'object')
+    }else if( typeof module === "object" && typeof module.exports === "object"  )
     {
-        module.exports = factory;
+        module.exports = factory( global );
 
     }else
     {
-        factory();
+        factory( global );
     }
 
-})(function(event){
+})(typeof window !== "undefined" ? window : this,function(){
 
     /**
      * PropertyEvent
@@ -22,15 +24,16 @@
      * @param cancelable
      * @constructor
      */
-    function PropertyEvent( type, bubbles,cancelable ){ event.call(this, type, bubbles,cancelable );}
-    PropertyEvent.prototype=new event();
+    function PropertyEvent( type, bubbles,cancelable ){ BreezeEvent.call(this, type, bubbles,cancelable );}
+    PropertyEvent.prototype=new BreezeEvent();
     PropertyEvent.prototype.property=null;
     PropertyEvent.prototype.newValue=null;
     PropertyEvent.prototype.oldValue=null;
     PropertyEvent.prototype.constructor=PropertyEvent;
     PropertyEvent.CHANGE='propertyChange';
     PropertyEvent.COMMIT='propertyCommit';
-    if( typeof window !== "undefined" )window.PropertyEvent=PropertyEvent;
+
     BreezeEvent.fix.map[ PropertyEvent.CHANGE ] = 'input';
+    if( typeof window.document !== "undefined" )window.PropertyEvent=PropertyEvent;
     return PropertyEvent;
 })

@@ -1,19 +1,21 @@
-(function(factory){
+(function(global,factory){
 
     if( typeof define === "function" )
     {
-        define( ['events/PropertyEvent'] , factory );
+        define(['./BreezeEvent'] , function(){
+            return factory( global );
+        });
 
-    }else if (typeof exports === 'object')
+    }else if( typeof module === "object" && typeof module.exports === "object"  )
     {
-        module.exports = factory;
+        module.exports = factory( global );
 
     }else
     {
-        factory();
+        factory( global );
     }
 
-})(function(event){
+})(typeof window !== "undefined" ? window : this,function(){
 
     /**
      * StyleEvent
@@ -22,10 +24,10 @@
      * @param cancelable
      * @constructor
      */
-    function StyleEvent( type, bubbles,cancelable ){ event.call(this, type, bubbles,cancelable );}
-    StyleEvent.prototype=new event();
+    function StyleEvent( type, bubbles,cancelable ){ BreezeEvent.call(this, type, bubbles,cancelable );}
+    StyleEvent.prototype=new BreezeEvent();
     StyleEvent.prototype.constructor=StyleEvent;
     StyleEvent.CHANGE='styleChange';
-    if( typeof window !== "undefined" )window.StyleEvent=StyleEvent;
+    if( typeof window.document !== "undefined" )window.StyleEvent=StyleEvent;
     return StyleEvent;
 })

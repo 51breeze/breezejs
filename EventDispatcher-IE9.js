@@ -8,7 +8,7 @@
      */
     var readyState=function( event , type )
     {
-        var target=  event.srcElement || event.getEventTarget;
+        var target=  event.srcElement || event.getProxyTarget;
         var readyState=target.readyState;
         var eventType= event.type || null;
         if( eltie9 )
@@ -43,7 +43,7 @@
             if( event )
             {
                 event.currentTarget= element;
-                event.getEventTarget=element;
+                event.getProxyTarget=element;
                 readyState.call(this,event,BreezeEvent.LOAD );
             }
         };
@@ -75,7 +75,7 @@
             if( event )
             {
                 event.currentTarget= doc;
-                event.getEventTarget=doc;
+                event.getProxyTarget=doc;
                 readyState.call(this,event,BreezeEvent.READY);
             }
         }

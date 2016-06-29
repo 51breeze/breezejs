@@ -1,26 +1,28 @@
-(function(factory){
+(function(global,factory){
 
     if( typeof define === "function" )
     {
-        define( ['events/BreezeEvent'] , factory );
+        define(['./BreezeEvent'] , function(){
+            return factory( global );
+        });
 
-    }else if (typeof exports === 'object')
+    }else if( typeof module === "object" && typeof module.exports === "object"  )
     {
-        module.exports = factory;
+        module.exports = factory( global );
 
     }else
     {
-        factory();
+        factory( global );
     }
 
-})(function(event){
+})(typeof window !== "undefined" ? window : this,function(){
 
-    function KeyboardEvent( type, bubbles,cancelable  ){ event.call(this,  type, bubbles,cancelable );}
-    KeyboardEvent.prototype=new event();
+    function KeyboardEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this,  type, bubbles,cancelable );}
+    KeyboardEvent.prototype=new BreezeEvent();
     KeyboardEvent.prototype.constructor=KeyboardEvent;
     KeyboardEvent.KEY_PRESS='keypress';
     KeyboardEvent.KEY_UP='keyup';
     KeyboardEvent.KEY_DOWN='keydown';
-    if( typeof window !== "undefined" )window.KeyboardEvent=KeyboardEvent;
+    if( typeof window.document !== "undefined" )window.KeyboardEvent=KeyboardEvent;
     return KeyboardEvent;
 })

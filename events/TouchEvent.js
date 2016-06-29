@@ -6,74 +6,85 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function( window, undefined ){
+(function(global,factory){
 
-    var TouchEvent=function(type, bubbles,cancelable  ){ BreezeEvent.call(this,type, bubbles,cancelable );};
-        TouchEvent.prototype.constructor=TouchEvent ;
-        TouchEvent.prototype=new BreezeEvent();
-        TouchEvent.TOUCH_START='touchStart';
-        TouchEvent.TOUCH_MOVE='touchMove';
-        TouchEvent.TOUCH_END='touchEnd';
-        TouchEvent.TOUCH_CANCEL='touchCancel';
+    if( typeof define === "function" )
+    {
+        define(['./BreezeEvent'] , function(){
+            return factory( global );
+        });
 
-    var PinchEvent=function(type, bubbles,cancelable ){ BreezeEvent.call(this,type, bubbles,cancelable );};
-        PinchEvent.prototype.constructor=PinchEvent ;
-        PinchEvent.prototype=new BreezeEvent();
-        PinchEvent.prototype.moveX=NaN;
-        PinchEvent.prototype.moveY=NaN;
-        PinchEvent.prototype.startX=NaN;
-        PinchEvent.prototype.startY=NaN;
-        PinchEvent.prototype.scale=NaN;
-        PinchEvent.prototype.previousScale=NaN;
-        PinchEvent.prototype.moveDistance=NaN;
-        PinchEvent.prototype.startDistance=NaN;
+    }else if( typeof module === "object" && typeof module.exports === "object"  )
+    {
+        module.exports = factory( global );
 
-        PinchEvent.TOUCH_PINCH_START='pinchStart';
-        PinchEvent.TOUCH_PINCH_MOVE='pinchMove';
-        PinchEvent.TOUCH_PINCH_END='pinchEnd';
+    }else
+    {
+        factory( global );
+    }
 
-    var DragEvent=function(type, bubbles,cancelable ){ BreezeEvent.call(this,type, bubbles,cancelable );};
-        DragEvent.prototype.constructor=DragEvent;
-        DragEvent.prototype=new BreezeEvent();
-        DragEvent.prototype.startX=NaN;
-        DragEvent.prototype.startY=NaN;
-        DragEvent.prototype.moveX=NaN;
-        DragEvent.prototype.moveY=NaN;
-        DragEvent.prototype.lastMoveX=NaN;
-        DragEvent.prototype.lastMoveY=NaN;
-        DragEvent.prototype.startDate=NaN;
-        DragEvent.prototype.moveDate=NaN;
-        DragEvent.prototype.velocity=NaN;
-        DragEvent.prototype.held=false;
+})(typeof window !== "undefined" ? window : this,function( window, undefined ){
 
-        DragEvent.TOUCH_DRAG_START='dragStart';
-        DragEvent.TOUCH_DRAG_MOVE='dragMove';
-        DragEvent.TOUCH_DRAG_END='dragEnd';
+    function TouchEvent(type, bubbles,cancelable  ){ BreezeEvent.call(this,type, bubbles,cancelable );};
+    TouchEvent.prototype.constructor=TouchEvent ;
+    TouchEvent.prototype=new BreezeEvent();
+    TouchEvent.TOUCH_START='touchStart';
+    TouchEvent.TOUCH_MOVE='touchMove';
+    TouchEvent.TOUCH_END='touchEnd';
+    TouchEvent.TOUCH_CANCEL='touchCancel';
 
-    var SwipeEvent=function(type, bubbles,cancelable ){ BreezeEvent.call(this,type, bubbles,cancelable );};
-    SwipeEvent.prototype.constructor=SwipeEvent;
-    SwipeEvent.prototype=new BreezeEvent();
-    SwipeEvent.prototype.startX=NaN;
-    SwipeEvent.prototype.startY=NaN;
-    SwipeEvent.prototype.moveX=NaN;
-    SwipeEvent.prototype.moveY=NaN;
-    SwipeEvent.prototype.lastMoveX=NaN;
-    SwipeEvent.prototype.lastMoveY=NaN;
-    SwipeEvent.prototype.startDate=NaN;
-    SwipeEvent.prototype.moveDate=NaN;
-    SwipeEvent.prototype.velocity=NaN;
-    SwipeEvent.prototype.vDistance=NaN;
-    SwipeEvent.prototype.hDistance=NaN;
-    SwipeEvent.prototype.swiped=NaN;
+    function TouchPinchEvent(type, bubbles, cancelable ){ TouchEvent.call(this,type, bubbles,cancelable );};
+    TouchPinchEvent.prototype.constructor=TouchPinchEvent ;
+    TouchPinchEvent.prototype=new TouchEvent();
+    TouchPinchEvent.prototype.moveX=NaN;
+    TouchPinchEvent.prototype.moveY=NaN;
+    TouchPinchEvent.prototype.startX=NaN;
+    TouchPinchEvent.prototype.startY=NaN;
+    TouchPinchEvent.prototype.scale=NaN;
+    TouchPinchEvent.prototype.previousScale=NaN;
+    TouchPinchEvent.prototype.moveDistance=NaN;
+    TouchPinchEvent.prototype.startDistance=NaN;
+    TouchPinchEvent.TOUCH_PINCH_START='touchPinchStart';
+    TouchPinchEvent.TOUCH_PINCH_MOVE='touchPinchMove';
+    TouchPinchEvent.TOUCH_PINCH_END='touchPinchEnd';
 
-    SwipeEvent.TOUCH_SWIPE_START='swipeStart';
-    SwipeEvent.TOUCH_SWIPE_MOVE='swipeMove';
-    SwipeEvent.TOUCH_SWIPE_END='swipeEnd';
+    function TouchDragEvent(type, bubbles, cancelable ){ TouchEvent.call(this,type, bubbles,cancelable );};
+    TouchDragEvent.prototype.constructor=TouchDragEvent;
+    TouchDragEvent.prototype=new TouchEvent();
+    TouchDragEvent.prototype.startX=NaN;
+    TouchDragEvent.prototype.startY=NaN;
+    TouchDragEvent.prototype.moveX=NaN;
+    TouchDragEvent.prototype.moveY=NaN;
+    TouchDragEvent.prototype.lastMoveX=NaN;
+    TouchDragEvent.prototype.lastMoveY=NaN;
+    TouchDragEvent.prototype.startDate=NaN;
+    TouchDragEvent.prototype.moveDate=NaN;
+    TouchDragEvent.prototype.velocity=NaN;
+    TouchDragEvent.prototype.held=false;
+    TouchDragEvent.TOUCH_DRAG_START='touchDragStart';
+    TouchDragEvent.TOUCH_DRAG_MOVE='touchDragMove';
+    TouchDragEvent.TOUCH_DRAG_END='touchDragEnd';
 
-    window.TouchDragEvent=DragEvent;
-    window.TouchPinchEvent=PinchEvent;
-    window.TouchSwipeEvent=SwipeEvent;
-    window.TouchEvent=TouchEvent;
+    function TouchSwipeEvent(type, bubbles, cancelable ){ TouchEvent.call(this,type, bubbles,cancelable );};
+    TouchSwipeEvent.prototype.constructor=TouchSwipeEvent;
+    TouchSwipeEvent.prototype=new TouchEvent();
+    TouchSwipeEvent.prototype.startX=NaN;
+    TouchSwipeEvent.prototype.startY=NaN;
+    TouchSwipeEvent.prototype.moveX=NaN;
+    TouchSwipeEvent.prototype.moveY=NaN;
+    TouchSwipeEvent.prototype.lastMoveX=NaN;
+    TouchSwipeEvent.prototype.lastMoveY=NaN;
+    TouchSwipeEvent.prototype.startDate=NaN;
+    TouchSwipeEvent.prototype.moveDate=NaN;
+    TouchSwipeEvent.prototype.velocity=NaN;
+    TouchSwipeEvent.prototype.vDistance=NaN;
+    TouchSwipeEvent.prototype.hDistance=NaN;
+    TouchSwipeEvent.prototype.swiped=NaN;
+    TouchSwipeEvent.SWIPE_START='touchSwipeStart';
+    TouchSwipeEvent.SWIPE_MOVE='touchSwipeMove';
+    TouchSwipeEvent.SWIPE_END='touchSwipeEnd';
+
+
 
     var getDistance=function(startX,endX,startY,endY)
     {
@@ -90,17 +101,25 @@
         rotate: {
             requiredTouches: 1
         }
-
     };
 
     //=============================== DragEvent ===============================
 
     var type={};
-    type[DragEvent.TOUCH_DRAG_START] = TouchEvent.TOUCH_START;
-    type[DragEvent.TOUCH_DRAG_MOVE]  = [TouchEvent.TOUCH_MOVE,TouchEvent.TOUCH_START];
-    type[DragEvent.TOUCH_DRAG_END]   = TouchEvent.TOUCH_END;
-    EventDispatcher.SpecialEvent(type,function(element,listener,type)
+    type[TouchDragEvent.TOUCH_DRAG_START] = [TouchEvent.TOUCH_START];
+    type[TouchDragEvent.TOUCH_DRAG_MOVE]  = [TouchEvent.TOUCH_MOVE,TouchEvent.TOUCH_START];
+    type[TouchDragEvent.TOUCH_DRAG_END]   = [TouchEvent.TOUCH_END];
+    EventDispatcher.SpecialEvent( [TouchDragEvent.TOUCH_DRAG_START,TouchDragEvent.TOUCH_DRAG_MOVE, TouchDragEvent.TOUCH_DRAG_END ] ,function(listener, dispatch, add, remove)
     {
+         var t = type[ listener.type ];
+         for( var i =0; i< t.length; i++)
+         {
+
+            // add(t[])
+         }
+
+
+
         var dataName='__touch_drag_data__';
         var settings=TouchEvent.setting['drag'],
             x=0,
@@ -116,7 +135,7 @@
         }
         if( touches.length === 1 )
         {
-            switch( type )
+            switch( listener.type )
             {
                case TouchEvent.TOUCH_START.toLowerCase() :
                {
@@ -127,8 +146,8 @@
                    data.lastMoveY=y;
                    data.startDate=event.timeStamp;
                    data.held=false;
-                   event= new DragEvent( event ,data);
-                   event.type = DragEvent.TOUCH_DRAG_START;
+                   event= new TouchDragEvent( event ,data);
+                   event.type = TouchDragEvent.TOUCH_DRAG_START;
                    this.dispatchEvent( event );
                }break;
                case TouchEvent.TOUCH_MOVE.toLowerCase() :
@@ -145,8 +164,8 @@
                    data.velocity = ms === 0 ? 0 : distance / ms;
                    if( data.held )
                    {
-                       event = new DragEvent( event,data);
-                       event.type = DragEvent.TOUCH_DRAG_MOVE;
+                       event = new TouchDragEvent( event,data);
+                       event.type = TouchDragEvent.TOUCH_DRAG_MOVE;
                        this.dispatchEvent( event );
                    }
                }break;
@@ -154,8 +173,8 @@
 
         }else if( type===TouchEvent.TOUCH_END.toLowerCase() && data )
         {
-            event= new DragEvent( event ,data);
-            event.type = DragEvent.TOUCH_DRAG_END;
+            event= new TouchDragEvent( event ,data);
+            event.type = TouchDragEvent.TOUCH_DRAG_END;
             delete this[dataName];
             this.dispatchEvent( event );
         }
@@ -164,9 +183,9 @@
     //=============================== PinchEvent ===============================
 
     type={};
-    type[PinchEvent.TOUCH_PINCH_START] = TouchEvent.TOUCH_START;
-    type[PinchEvent.TOUCH_PINCH_MOVE]  = [TouchEvent.TOUCH_MOVE,TouchEvent.TOUCH_START];
-    type[PinchEvent.TOUCH_PINCH_END]   = TouchEvent.TOUCH_END;
+    type[TouchPinchEvent.TOUCH_PINCH_START] = TouchEvent.TOUCH_START;
+    type[TouchPinchEvent.TOUCH_PINCH_MOVE]  = [TouchEvent.TOUCH_MOVE,TouchEvent.TOUCH_START];
+    type[TouchPinchEvent.TOUCH_PINCH_END]   = TouchEvent.TOUCH_END;
     EventDispatcher.expandHandle(type,function(event)
     {
         var dataName='__touch_pinch_data__';
@@ -194,8 +213,8 @@
                         'startY' : points.centerY,
                         'startDistance': getDistance( points.x1,points.x2,points.y1,points.y2 )
                     }
-                    event=new PinchEvent( event , data );
-                    event.type=PinchEvent.TOUCH_PINCH_START;
+                    event=new TouchPinchEvent( event , data );
+                    event.type=TouchPinchEvent.TOUCH_PINCH_START;
                     this.dispatchEvent( event );
                 }break;
                 case TouchEvent.TOUCH_MOVE.toLowerCase() :
@@ -209,8 +228,8 @@
                     data.moveY=points.centerY;
                     if( data.scale * startDistance > 0 )
                     {
-                        event=new PinchEvent( event ,data );
-                        event.type=PinchEvent.TOUCH_PINCH_MOVE;
+                        event=new TouchPinchEvent( event ,data );
+                        event.type=TouchPinchEvent.TOUCH_PINCH_MOVE;
                         this.dispatchEvent( event );
                     }
 
@@ -219,8 +238,8 @@
 
         }else if( type===TouchEvent.TOUCH_END.toLowerCase() && data )
         {
-            event = new PinchEvent( event , data );
-            event.type =  PinchEvent.TOUCH_PINCH_END;
+            event = new TouchPinchEvent( event , data );
+            event.type =  TouchPinchEvent.TOUCH_PINCH_END;
             delete this[dataName];
             this.dispatchEvent( event );
         }
@@ -228,9 +247,9 @@
 
     //=============================== SwipeEvent ===============================
     type={};
-    type[SwipeEvent.TOUCH_SWIPE_START] = TouchEvent.TOUCH_START;
-    type[SwipeEvent.TOUCH_SWIPE_MOVE]  = [TouchEvent.TOUCH_MOVE,TouchEvent.TOUCH_START];
-    type[SwipeEvent.TOUCH_SWIPE_END]   = TouchEvent.TOUCH_END;
+    type[TouchSwipeEvent.TOUCH_SWIPE_START] = TouchEvent.TOUCH_START;
+    type[TouchSwipeEvent.TOUCH_SWIPE_MOVE]  = [TouchEvent.TOUCH_MOVE,TouchEvent.TOUCH_START];
+    type[TouchSwipeEvent.TOUCH_SWIPE_END]   = TouchEvent.TOUCH_END;
     EventDispatcher.expandHandle(type,function(event)
     {
         var dataName='__touch_swipe_data__';
@@ -277,8 +296,8 @@
             {
                 case TouchEvent.TOUCH_START.toLowerCase() :
                 {
-                    event= new SwipeEvent(event,data);
-                    event.type=SwipeEvent.TOUCH_SWIPE_START;
+                    event= new TouchSwipeEvent(event,data);
+                    event.type=TouchSwipeEvent.TOUCH_SWIPE_START;
                     this.dispatchEvent( event );
 
                 }break;
@@ -303,8 +322,8 @@
                         if ( !data.swipeExecuted && direction )
                         {
                             data.swipeExecuted = true;
-                            event= new SwipeEvent(event,data);
-                            event.type=SwipeEvent.TOUCH_SWIPE_MOVE;
+                            event= new TouchSwipeEvent(event,data);
+                            event.type=TouchSwipeEvent.TOUCH_SWIPE_MOVE;
                             this.dispatchEvent( event ,data);
                             this[dataName]={};
                         }
@@ -316,10 +335,29 @@
         }else if( type===TouchEvent.TOUCH_END.toLowerCase() && data )
         {
             delete this[dataName];
-            event= new SwipeEvent(event,data);
-            event.type=SwipeEvent.TOUCH_SWIPE_END;
+            event= new TouchSwipeEvent(event,data);
+            event.type=TouchSwipeEvent.TOUCH_SWIPE_END;
             this.dispatchEvent( event ,data);
         }
     })
 
-})( window );
+
+
+    if( typeof window.document !== "undefined")
+    {
+        window.TouchDragEvent = TouchDragEvent;
+        window.TouchPinchEvent = TouchPinchEvent;
+        window.TouchSwipeEvent = TouchSwipeEvent;
+        window.TouchEvent = TouchEvent;
+    }
+
+    if( typeof define === "function" && define.amd )
+    {
+        define('TouchDragEvent',[], TouchDragEvent );
+        define('TouchPinchEvent',[], TouchPinchEvent );
+        define('TouchSwipeEvent',[], TouchSwipeEvent );
+    }
+
+    return TouchEvent;
+
+});

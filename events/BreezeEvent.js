@@ -6,22 +6,27 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function(factory){
+
+
+
+(function(global,factory){
 
     if( typeof define === "function" )
     {
-        define( [] , factory );
+        define([] , function(){
+            return factory( global );
+        });
 
-    }else if (typeof exports === 'object')
+    }else if( typeof module === "object" && typeof module.exports === "object"  )
     {
-        module.exports = factory;
+        module.exports = factory( global );
 
     }else
     {
-        factory();
+        factory( global );
     }
 
-})(function(undefined)
+})(typeof window !== "undefined" ? window : this,function(window,undefined)
 {
     'use strict';
 
@@ -67,7 +72,7 @@
      * @public
      */
     BreezeEvent.prototype = {
-        getEventTarget:null,
+        target:null,
         bubbles:true, // true 只触发冒泡阶段的事件 , false 只触发捕获阶段的事件
         cancelable:true, // 是否可以取消浏览器默认关联的事件
         currentTarget:null,
@@ -157,7 +162,8 @@
             return event;
 
         event=event || window.event;
-        var target = event.getEventTarget || event.srcElement || event.currentTarget;
+        var target = event.target || event.srcElement || event.currentTarget;
+        target = target && target.nodeType===3 ? target.parentNode : target;
 
         //阻止浏览浏览器的事件冒泡
         if ( event )
@@ -217,16 +223,9 @@
             breezeEvent = typeof fix.hooks[type] === "function" ? fix.hooks[type]( event ) : new BreezeEvent( event );
         }
 
-        //如果触发事件元素是 window 或者 document
-        var currentTarget = event.currentTarget || target;
-        if( currentTarget && (currentTarget == currentTarget.window || currentTarget.documentElement) )
-        {
-            breezeEvent.currentTarget= currentTarget;
-        }
-
         breezeEvent.type=type;
-        breezeEvent.getEventTarget=target;
-        breezeEvent.currentTarget= breezeEvent.currentTarget || target;
+        breezeEvent.target=target;
+        breezeEvent.currentTarget= event.currentTarget || target;
         breezeEvent.timeStamp = event.timeStamp;
         breezeEvent.relatedTarget= event.relatedTarget;
         breezeEvent.altkey= !!event.altkey;
@@ -256,9 +255,8 @@
     BreezeEvent.READY='ready';
     BreezeEvent.SCROLL='scroll';
 
-
     fix.map[ BreezeEvent.READY ]='DOMContentLoaded';
-    if( typeof window !== "undefined" )window.BreezeEvent = BreezeEvent;
+    if( typeof window.document !== "undefined" )window.BreezeEvent = BreezeEvent;
     return BreezeEvent;
 
 })
