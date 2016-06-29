@@ -25,10 +25,10 @@
             factory( global );
         }
 
-})(typeof window !== "undefined" ? window : this,function(event){
+})(typeof window !== "undefined" ? window : this,function(){
 
-    function ElementEvent( type, bubbles,cancelable ){ event.call(this, type, bubbles,cancelable );}
-    ElementEvent.prototype=new event();
+    function ElementEvent( type, bubbles,cancelable ){ BreezeEvent.call(this, type, bubbles,cancelable );}
+    ElementEvent.prototype=new BreezeEvent();
     ElementEvent.prototype.parent=null;
     ElementEvent.prototype.child=null;
     ElementEvent.prototype.constructor=ElementEvent;

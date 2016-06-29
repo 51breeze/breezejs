@@ -10,7 +10,7 @@
 
     if( typeof define === "function" )
     {
-        define(['EventDispatcher','DataArray','./events/StyleEvent','./events/PropertyEvent'] , function(){
+        define(['EventDispatcher','DataArray','./events/StyleEvent','./events/PropertyEvent','./events/ElementEvent'] , function(){
            return factory( global );
         });
 
@@ -222,8 +222,9 @@
     function doRecursion(propName,strainer, deep )
     {
         var currentItem,ret=[];
-        var s = strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :
+        var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :
                 typeof strainer === "undefined" ? function(){return this.nodeType===1} : strainer ;
+
         this.forEach(function(elem)
         {
             if( elem && elem.nodeType )
@@ -297,7 +298,7 @@
         var result;
         refObject=refObject || this;
 
-        if( this.forEachCurrentItem && this.forEachPrevItem !== this.forEachCurrentItem )
+        if( this.forEachCurrentItem  )
         {
             result=callback.call( refObject ,this.forEachCurrentItem,this.forEachCurrentIndex);
 
@@ -333,30 +334,21 @@
     {
         if( typeof element !== "undefined" )
         {
-            if( element === null )
-            {
-                this.forEachCurrentItem=null;
-                this.forEachCurrentIndex= NaN;
-
-            }else if( typeof element=== "string" )
+            if( typeof element=== "string" )
             {
                 element=Breeze.querySelector(element, this.context || document );
                 this.forEachCurrentItem = element && element.length > 0 ? element[0] : null;
                 this.forEachCurrentIndex = NaN;
 
+            }else if(  Breeze.isNodeElement( element ) || Breeze.isWindow(element) )
+            {
+                 this.forEachCurrentItem = element ;
+                 this.forEachCurrentIndex = NaN;
+
             }else
             {
-                var index = element === null ? NaN : this.indexOf( element );
-                if( index >= 0 )
-                {
-                    this.forEachCurrentItem=element;
-                    this.forEachCurrentIndex= index;
-
-                }else
-                {
-                    this.forEachCurrentItem = element || null;
-                    this.forEachCurrentIndex = NaN;
-                }
+                this.forEachCurrentItem =  null;
+                this.forEachCurrentIndex = NaN;
             }
             return this;
         }
@@ -367,8 +359,8 @@
      * @private
      */
     Breeze.prototype.__property__= {
-        get:function(){ return ( fix.attrtrue[name] || typeof this.getAttribute !== "function"  ? this[name] : this.getAttribute(name) ) || null; }
-        ,set:function(newValue){
+        get:function(name){ return ( fix.attrtrue[name] || typeof this.getAttribute !== "function"  ? this[name] : this.getAttribute(name) ) || null; }
+        ,set:function(name,newValue){
              newValue === null ?
              ( fix.attrtrue[name] || typeof this.removeAttribute !== "function"  ? delete this[name] : this.removeAttribute(name) ) :
              ( fix.attrtrue[name] || typeof this.setAttribute !== "function"  ? this[name] = newValue : this.setAttribute(name, newValue) );
@@ -477,7 +469,7 @@
         }
         ,set:function(name,value, obj ){
 
-            var type = typeof value;
+            var type =/^\d+$/.test( Breeze.trim(value) ) ? 'number' : typeof value;
             var elem = this;
             if( !elem || !elem.style || ( type === "number" && isNaN( value ) ) )return;
             var increment = type === "string" ? /^([\-+])=([\-+.\de]+)/.exec( value ) : null;
@@ -583,7 +575,7 @@
      */
     Breeze.prototype.text=function( value )
     {
-        return access('text','text',value);
+        return access.call(this,'text','text',value);
     }
 
     /**
@@ -591,7 +583,7 @@
      */
     Breeze.prototype.__value__= {
         get:function(){ return this.hasAttribute('value') ? this.value : null }
-        ,set:function(newValue){
+        ,set:function(name,newValue){
             this.hasAttribute('value') ? this.value=newValue : null ;
             return PropertyEvent.CHANGE;
         }
@@ -604,7 +596,7 @@
      */
     Breeze.prototype.value=function( value )
     {
-        return access('value','value',value);
+        return access.call(this,'value','value',value);
     }
 
 
@@ -1085,13 +1077,14 @@
             var parent= is ?  elem.parentNode : doRecursion.call(this,'parentNode',selector )[0];
             if( parent && parent.ownerDocument && Breeze.contains( parent.ownerDocument.body, parent ) )
             {
-                var children=parent.hasChildNodes() ? this.slice.call( parent.childNodes ) : [];
+                var children=parent.hasChildNodes() ? parent.childNodes : [];
                 if( parent.parentNode )
                 {
                     this.current( parent.parentNode );
                     var len=children.length,i=0;
                     while( i<len ){
-                        this.addChildAt( children[ i++ ], parent );
+                        if( children[i] )this.addChildAt( children[ i ], parent );
+                        i++;
                     }
                     this.removeChildAt( parent );
                 }
@@ -1327,20 +1320,21 @@
      *        也可以是一个回调函数过滤要删除的子节点元素。
      * @returns {Breeze}
      */
-    Breeze.prototype.removeChildAt=function(index )
+    Breeze.prototype.removeChildAt=function( index )
     {
         var is=false;
-        if(  index !== undefined && index.parentNode ){
+        if(  index && index.parentNode ){
             this.current( index.parentNode )
             is=true;
+
         }else if( !Breeze.isNumber( index ) )
             throw new Error('Invalid param the index. in removeChildAt');
 
         return this.forEach(function(parent)
         {
             var child= is ? index : this.getChildAt( index );
-            if( removeChild.call(this,parent,child) && is )
-                return this;
+            if(  removeChild.call(this,parent,child) && is )
+               return this;
         });
     }
 
@@ -1525,7 +1519,7 @@
             if( html !== '' )
             {
                 var match;
-                if( html.charAt(0) !== "<" && html.charAt( html.length - 1 ) !== ">" && html.length >=2 )
+                if( html.charAt(0) !== "<" && html.charAt( html.length - 1 ) !== ">" && html.length >=1 )
                 {
                     return document.createElement( html );
 
