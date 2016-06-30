@@ -18,16 +18,16 @@
 })(typeof window !== "undefined" ? window : this,function(){
 
     /**
-     * StyleEvent
+     * PropertyEvent
      * @param type
      * @param bubbles
      * @param cancelable
      * @constructor
      */
-    function StyleEvent( type, bubbles,cancelable ){ PropertyEvent.call(this, type, bubbles,cancelable );}
-    StyleEvent.prototype=new PropertyEvent();
-    StyleEvent.prototype.constructor=StyleEvent;
-    StyleEvent.CHANGE='styleChange';
-    if( typeof window.document !== "undefined" )window.StyleEvent=StyleEvent;
-    return StyleEvent;
+    function ScrollEvent( type, bubbles,cancelable ){ PropertyEvent.call(this, type, bubbles,cancelable );}
+    ScrollEvent.prototype=new PropertyEvent();
+    ScrollEvent.prototype.constructor=ScrollEvent;
+    ScrollEvent.CHANGE='scrollChange';
+    if( typeof window.document !== "undefined" )window.ScrollEvent=ScrollEvent;
+    return ScrollEvent;
 })

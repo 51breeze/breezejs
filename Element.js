@@ -662,7 +662,7 @@
             dispatchElementEvent(target,parent,child,ElementEvent.BEFORE_CHILD_REMOVE ) )
         {
             var result=parent.removeChild( child );
-            dispatchElementEvent(target,parent,child,ElementEvent.CHILD_REMOVE );
+            dispatchElementEvent(target,parent,child,ElementEvent.REMOVE );
             return !!result;
         }
         return false;
@@ -733,7 +733,7 @@
                     !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
                     refChild && (refChild=index.nextSibling);
                 parent.insertBefore( child , refChild || null );
-                dispatchElementEvent(this,parent,child,ElementEvent.CHILD_ADD );
+                dispatchElementEvent(this,parent,child,ElementEvent.ADD );
             }
             if( isElement ) return this;
         })
@@ -1624,7 +1624,7 @@
      * 全局事件
      * @returns {EventDispatcher}
      */
-    Element.rootEvent=function()
+    Element.root=function()
     {
         if( __rootEvent__ === null ) {
             __rootEvent__ = EventDispatcher(window);
@@ -1638,7 +1638,7 @@
      */
     EventDispatcher.SpecialEvent(MouseEvent.MOUSE_OUTSIDE, function(element,listener,type)
     {
-        Element.rootEvent().addEventListener(MouseEvent.MOUSE_DOWN,function(event)
+        Element.root().addEventListener(MouseEvent.MOUSE_DOWN,function(event)
         {
             var elem =  Element( element );
             if( elem.style('display') === 'none' ||  elem.style('visibility') ==='hidden' )

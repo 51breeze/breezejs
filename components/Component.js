@@ -36,9 +36,10 @@
                 throw new Error('invalid viewport');
             }
             this.__viewport__=viewport;
-            var instance = Component.getInstance( viewport[0] , this.constructor );
+            viewport.current(null);
+            var instance = Component.getInstance( viewport , this.constructor );
             if( instance instanceof this.constructor )return instance;
-            viewport.current(null).property( Component.NAME, this.componentProfile).data(this.componentProfile, this);
+            viewport.property( Component.NAME, this.componentProfile).data(this.componentProfile, this);
         }
     }
 
@@ -46,11 +47,11 @@
      * 获取实例对象
      * @returns {Component}
      */
-    Component.getInstance=function(element,subClass)
+    Component.getInstance=function(viewport,subClass)
     {
         if( typeof subClass === "function" && subClass.prototype && subClass.prototype.componentProfile )
         {
-            return Utils.storage( element, subClass.prototype.componentProfile );
+            return viewport.data(subClass.prototype.componentProfile );
         }
         return null;
     }
@@ -211,7 +212,7 @@
      */
     Component.prototype.display=function( flag )
     {
-        this.viewport().display( flag )
+        flag ? this.viewport().show() : this.viewport().hide();
         return this;
     }
     /**
@@ -278,18 +279,18 @@
           return ;
 
         __initialize__=true;
-        Utils.rootEvent().dispatchEvent( new BreezeEvent( Component.INITIALIZE_START ) );
+        Breeze.root().dispatchEvent( new BreezeEvent( Component.INITIALIZE_START ) );
         Breeze('['+Component.NAME+']').forEach(function(element){
 
             var name= this.property( Component.NAME );
-            var className = typeof window[ name ] === "function"  ? window[ name ] : window[ Utils.ucfirst(name) ];
+            var className = typeof window[ name ] === "function"  ? window[ name ] : window[ Breeze.ucfirst(name) ];
 
             if( typeof className !== "function" )
             {
                 throw new Error('Not found component class for '+name);
             }
 
-            var instance = Component.getInstance(element, className );
+            var instance = Component.getInstance( this , className );
             if( !(instance instanceof className) )
             {
                 instance = new className(new SkinGroup(element));
@@ -303,7 +304,7 @@
                 {
                     var type = element.getAttribute('type');
                     type = !type || type == 'text/javascript';
-                    if (Utils.nodeName(child) === 'script' && type) {
+                    if (Breeze.nodeName(child) === 'script' && type) {
                         element.removeChild(child);
                         new Function( child.innerHTML ).call(instance);
                     }
@@ -316,7 +317,7 @@
             for( ; index < instance.initializeMethod.length; index++)
             {
                 var method = instance.initializeMethod[ index ];
-                var value = Utils.property(element,method);
+                var value = Breeze.property(element,method);
 
                 if( method && value !==null && typeof instance[ method ] === "function" )
                 {
@@ -326,11 +327,11 @@
             instance.initialized();
             instance.initializeCompleted=true;
         })
-        Utils.rootEvent().dispatchEvent( new ComponentEvent( ComponentEvent.INITIALIZE_COMPLETED ) )
+        Breeze.root().dispatchEvent( new ComponentEvent( ComponentEvent.INITIALIZE_COMPLETED ) )
     }
 
     //初始化组件
-    Utils.rootEvent().addEventListener( BreezeEvent.READY,function(){Component.initialize();},false,100);
+    Breeze.root().addEventListener( BreezeEvent.READY,function(){Component.initialize();},false,100);
 
     function ComponentEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
     ComponentEvent.prototype=new BreezeEvent();

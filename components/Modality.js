@@ -168,7 +168,7 @@ modality.show(true)
             skinGroup.addEventListener( PropertyEvent.CHANGE , this.__propertyChanged__, false, 0, this )
         }
 
-        Utils.rootEvent().addEventListener(BreezeEvent.RESIZE,function(event){
+        Utils.root().addEventListener(BreezeEvent.RESIZE,function(event){
             this.setPositionAndSize();
         },true,0,this);
         this.setPositionAndSize();
@@ -316,14 +316,14 @@ modality.show(true)
             _shade.style({'opacity':0.5,'backgroundColor':'#000000','radius':'0px','shadow':'none','left':'0px','top':'0px'});
             _shade.style('width','100%').style('height', Utils.getSize(document,'height') )
 
-            Utils.rootEvent().addEventListener(BreezeEvent.RESIZE,function(event)
+            Utils.root().addEventListener(BreezeEvent.RESIZE,function(event)
             {
                 var height = Utils.getSize(window,'height') + Utils.scroll(document).top
                 _shade.style('height', height );
 
             },true);
 
-            Utils.rootEvent().addEventListener(BreezeEvent.SCROLL,function(event)
+            Utils.root().addEventListener(BreezeEvent.SCROLL,function(event)
             {
                 _shade.style('height', Utils.getSize(document,'height') );
             });

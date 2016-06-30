@@ -101,7 +101,7 @@
         if( rootLayout=== null )
         {
             rootLayout ={'childrenItem':[]};
-            Utils.rootEvent().addEventListener([BreezeEvent.RESIZE,Component.INITIALIZE_COMPLETED],function(event)
+            Utils.root().addEventListener([BreezeEvent.RESIZE,Component.INITIALIZE_COMPLETED],function(event)
             {
                 var i=0;
                 for( ; i < this.childrenItem.length; i++ )

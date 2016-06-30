@@ -32,11 +32,8 @@
     ElementEvent.prototype.parent=null;
     ElementEvent.prototype.child=null;
     ElementEvent.prototype.constructor=ElementEvent;
-    ElementEvent.CHILD_ADD='elementChildAdd';
-    ElementEvent.CHILD_REMOVE='elementChildRemove';
-    ElementEvent.BEFORE_CHILD_ADD='elementBeforeChildAdd';
-    ElementEvent.BEFORE_CHILD_REMOVE='elementBeforeChildRemove';
-
+    ElementEvent.ADD='elementAdd';
+    ElementEvent.REMOVE='elementRemove';
     if( typeof window.document !== "undefined" )window.ElementEvent=ElementEvent;
     return ElementEvent;
 })

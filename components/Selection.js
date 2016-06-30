@@ -60,15 +60,15 @@ var selection = new Selection( '#selection' )
             skinGroup.width( width );
             skinGroup.getBoundingRect(left, top + height + 3 );
 
-            var windowWidth = Utils.getSize(window,'width');
-            var windowHeight = Utils.getSize(window,'height');
+            var windowWidth =  Breeze.root().width();
+            var windowHeight = Breeze.root().height();
             var inputHeight =  skinGroup.getSkinGroup('group > input').height();
             var maxHeight = windowHeight - ( top + height + 3 + inputHeight + 5 );
             skinGroup.currentSkin('list').style('maxHeight',maxHeight);
             skinGroup.current(null);
         }
 
-        Utils.rootEvent().addEventListener(BreezeEvent.RESIZE,resize);
+        Breeze.root().addEventListener(BreezeEvent.RESIZE,resize);
 
         //点击显示下拉列表
         EventDispatcher( skinGroup.getSkin('button') ).addEventListener(MouseEvent.CLICK,function(event){
@@ -85,8 +85,8 @@ var selection = new Selection( '#selection' )
                 if( event.property==='value')
                 {
                     var selector = event.newValue && event.newValue !='' ? ":contains('" + event.newValue + "')" : null;
-                    skinGroup.getSkinGroup('list > *').forEach(function(){
-                        this.display( selector ? this.has( selector ) : true );
+                    skinGroup.getSkinGroup('list > *').forEach(function( elem ){
+                        this.display( selector ?  Breeze.contains(elem, selector) : true );
                     });
                 }
             });
@@ -95,8 +95,8 @@ var selection = new Selection( '#selection' )
         //点击下拉列表外隐藏列表
         EventDispatcher( skinGroup.getSkin('group') ).addEventListener( MouseEvent.MOUSE_OUTSIDE , function(event){
 
-            if( !Utils.contains( skinGroup[0],  event.target ) )
-               Utils.style(event.currentTarget,'display','none');
+            if( !Breeze.contains( skinGroup[0],  event.target ) )
+               Breeze.style(event.currentTarget,'display','none');
         });
     }
 

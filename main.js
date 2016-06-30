@@ -8,7 +8,7 @@ require(['./Breeze'],function(Breeze){
     Breeze.ready(function(){
 
 
-       Breeze('div p').width(200).height('+=30').style('backgroundColor','blue')
+       Breeze('div p').width(200).height('+=30').style('backgroundColor','#ccc')
 
 
 
@@ -30,6 +30,11 @@ require(['./Breeze'],function(Breeze){
 
         Breeze('div.a').unwrap('p')
 
+
+        Breeze('div > div').html('<h1>222222</h1>')
+
+
+        Breeze('div').hide().show()
 
 
         Breeze('div').addEventListener(MouseEvent.CLICK,function(event){

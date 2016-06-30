@@ -57,7 +57,7 @@
         var options = this.options();
         var rows = this.preloadRows();
         var offset = segments * rows;
-        var param = Utils.extend({},options.param,{orderby:this.orderBy()});
+        var param = Breeze.extend({},options.param,{orderby:this.orderBy()});
         param[ options.requestProfile.offset ]=offset;
         param[ options.requestProfile.rows ]=rows;
 
@@ -107,7 +107,7 @@
                         {
                             data[0][primary] = result;
 
-                        }else if( Utils.isObject(result) )
+                        }else if( Breeze.isObject(result) )
                         {
                             for(var i=0; i<data.length; i++) if( result[ data[i][primary] ] )
                             {
@@ -136,7 +136,7 @@
 
         var param  = setting.param || {};
         param[ setting.actionProfile ] = action;
-        param = Utils.serialize(param,'url');
+        param = Breeze.serialize(param,'url');
         url = /\?/.test(url) ? url+'&'+param : url+'?'+param;
 
         lastSynch.send( url, data , setting.method );
@@ -272,9 +272,9 @@
     {
         if( typeof options !== "undefined" )
         {
-            if( Utils.isObject(options) )
+            if( Breeze.isObject(options) )
             {
-                this.__options__ = Utils.extend(true,this.__options__, options);
+                this.__options__ = Breeze.extend(true,this.__options__, options);
             }
             return this;
         }
@@ -310,7 +310,7 @@
         }
 
         //本地数据源
-        if( Utils.isObject(source, true) )
+        if( Breeze.isObject(source, true) )
         {
             var len = this.length;
             this.splice(0, len, source);

@@ -378,7 +378,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
             var callback = function(event){
                 this.height( Utils.getSize(window,'height'));
             }
-            Utils.rootEvent().addEventListener(BreezeEvent.RESIZE,callback,true,0,mask);
+            Utils.root().addEventListener(BreezeEvent.RESIZE,callback,true,0,mask);
             callback.call(mask);
             mask.addEventListener( MouseEvent.MOUSE_DOWN,function(event){
                 Animation.shake( skinGroup[0] );
@@ -654,7 +654,7 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
             },false,0,this);
         }
 
-        Utils.rootEvent().addEventListener(BreezeEvent.RESIZE,function(event){
+        Utils.root().addEventListener(BreezeEvent.RESIZE,function(event){
             setPositionAndSize.call(this);
         },false,0,this);
         return this;

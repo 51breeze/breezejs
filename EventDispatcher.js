@@ -10,7 +10,7 @@
 
     if( typeof define === "function" )
     {
-        define(['./events/BreezeEvent','./events/MouseEvent','./events/KeyboardEvent'] , function(b, c){
+        define(['./events/BreezeEvent','./events/MouseEvent','./events/KeyboardEvent'] , function(){
             return factory( global );
         });
 

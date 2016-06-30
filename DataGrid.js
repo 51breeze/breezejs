@@ -557,7 +557,7 @@
                     last= val;
                 }
 
-                Utils.rootEvent()
+                Utils.root()
                     .addEventListener(MouseEvent.MOUSE_MOVE,resize)
                     .addEventListener(MouseEvent.MOUSE_UP,function(event){
                         this.removeEventListener(MouseEvent.MOUSE_MOVE,resize);

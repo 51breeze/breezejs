@@ -28,7 +28,7 @@
                 if( properties )
                 {
                     var custom=properties[property] || properties['*'];
-                    if( Utils.isFunction( custom ) )
+                    if( Breeze.isFunction( custom ) )
                     {
                         custom.call(object,property,newValue);
 
@@ -43,7 +43,7 @@
                         {
                             object.property(prop,newValue);
 
-                        }else if( Utils.isNodeElement(object) )
+                        }else if( Breeze.isNodeElement(object) )
                         {
                              typeof object[ prop ] !== "undefined" ? object[ prop ] = newValue : object.setAttribute(prop,newValue);
 
@@ -94,9 +94,9 @@
         if( propertyObject instanceof Bindable )
           return propertyObject;
 
-        if( Utils.isNodeElement(propertyObject) )
+        if( Breeze.isNodeElement(propertyObject) )
         {
-            var bindable =  Utils.storage(propertyObject,Bindable.NAME);
+            var bindable =  Breeze.storage(propertyObject,Bindable.NAME);
             if( bindable &&  bindable instanceof Bindable )
               return bindable;
         }
@@ -104,10 +104,10 @@
         if( !(this instanceof Bindable) )
             return new Bindable( propertyObject );
 
-        if( Utils.isNodeElement(propertyObject) )
+        if( Breeze.isNodeElement(propertyObject) )
         {
             EventDispatcher.call( this , propertyObject );
-            Utils.storage(propertyObject,Bindable.NAME,this);
+            Breeze.storage(propertyObject,Bindable.NAME,this);
             this.addEventListener(PropertyEvent.CHANGE,function(event){
 
                 var property = event.property;
@@ -119,7 +119,7 @@
         }else
         {
             EventDispatcher.call( this );
-            if( Utils.isObject(propertyObject) )for( var key in propertyObject ) if( typeof this[key] !== "function" )
+            if( Breeze.isObject(propertyObject) )for( var key in propertyObject ) if( typeof this[key] !== "function" )
             {
                 this[key] =  propertyObject[key];
                 if( this[key] instanceof EventDispatcher )
@@ -170,7 +170,7 @@
         {
             bindEvent.call(targetObject, this, property);
 
-        }else  if( Utils.isEventElement(targetObject) )
+        }else  if( Breeze.isEventElement(targetObject) )
         {
             bindEvent.call(new EventDispatcher(targetObject), this, property);
         }

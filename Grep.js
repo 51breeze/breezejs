@@ -16,7 +16,7 @@
      * @param logic
      * @returns {Grep}
      */
-    var where=function( column , value, operational, logic ,type )
+    var strainer=function( column , value, operational, logic ,type )
     {
         logic = logic==='or' ? '||' : '&&';
         this[ this.length ]= {'logic':logic,'column':column,'value':value,'operational':operational,'type':type};
@@ -240,7 +240,7 @@
     {
         if(  start >= 0 || end > 0 )
         {
-            where.call(this,column,start+','+end,'range',logic);
+            strainer.call(this,column,start+','+end,'range',logic);
             return this;
         }
     }
@@ -260,7 +260,7 @@
         {
             end =  parseInt(end) || 1 ;
             start =  parseInt(start) || 0;
-            where.call(this,'index',start+','+start+end,'index',logic);
+            strainer.call(this,'index',start+','+start+end,'index',logic);
             return this;
         }
     }
@@ -274,7 +274,7 @@
      */
     Grep.prototype.eq=function(column,value,logic)
     {
-        where.call(this,column,value,'==',logic);
+        strainer.call(this,column,value,'==',logic);
         return this;
     }
 
@@ -287,7 +287,7 @@
      */
     Grep.prototype.not=function(column,value,logic)
     {
-        where.call(this,column,value,'!=',logic);
+        strainer.call(this,column,value,'!=',logic);
         return this;
     }
 
@@ -300,7 +300,7 @@
      */
     Grep.prototype.gt=function(column,value,logic)
     {
-        where.call(this,column,value,'>',logic);
+        strainer.call(this,column,value,'>',logic);
         return this;
     }
 
@@ -313,7 +313,7 @@
      */
     Grep.prototype.lt=function(column,value,logic)
     {
-        where.call(this,column,value,'<',logic);
+        strainer.call(this,column,value,'<',logic);
         return this;
     }
 
@@ -324,9 +324,9 @@
      * @param logic
      * @returns {Grep}
      */
-    Grep.prototype.gteq=function(column,value,logic)
+    Grep.prototype.egt=function(column,value,logic)
     {
-        where.call(this,column,value,'>=',logic);
+        strainer.call(this,column,value,'>=',logic);
         return this;
     }
 
@@ -337,9 +337,9 @@
      * @param logic
      * @returns {Grep}
      */
-    Grep.prototype.lteq=function(column,value,logic)
+    Grep.prototype.elt=function(column,value,logic)
     {
-        where.call(this,column,value,'<=',logic);
+        strainer.call(this,column,value,'<=',logic);
         return this;
     }
 
@@ -352,7 +352,7 @@
      */
     Grep.prototype.like=function(column,value,type,logic)
     {
-        where.call(this,column,value,'like',logic,type);
+        strainer.call(this,column,value,'like',logic,type);
         return this;
     }
 
@@ -365,7 +365,7 @@
      */
     Grep.prototype.notLike=function(column,value,type,logic)
     {
-        where.call(this,column,value,'notlike',logic,type);
+        strainer.call(this,column,value,'notlike',logic,type);
         return this;
     }
 

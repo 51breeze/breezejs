@@ -2,7 +2,7 @@
 
     if( typeof define === "function" )
     {
-        define(['./BreezeEvent'] , function(){
+        define(['./BreezeEvent','../Breeze','../EventDispatcher'] , function(){
             return factory( global );
         });
 
@@ -46,6 +46,7 @@
     {
        BreezeEvent.fix[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
     }
+
 
     if( typeof window.document !== "undefined" )window.MouseEvent=MouseEvent;
     return MouseEvent;
