@@ -41,6 +41,7 @@
             if( instance instanceof this.constructor )return instance;
             viewport.property( Component.NAME, this.componentProfile).data(this.componentProfile, this);
         }
+        return this;
     }
 
     /**
@@ -51,6 +52,7 @@
     {
         if( typeof subClass === "function" && subClass.prototype && subClass.prototype.componentProfile )
         {
+            viewport =viewport instanceof Breeze ? viewport :  Breeze(viewport);
             return viewport.data(subClass.prototype.componentProfile );
         }
         return null;
@@ -215,54 +217,6 @@
         flag ? this.viewport().show() : this.viewport().hide();
         return this;
     }
-    /**
-     * @param type
-     * @param listener
-     * @param useCapture
-     * @param priority
-     * @param reference
-     * @returns {Component|Breeze|EventDispatcher}
-     * @public
-     */
-    /*Component.prototype.addEventListener=function(type,listener,useCapture,priority,reference)
-    {
-        this.viewport().addEventListener(type,listener,useCapture,priority,reference);
-        return this;
-    }*/
-
-    /**
-     *
-     * @param type
-     * @param useCapture
-     * @returns {boolean}
-     */
-    /*Component.prototype.hasEventListener=function( type, useCapture)
-    {
-       return this.viewport().hasEventListener( type, useCapture);
-    }*/
-
-    /**
-     *
-     * @param type·
-     * @param listener
-     * @param useCapture
-     * @returns {boolean}
-     * @public
-     */
-    /*Component.prototype.removeEventListener=function(type,listener,useCapture)
-    {
-        return this.viewport().removeEventListener(type,listener,useCapture);
-    }*/
-
-    /**
-     * @param event
-     * @returns {boolean}
-     * @public
-     */
-    /*Component.prototype.dispatchEvent=function( event )
-    {
-        return this.viewport().dispatchEvent( event );
-    }*/
 
     /**
      * @private

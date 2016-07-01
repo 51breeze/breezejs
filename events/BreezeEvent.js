@@ -237,7 +237,7 @@
     }
 
     BreezeEvent.SUBMIT='submit';
-    BreezeEvent.RESIZE='resizeEnable';
+    BreezeEvent.RESIZE='resize';
     BreezeEvent.FETCH='fetch';
     BreezeEvent.UNLOAD='unload';
     BreezeEvent.LOAD='load';

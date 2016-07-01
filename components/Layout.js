@@ -21,12 +21,12 @@
     ,vertical=['top','middle','bottom']
     ,__method__ = function(prop, val , flag )
     {
-        var skin = this.skinGroup();
+        var skin = this.viewport();
         var old = parseInt( skin.property(prop) );
         if( typeof val !== "undefined" )
         {
             val =  parseInt( val );
-            if ( flag ) skin.style( flag !== true ? flag : prop, val);
+           // if ( flag ) skin.style( flag !== true ? flag : prop, val);
             if ( val !== old )
             {
                 skin.property(prop, val);
@@ -45,7 +45,7 @@
     function getOwner(target)
     {
         var parent=target;
-        while( Utils.contains( target.ownerDocument.body, parent ) )
+        while( Breeze.contains( target.ownerDocument.body, parent ) )
         {
             parent= parent.parentNode;
             var layout = Component.getInstance(parent, Layout );
@@ -67,29 +67,24 @@
         if( !(this instanceof Layout) )
             return new Layout( target );
 
-        var skinGroup = target instanceof SkinGroup ? target : new SkinGroup(target);
-        var instance = Component.getInstance( skinGroup.current(), Layout );
-        if( instance  )return instance;
-
-        Component.call(this,  skinGroup );
-        target=this.current();
-        if( !Utils.isHTMLElement(target) || !target.parentNode || !Utils.contains( target.ownerDocument.body, target ) )
+        if( !(target instanceof Breeze) &&
+            (!Breeze.isHTMLElement(target) || !target.parentNode || !Breeze.contains( target.ownerDocument.body, target )) )
         {
             throw new Error('Invalid element for Layout');
         }
 
-        this.childrenItem=[];
-        var owner = getOwner(target);
+        //初始化组件
+        var obj = Component.call(this,  target );
 
-        //设置所属父布局容器
-        if( owner )
+        //如果是一个新的实例
+        if( obj === this && rootLayout )
         {
-            owner.childrenItem.push(this);
-            this.owner = owner;
+            this.viewport().style('position', 'absolute');
+            this.childrenItem=[];
+            this.owner = getOwner( this.viewport()[0] );
+            this.owner.childrenItem.push(this);
         }
-
-        Utils.style(target,'position', 'absolute' );
-        this.viewport( target.parentNode );
+        return this;
     }
 
     /**
@@ -100,17 +95,12 @@
     {
         if( rootLayout=== null )
         {
-            rootLayout ={'childrenItem':[]};
-            Utils.root().addEventListener([BreezeEvent.RESIZE,Component.INITIALIZE_COMPLETED],function(event)
+            rootLayout = Layout( document.body )
+            Breeze.root().addEventListener([BreezeEvent.RESIZE,ComponentEvent.INITIALIZE_COMPLETED],function(event)
             {
-                var i=0;
-                for( ; i < this.childrenItem.length; i++ )
-                {
-                    this.childrenItem[i].invalidate=false;
-                    this.childrenItem[i].updateDisplayList();
-                }
+                rootLayout.updateDisplayList();
 
-            },true,0,rootLayout);
+            },false,1000);
         }
         return rootLayout;
     }
@@ -124,10 +114,10 @@
     Layout.prototype.childrenItem=[];
     Layout.prototype.scrollWidth=0;
     Layout.prototype.scrollHeight=0;
+    Layout.prototype.componentProfile='layout';
     Layout.prototype.overflowHeight=0;
     Layout.prototype.overflowWidth=0;
     Layout.prototype.invalidate=false;
-    Layout.prototype.childrenElement=[];
     Layout.prototype.initializeMethod=['left','top','right','bottom','explicitHeight','explicitWidth','gap',
         'horizontal','vertical','minWidth','minHeight','maxWidth','maxHeight','percentWidth','percentHeight','scrollY','scrollX','viewport'];
 
@@ -150,14 +140,6 @@
     }
 
     /**
-     * @protected
-     */
-    Layout.prototype.getDefaultSkinObject=function()
-    {
-       throw new Error('Not skin');
-    }
-
-    /**
      * 输出布局组件名称
      * @returns {string}
      */
@@ -174,15 +156,20 @@
     Layout.prototype.getViewportSize=function()
     {
         var viewport = this.viewport();
-        var scroll = Utils.scroll(viewport)
-        var height=scroll.top;
-        height+=Utils.getSize( viewport === viewport.ownerDocument.body ? window : viewport,'height');
-        var width = scroll.left;
-        width+=Utils.getSize( viewport === viewport.ownerDocument.body ? window : viewport,'width');
+        var height=viewport.height();
+        var width=viewport.width();
 
+        if( viewport[0] === viewport[0].ownerDocument.body )
+        {
+            height = viewport.current(window).height();
+            width = viewport.width();
+            viewport.current(null);
+        }
+        height+=viewport.scrollTop()
+        width+=viewport.scrollLeft();
         for( var index=0 ; index < padding.length ; index++ )
         {
-            var val = parseInt( Utils.style( viewport, 'padding'+ padding[ index ] ) ) || 0;
+            var val = parseInt( viewport.style('padding'+ padding[ index ] ) ) || 0;
             index < 2 ? width-=val : height-=val;
         }
         return {'width':width,'height':height};
@@ -199,7 +186,7 @@
         {
             var percent = this.percentWidth();
             percent = isNaN(percent) ? 100 : percent;
-            width = percent===0 ?  parseInt( Utils.style(this.current(),'width') ) :  percent  / 100 * parentWidth;
+            width = percent===0 ?  parseInt( this.width() ) :  percent  / 100 * parentWidth;
         }
         var left = this.left() || 0;
         var right = this.right() || 0;
@@ -220,7 +207,7 @@
         {
             var percent = this.percentHeight();
             percent = isNaN(percent) ? 100 : percent;
-            height=  percent===0 ?  parseInt( Utils.style(this.current(),'height') ) :  percent / 100 * parentHeight;
+            height=  percent===0 ?  parseInt( this.height() ) :  percent / 100 * parentHeight;
         }
         var bottom = this.bottom() || 0;
         var top = this.top() || 0;
@@ -259,13 +246,7 @@
      */
     Layout.prototype.moveTo=function(x,y)
     {
-        var oldX =  this.skinGroup().left();
-        var oldY = this.skinGroup().top();
-        if( x !== oldX || y !== oldY ){
-
-            this.skinGroup().left(x);
-            this.skinGroup().top(y);
-        }
+        this.left( x ).top( y );
         return this;
     }
 
@@ -335,10 +316,10 @@
             ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0;
 
         var children =  [];
-        var target = this.skinGroup().current();
+        var target = this.viewport().current();
 
-        var hscroll = this.scrollWidth ;
-        var vscroll = this.scrollHeight ;
+        var hscroll = this.scrollWidth;
+        var vscroll = this.scrollHeight;
         if( this.owner instanceof Layout )
         {
             hscroll=Math.max(this.owner.scrollWidth,hscroll);
@@ -352,7 +333,7 @@
             {
                 var child = target.childNodes.item( index );
                 this.current( child );
-                if( Utils.isHTMLElement(child) && this.property('includeLayout' )!=='false' )
+                if( Breeze.isHTMLElement(child) && this.property('includeLayout' )!=='false' )
                 {
                     this.style('position','absolute')
                     var childWidth = this.width() ||  this.calculateWidth( parentWidth );
@@ -449,7 +430,7 @@
             for( ; index < children.length ; index++ )
             {
                 var child = children[index];
-                var instance = Component.getInstance(child.getProxyTarget,Layout)
+                var instance = Component.getInstance(child.target,Layout)
                 if( instance )
                 {
                     instance.moveTo(child.left + xOffset, child.top + yOffset );
@@ -457,11 +438,8 @@
 
                 }else
                 {
-
-                    Utils.style(child.target,'left', child.left + xOffset );
-                    Utils.style(child.target,'top', child.top + yOffset );
-                    Utils.style(child.target,'width',child.width);
-                    Utils.style(child.target,'height',child.height);
+                    Breeze(child.target).left( child.left + xOffset ).top(child.top + yOffset )
+                    .width(child.width).height(child.height);
                 }
             }
         }
@@ -469,10 +447,26 @@
     }
 
     /**
+     * 从根布局开始计算并验证布局
+     */
+    Layout.prototype.validate=function()
+    {
+        this.invalidate=false;
+        if(  this.owner && this.owner !== Layout.rootLayout() )
+        {
+            this.owner.validate();
+        }else
+        {
+            var size = Layout.rootLayout().getViewportSize()
+            this.updateDisplayList( size.width, size.height);
+        }
+    }
+
+    /**
      * 更新布局视图
      * @returns {Layout}
      */
-    Layout.prototype.updateDisplayList=function()
+    Layout.prototype.updateDisplayList=function(parentWidth, parentHeight)
     {
         if( this.invalidate )
             return this;
@@ -480,15 +474,9 @@
         this.invalidate=true;
         this.current(null);
 
-        //获取视口大小
-
-        var viewport= this.getViewportSize();
-        parentWidth = viewport.width;
-        parentHeight= viewport.height;
-
         //计算当前布局可用的大小
-        var  realHeight=this.calculateHeight(parentHeight) ;
-        var  realWidth= this.calculateWidth(parentWidth);
+        var  realHeight=this.calculateHeight( parentHeight ) ;
+        var  realWidth= this.calculateWidth( parentWidth );
 
         this.width( realWidth );
         this.height( realHeight );
@@ -511,7 +499,7 @@
      */
     Layout.prototype.left=function(val)
     {
-       return __method__.call(this,'left',val, true);
+        return __method__.call(this,'left',val,'left');
     }
 
     /**
@@ -521,7 +509,7 @@
      */
     Layout.prototype.top=function(val)
     {
-        return __method__.call(this,'top',val, true);
+        return __method__.call(this,'top',val,'top');
     }
 
     /**
@@ -531,7 +519,7 @@
      */
     Layout.prototype.right=function(val)
     {
-        return __method__.call(this,'right',val, true);
+        return __method__.call(this,'right',val,'right');
     }
 
     /**
@@ -541,27 +529,7 @@
      */
     Layout.prototype.bottom=function(val)
     {
-        return __method__.call(this,'bottom',val, true);
-    }
-
-    /**
-     * 设置获取元素的宽度
-     * @param val
-     * @returns {*}
-     */
-    Layout.prototype.width=function(val)
-    {
-        return __method__.call(this,'width',val, true );
-    }
-
-    /**
-     * 设置获取元素的高度
-     * @param val
-     * @returns {*}
-     */
-    Layout.prototype.height=function(val)
-    {
-        return __method__.call(this,'height',val, true );
+        return __method__.call(this,'bottom',val,'bottom');
     }
 
     /**
@@ -654,7 +622,7 @@
         var old = this.property('horizontal') || horizontal[0];
         if( typeof val !== "undefined" )
         {
-            if ( val !== old && Utils.inObject(horizontal,val) !== null && this !== rootLayout )
+            if ( val !== old && Breeze.inObject(horizontal,val) !== null && this !== rootLayout )
             {
                 this.property('horizontal',val);
                 dispatchLayoutEvent(this, 'horizontal', val, old);
@@ -674,7 +642,7 @@
         var old = this.property('vertical') || vertical[0];
         if( typeof val !== "undefined" )
         {
-            if ( val !== old && Utils.inObject(vertical,val) !== null && this !== rootLayout )
+            if ( val !== old && Breeze.inObject(vertical,val) !== null && this !== rootLayout )
             {
                 this.property('vertical',val);
                 dispatchLayoutEvent(this, 'vertical', val, old);

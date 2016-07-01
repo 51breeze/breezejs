@@ -2,8 +2,21 @@
  * Created by Administrator on 2016/6/21.
  */
 
-require(['./Breeze'],function(Breeze){
+require.config({
 
+    shim:{}
+
+})
+
+require(['./Breeze' ],function(Breeze){
+
+
+    require(['./components/Component', './components/Layout'],function(){
+
+        Layout( Breeze('#layout') ).percentWidth(50).percentHeight(30).updateDisplayList()
+
+
+    })
 
     Breeze.ready(function(){
 

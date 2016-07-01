@@ -354,7 +354,8 @@
      * @private
      */
     Breeze.prototype.__property__= {
-        get:function(name){ return ( fix.attrtrue[name] || typeof this.getAttribute !== "function"  ? this[name] : this.getAttribute(name) ) || null; }
+        get:function(name){
+            return ( fix.attrtrue[name] || typeof this.getAttribute !== "function"  ? this[name] : this.getAttribute(name) ) || null; }
         ,set:function(name,newValue){
              newValue === null ?
              ( fix.attrtrue[name] || typeof this.removeAttribute !== "function"  ? delete this[name] : this.removeAttribute(name) ) :
