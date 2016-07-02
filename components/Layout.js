@@ -26,7 +26,7 @@
         if( typeof val !== "undefined" )
         {
             val =  parseInt( val );
-           // if ( flag ) skin.style( flag !== true ? flag : prop, val);
+            if ( flag ) skin.style( flag !== true ? flag : prop, val);
             if ( val !== old )
             {
                 skin.property(prop, val);
@@ -84,7 +84,7 @@
             this.owner = getOwner( this.viewport()[0] );
             this.owner.childrenItem.push(this);
         }
-        return this;
+        return obj;
     }
 
     /**
@@ -293,6 +293,7 @@
         {
             this.width( width );
             this.height( height );
+            this.invalidate=false;
             this.dispatchEvent( new LayoutEvent(LayoutEvent.CHANGE) )
         }
         return this;
@@ -306,7 +307,7 @@
     {
         var paddingLeft  = parseInt( this.style('paddingLeft') )  || 0
         var paddingRight = parseInt( this.style('paddingRight') ) || 0;
-        var paddingTop   =  parseInt( this.style('paddingTop') )  || 0
+        var paddingTop   = parseInt( this.style('paddingTop') )   || 0
         var paddingBottom= parseInt( this.style('paddingBottom') )|| 0;
         var gap=this.gap(),x=gap+paddingLeft,y=gap+paddingTop,maxHeight=0,countHeight= 0,countWidth=0;
 
@@ -317,7 +318,6 @@
 
         var children =  [];
         var target = this.viewport().current();
-
         var hscroll = this.scrollWidth;
         var vscroll = this.scrollHeight;
         if( this.owner instanceof Layout )
@@ -409,7 +409,7 @@
 
          if( scrollbarChanged === true )
          {
-            this.updateDisplayList();
+            this.updateDisplayList(countWidth, countHeight );
             return;
          }
 
@@ -443,24 +443,24 @@
                 }
             }
         }
-        this.setLayoutSize(parentWidth,parentHeight);
+        this.setLayoutSize(parentWidth, parentHeight);
+
     }
 
     /**
-     * 从根布局开始计算并验证布局
+     * 验证布局
+     * @returns {Layout}
      */
     Layout.prototype.validate=function()
     {
-        this.invalidate=false;
-        if(  this.owner && this.owner !== Layout.rootLayout() )
-        {
-            this.owner.validate();
-        }else
-        {
-            var size = Layout.rootLayout().getViewportSize()
-            this.updateDisplayList( size.width, size.height);
-        }
+        var root = Layout.rootLayout().current(window);
+        var height=root.height()+root.scrollTop();
+        var width=root.width()+root.scrollLeft();
+        root.current(null);
+        root.updateDisplayList( root.calculateWidth( width ), root.calculateHeight( height ) );
+        return this;
     }
+
 
     /**
      * 更新布局视图
@@ -475,17 +475,12 @@
         this.current(null);
 
         //计算当前布局可用的大小
-        var  realHeight=this.calculateHeight( parentHeight ) ;
+        var  realHeight=this.calculateHeight( parentHeight );
         var  realWidth= this.calculateWidth( parentWidth );
 
-        this.width( realWidth );
-        this.height( realHeight );
-
-        //先从子级布局开始测量
         for( var index in this.childrenItem )
         {
-            this.childrenItem[index].invalidate=false;
-            this.childrenItem[index].updateDisplayList();
+            this.childrenItem[index].updateDisplayList(realWidth, realHeight);
         }
 
         //计算子级元素需要排列的位置
@@ -530,6 +525,26 @@
     Layout.prototype.bottom=function(val)
     {
         return __method__.call(this,'bottom',val,'bottom');
+    }
+
+    /**
+     * 设置获取指定明确的宽度
+     * @param val
+     * @returns {*}
+     */
+    Layout.prototype.width=function(val)
+    {
+        return __method__.call(this,'width',val,'width');
+    }
+
+    /**
+     * 设置获取指定明确的宽度
+     * @param val
+     * @returns {*}
+     */
+    Layout.prototype.height=function(val)
+    {
+        return __method__.call(this,'height',val,'height');
     }
 
     /**

@@ -1040,16 +1040,17 @@
     {
         if( typeof selector === 'undefined' )
         {
-            selector= function(){ return this.nodeType===1 };
+            selector= function(item){ return item.nodeType===1 };
         }
-        var is= typeof selector;
+        var is=typeof selector === "function";
         var results=[];
         this.forEach(function(element)
         {
             if( !Breeze.isFrame( element ) && element.hasChildNodes() )
             {
-                results =  is ? this.concat.call( results, DataArray( this.slice.call( element.childNodes() ) ).filter( selector ) ) :
-                                this.concat.call( results, this.slice.call( element.childNodes() ) );
+                var child = this.slice.call( element.childNodes );
+                results =  is ? this.concat.call( results, DataArray( child ).filter( selector ) ) :
+                                this.concat.call( results, Breeze.querySelector(selector,element,null,child) );
             }
         });
         return doMake.call( this, DataArray(results).unique().toArray() );
@@ -1477,17 +1478,16 @@
         if( seed instanceof Array )
         {
             var i=0;
-            while( i<results.length )
+            var ret=[];
+            while( i<seed.length )
             {
-                if( seed.indexOf( results[i] ) === false )
+                if( Breeze.prototype.indexOf.call(results,seed[i]) >=0 )
                 {
-                    results.splice(i,1);
-
-                }else
-                {
-                    i++;
+                    ret.push( seed[i] )
                 }
+                i++;
             }
+            return ret;
         }
         return results;
     }

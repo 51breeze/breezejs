@@ -11,14 +11,16 @@ require.config({
 require(['./Breeze' ],function(Breeze){
 
 
-    require(['./components/Component', './components/Layout'],function(){
+   /* require(['./components/Component', './components/Layout'],function(){
 
         Layout( Breeze('#layout') ).percentWidth(50).percentHeight(30).updateDisplayList()
 
 
-    })
+    })*/
+
 
     Breeze.ready(function(){
+
 
 
        Breeze('div p').width(200).height('+=30').style('backgroundColor','#ccc')
