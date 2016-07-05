@@ -14,7 +14,24 @@
  *   <layout left="10" right="10" top="50" bottom="10" horizontal="left" vertical="top" />
  * </div>
  */
-+(function( window,undefined )
+(function( global, factory ){
+
+    if( typeof define === "function" )
+    {
+        define(['./Component'] , function(){
+            return factory( global );
+        });
+
+    }else if( typeof module === "object" && typeof module.exports === "object"  )
+    {
+        module.exports =  factory( global )
+
+    }else
+    {
+        factory( global );
+    }
+
+})(typeof window !== "undefined" ? window : this,function( window,undefined )
 {
     var rootLayout=null
     ,horizontal=['left','center','right']
@@ -77,7 +94,7 @@
         var obj = Component.call(this,  target );
 
         //如果是一个新的实例
-        if( obj === this && rootLayout )
+        if( obj === this && this.viewport()[0].nodeName.toLowerCase() !== 'body' )
         {
             this.viewport().style('position', 'absolute');
             this.childrenItem=[];
@@ -332,9 +349,9 @@
             for( ; index<len; index++)
             {
                 var child = target.childNodes.item( index );
-                this.current( child );
                 if( Breeze.isHTMLElement(child) && this.property('includeLayout' )!=='false' )
                 {
+                    this.current( child );
                     this.style('position','absolute')
                     var childWidth = this.width() ||  this.calculateWidth( parentWidth );
                     var childHeight= this.height() || this.calculateHeight( parentHeight );
@@ -444,7 +461,6 @@
             }
         }
         this.setLayoutSize(parentWidth, parentHeight);
-
     }
 
     /**
@@ -453,9 +469,10 @@
      */
     Layout.prototype.validate=function()
     {
-        var root = Layout.rootLayout().current(window);
-        var height=root.height()+root.scrollTop();
-        var width=root.width()+root.scrollLeft();
+        var root = Layout.rootLayout()
+        var viewport= root.viewport().current( window );
+        var height=viewport.height()+viewport.scrollTop();
+        var width=viewport.width()+viewport.scrollLeft();
         root.current(null);
         root.updateDisplayList( root.calculateWidth( width ), root.calculateHeight( height ) );
         return this;
@@ -690,4 +707,8 @@
     window.Layout=Layout;
     window.LayoutEvent=LayoutEvent;
 
-})( window )
+    Breeze.root().addEventListener( BreezeEvent.READY,function(){
+        Component.initialize();
+    },false,100);
+
+})

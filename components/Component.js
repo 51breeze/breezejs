@@ -5,7 +5,25 @@
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
  */
-(function(window,undefined )
+
+(function( global, factory ){
+
+    if( typeof define === "function" )
+    {
+        define(['EventDispatcher','Breeze'] , function(){
+            return factory( global );
+        });
+
+    }else if( typeof module === "object" && typeof module.exports === "object"  )
+    {
+        module.exports =  factory( global )
+
+    }else
+    {
+        factory( global );
+    }
+
+})(typeof window !== "undefined" ? window : this,function(window,undefined )
 {
     "use strict";
 
@@ -238,7 +256,6 @@
 
             var name= this.property( Component.NAME );
             var className = typeof window[ name ] === "function"  ? window[ name ] : window[ Breeze.ucfirst(name) ];
-
             if( typeof className !== "function" )
             {
                 throw new Error('Not found component class for '+name);
@@ -247,7 +264,7 @@
             var instance = Component.getInstance( this , className );
             if( !(instance instanceof className) )
             {
-                instance = new className(new SkinGroup(element));
+                instance = new className( element );
             }
 
             //初始化视图中的脚本
@@ -271,7 +288,7 @@
             for( ; index < instance.initializeMethod.length; index++)
             {
                 var method = instance.initializeMethod[ index ];
-                var value = Breeze.property(element,method);
+                var value = instance.property(method);
 
                 if( method && value !==null && typeof instance[ method ] === "function" )
                 {
@@ -285,7 +302,10 @@
     }
 
     //初始化组件
-    Breeze.root().addEventListener( BreezeEvent.READY,function(){Component.initialize();},false,100);
+   /* Breeze.root().addEventListener( BreezeEvent.READY,function(){
+        Component.initialize();
+    },false,100);*/
+
 
     function ComponentEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
     ComponentEvent.prototype=new BreezeEvent();
@@ -296,4 +316,4 @@
     window.Component=Component;
     window.ComponentEvent=ComponentEvent;
 
-})( window )
+})

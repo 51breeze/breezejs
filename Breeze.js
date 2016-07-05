@@ -264,11 +264,20 @@
             return new Breeze( selector, context );
         }
 
-        if( !(selector instanceof Array) )
+        this.context=context;
+        var result=[];
+        if( selector instanceof Array )
         {
-            this.context=context;
-            DataArray.prototype.concat.apply(this, Breeze.querySelector(selector, context) );
+            result = DataArray( selector).filter(function(elem){
+                return Breeze.isNodeElement( elem ) || Breeze.isWindow(elem);
+            }).toArray();
+
+        }else
+        {
+            result = Breeze.querySelector(selector, context);
         }
+
+        DataArray.prototype.concat.apply(this,  result);
         EventDispatcher.call(this);
         this.forEachCurrentItem=null;
         this.forEachCurrentIndex=NaN;
@@ -1452,7 +1461,7 @@
             //如果选择器不是一个字符串
             if (typeof selector !== "string")
             {
-                results = selector && typeof selector.nodeName === "string" && selector.nodeType ? [selector] : [];
+                results = Breeze.isNodeElement(selector) || Breeze.isWindow(selector) ? [selector] : [];
 
             }else
             {

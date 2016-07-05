@@ -2,29 +2,26 @@
  * Created by Administrator on 2016/6/21.
  */
 
-require.config({
+/*require.config({
 
     shim:{}
 
-})
+})*/
 
-require(['./Breeze' ],function(Breeze){
-
-
-   /* require(['./components/Component', './components/Layout'],function(){
-
-        Layout( Breeze('#layout') ).percentWidth(50).percentHeight(30).updateDisplayList()
+require(['./Breeze'],function(Breeze){
 
 
-    })*/
+   require(['./components/Layout'],function(){
+
+        Layout( Breeze('#layout') ).percentWidth(80).percentHeight(50).validate()
+
+    })
 
 
-    Breeze.ready(function(){
-
+   /* Breeze.ready(function(){
 
 
        Breeze('div p').width(200).height('+=30').style('backgroundColor','#ccc')
-
 
 
         Breeze('div')
@@ -59,7 +56,7 @@ require(['./Breeze' ],function(Breeze){
         })
 
 
-    })
+    })*/
 
 
 });
