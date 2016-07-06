@@ -234,8 +234,7 @@
         if( isNaN( width ) )
         {
             var percent = this.percentWidth();
-            percent = isNaN(percent) ? 100 : percent;
-            width = percent===0 ?  parseInt( this.width() ) :  percent  / 100 * parentWidth;
+            width = !isNaN(percent) ? percent / 100 * parentWidth : this.viewport().width();
         }
         var left = this.left() || 0;
         var right = this.right() || 0;
@@ -255,8 +254,7 @@
         if( isNaN( height ) )
         {
             var percent = this.percentHeight();
-            percent = isNaN(percent) ? 100 : percent;
-            height=  percent===0 ?  parseInt( this.height() ) :  percent / 100 * parentHeight;
+            height = !isNaN(percent) ? percent / 100 * parentHeight : this.viewport().height();
         }
         var bottom = this.bottom() || 0;
         var top = this.top() || 0;
@@ -375,45 +373,35 @@
             vscroll=Math.max(this.owner.scrollHeight,vscroll);
         }
 
-        if( target && target.childNodes && target.childNodes.length>0 )
-        {
-            var len = target.childNodes.length, index=0;
-            for( ; index<len; index++)
-            {
-                var child = target.childNodes.item( index );
-                if( Breeze.isHTMLElement(child) && this.property('includeLayout' )!=='false' )
-                {
-                    this.current( child );
-                    this.style('position','absolute')
-                    var childWidth = this.width() ||  this.calculateWidth( parentWidth );
-                    var childHeight= this.height() || this.calculateHeight( parentHeight );
-                    var marginLeft =  parseInt( this.style('marginLeft') ) || 0;
-                    var marginRight =  parseInt( this.style('marginRight') ) || 0;
-                    var marginTop = parseInt( this.style('marginTop') ) || 0;
-                    var marginBottom = parseInt( this.style('marginBottom') ) || 0;
+        Breeze( target ).children(':not([includeLayout=false])').forEach(function(elem){
 
-                    //从第二个子级元素开始，如大于了容器宽度则换行
-                    if (x + childWidth+gap+marginLeft+marginRight+paddingRight-hscroll > parentWidth && index > 0)
-                    {
-                        y += maxHeight;
-                        x = gap+paddingLeft;
-                        maxHeight = 0;
-                    }
-                    children.push({
-                        'target': child,
-                        'left': x + marginLeft,
-                        'top': y + marginTop,
-                        'width':childWidth,
-                        'height':childHeight
-                    });
-                    x += childWidth+gap+marginRight;
-                    maxHeight = Math.max(maxHeight, childHeight + gap+marginTop+marginBottom);
-                    countHeight = maxHeight + y;
-                    countWidth = Math.max(countWidth, x+paddingRight );
-                }
+            this.style('position','absolute');
+            var childWidth = this.width() ;
+            var childHeight= this.height();
+            var marginLeft =  parseInt( this.style('marginLeft') ) || 0;
+            var marginRight =  parseInt( this.style('marginRight') ) || 0;
+            var marginTop = parseInt( this.style('marginTop') ) || 0;
+            var marginBottom = parseInt( this.style('marginBottom') ) || 0;
+
+            //从第二个子级元素开始，如大于了容器宽度则换行
+            if (x + childWidth+gap+marginLeft+marginRight+paddingRight-hscroll > parentWidth && index > 0)
+            {
+                y += maxHeight;
+                x = gap+paddingLeft;
+                maxHeight = 0;
             }
-            this.current( null );
-        }
+            children.push({
+                'target': elem,
+                'left': x + marginLeft,
+                'top': y + marginTop,
+                'width':childWidth,
+                'height':childHeight
+            });
+            x += childWidth+gap+marginRight;
+            maxHeight = Math.max(maxHeight, childHeight + gap+marginTop+marginBottom);
+            countHeight = maxHeight + y;
+            countWidth = Math.max(countWidth, x+paddingRight );
+        })
 
         var scrollbarSize=17;
         var scrollbarChanged= false;
@@ -458,8 +446,8 @@
 
          if( scrollbarChanged === true )
          {
-            this.updateDisplayList(countWidth, countHeight );
-            return;
+             this.invalidate=false;
+             this.updateDisplayList(countWidth, countHeight );
          }
 
         //需要整体排列
@@ -531,7 +519,6 @@
         {
             this.childrenItem[index].updateDisplayList(realWidth, realHeight);
         }
-
         //计算子级元素需要排列的位置
         this.measureChildren( realWidth, realHeight );
     }
