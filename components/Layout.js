@@ -34,6 +34,7 @@
 })(typeof window !== "undefined" ? window : this,function( window,undefined )
 {
     var rootLayout=null
+    ,initialized=false
     ,horizontal=['left','center','right']
     ,vertical=['top','middle','bottom']
     ,__method__ = function(prop, val , flag )
@@ -59,20 +60,50 @@
      * @param profile
      * @returns {*}
      */
-    function getOwner(target)
+    function setOwner()
     {
-        var parent=target;
-        while( Breeze.contains( target.ownerDocument.body, parent ) )
+        var parent=this.viewport()[0];
+        var owner= null;
+        while( owner === null && Breeze.contains( parent.ownerDocument.body, parent ) )
         {
             parent= parent.parentNode;
             var layout = Component.getInstance(parent, Layout );
             if( layout && layout instanceof Layout )
             {
-                return layout;
+                owner = layout;
             }
         }
-        return Layout.rootLayout();
+
+        this.owner = owner === null ? Layout.rootLayout() : owner;
+        this.owner.childrenItem.push( this );
+        if( this.owner ) {
+            checkchildren.call(this, Layout.rootLayout().childrenItem);
+        }
     }
+
+    function checkchildren( children )
+    {
+        var parent = this.viewport()[0];
+        for( var i in children )
+        {
+            var child = children[i];
+            var childElem = child.viewport()[0];
+            if( Breeze.contains( parent , childElem ) )
+            {
+                if( child.owner !== this )
+                {
+                    if( child.owner )
+                    {
+                        var index = child.owner.childrenItem.indexOf( child );
+                        child.owner.childrenItem.splice( index, 1);
+                    }
+                    child.owner = this;
+                    this.childrenItem.push( child );
+                }
+            }
+        }
+    }
+
 
     /**
      * Layout
@@ -85,7 +116,7 @@
             return new Layout( target );
 
         if( !(target instanceof Breeze) &&
-            (!Breeze.isHTMLElement(target) || !target.parentNode || !Breeze.contains( target.ownerDocument.body, target )) )
+            (!Breeze.isHTMLElement(target) || !target.parentNode || ( !Breeze.contains( target.ownerDocument.body, target ) && rootLayout ) ) )
         {
             throw new Error('Invalid element for Layout');
         }
@@ -93,13 +124,13 @@
         //初始化组件
         var obj = Component.call(this,  target );
 
+        this.childrenItem=[];
+
         //如果是一个新的实例
         if( obj === this && this.viewport()[0].nodeName.toLowerCase() !== 'body' )
         {
             this.viewport().style('position', 'absolute');
-            this.childrenItem=[];
-            this.owner = getOwner( this.viewport()[0] );
-            this.owner.childrenItem.push(this);
+            setOwner.call(this);
         }
         return obj;
     }
@@ -112,10 +143,11 @@
     {
         if( rootLayout=== null )
         {
-            rootLayout = Layout( document.body )
+            rootLayout = Layout( document.body );
             Breeze.root().addEventListener([BreezeEvent.RESIZE,ComponentEvent.INITIALIZE_COMPLETED],function(event)
             {
-                rootLayout.updateDisplayList();
+                initialized=true;
+                rootLayout.nowValidate();
 
             },false,1000);
         }
@@ -467,7 +499,7 @@
      * 验证布局
      * @returns {Layout}
      */
-    Layout.prototype.validate=function()
+    Layout.prototype.nowValidate=function()
     {
         var root = Layout.rootLayout()
         var viewport= root.viewport().current( window );

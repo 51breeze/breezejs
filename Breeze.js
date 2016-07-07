@@ -466,8 +466,8 @@
 
         get:function(name){
             var getter = fix.cssHooks[name] && typeof fix.cssHooks[name].get === "function" ? fix.cssHooks[name].get : null;
-            var currentStyle = document.defaultView && document.defaultView.getComputedStyle ? document.defaultView.getComputedStyle(this, null) : this.currentStyle || this.style;
-            name = Breeze.styleName(name);
+            var currentStyle = Breeze.hasStyle() ? (document.defaultView && document.defaultView.getComputedStyle ?
+                document.defaultView.getComputedStyle(this, null) : this.currentStyle || this.style) : {};
             return getter ? getter.call(this, currentStyle, name) : currentStyle[name];
         }
         ,set:function(name,value, obj ){
@@ -1512,10 +1512,10 @@
         if( Breeze.isNodeElement(child) )
         {
             if('contains' in parent) {
-                return parent.contains( child );
+                return parent.contains( child ) && parent !== child;
             }
             else {
-                return !!(parent.compareDocumentPosition(child) & 16);
+                return !!(parent.compareDocumentPosition(child) & 16) && parent !== child ;
             }
         }
         return Breeze.querySelector( child, parent ).length > 0;
