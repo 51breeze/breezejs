@@ -60,7 +60,7 @@
      * @returns {Breeze|SkinGroup}
      * @public
      */
-    Component.prototype.viewport=function()
+    SkinComponent.prototype.viewport=function()
     {
         var viewport = this.skinGroup().current(null);
         if( viewport.length !==1 )

@@ -6,28 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function( global, factory ){
-
-    if( typeof define === "function" )
-    {
-        define(['EventDispatcher','DataArray','./events/StyleEvent','./events/PropertyEvent','./events/ElementEvent'] , function(){
-           return factory( global );
-        });
-
-    }else if( typeof module === "object" && typeof module.exports === "object"  )
-    {
-        module.exports = global.document ? factory( global ) :
-        function( w ) {
-            if ( !w.document )throw new Error( "Breeze requires a window with a document" );
-            return factory( w );
-        };
-
-    }else
-    {
-        factory( global );
-    }
-
-})(typeof window !== "undefined" ? window : this,function( window, undefined  )
+(function( window, undefined  )
 {
     "use strict";
 
@@ -2650,5 +2629,5 @@
 
     //defined global variable
     if( typeof window.document !== "undefined" )window.Breeze=Breeze;
-    return Breeze;
-});
+
+}(window));

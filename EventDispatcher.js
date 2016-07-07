@@ -6,24 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function(global, factory){
-
-    if( typeof define === "function" )
-    {
-        define(['./events/BreezeEvent','./events/MouseEvent','./events/KeyboardEvent'] , function(){
-            return factory( global );
-        });
-
-    }else if( typeof module === "object" && typeof module.exports === "object"  )
-    {
-        module.exports = factory( global )
-
-    }else
-    {
-        factory( global );
-    }
-
-})(typeof window !== "undefined" ? window : this,function(window, undefined )
+(function(window, undefined )
 {
     "use strict";
 
@@ -487,9 +470,6 @@
         return true;
     });
 
-    if( typeof window.document !== "undefined" )
-    {
-        window.EventDispatcher = EventDispatcher;
-    }
-    return EventDispatcher;
-})
+    window.EventDispatcher = EventDispatcher;
+
+}(window))

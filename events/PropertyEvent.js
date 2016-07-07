@@ -1,21 +1,4 @@
-(function(global,factory){
-
-    if( typeof define === "function" )
-    {
-        define(['./BreezeEvent'] , function(){
-            return factory( global );
-        });
-
-    }else if( typeof module === "object" && typeof module.exports === "object"  )
-    {
-        module.exports = factory( global );
-
-    }else
-    {
-        factory( global );
-    }
-
-})(typeof window !== "undefined" ? window : this,function(){
+(function(window){
 
     /**
      * PropertyEvent
@@ -34,6 +17,6 @@
     PropertyEvent.COMMIT='propertyCommit';
 
     BreezeEvent.fix.map[ PropertyEvent.CHANGE ] = 'input';
-    if( typeof window.document !== "undefined" )window.PropertyEvent=PropertyEvent;
-    return PropertyEvent;
-})
+    window.PropertyEvent=PropertyEvent;
+
+}(window))

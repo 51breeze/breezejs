@@ -6,24 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function( global, factory ){
-
-    if( typeof define === "function" )
-    {
-        define(['EventDispatcher','Breeze'] , function(){
-            return factory( global );
-        });
-
-    }else if( typeof module === "object" && typeof module.exports === "object"  )
-    {
-        module.exports =  factory( global )
-
-    }else
-    {
-        factory( global );
-    }
-
-})(typeof window !== "undefined" ? window : this,function(window,undefined )
+(function(window,undefined )
 {
     "use strict";
 
@@ -316,4 +299,4 @@
     window.Component=Component;
     window.ComponentEvent=ComponentEvent;
 
-})
+}(window))

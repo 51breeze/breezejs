@@ -2,44 +2,55 @@
  * Created by Administrator on 2016/6/21.
  */
 
-require(['./Breeze'],function(Breeze){
+require.config({
 
-
-    require(['./components/Layout']);
-
-
-   /* Breeze.ready(function(){
-
-
-       Breeze('div p').width(200).height('+=30').style('backgroundColor','#ccc')
-        Breeze('div')
-            .addChild('<div class="a"> insert div 1</div>')
-            .addChild('<div class="a"> insert div 2</div>')
-
-        //console.log( Breeze('div > p > div').length )
-
-      Breeze('div > div').wrap('<p style="border-bottom: solid 1px #59d6ff" />')
-
-        var i=1;
-        Breeze('div.a').parent().forEach(function(){
-
-            this.property('name', i++ );
-
-        })
-
-
-        Breeze('div.a').unwrap('p')
+    paths : {
+        'breezeEvent':'./events/BreezeEvent'
+        ,'propertyEvent':'./events/PropertyEvent'
+        ,'styleEvent':'./events/StyleEvent'
+        ,'elementEvent':'./events/ElementEvent'
+        ,'mouseEvent':'./events/MouseEvent'
+        ,'scrollEvent':'./events/ScrollEvent'
+        ,'touchEvent':'./events/TouchEvent'
+        ,'eventDispatcher':'EventDispatcher'
+        ,'dataArray':'DataArray'
+        ,'breeze':'Breeze'
+    },
+    shim: {
+        'propertyEvent': ['breezeEvent'],
+        'elementEvent': ['breezeEvent'],
+        'mouseEvent': ['breezeEvent'],
+        'touchEvent': ['breezeEvent'],
+        'scrollEvent': ['propertyEvent'],
+        'styleEvent': ['propertyEvent'],
+        'eventDispatcher': ['breezeEvent'],
+        'breeze': ['eventDispatcher','dataArray','mouseEvent','scrollEvent','elementEvent','styleEvent','propertyEvent']
+    }
+});
 
 
 
-        Breeze('div').addEventListener(MouseEvent.CLICK,function(event){
+require(['breeze'],function(){
 
-            console.log( event )
-
-        })
+   Breeze.ready(function(){
 
 
-    })*/
+       require(['./components/Component'],function(){
+
+           require(['./components/SkinComponent','./components/SkinGroup'],function(){
+
+               require(['./components/Modality'],function(){
+
+
+                    Modality(document.body).show()
+
+               })
+           })
+       })
+
+
+
+    })
 
 
 });

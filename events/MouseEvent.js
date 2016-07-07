@@ -1,21 +1,4 @@
-(function(global,factory){
-
-    if( typeof define === "function" )
-    {
-        define(['./BreezeEvent','../Breeze','../EventDispatcher'] , function(){
-            return factory( global );
-        });
-
-    }else if( typeof module === "object" && typeof module.exports === "object"  )
-    {
-        module.exports = factory( global );
-
-    }else
-    {
-        factory( global );
-    }
-
-})(typeof window !== "undefined" ? window : this,function(){
+(function(window){
 
     /**
      * MouseEvent
@@ -46,8 +29,6 @@
     {
        BreezeEvent.fix[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
     }
+    window.MouseEvent=MouseEvent;
 
-
-    if( typeof window.document !== "undefined" )window.MouseEvent=MouseEvent;
-    return MouseEvent;
-})
+}(window))

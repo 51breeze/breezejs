@@ -6,24 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function(global,factory){
-
-    if( typeof define === "function" )
-    {
-        define(['./BreezeEvent'] , function(){
-            return factory( global );
-        });
-
-    }else if( typeof module === "object" && typeof module.exports === "object"  )
-    {
-        module.exports = factory( global );
-
-    }else
-    {
-        factory( global );
-    }
-
-})(typeof window !== "undefined" ? window : this,function( window, undefined ){
+(function(window){
 
     function TouchEvent(type, bubbles,cancelable  ){ BreezeEvent.call(this,type, bubbles,cancelable );};
     TouchEvent.prototype.constructor=TouchEvent ;
@@ -341,23 +324,9 @@
         }
     })
 
+    window.TouchDragEvent = TouchDragEvent;
+    window.TouchPinchEvent = TouchPinchEvent;
+    window.TouchSwipeEvent = TouchSwipeEvent;
+    window.TouchEvent = TouchEvent;
 
-
-    if( typeof window.document !== "undefined")
-    {
-        window.TouchDragEvent = TouchDragEvent;
-        window.TouchPinchEvent = TouchPinchEvent;
-        window.TouchSwipeEvent = TouchSwipeEvent;
-        window.TouchEvent = TouchEvent;
-    }
-
-    if( typeof define === "function" && define.amd )
-    {
-        define('TouchDragEvent',[], TouchDragEvent );
-        define('TouchPinchEvent',[], TouchPinchEvent );
-        define('TouchSwipeEvent',[], TouchSwipeEvent );
-    }
-
-    return TouchEvent;
-
-});
+}(window));

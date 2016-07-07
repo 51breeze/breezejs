@@ -325,7 +325,6 @@
         var paddingTop   = parseInt( this.style('paddingTop') )   || 0
         var paddingBottom= parseInt( this.style('paddingBottom') )|| 0;
         var gap=this.gap(),x=gap+paddingLeft,y=gap+paddingTop,maxHeight=0,countHeight= 0,countWidth=0;
-
         var horizontalAlign=this.horizontal()
             ,verticalAlign=this.vertical()
             ,h=horizontalAlign===horizontal[1] ? 0.5 : horizontalAlign===horizontal[2] ? 1 : 0
@@ -333,13 +332,6 @@
 
         var children =  [];
         var target = this.viewport().current();
-        var hscroll = this.scrollWidth;
-        var vscroll = this.scrollHeight;
-        if( this.owner instanceof Layout )
-        {
-            hscroll=Math.max(this.owner.scrollWidth,hscroll);
-            vscroll=Math.max(this.owner.scrollHeight,vscroll);
-        }
 
         Breeze( target ).children(':not([includeLayout=false])').forEach(function(elem){
 
@@ -352,7 +344,7 @@
             var marginBottom = parseInt( this.style('marginBottom') ) || 0;
 
             //从第二个子级元素开始，如大于了容器宽度则换行
-            if (x + childWidth+gap+marginLeft+marginRight+paddingRight-hscroll > parentWidth && index > 0)
+            if (x + childWidth+gap+marginLeft+marginRight+paddingRight > parentWidth && index > 0)
             {
                 y += maxHeight;
                 x = gap+paddingLeft;
@@ -371,60 +363,18 @@
             countWidth = Math.max(countWidth, x+paddingRight );
         })
 
-        var scrollbarSize=17;
-        var scrollbarChanged= false;
+        this.measureChildrenItem=children;
+        this.measureChildrenHeight=countHeight;
+        this.measureChildrenWidth=countWidth;
 
-        //监测垂直滚动条
-        if( !this.scrollY() )
-        {
-            parentHeight= Math.max(parentHeight, countHeight)
-
-        }else if( parentHeight < countHeight )
-        {
-            if( this.scrollWidth!==scrollbarSize )
-            {
-                this.scrollWidth=scrollbarSize;
-                scrollbarChanged=true;
-            }
-
-        }else if( this.scrollWidth===scrollbarSize )
-        {
-            this.scrollWidth=0;
-            scrollbarChanged=true;
-        }
-
-        //监测水平滚动条
-        if( !this.scrollX() )
-        {
-            parentWidth= Math.max(parentWidth, countWidth)
-
-        }else if(parentWidth < countWidth)
-        {
-            if( this.scrollHeight!==scrollbarSize )
-            {
-                this.scrollHeight=scrollbarSize;
-                scrollbarChanged=true
-            }
-
-        }else if( this.scrollHeight===scrollbarSize )
-        {
-            this.scrollHeight=0;
-            scrollbarChanged=true;
-        }
-
-        if( scrollbarChanged === true )
-        {
-            this.invalidate=false;
-            this.updateDisplayList(countWidth, countHeight );
-        }
 
         //需要整体排列
-        if( children.length > 0 )
+       /* if( children.length > 0 )
         {
             var gap=this.gap();
             var xOffset, yOffset, index=0;
-            xOffset = Math.floor((parentWidth-countWidth - hscroll  ) * h);
-            yOffset = Math.floor((parentHeight - countHeight - vscroll ) * v);
+            xOffset = Math.floor((parentWidth-countWidth  ) * h);
+            yOffset = Math.floor((parentHeight - countHeight ) * v);
 
             if( this.scrollY() &&  xOffset< 0 )
                 xOffset=gap+paddingLeft;
@@ -448,7 +398,7 @@
                 }
             }
         }
-        this.setLayoutSize(parentWidth, parentHeight);
+        this.setLayoutSize(parentWidth, parentHeight);*/
     }
 
     /**
@@ -480,16 +430,17 @@
         var  realHeight=this.calculateHeight( parentHeight );
         var  realWidth= this.calculateWidth( parentWidth );
 
-        this.width( realWidth );
-        this.width( realHeight );
+        //计算子级元素需要排列的位置
+        this.measureChildren( realWidth, realHeight );
+
+
 
         for( var index in this.childrenItem )
         {
             this.childrenItem[index].updateDisplayList(parentWidth, parentHeight);
         }
 
-        //计算子级元素需要排列的位置
-        this.measureChildren( realWidth, realHeight );
+
     }
 
     /**

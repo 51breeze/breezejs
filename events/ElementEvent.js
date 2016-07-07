@@ -8,24 +8,7 @@
  * @constructor
  */
 
-(function(global,factory){
-
-        if( typeof define === "function" )
-        {
-            define(['./BreezeEvent'] , function(){
-                return factory( global );
-            });
-
-        }else if( typeof module === "object" && typeof module.exports === "object"  )
-        {
-            module.exports = factory( global );
-
-        }else
-        {
-            factory( global );
-        }
-
-})(typeof window !== "undefined" ? window : this,function(){
+(function(window){
 
     function ElementEvent( type, bubbles,cancelable ){ BreezeEvent.call(this, type, bubbles,cancelable );}
     ElementEvent.prototype=new BreezeEvent();
@@ -34,6 +17,5 @@
     ElementEvent.prototype.constructor=ElementEvent;
     ElementEvent.ADD='elementAdd';
     ElementEvent.REMOVE='elementRemove';
-    if( typeof window.document !== "undefined" )window.ElementEvent=ElementEvent;
-    return ElementEvent;
-})
+    window.ElementEvent=ElementEvent;
+}(window))

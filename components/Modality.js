@@ -57,7 +57,7 @@ modality.show(true)
     {
         if( !(this instanceof Modality) )
             return new Modality( skinGroup );
-        Component.call(this, skinGroup );
+        return Component.call(this, skinGroup );
     }
 
     Modality.prototype=  new Component();
@@ -130,8 +130,8 @@ modality.show(true)
         skin.current(null);
         var halign=this.horizontal()
             ,valign=this.vertical()
-            ,width = Utils.getSize(window,'width')
-            ,height = Utils.getSize(window,'height')
+            ,width = Breeze.root().width()
+            ,height = Breeze.root().height()
             ,h=halign==='center' ? 0.5 : halign==='right' ? 1 : 0
             ,v=valign==='middle' ? 0.5 : valign==='bottom' ? 1 : 0
             ,xOffset, yOffset;
@@ -151,11 +151,11 @@ modality.show(true)
     {
         if( this.type() !== Modality.SIMPLE )
         {
-            var selector=Utils.sprintf('[%s=head] > [%s=close],[%s=footer] button', SkinGroup.NAME,SkinGroup.NAME,SkinGroup.NAME );
+            var selector=Breeze.sprintf('[%s=head] > [%s=close],[%s=footer] button', SkinGroup.NAME,SkinGroup.NAME,SkinGroup.NAME );
             Breeze(selector,skinGroup).addEventListener(MouseEvent.CLICK,function(event)
             {
                 event.stopPropagation();
-                var type =  Utils.property(event.target,SkinGroup.NAME);
+                var type =  Breeze(event.target).property(SkinGroup.NAME);
                 if( typeof type === "string" )
                 {
                     var uptype=type.toUpperCase();
@@ -168,7 +168,7 @@ modality.show(true)
             skinGroup.addEventListener( PropertyEvent.CHANGE , this.__propertyChanged__, false, 0, this )
         }
 
-        Utils.root().addEventListener(BreezeEvent.RESIZE,function(event){
+        Breeze.root().addEventListener(BreezeEvent.RESIZE,function(event){
             this.setPositionAndSize();
         },true,0,this);
         this.setPositionAndSize();
@@ -314,18 +314,18 @@ modality.show(true)
             _shade = new Modality()
             _shade.type(Modality.SIMPLE);
             _shade.style({'opacity':0.5,'backgroundColor':'#000000','radius':'0px','shadow':'none','left':'0px','top':'0px'});
-            _shade.style('width','100%').style('height', Utils.getSize(document,'height') )
+            _shade.style('width','100%').style('height', Breeze(document).height() )
 
-            Utils.root().addEventListener(BreezeEvent.RESIZE,function(event)
+            Breeze.root().addEventListener(BreezeEvent.RESIZE,function(event)
             {
-                var height = Utils.getSize(window,'height') + Utils.scroll(document).top
+                var height = Breeze(window).height() + Breeze(document).scrollTop()
                 _shade.style('height', height );
 
             },true);
 
-            Utils.root().addEventListener(BreezeEvent.SCROLL,function(event)
+            Breeze.root().addEventListener(BreezeEvent.SCROLL,function(event)
             {
-                _shade.style('height', Utils.getSize(document,'height') );
+                _shade.style('height', Breeze(document).height() );
             });
         }
         return _shade;
@@ -341,14 +341,14 @@ modality.show(true)
     Modality.prototype.show=function( shade ,zIndex )
     {
         zIndex = zIndex || 999;
-        shade= Utils.boolean( shade );
+        shade= Breeze.boolean( shade );
         if( shade===true )
         {
             this.__shaded__=true;
             this.shade().show(false,zIndex-1);
         }
         this.current(null);
-        this.style({'zIndex':zIndex,"getBoundingRect":'absolute'}).display(true);
+        this.style({'zIndex':zIndex,"position":'absolute'}).display(true);
         return this;
     }
 

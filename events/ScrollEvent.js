@@ -1,21 +1,4 @@
-(function(global,factory){
-
-    if( typeof define === "function" )
-    {
-        define(['./PropertyEvent'] , function(){
-            return factory( global );
-        });
-
-    }else if( typeof module === "object" && typeof module.exports === "object"  )
-    {
-        module.exports = factory( global );
-
-    }else
-    {
-        factory( global );
-    }
-
-})(typeof window !== "undefined" ? window : this,function(){
+(function(window){
 
     /**
      * PropertyEvent
@@ -28,6 +11,5 @@
     ScrollEvent.prototype=new PropertyEvent();
     ScrollEvent.prototype.constructor=ScrollEvent;
     ScrollEvent.CHANGE='scrollChange';
-    if( typeof window.document !== "undefined" )window.ScrollEvent=ScrollEvent;
-    return ScrollEvent;
-})
+    window.ScrollEvent=ScrollEvent;
+}(window))

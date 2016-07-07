@@ -6,27 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-
-
-
-(function(global,factory){
-
-    if( typeof define === "function" )
-    {
-        define([] , function(){
-            return factory( global );
-        });
-
-    }else if( typeof module === "object" && typeof module.exports === "object"  )
-    {
-        module.exports = factory( global );
-
-    }else
-    {
-        factory( global );
-    }
-
-})(typeof window !== "undefined" ? window : this,function(window,undefined)
+(function(window,undefined)
 {
     'use strict';
 
@@ -256,7 +236,6 @@
     BreezeEvent.SCROLL='scroll';
 
     fix.map[ BreezeEvent.READY ]='DOMContentLoaded';
-    if( typeof window.document !== "undefined" )window.BreezeEvent = BreezeEvent;
-    return BreezeEvent;
+    window.BreezeEvent = BreezeEvent;
 
-})
+}(window))
