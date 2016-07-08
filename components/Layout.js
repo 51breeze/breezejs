@@ -33,11 +33,11 @@
 
 })(typeof window !== "undefined" ? window : this,function( window,undefined )
 {
-    var rootLayout=null
-    ,initialized=false
-    ,horizontal=['left','center','right']
-    ,vertical=['top','middle','bottom']
-    ,__method__ = function(prop, val , flag )
+    var rootLayout={'childrenItem':[]}
+        ,initialized=false
+        ,horizontal=['left','center','right']
+        ,vertical=['top','middle','bottom']
+        ,__method__ = function(prop, val , flag )
     {
         var skin = this.viewport();
         var old = parseInt( skin.property(prop) );
@@ -55,51 +55,21 @@
         return old;
     };
 
-    /**
-     * @param target
-     * @param profile
-     * @returns {*}
-     */
-    function setOwner()
-    {
-        var parent=this.viewport()[0];
-        var owner= null;
-        while( owner === null && Breeze.contains( parent.ownerDocument.body, parent ) )
-        {
-            parent= parent.parentNode;
-            var layout = Component.getInstance(parent, Layout );
-            if( layout && layout instanceof Layout )
-            {
-                owner = layout;
-            }
-        }
 
-        this.owner = owner === null ? Layout.rootLayout() : owner;
-        this.owner.childrenItem.push( this );
-        if( this.owner ) {
-            checkchildren.call(this, Layout.rootLayout().childrenItem);
-        }
-    }
-
-    function checkchildren( children )
+    //验证子级
+    function checkchildren()
     {
-        var parent = this.viewport()[0];
+        var elem = this.viewport()[0];
+        var children = rootLayout.childrenItem;
         for( var i in children )
         {
             var child = children[i];
-            var childElem = child.viewport()[0];
-            if( Breeze.contains( parent , childElem ) )
+            var childElem=child.viewport()[0];
+            if( child !== childElem && Breeze.contains( elem , childElem ) )
             {
-                if( child.owner !== this )
-                {
-                    if( child.owner )
-                    {
-                        var index = child.owner.childrenItem.indexOf( child );
-                        child.owner.childrenItem.splice( index, 1);
-                    }
-                    child.owner = this;
-                    this.childrenItem.push( child );
-                }
+                children.splice( i, 1);
+                child.owner = this;
+                this.childrenItem.push( child );
             }
         }
     }
@@ -115,8 +85,8 @@
         if( !(this instanceof Layout) )
             return new Layout( target );
 
-        if( !(target instanceof Breeze) &&
-            (!Breeze.isHTMLElement(target) || !target.parentNode || ( !Breeze.contains( target.ownerDocument.body, target ) && rootLayout ) ) )
+        target = target instanceof Breeze ? target[0] : target;
+        if( !Breeze.isHTMLElement(target) || !Breeze.contains(target.ownerDocument.body, target ) )
         {
             throw new Error('Invalid element for Layout');
         }
@@ -127,10 +97,12 @@
         this.childrenItem=[];
 
         //如果是一个新的实例
-        if( obj === this && this.viewport()[0].nodeName.toLowerCase() !== 'body' )
+        if( obj === this )
         {
             this.viewport().style('position', 'absolute');
-            setOwner.call(this);
+            this.owner = rootLayout;
+            this.owner.childrenItem.push( this );
+            checkchildren.call(this);
         }
         return obj;
     }
@@ -141,16 +113,6 @@
      */
     Layout.rootLayout=function()
     {
-        if( rootLayout=== null )
-        {
-            rootLayout = Layout( document.body );
-            Breeze.root().addEventListener([BreezeEvent.RESIZE,ComponentEvent.INITIALIZE_COMPLETED],function(event)
-            {
-                initialized=true;
-                rootLayout.nowValidate();
-
-            },false,1000);
-        }
         return rootLayout;
     }
 
@@ -202,25 +164,31 @@
     /**
      * @returns {{width: (number|void), height: (number|void)}}
      */
-    Layout.prototype.getViewportSize=function()
+    function getParentSize()
     {
         var viewport = this.viewport();
+        viewport.current( viewport[0].parentNode || viewport[0].ownerDocument.body );
         var height=viewport.height();
         var width=viewport.width();
 
         if( viewport[0] === viewport[0].ownerDocument.body )
         {
-            height = viewport.current(window).height();
-            width = viewport.width();
-            viewport.current(null);
-        }
-        height+=viewport.scrollTop()
-        width+=viewport.scrollLeft();
-        for( var index=0 ; index < padding.length ; index++ )
+            viewport.current(window)
+            height = viewport.height();
+            width  = viewport.width();
+
+        }else
         {
-            var val = parseInt( viewport.style('padding'+ padding[ index ] ) ) || 0;
-            index < 2 ? width-=val : height-=val;
+            for( var index=0 ; index < padding.length ; index++ )
+            {
+                var val = parseInt( viewport.style('padding'+ padding[ index ] ) ) || 0;
+                index < 2 ? width-=val : height-=val;
+            }
         }
+
+        height+=viewport.scrollTop();
+        width+=viewport.scrollLeft();
+        viewport.current(null);
         return {'width':width,'height':height};
     }
 
@@ -407,48 +375,48 @@
         var scrollbarChanged= false;
 
         //监测垂直滚动条
-         if( !this.scrollY() )
-         {
-             parentHeight= Math.max(parentHeight, countHeight)
+        if( !this.scrollY() )
+        {
+            parentHeight= Math.max(parentHeight, countHeight)
 
-         }else if( parentHeight < countHeight )
-         {
-             if( this.scrollWidth!==scrollbarSize )
-             {
-                 this.scrollWidth=scrollbarSize;
-                 scrollbarChanged=true;
-             }
+        }else if( parentHeight < countHeight )
+        {
+            if( this.scrollWidth!==scrollbarSize )
+            {
+                this.scrollWidth=scrollbarSize;
+                scrollbarChanged=true;
+            }
 
-         }else if( this.scrollWidth===scrollbarSize )
-         {
-             this.scrollWidth=0;
-             scrollbarChanged=true;
-         }
+        }else if( this.scrollWidth===scrollbarSize )
+        {
+            this.scrollWidth=0;
+            scrollbarChanged=true;
+        }
 
         //监测水平滚动条
-         if( !this.scrollX() )
-         {
+        if( !this.scrollX() )
+        {
             parentWidth= Math.max(parentWidth, countWidth)
 
-         }else if(parentWidth < countWidth)
-         {
-             if( this.scrollHeight!==scrollbarSize )
-             {
-                 this.scrollHeight=scrollbarSize;
-                 scrollbarChanged=true
-             }
+        }else if(parentWidth < countWidth)
+        {
+            if( this.scrollHeight!==scrollbarSize )
+            {
+                this.scrollHeight=scrollbarSize;
+                scrollbarChanged=true
+            }
 
-         }else if( this.scrollHeight===scrollbarSize )
-         {
-             this.scrollHeight=0;
-             scrollbarChanged=true;
-         }
+        }else if( this.scrollHeight===scrollbarSize )
+        {
+            this.scrollHeight=0;
+            scrollbarChanged=true;
+        }
 
-         if( scrollbarChanged === true )
-         {
-             this.invalidate=false;
-             this.updateDisplayList(countWidth, countHeight );
-         }
+        if( scrollbarChanged === true )
+        {
+            this.invalidate=false;
+            this.updateDisplayList(countWidth, countHeight );
+        }
 
         //需要整体排列
         if( children.length > 0 )
@@ -476,7 +444,7 @@
                 }else
                 {
                     Breeze(child.target).left( child.left + xOffset ).top(child.top + yOffset )
-                    .width(child.width).height(child.height);
+                        .width(child.width).height(child.height);
                 }
             }
         }
@@ -489,12 +457,10 @@
      */
     Layout.prototype.nowValidate=function()
     {
-        var root = Layout.rootLayout()
-        var viewport= root.viewport().current( window );
-        var height=viewport.height()+viewport.scrollTop();
-        var width=viewport.width()+viewport.scrollLeft();
-        root.current(null);
-        root.updateDisplayList( root.calculateWidth( width ), root.calculateHeight( height ) );
+        var size = getParentSize.call(this);
+        this.invalidate=false;
+        this.current(null);
+        this.updateDisplayList( size.width, size.height );
         return this;
     }
 
@@ -509,16 +475,19 @@
             return this;
 
         this.invalidate=true;
-        this.current(null);
 
         //计算当前布局可用的大小
         var  realHeight=this.calculateHeight( parentHeight );
         var  realWidth= this.calculateWidth( parentWidth );
 
+        this.width( realWidth );
+        this.width( realHeight );
+
         for( var index in this.childrenItem )
         {
-            this.childrenItem[index].updateDisplayList(realWidth, realHeight);
+            this.childrenItem[index].updateDisplayList(parentWidth, parentHeight);
         }
+
         //计算子级元素需要排列的位置
         this.measureChildren( realWidth, realHeight );
     }
@@ -726,8 +695,20 @@
     window.Layout=Layout;
     window.LayoutEvent=LayoutEvent;
 
+    Breeze.root().addEventListener([BreezeEvent.RESIZE,ComponentEvent.INITIALIZE_COMPLETED],function(event)
+    {
+        initialized=true;
+        for (var i in rootLayout.childrenItem ){
+            rootLayout.childrenItem[i].nowValidate();
+        }
+
+    },false,1000);
+
     Breeze.root().addEventListener( BreezeEvent.READY,function(){
         Component.initialize();
     },false,100);
+
+
+
 
 })

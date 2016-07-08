@@ -272,6 +272,9 @@
                 return Breeze.isNodeElement( elem ) || Breeze.isWindow(elem);
             }).toArray();
 
+        }else if( selector instanceof Breeze )
+        {
+            result = selector.toArray();
         }else
         {
             result = Breeze.querySelector(selector, context);
