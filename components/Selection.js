@@ -54,7 +54,8 @@ var selection = new Selection( '#selection' )
             var height =  skinGroup.height();
 
             skinGroup.currentSkin('group');
-            if( !skinGroup.display() )
+            var display = skinGroup.style('display');
+            if( display==='none' )
               return;
 
             skinGroup.width( width );
@@ -72,7 +73,7 @@ var selection = new Selection( '#selection' )
 
         //点击显示下拉列表
         EventDispatcher( skinGroup.getSkin('button') ).addEventListener(MouseEvent.CLICK,function(event){
-            skinGroup.currentSkin('group').display(true);
+            skinGroup.currentSkin('group').show();
             resize();
             event.stopPropagation();
         });
@@ -80,13 +81,14 @@ var selection = new Selection( '#selection' )
         //搜索框
         if( this.searchable() )
         {
-            Breeze('input', skinGroup.getSkin('group') ).property('placeholder', this.placeholder() ).display(true)
+            Breeze('input', skinGroup.getSkin('group') ).property('placeholder', this.placeholder() ).show()
             .addEventListener(PropertyEvent.CHANGE,function(event){
                 if( event.property==='value')
                 {
-                    var selector = event.newValue && event.newValue !='' ? ":contains('" + event.newValue + "')" : null;
+                    var selector = event.newValue && event.newValue !='' ?  event.newValue : null;
                     skinGroup.getSkinGroup('list > *').forEach(function( elem ){
-                        this.display( selector ?  Breeze.contains(elem, selector) : true );
+                        var v = selector ?  Breeze.contains(elem, selector) : true;
+                        v ? this.show() : this.hide();
                     });
                 }
             });
@@ -96,7 +98,7 @@ var selection = new Selection( '#selection' )
         EventDispatcher( skinGroup.getSkin('group') ).addEventListener( MouseEvent.MOUSE_OUTSIDE , function(event){
 
             if( !Breeze.contains( skinGroup[0],  event.target ) )
-               Breeze.style(event.currentTarget,'display','none');
+                skinGroup.currentSkin('group').hide()
         });
     }
 
@@ -271,12 +273,12 @@ var selection = new Selection( '#selection' )
                 var list = self.skinGroup().getSkinGroup('list > *', true);
                 list.hasEventListener(MouseEvent.CLICK) ||  list.addEventListener(MouseEvent.CLICK,function(event)
                 {
-                    if( !this.has('[disabled]') )
+                    if( !this.hasProperty('disabled') )
                     {
                         self.selectedIndex( getSelectedIndexByViewIndex.call(self, this.getElementIndex( event.currentTarget ) , event ) );
                     }
                     if (!event.ctrlKey)
-                        self.skinGroup().currentSkin('group').display(false);
+                        self.skinGroup().currentSkin('group').hide();
                 });
 
                 //如果是一个完整皮肤，则把皮肤列表中的项转换成项数据。
@@ -298,6 +300,7 @@ var selection = new Selection( '#selection' )
                     dataSource.source( dataItems );
                 }
             });
+
             this.__dataRender__.dataSource().addEventListener(DataSourceEvent.CHANGED,this.display,false,0,this);
         }
         return this.__dataRender__;
@@ -518,7 +521,7 @@ var selection = new Selection( '#selection' )
         var labelProfile =  this.labelProfile();
         var valueProfile = this.valueProfile();
         var skinObject=new SkinObject('{skins button+group}',{
-            button:'<button type="button" class="btn btn-default">{skins label+caret}</button>',
+            button:'<button type="button" class="btn btn-default" style="width: 100%">{skins label+caret}</button>',
             label: '<span class="text-overflow" style="float: left; width: 96%"></span>',
             caret:'<span class="pull-right"><i class="caretdown"></i><span>',
             option: '<?foreach('+dataProfile+' as key item){ ?><li '+valueProfile+'="{item["'+valueProfile+'"]}" data-index="{key}">{item["'+labelProfile+'"]}</li><?}?>',

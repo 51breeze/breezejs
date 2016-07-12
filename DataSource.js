@@ -795,6 +795,7 @@
     DataSourceEvent.WAITING='dataSourceWaiting';
     DataSourceEvent.SYNCH_SUCCESS='dataSourceSynchSuccess';
     DataSourceEvent.SYNCH_FAILED='dataSourceSynchfailed';
+    DataSourceEvent.CHANGED='dataSourceChanged';
 
     window.DataSource=DataSource;
     window.DataSourceEvent=DataSourceEvent;

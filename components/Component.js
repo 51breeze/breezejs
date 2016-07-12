@@ -208,16 +208,6 @@
         return this;
     }
 
-    /**
-     * @param flag
-     * @returns {Component}
-     * @public
-     */
-    Component.prototype.display=function( flag )
-    {
-        flag ? this.viewport().show() : this.viewport().hide();
-        return this;
-    }
 
     /**
      * @private

@@ -1,7 +1,7 @@
 (function(window){
 
-    function HttpEvent( type, bubbles,cancelable ){ event.call(this,  type, bubbles,cancelable );}
-    HttpEvent.prototype=new event();
+    function HttpEvent( type, bubbles,cancelable ){ BreezeEvent.call(this,  type, bubbles,cancelable );}
+    HttpEvent.prototype=new BreezeEvent();
     HttpEvent.prototype.data=null;
     HttpEvent.prototype.url=null;
     HttpEvent.SUCCESS = 'httpSuccess';

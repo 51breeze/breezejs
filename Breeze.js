@@ -448,7 +448,7 @@
 
         get:function(name){
             var getter = fix.cssHooks[name] && typeof fix.cssHooks[name].get === "function" ? fix.cssHooks[name].get : null;
-            var currentStyle = Breeze.hasStyle() ? (document.defaultView && document.defaultView.getComputedStyle ?
+            var currentStyle = Breeze.hasStyle(this) ? (document.defaultView && document.defaultView.getComputedStyle ?
                 document.defaultView.getComputedStyle(this, null) : this.currentStyle || this.style) : {};
             return getter ? getter.call(this, currentStyle, name) : currentStyle[name];
         }
@@ -2613,7 +2613,7 @@
         {
             var elem= Breeze( listener.currentTarget );
             if( elem.style('display') === 'none' ||  elem.style('visibility') ==='hidden' )return;
-            var pos = this.getBoundingRect();
+            var pos = elem.getBoundingRect();
             var width =  elem.width();
             var height = elem.height();
             if( event.pageX < pos.left || event.pageY < pos.top || event.pageX > pos.left + width ||  event.pageY > pos.top+height )

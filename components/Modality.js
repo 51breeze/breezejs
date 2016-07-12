@@ -53,14 +53,14 @@ modality.show(true)
      * @returns {Modality}
      * @constructor
      */
-    function Modality( skinGroup )
+    function Modality( selector , context )
     {
         if( !(this instanceof Modality) )
-            return new Modality( skinGroup );
-        return Component.call(this, skinGroup );
+            return new Modality( selector , context );
+        return SkinComponent.call(this, selector , context );
     }
 
-    Modality.prototype=  new Component();
+    Modality.prototype=  new SkinComponent();
     Modality.prototype.constructor=Modality;
     Modality.prototype.componentProfile='modality';
     Modality.prototype.initializeMethod=['show','hidden','label','headHeight','footerHeight','type','vertical','horizontal']
@@ -348,7 +348,8 @@ modality.show(true)
             this.shade().show(false,zIndex-1);
         }
         this.current(null);
-        this.style({'zIndex':zIndex,"position":'absolute'}).display(true);
+        this.style({'zIndex':zIndex,"position":'absolute'})
+        this.skinGroup().show();
         return this;
     }
 

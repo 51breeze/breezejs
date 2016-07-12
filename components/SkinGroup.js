@@ -260,7 +260,7 @@
         if (this.length != 1)
             throw new Error('invalid viewport');
 
-        var nodename = this.nodeName();
+        var nodename = Breeze.nodeName( this.current() );
         if( nodename === 'noscript' || nodename === 'script' || nodename ==='textarea' )
         {
             viewport = this[0];
@@ -344,7 +344,14 @@
             this.__validated__=true;
         }else
         {
-            this.__validated__ = (this[0].childNodes.length > 0);
+            this.__validated__ = false;
+            var len = this[0].childNodes.length;
+            while( len>0 && !this.__validated__ )
+            {
+                len--;
+                var elem = this[0].childNodes[len];
+                if( elem && elem.nodeType ===1 )this.__validated__=true;
+            }
         }
         return this.__validated__;
     }
@@ -370,9 +377,10 @@
         {
             if(!(skinObject instanceof SkinObject))throw new Error('invalid skinObject');
             var html = skinObject.createSkin();
+
             if(  html != '' )
             {
-                html = Breeze.createBreeze( html );
+                html = Breeze.createElement( html );
                 var hasContainer = Breeze.nodeName( html) === '#document-fragment'  ? false : true;
                 this.html( html );
                 if( hasContainer )
@@ -461,7 +469,7 @@
      */
     function getSkin(skinName,context)
     {
-        var result = Breeze.sizzle( SkinGroup.skinName(skinName), context );
+        var result = Breeze.querySelector( SkinGroup.skinName(skinName), context );
         return result[0] || null;
     }
 
@@ -477,7 +485,7 @@
             if( skinName === 'container' ) {
                 this.__skin__[skinName] = this[0];
             }else {
-                this.__skin__[skinName] = getSkin(skinName, this.getContext());
+                this.__skin__[skinName] = getSkin(skinName, this.context );
             }
         }
         return this.__skin__[skinName];
