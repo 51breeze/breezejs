@@ -1,4 +1,5 @@
-(function(window){
+define(['PropertyEvent'],function(PropertyEvent)
+{
 
     /**
      * PropertyEvent
@@ -12,4 +13,5 @@
     ScrollEvent.prototype.constructor=ScrollEvent;
     ScrollEvent.CHANGE='scrollChange';
     window.ScrollEvent=ScrollEvent;
-}(window))
+
+})

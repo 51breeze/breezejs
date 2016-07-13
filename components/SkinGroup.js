@@ -33,7 +33,7 @@
  */
 
 
-(function(window,undefined )
+define(['Breeze'],function( Breeze )
 {
 
     /**
@@ -539,7 +539,8 @@
         }
         return this.__skin__[ key ].current(null);
     }
-    window.SkinGroup=SkinGroup;
-    window.SkinObject=SkinObject;
 
-})( window )
+    define('SkinObject',[],SkinObject);
+    return SkinGroup;
+
+})

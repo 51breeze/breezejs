@@ -6,10 +6,8 @@
  * https://github.com/51breeze/breezejs
  */
 
-/**
- * Http 请求类
- */
-(function(window,undefined)
+
+define(['EventDispatcher','HttpEvent'],function(EventDispatcher,HttpEvent)
 {
     'use strict'
 
@@ -413,8 +411,7 @@
         }
     }
 
-    window.jsonp = window.JSONP = callback;
-    window.ScriptRequest=ScriptRequest;
-    window.Http=Http;
+    Http.JSONP = callback;
+    return Http;
 
-})( window );
+});

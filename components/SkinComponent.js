@@ -5,7 +5,7 @@
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
  */
-(function(window,undefined )
+define(['./Component','./SkinGroup'],function(Component,SkinGroup)
 {
     "use strict";
 
@@ -139,6 +139,6 @@
         return this.skinGroup().currentSkin( skinName );
     }
 
-    window.SkinComponent=SkinComponent;
+    return SkinComponent;
 
-})( window )
+})

@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function(window,undefined )
+define(['Breeze','EventDispatcher'],function(Breeze, EventDispatcher )
 {
     "use strict";
 
@@ -286,7 +286,7 @@
     ComponentEvent.INITIALIZE_COMPLETED='ComponentInitializeCompleted';
     ComponentEvent.INITIALIZE_START='ComponentInitializeStart';
 
-    window.Component=Component;
-    window.ComponentEvent=ComponentEvent;
+    define('ComponentEvent',[],ComponentEvent);
+    return Component;
 
-}(window))
+})

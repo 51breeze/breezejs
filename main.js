@@ -1,6 +1,7 @@
 /**
  * Created by Administrator on 2016/6/21.
  */
+/*
 
 require.config({
 
@@ -47,27 +48,30 @@ require.config({
         'breeze': ['eventDispatcher','dataArray','mouseEvent','scrollEvent','elementEvent','styleEvent','propertyEvent']
     }
 });
+*/
 
 
 
-require(['breeze'],function(){
+require(['Breeze'],function(Breeze){
 
-   Breeze.ready(function(){
+    console.log( Breeze )
 
-           require(['selection'],function(){
+  /* Breeze.ready(function(){
+
+       console.log( '====' )
+
+          /!* require(['selection'],function(){
 
                var selection = new Selection( '#selection' )
                selection.dataSource( [{'id':1,'label':'张三'},{'id':2,'label':'李四'},{'id':3,'label':'赵三'}] );
-             //  selection.selectedIndex(2).searchable(true).multiple(false)
+               //selection.selectedIndex(2).searchable(true).multiple(false)
                selection.addEventListener( SelectionEvent.CHANGE ,function( event ){
                    console.log( event )
                })
                selection.display();
 
-           })
+           })*!/
 
-    })
-
+    })*/
 
 });
-

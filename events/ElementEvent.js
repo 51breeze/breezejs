@@ -8,7 +8,8 @@
  * @constructor
  */
 
-(function(window){
+define(['BreezeEvent'],function(BreezeEvent)
+{
 
     function ElementEvent( type, bubbles,cancelable ){ BreezeEvent.call(this, type, bubbles,cancelable );}
     ElementEvent.prototype=new BreezeEvent();
@@ -17,5 +18,6 @@
     ElementEvent.prototype.constructor=ElementEvent;
     ElementEvent.ADD='elementAdd';
     ElementEvent.REMOVE='elementRemove';
-    window.ElementEvent=ElementEvent;
-}(window))
+    return ElementEvent;
+
+})

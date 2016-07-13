@@ -1,4 +1,5 @@
-(function(window){
+define(['BreezeEvent'],function(BreezeEvent)
+{
 
     /**
      * PropertyEvent
@@ -17,6 +18,6 @@
     PropertyEvent.COMMIT='propertyCommit';
 
     BreezeEvent.fix.map[ PropertyEvent.CHANGE ] = 'input';
-    window.PropertyEvent=PropertyEvent;
+    return PropertyEvent;
 
-}(window))
+})

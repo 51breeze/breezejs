@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function(window,undefined){
+define([],function(){
 
     function DataArray()
     {
@@ -220,6 +220,5 @@
 
     DataArray.DESC='desc';
     DataArray.ASC='asc';
-    window.DataArray=DataArray;
-
-})(window)
+    return DataArray;
+})

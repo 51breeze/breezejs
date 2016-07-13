@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function(window,undefined)
+define([],function(undefined)
 {
     'use strict';
 
@@ -236,6 +236,6 @@
     BreezeEvent.SCROLL='scroll';
 
     fix.map[ BreezeEvent.READY ]='DOMContentLoaded';
-    window.BreezeEvent = BreezeEvent;
+    return BreezeEvent;
 
-}(window))
+})

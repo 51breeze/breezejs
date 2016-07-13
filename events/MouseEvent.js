@@ -1,4 +1,5 @@
-(function(window){
+define(['BreezeEvent'],function(BreezeEvent)
+{
 
     /**
      * MouseEvent
@@ -29,6 +30,6 @@
     {
        BreezeEvent.fix[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
     }
-    window.MouseEvent=MouseEvent;
+    return MouseEvent;
 
-}(window))
+})

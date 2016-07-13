@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function(){
+define(['Breeze','EventDispatcher','./events/PropertyEvent'],function(Breeze,EventDispatcher,PropertyEvent){
 
     /**
      * 提交属性到每个绑定的对象
@@ -233,6 +233,6 @@
         return typeof this[name] !== 'undefined';
     }
 
-    window.Bindable=Bindable;
+    return Bindable;
 
-})()
+})

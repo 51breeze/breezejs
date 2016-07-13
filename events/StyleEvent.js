@@ -1,4 +1,5 @@
-(function(window){
+define(['PropertyEvent'],function(PropertyEvent)
+{
     /**
      * StyleEvent
      * @param type
@@ -12,4 +13,4 @@
     StyleEvent.CHANGE='styleChange';
     window.StyleEvent=StyleEvent;
 
-}(window))
+})

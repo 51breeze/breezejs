@@ -6,10 +6,9 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function( window, undefined  )
+define(['EventDispatcher','DataArray','./events/BreezeEvent'],function(EventDispatcher,DataArray,BreezeEvent,undefined)
 {
     "use strict";
-
     var fix={
         attrMap:{
             'tabindex'       : 'tabIndex',
@@ -2627,7 +2626,6 @@
         return false;
     });
 
-    //defined global variable
-    if( typeof window.document !== "undefined" )window.Breeze=Breeze;
+    return Breeze;
 
-}(window));
+});

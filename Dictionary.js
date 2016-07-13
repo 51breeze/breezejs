@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function(){
+define([],function(){
 
     /**
      * 可以使用非字符串作为键值的存储表
@@ -107,5 +107,5 @@
             return map.length;
         }
     }
-    window.Dictionary=Dictionary;
-})()
+    return Dictionary;
+})

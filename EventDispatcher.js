@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function(window, undefined )
+define(['./events/BreezeEvent'], function(BreezeEvent, undefined )
 {
     "use strict";
 
@@ -470,6 +470,6 @@
         return true;
     });
 
-    window.EventDispatcher = EventDispatcher;
+    return EventDispatcher;
 
-}(window))
+})
