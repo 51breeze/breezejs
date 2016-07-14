@@ -188,7 +188,7 @@ define([],function(undefined)
 
         }
         //属性事件
-        else if( PropertyEvent.CHANGE === type || PropertyEvent.COMMIT === type )
+        else if( typeof PropertyEvent !== "undefined" && (PropertyEvent.CHANGE === type || PropertyEvent.COMMIT === type) )
         {
            breezeEvent=new PropertyEvent( event );
            if( typeof breezeEvent.originalEvent.propertyName === "string" )
@@ -236,6 +236,7 @@ define([],function(undefined)
     BreezeEvent.SCROLL='scroll';
 
     fix.map[ BreezeEvent.READY ]='DOMContentLoaded';
+
     return BreezeEvent;
 
 })

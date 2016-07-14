@@ -1,4 +1,4 @@
-define(['BreezeEvent'],function(BreezeEvent)
+define(['./BreezeEvent'],function(BreezeEvent)
 {
     function KeyboardEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this,  type, bubbles,cancelable );}
     KeyboardEvent.prototype=new BreezeEvent();

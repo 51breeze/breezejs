@@ -1,4 +1,4 @@
-define(['PropertyEvent'],function(PropertyEvent)
+define(['./PropertyEvent'],function(PropertyEvent)
 {
 
     /**
@@ -12,6 +12,6 @@ define(['PropertyEvent'],function(PropertyEvent)
     ScrollEvent.prototype=new PropertyEvent();
     ScrollEvent.prototype.constructor=ScrollEvent;
     ScrollEvent.CHANGE='scrollChange';
-    window.ScrollEvent=ScrollEvent;
+    return ScrollEvent;
 
 })

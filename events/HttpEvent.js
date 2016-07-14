@@ -1,4 +1,4 @@
-define(['BreezeEvent'],function(BreezeEvent)
+define(['./BreezeEvent'],function(BreezeEvent)
 {
     function HttpEvent( type, bubbles,cancelable ){ BreezeEvent.call(this,  type, bubbles,cancelable );}
     HttpEvent.prototype=new BreezeEvent();

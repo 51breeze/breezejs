@@ -6,7 +6,8 @@
  * https://github.com/51breeze/breezejs
  */
 
-define(['EventDispatcher','DataArray','./events/BreezeEvent'],function(EventDispatcher,DataArray,BreezeEvent,undefined)
+define(['EventDispatcher','DataArray','./events/BreezeEvent','./events/PropertyEvent','./events/StyleEvent','./events/ScrollEvent','./events/ElementEvent'],
+function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent)
 {
     "use strict";
     var fix={

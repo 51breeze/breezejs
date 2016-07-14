@@ -1,4 +1,4 @@
-define(['BreezeEvent'],function(BreezeEvent)
+define(['./BreezeEvent'],function(BreezeEvent)
 {
 
     /**

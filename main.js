@@ -51,27 +51,62 @@ require.config({
 */
 
 
+/*
 
 require(['Breeze'],function(Breeze){
 
-    console.log( Breeze )
 
-  /* Breeze.ready(function(){
+   Breeze.ready(function(){
 
-       console.log( '====' )
+          console.log( '====' )
 
-          /!* require(['selection'],function(){
 
-               var selection = new Selection( '#selection' )
-               selection.dataSource( [{'id':1,'label':'张三'},{'id':2,'label':'李四'},{'id':3,'label':'赵三'}] );
-               //selection.selectedIndex(2).searchable(true).multiple(false)
-               selection.addEventListener( SelectionEvent.CHANGE ,function( event ){
-                   console.log( event )
-               })
-               selection.display();
+      var f= require(['Fed'])
 
-           })*!/
+       console.log( f )
 
-    })*/
+
+
+        require(['./components/Selection'],function( Selection ){
+
+              var selection = new Selection( '#selection' )
+              selection.dataSource( [{'id':1,'label':'张三'},{'id':2,'label':'李四'},{'id':3,'label':'赵三'}] );
+              //selection.selectedIndex(2).searchable(true).multiple(false)
+              selection.addEventListener( SelectionEvent.CHANGE ,function( event ){
+                  console.log( event )
+              })
+              selection.display();
+
+          })
+
+    })
 
 });
+*/
+
+
+/*
+include('aa.cc');
+main(function(){
+
+
+
+
+})
+*/
+
+
+
+function aaa(){
+
+
+
+
+}
+
+console.log('===main.js===')
+
+
+
+
+

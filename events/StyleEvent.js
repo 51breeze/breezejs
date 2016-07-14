@@ -1,4 +1,4 @@
-define(['PropertyEvent'],function(PropertyEvent)
+define(['./PropertyEvent'],function(PropertyEvent)
 {
     /**
      * StyleEvent
@@ -11,6 +11,6 @@ define(['PropertyEvent'],function(PropertyEvent)
     StyleEvent.prototype=new PropertyEvent();
     StyleEvent.prototype.constructor=StyleEvent;
     StyleEvent.CHANGE='styleChange';
-    window.StyleEvent=StyleEvent;
+    return StyleEvent;
 
 })

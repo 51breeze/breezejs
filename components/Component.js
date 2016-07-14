@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-define(['Breeze','EventDispatcher'],function(Breeze, EventDispatcher )
+define(['Breeze','EventDispatcher','../events/BreezeEvent'],function(Breeze, EventDispatcher,BreezeEvent)
 {
     "use strict";
 

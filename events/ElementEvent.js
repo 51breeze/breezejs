@@ -8,7 +8,7 @@
  * @constructor
  */
 
-define(['BreezeEvent'],function(BreezeEvent)
+define(['./BreezeEvent'],function(BreezeEvent)
 {
 
     function ElementEvent( type, bubbles,cancelable ){ BreezeEvent.call(this, type, bubbles,cancelable );}

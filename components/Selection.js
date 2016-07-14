@@ -32,7 +32,7 @@ var selection = new Selection( '#selection' )
  */
 
 
-(function(window,undefined )
+define(['./SkinComponent','../events/BreezeEvent'],function( SkinComponent , BreezeEvent )
 {
     "use strict";
 
@@ -539,8 +539,7 @@ var selection = new Selection( '#selection' )
     SelectionEvent.prototype.selectedIndex=NaN;
     SelectionEvent.prototype.selectedItem=null;
     SelectionEvent.CHANGE='selectionChanged';
+    define('SelectionEvent',[],SelectionEvent);
+    return Selection;
 
-    window.SelectionEvent=SelectionEvent;
-    window.Selection=Selection;
-
-})( window )
+})
