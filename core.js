@@ -6,7 +6,7 @@
  */
 
 
-var include;
+var include,main;
 
 (function(global){
 
@@ -20,6 +20,46 @@ var include;
         host:location.host === '' ? location.pathname.replace(/^\/+|\/+$/g,'').replace(/\/[\.\w]+$/,'') : location.protocol+'//'+location.host,
         path:'/'
     };
+
+    
+    var reg=/((?:http|https|file):\/\/.*?\/[^:]+)(?::\d+)?:\d+/;
+    var ie9=typeof document.querySelector !== "function";
+    function currentScript()
+    {
+            if (document.currentScript){
+                return document.currentScript.src;
+            }
+
+            var stack;
+            try{
+                throw new Error();
+            }
+            catch(e){
+                stack = e.fileName || e.sourceURL || e.stack || e.stacktrace;
+            }
+        
+            // IE10
+            if (stack){
+                var absPath = reg.exec(stack)[1];
+                if (absPath){
+                    return absPath;
+                }
+            }
+
+            // IE5-9
+            for(var scripts = document.scripts, i = scripts.length - 1, script; script = scripts[i--];)
+            {
+                if (  script.readyState === 'interactive')
+                {
+                    return ie9 ? script.getAttribute('src', 4) : script.src;
+                }
+            }
+        
+    }
+
+  
+    
+    
 
     include= function(file)
     {
