@@ -32,7 +32,7 @@ var selection = new Selection( '#selection' )
  */
 
 
-define(['./SkinComponent','../events/BreezeEvent'],function( SkinComponent , BreezeEvent )
+define('components/Selection',['./SkinComponent','events/BreezeEvent'],function( SkinComponent , BreezeEvent )
 {
     "use strict";
 

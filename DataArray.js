@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-define([],function(){
+define('DataArray',[],function(){
 
     function DataArray()
     {

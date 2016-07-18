@@ -1,4 +1,4 @@
-define(['./BreezeEvent'],function(BreezeEvent)
+define('events/MouseEvent',['./BreezeEvent'],function(BreezeEvent)
 {
 
     /**

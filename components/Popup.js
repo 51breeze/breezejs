@@ -24,7 +24,7 @@ Popup.modality('<div>the html</div>')
 如果有一些特殊的需求还可以自定义一些属性来达到不同的效果
 Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
  */
-(function(window,undefined )
+define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breeze','./SkinGroup'],function(SkinComponent,ModalityEvent,Breeze,SkinGroup)
 {
     "use strict";
 
@@ -703,25 +703,6 @@ Popup(Popup.NORM, context).left(100).top(100).show("<div>the html</div>");
             'submit':{ 'class':'submit btn btn-default'}
         },theme =='' ? [] : ['head','body']);
     }
+    return Popup;
 
-    /**
-     * 模态框事件
-     * @param src
-     * @param props
-     * @constructor
-     */
-    function PopupEvent(type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
-    PopupEvent.prototype=new BreezeEvent();
-    PopupEvent.prototype.constructor=PopupEvent;
-
-    //取消事件触发时调度
-    PopupEvent.CANCELED='popupCancel';
-    //模态框关闭时调度
-    PopupEvent.CLOSE='popupClose';
-    //提交事件触发时调度
-    PopupEvent.SUBMIT='popupSubmit';
-
-    window.Popup=Popup;
-    window.PopupEvent=PopupEvent;
-
-})( window )
+})

@@ -7,7 +7,7 @@
  */
 
 
-(function(window,undefined)
+define('components/DataRender',['Template','../DataSource','./Pagination'],function(Template, DataSource, Pagination)
 {
     "use strict";
 
@@ -123,4 +123,4 @@
 
     window.DataRender=DataRender;
 
-})(window)
+})

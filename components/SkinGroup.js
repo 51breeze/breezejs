@@ -33,7 +33,7 @@
  */
 
 
-define(['Breeze'],function( Breeze )
+define('components/SkinGroup',['Breeze'],function( Breeze )
 {
 
     /**
@@ -540,7 +540,7 @@ define(['Breeze'],function( Breeze )
         return this.__skin__[ key ].current(null);
     }
 
-    define('SkinObject',[],SkinObject);
+    define('./SkinObject',[],SkinObject);
     return SkinGroup;
 
 })

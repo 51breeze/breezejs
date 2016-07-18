@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-(function(window,undefined){
+define('Grep',[],function(){
 
     /**
      * 筛选条件组合
@@ -373,6 +373,6 @@
     Grep.LIKE_RIGHT='right';
     Grep.LIKE_BOTH='both';
 
-    window.Grep = Grep;
+    return Grep;
 
-})(window)
+})

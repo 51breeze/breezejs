@@ -5,7 +5,7 @@
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
  */
-(function(window,undefined )
+define('components/DataGrid',['./SkinComponent'],function(window,undefined )
 {
     "use strict";
 

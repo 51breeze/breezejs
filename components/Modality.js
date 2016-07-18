@@ -33,7 +33,7 @@ modality.show(true)
  modality.show()
 */
 
-(function(window,undefined )
+define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Breeze','./SkinGroup'],function(SkinComponent,ModalityEvent,Breeze,SkinGroup)
 {
     "use strict";
 
@@ -433,24 +433,6 @@ modality.show(true)
         return val;
     }
 
-    /**
-     * 模态框事件
-     * @param src
-     * @param props
-     * @constructor
-     */
-    function ModalityEvent(type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
-    ModalityEvent.prototype=new BreezeEvent();
-    ModalityEvent.prototype.constructor=ModalityEvent;
+    return Modality;
 
-    //取消事件触发时调度
-    ModalityEvent.CANCELED='modalityCancel';
-    //模态框关闭时调度
-    ModalityEvent.CLOSE='modalityClose';
-    //提交事件触发时调度
-    ModalityEvent.SUBMIT='modalitySubmit';
-
-    window.Modality=Modality;
-    window.ModalityEvent=ModalityEvent;
-
-})( window )
+})

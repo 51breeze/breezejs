@@ -1,4 +1,4 @@
-define(['./PropertyEvent'],function(PropertyEvent)
+define('events/StyleEvent',['./PropertyEvent'],function(PropertyEvent)
 {
     /**
      * StyleEvent

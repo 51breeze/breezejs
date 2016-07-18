@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-define(['Breeze','EventDispatcher','./events/PropertyEvent'],function(Breeze,EventDispatcher,PropertyEvent){
+define('Bindable',['Breeze','EventDispatcher','./events/PropertyEvent'],function(Breeze,EventDispatcher,PropertyEvent){
 
     /**
      * 提交属性到每个绑定的对象

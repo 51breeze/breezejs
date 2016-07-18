@@ -1,71 +1,5 @@
-(function(window,undefined)
+define('components/Template',['../EventDispatcher','../events/TemplateEvent','../Variable'],function(EventDispatcher, TemplateEvent, Variable)
 {
-
-    /**
-     * 模板变量构造器
-     * @param data
-     * @constructor
-     */
-    function Variable(data)
-    {
-        if( !(this instanceof Variable) )
-        {
-            return new Variable( data )
-        }
-        this.__data__ = data || {};
-    }
-    Variable.prototype.constructor = Variable;
-    Variable.prototype.__data__={};
-
-    /**
-     *设置变量
-     * @param name
-     * @param val
-     * @returns {Variable}
-     */
-    Variable.prototype.set=function(name,val)
-    {
-        var t = typeof name;
-        if( t === 'string' )
-        {
-            this.__data__[name]=val;
-            return this;
-        }
-        throw new Error('param undefined for val');
-    }
-
-    /**
-     * 获取数据
-     * @param name
-     * @returns {*}
-     */
-    Variable.prototype.get=function(name)
-    {
-        return typeof name === 'undefined' ? this.__data__ : this.__data__[name];
-    }
-
-    /**
-     * 删除变量
-     * @param name
-     * @returns {*}
-     */
-    Variable.prototype.remove=function(name)
-    {
-        var val=this.__data__;
-        if( typeof name === "string" )
-        {
-            if( typeof this.__data__[name] !== "undefined" )
-            {
-                val=this.__data__[name];
-                delete this.__data__[name];
-                return val;
-            }
-            return false;
-        }
-        return val;
-    }
-    Variable.prototype.isObject=Breeze.isObject;
-    Variable.prototype.error=function(){return '';}
 
     var getTemplateContent=function( source )
     {
@@ -288,7 +222,7 @@
      * @param flag
      * @returns {*}
      */
-    Template.prototype.render=function( view,flag )
+    Template.prototype.display=function( view, flag )
     {
         flag = !!flag;
         var event = new TemplateEvent( TemplateEvent.START );
@@ -319,66 +253,6 @@
         }
         return false;
     }
+    return Template;
 
-
-    /**
-     * @type {RegExp}
-     */
-    var tplReg=/\{\s*((\w+\s*\.\s*\w+)+)\s*\}/g;
-
-    /**
-     * @param options
-     * @returns {*}
-     */
-    Template.factory=function( options )
-    {
-        var data={};
-        var parser = function( a,b,c )
-        {
-            var prop =key=b.replace(/\s+/g,'');
-            prop=prop.split('.');
-            if( data[key] )
-            {
-                return data[key];
-            }
-            var item = options;
-            for( var index in prop ) {
-                item = item[ prop[index] ];
-                if( !item )return '';
-            }
-            if( item !='' && Breeze.isObject( item ,true) )
-            {
-                if( Breeze.isObject(item.style,true) )
-                {
-                    item.style=Breeze.serialize( item.style , 'style')
-                }
-                item = Breeze.serialize( item , 'attr' );
-            }
-            data[key]=item;
-            return item.replace(tplReg,parser);
-        }
-
-        for(var name in options.template )
-        {
-            options.template[ name ]=options.template[ name ].replace(tplReg,parser);
-        }
-        return options;
-    }
-
-    function TemplateEvent(type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
-    TemplateEvent.prototype=new BreezeEvent();
-    TemplateEvent.prototype.template=null;
-    TemplateEvent.prototype.variable=null;
-    TemplateEvent.prototype.viewport=null;
-    TemplateEvent.prototype.html='';
-    TemplateEvent.prototype.constructor=TemplateEvent;
-    TemplateEvent.START='templateStart';
-    TemplateEvent.DONE='templateDone';
-    TemplateEvent.REFRESH='templateRefresh';
-
-    window.Template = Template;
-    window.TemplateEvent = TemplateEvent;
-    window.Variable=Variable;
-
-
-})(window)
+})

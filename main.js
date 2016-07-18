@@ -51,20 +51,11 @@ require.config({
 */
 
 
-/*
 
 require(['Breeze'],function(Breeze){
 
 
    Breeze.ready(function(){
-
-          console.log( '====' )
-
-
-      var f= require(['Fed'])
-
-       console.log( f )
-
 
 
         require(['./components/Selection'],function( Selection ){
@@ -82,31 +73,6 @@ require(['Breeze'],function(Breeze){
     })
 
 });
-*/
-
-
-/*
-include('aa.cc');
-main(function(){
-
-
-
-
-})
-*/
-
-
-
-function aaa(){
-
-
-
-
-}
-
-console.log('===main.js===')
-
-
 
 
 

@@ -5,10 +5,9 @@
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
  */
-(function(window,undefined )
+define('components/Pagination',['./SkinComponent','./SkinGroup','../events/PaginationEvent'],function(SkinComponent,SkinGroup,PaginationEvent)
 {
     "use strict";
-
 
     /**
      * @private
@@ -373,13 +372,6 @@
         return skinObject;
     }
 
-    function PaginationEvent(type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
-    PaginationEvent.prototype=new BreezeEvent();
-    PaginationEvent.prototype.constructor=PaginationEvent;
-    PaginationEvent.prototype.currentPage=NaN;
-    PaginationEvent.CHANGED='paginationChanged';
+    return Pagination;
 
-    window.Pagination= Pagination;
-    window.PaginationEvent= PaginationEvent;
-
-})( window )
+})

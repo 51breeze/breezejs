@@ -7,7 +7,7 @@
  */
 
 
-define(['EventDispatcher','HttpEvent'],function(EventDispatcher,HttpEvent)
+define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,HttpEvent)
 {
     'use strict'
 

@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-define([],function(){
+define('Dictionary',[],function(){
 
     /**
      * 可以使用非字符串作为键值的存储表

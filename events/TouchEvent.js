@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-define(['./BreezeEvent'],function(BreezeEvent){
+define('events/TouchEvent',['./BreezeEvent'],function(BreezeEvent){
 
     function TouchEvent(type, bubbles,cancelable  ){ BreezeEvent.call(this,type, bubbles,cancelable );};
     TouchEvent.prototype.constructor=TouchEvent ;
@@ -324,9 +324,9 @@ define(['./BreezeEvent'],function(BreezeEvent){
         }
     })
 
-    define('TouchDragEvent',[], TouchDragEvent );
-    define('TouchPinchEvent',[], TouchPinchEvent );
-    define('TouchSwipeEvent',[], TouchSwipeEvent );
+    define('events/TouchDragEvent',['./TouchEvent'], function(){ return TouchDragEvent } );
+    define('events/TouchPinchEvent',['./TouchEvent'], function(){ return TouchPinchEvent } );
+    define('events/TouchSwipeEvent',['./TouchEvent'], function(){ return TouchSwipeEvent } );
     return TouchEvent;
 
 });

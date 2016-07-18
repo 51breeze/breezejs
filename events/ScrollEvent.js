@@ -1,4 +1,4 @@
-define(['./PropertyEvent'],function(PropertyEvent)
+define('events/ScrollEvent',['./PropertyEvent'],function(PropertyEvent)
 {
 
     /**
