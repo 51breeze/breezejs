@@ -32,7 +32,8 @@ var selection = new Selection( '#selection' )
  */
 
 
-define('components/Selection',['./SkinComponent','events/BreezeEvent'],function( SkinComponent , BreezeEvent )
+define('components/Selection',['./SkinComponent','./DataRender','./SkinGroup','./SkinObject','events/BreezeEvent','events/TemplateEvent','events/DataSourceEvent'],
+function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateEvent,DataSourceEvent )
 {
     "use strict";
 
@@ -494,6 +495,8 @@ define('components/Selection',['./SkinComponent','events/BreezeEvent'],function(
         var dataRender = this.dataRender();
         var skinGroup= this.skinGroup();
 
+        return this;
+
         bindEvent.call(this);
         if( skinGroup.validateSkin() )
         {
@@ -503,7 +506,7 @@ define('components/Selection',['./SkinComponent','events/BreezeEvent'],function(
         {
             dataRender.viewport( skinGroup.getSkin('list') );
             var list = skinGroup.skinObject().get('skins.option');
-            if( !list )throw new Error('not found view for option');
+            if( !list )throw new Error('Not found view for option');
             dataRender.display( list );
         }
         commitSelectedIndex.call(this, this.__selectedIndex__ );
@@ -520,6 +523,7 @@ define('components/Selection',['./SkinComponent','events/BreezeEvent'],function(
         var dataProfile= this.dataRender().dataProfile();
         var labelProfile =  this.labelProfile();
         var valueProfile = this.valueProfile();
+
         var skinObject=new SkinObject('{skins button+group}',{
             button:'<button type="button" class="btn btn-default" style="width: 100%">{skins label+caret}</button>',
             label: '<span class="text-overflow" style="float: left; width: 96%"></span>',
@@ -532,14 +536,6 @@ define('components/Selection',['./SkinComponent','events/BreezeEvent'],function(
         });
         return skinObject;
     }
-
-    function SelectionEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this, type, bubbles,cancelable );}
-    SelectionEvent.prototype=new BreezeEvent();
-    SelectionEvent.prototype.constructor=SelectionEvent;
-    SelectionEvent.prototype.selectedIndex=NaN;
-    SelectionEvent.prototype.selectedItem=null;
-    SelectionEvent.CHANGE='selectionChanged';
-    define('SelectionEvent',[],SelectionEvent);
     return Selection;
 
 })

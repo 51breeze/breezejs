@@ -7,7 +7,7 @@
  */
 
 define('Breeze',['EventDispatcher','DataArray','./events/BreezeEvent','./events/PropertyEvent','./events/StyleEvent','./events/ScrollEvent','./events/ElementEvent'],
-function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent)
+function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEvent,ElementEvent)
 {
     "use strict";
     var fix={
@@ -258,7 +258,6 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent)
         {
             result = Breeze.querySelector(selector, context);
         }
-
         DataArray.prototype.concat.apply(this,  result);
         EventDispatcher.call(this);
         this.forEachCurrentItem=null;

@@ -58,7 +58,7 @@ require(['Breeze'],function(Breeze){
    Breeze.ready(function(){
 
 
-        require(['./components/Selection'],function( Selection ){
+        require(['./components/Selection','events/SelectionEvent'],function( Selection , SelectionEvent){
 
               var selection = new Selection( '#selection' )
               selection.dataSource( [{'id':1,'label':'张三'},{'id':2,'label':'李四'},{'id':3,'label':'赵三'}] );
@@ -73,6 +73,7 @@ require(['Breeze'],function(Breeze){
     })
 
 });
+
 
 
 

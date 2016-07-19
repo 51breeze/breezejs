@@ -6,7 +6,8 @@
  * https://github.com/51breeze/breezejs
  */
 
-define('events/DataSource',['EventDispatcher','DataArray','events/DataSourceEvent'],function(EventDispatcher,DataArray,DataSourceEvent){
+define('DataSource',['EventDispatcher','DataArray','Http','Breeze','events/DataSourceEvent'],
+function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
 
     /**
      * 调度事件

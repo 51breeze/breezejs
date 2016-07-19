@@ -5,7 +5,7 @@
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
  */
-define('components/SkinComponent',['./Component','./SkinGroup'],function(Component,SkinGroup)
+define('components/SkinComponent',['./Component','./SkinGroup','../Breeze'],function(Component,SkinGroup,Breeze)
 {
     "use strict";
 
