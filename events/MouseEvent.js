@@ -1,6 +1,5 @@
 define('events/MouseEvent',['./BreezeEvent'],function(BreezeEvent)
 {
-
     /**
      * MouseEvent
      * @param src
@@ -30,6 +29,7 @@ define('events/MouseEvent',['./BreezeEvent'],function(BreezeEvent)
     {
        BreezeEvent.fix[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
     }
+    window.MouseEvent=MouseEvent;
     return MouseEvent;
 
 })

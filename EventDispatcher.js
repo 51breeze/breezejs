@@ -281,13 +281,15 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
     {
         //初始化一个全局事件
         event= BreezeEvent.create( event );
+        if( event === null || !event.currentTarget )
+        {
+           throw new Error('invalid event target')
+        }
 
-        if( event === null)return false;
         var element = event.currentTarget,
             events= storage.call( element ,  event.type );
         events =events ? events.listener.slice(0) : [];
         var length= 0,listener;
-
         while( length < events.length )
         {
             listener = events[ length++ ];

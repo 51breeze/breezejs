@@ -32,8 +32,10 @@ var selection = new Selection( '#selection' )
  */
 
 
-define('components/Selection',['./SkinComponent','./DataRender','./SkinGroup','./SkinObject','events/BreezeEvent','events/TemplateEvent','events/DataSourceEvent'],
-function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateEvent,DataSourceEvent )
+define('components/Selection',
+['./SkinComponent','./DataRender','./SkinGroup','./SkinObject','events/BreezeEvent',
+'events/TemplateEvent','events/DataSourceEvent','events/MouseEvent','events/SelectionEvent','Breeze','EventDispatcher','Bindable' ],
+function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateEvent,DataSourceEvent ,MouseEvent,SelectionEvent, Breeze,EventDispatcher, Bindable )
 {
     "use strict";
 
@@ -494,9 +496,6 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
         this.__display__=true;
         var dataRender = this.dataRender();
         var skinGroup= this.skinGroup();
-
-        return this;
-
         bindEvent.call(this);
         if( skinGroup.validateSkin() )
         {

@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-define('events/BreezeEvent',[],function(undefined)
+define([],function()
 {
     'use strict';
 
@@ -24,7 +24,7 @@ define('events/BreezeEvent',[],function(undefined)
         if ( !(this instanceof BreezeEvent) )
             return new BreezeEvent(  type, bubbles,cancelable );
 
-        this.type = type ? type : null;
+        this.type = type;
         if ( type && type.type )
         {
             this.originalEvent = type;
@@ -142,7 +142,9 @@ define('events/BreezeEvent',[],function(undefined)
             return event;
 
         event=event || window.event;
+
         var target = event.target || event.srcElement || event.currentTarget;
+        var currentTarget =  event.currentTarget || target;
         target = target && target.nodeType===3 ? target.parentNode : target;
 
         //阻止浏览浏览器的事件冒泡
@@ -152,10 +154,13 @@ define('events/BreezeEvent',[],function(undefined)
             //!event.stopPropagation ? event.cancelBubble=true : event.stopPropagation();
         }
 
-        var breezeEvent;
+        var breezeEvent=null;
        // var type = BreezeEvent.eventType(event.type || event,true);
         var type = event.type || event;
-        if( type === null )return null;
+        if( typeof type !== "string" )
+        {
+           throw new Error('invalid event type')
+        }
 
         //鼠标事件
        if( /^mouse|click$/i.test(type) )
@@ -178,7 +183,6 @@ define('events/BreezeEvent',[],function(undefined)
             {
                breezeEvent.wheelDelta=event.wheelDelta || ( event.detail > 0 ? -event.detail :Math.abs( event.detail ) );
             }
-
         }
         //键盘事件
         else if(KeyboardEvent.KEY_PRESS===type || KeyboardEvent.KEY_UP===type || KeyboardEvent.KEY_DOWN===type)
@@ -205,14 +209,14 @@ define('events/BreezeEvent',[],function(undefined)
 
         breezeEvent.type=type;
         breezeEvent.target=target;
-        breezeEvent.currentTarget= event.currentTarget || target;
+        breezeEvent.currentTarget = currentTarget;
         breezeEvent.timeStamp = event.timeStamp;
         breezeEvent.relatedTarget= event.relatedTarget;
         breezeEvent.altkey= !!event.altkey;
         breezeEvent.button= event.button;
         breezeEvent.ctrlKey= !!event.ctrlKey;
         breezeEvent.shiftKey= !!event.shiftKey;
-        breezeEvent.metaKey= !!event.metaKey;
+        breezeEvent.metaKey= !!event.metaKey
         return breezeEvent;
     }
 

@@ -1,4 +1,5 @@
-define('components/Template',['../EventDispatcher','../events/TemplateEvent','../Variable'],function(EventDispatcher, TemplateEvent, Variable)
+define('components/Template',['../EventDispatcher','../events/TemplateEvent','Variable','Breeze'],
+function(EventDispatcher, TemplateEvent, Variable, Breeze )
 {
 
     var getTemplateContent=function( source )
