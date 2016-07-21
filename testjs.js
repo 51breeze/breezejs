@@ -66,7 +66,7 @@ import packages.breeze.private.name;*/
     function merge()
     {
         var target = arguments[0];
-        var len = arguments.lenght;
+        var len = arguments.length;
         for(var i=1; i<len; i++ )
         {
             var item = arguments[i];
@@ -85,11 +85,7 @@ import packages.breeze.private.name;*/
 
 
 
-
-
-
-
-    (function( packages ){
+    +(function( packages ){
 
         var module={
             'constructor':null,
@@ -113,13 +109,14 @@ import packages.breeze.private.name;*/
                 }
             },
             'variable':{
-                "A":{
-                    get:function(){return this.a;},
-                    set:function(val){this.a = val;}
+                "C":{
+                    '__c__':'123',
+                    get:function(){return this.__c__;},
+                    set:function(val){ console.log('===set===') ; console.log(this); this.__c__ = val;}
                 },
-                "B":{
-                    get:function(){return this.b;},
-                    set:function(val){this.b = val}
+                "D":{
+                    get:function(){return this.d;},
+                    set:function(val){this.d = val}
                 }
             }
         };
@@ -135,43 +132,30 @@ import packages.breeze.private.name;*/
 
         var proto = module.constructor.prototype;
         proto.constructor = module.constructor;
-        Object.defineProperties(prototype,module.variable);
-        Object.defineProperties(prototype,module.public);
+        Object.defineProperties(proto,module.variable);
+        merge(proto, module.public)
 
-    })( packages )
-
-
+    })( packages );
 
 
-    (function(packages, extend ){
+
+
+    +(function(packages, extend ){
 
        var module={
             'constructor':null,
-            'public':{
-
-                avg:function(){
-                }
-            },
             'protected':{
 
                 baby:function(){
-
+                    console.log( 'protected baby');
                 }
             },
             'private':{
                 name:function()
                 {
+                    console.log( 'private name yejun',   this instanceof module.constructor );
+                    module.protected.baby.call(this);
                     return 'yejun';
-                }
-            },
-            'variable':{
-                "A":{
-                    get:function(){return this.a;},
-                    set:function(val){this.a = val;}
-                },
-                "B":{
-                    get:function(){return this.b;},
-                    set:function(val){this.b = val}
                 }
             }
         };
@@ -184,30 +168,50 @@ import packages.breeze.private.name;*/
             {
                 return new module.constructor()
             }
+
             !extend || extend.constructor.call(this);
-            this.name='';
-            this.age='30';
+            this.__properties__={a:'12388888'};
+
+
+
         }
+
 
         if( extend )
         {
             module.constructor.prototype = new extend.constructor();
-            Object.defineProperties(module.protected, extend.protected );
-            Object.defineProperties(module.variable, extend.variable );
+            merge(module.protected, extend.protected);
         }
 
         var proto = module.constructor.prototype;
         proto.constructor = module.constructor;
-        Object.defineProperties(prototype,module.variable);
-        Object.defineProperties(prototype,module.public);
 
-    })( packages , packages['EventDispatcher'] )
+        Object.defineProperties(proto, {
+            "A":{
+                get:function(){return this.__properties__.a;},
+                set:function(val){this.__properties__.a = val;}
+            },
+            "B":{
+                get:function(){return this.b;},
+                set:function(val){this.b = val}
+            }
+        });
+
+        proto.avg=function()
+        {
+            module.private.name.call(this);
+        }
+
+    })( packages , packages['EventDispatcher'] );
 
 
 
+    var obj = new packages['Breeze'].constructor()
+   // obj.C='8999';
 
+    obj.avg();
 
-
+    console.log(  obj.A )
 
 
 })()
