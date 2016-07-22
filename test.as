@@ -18,7 +18,7 @@ package breezejs.brreze{
     import breezejs.events.BreezeEvent;
     import breezejs.EventDispatcher;
 
-    public class main extends EventDispatcher {
+    public class main extends EventDispatcher,ccc {
 
         public var name=null
 
@@ -38,6 +38,10 @@ package breezejs.brreze{
 
             if(1){
 
+            }else{
+
+
+
             }
         }
 
@@ -51,6 +55,9 @@ package breezejs.brreze{
         function onResize():void{
 
         }
+
+
+        dsfsdf
 
         private function setPosition(event:BreezeEvent)
         {
