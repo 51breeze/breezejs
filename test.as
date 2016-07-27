@@ -1,3 +1,7 @@
+
+
+
+
 /**
  +------------------------------------------------------------------------------
  * @package  : com.library.Cdisplay
@@ -20,7 +24,10 @@ package breezejs.brreze{
 
     public class main extends EventDispatcher,ccc {
 
-        public var name=null
+        public var name='sssssss\'hhhhh';
+
+        private var ii='sss21';
+        private var sss=;
 
         public function main()
         {
@@ -35,6 +42,7 @@ package breezejs.brreze{
 
             this.Names=names
             this.name=names;this.ccc='0000';
+            this.ooo='fdgdfgdf;dsdfdsf;';
 
             if(1){
 
@@ -55,6 +63,8 @@ package breezejs.brreze{
         function onResize():void{
 
         }
+
+        'function ssss'
 
 
         dsfsdf
