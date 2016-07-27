@@ -27,7 +27,7 @@ package breezejs.brreze{
         public var name='sssssss\'hhhhh';
 
         private var ii='sss21';
-        private var sss=;
+        private var sss=222;
 
         public function main()
         {
@@ -38,7 +38,8 @@ package breezejs.brreze{
             return this.Names
         }
 
-        public function set names(names){
+        public function set names(names)
+        {
 
             this.Names=names
             this.name=names;this.ccc='0000';
@@ -60,18 +61,13 @@ package breezejs.brreze{
         }
 
         //调整大小
-        function onResize():void{
+        function onResize(){
 
         }
 
-        'function ssss'
-
-
-        dsfsdf
-
-        private function setPosition(event:BreezeEvent)
+        private function setPosition(event)
         {
-
+              return true
         }
     }
 }
