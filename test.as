@@ -38,10 +38,9 @@ package breezejs.brreze{
             return this.Names
         }
 
-        public function set names(names)
+        public function set names( names )
         {
-
-            this.Names=names
+            this.Names=names;
             this.name=names;this.ccc='0000';
             this.ooo='fdgdfgdf;dsdfdsf;';
 
@@ -49,13 +48,18 @@ package breezejs.brreze{
 
             }else{
 
-
-
             }
+
         }
 
         public function get style(){
 
+            this.cccc=123;
+            if(1){
+
+            }else{
+
+            }
             return this.Style;
 
         }
@@ -65,7 +69,7 @@ package breezejs.brreze{
 
         }
 
-        private function setPosition(event)
+        private function position(event)
         {
               return true
         }
