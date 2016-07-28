@@ -171,48 +171,148 @@ function parse( module, code )
     }
 }
 
+/**
+ * 生成代码
+ * @param module
+ * @returns {string}
+ */
 function create( module )
 {
-    var code = [];
-    code.push('+(function( packages ){');
-    code.push('var module={');
-
-
     var classname = trim(module.class);
     var constructor='function(){}';
+    var wrap=[];
+    var access={};
 
+    toVariable( module.var )
+
+
+    //组装函数
     for( var c in module.fn )
     {
         var item = module.fn[c];
-        for(var b in item )
+        var b=0;
+
+        while( b < item.length )
         {
             var val = item[b];
-            val.name = trim( val.name );
-            item[b] = val.content.join(";\n");
+            var name = trim( val.name );
+            var acc =  trim( val.access );
+            var param = val.param;
+            val = val.content.join(";");
+            val = val.replace(/\;\s*(\{)/g,'$1\n');
+            val = val.replace(/(\)|\{)\s*\;/g,'$1\n');
+            val = val.replace(/\;/g,';\n');
+            val = unescape( val );
+            val = 'function('+trim(param.join(','))+')'+val;
+            item[b] = val;
 
-            item[b] = item[b].replace('__#034#__','\"');
-            item[b] = item[b].replace('__#039#__','\'');
-            item[b] = item[b].replace(new RegExp('__#059#__','g'),';');
-            item[b] = item[b].replace('__#040#__','(');
-            item[b] = item[b].replace('__#041#__',')');
-            item[b] = item[b].replace('__#123#__','{');
-            item[b] = item[b].replace('__#125#__','}');
-
-            item[b] = 'function'+item[b].replace(/(\)\})\;/,'$1');
-            if( val.name === classname && val.access ==='' && c==='public')
+            if( acc ==='get' || acc==='set' )
             {
-                constructor = item[b];
-                delete item[b];
+                (access[name] || (access[name]={}))[acc]=val;
+                item.splice(b,1);
+
+            }else if( name === classname && c==='public')
+            {
+                val = val.replace(/\}\s*$/,function(a){
+                    return  module.var.public + '\n}';
+                })
+                constructor = val;
+                item.splice(b,1);
+
+            }else
+            {
+                item[b] = "'"+name+"':"+val;
+                b++;
             }
         }
+        wrap.push("'"+c+"':{\n"+ item.join(',\n')+'\n}' );
     }
 
-    var p = [];
-    p.push("'constructor':"+constructor );
+    wrap.unshift("'constructor':"+constructor );
+
+    var code = [];
+    code.push('+(function( packages, extend){');
+    code.push('var module={'+ wrap.join(',\n')+'}');
+    code.push('var proto = module.constructor.prototype');
+    code.push('proto.constructor = module.constructor');
+    code.push('Object.defineProperties(proto,{'+toAceess(access)+'})');
+    code.push('merge(proto, module.public)');
+    code.push('packages["'+trim(module.package)+'"] = module');
+    code.push('})(packages)');
+
+    return code.join(';\n');
+
+}
+
+/**
+ * 反转义
+ * @param val
+ * @returns {XML|string}
+ */
+function unescape( val )
+{
+    val = val.replace(new RegExp('__#034#__','g'),'\\"');
+    val = val.replace(new RegExp('__#039#__','g'),"\\'");
+    val = val.replace(new RegExp('__#059#__','g'),';');
+    val = val.replace(new RegExp('__#040#__','g'),'(');
+    val = val.replace(new RegExp('__#041#__','g'),')');
+    val = val.replace(new RegExp('__#123#__','g'),'{');
+    val = val.replace(new RegExp('__#125#__','g'),'}');
+    return val;
+}
 
 
-    console.log( module.fn.public.join('\n') )
+/**
+ * 转成变量字符串
+ * @param variable
+ */
+function toVariable( variable )
+{
+    for( var c in variable )
+    {
+        var item = variable[c];
+        var b=0;
+        var val=[];
+        while( b < item.length )
+        {
+            var value = unescape( item[b].value );
+            var name = trim(item[b].name);
+            //if( c === 'public')
+            //{
+                val.push('this.'+item[b].name+'="'+value+'"');
+           // }else
+            //{
 
+            //}
+            b++;
+        }
+        variable[c] = val.join(';\n');
+    }
+}
+
+
+/**
+ * 将访问器转成字符串
+ * @param access
+ * @returns {string}
+ */
+function toAceess( access )
+{
+    var val=[];
+    for(var prop in access )
+    {
+        var data=[];
+        if( access[prop].set )
+        {
+            data.push( "set:"+access[prop].set )
+        }
+        if( access[prop].get )
+        {
+            data.push( "get:"+access[prop].get )
+        }
+        val.push( "'"+prop+"':{"+data.join(',\n')+"}" );
+    }
+    return val.join(',\n');
 }
 
 
@@ -297,9 +397,33 @@ function make( file , fs )
 }
 
 
+var content = make( './test.as' , fs );
 
 
-make( './test.as' , fs );
+var global="(function(){\n\
+var packages={};\n\
+function merge(){\n\
+    var target = arguments[0];\n\
+    var len = arguments.length;\n\
+    for(var i=1; i<len; i++ )\n\
+    {\n\
+       var item = arguments[i];\n\
+        for( var p in item )\n\
+        {\n\
+            if( typeof item[p] === 'object' && typeof target[p] === 'object' )\n\
+            {\n\
+                merge(target[p],  item[p] );\n\
+            }else{\n\
+                target[p] = item[p];\n\
+            }\n\
+        }\n\
+    }\n\
+    return target;\n\
+}\n";
+
+
+content = global + content +'\n})';
+fs.writeFileSync('./test-min.js', content );
 
 
 

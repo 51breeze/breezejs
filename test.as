@@ -26,12 +26,12 @@ package breezejs.brreze{
 
         public var name='sssssss\'hhhhh';
 
-        private var ii='sss21';
+        var ii='sss21';
         private var sss=222;
 
         public function main()
         {
-            super();
+           // super();
         }
 
         public function get names(){

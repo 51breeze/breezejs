@@ -122,6 +122,7 @@ import packages.breeze.private.name;*/
         };
 
         packages['EventDispatcher'] = module;
+
         module.constructor=function(){
 
             if( !(this instanceof module.constructor) )
