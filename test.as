@@ -17,21 +17,19 @@
 
 //类
 
-package breezejs.brreze{
+package {
 
-    import breezejs.events.BreezeEvent;
-    import breezejs.EventDispatcher;
+    import A;
+    import B;
 
-    public class main extends EventDispatcher,ccc {
+    public class test extends A {
 
         public var name='sssssss\'hhhhh';
-
         var ii='sss21';
         private var sss=222;
 
-        public function main()
+        public function test()
         {
-           // super();
         }
 
         public function get names(){

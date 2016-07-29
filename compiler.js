@@ -1,5 +1,21 @@
-
 const fs = require('fs');
+const root = process.cwd().replace('\\','/');
+const suffix = '.as';
+
+function pathfile( file )
+{
+    file = file && file !='' ? file.replace('.','/') : '';
+    return root +'/'+ file + suffix;
+}
+
+function checkfile( file )
+{
+    try{
+        return fs.statSync( pathfile(file) ).isFile();
+    } catch (e) {
+        return false;
+    }
+}
 
 function qualifier(module, val )
 {
@@ -63,6 +79,22 @@ function checkParam( param )
     }
 }
 
+/**
+ * 检查继承的类是否存在
+ * @param module
+ * @param classname
+ * @returns {boolean}
+ */
+function checkExtendsClass(module, classname )
+{
+    var has=0;
+    var reg= new RegExp( '(^|\.)'+classname+'$' );
+    for( var i in module['import'] ) if( module['import'][i].match( reg ) )
+    {
+        has++;
+    }
+    return has;
+}
 
 /**
  * 解析代码
@@ -82,21 +114,26 @@ function parse( module, code )
         switch( tag[1].toLowerCase() )
         {
             case 'package':
-                var ret = code.match(/\s*(package)(\s+[\w\.]*)/i);
-                if (!ret)throw new Error('package error');
+                var ret = code.match(/\s*(package)(\s+[\w\.]*)?/i);
+                if (!ret)throw new Error('[package error] '+code);
                 module['package'] = ret[2];
                 break;
             case 'import':
                 var ret = code.match(/\s*(import)\s+([\w\.]*)/i);
-                if (!ret)throw new Error('import error');
-                module['import'].push(ret[2]);
+                if (!ret)throw new Error('[syntax error] '+code);
+                ret[2] = trim(ret[2]);
+                if( !checkfile( ret[2] ) )throw new Error('[Not found class for '+ret[2]+'] '+code);
+                module['import'].push( ret[2] );
                 break;
             case 'class':
-                var ret = code.match(/[\w\s]*(class)\s+(\w+)(\s+extends\s+([\w\,]*))?/i);
+                var ret = code.match(/[\w\s]*(class)\s+(\w+)(\s+extends\s+([\w\.]*))?/i);
                 if (!ret)throw new Error('class error');
                 module['class'] = ret[2];
-                if (ret[4]) {
-                    module['extends'].push(ret[4].split(','));
+                if (ret[4])
+                {
+                    var extend = trim( ret[4] );
+                    if( !checkExtendsClass(module,extend) )throw new Error('[Not found extends class for '+extend+']' );
+                    module['extends'].push( extend );
                 }
                 break;
             case 'var':
@@ -172,7 +209,7 @@ function parse( module, code )
 }
 
 /**
- * 生成代码
+ * 生成模块代码
  * @param module
  * @returns {string}
  */
@@ -183,8 +220,8 @@ function create( module )
     var wrap=[];
     var access={};
 
-    toVariable( module.var )
-
+    //将变量转成字符串
+    toVariable( module.var );
 
     //组装函数
     for( var c in module.fn )
@@ -234,10 +271,11 @@ function create( module )
     code.push('+(function( packages, extend){');
     code.push('var module={'+ wrap.join(',\n')+'}');
     code.push('var proto = module.constructor.prototype');
+    code.push('var p = packages["'+trim(module.package)+'"] || (packages["'+trim(module.package)+'"]={})');
+    code.push('p["'+module['class']+'"]= module');
     code.push('proto.constructor = module.constructor');
     code.push('Object.defineProperties(proto,{'+toAceess(access)+'})');
     code.push('merge(proto, module.public)');
-    code.push('packages["'+trim(module.package)+'"] = module');
     code.push('})(packages)');
 
     return code.join(';\n');
@@ -322,11 +360,12 @@ function toAceess( access )
  */
 function make( file , fs )
 {
-    var content = fs.readFileSync( file , 'utf-8');
+    var content = fs.readFileSync( pathfile( file ) , 'utf-8');
     var code = content.split(/[\r]*\n/);
     var num = code.length;
     var i = 0;
     var skip = false;
+    var haserror=false;
 
     //模块文件的配置
     var module={
@@ -334,13 +373,13 @@ function make( file , fs )
         'class':'',
         'import':[],
         'extends':[],
-        'fn':{public:[],protected:[],private:[]},
-        'var':{public:[],protected:[],private:[]},
+        'fn':{public:[],protected:[],private:[],internal:[]},
+        'var':{public:[],protected:[],private:[],internal:[]},
         'balancer':0
     };
 
     //逐行
-    while (i < num)
+    while (i < num && !haserror )
     {
         var item = code[i];
         i++;
@@ -386,18 +425,30 @@ function make( file , fs )
                     try {
                         parse(module, trim(str[b]) );
                     } catch (e) {
-                        console.log(e.message, ' in line ' + i);
+                        haserror=true;
+                        console.log(e.message, file,' in line ' + i);
                     }
                 }
             }
         }
     }
 
-   return create( module );
+    var contents=[];
+
+    //编译依赖的模块
+    if( module.import.length > 0 )
+    {
+        for ( var j in module.import )
+        {
+            contents.push( make( module.import[j] , fs ) );
+        }
+    }
+
+    contents.push( create( module ) );
+    return contents.join('\n');
 }
 
-
-var content = make( './test.as' , fs );
+var content = make( 'test' , fs );
 
 
 var global="(function(){\n\
@@ -423,6 +474,7 @@ function merge(){\n\
 
 
 content = global + content +'\n})';
+
 fs.writeFileSync('./test-min.js', content );
 
 
