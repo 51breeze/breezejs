@@ -63,7 +63,16 @@ package {
         }
 
         //调整大小
-        function onResize(){
+        function onResize(kkk ss,
+                          lll,
+                          bb){
+
+            function ccc(aa,
+                         bb
+                ,nnn)
+            {
+                this.ssss
+            }
 
         }
 

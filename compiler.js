@@ -8,6 +8,12 @@ function pathfile( file )
     return root +'/'+ file + suffix;
 }
 
+function classname( file )
+{
+    var ret = file.match(/\.?(\w+)$/);
+    return ret && ret[1] ? ret[1] : null;
+}
+
 function checkfile( file )
 {
     try{
@@ -73,9 +79,16 @@ function trim( str )
  */
 function checkParam( param )
 {
-    if( param && /(\w+\s+\w+|\W+)/.test( trim(param) ) )
+    if( param )
     {
-        throw new Error('param invalid')
+        var p= param.split(',');
+        for(var i in p)
+        {
+            if( /(\w+\s+\w+)|(\W+)/.test( trim(param[p]) ) )
+            {
+                throw new Error('param invalid')
+            }
+        }
     }
 }
 
@@ -94,6 +107,30 @@ function checkExtendsClass(module, classname )
         has++;
     }
     return has;
+}
+
+
+function matchFunc(code)
+{
+    var ret = code.match(/^\s*(\w+\s+)?function\s+(set\s+|get\s+)?(\w+)(\s*(\()([^\)]*)(\))?)?/i);
+    if ( ret )
+    {
+        var obj = {'content':[],'param':[],'name':ret[3],'access':'', 'parambreak':!ret[7]};
+        obj.access = ret[2] ? ret[2] : '';
+
+        //是否有匹配到括号中的参数
+        if( ret && ret[6] )
+        {
+            ret[6] = trim( ret[6] );
+            if( ret[6] !== '')
+            {
+                checkParam( ret[6] );
+                obj.param = ret[6].split(',');
+            }
+        }
+        return obj;
+    }
+    return null;
 }
 
 /**
@@ -128,7 +165,7 @@ function parse( module, code )
             case 'class':
                 var ret = code.match(/[\w\s]*(class)\s+(\w+)(\s+extends\s+([\w\.]*))?/i);
                 if (!ret)throw new Error('class error');
-                module['class'] = ret[2];
+                if( ret[2] !==  module['class'] )throw new Error('file name and class name is not consistent');
                 if (ret[4])
                 {
                     var extend = trim( ret[4] );
@@ -151,26 +188,16 @@ function parse( module, code )
 
     }else
     {
-        var ret = code.match(/^\s*(\w+\s+)?function\s+(set\s+|get\s+)?(\w+)(\s*(\()([^\)]*)(\))?)?/i);
-
-        if (ret)
+        var ret = matchFunc( code );
+        if ( ret && !module.current )
         {
+            module.current = ret;
             var c = qualifier(module, ret[1] );
-            var param = [];
-
-            //是否有匹配到括号中的参数
-            if( ret[6] )
-            {
-                ret[6] = trim( ret[6] );
-                if( ret[6] !== '')
-                {
-                    checkParam( ret[6] );
-                    param = ret[6].split(',');
-                }
-            }
-
-            module.current={'content':[],'param':param,'name':ret[3],'access':ret[2] ? ret[2] : '', 'parambreak':!ret[7] };
             module.fn[c].push( module.current );
+            var fn = module.func || (module.func={});
+            var name =  module.current.access+module.current.name;
+            if( fn[ name ] )throw new Error('function name conflict for '+ret[3] );
+            fn[name]=true;
 
         }else if( module.current )
         {
@@ -236,8 +263,8 @@ function create( module )
             var acc =  trim( val.access );
             var param = val.param;
             val = val.content.join(";");
-            val = val.replace(/\;\s*(\{)/g,'$1\n');
-            val = val.replace(/(\)|\{)\s*\;/g,'$1\n');
+            val = val.replace(/\;\s*(\{|\,)/g,'$1\n');
+            val = val.replace(/(\(|\)|\{|\}|\,)\s*\;/g,'$1\n');
             val = val.replace(/\;/g,';\n');
             val = unescape( val );
             val = 'function('+trim(param.join(','))+')'+val;
@@ -370,7 +397,7 @@ function make( file , fs )
     //模块文件的配置
     var module={
         'package':'',
-        'class':'',
+        'class': classname(file),
         'import':[],
         'extends':[],
         'fn':{public:[],protected:[],private:[],internal:[]},
