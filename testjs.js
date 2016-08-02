@@ -219,6 +219,59 @@ import packages.breeze.private.name;*/
 
 
 
++(function( packages, extend){
+
+    var fn={
+
+    }
+
+    var module={
+        'constructor':function(){
+
+            console.log(' this is A')
+            var variable={
+                iii:'ccc',
+                bbb:'666'
+            };
+
+
+
+         },
+        'package':'',
+        'fn':{
+            'protected':{
+            },
+            'internal':{
+            }
+        }
+        ,'var':{
+            'protected':{
+            },
+            'internal':{
+            }
+        }
+    };
+
+    module.constructor.prototype= new extend.constructor();
+    merge(module.protected, extend.extend.protected)
+    merge(module.internal, extend.extend.internal)
+
+    var proto = module.constructor.prototype;
+    proto.constructor = module.constructor;
+    Object.defineProperties(proto,{'names':{get:function(){
+        return this.names;
+    }}});
+
+    proto.iii=function(){
+
+
+
+
+
+    }
+
+
+})(packages)
 
 
 

@@ -10,8 +10,13 @@ function pathfile( file )
 
 function classname( file )
 {
-    var ret = file.match(/\.?(\w+)$/);
-    return ret && ret[1] ? ret[1] : null;
+    var ret = file.match(/(^|\.)(\w+)$/);
+    return ret && ret[2] ? ret[2] : null;
+}
+
+function packagename( file )
+{
+    return file.replace( new RegExp( '(^|\.)'+file+'$' ) ,'');
 }
 
 function checkfile( file )
@@ -84,7 +89,7 @@ function checkParam( param )
         var p= param.split(',');
         for(var i in p)
         {
-            if( /(\w+\s+\w+)|(\W+)/.test( trim(param[p]) ) )
+            if( /(\w+\s+\w+)|(\W+)/.test( trim(p[i]) ) )
             {
                 throw new Error('param invalid')
             }
@@ -110,28 +115,11 @@ function checkExtendsClass(module, classname )
 }
 
 
-function matchFunc(code)
+function checkSyntax( code )
 {
-    var ret = code.match(/^\s*(\w+\s+)?function\s+(set\s+|get\s+)?(\w+)(\s*(\()([^\)]*)(\))?)?/i);
-    if ( ret )
-    {
-        var obj = {'content':[],'param':[],'name':ret[3],'access':'', 'parambreak':!ret[7]};
-        obj.access = ret[2] ? ret[2] : '';
 
-        //是否有匹配到括号中的参数
-        if( ret && ret[6] )
-        {
-            ret[6] = trim( ret[6] );
-            if( ret[6] !== '')
-            {
-                checkParam( ret[6] );
-                obj.param = ret[6].split(',');
-            }
-        }
-        return obj;
-    }
-    return null;
 }
+
 
 /**
  * 解析代码
@@ -153,7 +141,7 @@ function parse( module, code )
             case 'package':
                 var ret = code.match(/\s*(package)(\s+[\w\.]*)?/i);
                 if (!ret)throw new Error('[package error] '+code);
-                module['package'] = ret[2];
+                if( (ret[2] || '') !== module['package'] )throw new Error('package path invalid for '+ret[2] );
                 break;
             case 'import':
                 var ret = code.match(/\s*(import)\s+([\w\.]*)/i);
@@ -170,7 +158,7 @@ function parse( module, code )
                 {
                     var extend = trim( ret[4] );
                     if( !checkExtendsClass(module,extend) )throw new Error('[Not found extends class for '+extend+']' );
-                    module['extends'].push( extend );
+                    module['extends']=extend;
                 }
                 break;
             case 'var':
@@ -188,11 +176,25 @@ function parse( module, code )
 
     }else
     {
-        var ret = matchFunc( code );
+        var ret = code.match(/^\s*(\w+\s+)?function\s+(set\s+|get\s+)?(\w+)(\s*(\()([^\)]*)(\))?)?/i);
         if ( ret && !module.current )
         {
-            module.current = ret;
+            var obj = {'content':[],'param':[],'name':ret[3],'access':'', 'parambreak':!ret[7]};
+            obj.access = ret[2] ? ret[2] : '';
+
+            //是否有匹配到括号中的参数
+            if( ret && ret[6] )
+            {
+                var param = trim( ret[6] );
+                if( param !== '')
+                {
+                    obj.param = [ param ]
+                }
+            }
+
+            module.current = obj;
             var c = qualifier(module, ret[1] );
+
             module.fn[c].push( module.current );
             var fn = module.func || (module.func={});
             var name =  module.current.access+module.current.name;
@@ -207,14 +209,21 @@ function parse( module, code )
                 var p = code.match(/^(\s*\()?([^\(\)]*)/);
                 if( p )
                 {
-                    checkParam( p[1] );
-                    module.current.param.push( p[1] );
+                    p = p[1] ? p[1] : p[2];
+                    if( p && p!=='')
+                    {
+                        checkParam( p );
+                        module.current.param.push( p );
+                    }
                 }
 
                 //关闭换行的参数
                 if( b.indexOf(')') >=0 )
                 {
-                    module.current.parambreak=false;
+                   module.current.param = module.current.param.join('');
+                   checkParam( module.current.param );
+                   module.current.param = module.current.param.split(',');
+                   module.current.parambreak=false;
                 }
 
             }else
@@ -246,6 +255,9 @@ function create( module )
     var constructor='function(){}';
     var wrap=[];
     var access={};
+    var func_map=[];
+    var func_public=[];
+    var var_map=[];
 
     //将变量转成字符串
     toVariable( module.var );
@@ -261,13 +273,13 @@ function create( module )
             var val = item[b];
             var name = trim( val.name );
             var acc =  trim( val.access );
-            var param = val.param;
+            var param = val.param instanceof Array ? val.param.join(',') : val.param;
             val = val.content.join(";");
             val = val.replace(/\;\s*(\{|\,)/g,'$1\n');
             val = val.replace(/(\(|\)|\{|\}|\,)\s*\;/g,'$1\n');
             val = val.replace(/\;/g,';\n');
             val = unescape( val );
-            val = 'function('+trim(param.join(','))+')'+val;
+            val = 'function('+trim(param)+')'+val;
             item[b] = val;
 
             if( acc ==='get' || acc==='set' )
@@ -277,36 +289,69 @@ function create( module )
 
             }else if( name === classname && c==='public')
             {
-                val = val.replace(/\}\s*$/,function(a){
-                    return  module.var.public + '\n}';
-                })
                 constructor = val;
+                item.splice(b,1);
+
+            }else if( c === 'public')
+            {
+                func_public.push( "proto."+name+"="+val );
                 item.splice(b,1);
 
             }else
             {
-                item[b] = "'"+name+"':"+val;
+                item[b] = "'"+name+"':func."+name;
+                func_map.push("'"+name+"':"+val)
                 b++;
             }
         }
-        wrap.push("'"+c+"':{\n"+ item.join(',\n')+'\n}' );
     }
 
-    wrap.unshift("'constructor':"+constructor );
+    var funs=[]
+    funs.push("'protected':{"+module.fn.protected.join('\n')+'}' );
+    funs.push("'internal':{"+module.fn.internal.join('\n')+'}' );
+    funs.push("'private':{"+module.fn.private.join('\n')+'}' );
+
+    //追加调用父类的方法
+    if( module.extends && !/super\s*\(([^\)]*)\)/i.test(constructor) )
+    {
+        constructor = constructor.replace(/\}\s*$/,function(a){
+            return 'packages["'+module.extends+'"].constructor.apply(this, arguments);\n}';
+        });
+    }
+
+    if( module.var.private !=='')
+    var_map.push( module.var.private )
+    if( module.var.protected !=='')
+    var_map.push( module.var.protected )
+    if( module.var.internal !=='')
+    var_map.push( module.var.internal )
+
+    //追加变量到构造函数中
+    constructor = constructor.replace(/\}\s*$/,function(a){
+        return  'this.__var__={'+var_map.join(',\n')+'};\n'+module.var.public + '\n}';
+    });
+
+    wrap.push("'constructor':"+constructor );
+    wrap.push("'fn':{"+funs.join(',')+"}");
 
     var code = [];
     code.push('+(function( packages, extend){');
+    code.push('var func={'+ func_map.join(',\n')+'}');
     code.push('var module={'+ wrap.join(',\n')+'}');
+
+    if( module.extends )
+    {
+       code.push('module.constructor.prototype = new packages["'+module.extends+'"].constructor()');
+    }
+
     code.push('var proto = module.constructor.prototype');
     code.push('var p = packages["'+trim(module.package)+'"] || (packages["'+trim(module.package)+'"]={})');
     code.push('p["'+module['class']+'"]= module');
     code.push('proto.constructor = module.constructor');
-    code.push('Object.defineProperties(proto,{'+toAceess(access)+'})');
-    code.push('merge(proto, module.public)');
+    code.push('Object.defineProperties(proto,{\n'+toAceess(access)+'\n})');
+    code.push( func_public.join('\n') );
     code.push('})(packages)');
-
     return code.join(';\n');
-
 }
 
 /**
@@ -342,13 +387,12 @@ function toVariable( variable )
         {
             var value = unescape( item[b].value );
             var name = trim(item[b].name);
-            //if( c === 'public')
-            //{
-                val.push('this.'+item[b].name+'="'+value+'"');
-           // }else
-            //{
-
-            //}
+            if( c=== 'public'){
+               val.push('this.'+name+'="'+value+'"');
+            }else
+            {
+                val.push('"'+name+'":"'+value+'"');
+            }
             b++;
         }
         variable[c] = val.join(';\n');
@@ -396,10 +440,10 @@ function make( file , fs )
 
     //模块文件的配置
     var module={
-        'package':'',
+        'package':packagename(file),
         'class': classname(file),
         'import':[],
-        'extends':[],
+        'extends':null,
         'fn':{public:[],protected:[],private:[],internal:[]},
         'var':{public:[],protected:[],private:[],internal:[]},
         'balancer':0

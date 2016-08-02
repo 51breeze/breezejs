@@ -25,7 +25,7 @@ package {
     public class test extends A {
 
         public var name='sssssss\'hhhhh';
-        var ii='sss21';
+        protected var ii='sss21';
         private var sss=222;
 
         public function test()
@@ -63,7 +63,7 @@ package {
         }
 
         //调整大小
-        function onResize(kkk ss,
+        function onResize(kkkss,
                           lll,
                           bb){
 
@@ -82,3 +82,5 @@ package {
         }
     }
 }
+
+
