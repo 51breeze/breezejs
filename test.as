@@ -19,61 +19,29 @@
 
 package {
 
-    import A;
-    import B;
+    public class test {
 
-    public class test extends A {
-
-        public var name='sssssss\'hhhhh';
-        protected var ii='sss21';
-        private var sss=222;
+        public var name='join';
 
         public function test()
         {
         }
 
         public function get names(){
-            return this.Names
+            return this.name;
         }
 
         public function set names( names )
         {
-            this.Names=names;
-            this.name=names;this.ccc='0000';
-            this.ooo='fdgdfgdf;dsdfdsf;';
-
-            if(1){
-
-            }else{
-
-            }
-
+            this.name=names;
         }
 
         public function get style(){
-
-            this.cccc=123;
-            if(1){
-
-            }else{
-
-            }
-            return this.Style;
-
+            return this.__style__;
         }
 
         //调整大小
-        function onResize(kkkss,
-                          lll,
-                          bb){
-
-            function ccc(aa,
-                         bb
-                ,nnn)
-            {
-                this.ssss
-            }
-
+        function onResize(kkkss, lll, bb){
         }
 
         private function position(event)

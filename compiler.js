@@ -257,10 +257,35 @@ function create( module )
     var access={};
     var func_map=[];
     var func_public=[];
-    var var_map=[];
+    var func_internal={'protected':[],'internal':[]};
 
-    //将变量转成字符串
-    toVariable( module.var );
+    var var_map=[];
+    var var_public=[];
+    var var_internal={'protected':[],'internal':[]};
+
+    //组装变量
+    for( var c in  module.var )
+    {
+        var item = module.var[c];
+        var b=0;
+        var val=[];
+        while( b < item.length )
+        {
+            var value = unescape( item[b].value );
+            var name = trim(item[b].name);
+            if( c=== 'public'){
+                val.push('this.'+name+'="'+value+'"');
+            }else
+            {
+                val.push('"'+name+'":"'+value+'"');
+            }
+            b++;
+        }
+        module.var[c] = val.join(';\n');
+    }
+
+
+
 
     //组装函数
     for( var c in module.fn )
@@ -292,24 +317,25 @@ function create( module )
                 constructor = val;
                 item.splice(b,1);
 
-            }else if( c === 'public')
-            {
-                func_public.push( "proto."+name+"="+val );
-                item.splice(b,1);
-
             }else
             {
-                item[b] = "'"+name+"':func."+name;
-                func_map.push("'"+name+"':"+val)
+                if( c === 'public')
+                {
+                    func_public.push( "proto."+name+"=func."+name );
+
+                }else if( c !== 'private' )
+                {
+                    func_internal[c].push("'" + name + "':func." + name);
+                }
+                func_map.push("'"+name+"':"+val);
                 b++;
             }
         }
     }
 
     var funs=[]
-    funs.push("'protected':{"+module.fn.protected.join('\n')+'}' );
-    funs.push("'internal':{"+module.fn.internal.join('\n')+'}' );
-    funs.push("'private':{"+module.fn.private.join('\n')+'}' );
+    funs.push("'protected':{"+func_internal.protected.join('\n')+'}' );
+    funs.push("'internal':{"+func_internal.internal.join('\n')+'}' );
 
     //追加调用父类的方法
     if( module.extends && !/super\s*\(([^\)]*)\)/i.test(constructor) )
@@ -333,9 +359,13 @@ function create( module )
 
     wrap.push("'constructor':"+constructor );
     wrap.push("'fn':{"+funs.join(',')+"}");
+    wrap.push("'var':{"+funs.join(',')+"}");
+
+
+
 
     var code = [];
-    code.push('+(function( packages, extend){');
+    code.push('+(function( packages ){');
     code.push('var func={'+ func_map.join(',\n')+'}');
     code.push('var module={'+ wrap.join(',\n')+'}');
 
@@ -519,10 +549,21 @@ function make( file , fs )
     return contents.join('\n');
 }
 
+
+var showMem = function()
+{
+    var mem = process.memoryUsage();
+    var format = function(bytes) {
+        return (bytes/1024/1024).toFixed(2)+'MB';
+    };
+    console.log('Process: heapTotal '+format(mem.heapTotal) + ' heapUsed ' + format(mem.heapUsed) + ' rss ' + format(mem.rss));
+    console.log('----------------------------------------');
+};
+
 var content = make( 'test' , fs );
 
 
-var global="(function(){\n\
+/*var global="(function(){\n\
 var packages={};\n\
 function merge(){\n\
     var target = arguments[0];\n\
@@ -544,9 +585,23 @@ function merge(){\n\
 }\n";
 
 
-content = global + content +'\n})';
+content = global + content +'\n})';*/
+
+
+
+
 
 fs.writeFileSync('./test-min.js', content );
+
+
+
+
+
+
+
+
+
+
 
 
 

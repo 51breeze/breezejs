@@ -1,283 +1,70 @@
-/**
- +------------------------------------------------------------------------------
- * @package  : com.library.Cdisplay
- +------------------------------------------------------------------------------
- * @class    : 显示块类
- +------------------------------------------------------------------------------
- * @access   :
- +------------------------------------------------------------------------------
- * @author   : yejun <664371281@qq.com>
- +------------------------------------------------------------------------------
- */
-
-/*
-package breezejs{
-
-    import breezejs.events.BreezeEvent;
-    import breezejs.EventDispatcher;
-
-    public class main extends EventDispatcher {
-
-        public var name=null
-
-        public function main()
-        {
-            super();
-        }
-
-        public function get names(){
-            return this.Names
-        }
-
-        public function set names(names){
-
-            this.Names=names
-            this.name=names;
-        }
-
-        public function get style(){
-
-            return this.Style;
-
-        }
-
-        public function onResize():void{
-
-        }
-
-        private function setPosition(event:BreezeEvent)
-        {
-
-        }
-    }
-}
-
-import packages.EventDispatcher.
-
-'constructor';
-
-import packages.breeze.private.name;*/
-
-
 (function(){
 
-    var packages={};
 
-    function merge()
+    var object = {};
+    function variable(id, name, value)
     {
-        var target = arguments[0];
-        var len = arguments.length;
-        for(var i=1; i<len; i++ )
-        {
-            var item = arguments[i];
-            for( var p in item )
-            {
-                if( typeof item[p] === 'object' && typeof target[p] === 'object' )
-                {
-                    merge(target[p],  item[p] );
-                }else{
-                    target[p] = item[p];
-                }
-            }
-        }
-        return target;
+
+    }
+
+    function uniqid()
+    {
+        var id;
+        do{
+            id=new Date().getTime() + '' + Math.random() * 10000000000;
+        }while( object[id] );
+        return id;
     }
 
 
+    +(function (packages) {
 
-    +(function( packages ){
-
-        var module={
-            'constructor':null,
-            'public':{
-
-                addEventListener:function(){
-                },
-                removeEventListener:function(){
-                }
-            },
-            'protected':{
-
-                baby:function(){
-
-                }
-            },
-            'private':{
-                name:function()
-                {
-                    return 'yejun';
-                }
-            },
-            'variable':{
-                "C":{
-                    '__c__':'123',
-                    get:function(){return this.__c__;},
-                    set:function(val){ console.log('===set===') ; console.log(this); this.__c__ = val;}
-                },
-                "D":{
-                    get:function(){return this.d;},
-                    set:function(val){this.d = val}
-                }
+        var func = {
+            'position': function (event) {
+                return true;
             }
         };
 
-        packages['EventDispatcher'] = module;
-
-        module.constructor=function(){
-
-            if( !(this instanceof module.constructor) )
-            {
-                return new module.constructor()
-            }
-        }
-
-        var proto = module.constructor.prototype;
-        proto.constructor = module.constructor;
-        Object.defineProperties(proto,module.variable);
-        merge(proto, module.public)
-
-    })( packages );
-
-
-
-
-    +(function(packages, extend ){
-
-       var module={
-            'constructor':null,
-            'protected':{
-
-                baby:function(){
-                    console.log( 'protected baby');
-                }
+        var module = {
+            'constructor': function () {
+                this.__uniqid__= uniqid();
+                variable.call(this,{name:'join'})
             },
-            'private':{
-                name:function()
-                {
-                    console.log( 'private name yejun',   this instanceof module.constructor );
-                    module.protected.baby.call(this);
-                    return 'yejun';
-                }
+            'fn': {
+                'protected': {},
+                'internal': {}
             }
         };
-
-        packages['Breeze'] = module;
-
-        module.constructor=function(){
-
-            if( !(this instanceof module.constructor) )
-            {
-                return new module.constructor()
-            }
-
-            !extend || extend.constructor.call(this);
-            this.__properties__={a:'12388888'};
-
-
-
-        }
-
-
-        if( extend )
-        {
-            module.constructor.prototype = new extend.constructor();
-            merge(module.protected, extend.protected);
-        }
-
         var proto = module.constructor.prototype;
+
+        var p = packages[""] || (packages[""] = {});
+
+        p["test"] = module;
+
         proto.constructor = module.constructor;
 
         Object.defineProperties(proto, {
-            "A":{
-                get:function(){return this.__properties__.a;},
-                set:function(val){this.__properties__.a = val;}
+            'names': {
+                set: function (names) {
+                    this.name = names;
+                },
+                get: function () {
+                    return this.name;
+                }
             },
-            "B":{
-                get:function(){return this.b;},
-                set:function(val){this.b = val}
+            'style': {
+                get: function () {
+                    return this.__style__;
+                }
             }
         });
 
-        proto.avg=function()
-        {
-            module.private.name.call(this);
-        }
+        proto.onResize = function (kkkss, lll, bb) {
 
-    })( packages , packages['EventDispatcher'] );
+        };
 
 
-
-    var obj = new packages['Breeze'].constructor()
-   // obj.C='8999';
-
-    obj.avg();
-
-    console.log(  obj.A )
+    })(packages)
 
 
-})()
-
-
-
-+(function( packages, extend){
-
-    var fn={
-
-    }
-
-    var module={
-        'constructor':function(){
-
-            console.log(' this is A')
-            var variable={
-                iii:'ccc',
-                bbb:'666'
-            };
-
-
-
-         },
-        'package':'',
-        'fn':{
-            'protected':{
-            },
-            'internal':{
-            }
-        }
-        ,'var':{
-            'protected':{
-            },
-            'internal':{
-            }
-        }
-    };
-
-    module.constructor.prototype= new extend.constructor();
-    merge(module.protected, extend.extend.protected)
-    merge(module.internal, extend.extend.internal)
-
-    var proto = module.constructor.prototype;
-    proto.constructor = module.constructor;
-    Object.defineProperties(proto,{'names':{get:function(){
-        return this.names;
-    }}});
-
-    proto.iii=function(){
-
-
-
-
-
-    }
-
-
-})(packages)
-
-
-
-
-
-
-
-
-
+}
