@@ -17,7 +17,7 @@
 
 //类
 
-package {
+package{
 
     public class test {
 

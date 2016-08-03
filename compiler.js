@@ -258,10 +258,7 @@ function create( module )
     var func_map=[];
     var func_public=[];
     var func_internal={'protected':[],'internal':[]};
-
-    var var_map=[];
     var var_public=[];
-    var var_internal={'protected':[],'internal':[]};
 
     //组装变量
     for( var c in  module.var )
@@ -273,19 +270,15 @@ function create( module )
         {
             var value = unescape( item[b].value );
             var name = trim(item[b].name);
-            if( c=== 'public'){
-                val.push('this.'+name+'="'+value+'"');
-            }else
+            if(c==='public')
             {
-                val.push('"'+name+'":"'+value+'"');
+                var_public.push('proto.'+name+'="'+value+'"');
             }
+            val.push('"'+name+'":"'+value+'"');
             b++;
         }
         module.var[c] = val.join(';\n');
     }
-
-
-
 
     //组装函数
     for( var c in module.fn )
@@ -333,54 +326,61 @@ function create( module )
         }
     }
 
-    var funs=[]
-    funs.push("'protected':{"+func_internal.protected.join('\n')+'}' );
-    funs.push("'internal':{"+func_internal.internal.join('\n')+'}' );
-
-    //追加调用父类的方法
+    //构造函数,初始化父类
     if( module.extends && !/super\s*\(([^\)]*)\)/i.test(constructor) )
     {
         constructor = constructor.replace(/\}\s*$/,function(a){
-            return 'packages["'+module.extends+'"].constructor.apply(this, arguments);\n}';
+            return '__g__.module("'+module.extends+'").constructor.apply(this, arguments);\n}';
         });
     }
 
-    if( module.var.private !=='')
-    var_map.push( module.var.private )
-    if( module.var.protected !=='')
-    var_map.push( module.var.protected )
-    if( module.var.internal !=='')
-    var_map.push( module.var.internal )
-
-    //追加变量到构造函数中
+    //构造函数,初始化变量
+    var initvar=[];
+    initvar.push('{'+module.var.public+'}');
+    initvar.push('{'+module.var.internal+'}');
+    initvar.push('{'+module.var.protected+'}');
+    initvar.push('{'+module.var.private+'}');
     constructor = constructor.replace(/\}\s*$/,function(a){
-        return  'this.__var__={'+var_map.join(',\n')+'};\n'+module.var.public + '\n}';
+        var str = 'this.__uniqid__=__g__.uniqid()\n';
+        str+='__g__.prop.call(this,'+initvar.join(',')+');'+'\n}';
+        return str;
     });
-
     wrap.push("'constructor':"+constructor );
+
+    //内部函数
+    var funs=[]
+    funs.push("'protected':{"+func_internal.protected.join('\n')+'}' );
+    funs.push("'internal':{"+func_internal.internal.join('\n')+'}' );
     wrap.push("'fn':{"+funs.join(',')+"}");
-    wrap.push("'var':{"+funs.join(',')+"}");
 
-
-
+    //内部变量
+    var variable=[];
+    variable.push("'protected':{"+module.var.protected+'}' );
+    variable.push("'internal':{"+module.var.internal+'}' );
+    wrap.push("'var':{"+variable.join(',')+"}");
 
     var code = [];
-    code.push('+(function( packages ){');
+    code.push('+(function(){');
     code.push('var func={'+ func_map.join(',\n')+'}');
     code.push('var module={'+ wrap.join(',\n')+'}');
 
+    //继承父类
     if( module.extends )
     {
-       code.push('module.constructor.prototype = new packages["'+module.extends+'"].constructor()');
+       code.push('module.constructor.prototype = __g__.getInstance("'+module.extends+'")');
     }
 
+    var path = []
+    if( module.package !=='' )path.push( module.package );
+    path.push( module['class'] );
+
     code.push('var proto = module.constructor.prototype');
-    code.push('var p = packages["'+trim(module.package)+'"] || (packages["'+trim(module.package)+'"]={})');
-    code.push('p["'+module['class']+'"]= module');
     code.push('proto.constructor = module.constructor');
     code.push('Object.defineProperties(proto,{\n'+toAceess(access)+'\n})');
+    code.push( var_public.join('\n') );
     code.push( func_public.join('\n') );
-    code.push('})(packages)');
+    code.push('__g__.module("'+path.join('.')+'", module)');
+    code.push('})()');
     return code.join(';\n');
 }
 
@@ -561,35 +561,8 @@ var showMem = function()
 };
 
 var content = make( 'test' , fs );
-
-
-/*var global="(function(){\n\
-var packages={};\n\
-function merge(){\n\
-    var target = arguments[0];\n\
-    var len = arguments.length;\n\
-    for(var i=1; i<len; i++ )\n\
-    {\n\
-       var item = arguments[i];\n\
-        for( var p in item )\n\
-        {\n\
-            if( typeof item[p] === 'object' && typeof target[p] === 'object' )\n\
-            {\n\
-                merge(target[p],  item[p] );\n\
-            }else{\n\
-                target[p] = item[p];\n\
-            }\n\
-        }\n\
-    }\n\
-    return target;\n\
-}\n";
-
-
-content = global + content +'\n})';*/
-
-
-
-
+var system = fs.readFileSync( './system.js' , 'utf-8');
+content = "(function(){\n" + system + content +'\n})';
 
 fs.writeFileSync('./test-min.js', content );
 
