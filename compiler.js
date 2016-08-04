@@ -1,6 +1,42 @@
 const fs = require('fs');
 const root = process.cwd().replace('\\','/');
 const suffix = '.as';
+const global_module={};
+
+function global(name)
+{
+    var path = name.replace(/\s+/g,'').split('.');
+    var deep=0;
+    var obj=global_module;
+    var len =path.length;
+    while(deep < len )
+    {
+        name = path[deep];
+        obj = obj[ name ] || (obj[ name ]={});
+        deep++;
+    }
+    return obj;
+}
+
+function merge()
+{
+    var target = arguments[0];
+    var len = arguments.length;
+    for(var i=1; i<len; i++ )
+    {
+        var item = arguments[i];
+        for( var p in item )
+        {
+            if( typeof item[p] === 'object' && typeof target[p] === 'object' )
+            {
+                merge(target[p],  item[p] );
+            }else{
+                target[p] = item[p];
+            }
+        }
+    }
+    return target;
+}
 
 function pathfile( file )
 {
@@ -285,48 +321,16 @@ function parse( module, code )
     }
 }
 
-/**
- * 生成模块代码
- * @param module
- * @returns {string}
- */
-function create( module )
+//组装函数
+function makeFunction( module )
 {
-    var classname = trim(module.class);
-    var constructor='function(){}';
-    var wrap=[];
-    var access={};
-    var func_map=[];
-    var func_public=[];
-    var func_internal={'protected':[],'internal':[]};
-    var var_public=[];
-
-    //组装变量
-    for( var c in  module.var )
-    {
-        var item = module.var[c];
-        var b=0;
-        var val=[];
-        while( b < item.length )
-        {
-            var value = unescape( item[b].value );
-            var name = trim(item[b].name);
-            if(c==='public')
-            {
-                var_public.push('proto.'+name+'="'+value+'"');
-            }
-            val.push('"'+name+'":"'+value+'"');
-            b++;
-        }
-        module.var[c] = val.join(',');
-    }
-
-    //组装函数
+    var classname = trim( module.class );
+    module.pubfunc=[];
     for( var c in module.fn )
     {
         var item = module.fn[c];
         var b=0;
-
+        var list={};
         while( b < item.length )
         {
             var val = item[b];
@@ -339,70 +343,136 @@ function create( module )
             val = val.replace(/\;/g,';\n');
             val = unescape( val );
             val = 'function('+trim(param)+')'+val;
-            item[b] = val;
 
             if( acc ==='get' || acc==='set' )
             {
-                (access[name] || (access[name]={}))[acc]=val;
+                (module.access[name] || (module.access[name]={}))[acc]=val;
                 item.splice(b,1);
 
-            }else if( name === classname && c==='public')
+            }else if( name === classname )
             {
-                constructor = val;
+                module.constructor = val;
                 item.splice(b,1);
 
             }else
             {
-                if( c === 'public')
-                {
-                    func_public.push( "proto."+name+"=func."+name );
-
-                }else if( c !== 'private' )
-                {
-                    func_internal[c].push("'" + name + "':func." + name);
-                }
-                func_map.push("'"+name+"':"+val);
+                list[ name ]=val;
+                module.pubfunc.push('proto.'+name+'=func.'+name);
                 b++;
             }
         }
+        module.fn[c] = list;
     }
+}
 
-    //构造函数,初始化父类
-    if( module.extends && !/super\s*\(([^\)]*)\)/i.test(constructor) )
+//组装变量
+function makeVariable(module)
+{
+    module.pubvar=[];
+    for( var c in  module.var )
     {
-        constructor = constructor.replace(/\}\s*$/,function(a){
-            var str = "var param=arguments.splic();\n";
-            str += "param.unshift('constructor');\n";
-            str += "param.unshift('"+module.extends+"');\n";
-            str +='__g__.super.apply(this,param);\n}';
-            return str;
-        });
+        var item = module.var[c];
+        var b=0;
+        var list={};
+        while( b < item.length )
+        {
+            var value = unescape( item[b].value );
+            var name = trim(item[b].name);
+            list[ name ] = value;
+            module.pubvar.push('proto.'+name+'="'+value+'"');
+            b++;
+        }
+        module.var[c]=list;
+    }
+}
+
+function objectToString( obj , q )
+{
+    var str=[];
+    q =  typeof q === "undefined" ? "'" : q;
+    if( typeof obj === "object" )
+    {
+        for (var i in obj) {
+            if (typeof obj[i] === "object") {
+                str.push("'" + i + "':"+q+ objectToString(obj[i]) +q);
+            } else {
+                str.push("'" + i + "':"+q+ obj[i] +q);
+            }
+        }
+    }
+    return "{"+str.join(',')+'}';
+}
+
+/**
+ * 生成模块代码
+ * @param module
+ * @returns {string}
+ */
+function create( module )
+{
+    var classname = trim(module.class);
+    var wrap=[];
+    var access={};
+    var func_map=[];
+    var func_public=[];
+    var func_internal={'protected':[],'internal':[]};
+    var var_public=[];
+    var var_internal={'protected':[],'internal':[],'private':[]};
+    module.constructor='function(){}';
+    makeVariable( module );
+    makeFunction( module );
+
+    //继承类
+    if( module.extends )
+    {
+        //继承父类的属性和函数
+        var parent = global( module.extends );
+        module.var.protected = merge( parent.var.protected, module.var.protected );
+        module.fn.protected = merge( parent.fn.protected, module.fn.protected );
+        if( module.package === parent.package )
+        {
+            module.var.internal = merge( parent.var.internal, module.var.internal );
+            module.fn.internal = merge( parent.fn.internal, module.fn.internal );
+        }
+
+        //初始化父类
+        if( !/super\s*\(([^\)]*)\)/i.test(module.constructor) )
+        {
+            module.constructor = module.constructor.replace(/\}\s*$/,function(a){
+                var str = "var param=arguments.splic();\n";
+                str += "param.unshift('constructor');\n";
+                str += "param.unshift('"+module.extends+"');\n";
+                str +='__g__.super.apply(this,param);\n}';
+                return str;
+            });
+        }
     }
 
     //构造函数,初始化变量
     var initvar=[];
-    initvar.push('{'+module.var.public+'}');
-    initvar.push('{'+module.var.internal+'}');
-    initvar.push('{'+module.var.protected+'}');
-    initvar.push('{'+module.var.private+'}');
-    constructor = constructor.replace(/\}\s*$/,function(a){
+    initvar.push( objectToString( module.var.public ) );
+    initvar.push( objectToString( module.var.protected ) );
+    initvar.push( objectToString( module.var.private ) );
+    initvar.push( objectToString( module.var.internal ) );
+
+    module.constructor= module.constructor.replace(/\}\s*$/,function(a){
         var str = 'this.__uniqid__=__g__.uniqid();\n';
         str+='__g__.prop.call(this,'+initvar.join(',')+');'+'\n}';
         return str;
     });
-    wrap.push("'constructor':"+constructor );
+    wrap.push("'constructor':"+module.constructor );
     wrap.push("'package':'"+module.package+"'" );
 
     //内部函数
     var funs=[]
-    funs.push("'protected':{"+func_internal.protected.join('\n')+'}');
-    funs.push("'internal':{"+func_internal.internal.join('\n')+'}');
+    funs.push("'protected':"+objectToString( module.fn.protected ,'') );
+    funs.push("'internal':"+objectToString( module.fn.internal ,'') );
     wrap.push("'fn':{"+funs.join(',')+"}");
 
     //内部变量
     var variable=[];
-    variable.push("'protected':{"+module.var.protected+'}');
-    variable.push("'internal':{"+module.var.internal+'}');
+    variable.push("'protected':"+objectToString( module.var.protected ));
+    variable.push("'internal':"+objectToString( module.var.internal ));
     wrap.push("'var':{"+variable.join(',')+"}");
 
     var code = [];
@@ -416,7 +486,7 @@ function create( module )
     }
 
     //定义的函数
-    code.push('var func={'+ func_map.join(',\n')+'}');
+    code.push('var func='+ objectToString( merge( module.fn.public, module.fn.protected, module.fn.private, module.fn.internal ), '' ) );
 
     //模块的配置信息
     code.push('var module={'+ wrap.join(',\n')+'}');
@@ -436,18 +506,18 @@ function create( module )
     code.push('proto.constructor = module.constructor');
 
     //定义访问器
-    code.push('Object.defineProperties(proto,{\n'+toAceess(access)+'\n})');
+    code.push('Object.defineProperties(proto,'+objectToString(module.access)+')');
 
     //插入公共变量接口
     if( var_public.length > 0)
     {
-        code.push(var_public.join('\n'));
+        code.push( module.pubvar.join('\n') );
     }
 
     //插入公共函数接口
     if( func_public.length > 0 )
     {
-        code.push(func_public.join('\n'));
+        code.push( module.pubfunc.join('\n') );
     }
 
     //注册模块到全局包
@@ -480,34 +550,6 @@ function unescape( val )
     val = val.replace(new RegExp('__#123#__','g'),'{');
     val = val.replace(new RegExp('__#125#__','g'),'}');
     return val;
-}
-
-
-/**
- * 转成变量字符串
- * @param variable
- */
-function toVariable( variable )
-{
-    for( var c in variable )
-    {
-        var item = variable[c];
-        var b=0;
-        var val=[];
-        while( b < item.length )
-        {
-            var value = unescape( item[b].value );
-            var name = trim(item[b].name);
-            if( c=== 'public'){
-               val.push('this.'+name+'="'+value+'"');
-            }else
-            {
-                val.push('"'+name+'":"'+value+'"');
-            }
-            b++;
-        }
-        variable[c] = val.join(';\n');
-    }
 }
 
 
@@ -555,12 +597,14 @@ function make( file , fs )
         'class': classname(file),
         'import':[],
         'extends':null,
+        'access':{},
         'fn':{public:[],protected:[],private:[],internal:[]},
         'var':{public:[],protected:[],private:[],internal:[]},
         'balancer':0,
         'uinquename':{}
     };
 
+   global(module.package)[module.class] = module;
 
     //逐行
     while (i < num && !haserror )
@@ -649,12 +693,6 @@ var system = fs.readFileSync( './system.js' , 'utf-8');
 content = "(function(){\n" + system + content +'\n})';
 
 fs.writeFileSync('./test-min.js', content );
-
-
-
-
-
-
 
 
 
