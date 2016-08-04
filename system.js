@@ -23,10 +23,18 @@ var __g__={
         }
         return obj;
 
-    },getInstance:function(name){
+    },instanceof:function(module)
+    {
+        return this instanceof __g__.module(module).constructor;
 
-        var c =  __g__.package(name).constructor;
-        return new c();
+    },super:function(module, name)
+    {
+        var m =  __g__.module(module);
+        return m[name].apply(this, arguments.slice(2) );
+
+    },getInstance:function(name)
+    {
+        return new __g__.module(name).constructor();
 
     },uniqid:function()
     {

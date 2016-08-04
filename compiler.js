@@ -16,7 +16,12 @@ function classname( file )
 
 function packagename( file )
 {
-    return file.replace( new RegExp( '(^|\.)'+file+'$' ) ,'');
+    return file.replace( /(^|\.)\w+$/ ,'');
+}
+
+function torefe( classname )
+{
+    return classname.replace(/[\.\s]+/g,'');
 }
 
 function checkfile( file )
@@ -105,11 +110,11 @@ function checkParam( param )
  */
 function checkExtendsClass(module, classname )
 {
-    var has=0;
+    var has=[];
     var reg= new RegExp( '(^|\.)'+classname+'$' );
     for( var i in module['import'] ) if( module['import'][i].match( reg ) )
     {
-        has++;
+        has.push( module['import'][i] );
     }
     return has;
 }
@@ -134,14 +139,15 @@ function parse( module, code )
     //获取对称符
     var b = balancer( module, code );
 
-    if( tag )
+    if( tag && !module.current )
     {
         switch( tag[1].toLowerCase() )
         {
             case 'package':
                 var ret = code.match(/\s*(package)(\s+[\w\.]*)?/i);
                 if (!ret)throw new Error('[package error] '+code);
-                if( (ret[2] || '') !== module['package'] )throw new Error('package path invalid for '+ret[2] );
+                var pname = ret[2] ? trim(ret[2]) : '';
+                if( pname !== module['package'] )throw new Error('package path invalid for '+pname );
                 break;
             case 'import':
                 var ret = code.match(/\s*(import)\s+([\w\.]*)/i);
@@ -157,20 +163,27 @@ function parse( module, code )
                 if (ret[4])
                 {
                     var extend = trim( ret[4] );
-                    if( !checkExtendsClass(module,extend) )throw new Error('[Not found extends class for '+extend+']' );
-                    module['extends']=extend;
+                    var classname = checkExtendsClass(module,extend);
+                    if( classname.length < 1 )throw new Error('[Not found extends class for '+extend+']' );
+                    if( classname.length > 1 )throw new Error('[Not sure of the class name for '+extend+']' );
+                    module['extends']=classname[0];
                 }
                 break;
             case 'var':
-                var ret = code.match(/^\s*(\w+\s+)?var\s+(\w+)\s*\=\s*([\'\"])?([^\3]*)\3/i);
+                var ret = code.match(/^\s*(\w+\s+)?var\s+(\w+)(\s*\=\s*([\'\"])?([^\4]*)\4)?/i);
                 if (!ret)throw new Error('var error');
                 var c = qualifier(module, ret[1]);
-                var v =  ret[4] ? ret[4] : undefined;
-                if( !ret[3] && isNaN( parseInt( v ) ) )
+                var v =  ret[5] ? ret[5] : undefined;
+                var n=ret[2];
+                var q = ret[4] ? ret[4] : '';
+
+                if( v && q==='' && !/\w+\s*\(.*?\)\s*$/.test(v) && !/^(\d+|null|true|false)$/i.test( trim(v) ) )
                 {
                     throw new Error('var error '+code);
                 }
-                module.var[c].push( {'name':ret[2],'value': v} )
+                if( module.uinquename[ n ] )throw new Error('variable name conflict for '+n );
+                module.uinquename[n]=true;
+                module.var[c].push( {'name':n,'value': v, is_string:q} );
                 break;
         }
 
@@ -179,7 +192,7 @@ function parse( module, code )
         var ret = code.match(/^\s*(\w+\s+)?function\s+(set\s+|get\s+)?(\w+)(\s*(\()([^\)]*)(\))?)?/i);
         if ( ret && !module.current )
         {
-            var obj = {'content':[],'param':[],'name':ret[3],'access':'', 'parambreak':!ret[7]};
+            var obj = {'content':[],'param':[],'name':ret[3],'access':'', 'parambreak':!ret[7], defvar:[]};
             obj.access = ret[2] ? ret[2] : '';
 
             //是否有匹配到括号中的参数
@@ -188,7 +201,14 @@ function parse( module, code )
                 var param = trim( ret[6] );
                 if( param !== '')
                 {
-                    obj.param = [ param ]
+                    if( obj.parambreak )
+                    {
+                        obj.param=[ param ];
+                    }else
+                    {
+                        obj.param=param.split(',');
+                        obj.defvar = obj.param.slice();
+                    }
                 }
             }
 
@@ -196,10 +216,9 @@ function parse( module, code )
             var c = qualifier(module, ret[1] );
 
             module.fn[c].push( module.current );
-            var fn = module.func || (module.func={});
             var name =  module.current.access+module.current.name;
-            if( fn[ name ] )throw new Error('function name conflict for '+ret[3] );
-            fn[name]=true;
+            if( module.uinquename[ name ] )throw new Error('function name conflict for '+ret[3] );
+            module.uinquename[name]=true;
 
         }else if( module.current )
         {
@@ -228,7 +247,29 @@ function parse( module, code )
 
             }else
             {
-                module.current.content.push( code );
+
+                //获取设置变量
+               code = code.replace(/this\s*\.\s*(\w+)(\s*\=([\'\"])?([^\3]*)\3)?/i,function(a,b,c,d,e){
+                   var v = c ? e : null;
+                   var q = d ? d : '';
+                   return v ? '__g__.prop.call(this,"'+b+'",'+q+v+q+')' : '__g__.prop.call(this,"'+b+'")';
+               })
+
+               //判断实例是否属性于某个类
+               code = code.replace(/([\S]*)\s+insanceof\s+([\S]*)/ig,function(a,b,c){
+
+                   if( b !== 'this' && checkExtendsClass(module, b).length>0 )
+                   {
+                      b = torefe( b );
+                   }
+                   if( c!=='this' && checkExtendsClass(module, c).length>0 )
+                   {
+                       c = torefe( c );
+                   }
+                   return b+' instanceof '+c;
+               })
+
+               module.current.content.push( code );
             }
 
             //关闭当前上下文
@@ -277,7 +318,7 @@ function create( module )
             val.push('"'+name+'":"'+value+'"');
             b++;
         }
-        module.var[c] = val.join(';\n');
+        module.var[c] = val.join(',');
     }
 
     //组装函数
@@ -330,7 +371,11 @@ function create( module )
     if( module.extends && !/super\s*\(([^\)]*)\)/i.test(constructor) )
     {
         constructor = constructor.replace(/\}\s*$/,function(a){
-            return '__g__.module("'+module.extends+'").constructor.apply(this, arguments);\n}';
+            var str = "var param=arguments.splic();\n";
+            str += "param.unshift('constructor');\n";
+            str += "param.unshift('"+module.extends+"');\n";
+            str +='__g__.super.apply(this,param);\n}';
+            return str;
         });
     }
 
@@ -341,47 +386,83 @@ function create( module )
     initvar.push('{'+module.var.protected+'}');
     initvar.push('{'+module.var.private+'}');
     constructor = constructor.replace(/\}\s*$/,function(a){
-        var str = 'this.__uniqid__=__g__.uniqid()\n';
+        var str = 'this.__uniqid__=__g__.uniqid();\n';
         str+='__g__.prop.call(this,'+initvar.join(',')+');'+'\n}';
         return str;
     });
     wrap.push("'constructor':"+constructor );
+    wrap.push("'package':'"+module.package+"'" );
 
     //内部函数
     var funs=[]
-    funs.push("'protected':{"+func_internal.protected.join('\n')+'}' );
-    funs.push("'internal':{"+func_internal.internal.join('\n')+'}' );
+    funs.push("'protected':{"+func_internal.protected.join('\n')+'}');
+    funs.push("'internal':{"+func_internal.internal.join('\n')+'}');
     wrap.push("'fn':{"+funs.join(',')+"}");
 
     //内部变量
     var variable=[];
-    variable.push("'protected':{"+module.var.protected+'}' );
-    variable.push("'internal':{"+module.var.internal+'}' );
+    variable.push("'protected':{"+module.var.protected+'}');
+    variable.push("'internal':{"+module.var.internal+'}');
     wrap.push("'var':{"+variable.join(',')+"}");
 
     var code = [];
     code.push('+(function(){');
+
+    //引用的类
+    for (var j in module.import )
+    {
+        var classname = torefe( module.import[j] );
+        code.push('var '+classname+'=__g__.module("'+module.import[j]+'.constructor")');
+    }
+
+    //定义的函数
     code.push('var func={'+ func_map.join(',\n')+'}');
+
+    //模块的配置信息
     code.push('var module={'+ wrap.join(',\n')+'}');
 
     //继承父类
     if( module.extends )
     {
+       code.push('__g__.merge(func,__g__.module("'+module.extends+'.fn.protected"))');
+       code.push('__g__.merge(module.protected,__g__.module("'+module.extends+'.fn.protected"))');
        code.push('module.constructor.prototype = __g__.getInstance("'+module.extends+'")');
     }
 
-    var path = []
-    if( module.package !=='' )path.push( module.package );
-    path.push( module['class'] );
-
+    //引用原型对象
     code.push('var proto = module.constructor.prototype');
+
+    //设置构造函数
     code.push('proto.constructor = module.constructor');
+
+    //定义访问器
     code.push('Object.defineProperties(proto,{\n'+toAceess(access)+'\n})');
-    code.push( var_public.join('\n') );
-    code.push( func_public.join('\n') );
-    code.push('__g__.module("'+path.join('.')+'", module)');
+
+    //插入公共变量接口
+    if( var_public.length > 0)
+    {
+        code.push(var_public.join('\n'));
+    }
+
+    //插入公共函数接口
+    if( func_public.length > 0 )
+    {
+        code.push(func_public.join('\n'));
+    }
+
+    //注册模块到全局包
+    code.push('__g__.module("'+ realclassname(module.package,module.class) +'", module)');
     code.push('})()');
     return code.join(';\n');
+}
+
+
+function realclassname(package, classname )
+{
+    var path = [];
+    if( package !=='' )path.push( package );
+    path.push( classname );
+    return path.join('.');
 }
 
 /**
@@ -476,8 +557,10 @@ function make( file , fs )
         'extends':null,
         'fn':{public:[],protected:[],private:[],internal:[]},
         'var':{public:[],protected:[],private:[],internal:[]},
-        'balancer':0
+        'balancer':0,
+        'uinquename':{}
     };
+
 
     //逐行
     while (i < num && !haserror )
@@ -559,6 +642,7 @@ var showMem = function()
     console.log('Process: heapTotal '+format(mem.heapTotal) + ' heapUsed ' + format(mem.heapUsed) + ' rss ' + format(mem.rss));
     console.log('----------------------------------------');
 };
+
 
 var content = make( 'test' , fs );
 var system = fs.readFileSync( './system.js' , 'utf-8');

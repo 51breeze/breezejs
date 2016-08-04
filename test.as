@@ -19,12 +19,20 @@
 
 package{
 
-    public class test {
+    import com.B;
+
+    public class test extends B {
 
         public var name='join';
 
+        private var ccc='236666';
+        protected var tttt='tyuuu';
+
         public function test()
         {
+            var c = new B();
+
+          this instanceof B;
         }
 
         public function get names(){
@@ -35,6 +43,8 @@ package{
         {
             this.name=names;
         }
+
+     private var __style__='pppp';
 
         public function get style(){
             return this.__style__;
