@@ -23,35 +23,40 @@ package{
 
     public class test extends B {
 
-        public var name='join';
+        public var name = 'join';
 
-        private var ccc='236666';
-        protected var tttt='tyuuu';
+        private var ccc = '236666';
+        protected var tttt = 'tyuuu';
 
-        public function test()
-        {
+        static private var uuu = 'pppp';
+
+        public function test() {
             var c = new B();
 
-          this instanceof B;
+            this instanceof B;
         }
 
-        public function get names(){
+        static public function bbbb() {
+        }
+
+        public function get names() {
             return this.name;
         }
 
-        public function set names( names )
-        {
-            this.name=names;
+        public function set names(names) {
+            this.name = names;
         }
 
-     private var __style__='pppp';
+
+        private var __style__='pppp';
 
         public function get style(){
             return this.__style__;
         }
 
         //调整大小
-        function onResize(kkkss, lll, bb){
+        function onResize(kkkss, lll, bb)
+        {
         }
 
         private function position(event)

@@ -69,12 +69,18 @@ function checkfile( file )
     }
 }
 
+/**
+ * 获取修饰符
+ * @param module
+ * @param val
+ * @returns {*}
+ */
 function qualifier(module, val )
 {
-    val =  trim( val );
+    val =  val ? trim( val ) : '';
     if( val==='')return 'public';
     if ( typeof module.fn[ val ] === "undefined" )
-        throw new Error('[qualifier invalid] '+val);
+        throw new Error('[qualifier invalid]');
     return val;
 }
 
@@ -106,6 +112,12 @@ function balancer( module , code )
         module.balancer--;
         v.push('}');
     }
+
+    //关闭当前上下文
+    if( module.current && module.balancer === 2 && v.indexOf('}') >=0 )
+    {
+        module.current=null;
+    }
     return v;
 }
 
@@ -125,7 +137,7 @@ function trim( str )
  */
 function checkParam( param )
 {
-    if( param )
+    if( param && param !=='' )
     {
         var p= param.split(',');
         for(var i in p)
@@ -161,6 +173,120 @@ function checkSyntax( code )
 
 }
 
+function globalOptions(module, code , keyword )
+{
+    switch ( keyword )
+    {
+        case 'package':
+            var ret = code.match(/\s*(package)(\s+[\w\.]*)?/i);
+            if (!ret)throw new Error('[package error] ' + code);
+            var pname = ret[2] ? trim(ret[2]) : '';
+            if (pname !== module['package'])throw new Error('package path invalid for ' + pname);
+            break;
+        case 'import':
+            var ret = code.match(/\s*(import)\s+([\w\.]*)/i);
+            if (!ret)throw new Error('[syntax error] ' + code);
+            ret[2] = trim(ret[2]);
+            if (!checkfile(ret[2]))throw new Error('[Not found class for ' + ret[2] + '] ' + code);
+            module['import'].push(ret[2]);
+            break;
+        case 'class':
+            var ret = code.match(/[\w\s]*(class)\s+(\w+)(\s+extends\s+([\w\.]*))?/i);
+            if (!ret)throw new Error('class error');
+            if (ret[2] !== module['class'])throw new Error('file name and class name is not consistent');
+            if (ret[4]) {
+                var extend = trim(ret[4]);
+                var classname = checkExtendsClass(module, extend);
+                if (classname.length < 1)throw new Error('[Not found extends class for ' + extend + ']');
+                if (classname.length > 1)throw new Error('[Not sure of the class name for ' + extend + ']');
+                module['extends'] = classname[0];
+            }
+            break;
+        case 'var':
+            var ret = code.match(/^\s*(\w+\s+)?(\w+\s+)?var\s+(\w+)(\s*\=\s*([\'\"])?([^\5]*)\5)?/i);
+            if (!ret)throw new Error('var error');
+            var c = qualifier(module, ret[2]);
+            var v = ret[6] ? ret[6] : undefined;
+            var n = ret[3];
+            var q = ret[5] ? ret[5] : '';
+
+            if (v && q === '' && !/\w+\s*\(.*?\)\s*$/.test(v) && !/^(\d+|null|true|false)$/i.test(trim(v))) {
+                throw new Error('var error ' + code);
+            }
+            if (module.uinquename[n]===true)throw new Error('[conflict variable name]');
+            module.uinquename[n] = true;
+            module.var[c].push({'name': n, 'value': v, is_string: q});
+            break;
+        default :
+            throw new Error('[syntax error]');
+    }
+}
+
+/**
+ * 获取代码块的上下文
+ * @param module
+ * @param code
+ * @returns {*}
+ */
+function codeContext(module, code)
+{
+    if( module.current )return module.current;
+    var ret = code.match(/((\w+\s+)+)?function\s+(set\s+|get\s+)?(\w+)/i);
+
+    if( ret )
+    {
+        module.current = {'content':[],'param':[],'name':ret[4],'access':ret[3] || '','parambreak':true,defvar:[],is_static:false };
+        module.current.body = module.current.param;
+
+        var q = ret[2] ? trim(ret[2]).toLowerCase().split(/\s+/) : [];
+        if( q.length > 2 )
+        {
+            throw new Error('[qualifier invalid]');
+        }
+
+        var index = q.indexOf('static');
+        var s= index >=0 ? q.splice(index,1) : false;
+        var p= q[0];
+
+        module.current.is_static = !!s;
+        module.fn[ qualifier(module, p ) ].push( module.current );
+
+        if( module.uinquename[ module.current.name ] === module.current.access  )throw new Error('[conflict function name]' );
+        module.uinquename[ module.current.name ]=module.current.access;
+        return module.current;
+
+    }else if( !module.current )
+    {
+        throw new Error('[syntax invalid]');
+    }
+    return null;
+}
+
+function contextParam(module, code  )
+{
+    //换行的参数
+    if( module.current && module.current.parambreak )
+    {
+        var p = code.match(/(^|\(|\,)([^\(\)]*)(\)|\,|$)/);
+
+        if( p )
+        {
+            if( p[2] )
+            {
+                module.current.body.push(p[2]);
+            }
+
+            if( p[3] === ')')
+            {
+                module.current.param = module.current.param.join('');
+                checkParam( module.current.param );
+                module.current.parambreak=false;
+                module.current.body =  module.current.content;
+            }
+        }
+    }
+}
+
 
 /**
  * 解析代码
@@ -170,155 +296,63 @@ function checkSyntax( code )
 function parse( module, code )
 {
     //模块配置
-    var tag = code.match(/^\s*[\w\s]*(package|import|class|var)/i);
+    var keyword = code.match(/^(|(static|public|private|protected|internal)\s+(?!\2))+(package|import|class|var|function)(?!\s+\3)/i);
 
-    //获取对称符
-    var b = balancer( module, code );
-
-    if( tag && !module.current )
+    //有匹配到关键词
+    if( keyword )
     {
-        switch( tag[1].toLowerCase() )
+        keyword = keyword[3].toLowerCase();
+        if( keyword === 'function' )
         {
-            case 'package':
-                var ret = code.match(/\s*(package)(\s+[\w\.]*)?/i);
-                if (!ret)throw new Error('[package error] '+code);
-                var pname = ret[2] ? trim(ret[2]) : '';
-                if( pname !== module['package'] )throw new Error('package path invalid for '+pname );
-                break;
-            case 'import':
-                var ret = code.match(/\s*(import)\s+([\w\.]*)/i);
-                if (!ret)throw new Error('[syntax error] '+code);
-                ret[2] = trim(ret[2]);
-                if( !checkfile( ret[2] ) )throw new Error('[Not found class for '+ret[2]+'] '+code);
-                module['import'].push( ret[2] );
-                break;
-            case 'class':
-                var ret = code.match(/[\w\s]*(class)\s+(\w+)(\s+extends\s+([\w\.]*))?/i);
-                if (!ret)throw new Error('class error');
-                if( ret[2] !==  module['class'] )throw new Error('file name and class name is not consistent');
-                if (ret[4])
-                {
-                    var extend = trim( ret[4] );
-                    var classname = checkExtendsClass(module,extend);
-                    if( classname.length < 1 )throw new Error('[Not found extends class for '+extend+']' );
-                    if( classname.length > 1 )throw new Error('[Not sure of the class name for '+extend+']' );
-                    module['extends']=classname[0];
-                }
-                break;
-            case 'var':
-                var ret = code.match(/^\s*(\w+\s+)?var\s+(\w+)(\s*\=\s*([\'\"])?([^\4]*)\4)?/i);
-                if (!ret)throw new Error('var error');
-                var c = qualifier(module, ret[1]);
-                var v =  ret[5] ? ret[5] : undefined;
-                var n=ret[2];
-                var q = ret[4] ? ret[4] : '';
-
-                if( v && q==='' && !/\w+\s*\(.*?\)\s*$/.test(v) && !/^(\d+|null|true|false)$/i.test( trim(v) ) )
-                {
-                    throw new Error('var error '+code);
-                }
-                if( module.uinquename[ n ] )throw new Error('variable name conflict for '+n );
-                module.uinquename[n]=true;
-                module.var[c].push( {'name':n,'value': v, is_string:q} );
-                break;
-        }
-
-    }else
-    {
-        var ret = code.match(/^\s*(\w+\s+)?function\s+(set\s+|get\s+)?(\w+)(\s*(\()([^\)]*)(\))?)?/i);
-        if ( ret && !module.current )
-        {
-            var obj = {'content':[],'param':[],'name':ret[3],'access':'', 'parambreak':!ret[7], defvar:[]};
-            obj.access = ret[2] ? ret[2] : '';
-
-            //是否有匹配到括号中的参数
-            if( ret && ret[6] )
+            if( module.balancer != 2 )
             {
-                var param = trim( ret[6] );
-                if( param !== '')
-                {
-                    if( obj.parambreak )
-                    {
-                        obj.param=[ param ];
-                    }else
-                    {
-                        obj.param=param.split(',');
-                        obj.defvar = obj.param.slice();
-                    }
-                }
+                throw new Error('[syntax error]')
             }
+            codeContext(module, code);
 
-            module.current = obj;
-            var c = qualifier(module, ret[1] );
-
-            module.fn[c].push( module.current );
-            var name =  module.current.access+module.current.name;
-            if( module.uinquename[ name ] )throw new Error('function name conflict for '+ret[3] );
-            module.uinquename[name]=true;
-
-        }else if( module.current )
+        }else if( !module.current )
         {
-            //换行的参数
-            if( module.current.parambreak )
-            {
-                var p = code.match(/^(\s*\()?([^\(\)]*)/);
-                if( p )
-                {
-                    p = p[1] ? p[1] : p[2];
-                    if( p && p!=='')
-                    {
-                        checkParam( p );
-                        module.current.param.push( p );
-                    }
-                }
-
-                //关闭换行的参数
-                if( b.indexOf(')') >=0 )
-                {
-                   module.current.param = module.current.param.join('');
-                   checkParam( module.current.param );
-                   module.current.param = module.current.param.split(',');
-                   module.current.parambreak=false;
-                }
-
-            }else
-            {
-
-                //获取设置变量
-               code = code.replace(/this\s*\.\s*(\w+)(\s*\=([\'\"])?([^\3]*)\3)?/i,function(a,b,c,d,e){
-                   var v = c ? e : null;
-                   var q = d ? d : '';
-                   return v ? '__g__.prop.call(this,"'+b+'",'+q+v+q+')' : '__g__.prop.call(this,"'+b+'")';
-               })
-
-               //判断实例是否属性于某个类
-               code = code.replace(/([\S]*)\s+insanceof\s+([\S]*)/ig,function(a,b,c){
-
-                   if( b !== 'this' && checkExtendsClass(module, b).length>0 )
-                   {
-                      b = torefe( b );
-                   }
-                   if( c!=='this' && checkExtendsClass(module, c).length>0 )
-                   {
-                       c = torefe( c );
-                   }
-                   return b+' instanceof '+c;
-               })
-
-               module.current.content.push( code );
-            }
-
-            //关闭当前上下文
-            if( module.balancer === 2 && b.indexOf('}') >=0 )
-            {
-                module.current=null;
-            }
-
-        }else if( module.balancer > 2  )
-        {
-            throw new Error('[syntax error] '+ code)
+            globalOptions(module,code, keyword );
         }
     }
+
+    var flag = module.current ? module.current.parambreak : false;
+
+    //上下文参数
+    contextParam(module, code);
+
+    if( module.current && !flag )
+    {
+        //获取设置变量
+        code = code.replace(/this\s*\.\s*(\w+)(\s*\=([\'\"])?([^\3]*)\3)?/i,function(a,b,c,d,e){
+            var v = c ? e : null;
+            var q = d ? d : '';
+            return v ? '__g__.prop.call(this,"'+b+'",'+q+v+q+')' : '__g__.prop.call(this,"'+b+'")';
+        })
+
+        //判断实例是否属性于某个类
+        code = code.replace(/([\S]*)\s+insanceof\s+([\S]*)/ig,function(a,b,c){
+
+            if( b !== 'this' && checkExtendsClass(module, b).length>0 )
+            {
+                b = torefe( b );
+            }
+            if( c!=='this' && checkExtendsClass(module, c).length>0 )
+            {
+                c = torefe( c );
+            }
+            return b+' instanceof '+c;
+        })
+
+        module.current.body.push( code );
+
+    }else if( module.balancer > 2 )
+    {
+        throw new Error('[syntax error]'+code)
+    }
+
+    //获取对称符
+    balancer( module, code);
 }
 
 //组装函数
@@ -378,29 +412,36 @@ function makeVariable(module)
         {
             var value = unescape( item[b].value );
             var name = trim(item[b].name);
+            var q = item[b].q;
             list[ name ] = value;
-            module.pubvar.push('proto.'+name+'="'+value+'"');
+            module.pubvar.push('proto.'+name+'='+q+value+q);
             b++;
         }
         module.var[c]=list;
     }
 }
 
-function objectToString( obj , q )
+/**
+ * 将对象转成字符串形式
+ * @param obj
+ * @param q
+ * @returns {string}
+ */
+function objectToString( obj , force )
 {
     var str=[];
-    q =  typeof q === "undefined" ? "'" : q;
+    var q =  force === false ? '' : '"';
     if( typeof obj === "object" )
     {
         for (var i in obj) {
             if (typeof obj[i] === "object") {
-                str.push("'" + i + "':"+q+ objectToString(obj[i]) +q);
+                str.push(i+":"+q+ objectToString(obj[i], force ) +q);
             } else {
-                str.push("'" + i + "':"+q+ obj[i] +q);
+                str.push(i+":"+q+ obj[i] +q);
             }
         }
     }
-    return "{"+str.join(',')+'}';
+    return "{"+str.join(',')+"}";
 }
 
 /**
@@ -465,8 +506,8 @@ function create( module )
 
     //内部函数
     var funs=[]
-    funs.push("'protected':"+objectToString( module.fn.protected ,'') );
-    funs.push("'internal':"+objectToString( module.fn.internal ,'') );
+    funs.push("'protected':"+objectToString( module.fn.protected ,false ) );
+    funs.push("'internal':"+objectToString( module.fn.internal ,false ) );
     wrap.push("'fn':{"+funs.join(',')+"}");
 
     //内部变量
@@ -486,7 +527,7 @@ function create( module )
     }
 
     //定义的函数
-    code.push('var func='+ objectToString( merge( module.fn.public, module.fn.protected, module.fn.private, module.fn.internal ), '' ) );
+    code.push('var func='+ objectToString( merge( module.fn.public, module.fn.protected, module.fn.private, module.fn.internal ), false ) );
 
     //模块的配置信息
     code.push('var module={'+ wrap.join(',\n')+'}');
@@ -506,7 +547,7 @@ function create( module )
     code.push('proto.constructor = module.constructor');
 
     //定义访问器
-    code.push('Object.defineProperties(proto,'+objectToString(module.access)+')');
+    code.push('Object.defineProperties(proto,'+objectToString(module.access,false)+')');
 
     //插入公共变量接口
     if( var_public.length > 0)
@@ -526,7 +567,12 @@ function create( module )
     return code.join(';\n');
 }
 
-
+/**
+ * 获取包含包名的类名
+ * @param package
+ * @param classname
+ * @returns {string}
+ */
 function realclassname(package, classname )
 {
     var path = [];
@@ -552,32 +598,28 @@ function unescape( val )
     return val;
 }
 
-
 /**
- * 将访问器转成字符串
- * @param access
- * @returns {string}
+ * 转义可能冲突的符号
+ * @param val
+ * @returns {string|XML|*}
  */
-function toAceess( access )
+function escape( val )
 {
-    var val=[];
-    for(var prop in access )
-    {
-        var data=[];
-        if( access[prop].set )
-        {
-            data.push( "set:"+access[prop].set )
-        }
-        if( access[prop].get )
-        {
-            data.push( "get:"+access[prop].get )
-        }
-        val.push( "'"+prop+"':{"+data.join(',\n')+"}" );
-    }
-    return val.join(',\n');
+    //替换转义的引号
+    val = val.replace(new RegExp("\\\\([\'\"])", 'g'), function (a, b) {
+        return b === '"' ? "__#034#__" : "__#039#__";
+    });
+
+    //引号中的对称符号不检查
+    val = val.replace(new RegExp("([\'\"])[^\\1]*\\1", 'g'), function (a) {
+        return a.replace(/\;/g, '__#059#__').replace(/[\(\)\{\}]/, function (a) {
+            return a === '(' ? '__#040#__' : a === ')' ? '__#041#__' : a === '{' ? '__#123#__' : '__#125#__';
+        })
+    });
+    return val;
 }
 
-
+var global_error=false;
 
 /**
  * 执行编译
@@ -589,7 +631,8 @@ function make( file , fs )
     var num = code.length;
     var i = 0;
     var skip = false;
-    var haserror=false;
+    var v;
+    var line;
 
     //模块文件的配置
     var module={
@@ -598,68 +641,73 @@ function make( file , fs )
         'import':[],
         'extends':null,
         'access':{},
-        'fn':{public:[],protected:[],private:[],internal:[]},
-        'var':{public:[],protected:[],private:[],internal:[]},
+        'fn':{public:[],protected:[],private:[],internal:[],static:[]},
+        'var':{public:[],protected:[],private:[],internal:[],static:[]},
         'balancer':0,
         'uinquename':{}
     };
 
-   global(module.package)[module.class] = module;
+    //注册到全局模块中
+    global(module.package)[module.class] = module;
 
     //逐行
-    while (i < num && !haserror )
+    while (i < num && !global_error )
     {
         var item = code[i];
         i++;
         if (item !== '')
         {
             //注释的内容不解析
-            if (!skip && /^\s*\/\*/.test(item)) {
+            if( !skip && /^\s*\/\*/.test(item) )
+            {
                 skip = true;
                 continue;
-            } else if (skip && /\*\/\s*$/.test(item)) {
+
+            } else if( skip && /\*\/\s*$/.test(item) )
+            {
                 skip = false;
                 continue;
             }
-            if (/^\s*\/\//.test(item)) {
+
+            if( skip || /^\s*\/\//.test(item) )
+            {
                 continue;
             }
 
-            //如果是正文进入解析
-            if (!skip)
-            {
-                //替换转义的引号
-                var str = item.replace(new RegExp("\\\\([\'\"])", 'g'), function (a, b) {
-                    return b === '"' ? "__#034#__" : "__#039#__";
-                });
+            //分行
+            line = escape( item ).replace(/\{/g,"\n{").replace(/\}/g,"\n}").replace(/\;/g,"\n");
 
-                //引号中的对称符号不检查
-                str = str.replace(new RegExp("([\'\"])[^\\1]*\\1", 'g'), function (a) {
-                    return a.replace(/\;/g, '__#059#__').replace(/[\(\)\{\}]/, function (a) {
-                        return a === '(' ? '__#040#__' : a === ')' ? '__#041#__' : a === '{' ? '__#123#__' : '__#125#__';
-                    })
-                });
+            //分割成多行
+            line = line.split(/\n/);
 
-                str = str.replace(/\{/g,"\n{").replace(/\}/g,"\n}").replace(/\;/g,"\n");
+            var b=0;
+            var len = line.length;
 
-                str = trim( str );
+            //解析和检查每行的代码
+            do{
 
-                //分割成多行
-                str = str.split(/\n/);
-
-                //解析和检查每行的代码
-                for (var b in str) if (str[b] !== '')
+                v = trim( line[b++] );
+                if ( v !== '' )
                 {
                     try {
-                        parse(module, trim(str[b]) );
+                        parse(module, v );
                     } catch (e) {
-                        haserror=true;
-                        console.log(e.message, file,' in line ' + i);
+                        global_error = true;
+                        console.log( e.message, file, ' in line ' + i);
                     }
                 }
-            }
+
+            }while( !global_error && b<len )
         }
     }
+
+    if( module.balancer !== 0 )
+    {
+        global_error=true;
+        console.log('syntax error', file,' in line ' + i);
+    }
+
+    if( global_error )return '';
 
     var contents=[];
 
@@ -672,6 +720,7 @@ function make( file , fs )
         }
     }
 
+    //追加到内容容器中
     contents.push( create( module ) );
     return contents.join('\n');
 }
@@ -689,10 +738,14 @@ var showMem = function()
 
 
 var content = make( 'test' , fs );
-var system = fs.readFileSync( './system.js' , 'utf-8');
-content = "(function(){\n" + system + content +'\n})';
+if( !global_error )
+{
+    var system = fs.readFileSync( './system.js' , 'utf-8');
+    content = "(function(){\n" + system + content +'\n})';
+    fs.writeFileSync('./test-min.js', content );
+}
 
-fs.writeFileSync('./test-min.js', content );
+
 
 
 
