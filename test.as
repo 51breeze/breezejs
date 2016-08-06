@@ -19,7 +19,7 @@
 
 package{
 
-    import com.B;
+    import B;
 
     public class test extends B {
 

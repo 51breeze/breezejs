@@ -368,15 +368,13 @@ function parse( module, code )
 function makeFunction( module )
 {
     var classname = trim( module.class );
-    module.pubfunc=[];
-    module.static_func={};
-
+    module.static_fn={};
     for( var c in module.fn )
     {
         var item = module.fn[c];
-        var  static =  module.static_func[c] || ( module.static_func[c]=[]);
         var b=0;
         var list={};
+        var static = module.static_fn[c] || (module.static_fn[c]={});
         while( b < item.length )
         {
             var val = item[b];
@@ -392,18 +390,17 @@ function makeFunction( module )
 
             if( item[b].is_static )
             {
-                if( c === 'public')
+                static[name] = val;
+                if( c === 'public' )
                 {
-                    static.push('module.constructor.' + name + '=' + val);
-                }else
-                {
-                    static.push( +':'+ val);
+                    module.public_prop.static.push(classname+'.' + name + '=static_map.' + name);
                 }
                 item.splice(b,1);
 
             }else if( acc ==='get' || acc==='set' )
             {
-                (module.access[name] || (module.access[name]={}))[acc]=val;
+                var access = module.access[name] || (module.access[name]={});
+                access[acc]=val;
                 item.splice(b,1);
 
             }else if( name === classname )
@@ -413,22 +410,25 @@ function makeFunction( module )
 
             }else
             {
-                list[ name ]=val;
-                module.pubfunc.push('proto.'+name+'=func.'+name);
+                list[ name ]= val;
+                if( c === 'public' )
+                {
+                    module.public_prop.fn.push('proto.' + name + '=func_map.' + name);
+                }
                 b++;
             }
         }
         module.fn[c] = list;
     }
 
-
 }
 
 //组装变量
 function makeVariable(module)
 {
-    module.pubvar=[];
+    var classname = trim( module.class );
     module.static_var={};
+
     for( var c in  module.var )
     {
         var item = module.var[c];
@@ -446,18 +446,16 @@ function makeVariable(module)
             {
                 if( c === 'public')
                 {
-                    static.push('module.constructor.' + name + '=' +q+value+q);
-                }else
-                {
-                    static.push(name +':'+ q+value+q);
+                    static.push( classname+'.' + name + '=static_map.' +name);
                 }
+                static.push(name +':'+ q+value+q);
                 item.splice(b,1);
 
             }else
             {
                 if( c === 'public')
                 {
-                    module.pubvar.push('proto.' + name + '=' + q + value + q);
+                    module.public_prop.var.push('proto.' + name + '=' + q + value + q);
                 }
 
                 list[name] = value;
@@ -510,14 +508,14 @@ function create( module )
     if( module.extends )
     {
         //继承父类的属性和函数
-        var parent = global( module.extends );
+       /* var parent = global( module.extends );
         module.var.protected = merge( parent.var.protected, module.var.protected );
         module.fn.protected = merge( parent.fn.protected, module.fn.protected );
         if( module.package === parent.package )
         {
             module.var.internal = merge( parent.var.internal, module.var.internal );
             module.fn.internal = merge( parent.fn.internal, module.fn.internal );
-        }
+        }*/
 
         //初始化父类
         if( !/super\s*\(([^\)]*)\)/i.test(module.constructor) )
@@ -544,6 +542,7 @@ function create( module )
         str+='__g__.prop.call(this,'+initvar.join(',')+');'+'\n}';
         return str;
     });
+
     wrap.push("'constructor':"+module.constructor );
     wrap.push("'package':'"+module.package+"'" );
 
@@ -553,14 +552,29 @@ function create( module )
     funs.push("'internal':"+objectToString( module.fn.internal ,false ) );
     wrap.push("'fn':{"+funs.join(',')+"}");
 
+    //内部静态函数
+    var static_fn=[]
+    static_fn.push("'protected':"+objectToString( module.static_fn.protected ,false ) );
+    static_fn.push("'internal':"+objectToString( module.static_fn.internal ,false ) );
+    wrap.push("'static_fn':{"+static_fn.join(',')+"}");
+
     //内部变量
     var variable=[];
     variable.push("'protected':"+objectToString( module.var.protected ));
     variable.push("'internal':"+objectToString( module.var.internal ));
     wrap.push("'var':{"+variable.join(',')+"}");
 
+    //内部静态变量
+    var static_var=[];
+    static_var.push("'protected':{"+module.static_var.protected.join(',')+'}' );
+    static_var.push("'internal':{"+module.static_var.internal.join(',')+'}' );
+    wrap.push("'static_var':{"+static_var.join(',')+"}");
+
     var code = [];
     code.push('+(function(){');
+
+    //将构造函数赋值给类名
+    code.push('var '+module.class+'=module.constructor');
 
     //引用的类
     for (var j in module.import )
@@ -569,40 +583,28 @@ function create( module )
         code.push('var '+classname+'=__g__.module("'+module.import[j]+'.constructor")');
     }
 
+    //内部静态函数
+    code.push('var static_map='+ objectToString( merge( module.static_fn.public, module.static_fn.protected, module.static_fn.private, module.static_fn.internal ), false ) );
+    code.push('__g__merge(static_map,{'+static_var.join(',')+'})');
+
+    //定义函数
+    code.push('var func_map='+ objectToString( merge( module.fn.public, module.fn.protected, module.fn.private, module.fn.internal ), false ) );
+
     //模块的配置信息
     code.push('var module={'+ wrap.join(',\n')+'}');
 
-    //将构造函数赋值给类名
-    code.push('var '+module.class+'=module.constructor');
-
-    //内部静态函数
-    code.push('var static_func='+ objectToString( merge( module.static_func.public, module.static_func.protected, module.static_func.private, module.static_func.internal ), false ) );
-
-    //静态公共方法
-    if(  module.static_func['public'] )
-    {
-        code.push( module.static_func['public'].join(';\n'));
-    }
-
-    //静态公共变量
-    if( module.static_var['public'] )
-    {
-        code.push(module.static_var['public'].join(';\n'));
-    }
-
-    //定义的函数
-    code.push('var func='+ objectToString( merge( module.fn.public, module.fn.protected, module.fn.private, module.fn.internal ), false ) );
 
     //继承父类
     if( module.extends )
     {
-       code.push('__g__.merge(func,__g__.module("'+module.extends+'.fn.protected"))');
-       code.push('__g__.merge(module.protected,__g__.module("'+module.extends+'.fn.protected"))');
+       code.push('__g__.merge(func_map,__g__.module("'+module.extends+'.fn.protected"))');
+       code.push('__g__.merge(module.fn.protected,__g__.module("'+module.extends+'.fn.protected"))');
        code.push('module.constructor.prototype = __g__.getInstance("'+module.extends+'")');
     }
 
     //引用原型对象
     code.push('var proto = module.constructor.prototype');
+
 
     //设置构造函数
     code.push('proto.constructor = module.constructor');
@@ -610,16 +612,10 @@ function create( module )
     //定义访问器
     code.push('Object.defineProperties(proto,'+objectToString(module.access,false)+')');
 
-    //插入公共变量接口
-    if( module.pubvar.length > 0)
+    //公共属性
+    if(  module.public_prop['public'] )
     {
-        code.push( module.pubvar.join(';\n') );
-    }
-
-    //插入公共函数接口
-    if(  module.pubfunc.length > 0 )
-    {
-        code.push( module.pubfunc.join(';\n') );
+        code.push( module.public_prop['public'].join(';\n'));
     }
 
     //注册模块到全局包
@@ -702,6 +698,7 @@ function make( file , fs )
         'import':[],
         'extends':null,
         'access':{},
+        'public_prop':{'var':[],'static':[],'fn':[]},
         'fn':{public:[],protected:[],private:[],internal:[]},
         'var':{public:[],protected:[],private:[],internal:[]},
         'balancer':0,
