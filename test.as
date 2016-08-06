@@ -23,7 +23,7 @@ package{
 
     public class test extends B {
 
-        public var name = 'join';
+        static public var name = 123;
 
         private var ccc = '236666';
         protected var tttt = 'tyuuu';
@@ -55,8 +55,11 @@ package{
         }
 
         //调整大小
-        function onResize(kkkss, lll, bb)
+        function onResize(kkkss,
+                          lll,
+                          bb)
         {
+            this.kkk=23;
         }
 
         private function position(event)
