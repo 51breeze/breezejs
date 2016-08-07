@@ -1,37 +1,49 @@
 (function(){
 
 
-    var object = {};
-    function variable(id, name, value)
-    {
-
-    }
-
-    function uniqid()
-    {
-        var id;
-        do{
-            id=new Date().getTime() + '' + Math.random() * 10000000000;
-        }while( object[id] );
-        return id;
-    }
 
 
     +(function (packages) {
 
-        var func = {
-            'position': function (event) {
-                return true;
+        var map= {
+
+            'function':{
+                'position': function (event) {
+                    return true;
+                }
+                'resize':function (aa) {
+                    map.function.position.call(this, aa )
+                }
             }
-        };
+            'static':{
+                'ppp':function () {
+
+                 },
+                 'ttt':666
+            }
+            'variable': {
+                'cccc':123
+            }
+        }
+
 
         var module = {
             'constructor': function () {
                 this.__uniqid__= uniqid();
                 variable.call(this,{name:'join'})
             },
-            'fn': {
-                'protected': {},
+            'package':'',
+            'class':'',
+            'function': {
+                'protected': {'position':map.function.position},
+                'internal': {}
+            },
+            'static': {
+                'protected': {'ppp':map.static.ppp},
+                'internal': {}
+            },
+            'variable': {
+                'protected': {'ppp':map.variable.cccc},
                 'internal': {}
             }
         };
@@ -59,9 +71,8 @@
             }
         });
 
-        proto.onResize = function (kkkss, lll, bb) {
-
-        };
+        proto.onResize = map.variable.cccc;
+        proto.onResize = map.function.resize
 
 
     })(packages)

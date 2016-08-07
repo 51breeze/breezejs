@@ -75,13 +75,21 @@ function checkfile( file )
  * @param val
  * @returns {*}
  */
-function qualifier(module, val )
+function qualifier(module, code )
 {
-    val =  val ? trim( val ) : '';
-    if( val==='')return 'public';
-    if ( typeof module.fn[ val ] === "undefined" )
+    var q = code ? trim(code).toLowerCase().split(/\s+/) : [];
+    if( q.length > 2 )
+    {
         throw new Error('[qualifier invalid]');
-    return val;
+    }
+    var index = q.indexOf('static');
+    var s= index >=0 ? q.splice(index,1)[0] : false;
+    var p= q[0] ? q[0] : 'public';
+    if ( typeof module.function[ p ] === "undefined" )
+    {
+        throw new Error('[qualifier invalid]');
+    }
+    return [s, p];
 }
 
 
@@ -164,13 +172,31 @@ function checkExtendsClass(module, classname )
     {
         has.push( module['import'][i] );
     }
-    return has;
+    if (has.length < 1)throw new Error('[Not found extends class for ' + classname + ']');
+    if (has.length > 1)throw new Error('[Not sure of the class name for ' + classname + ']');
+    return has[0];
 }
 
 
 function checkSyntax( code )
 {
 
+}
+
+/**
+ * 检测非字符串的值
+ * @param val
+ * @returns {*}
+ */
+function checkNotStringValue( val )
+{
+    var ret = val==='';
+    if( val ) {
+        val = trim(val);
+        ret = val && (/^(|new\s+)\w+\s*\(.*?\)\;?$/.test(val) || /^(\d+|null|true|false)\;?$/i.test(val) );
+    }
+    if (!ret)throw new Error('[value error]');
+    return true;
 }
 
 function globalOptions(module, code , keyword )
@@ -195,47 +221,26 @@ function globalOptions(module, code , keyword )
             if (!ret)throw new Error('class error');
             if (ret[2] !== module['class'])throw new Error('file name and class name is not consistent');
             if (ret[4]) {
-                var extend = trim(ret[4]);
-                var classname = checkExtendsClass(module, extend);
-                if (classname.length < 1)throw new Error('[Not found extends class for ' + extend + ']');
-                if (classname.length > 1)throw new Error('[Not sure of the class name for ' + extend + ']');
-                module['extends'] = classname[0];
+                module['extends'] = checkExtendsClass(module, trim(ret[4]) );
             }
             break;
         case 'var':
-
             var ret = code.match(/^((\w+\s+)+)?var\s+(\w+)(\s*\=\s*([\'\"])?([^\5]*)\5)?/i);
             if (!ret)throw new Error('var error');
-
-            var s = qualifierinfo( ret[1] );
-            var c = qualifier(module, s[1]);
-            var v = ret[6] ? ret[6] : undefined;
+            var c = qualifier(module, ret[1] );
+            var v = ret[6] ? unescape(ret[6]) : undefined;
             var n = ret[3];
             var q = ret[5] ? ret[5] : '';
 
-            if (v && q === '' && !/\w+\s*\(.*?\)\s*$/.test(v) && !/^(\d+|null|true|false)$/i.test(trim(v))) {
-                throw new Error('var error ' + code);
-            }
-            if (module.uinquename[n]===true)throw new Error('[conflict variable name]');
-            module.uinquename[n] = true;
-            module.var[c].push({'name': n, 'value': v, q: q,is_static:s[0]});
+            //检测非字符串变量是否正确
+            if( v && q === '' )checkNotStringValue( v );
+            (c[0]=== 'static' ? module.static.variable[c[1]] : module.dynamic.variable[c[1]])[n]=q+v+q;
+            if (module.uinque[n]==='' || module.uinque[n]==='static')throw new Error('[conflict variable name]');
+            module.uinque[n] = c[0] ? 'static' : '';
             break;
         default :
             throw new Error('[syntax error]');
     }
-}
-
-function qualifierinfo( code )
-{
-    var q = code ? trim(code).toLowerCase().split(/\s+/) : [];
-    if( q.length > 2 )
-    {
-        throw new Error('[qualifier invalid]');
-    }
-    var index = q.indexOf('static');
-    var s= index >=0 ? q.splice(index,1) : false;
-    var p= q[0];
-    return [!!s, p];
 }
 
 /**
@@ -248,19 +253,21 @@ function codeContext(module, code)
 {
     if( module.current )return module.current;
     var ret = code.match(/((\w+\s+)+)?function\s+(set\s+|get\s+)?(\w+)/i);
-
     if( ret )
     {
-        module.current = {'content':[],'param':[],'name':ret[4],'access':ret[3] || '','parambreak':true,defvar:[],is_static:false };
+        module.current = {'content':[],'param':[],'name':ret[4],'parambreak':true,defvar:[] };
         module.current.body = module.current.param;
-
-        var s = qualifierinfo( ret[1] );
-        var p = qualifier(module, s[1] );
-        module.current.is_static = s[0];
-        module.fn[ p ].push( module.current );
-
-        if( module.uinquename[ module.current.name ] === module.current.access  )throw new Error('[conflict function name]' );
-        module.uinquename[ module.current.name ]=module.current.access;
+        var q = qualifier(module, ret[1] );
+        var is_access=ret[3] || '';
+        var refobj = q[0]==='static' ? module.static.function[ q[1] ] : is_access !== '' ? module.access : module.dynamic.function[ q[1] ];
+        refobj.push( module.current  );
+        if( module.uinque[ module.current.name ]==='' ||
+            module.uinque[ module.current.name ] === 'static' ||
+            module.uinque[ module.current.name ] === is_access )
+        {
+            throw new Error('[conflict function name]' );
+        }
+        module.uinque[ module.current.name ]=q[0] || is_access;
         return module.current;
 
     }else if( !module.current )
@@ -282,7 +289,6 @@ function contextParam(module, code  )
             {
                 module.current.body.push(p[2]);
             }
-
             if( p[3] === ')')
             {
                 module.current.param = module.current.param.join('');
@@ -365,105 +371,156 @@ function parse( module, code )
 }
 
 //组装函数
-function makeFunction( module )
+function makeFunction( funcs )
 {
-    var classname = trim( module.class );
-    module.static_fn={};
-    for( var c in module.fn )
+    var data={};
+    for( var c in funcs )
     {
-        var item = module.fn[c];
-        var b=0;
-        var list={};
-        var static = module.static_fn[c] || (module.static_fn[c]={});
-        while( b < item.length )
-        {
-            var val = item[b];
-            var name = trim( val.name );
-            var acc =  trim( val.access );
-            var param = val.param instanceof Array ? val.param.join(',') : val.param;
-            val = val.content.join(";");
-            val = val.replace(/\;\s*(\{|\,)/g,'$1\n');
-            val = val.replace(/(\(|\)|\{|\}|\,)\s*\;/g,'$1\n');
-            val = val.replace(/\;/g,';\n');
-            val = unescape( val );
-            val = 'function('+trim(param)+')'+val;
-
-            if( item[b].is_static )
-            {
-                static[name] = val;
-                if( c === 'public' )
-                {
-                    module.public_prop.static.push(classname+'.' + name + '=static_map.' + name);
-                }
-                item.splice(b,1);
-
-            }else if( acc ==='get' || acc==='set' )
-            {
-                var access = module.access[name] || (module.access[name]={});
-                access[acc]=val;
-                item.splice(b,1);
-
-            }else if( name === classname )
-            {
-                module.constructor = val;
-                item.splice(b,1);
-
-            }else
-            {
-                list[ name ]= val;
-                if( c === 'public' )
-                {
-                    module.public_prop.fn.push('proto.' + name + '=func_map.' + name);
-                }
-                b++;
-            }
-        }
-        module.fn[c] = list;
+        var val = funcs[c];
+        var name = trim( val.name );
+        var param = val.param instanceof Array ? val.param.join(',') : val.param;
+        val = val.content.join(";");
+        val = val.replace(/\;\s*(\{|\,)/g,'$1\n');
+        val = val.replace(/(\(|\)|\{|\}|\,)\s*\;/g,'$1\n');
+        val = val.replace(/\;/g,';\n');
+        val = unescape( val );
+        val = 'function('+trim(param)+')'+val;
+        data[ name ]= val;
     }
-
+    return data;
 }
 
 //组装变量
 function makeVariable(module)
 {
-    var classname = trim( module.class );
-    module.static_var={};
+   return [
+        objectToString(module.dynamic.variable.public,false),
+        objectToString(module.dynamic.variable.protected,false),
+        objectToString(module.dynamic.variable.private,false),
+        objectToString(module.dynamic.variable.internal,false),
+    ].join(',');
+}
 
-    for( var c in  module.var )
+/**
+ * 组件模块内部的所有动态和静态函数/变量
+ * @param module
+ * @returns {string}
+ */
+function makeMap( module, classname )
+{
+    var map=[];
+    module.dynamic.function.public = makeFunc
+    tion( module.dynamic.function.public );
+    if( module.dynamic.function.public[ classname ] )
     {
-        var item = module.var[c];
-        var b=0;
-        var list={};
-        var static = module.static_var[c] || (module.static_var[c]=[]);
+        module.constructor = module.dynamic.function.public[ classname ];
+        delete module.dynamic.function.public[ classname ];
+    }
+    module.dynamic.function.protected = makeFunction( module.dynamic.function.protected );
+    module.dynamic.function.private = makeFunction( module.dynamic.function.private );
+    module.dynamic.function.internal = makeFunction( module.dynamic.function.internal );
+    module.static.function.public = makeFunction( module.static.function.public );
+    module.static.function.protected = makeFunction( module.static.function.protected );
+    module.static.function.private = makeFunction( module.static.function.private );
+    module.static.function.internal = makeFunction( module.static.function.internal );
 
-        while( b < item.length )
-        {
-            var value = unescape( item[b].value );
-            var name = trim(item[b].name);
-            var q = item[b].q;
+    map.push('dynamic:'+objectToString(merge( module.dynamic.function.public,
+            module.dynamic.function.protected,
+            module.dynamic.function.private,
+            module.dynamic.function.internal ), false));
+    map.push('static:'+objectToString(merge( module.static.function.public,
+            module.static.function.protected,
+            module.static.function.private,
+            module.static.function.internal,
+            module.static.variable.public,
+            module.static.variable.protected,
+            module.static.variable.private,
+            module.static.variable.internal), false));
+    return  'var map={'+map.join(',\n')+'}';
+}
 
-            if( item[b].is_static )
-            {
-                if( c === 'public')
-                {
-                    static.push( classname+'.' + name + '=static_map.' +name);
-                }
-                static.push(name +':'+ q+value+q);
-                item.splice(b,1);
+/**
+ * 组装访问器
+ * @param module
+ * @returns {string}
+ */
+function makeAccessor(module ){
+    module.access = makeFunction( module.access );
+    return objectToString( module.access, false );
+}
 
-            }else
-            {
-                if( c === 'public')
-                {
-                    module.public_prop.var.push('proto.' + name + '=' + q + value + q);
-                }
+/**
+ * 组装引用对象的属性
+ * @param object
+ * @param a
+ * @param b
+ * @param c
+ * @returns {Array}
+ */
+function makeRefObject(object, a, b , c )
+{
+    var val=[];
+    for (var prop in object)
+    {
+        val.push(a+prop+b+c+prop)
+    }
+    return val;
+}
 
-                list[name] = value;
-                b++;
+function makeModuleConfig( module )
+{
+    var config={
+        'constructor':module.constructor,
+        'package':"'"+module.package+"'",
+        'dynamic':{
+            'function':{
+                'protected':{},
+                'internal':{}
+            },
+            'variable':{
+                'protected':{},
+                'internal':{}
+            }
+        },'static':{
+            'function':{
+                'protected':{},
+                'internal':{}
+            },
+            'variable':{
+                'protected':{},
+                'internal':{}
             }
         }
-        module.var[c]=list;
+    };
+
+
+    var fn_protected = makeRefObject(module.dynamic.function.protected,'',':','map.dynamic.');
+    if( fn_protected.length > 0 )
+    {
+        config.dynamic.function.protected='{'+fn_protected.join(',\n')+'}';
     }
+    var fn_internal = makeRefObject(module.dynamic.function.internal,'',':','map.dynamic.');
+    if( fn_internal.length > 0 )
+    {
+        config.dynamic.function.internal='{'+fn_internal.join(',\n')+'}';
+    }
+
+    config.dynamic.variable.protected=objectToString(module.dynamic.variable.protected);
+    config.dynamic.variable.internal=objectToString(module.dynamic.variable.internal);
+
+    fn_protected = makeRefObject(module.static.function.protected,'',':','map.static.');
+    if( fn_protected.length > 0 )
+    {
+        config.static.function.protected='{'+fn_protected.join(',\n')+'}';
+    }
+    fn_internal = makeRefObject(module.static.function.internal,'',':','map.static.');
+    if( fn_internal.length > 0 )
+    {
+        config.static.function.internal='{'+fn_internal.join(',\n')+'}';
+    }
+    config.static.variable.protected=objectToString(module.static.variable.protected);
+    config.static.variable.internal=objectToString(module.static.variable.internal);
+    return 'var module='+objectToString(config,false);
 }
 
 
@@ -499,24 +556,14 @@ function objectToString( obj , force )
 function create( module )
 {
     var classname = trim(module.class);
-    var wrap=[];
     module.constructor='function(){}';
-    makeVariable( module );
-    makeFunction( module );
+    var map = makeMap( module , classname )
+    var accessor = makeAccessor( module );
+    var variable = makeVariable( module );
 
     //继承类
     if( module.extends )
     {
-        //继承父类的属性和函数
-       /* var parent = global( module.extends );
-        module.var.protected = merge( parent.var.protected, module.var.protected );
-        module.fn.protected = merge( parent.fn.protected, module.fn.protected );
-        if( module.package === parent.package )
-        {
-            module.var.internal = merge( parent.var.internal, module.var.internal );
-            module.fn.internal = merge( parent.fn.internal, module.fn.internal );
-        }*/
-
         //初始化父类
         if( !/super\s*\(([^\)]*)\)/i.test(module.constructor) )
         {
@@ -531,50 +578,16 @@ function create( module )
     }
 
     //构造函数,初始化变量
-    var initvar=[];
-    initvar.push( objectToString( module.var.public ) );
-    initvar.push( objectToString( module.var.protected ) );
-    initvar.push( objectToString( module.var.private ) );
-    initvar.push( objectToString( module.var.internal ) );
-
     module.constructor= module.constructor.replace(/\}\s*$/,function(a){
         var str = 'this.__uniqid__=__g__.uniqid();\n';
-        str+='__g__.prop.call(this,'+initvar.join(',')+');'+'\n}';
+        str+='__g__.prop.call(this,'+variable+');'+'\n}';
         return str;
     });
 
-    wrap.push("'constructor':"+module.constructor );
-    wrap.push("'package':'"+module.package+"'" );
-
-    //内部函数
-    var funs=[]
-    funs.push("'protected':"+objectToString( module.fn.protected ,false ) );
-    funs.push("'internal':"+objectToString( module.fn.internal ,false ) );
-    wrap.push("'fn':{"+funs.join(',')+"}");
-
-    //内部静态函数
-    var static_fn=[]
-    static_fn.push("'protected':"+objectToString( module.static_fn.protected ,false ) );
-    static_fn.push("'internal':"+objectToString( module.static_fn.internal ,false ) );
-    wrap.push("'static_fn':{"+static_fn.join(',')+"}");
-
-    //内部变量
-    var variable=[];
-    variable.push("'protected':"+objectToString( module.var.protected ));
-    variable.push("'internal':"+objectToString( module.var.internal ));
-    wrap.push("'var':{"+variable.join(',')+"}");
-
-    //内部静态变量
-    var static_var=[];
-    static_var.push("'protected':{"+module.static_var.protected.join(',')+'}' );
-    static_var.push("'internal':{"+module.static_var.internal.join(',')+'}' );
-    wrap.push("'static_var':{"+static_var.join(',')+"}");
+    var moduleConfig = makeModuleConfig( module );
 
     var code = [];
     code.push('+(function(){');
-
-    //将构造函数赋值给类名
-    code.push('var '+module.class+'=module.constructor');
 
     //引用的类
     for (var j in module.import )
@@ -583,23 +596,28 @@ function create( module )
         code.push('var '+classname+'=__g__.module("'+module.import[j]+'.constructor")');
     }
 
-    //内部静态函数
-    code.push('var static_map='+ objectToString( merge( module.static_fn.public, module.static_fn.protected, module.static_fn.private, module.static_fn.internal ), false ) );
-    code.push('__g__merge(static_map,{'+static_var.join(',')+'})');
+    code.push(map);
+    code.push(moduleConfig);
 
-    //定义函数
-    code.push('var func_map='+ objectToString( merge( module.fn.public, module.fn.protected, module.fn.private, module.fn.internal ), false ) );
-
-    //模块的配置信息
-    code.push('var module={'+ wrap.join(',\n')+'}');
-
+    //将构造函数赋值给类名
+    code.push('var '+module.class+'=module.constructor');
 
     //继承父类
     if( module.extends )
     {
-       code.push('__g__.merge(func_map,__g__.module("'+module.extends+'.fn.protected"))');
-       code.push('__g__.merge(module.fn.protected,__g__.module("'+module.extends+'.fn.protected"))');
-       code.push('module.constructor.prototype = __g__.getInstance("'+module.extends+'")');
+        code.push('__g__.merge(map.dynamic,__g__.module("'+module.extends+'.dynamic.function.protected"))');
+        code.push('__g__.merge(module.dynamic.function.protected,__g__.module("'+module.extends+'.dynamic.function.protected"))');
+        code.push('__g__.merge(map.static,__g__.module("'+module.extends+'.static.function.protected"))');
+        code.push('__g__.merge(module.static.function.protected,__g__.module("'+module.extends+'.static.function.protected"))');
+        var parent = global( module.extends );
+        if( parent.package === module.package )
+        {
+            code.push('__g__.merge(map.dynamic,__g__.module("'+module.extends+'.dynamic.function.internal"))');
+            code.push('__g__.merge(module.dynamic.function.internal,__g__.module("'+module.extends+'.dynamic.function.internal"))');
+            code.push('__g__.merge(map.static,__g__.module("'+module.extends+'.static.function.internal"))');
+            code.push('__g__.merge(module.static.function.internal,__g__.module("'+module.extends+'.static.function.internal"))');
+        }
+        code.push('module.constructor.prototype = __g__.getInstance("'+module.extends+'")');
     }
 
     //引用原型对象
@@ -610,12 +628,14 @@ function create( module )
     code.push('proto.constructor = module.constructor');
 
     //定义访问器
-    code.push('Object.defineProperties(proto,'+objectToString(module.access,false)+')');
+    code.push('Object.defineProperties(proto,'+accessor+')');
 
     //公共属性
-    if(  module.public_prop['public'] )
+    code.push(  makeRefObject( module.function.public,'proto.','=','map.dynamic.' ).join(';\n') );
+    code.push(  makeRefObject( module.static.function.public,module.class+'.','=','map.static.' ).join(';\n') );
+    for( var prop in module.dynamic.variable.public)
     {
-        code.push( module.public_prop['public'].join(';\n'));
+        code.push('proto.'+prop+'='+module.dynamic.variable.public[prop]);
     }
 
     //注册模块到全局包
@@ -679,6 +699,32 @@ function escape( val )
 var global_error=false;
 
 /**
+ * 生成模块配置
+ * @param file
+ * @returns {}
+ **/
+function createModule(file)
+{
+    return {
+        'package':packagename(file),
+        'class': classname(file),
+        'import':[],
+        'extends':null,
+        'access':[],
+        'dynamic': {
+            'function':{public:[],protected:[],private:[],internal:[]},
+            'variable':{public:{},protected:{},private:{},internal:{}}
+        },
+        'static':{
+            'function':{public:[],protected:[],private:[],internal:[]},
+            'variable':{public:{},protected:{},private:{},internal:{}}
+         },
+        'balancer':0,
+        'uinque':{}
+    };
+}
+
+/**
  * 执行编译
  */
 function make( file , fs )
@@ -692,18 +738,7 @@ function make( file , fs )
     var line;
 
     //模块文件的配置
-    var module={
-        'package':packagename(file),
-        'class': classname(file),
-        'import':[],
-        'extends':null,
-        'access':{},
-        'public_prop':{'var':[],'static':[],'fn':[]},
-        'fn':{public:[],protected:[],private:[],internal:[]},
-        'var':{public:[],protected:[],private:[],internal:[]},
-        'balancer':0,
-        'uinquename':{}
-    };
+    var module=createModule(file);
 
     //注册到全局模块中
     global(module.package)[module.class] = module;
@@ -743,7 +778,6 @@ function make( file , fs )
 
             //解析和检查每行的代码
             do{
-
                 v = trim( line[b++] );
                 if ( v !== '' )
                 {
@@ -751,10 +785,9 @@ function make( file , fs )
                         parse(module, v );
                     } catch (e) {
                         global_error = true;
-                        console.log( e.message, file, ' in line ' + i);
+                        console.log( e.message, file, ' in line ' + i,'->', e );
                     }
                 }
-
             }while( !global_error && b<len )
         }
     }
@@ -768,6 +801,7 @@ function make( file , fs )
     if( global_error )return '';
 
     var contents=[];
+
 
     //编译依赖的模块
     if( module.import.length > 0 )
