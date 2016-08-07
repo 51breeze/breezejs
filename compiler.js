@@ -85,7 +85,7 @@ function qualifier(module, code )
     var index = q.indexOf('static');
     var s= index >=0 ? q.splice(index,1)[0] : false;
     var p= q[0] ? q[0] : 'public';
-    if ( typeof module.function[ p ] === "undefined" )
+    if ( typeof module.dynamic.function[ p ] === "undefined" )
     {
         throw new Error('[qualifier invalid]');
     }
@@ -338,12 +338,21 @@ function parse( module, code )
     {
         if( !flag ) {
 
+            var obj=['this', module.class];
+            var regexp = new RegExp('(^|[\\(\\[\\,\\;\\:\\s+])('+obj.join('|')+')\\s*\\.\\s*(\\w+)(\\s*\=([\\\'\\\"])?([^\\5]*)\\5)?','ig');
+
             //获取设置变量
-            code = code.replace(/this\s*\.\s*(\w+)(\s*\=([\'\"])?([^\3]*)\3)?/i, function (a, b, c, d, e) {
-                var v = c ? e : null;
-                var q = d ? d : '';
-                return v ? '__g__.prop.call(this,"' + b + '",' + q + v + q + ')' : '__g__.prop.call(this,"' + b + '")';
-            })
+            code = code.replace( regexp , function (a, b, c, d, e, f, g) {
+                var v = e ? g : null;
+                var q = f ? f : '';
+                if( c === 'this')
+                {
+                    return b + (v ? '__g__.prop.call(this,"' + d + '",' + q + v + q + ')' : '__g__.prop.call(this,"' + d + '")');
+                }else if( c=== module.class )
+                {
+                    return b + (v ? 'map.static["' + d + '"]=' + q + v + q : 'map.static["' + d + '"]' );
+                }
+            });
 
             //判断实例是否属性于某个类
             code = code.replace(/([\S]*)\s+insanceof\s+([\S]*)/ig, function (a, b, c) {
@@ -409,8 +418,7 @@ function makeVariable(module)
 function makeMap( module, classname )
 {
     var map=[];
-    module.dynamic.function.public = makeFunc
-    tion( module.dynamic.function.public );
+    module.dynamic.function.public = makeFunction( module.dynamic.function.public );
     if( module.dynamic.function.public[ classname ] )
     {
         module.constructor = module.dynamic.function.public[ classname ];
@@ -424,11 +432,11 @@ function makeMap( module, classname )
     module.static.function.private = makeFunction( module.static.function.private );
     module.static.function.internal = makeFunction( module.static.function.internal );
 
-    map.push('dynamic:'+objectToString(merge( module.dynamic.function.public,
+    map.push('dynamic:'+objectToString(merge({}, module.dynamic.function.public,
             module.dynamic.function.protected,
             module.dynamic.function.private,
             module.dynamic.function.internal ), false));
-    map.push('static:'+objectToString(merge( module.static.function.public,
+    map.push('static:'+objectToString(merge({}, module.static.function.public,
             module.static.function.protected,
             module.static.function.private,
             module.static.function.internal,
@@ -467,10 +475,10 @@ function makeRefObject(object, a, b , c )
     return val;
 }
 
-function makeModuleConfig( module )
+function makeModuleConfig( module , classname )
 {
     var config={
-        'constructor':module.constructor,
+        'constructor':classname,
         'package':"'"+module.package+"'",
         'dynamic':{
             'function':{
@@ -557,9 +565,18 @@ function create( module )
 {
     var classname = trim(module.class);
     module.constructor='function(){}';
+
     var map = makeMap( module , classname )
     var accessor = makeAccessor( module );
     var variable = makeVariable( module );
+
+    //构造函数,初始化变量
+    module.constructor = module.constructor.replace(/^\s*function.*?\{/,function(a){
+        var str = a+'\n';
+        str += 'this.__uniqid__=__g__.uniqid();\n';
+        str+='__g__.prop.call(this,'+variable+');'+'\n';
+        return str;
+    });
 
     //继承类
     if( module.extends )
@@ -567,24 +584,22 @@ function create( module )
         //初始化父类
         if( !/super\s*\(([^\)]*)\)/i.test(module.constructor) )
         {
-            module.constructor = module.constructor.replace(/\}\s*$/,function(a){
-                var str = "var param=arguments.splic();\n";
+            module.constructor = module.constructor.replace(/^\s*function.*?\{/,function(a){
+                var str = a+'\n';
+                str += "var param=[].slice.call(arguments);\n";
                 str += "param.unshift('constructor');\n";
                 str += "param.unshift('"+module.extends+"');\n";
-                str +='__g__.super.apply(this,param);\n}';
+                str +='__g__.super.apply(this,param);\n';
                 return str;
             });
         }
     }
 
-    //构造函数,初始化变量
-    module.constructor= module.constructor.replace(/\}\s*$/,function(a){
-        var str = 'this.__uniqid__=__g__.uniqid();\n';
-        str+='__g__.prop.call(this,'+variable+');'+'\n}';
-        return str;
+    module.constructor = module.constructor.replace(/\}$/,function(a){
+        return 'return this;\n}';
     });
 
-    var moduleConfig = makeModuleConfig( module );
+    var moduleConfig = makeModuleConfig( module, classname );
 
     var code = [];
     code.push('+(function(){');
@@ -596,11 +611,10 @@ function create( module )
         code.push('var '+classname+'=__g__.module("'+module.import[j]+'.constructor")');
     }
 
+    //将构造函数赋值给类名
+    code.push('var '+module.class+'='+module.constructor);
     code.push(map);
     code.push(moduleConfig);
-
-    //将构造函数赋值给类名
-    code.push('var '+module.class+'=module.constructor');
 
     //继承父类
     if( module.extends )
@@ -623,7 +637,6 @@ function create( module )
     //引用原型对象
     code.push('var proto = module.constructor.prototype');
 
-
     //设置构造函数
     code.push('proto.constructor = module.constructor');
 
@@ -631,8 +644,12 @@ function create( module )
     code.push('Object.defineProperties(proto,'+accessor+')');
 
     //公共属性
-    code.push(  makeRefObject( module.function.public,'proto.','=','map.dynamic.' ).join(';\n') );
-    code.push(  makeRefObject( module.static.function.public,module.class+'.','=','map.static.' ).join(';\n') );
+    var a= makeRefObject( module.static.function.public,module.class+'.','=','map.static.' );
+    var b= makeRefObject( module.static.variable.public,module.class+'.','=','map.static.' );
+    var c= makeRefObject( module.dynamic.function.public,'proto.','=','map.dynamic.' );
+    if(a.length>0)code.push( a.join(';\n') );
+    if(b.length>0)code.push( b.join(';\n') );
+    if(c.length>0)code.push( c.join(';\n') );
     for( var prop in module.dynamic.variable.public)
     {
         code.push('proto.'+prop+'='+module.dynamic.variable.public[prop]);
@@ -802,7 +819,6 @@ function make( file , fs )
 
     var contents=[];
 
-
     //编译依赖的模块
     if( module.import.length > 0 )
     {
@@ -829,27 +845,14 @@ var showMem = function()
 };
 
 
-var content = make( 'test' , fs );
+var main='test';
+var content = make( main , fs );
 if( !global_error )
 {
     var system = fs.readFileSync( './system.js' , 'utf-8');
-    content = "(function(){\n" + system + content +'\n})';
+    var app='\nreturn __g__.getInstance("'+main+'");\n';
+    content = "(function(){\n" + system + content + app +'\n})()';
     fs.writeFileSync('./test-min.js', content );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

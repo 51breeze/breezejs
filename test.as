@@ -20,20 +20,19 @@
 package{
 
     import B;
-
     public class test extends B {
 
         static public var name = 123;
 
-        private var ccc = '236666';
+        private var ccc = 236666;
         protected var tttt = 'tyuuu';
 
         static private var uuu = 'pppp';
 
-        public function test() {
-            var c = new B();
+        public function test()
+        {
 
-            this instanceof B;
+            console.log('=====', this.ccc , test.uuu );
         }
 
         static public function bbbb() {
@@ -60,6 +59,7 @@ package{
                           bb)
         {
             this.kkk=23;
+            hhh
         }
 
         private function position(event)
