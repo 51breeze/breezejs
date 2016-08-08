@@ -98,27 +98,21 @@ function balancer( module , code )
 {
     //平衡左对称符
     var v=[];
-    if( /\(/.test( code ) )
+
+    var l= code.match(/(\(|\{)/g);
+    var r= code.match(/(\)|\})/g);
+
+    if( l )
     {
-        module.balancer++;
-        v.push('(');
-    }
-    if( /\{/.test( code ) )
-    {
-        module.balancer++;
-        v.push('{');
+        module.balancer=module.balancer+l.length;
+        v= v.concat(l);
     }
 
     //平衡右对称符
-    if( /\)/.test( code ) )
+    if( r )
     {
-        module.balancer--;
-        v.push(')');
-    }
-    if( /\}/.test( code ) )
-    {
-        module.balancer--;
-        v.push('}');
+        module.balancer=module.balancer-r.length;
+        v= v.concat(r);
     }
 
     //关闭当前上下文
@@ -136,7 +130,7 @@ function balancer( module , code )
  */
 function trim( str )
 {
-    return typeof str === "string" ? str.replace(/(^[\s\t]+|[\s\t]+$)/,'') : '';
+    return typeof str === "string" ? str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,'') : '';
 }
 
 /**
@@ -150,9 +144,9 @@ function checkParam( param )
         var p= param.split(',');
         for(var i in p)
         {
-            if( /(\w+\s+\w+)|(\W+)/.test( trim(p[i]) ) )
+            if( /[\s\W]+/.test( trim(p[i]) ) )
             {
-                throw new Error('param invalid')
+                throw  new Error('[param invalid]')
             }
         }
     }
@@ -166,9 +160,13 @@ function checkParam( param )
  */
 function checkExtendsClass(module, classname )
 {
+    if(  module['import'][classname] )
+    {
+        return module['import'][classname];
+    }
+
     var has=[];
-    var reg= new RegExp( '(^|\.)'+classname+'$' );
-    for( var i in module['import'] ) if( module['import'][i].match( reg ) )
+    for( var i in module['import'] ) if( module['import'][i] === classname )
     {
         has.push( module['import'][i] );
     }
@@ -207,20 +205,28 @@ function globalOptions(module, code , keyword )
             var ret = code.match(/\s*(package)(\s+[\w\.]*)?/i);
             if (!ret)throw new Error('[package error] ' + code);
             var pname = ret[2] ? trim(ret[2]) : '';
-            if (pname !== module['package'])throw new Error('package path invalid for ' + pname);
+            if (pname !== module['package'])throw new Error('[package path invalid]');
             break;
         case 'import':
-            var ret = code.match(/\s*(import)\s+([\w\.]*)/i);
+            var ret = code.match(/^\s*(import)\s+([\w\.]*)(\s+as\s+(\w+))?$/i);
             if (!ret)throw new Error('[syntax error] ' + code);
             ret[2] = trim(ret[2]);
-            if (!checkfile(ret[2]))throw new Error('[Not found class for ' + ret[2] + '] ' + code);
-            module['import'].push(ret[2]);
+            if (!checkfile(ret[2]))throw new Error('[Not found class for ' + ret[2] + ']');
+            var alias= ret[3] ? ret[4] : ret[2].match(/\w+$/)[0];
+
+            if( module['import'][alias] )
+            {
+                throw new Error('[conflict import the '+ret[2]+']');
+            }
+            module['import'][alias]=ret[2];
+
             break;
         case 'class':
             var ret = code.match(/[\w\s]*(class)\s+(\w+)(\s+extends\s+([\w\.]*))?/i);
             if (!ret)throw new Error('class error');
-            if (ret[2] !== module['class'])throw new Error('file name and class name is not consistent');
-            if (ret[4]) {
+            if (ret[2] !== module['class'] || module['import'][ ret[2] ] )throw new Error('file name and class name is not consistent');
+            if (ret[4])
+            {
                 module['extends'] = checkExtendsClass(module, trim(ret[4]) );
             }
             break;
@@ -259,7 +265,8 @@ function codeContext(module, code)
         module.current.body = module.current.param;
         var q = qualifier(module, ret[1] );
         var is_access=ret[3] || '';
-        var refobj = q[0]==='static' ? module.static.function[ q[1] ] : is_access !== '' ? module.access : module.dynamic.function[ q[1] ];
+        var refobj = q[0]==='static' ? module.static.function[ q[1] ] : is_access !== '' ? (module.accessor[ ret[4] ] || (module.accessor[ ret[4] ]={}))[is_access]=[] : module.dynamic.function[ q[1] ];
+
         refobj.push( module.current  );
         if( module.uinque[ module.current.name ]==='' ||
             module.uinque[ module.current.name ] === 'static' ||
@@ -300,6 +307,21 @@ function contextParam(module, code  )
     }
 }
 
+/**
+ * 获取导入的类名
+ * @param module
+ * @returns {Array}
+ */
+function getImportClassName( module )
+{
+    var arr=[];
+    for (var i in module.import )
+    {
+        arr.push( i );
+    }
+    return arr;
+}
+
 
 /**
  * 解析代码
@@ -319,7 +341,7 @@ function parse( module, code )
         {
             if( module.balancer != 2 )
             {
-                throw new Error('[syntax error]')
+                throw new Error('[syntax error 1]'+code)
             }
             codeContext(module, code);
 
@@ -338,17 +360,38 @@ function parse( module, code )
     {
         if( !flag ) {
 
-            var obj=['this', module.class];
-            var regexp = new RegExp('(^|[\\(\\[\\,\\;\\:\\s+])('+obj.join('|')+')\\s*\\.\\s*(\\w+)(\\s*\=([\\\'\\\"])?([^\\5]*)\\5)?','ig');
+            var classname = getImportClassName(module);
+            classname.push( module.class );
+            classname.push( 'this' );
+
+
+            var regexp = new RegExp('(^|[\\(\\[\\,\\;\\:\\s+])('+classname.join('|')+')\\s*\\.\\s*(\\w+)\\s*\\(([^\\(\\)]*)\\)','ig');
+
+            //获取设置函数
+            code = code.replace( regexp , function (a, b, c, d, e) {
+
+                var e = e && e !=='' ? ','+e : '';
+                if( c==='this' )
+                {
+                    return b + 'map.dynamic.'+d+'.call(this'+e+')';
+
+                }else
+                {
+                    return b + 'map.static.'+d+'('+e+')';
+                }
+            });
+
+            regexp = new RegExp('(^|[\\(\\[\\,\\;\\:\\s+])('+classname.join('|')+')\\s*\\.\\s*(\\w+)(\\s*\=([\\\'\\\"])?([^\\5]*)\\5)?','ig');
 
             //获取设置变量
             code = code.replace( regexp , function (a, b, c, d, e, f, g) {
                 var v = e ? g : null;
                 var q = f ? f : '';
-                if( c === 'this')
+                if( c==='this' )
                 {
                     return b + (v ? '__g__.prop.call(this,"' + d + '",' + q + v + q + ')' : '__g__.prop.call(this,"' + d + '")');
-                }else if( c=== module.class )
+
+                }else
                 {
                     return b + (v ? 'map.static["' + d + '"]=' + q + v + q : 'map.static["' + d + '"]' );
                 }
@@ -372,7 +415,6 @@ function parse( module, code )
     }else if( module.balancer > 2 )
     {
         throw new Error('[syntax error 2]'+code)
-
     }
 
     //获取对称符
@@ -389,9 +431,9 @@ function makeFunction( funcs )
         var name = trim( val.name );
         var param = val.param instanceof Array ? val.param.join(',') : val.param;
         val = val.content.join(";");
-        val = val.replace(/\;\s*(\{|\,)/g,'$1\n');
-        val = val.replace(/(\(|\)|\{|\}|\,)\s*\;/g,'$1\n');
-        val = val.replace(/\;/g,';\n');
+        val = val.replace(/\;+\s*([\(\)\{\}\,\+\:])/gm,'$1\n');
+        val = val.replace(/([\(\)\{\}\,\+\:])\s*\;+/gm,'$1\n');
+        val = val.replace(/\;+/g,';\n');
         val = unescape( val );
         val = 'function('+trim(param)+')'+val;
         data[ name ]= val;
@@ -453,8 +495,18 @@ function makeMap( module, classname )
  * @returns {string}
  */
 function makeAccessor(module ){
-    module.access = makeFunction( module.access );
-    return objectToString( module.access, false );
+
+    for (var i in module.accessor )
+    {
+        var items = {};
+        for( var p in module.accessor[i])
+        {
+            items[p] = makeFunction( module.accessor[i][p] );
+            items[p]= items[p][i];
+        }
+        module.accessor[i]=items;
+    }
+    return objectToString( module.accessor, false );
 }
 
 /**
@@ -545,7 +597,8 @@ function objectToString( obj , force )
     var q =  force === false ? '' : '"';
     if( typeof obj === "object" )
     {
-        for (var i in obj) {
+        for (var i in obj)
+        {
             if (typeof obj[i] === "object") {
                 str.push(i+":"+q+ objectToString(obj[i], force ) +q);
             } else {
@@ -553,6 +606,7 @@ function objectToString( obj , force )
             }
         }
     }
+
     return "{"+str.join(',')+"}";
 }
 
@@ -573,7 +627,7 @@ function create( module )
     //构造函数,初始化变量
     module.constructor = module.constructor.replace(/^\s*function.*?\{/,function(a){
         var str = a+'\n';
-        str += 'this.__uniqid__=__g__.uniqid();\n';
+        str += 'this.__uniqid__=__g__.uniqid.call(this);\n';
         str+='__g__.prop.call(this,'+variable+');'+'\n';
         return str;
     });
@@ -607,7 +661,7 @@ function create( module )
     //引用的类
     for (var j in module.import )
     {
-        var classname = torefe( module.import[j] );
+        var classname = torefe( j );
         code.push('var '+classname+'=__g__.module("'+module.import[j]+'.constructor")');
     }
 
@@ -616,22 +670,41 @@ function create( module )
     code.push(map);
     code.push(moduleConfig);
 
-    //继承父类
+    //继承父类中的属性
     if( module.extends )
     {
         code.push('__g__.merge(map.dynamic,__g__.module("'+module.extends+'.dynamic.function.protected"))');
         code.push('__g__.merge(module.dynamic.function.protected,__g__.module("'+module.extends+'.dynamic.function.protected"))');
+
         code.push('__g__.merge(map.static,__g__.module("'+module.extends+'.static.function.protected"))');
         code.push('__g__.merge(module.static.function.protected,__g__.module("'+module.extends+'.static.function.protected"))');
-        var parent = global( module.extends );
-        if( parent.package === module.package )
+
+        code.push('__g__.merge(map.static,__g__.module("'+module.extends+'.static.variable.protected"))');
+        code.push('__g__.merge(module.static.variable.protected,__g__.module("'+module.extends+'.static.variable.protected"))');
+    }
+
+
+    //继承包中的属性
+    var internals = global( module.package );
+    for (var key in internals)
+    {
+        if( typeof internals[key].package === module.package )
         {
-            code.push('__g__.merge(map.dynamic,__g__.module("'+module.extends+'.dynamic.function.internal"))');
-            code.push('__g__.merge(module.dynamic.function.internal,__g__.module("'+module.extends+'.dynamic.function.internal"))');
-            code.push('__g__.merge(map.static,__g__.module("'+module.extends+'.static.function.internal"))');
-            code.push('__g__.merge(module.static.function.internal,__g__.module("'+module.extends+'.static.function.internal"))');
+            var classname = realclassname( internals[key].package,internals[key].class );
+            code.push('__g__.merge(map.dynamic,__g__.module("' + classname + '.dynamic.function.internal"))');
+            code.push('__g__.merge(module.dynamic.function.internal,__g__.module("' +classname + '.dynamic.function.internal"))');
+
+            code.push('__g__.merge(map.static,__g__.module("' + classname + '.static.function.internal"))');
+            code.push('__g__.merge(module.static.function.internal,__g__.module("' +classname + '.static.function.internal"))');
+
+            code.push('__g__.merge(map.static,__g__.module("' + classname + '.static.variable.internal"))');
+            code.push('__g__.merge(module.static.variable.internal,__g__.module("' + classname + '.static.variable.internal"))');
         }
-        code.push('module.constructor.prototype = __g__.getInstance("'+module.extends+'")');
+    }
+
+    if( module.extends )
+    {
+        code.push('module.constructor.prototype = __g__.getInstance("' + module.extends + '")');
     }
 
     //引用原型对象
@@ -657,7 +730,7 @@ function create( module )
 
     //注册模块到全局包
     code.push('__g__.module("'+ realclassname(module.package,module.class) +'", module)');
-    code.push('})()');
+    code.push('})();\n');
     return code.join(';\n');
 }
 
@@ -725,9 +798,9 @@ function createModule(file)
     return {
         'package':packagename(file),
         'class': classname(file),
-        'import':[],
+        'import':{},
         'extends':null,
-        'access':[],
+        'accessor':{},
         'dynamic': {
             'function':{public:[],protected:[],private:[],internal:[]},
             'variable':{public:{},protected:{},private:{},internal:{}}
@@ -820,12 +893,9 @@ function make( file , fs )
     var contents=[];
 
     //编译依赖的模块
-    if( module.import.length > 0 )
+    for ( var j in module.import )
     {
-        for ( var j in module.import )
-        {
-            contents.push( make( module.import[j] , fs ) );
-        }
+        contents.push( make( module.import[j] , fs ) );
     }
 
     //追加到内容容器中
@@ -845,6 +915,7 @@ var showMem = function()
 };
 
 
+
 var main='test';
 var content = make( main , fs );
 if( !global_error )
@@ -854,5 +925,8 @@ if( !global_error )
     content = "(function(){\n" + system + content + app +'\n})()';
     fs.writeFileSync('./test-min.js', content );
 }
+
+
+//showMem()
 
 

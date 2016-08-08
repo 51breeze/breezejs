@@ -10,7 +10,7 @@ var __g__={
         var len =path.length;
         while(deep < len )
         {
-            obj = packages[ path[deep] ] || (packages[ path[deep] ]={});
+            obj = obj[ path[deep] ] || (obj[ path[deep] ]={});
             deep++;
         }
         return typeof value !== "undefined" ? obj[last]=value : obj[last];
@@ -34,6 +34,7 @@ var __g__={
 
     },uniqid:function()
     {
+        if( typeof this.__uniqid__ !== "undefined")return this.__uniqid__;
         var id;
         do{
             id=new Date().getTime() + '' + Math.random() * 10000000000;
@@ -58,9 +59,9 @@ var __g__={
         {
             if( typeof value === "undefined" )
             {
-                return this.hasOwnProperty(name) ? this[name] : obj[name];
+                return typeof this[name] !=="undefined" ? this[name] : obj[name];
             }
-            this.hasOwnProperty(name) ? this[name]=value : obj[name]=value;
+            typeof this[name] !=="undefined" ? this[name]=value : obj[name]=value;
             return true;
         }
 
