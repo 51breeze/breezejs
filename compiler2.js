@@ -83,7 +83,7 @@ function qualifier(module, code )
         throw new Error('[qualifier invalid]');
     }
     var index = q.indexOf('static');
-    var s= index >=0 ? q.splice(index,1)[0] : false;
+    var s= index >=0 ? q.splice(index,1)[0] : 'dynamic';
     var p= q[0] ? q[0] : 'public';
     if ( typeof module.dynamic.function[ p ] === "undefined" )
     {
@@ -191,14 +191,32 @@ function checkNotStringValue( val )
     var ret = val==='';
     if( val ) {
         val = trim(val);
-        ret = val && (/^(|new\s+)\w+\s*\(.*?\)\;?$/.test(val) || /^(\d+|null|true|false)\;?$/i.test(val) );
+        ret = val && (/^(^|new\s+)\w+\s*\(.*?\)\;?$/.test(val) || /^(\d+|null|true|false)\;?$/i.test(val) );
     }
     if (!ret)throw new Error('[value error]');
     return true;
 }
 
-function globalOptions(module, code , keyword )
+function isUinqueName( module, name, prefix )
 {
+    prefix = prefix || '';
+    name=prefix+'____$'+name+'$____';
+    if ( module.uinque[name]=== true )
+        throw new Error('[conflict variable name]');
+    module.uinque[name] = true;
+}
+
+/**
+ * 全局模块的配置
+ * @param module
+ * @param code
+ */
+function globalOptions(module, code )
+{
+    var keyword = code.match(/^(^|(static|public|private|protected|internal)\s+(?!\2))+(package|import|class|var|function)(?!\s+\3)/i);
+    if( !keyword )return false;
+    keyword = keyword[3].toLowerCase()
+    if( module.current || keyword==='var')return false;
     switch ( keyword )
     {
         case 'package':
@@ -213,13 +231,11 @@ function globalOptions(module, code , keyword )
             ret[2] = trim(ret[2]);
             if (!checkfile(ret[2]))throw new Error('[Not found class for ' + ret[2] + ']');
             var alias= ret[3] ? ret[4] : ret[2].match(/\w+$/)[0];
-
             if( module['import'][alias] )
             {
                 throw new Error('[conflict import the '+ret[2]+']');
             }
             module['import'][alias]=ret[2];
-
             break;
         case 'class':
             var ret = code.match(/[\w\s]*(class)\s+(\w+)(\s+extends\s+([\w\.]*))?/i);
@@ -234,57 +250,29 @@ function globalOptions(module, code , keyword )
             var ret = code.match(/^((\w+\s+)+)?var\s+(\w+)(\s*\=\s*([\'\"])?([^\5]*)\5)?/i);
             if (!ret)throw new Error('var error');
             var c = qualifier(module, ret[1] );
-            var v = ret[6] ? unescape(ret[6]) : undefined;
-            var n = ret[3];
-            var q = ret[5] ? ret[5] : '';
-
             //检测非字符串变量是否正确
-            if( v && q === '' )checkNotStringValue( v );
-            (c[0]=== 'static' ? module.static.variable[c[1]] : module.dynamic.variable[c[1]])[n]=q+v+q;
-            if (module.uinque[n]==='' || module.uinque[n]==='static')throw new Error('[conflict variable name]');
-            module.uinque[n] = c[0] ? 'static' : '';
+            if( v && !ret[5] )checkNotStringValue( v );
+            module.variables[ c[0] ][ ret[3] ]={name:ret[3],value:ret[6] || undefined ,type:ret[5] ||'',decorate:c[1]};
+            isUinqueName(module, n );
+            break;
+        case 'function':
+            var ret = code.match(/((\w+\s+)+)?function\s+(set\s+|get\s+)?(\w+)/i);
+            if (!ret)throw new Error('function error');
+            var q = qualifier(module, ret[1] );
+            module.current = createFunctionContext();
+            module.current.name =  ret[4];
+            module.current.accessor = ret[3] || '';
+            module.current.decorate = q[1];
+            module.functions[ q[0] ][ module.current.name ] =  module.current;
+            isUinqueName(module,  module.current.name, is_access );
             break;
         default :
             throw new Error('[syntax error]');
     }
 }
 
-/**
- * 获取代码块的上下文
- * @param module
- * @param code
- * @returns {*}
- */
-function codeContext(module, code)
-{
-    if( module.current )return module.current;
-    var ret = code.match(/((\w+\s+)+)?function\s+(set\s+|get\s+)?(\w+)/i);
-    if( ret )
-    {
-        module.current = {'content':[],'param':[],'name':ret[4],'parambreak':true,defvar:[] };
-        module.current.body = module.current.param;
-        var q = qualifier(module, ret[1] );
-        var is_access=ret[3] || '';
-        var refobj = q[0]==='static' ? module.static.function[ q[1] ] : is_access !== '' ? (module.accessor[ ret[4] ] || (module.accessor[ ret[4] ]={}))[is_access]=[] : module.dynamic.function[ q[1] ];
 
-        refobj.push( module.current  );
-        if( module.uinque[ module.current.name ]==='' ||
-            module.uinque[ module.current.name ] === 'static' ||
-            module.uinque[ module.current.name ] === is_access )
-        {
-            throw new Error('[conflict function name]' );
-        }
-        module.uinque[ module.current.name ]=q[0] || is_access;
-        return module.current;
-
-    }else if( !module.current )
-    {
-        throw new Error('[syntax invalid]');
-    }
-    return null;
-}
-
-function contextParam(module, code  )
+function functionParam(module, code  )
 {
     //换行的参数
     if( module.current && module.current.parambreak )
@@ -294,14 +282,13 @@ function contextParam(module, code  )
         {
             if( p[2] )
             {
-                module.current.body.push(p[2]);
+                module.current.param.push(p[2]);
             }
             if( p[3] === ')')
             {
                 module.current.param = module.current.param.join('');
                 checkParam( module.current.param );
                 module.current.parambreak=false;
-                module.current.body =  module.current.content;
             }
         }
     }
@@ -331,30 +318,11 @@ function getImportClassName( module )
 function parse( module, code )
 {
     //模块配置
-    var keyword = code.match(/^(|(static|public|private|protected|internal)\s+(?!\2))+(package|import|class|var|function)(?!\s+\3)/i);
-
-    //有匹配到关键词
-    if( keyword )
-    {
-        keyword = keyword[3].toLowerCase();
-        if( keyword === 'function' )
-        {
-            if( module.balancer != 2 )
-            {
-                throw new Error('[syntax error 1]'+code)
-            }
-            codeContext(module, code);
-
-        }else if( !module.current )
-        {
-            globalOptions(module,code, keyword );
-        }
-    }
+    globalOptions(module,code );
 
     var flag = module.current ? module.current.parambreak : false;
 
-    //上下文参数
-    contextParam(module, code);
+    functionParam(module, code);
 
     if( module.current )
     {
@@ -786,6 +754,21 @@ function escape( val )
     return val;
 }
 
+function createFunctionContext()
+{
+    return {
+        'name':null,
+        'contents':[],
+        'param':[],
+        'decorate':'',
+        'accessor':'',
+        'balancer':0,
+        'parambreak':true,
+        'defvar':{}
+    };
+}
+
+
 var global_error=false;
 
 /**
@@ -800,24 +783,28 @@ function createModule(file)
         'class': classname(file),
         'import':{},
         'extends':null,
-        'accessor':{},
-        'dynamic': {
-            'function':{public:[],protected:[],private:[],internal:[]},
-            'variable':{public:{},protected:{},private:{},internal:{}}
+        'functions':{
+            'dynamic':{},
+            'static':{}
         },
-        'static':{
-            'function':{public:[],protected:[],private:[],internal:[]},
-            'variable':{public:{},protected:{},private:{},internal:{}}
-         },
+        'variables':{
+            'dynamic':{},
+            'static':{}
+        },
         'balancer':0,
         'uinque':{}
     };
 }
 
-
-function isnotes()
+var annotation_open=false;
+function annotation( val )
 {
-
+    if( !annotation_open && /^\s*\/\*/.test(val) ){
+        annotation_open = true;
+    }else if( annotation_open && /\*\/\s*$/.test(val) ){
+        annotation_open = false;
+    }
+    return annotation_open || /^\s*\/\//.test(val) ? true : false;
 }
 
 
@@ -830,7 +817,6 @@ function make( file , fs )
     var code = content.split(/[\r]*\n/);
     var num = code.length;
     var i = 0;
-    var skip = false;
     var v;
     var line;
 
@@ -845,25 +831,8 @@ function make( file , fs )
     {
         var item = code[i];
         i++;
-        if (item !== '')
+        if ( item !== '' && !annotation(item) )
         {
-            //注释的内容不解析
-            if( !skip && /^\s*\/\*/.test(item) )
-            {
-                skip = true;
-                continue;
-
-            } else if( skip && /\*\/\s*$/.test(item) )
-            {
-                skip = false;
-                continue;
-            }
-
-            if( skip || /^\s*\/\//.test(item) )
-            {
-                continue;
-            }
-
             //分行
             line = escape( item ).replace(/\{/g,"\n{").replace(/\}/g,"\n}").replace(/\;/g,"\n");
 
@@ -882,7 +851,7 @@ function make( file , fs )
                         parse(module, v );
                     } catch (e) {
                         global_error = true;
-                        console.log( e.message, file, ' in line ' + i,'->', e );
+                        console.log( e.message, file, ' in line ' + i);
                     }
                 }
             }while( !global_error && b<len )

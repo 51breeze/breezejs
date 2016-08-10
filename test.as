@@ -19,7 +19,7 @@
 
 package{
 
-    import com.B as UU;
+    import B as UU;
 
     public class test extends UU {
 
