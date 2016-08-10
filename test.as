@@ -24,10 +24,8 @@ package{
     public class test extends UU {
 
         static public var name = 123;
-
         private var ccc = 236666;
         protected var tttt = 'tyuuu';
-
         static private var uuu = 'pppp';
 
         public function test()
@@ -184,30 +182,8 @@ package{
             return this;
         }
 
-        /**
-         *  @private
-         */
-        function doRecursion(propName,strainer, deep )
-        {
-            var currentItem,ret=[];
-            var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :
-                typeof strainer === "undefined" ? function(){return this.nodeType===1} : strainer ;
 
-            this.forEach(function(elem)
-            {
-                if( elem && elem.nodeType )
-                {
-                    currentItem=elem;
-                    do{
-                        currentItem = currentItem[propName];
-                        if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );
-                    } while (deep && currentItem)
-                }
-            })
-            return ret;
-        }
-
-    }
+}
 }
 
 

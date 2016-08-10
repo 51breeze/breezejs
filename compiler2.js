@@ -814,6 +814,13 @@ function createModule(file)
     };
 }
 
+
+function isnotes()
+{
+
+}
+
+
 /**
  * 执行编译
  */
@@ -904,125 +911,6 @@ function make( file , fs )
 }
 
 
-var showMem = function()
-{
-    var mem = process.memoryUsage();
-    var format = function(bytes) {
-        return (bytes/1024/1024).toFixed(2)+'MB';
-    };
-    console.log('Process: heapTotal '+format(mem.heapTotal) + ' heapUsed ' + format(mem.heapUsed) + ' rss ' + format(mem.rss));
-    console.log('----------------------------------------');
-};
-
-/*
-
-
-
-var content = " function doRecursion( propName,strainer, deep )\n\
-{\n\
-    var currentItem,ret=[];\n\
-    var s = typeof strainer === \"string\" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :\n\
-        typeof strainer === \"undefined\" ? function(){return this.nodeType===1} : strainer ;\n\
-\n\
-    this.forEach(function(elem)\n\
-    {\n\
-        if( elem && elem.nodeType )\n\
-        {\n\
-            currentItem=elem;\n\
-            do{\n\
-                currentItem = currentItem[propName];\n\
-                if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );\n\
-            } while (deep && currentItem)\n\
-        }\n\
-    })\n\
-    return ret;\n\
-}";
-
-
-
-var ret;
-var pos = 0;
-var contextexp = /(^|\;|\?|\:|\s+)(function)(\s+\w+)?/i
-function context()
-{
-    return {'content':[],'param':[],'delimiter':'','name':'','balancer':0};
-}
-
-
-var current = context();
-var rootcontext = current;
-var container = current.content;
-var delimiter= ['(','{','[',']','}',')'];
-var open=null;
-var close=null;
-var lastContext = null;
-var regexp =new RegExp('([\\'+delimiter.join('\\')+'])');
-
-
-var delimiters={
-    '/!*':'*!/',
-    '/!*':'*!/',
-}
-
-console.log( regexp )
-
-while ( ret = content.match( regexp ) )
-{
-    var val = content.substr(0, ret.index );
-    content = content.substr( ret.index+1 );
-    pos += ret.index+1;
-
-    var newcontext=null;
-    val = val.replace(contextexp, function(a,b,c,d){
-
-        if( c==='function' )
-        {
-            newcontext = context();
-            newcontext.name = d;
-        }
-        return b;
-    })
-
-    container.push( val );
-
-    if( newcontext )
-    {
-        container.push( newcontext );
-        lastContext = current;
-        current = newcontext;
-        container = newcontext.param;
-    }
-
-    var index = delimiter.indexOf(ret[0]);
-    if( index >=0 )
-    {
-        index > 2 ? current.balancer-- : current.balancer++;
-    }
-
-    //上下文参数
-    if( ret[0]===')' && container === current.param )
-    {
-        container = current.content;
-    }
-
-    if( ret[0]==='}' && current.balancer===0 && lastContext )
-    {
-        current=lastContext;
-        container = current.content;
-    }
-
-}
-
-
-console.log( rootcontext.content )
-
-
-
-return;
-*/
-
-
-
 
 var main='test';
 var content = make( main , fs );
@@ -1033,11 +921,5 @@ if( !global_error )
     content = "(function(){\n" + system + content + app +'\n})()';
     fs.writeFileSync('./test-min.js', content );
 }
-
-
-
-
-
-//showMem()
 
 
