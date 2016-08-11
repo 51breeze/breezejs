@@ -919,7 +919,7 @@ var showMem = function()
 
 var content = " function doRecursion( propName,strainer, deep )\n\
 {\n\
-    var currentItem\n\
+    var currentItem={lll:78,'uuu':'kkkk'}\n\
     ,ret=[]\n\
     var s = typeof strainer === \"string\" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :\n\
         (typeof strainer === \"undefined\" + \"sdfsdf\" ? function(){return this.nodeType===1} : strainer);\n\
@@ -943,16 +943,16 @@ var content = " function doRecursion( propName,strainer, deep )\n\
 
 var current ={'delimiter':'',keyword:'','name':'','balancer':0,closer:false, children:[], parent:null };
 var rootcontext = current;
-var newline =new RegExp('(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/|\\/\\/|\\?|\\n|\\;|\\"|\\\')','g');
+var newline =new RegExp('(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/|\\/\\/|\\?|\\n|\\;|\\:|\\,|\\"|\\\')','g');
 var delimiter= {
     '/*':'*/',
     '//':'\n',
     '(':')',
     '{':'}',
     '[':']',
-    '?':':',
-    '"':'"',
-    "'":"'"
+    '?':':'
+   /* ,'"':'"',
+    "'":"'"*/
 }
 
 /**
@@ -962,37 +962,54 @@ var delimiter= {
  */
 function context( tag , str )
 {
+    if( delimiter[ tag ]  )
+    {
+        current = {'delimiter':tag,keyword:'','name':'','balancer':0,closer:false, children:[], parent:current, indexAt:current.children.length};
+
+         var ret;
+        //定义的函数
+        if( tag==='(' && ( ret = /^(function)(\s+\w+)?$/.exec( str ) ) )
+        {
+            current.keyword=RegExp.$1;
+            current.name=RegExp.$2;
+            str = str.substr(0, ret.index);
+
+        }else if( tag==='=' && ( ret = /^(var)\s+(\w+)$/.exec( str ) ) )
+        {
+            current.keyword=RegExp.$1;
+            current.name=RegExp.$2;
+            str = str.substr(0, ret.index);
+        }
+        current.parent.children.push( current );
+    }
+    return str;
+}
+
+function end( tag )
+{
     if( tag===delimiter[ current.delimiter ]  )
     {
         current.closer=true;
         current = current.parent;
-
-    }else if( delimiter[ tag ]  )
-    {
-        current = {'delimiter':tag,keyword:'','name':'','balancer':0,closer:false, children:[], parent:current, indexAt:current.parent.children.length};
-
-        // function doRecursion(
-
-        str.replace(/(var|function)\s+(\w+)/)
-
-
-
-        current.parent.children.push( current );
     }
-    return current;
 }
 
+//content = content.replace(/\=\=\=/g,'__#501#__').replace(/\=\=/g,'__#500#__');
+
+//function start(){
 
     var ret;
     var pos = 0;
     while (ret = newline.exec(content)) {
 
-        var val = content.substr(pos, ret.index - pos);
+        var val = trim( content.substr(pos, ret.index - pos) );
         pos += ret.index - pos + 1;
 
-        context(ret[0], val);
+        val = context(ret[0], val);
 
-        console.log( val )
+        current.children.push( val );
+
+        end( ret[0] );
 
 
         /*  content = content.substr( ret.index+1 );
@@ -1038,22 +1055,30 @@ function context( tag , str )
          }*/
     }
 
+//}
 
 
-
-
-/*
-content = content.split(/\n+/m)
+/*content = content.split(/\n+/m)
 for ( var i in content )
 {
-    start( content[i] );
+    console.log( content[i] );
+   // start( content[i] );
+
+    newcontext( content[i] )
 }
-*/
+
+
+function newcontext( str )
+{
+    var v = /(function|var)\s+(\w+)/.exec(str);
+
+    current = {'delimiter':tag,keyword:'','name':'','balancer':0,closer:false, children:[], parent:current, indexAt:current.parent.children.length};
+
+}*/
 
 
 
-
-//console.log( rootcontext.content )
+console.log( rootcontext.children[2] )
 
 
 return;
