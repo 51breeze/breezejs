@@ -914,15 +914,15 @@ var showMem = function()
     console.log('----------------------------------------');
 };
 
-/*
 
 
 
 var content = " function doRecursion( propName,strainer, deep )\n\
 {\n\
-    var currentItem,ret=[];\n\
+    var currentItem\n\
+    ,ret=[]\n\
     var s = typeof strainer === \"string\" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :\n\
-        typeof strainer === \"undefined\" ? function(){return this.nodeType===1} : strainer ;\n\
+        (typeof strainer === \"undefined\" + \"sdfsdf\" ? function(){return this.nodeType===1} : strainer);\n\
 \n\
     this.forEach(function(elem)\n\
     {\n\
@@ -940,88 +940,123 @@ var content = " function doRecursion( propName,strainer, deep )\n\
 
 
 
-var ret;
-var pos = 0;
-var contextexp = /(^|\;|\?|\:|\s+)(function)(\s+\w+)?/i
-function context()
-{
-    return {'content':[],'param':[],'delimiter':'','name':'','balancer':0};
-}
 
-
-var current = context();
+var current ={'delimiter':'',keyword:'','name':'','balancer':0,closer:false, children:[], parent:null };
 var rootcontext = current;
-var container = current.content;
-var delimiter= ['(','{','[',']','}',')'];
-var open=null;
-var close=null;
-var lastContext = null;
-var regexp =new RegExp('([\\'+delimiter.join('\\')+'])');
-
-
-var delimiters={
-    '/!*':'*!/',
-    '/!*':'*!/',
+var newline =new RegExp('(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/|\\/\\/|\\?|\\n|\\;|\\"|\\\')','g');
+var delimiter= {
+    '/*':'*/',
+    '//':'\n',
+    '(':')',
+    '{':'}',
+    '[':']',
+    '?':':',
+    '"':'"',
+    "'":"'"
 }
 
-console.log( regexp )
-
-while ( ret = content.match( regexp ) )
+/**
+ * 返回上下文
+ * @param tag
+ * @returns {}
+ */
+function context( tag , str )
 {
-    var val = content.substr(0, ret.index );
-    content = content.substr( ret.index+1 );
-    pos += ret.index+1;
-
-    var newcontext=null;
-    val = val.replace(contextexp, function(a,b,c,d){
-
-        if( c==='function' )
-        {
-            newcontext = context();
-            newcontext.name = d;
-        }
-        return b;
-    })
-
-    container.push( val );
-
-    if( newcontext )
+    if( tag===delimiter[ current.delimiter ]  )
     {
-        container.push( newcontext );
-        lastContext = current;
-        current = newcontext;
-        container = newcontext.param;
-    }
+        current.closer=true;
+        current = current.parent;
 
-    var index = delimiter.indexOf(ret[0]);
-    if( index >=0 )
+    }else if( delimiter[ tag ]  )
     {
-        index > 2 ? current.balancer-- : current.balancer++;
-    }
+        current = {'delimiter':tag,keyword:'','name':'','balancer':0,closer:false, children:[], parent:current, indexAt:current.parent.children.length};
 
-    //上下文参数
-    if( ret[0]===')' && container === current.param )
-    {
-        container = current.content;
-    }
+        // function doRecursion(
 
-    if( ret[0]==='}' && current.balancer===0 && lastContext )
-    {
-        current=lastContext;
-        container = current.content;
-    }
+        str.replace(/(var|function)\s+(\w+)/)
 
+
+
+        current.parent.children.push( current );
+    }
+    return current;
 }
 
 
-console.log( rootcontext.content )
+    var ret;
+    var pos = 0;
+    while (ret = newline.exec(content)) {
+
+        var val = content.substr(pos, ret.index - pos);
+        pos += ret.index - pos + 1;
+
+        context(ret[0], val);
+
+        console.log( val )
+
+
+        /*  content = content.substr( ret.index+1 );
+
+
+         var newcontext=null;
+         val = val.replace(contextexp, function(a,b,c,d){
+
+         if( c==='function' )
+         {
+         newcontext = context();
+         newcontext.name = d;
+         }
+         return b;
+         })
+
+         container.push( val );
+
+         if( newcontext )
+         {
+         container.push( newcontext );
+         lastContext = current;
+         current = newcontext;
+         container = newcontext.param;
+         }
+
+         var index = delimiter.indexOf(ret[0]);
+         if( index >=0 )
+         {
+         index > 2 ? current.balancer-- : current.balancer++;
+         }
+
+         //上下文参数
+         if( ret[0]===')' && container === current.param )
+         {
+         container = current.content;
+         }
+
+         if( ret[0]==='}' && current.balancer===0 && lastContext )
+         {
+         current=lastContext;
+         container = current.content;
+         }*/
+    }
 
 
 
-return;
+
+
+/*
+content = content.split(/\n+/m)
+for ( var i in content )
+{
+    start( content[i] );
+}
 */
 
 
+
+
+//console.log( rootcontext.content )
+
+
+return;
 
 
 var main='test';
