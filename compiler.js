@@ -22,14 +22,15 @@ function merge()
 {
     var target = arguments[0];
     var len = arguments.length;
+
     for(var i=1; i<len; i++ )
     {
         var item = arguments[i];
         for( var p in item )
         {
-            if( typeof item[p] === 'object' && typeof target[p] === 'object' )
+            if( Object.prototype.isPrototypeOf( item[p] ) && Object.prototype.isPrototypeOf( target[p] ) )
             {
-                merge(target[p],  item[p] );
+                target[p] = merge( target[p],  item[p] );
             }else{
                 target[p] = item[p];
             }
@@ -940,19 +941,32 @@ var content = " function doRecursion( propName,strainer, deep )\n\
 
 
 
-
-var current ={'delimiter':'',keyword:'','name':'','balancer':0,closer:false, children:[], parent:null };
-var rootcontext = current;
-var newline =new RegExp('(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/|\\/\\/|\\?|\\n|\\;|\\:|\\,|\\"|\\\')','g');
+function newcontext( obj )
+{
+    return merge({
+        'delimiter':'',
+        'keyword': '',
+        'name': '',
+        'balancer': 0,
+        'closer': false,
+        'children': [],
+        'parent': null,
+        'indexAt': 0
+    }, obj || {} );
+}
+var current=null;
+var rootcontext = newcontext();
+var newline =new RegExp('(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/|\\/\\/|\\?|\\n|\\;|\\:|\\,|\\"|\\\'|\=)','g');
 var delimiter= {
     '/*':'*/',
-    '//':'\n',
+    '//':/\n/,
     '(':')',
     '{':'}',
     '[':']',
-    '?':':'
-   /* ,'"':'"',
-    "'":"'"*/
+    '=':/[\;\n]+/,
+    '?':/[\;\n]+/,
+    '"':'"',
+    "'":"'"
 }
 
 /**
@@ -962,36 +976,50 @@ var delimiter= {
  */
 function context( tag , str )
 {
-    if( delimiter[ tag ]  )
+    if( delimiter[ tag ] || !current )
     {
-        current = {'delimiter':tag,keyword:'','name':'','balancer':0,closer:false, children:[], parent:current, indexAt:current.children.length};
-
-         var ret;
-        //定义的函数
-        if( tag==='(' && ( ret = /^(function)(\s+\w+)?$/.exec( str ) ) )
+        var obj = newcontext();
+        if( delimiter[ tag ] )
         {
-            current.keyword=RegExp.$1;
-            current.name=RegExp.$2;
-            str = str.substr(0, ret.index);
-
-        }else if( tag==='=' && ( ret = /^(var)\s+(\w+)$/.exec( str ) ) )
-        {
-            current.keyword=RegExp.$1;
-            current.name=RegExp.$2;
-            str = str.substr(0, ret.index);
+            obj.name = trim(str);
+            if (/^(function|var)\s+(\w+)$/.exec(obj.name))
+            {
+                obj.keyword = RegExp.$1;
+                obj.name = RegExp.$2;
+            }
+            str='';
         }
-        current.parent.children.push( current );
+
+        obj.parent = rootcontext;
+        if( current && current.closer )
+        {
+            obj.parent =  current.parent;
+        }
+
+        obj.parent.children.push( obj );
+        current=obj;
     }
     return str;
 }
 
 function end( tag )
 {
-    if( tag===delimiter[ current.delimiter ]  )
-    {
-        current.closer=true;
-        current = current.parent;
-    }
+    // var flag = false;
+     //while( current && !flag )
+    // {
+
+
+
+
+         var closer = delimiter[ current.delimiter ] instanceof RegExp ?  delimiter[ current.delimiter ].test( tag ) :  delimiter[ current.delimiter ]===tag;
+         if( closer )
+         {
+             current.closer= closer;
+             current = current.parent;
+             return true;
+         }
+
+     //}
 }
 
 //content = content.replace(/\=\=\=/g,'__#501#__').replace(/\=\=/g,'__#500#__');
@@ -1000,7 +1028,7 @@ function end( tag )
 
     var ret;
     var pos = 0;
-    while (ret = newline.exec(content)) {
+    while ( (ret = newline.exec(content)) && !global_error ) {
 
         var val = trim( content.substr(pos, ret.index - pos) );
         pos += ret.index - pos + 1;
@@ -1008,6 +1036,7 @@ function end( tag )
         val = context(ret[0], val);
 
         current.children.push( val );
+        current.children.push( ret[0] );
 
         end( ret[0] );
 
@@ -1058,29 +1087,73 @@ function end( tag )
 //}
 
 
-/*content = content.split(/\n+/m)
+/*
+content = content.split(/\n+/m)
 for ( var i in content )
 {
-    console.log( content[i] );
-   // start( content[i] );
+    var list = content[i].split(/\;+/m);
+    for ( var b in list )
+    {
+        var val = trim(list[b]);
 
-    newcontext( content[i] )
+        console.log( val )
+
+    }
+
+   // start( content[i] );
+    //newcontext( content[i] )
 }
+*/
+
+/*
 
 
 function newcontext( str )
 {
-    var v = /(function|var)\s+(\w+)/.exec(str);
 
-    current = {'delimiter':tag,keyword:'','name':'','balancer':0,closer:false, children:[], parent:current, indexAt:current.parent.children.length};
+    if( /^(function|var)\s+(\w+)/.exec(str) ) {
 
-}*/
+        current = {
+            'delimiter': tag,
+            keyword: '',
+            'name': '',
+            'balancer': 0,
+            closer: false,
+            children: [],
+            parent: current,
+            indexAt: current.parent.children.length
+        };
+    }
+}
+*/
 
 
 
-console.log( rootcontext.children[2] )
+function toString( rootcontext )
+{
+    var str=[];
+    str.push( rootcontext.keyword );
+    str.push( rootcontext.name );
 
+   // console.log(  rootcontext  );
 
+    for ( var i in rootcontext.children )
+    {
+        if( typeof rootcontext.children[i] === "object" )
+        {
+            str.push( toString( rootcontext.children[i] ) );
+
+        }else
+        {
+            str.push(rootcontext.children[i])
+        }
+    }
+    return str.join('');
+}
+
+//console.log( toString( rootcontext ) );
+console.log(  rootcontext.children  );
+//toString( rootcontext.children[3] )
 return;
 
 
