@@ -22,14 +22,15 @@ function merge()
 {
     var target = arguments[0];
     var len = arguments.length;
+
     for(var i=1; i<len; i++ )
     {
         var item = arguments[i];
         for( var p in item )
         {
-            if( typeof item[p] === 'object' && typeof target[p] === 'object' )
+            if( Object.prototype.isPrototypeOf( item[p] ) && Object.prototype.isPrototypeOf( target[p] ) )
             {
-                merge(target[p],  item[p] );
+                target[p] = merge( target[p],  item[p] );
             }else{
                 target[p] = item[p];
             }
@@ -83,7 +84,7 @@ function qualifier(module, code )
         throw new Error('[qualifier invalid]');
     }
     var index = q.indexOf('static');
-    var s= index >=0 ? q.splice(index,1)[0] : 'dynamic';
+    var s= index >=0 ? q.splice(index,1)[0] : false;
     var p= q[0] ? q[0] : 'public';
     if ( typeof module.dynamic.function[ p ] === "undefined" )
     {
@@ -191,32 +192,14 @@ function checkNotStringValue( val )
     var ret = val==='';
     if( val ) {
         val = trim(val);
-        ret = val && (/^(^|new\s+)\w+\s*\(.*?\)\;?$/.test(val) || /^(\d+|null|true|false)\;?$/i.test(val) );
+        ret = val && (/^(|new\s+)\w+\s*\(.*?\)\;?$/.test(val) || /^(\d+|null|true|false)\;?$/i.test(val) );
     }
     if (!ret)throw new Error('[value error]');
     return true;
 }
 
-function isUinqueName( module, name, prefix )
+function globalOptions(module, code , keyword )
 {
-    prefix = prefix || '';
-    name=prefix+'____$'+name+'$____';
-    if ( module.uinque[name]=== true )
-        throw new Error('[conflict variable name]');
-    module.uinque[name] = true;
-}
-
-/**
- * 全局模块的配置
- * @param module
- * @param code
- */
-function globalOptions(module, code )
-{
-    var keyword = code.match(/^(^|(static|public|private|protected|internal)\s+(?!\2))+(package|import|class|var|function)(?!\s+\3)/i);
-    if( !keyword )return false;
-    keyword = keyword[3].toLowerCase()
-    if( module.current || keyword==='var')return false;
     switch ( keyword )
     {
         case 'package':
@@ -231,11 +214,13 @@ function globalOptions(module, code )
             ret[2] = trim(ret[2]);
             if (!checkfile(ret[2]))throw new Error('[Not found class for ' + ret[2] + ']');
             var alias= ret[3] ? ret[4] : ret[2].match(/\w+$/)[0];
+
             if( module['import'][alias] )
             {
                 throw new Error('[conflict import the '+ret[2]+']');
             }
             module['import'][alias]=ret[2];
+
             break;
         case 'class':
             var ret = code.match(/[\w\s]*(class)\s+(\w+)(\s+extends\s+([\w\.]*))?/i);
@@ -250,29 +235,57 @@ function globalOptions(module, code )
             var ret = code.match(/^((\w+\s+)+)?var\s+(\w+)(\s*\=\s*([\'\"])?([^\5]*)\5)?/i);
             if (!ret)throw new Error('var error');
             var c = qualifier(module, ret[1] );
+            var v = ret[6] ? unescape(ret[6]) : undefined;
+            var n = ret[3];
+            var q = ret[5] ? ret[5] : '';
+
             //检测非字符串变量是否正确
-            if( v && !ret[5] )checkNotStringValue( v );
-            module.variables[ c[0] ][ ret[3] ]={name:ret[3],value:ret[6] || undefined ,type:ret[5] ||'',decorate:c[1]};
-            isUinqueName(module, n );
-            break;
-        case 'function':
-            var ret = code.match(/((\w+\s+)+)?function\s+(set\s+|get\s+)?(\w+)/i);
-            if (!ret)throw new Error('function error');
-            var q = qualifier(module, ret[1] );
-            module.current = createFunctionContext();
-            module.current.name =  ret[4];
-            module.current.accessor = ret[3] || '';
-            module.current.decorate = q[1];
-            module.functions[ q[0] ][ module.current.name ] =  module.current;
-            isUinqueName(module,  module.current.name, is_access );
+            if( v && q === '' )checkNotStringValue( v );
+            (c[0]=== 'static' ? module.static.variable[c[1]] : module.dynamic.variable[c[1]])[n]=q+v+q;
+            if (module.uinque[n]==='' || module.uinque[n]==='static')throw new Error('[conflict variable name]');
+            module.uinque[n] = c[0] ? 'static' : '';
             break;
         default :
             throw new Error('[syntax error]');
     }
 }
 
+/**
+ * 获取代码块的上下文
+ * @param module
+ * @param code
+ * @returns {*}
+ */
+function codeContext(module, code)
+{
+    if( module.current )return module.current;
+    var ret = code.match(/((\w+\s+)+)?function\s+(set\s+|get\s+)?(\w+)/i);
+    if( ret )
+    {
+        module.current = {'content':[],'param':[],'name':ret[4],'parambreak':true,defvar:[] };
+        module.current.body = module.current.param;
+        var q = qualifier(module, ret[1] );
+        var is_access=ret[3] || '';
+        var refobj = q[0]==='static' ? module.static.function[ q[1] ] : is_access !== '' ? (module.accessor[ ret[4] ] || (module.accessor[ ret[4] ]={}))[is_access]=[] : module.dynamic.function[ q[1] ];
 
-function functionParam(module, code  )
+        refobj.push( module.current  );
+        if( module.uinque[ module.current.name ]==='' ||
+            module.uinque[ module.current.name ] === 'static' ||
+            module.uinque[ module.current.name ] === is_access )
+        {
+            throw new Error('[conflict function name]' );
+        }
+        module.uinque[ module.current.name ]=q[0] || is_access;
+        return module.current;
+
+    }else if( !module.current )
+    {
+        throw new Error('[syntax invalid]');
+    }
+    return null;
+}
+
+function contextParam(module, code  )
 {
     //换行的参数
     if( module.current && module.current.parambreak )
@@ -282,13 +295,14 @@ function functionParam(module, code  )
         {
             if( p[2] )
             {
-                module.current.param.push(p[2]);
+                module.current.body.push(p[2]);
             }
             if( p[3] === ')')
             {
                 module.current.param = module.current.param.join('');
                 checkParam( module.current.param );
                 module.current.parambreak=false;
+                module.current.body =  module.current.content;
             }
         }
     }
@@ -318,11 +332,30 @@ function getImportClassName( module )
 function parse( module, code )
 {
     //模块配置
-    globalOptions(module,code );
+    var keyword = code.match(/^(|(static|public|private|protected|internal)\s+(?!\2))+(package|import|class|var|function)(?!\s+\3)/i);
+
+    //有匹配到关键词
+    if( keyword )
+    {
+        keyword = keyword[3].toLowerCase();
+        if( keyword === 'function' )
+        {
+            if( module.balancer != 2 )
+            {
+                throw new Error('[syntax error 1]'+code)
+            }
+            codeContext(module, code);
+
+        }else if( !module.current )
+        {
+            globalOptions(module,code, keyword );
+        }
+    }
 
     var flag = module.current ? module.current.parambreak : false;
 
-    functionParam(module, code);
+    //上下文参数
+    contextParam(module, code);
 
     if( module.current )
     {
@@ -412,7 +445,7 @@ function makeFunction( funcs )
 //组装变量
 function makeVariable(module)
 {
-   return [
+    return [
         objectToString(module.dynamic.variable.public,false),
         objectToString(module.dynamic.variable.protected,false),
         objectToString(module.dynamic.variable.private,false),
@@ -754,21 +787,6 @@ function escape( val )
     return val;
 }
 
-function createFunctionContext()
-{
-    return {
-        'name':null,
-        'contents':[],
-        'param':[],
-        'decorate':'',
-        'accessor':'',
-        'balancer':0,
-        'parambreak':true,
-        'defvar':{}
-    };
-}
-
-
 var global_error=false;
 
 /**
@@ -783,30 +801,19 @@ function createModule(file)
         'class': classname(file),
         'import':{},
         'extends':null,
-        'functions':{
-            'dynamic':{},
-            'static':{}
+        'accessor':{},
+        'dynamic': {
+            'function':{public:[],protected:[],private:[],internal:[]},
+            'variable':{public:{},protected:{},private:{},internal:{}}
         },
-        'variables':{
-            'dynamic':{},
-            'static':{}
+        'static':{
+            'function':{public:[],protected:[],private:[],internal:[]},
+            'variable':{public:{},protected:{},private:{},internal:{}}
         },
         'balancer':0,
         'uinque':{}
     };
 }
-
-var annotation_open=false;
-function annotation( val )
-{
-    if( !annotation_open && /^\s*\/\*/.test(val) ){
-        annotation_open = true;
-    }else if( annotation_open && /\*\/\s*$/.test(val) ){
-        annotation_open = false;
-    }
-    return annotation_open || /^\s*\/\//.test(val) ? true : false;
-}
-
 
 /**
  * 执行编译
@@ -817,6 +824,7 @@ function make( file , fs )
     var code = content.split(/[\r]*\n/);
     var num = code.length;
     var i = 0;
+    var skip = false;
     var v;
     var line;
 
@@ -831,8 +839,25 @@ function make( file , fs )
     {
         var item = code[i];
         i++;
-        if ( item !== '' && !annotation(item) )
+        if (item !== '')
         {
+            //注释的内容不解析
+            if( !skip && /^\s*\/\*/.test(item) )
+            {
+                skip = true;
+                continue;
+
+            } else if( skip && /\*\/\s*$/.test(item) )
+            {
+                skip = false;
+                continue;
+            }
+
+            if( skip || /^\s*\/\//.test(item) )
+            {
+                continue;
+            }
+
             //分行
             line = escape( item ).replace(/\{/g,"\n{").replace(/\}/g,"\n}").replace(/\;/g,"\n");
 
@@ -851,7 +876,7 @@ function make( file , fs )
                         parse(module, v );
                     } catch (e) {
                         global_error = true;
-                        console.log( e.message, file, ' in line ' + i);
+                        console.log( e.message, file, ' in line ' + i,'->', e );
                     }
                 }
             }while( !global_error && b<len )
@@ -880,6 +905,210 @@ function make( file , fs )
 }
 
 
+var showMem = function()
+{
+    var mem = process.memoryUsage();
+    var format = function(bytes) {
+        return (bytes/1024/1024).toFixed(2)+'MB';
+    };
+    console.log('Process: heapTotal '+format(mem.heapTotal) + ' heapUsed ' + format(mem.heapUsed) + ' rss ' + format(mem.rss));
+    console.log('----------------------------------------');
+};
+
+
+
+
+var content = " function doRecursion( propName,strainer, deep )\n\
+{\n\
+    var currentItem={lll:78,\
+    'uuu':'kkkk'\
+    }\n\
+    ,bbb\
+    ,ret=[]\n\
+    var \n\
+    s = typeof strainer === \"string\" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :\n\
+        (typeof strainer === \"undefined\" + \"sdfsdf\" ? function(){return this.nodeType===1} : strainer);\n\
+\n\
+    this.forEach(function(elem)\n\
+    {\n\
+        if( elem && elem.nodeType )\n\
+        {\n\
+            currentItem=elem;\n\
+            do{\n\
+                currentItem = currentItem[propName];\n\
+                if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );\n\
+            } while (deep && currentItem)\n\
+        }\n\
+    })\n\
+    return ret;\n\
+}";
+
+/*content = " function doRecursion( propName,strainer, deep ){\n\
+ var s = function(){}\
+ }";*/
+
+content = "var s={ccc:'yyyy',\nbb:\
+\
+'iiii'}\
+var ccc='bbbbb'+\"yyyy'yyy\"\
+\
+\
+\n";
+
+
+function newcontext()
+{
+    return {
+        'delimiter':'',
+        'keyword': '',
+        'name': null,
+        'closer': false,
+        'children': [],
+        'parent': null,
+    };
+}
+var current= newcontext();
+var rootcontext=current;
+var newline =new RegExp('(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/)');
+var delimiter= {
+    '/*':'*/',
+    '(':')',
+    '{':'}',
+    '[':']'
+    //,
+    /*  '=':/[\;\n]+/,
+    // '?':/[\;\n]+/,
+    '"':'"',
+    "'":"'"*/
+}
+
+function getparent()
+{
+    return !current.closer ? current : current.parent || rootcontext;
+}
+
+function getlastchlid( obj )
+{
+    return  obj &&  obj.children.length>0 ? obj.children[ obj.children.length-1 ] : null;
+}
+
+
+/**
+ * 返回新的上下文
+ * @param tag
+ * @returns {}
+ */
+function context( tag , keyword )
+{
+    //声明一个变量
+    if( /^var\s+(\w+)\s*\=$/.exec(keyword) )
+    {
+        var obj = newcontext();
+        obj.delimiter='=';
+        obj.keyword='var';
+        obj.name= RegExp.$1;
+        obj.parent= getparent();
+        obj.parent.children.push(obj);
+        current = obj;
+
+    }
+    //引用属性中的对象
+    else if( tag==='[' && /^((\w+\.)+\w+)\s*$/.exec(keyword) )
+    {
+        var obj = newcontext();
+        obj.keyword='var';
+        obj.delimiter='';
+        obj.name= RegExp.$1;
+        obj.parent= getparent();
+        obj.parent.children.push(obj);
+        current = obj;
+    }
+
+    if( delimiter[ tag ]  )
+    {
+        str = trim(str);
+        var obj = newcontext();
+        obj.delimiter= tag;
+        obj.parent= getparent();
+        obj.parent.children.push(obj);
+        current = obj;
+
+    }else
+    {
+        end( tag );
+    }
+    return str;
+}
+
+//关闭上下文
+function end( tag )
+{
+    var closer = delimiter[ current.delimiter ] instanceof RegExp ?  delimiter[ current.delimiter ].test( tag ) :  delimiter[ current.delimiter ]===tag;
+    if( closer )
+    {
+        current.closer= closer;
+        current = current.parent;
+        return true;
+    }
+}
+
+function start( content )
+{
+    var ret;
+    var pos = 0;
+    while ( (ret = newline.exec(content) ) && !global_error)
+    {
+        var tag = ret[0];
+        var str = trim( content.substr(pos, ret.index - pos) );
+        pos += ret.index - pos + tag.length;
+
+        if( str )current.children.push(str);
+
+        context(tag);
+
+        content=content.substr(pos);
+    }
+    if( content )current.children.push( content );
+}
+
+var contents = content.split(/[\;\n]+/m);
+for (var i in contents )
+{
+    var str = trim( contents[i] );
+    if( !/^\/\//.test( str ) )
+    {
+        start( str );
+    }
+}
+
+function toString( rootcontext )
+{
+    var str=[];
+    str.push( rootcontext.keyword );
+    str.push( rootcontext.name );
+
+    // console.log(  rootcontext  );
+
+    for ( var i in rootcontext.children )
+    {
+        if( typeof rootcontext.children[i] === "object" )
+        {
+            str.push( toString( rootcontext.children[i] ) );
+
+        }else
+        {
+            str.push(rootcontext.children[i])
+        }
+    }
+    return str.join('');
+}
+
+//console.log( toString( rootcontext ) );
+//console.log(  rootcontext.children[0].children );
+console.log(  rootcontext );
+//toString( rootcontext.children[3] )
+return;
+
 
 var main='test';
 var content = make( main , fs );
@@ -890,5 +1119,11 @@ if( !global_error )
     content = "(function(){\n" + system + content + app +'\n})()';
     fs.writeFileSync('./test-min.js', content );
 }
+
+
+
+
+
+//showMem()
 
 

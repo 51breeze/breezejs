@@ -357,63 +357,59 @@ function parse( module, code )
     //上下文参数
     contextParam(module, code);
 
-    if( module.current )
+    if( module.current && !flag )
     {
-        if( !flag ) {
+        var classname = getImportClassName(module);
+        classname.push( module.class );
+        classname.push( 'this' );
 
-            var classname = getImportClassName(module);
-            classname.push( module.class );
-            classname.push( 'this' );
+        var regexp = new RegExp('^(^|[\\(\\[\\,\\;\\:\\s+])('+classname.join('|')+')\\s*\\.\\s*(\\w+)\\s*\\(([^\\(\\)]*)\\)','ig');
 
+        //获取设置函数
+        code = code.replace( regexp , function (a, b, c, d, e) {
 
-            var regexp = new RegExp('(^|[\\(\\[\\,\\;\\:\\s+])('+classname.join('|')+')\\s*\\.\\s*(\\w+)\\s*\\(([^\\(\\)]*)\\)','ig');
+            var e = e && e !=='' ? ','+e : '';
+            if( c==='this' )
+            {
+                return b + 'map.dynamic.'+d+'.call(this'+e+')';
 
-            //获取设置函数
-            code = code.replace( regexp , function (a, b, c, d, e) {
+            }else
+            {
+                return b + 'map.static.'+d+'('+e+')';
+            }
+        });
 
-                var e = e && e !=='' ? ','+e : '';
-                if( c==='this' )
-                {
-                    return b + 'map.dynamic.'+d+'.call(this'+e+')';
+        regexp = new RegExp('(^|[\\(\\[\\,\\;\\:\\s+])('+classname.join('|')+')\\s*\\.\\s*(\\w+)(\\s*\=([\\\'\\\"])?([^\\5]*)\\5)?','ig');
 
-                }else
-                {
-                    return b + 'map.static.'+d+'('+e+')';
-                }
-            });
+        //获取设置变量
+        code = code.replace( regexp , function (a, b, c, d, e, f, g) {
+            var v = e ? g : null;
+            var q = f ? f : '';
+            if( c==='this' )
+            {
+                return b + (v ? '__g__.prop.call(this,"' + d + '",' + q + v + q + ')' : '__g__.prop.call(this,"' + d + '")');
 
-            regexp = new RegExp('(^|[\\(\\[\\,\\;\\:\\s+])('+classname.join('|')+')\\s*\\.\\s*(\\w+)(\\s*\=([\\\'\\\"])?([^\\5]*)\\5)?','ig');
+            }else
+            {
+                return b + (v ? 'map.static["' + d + '"]=' + q + v + q : 'map.static["' + d + '"]' );
+            }
+        });
 
-            //获取设置变量
-            code = code.replace( regexp , function (a, b, c, d, e, f, g) {
-                var v = e ? g : null;
-                var q = f ? f : '';
-                if( c==='this' )
-                {
-                    return b + (v ? '__g__.prop.call(this,"' + d + '",' + q + v + q + ')' : '__g__.prop.call(this,"' + d + '")');
+        //判断实例是否属性于某个类
+        code = code.replace(/([\S]*)\s+insanceof\s+([\S]*)/ig, function (a, b, c) {
 
-                }else
-                {
-                    return b + (v ? 'map.static["' + d + '"]=' + q + v + q : 'map.static["' + d + '"]' );
-                }
-            });
+            if (b !== 'this' && checkExtendsClass(module, b).length > 0) {
+                b = torefe(b);
+            }
+            if (c !== 'this' && checkExtendsClass(module, c).length > 0) {
+                c = torefe(c);
+            }
+            return b + ' instanceof ' + c;
+        })
 
-            //判断实例是否属性于某个类
-            code = code.replace(/([\S]*)\s+insanceof\s+([\S]*)/ig, function (a, b, c) {
+        module.current.body.push( code );
 
-                if (b !== 'this' && checkExtendsClass(module, b).length > 0) {
-                    b = torefe(b);
-                }
-                if (c !== 'this' && checkExtendsClass(module, c).length > 0) {
-                    c = torefe(c);
-                }
-                return b + ' instanceof ' + c;
-            })
-
-            module.current.body.push( code );
-        }
-
-    }else if( module.balancer > 2 )
+    }else if( !module.current && module.balancer > 2 && flag)
     {
         throw new Error('[syntax error 2]'+code)
     }
@@ -916,245 +912,6 @@ var showMem = function()
 };
 
 
-
-
-var content = " function doRecursion( propName,strainer, deep )\n\
-{\n\
-    var currentItem={lll:78,'uuu':'kkkk'}\n\
-    ,ret=[]\n\
-    var s = typeof strainer === \"string\" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :\n\
-        (typeof strainer === \"undefined\" + \"sdfsdf\" ? function(){return this.nodeType===1} : strainer);\n\
-\n\
-    this.forEach(function(elem)\n\
-    {\n\
-        if( elem && elem.nodeType )\n\
-        {\n\
-            currentItem=elem;\n\
-            do{\n\
-                currentItem = currentItem[propName];\n\
-                if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );\n\
-            } while (deep && currentItem)\n\
-        }\n\
-    })\n\
-    return ret;\n\
-}";
-
-
-
-function newcontext( obj )
-{
-    return merge({
-        'delimiter':'',
-        'keyword': '',
-        'name': '',
-        'balancer': 0,
-        'closer': false,
-        'children': [],
-        'parent': null,
-        'indexAt': 0
-    }, obj || {} );
-}
-var current=null;
-var rootcontext = newcontext();
-var newline =new RegExp('(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/|\\/\\/|\\?|\\n|\\;|\\:|\\,|\\"|\\\'|\=)','g');
-var delimiter= {
-    '/*':'*/',
-    '//':/\n/,
-    '(':')',
-    '{':'}',
-    '[':']',
-    '=':/[\;\n]+/,
-    '?':/[\;\n]+/,
-    '"':'"',
-    "'":"'"
-}
-
-/**
- * 返回上下文
- * @param tag
- * @returns {}
- */
-function context( tag , str )
-{
-    if( delimiter[ tag ] || !current )
-    {
-        var obj = newcontext();
-        if( delimiter[ tag ] )
-        {
-            obj.name = trim(str);
-            if (/^(function|var)\s+(\w+)$/.exec(obj.name))
-            {
-                obj.keyword = RegExp.$1;
-                obj.name = RegExp.$2;
-            }
-            str='';
-        }
-
-        obj.parent = rootcontext;
-        if( current && current.closer )
-        {
-            obj.parent =  current.parent;
-        }
-
-        obj.parent.children.push( obj );
-        current=obj;
-    }
-    return str;
-}
-
-function end( tag )
-{
-    // var flag = false;
-     //while( current && !flag )
-    // {
-
-
-
-
-         var closer = delimiter[ current.delimiter ] instanceof RegExp ?  delimiter[ current.delimiter ].test( tag ) :  delimiter[ current.delimiter ]===tag;
-         if( closer )
-         {
-             current.closer= closer;
-             current = current.parent;
-             return true;
-         }
-
-     //}
-}
-
-//content = content.replace(/\=\=\=/g,'__#501#__').replace(/\=\=/g,'__#500#__');
-
-//function start(){
-
-    var ret;
-    var pos = 0;
-    while ( (ret = newline.exec(content)) && !global_error ) {
-
-        var val = trim( content.substr(pos, ret.index - pos) );
-        pos += ret.index - pos + 1;
-
-        val = context(ret[0], val);
-
-        current.children.push( val );
-        current.children.push( ret[0] );
-
-        end( ret[0] );
-
-
-        /*  content = content.substr( ret.index+1 );
-
-
-         var newcontext=null;
-         val = val.replace(contextexp, function(a,b,c,d){
-
-         if( c==='function' )
-         {
-         newcontext = context();
-         newcontext.name = d;
-         }
-         return b;
-         })
-
-         container.push( val );
-
-         if( newcontext )
-         {
-         container.push( newcontext );
-         lastContext = current;
-         current = newcontext;
-         container = newcontext.param;
-         }
-
-         var index = delimiter.indexOf(ret[0]);
-         if( index >=0 )
-         {
-         index > 2 ? current.balancer-- : current.balancer++;
-         }
-
-         //上下文参数
-         if( ret[0]===')' && container === current.param )
-         {
-         container = current.content;
-         }
-
-         if( ret[0]==='}' && current.balancer===0 && lastContext )
-         {
-         current=lastContext;
-         container = current.content;
-         }*/
-    }
-
-//}
-
-
-/*
-content = content.split(/\n+/m)
-for ( var i in content )
-{
-    var list = content[i].split(/\;+/m);
-    for ( var b in list )
-    {
-        var val = trim(list[b]);
-
-        console.log( val )
-
-    }
-
-   // start( content[i] );
-    //newcontext( content[i] )
-}
-*/
-
-/*
-
-
-function newcontext( str )
-{
-
-    if( /^(function|var)\s+(\w+)/.exec(str) ) {
-
-        current = {
-            'delimiter': tag,
-            keyword: '',
-            'name': '',
-            'balancer': 0,
-            closer: false,
-            children: [],
-            parent: current,
-            indexAt: current.parent.children.length
-        };
-    }
-}
-*/
-
-
-
-function toString( rootcontext )
-{
-    var str=[];
-    str.push( rootcontext.keyword );
-    str.push( rootcontext.name );
-
-   // console.log(  rootcontext  );
-
-    for ( var i in rootcontext.children )
-    {
-        if( typeof rootcontext.children[i] === "object" )
-        {
-            str.push( toString( rootcontext.children[i] ) );
-
-        }else
-        {
-            str.push(rootcontext.children[i])
-        }
-    }
-    return str.join('');
-}
-
-//console.log( toString( rootcontext ) );
-console.log(  rootcontext.children  );
-//toString( rootcontext.children[3] )
-return;
 
 
 var main='test';
