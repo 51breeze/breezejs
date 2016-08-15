@@ -68,8 +68,8 @@ var delimiter= {
     ':':false,
 }
 
-var close_delimiter=/(\]|\}|\)|\*\/|\;|\n|\'|\")/;
-var start_delimiter=/(\[|\{|\(|\/\*|\'|\"|\=)/;
+var close_delimiter=/(\]|\}|\))/;
+var start_delimiter=/(\[|\{|\()/;
 
 
 /**
@@ -81,33 +81,11 @@ function context( tag , str )
 {
     str = trim(str);
 
-    if( tag==='+' &&  (current.delimiter==='"' || current.delimiter==="'") )
-    {
-         current
-
-    }else if( tag===':')
-    {
-
-
-    }else if( tag===',' && !current.closer && (current.delimiter==='{' || current.delimiter==='[') )
-    {
-       // current = current.parent;
-
-    }
-    //上一个是字符串的域则合并
-    else if( (tag==='"' || tag==="'") && !current.closer && current.delimiter===tag )
-    {
-        return str;
-    }
-
-    //必须开启一个新的上下文域
-    else if( start_delimiter.test(tag) || tag==='=' )
+    if( start_delimiter.test(tag) )
     {
         var obj = newcontext();
         obj.delimiter= tag;
         obj.parent=!current.closer ? current : current.parent;
-
-        //console.log('====', obj.parent.delimiter ,' ====parent====', tag )
 
         //声明函数
         if( tag==='(' && /^function(\s+\w+)?$/.exec( str ) )
@@ -134,6 +112,8 @@ function context( tag , str )
 function end( tag , force )
 {
 
+    console.log('--->', tag)
+
     tag = tag==='' ? '\;' : tag;
 
     if( !current || !close_delimiter.test( tag )  )
@@ -155,11 +135,10 @@ function end( tag , force )
 
     var closer = delimiter[ current.delimiter ] instanceof RegExp ?  delimiter[ current.delimiter ].test( tag ) : delimiter[ current.delimiter ]===tag;
 
-
     if( !closer )
     {
-        //console.log( current );
-       // console.log('=====', tag ,'=====')
+        console.log( current );
+        console.log('=====', tag ,'=====')
         throw new Error('Not the end of the syntax');
     }
 
@@ -168,7 +147,6 @@ function end( tag , force )
     //结束上下文操作
     if( closer )
     {
-        //console.log( current.delimiter );
         current.closer= closer;
         current = current.parent;
     }
@@ -212,30 +190,40 @@ content = " function doRecursion( propName,strainer, deep ){\n\
  }\n\
  }";*/
 
-content = "var s={ccc:'yyyy','bb':'iiii'+'ccccc'}";
+content = "var s={ccc:'yyyy',bb:'iiii'}\
+";
+
+content = "'gggg'";
 
 
 //content = content.replace(/\=\=\=/g,'__#501#__').replace(/\=\=/g,'__#500#__');
 
-var global_error=false;
-var ret;
-var pos = 0;
-var len = content.length;
 
-while ( (ret = newline.exec(content)) && !global_error && pos < len )
+var contents = content.split(/\n/m);
+
+for (var b in contents )
 {
-    var tag = ret[0];
-    var val = trim( content.substr(pos, ret.index - pos) );
-    pos += ret.index - pos + tag.length;
-    val =  context(tag, val);
-    if( val ){
-        current.children.push( val );
+    var content = contents[b];
+    var global_error = false;
+    var ret;
+    var pos = 0;
+    var len = content.length;
+
+    while ((ret = newline.exec(content)) && !global_error && pos < len) {
+        var tag = ret[0];
+        var val = trim(content.substr(pos, ret.index - pos));
+        pos += ret.index - pos + tag.length;
+        val = context(tag, val);
+        if (val) {
+            current.children.push(val);
+        }
+
+        //console.log( current );
+
+        //current.children.push( tag );
+        end(ret[0], len === pos);
     }
 
-    //console.log( current );
-
-    //current.children.push( tag );
-    end( ret[0], len===pos );
 }
 
 
@@ -268,7 +256,7 @@ function toString( rootcontext )
 //toString( rootcontext.children[3] )
 
 //console.log( rootcontext.children[1].children[0].children[1].children[0].children )
-console.log( rootcontext.children[0].children[0].children)
+console.log( rootcontext.children )
 //console.log( rootcontext.children[0] )
 
 //objectToString( rootcontext.children , 'parent')
