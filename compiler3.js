@@ -68,9 +68,8 @@ var delimiter= {
     ':':false,
 }
 
-var close_delimiter=/(\]|\}|\)|\*\/|\;|\n|\'|\")/;
-var start_delimiter=/(\[|\{|\(|\/\*|\'|\"|\=)/;
-
+var close_delimiter=/^(\]|\}|\)|\*\/|\;|\n|\'|\")$/;
+var start_delimiter=/^(\[|\{|\(|\/\*|\'|\"|\=)$/;
 
 /**
  * 返回新的上下文
@@ -81,27 +80,8 @@ function context( tag , str )
 {
     str = trim(str);
 
-    if( tag==='+' &&  (current.delimiter==='"' || current.delimiter==="'") )
-    {
-         current
-
-    }else if( tag===':')
-    {
-
-
-    }else if( tag===',' && !current.closer && (current.delimiter==='{' || current.delimiter==='[') )
-    {
-       // current = current.parent;
-
-    }
-    //上一个是字符串的域则合并
-    else if( (tag==='"' || tag==="'") && !current.closer && current.delimiter===tag )
-    {
-        return str;
-    }
-
     //必须开启一个新的上下文域
-    else if( start_delimiter.test(tag) || tag==='=' )
+    if( start_delimiter.test(tag) || tag==='=' )
     {
         var obj = newcontext();
         obj.delimiter= tag;
@@ -114,14 +94,19 @@ function context( tag , str )
         {
             obj.keyword = 'function';
             obj.name = RegExp.$1 ? RegExp.$1 : null;
-            str='';
+            //str='';
         }
         //声明变量
         else if( /^var\s+(\w+)$/.exec( str ) )
         {
             obj.keyword = 'var';
             obj.name = RegExp.$1;
-            str='';
+            //str='';
+
+        }else if( str==='' )
+        {
+            obj.keyword = 'object';
+            obj.name = null;
         }
         obj.parent.children.push( obj );
         current = obj;
@@ -134,9 +119,9 @@ function context( tag , str )
 function end( tag , force )
 {
 
-    tag = tag==='' ? '\;' : tag;
+   // tag = tag==='' ? '\;' : tag;
 
-    if( !current || !close_delimiter.test( tag )  )
+    if( !current || !current.parent || !close_delimiter.test( tag ) )
     {
        return true;
     }
@@ -152,14 +137,12 @@ function end( tag , force )
         return true;
     }
 
-
     var closer = delimiter[ current.delimiter ] instanceof RegExp ?  delimiter[ current.delimiter ].test( tag ) : delimiter[ current.delimiter ]===tag;
 
-
-    if( !closer )
+    if( !closer && ( tag!==';' && tag!=='\n' ) )
     {
-        //console.log( current );
-       // console.log('=====', tag ,'=====')
+       // console.log( current , current.keyword,current.name,'++++++');
+        console.log('-----=====', tag ,'=====----')
         throw new Error('Not the end of the syntax');
     }
 
@@ -178,7 +161,7 @@ function end( tag , force )
 
 var content = " function doRecursion( propName,strainer, deep )\n\
 {\n\
-    var currentItem={lll:78,\
+    var currentItem={l ll:78,\
     'uuu':'kkkk'\
     }\n\
     ,bbb\
@@ -212,7 +195,7 @@ content = " function doRecursion( propName,strainer, deep ){\n\
  }\n\
  }";*/
 
-content = "var s={ccc:'yyyy','bb':'iiii'+'ccccc'}";
+//content = "var s={ccc:'yyyy','bb':'iiii'+'ccccc'}";
 
 
 //content = content.replace(/\=\=\=/g,'__#501#__').replace(/\=\=/g,'__#500#__');
@@ -228,22 +211,44 @@ while ( (ret = newline.exec(content)) && !global_error && pos < len )
     var val = trim( content.substr(pos, ret.index - pos) );
     pos += ret.index - pos + tag.length;
     val =  context(tag, val);
-    if( val ){
-        current.children.push( val );
+
+    if( current.parent && current.closer )
+    {
+        throw new Error('syntax error end ');
     }
 
-    //console.log( current );
+    if( val ){
 
+        if( current.keyword==='object' )
+        {
+            if( (tag ===':' && /\W+/.test(val)) || ( (tag===',' || tag==='}') && current.children.length%2!==0 )  )
+            {
+                throw new Error('syntax error');
+            }
+
+        }else if( current.delimiter==='(' )
+        {
+            if( /\W+/.test(val) || ( tag===')' && current.children[current.children.length-1]===',' )  )
+            {
+                throw new Error('syntax error');
+            }
+        }
+        current.children.push( val );
+    }
+    current.children.push( tag );
+
+    //console.log( current );
     //current.children.push( tag );
     end( ret[0], len===pos );
 }
 
 
+
 function toString( rootcontext )
 {
     var str=[];
-    str.push( rootcontext.keyword );
-    str.push( rootcontext.name );
+    //str.push( rootcontext.keyword );
+   // str.push( rootcontext.name );
    // str.push( rootcontext.delimiter );
 
 
@@ -263,12 +268,12 @@ function toString( rootcontext )
     return str.join('');
 }
 
-//console.log( toString( rootcontext ) );
+console.log( toString( rootcontext ) );
 //console.log(  rootcontext.children[0].children );
 //toString( rootcontext.children[3] )
 
 //console.log( rootcontext.children[1].children[0].children[1].children[0].children )
-console.log( rootcontext.children[0].children[0].children)
+//console.log( rootcontext.children )
 //console.log( rootcontext.children[0] )
 
 //objectToString( rootcontext.children , 'parent')
