@@ -39,19 +39,20 @@ var id=0
 function newcontext()
 {
     return {
-        'delimiter':'root',
+        'delimiter':'',
         'keyword': '',
-        'name': '',
+        'name': null,
         'closer': false,
         'children': [],
         'parent': null,
+        'balance':0,
         id:id++
     };
 }
 
 var current=newcontext();
 var rootcontext = current;
-var newline =new RegExp('(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/|\\/\\/|\\?|\\n|\\;|\\:|\\,|\\"|\\\'|\\!?\\+?\\=+|\\.|\\+|\\|+|\\&+|\\<+\\=?|\\>+\\=?|\\!+|$)','g');
+var newline =new RegExp('(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/|\\/\\/|\\?|\\n|\\;|\\:|\\,|\\"|\\\'|\\!?\\+?\\=+|\\+|\\|+|\\&+|\\<+\\=?|\\>+\\=?|\\!+|$)','g');
 var delimiter= {
     '/*':'*/',
     '//':/\n/,
@@ -80,32 +81,71 @@ function context( tag , str )
 {
     str = trim(str);
 
-    //必须开启一个新的上下文域
-    if( start_delimiter.test(tag) || tag==='=' )
+    //必须开启一个新的上下文
+    if( start_delimiter.test(tag) )
     {
+        if( (tag==='"' || tag==="'") && current.keyword==='string' )
+        {
+            return str;
+        }
+
         var obj = newcontext();
         obj.delimiter= tag;
         obj.parent=!current.closer ? current : current.parent;
+        obj.balance++;
 
-        //console.log('====', obj.parent.delimiter ,' ====parent====', tag )
+        if( obj.parent.closer && obj.parent.parent )
+        {
+            throw new Error('syntax error end ');
+        }
+
+        //console.log('====', obj.parent.delimiter ,'====parent====', tag )
+        //return Breeze.querySelector()
+
+       // if( tag==='=') console.log('============',str,'================' )
+
+
+        //console.log( str  )
 
         //声明函数
-        if( tag==='(' && /^function(\s+\w+)?$/.exec( str ) )
+        if( tag==='(' && str )
         {
-            obj.keyword = 'function';
-            obj.name = RegExp.$1 ? RegExp.$1 : null;
-            //str='';
+            if( /^(\w+)(\s+(\w+))?$/.exec( str ) )
+            {
+                obj.keyword = RegExp.$1;
+                obj.name = RegExp.$3 ? RegExp.$3 : null;
+
+            }else if( /^((\w+[\.])+?\w+)$/.exec( str ) )
+            {
+                obj.keyword = 'function';
+                obj.name = RegExp.$1;
+            }else
+            {
+                throw new Error('syntax error 6');
+            }
+            str='';
         }
         //声明变量
-        else if( /^var\s+(\w+)$/.exec( str ) )
+        else if( tag==='=' && /^(var\s+)?(\w+)$/.exec( str ) )
         {
+           // console.log('+++++',str,'+++++', current.delimiter , current.keyword, current.name , current.id )
             obj.keyword = 'var';
             obj.name = RegExp.$1;
-            //str='';
+            str='';
 
-        }else if( str==='' )
+        }else if(  tag==='"' || tag==="'" )
+        {
+            obj.keyword = 'string';
+            obj.name = null;
+
+        }else if( str==='' && tag==='{' )
         {
             obj.keyword = 'object';
+            var list = current.children.length>0 ? current.children[ current.children.length-1 ] : null;
+            if( list && list.keyword ==='function' )
+            {
+                obj.keyword = 'function';
+            }
             obj.name = null;
         }
         obj.parent.children.push( obj );
@@ -119,19 +159,20 @@ function context( tag , str )
 function end( tag , force )
 {
 
-   // tag = tag==='' ? '\;' : tag;
-
     if( !current || !current.parent || !close_delimiter.test( tag ) )
     {
        return true;
     }
 
-    if( (tag === "'" || tag === '"') && current.children.length<1 )
+    if( (tag === "'" || tag === '"') && current.balance<2 )
     {
+        current.balance++;
         return true;
     }
 
-    //对象中的换行符跳过
+    //对象中的换行符跳过， 不结束对象
+    //{name:123,\n
+    //cccc:456}
     if( tag==='\n' && (current.delimiter==='{' || current.delimiter==='[' ) )
     {
         return true;
@@ -139,10 +180,22 @@ function end( tag , force )
 
     var closer = delimiter[ current.delimiter ] instanceof RegExp ?  delimiter[ current.delimiter ].test( tag ) : delimiter[ current.delimiter ]===tag;
 
-    if( !closer && ( tag!==';' && tag!=='\n' ) )
+    //如果当前是一个块级结束定界符，并且当前上下文不是一个块级，则结束当前上下文。并且重做一个结束的操作。
+    //function(){ var ccc=123 }
+
+    if( !closer && /\}|\)|\]/.test( tag ) && !/\{|\(|\[/.test(current.delimiter) )
+    {
+        current.closer= closer;
+        current = current.parent;
+        console.log('-----=====', current.delimiter ,'=====----' , current.parent.children )
+        end( tag );
+    }
+
+    //console.log('-----=====', tag ,'=====----' )
+    if( !closer /*&& tag!==';' && tag!=='\n'*/ )
     {
        // console.log( current , current.keyword,current.name,'++++++');
-        console.log('-----=====', tag ,'=====----')
+        console.log('-----=====', tag ,'=====----' , current )
         throw new Error('Not the end of the syntax');
     }
 
@@ -155,13 +208,43 @@ function end( tag , force )
         current.closer= closer;
         current = current.parent;
     }
+
+    //结尾
+    if( force && !current.closer )
+    {
+        end( ';' );
+    }
     return closer;
 }
 
 
+function checkSyntax( val , tag )
+{
+    if( current.delimiter==='{' )
+    {
+        if( (tag ===':' && /\W+/.test(val)) || ( (tag===',' || tag==='}') && current.children.length%2!==0 )  )
+        {
+            console.log( val, tag, current.children.length ,  current.children )
+            throw new Error('syntax error 1');
+        }
+
+    }else if( current.delimiter==='(' )
+    {
+        var tmp = val.replace(/^(return|typeof)\s*/,'');
+        if( /[^\w\.]+/.test(tmp) || ( tag===')' && !( current.children[current.children.length-1]===',' ||  current.children[current.children.length-1]===':' ) ) )
+        {
+            console.log( val, tag , current)
+            throw new Error('syntax error 2');
+        }
+    }
+}
+
+
+
+
 var content = " function doRecursion( propName,strainer, deep )\n\
 {\n\
-    var currentItem={l ll:78,\
+    var currentItem={lll:78,\
     'uuu':'kkkk'\
     }\n\
     ,bbb\
@@ -183,21 +266,16 @@ var content = " function doRecursion( propName,strainer, deep )\n\
     })\n\
     return ret;\n\
 }";
-/*
+
 content = " function doRecursion( propName,strainer, deep ){\n\
- var s = function(\
- pp,\
- ccc\
- ){\
-    if(ccc==='9999'){\
+    this.ccc.bb(ccc==='9999'){\
        this.cccc=9999\
     }\
- }\n\
- }";*/
+ }";
+
+
 
 //content = "var s={ccc:'yyyy','bb':'iiii'+'ccccc'}";
-
-
 //content = content.replace(/\=\=\=/g,'__#501#__').replace(/\=\=/g,'__#500#__');
 
 var global_error=false;
@@ -210,36 +288,31 @@ while ( (ret = newline.exec(content)) && !global_error && pos < len )
     var tag = ret[0];
     var val = trim( content.substr(pos, ret.index - pos) );
     pos += ret.index - pos + tag.length;
+
+    console.log( tag ,'=======');
+
     val =  context(tag, val);
 
     if( current.parent && current.closer )
     {
-        throw new Error('syntax error end ');
+        //throw new Error('syntax error end ');
     }
 
     if( val ){
 
-        if( current.keyword==='object' )
-        {
-            if( (tag ===':' && /\W+/.test(val)) || ( (tag===',' || tag==='}') && current.children.length%2!==0 )  )
-            {
-                throw new Error('syntax error');
-            }
 
-        }else if( current.delimiter==='(' )
-        {
-            if( /\W+/.test(val) || ( tag===')' && current.children[current.children.length-1]===',' )  )
-            {
-                throw new Error('syntax error');
-            }
-        }
         current.children.push( val );
     }
-    current.children.push( tag );
+
+    if( !/^(\(|\{|\[|\]|\}|\)|\=)$/.test( tag ) )
+    {
+        current.children.push(tag);
+    }
 
     //console.log( current );
     //current.children.push( tag );
-    end( ret[0], len===pos );
+    end( ret[0] , len===pos );
+
 }
 
 
@@ -268,13 +341,13 @@ function toString( rootcontext )
     return str.join('');
 }
 
-console.log( toString( rootcontext ) );
+//console.log( toString( rootcontext ) );
 //console.log(  rootcontext.children[0].children );
 //toString( rootcontext.children[3] )
 
 //console.log( rootcontext.children[1].children[0].children[1].children[0].children )
 //console.log( rootcontext.children )
-//console.log( rootcontext.children[0] )
+console.log( rootcontext.children[1].children )
 
 //objectToString( rootcontext.children , 'parent')
 
