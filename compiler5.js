@@ -102,7 +102,7 @@ function create_object( context, tag , last_object )
     if( /\{|\[/.test(tag) )
     {
         var parent = is_object( last_object ) ? last_object : null;
-        last_object={name:tag==='{' ? 'object' : 'array',content:[], closer:false , parent: parent && !parent.closer ? parent : null }
+        last_object={type:tag==='{' ? 'object' : 'array',content:[], closer:false , parent: parent && !parent.closer ? parent : null }
         var obj = (last_object.parent || context)
         obj.content.push( last_object );
 
@@ -119,34 +119,93 @@ function create_object( context, tag , last_object )
 
 function is_object( last_object )
 {
-    return last_object && (last_object.name==='object' || last_object.name==='array');
+    return last_object && (last_object.type==='object' || last_object.type==='array');
 }
 
 
 var last_object;
+var last_keyword;
+var test_contents=[];
 
+/**
+ * 添加内容并验证语法
+ * @param context
+ * @param val
+ * @param tag
+ */
 function appendAndCheckSyntax(context, val , tag )
 {
+    var body= context;
 
+    //根据当前的定界符创建对象
     last_object = create_object(context, tag, last_object );
-    var check_object=null;
-    if( last_object )
-    {
-        if(val)last_object.content.push( val );
-        last_object.content.push( tag );
+    if( last_object )body = last_object;
 
-        //如果当前对象关闭则返回上一级对象
-        if( last_object.closer ){
-            check_object = last_object;
-            last_object=last_object.parent;
+    //当前语法的关键词
+    var keyword= val && /^(var|if|else\s+if|do|while|switch|try|catch)(\s+|$)/.exec( val ) ? RegExp.$1 : last_keyword;
+    if(val )test_contents.push( val );
+
+    if( body.type ==='array' )
+    {
+        if( tag===',' || tag===']' )
+        {
+            var str = test_contents.join('').replace(/\n+/,'');
+
+            if( !/^([\'\"])?([^\1]*)\1$/.exec( str ) )
+            {
+                throw new Error('invalid value');
+            }
+
+            if( !RegExp.$1 && !/^\d+$/.test(RegExp.$2) && ( /\W/.test(RegExp.$2) || context.defvar.indexOf( RegExp.$2 )<0 ) )
+            {
+                throw new Error('undefined value');
+            }
+            test_contents=[];
         }
 
-    }else
+    }else if( body.type ==='object' )
     {
-        if(val)context.content.push( val );
-         context.content.push( tag );
+        if( tag===',' || tag==='}' )
+        {
+            var str = test_contents.join('').replace(/\n+/,'');
+            if( !/^\w\:([\'\"])?([^\1]*)\1$/.exec( str ) )
+            {
+                throw new Error('syntax error for object key')
+            }
+            if( !RegExp.$1 && !/^\d+$/.test(RegExp.$2) && ( /\W/.test(RegExp.$2) || context.defvar.indexOf( RegExp.$2 )<0 ) )
+            {
+                throw new Error('undefined value');
+            }
+            test_contents=[];
+        }
+
+    }else if (keyword === 'var')
+    {
+        val = val.replace(/^var\s*/, '');
+        if (/\W/.test(val) || val === 'var' || !/^[\n\;\,\=\'\"]$/.test(tag) ) {
+            console.log(tag, context.content, context.content.length - 1)
+            throw new Error('invalid variable')
+        }
+
+        test_contents=[];
     }
 
+    //if( tag !=='[' )test_contents.push( tag );
+
+    //写入内容与定界符
+    if(val){
+        body.content.push( val );
+    }
+    body.content.push( tag );
+
+    //记录关键词
+    last_keyword = keyword;
+
+    //如果当前对象关闭则返回上一级对象
+    if( last_object && last_object.closer )
+    {
+        last_object=last_object.parent;
+    }
 }
 
 
@@ -178,17 +237,12 @@ var content = " function doRecursion( propName,strainer, deep )\n\
 }";
 
 content = " function doRecursion( propName,strainer, deep ){\n\
-    var ccc=function(){\
-        var cccc='ooooo'\
-    }\n\
-   var kkk={jkkk:'mmm'}\
-   var rrrr={fff:'mmm'}\
-   var kkrrrrk={rrr:'mmm',{jjjj:123}}\
- }";
-
-
-content = " function doRecursion( propName,strainer, deep ){\n\
-   var kkrrrrk={rrr:'mmm',kkk:{jjjj:123,'mmm':'llll'}, bbb:[1,2,3]}\
+   var kkk=[12,tttt]\
+   , rrrr=123\n\
+   ,yyy,\n\
+   qqqq='7777'\n\
+   var uu,ccc\n\
+   uuu=777;\
  }";
 
 
@@ -256,6 +310,6 @@ function toString( rootcontext )
 }
 
 
-console.log( rootcontext.content[0].content[3].content[13] )
+console.log( rootcontext.content[0] )
 
 
