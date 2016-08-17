@@ -17,6 +17,8 @@ function newcontext()
         'content': [],
         'parent': null,
         'defvar':[],
+        'start':false,
+        'end':false,
         'balance':[],
     };
 }
@@ -25,7 +27,7 @@ var current=newcontext();
 var rootcontext = current;
 var newline =new RegExp('(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/|\\/\\/|\\?|\\n|\\;|\\:|\\,|\\"|\\\'|\\!?\\+?\\=+|\\+|\\|+|\\&+|\\<+\\=?|\\>+\\=?|\\!+|$)','g');
 var last_delimiter;
-var end_delimiter={
+var map_delimiter={
     '(':')',
     '{':'}',
     '[':']',
@@ -60,7 +62,7 @@ function context( delimiter , str )
     }
     if ( increase===true || /\(|\{|\[/.test(delimiter)  )
     {
-        current.balance.push( end_delimiter[delimiter] );
+        current.balance.push( map_delimiter[delimiter] );
 
     } else if ( increase===false || /\)|\}|\]/.test(delimiter))
     {
@@ -70,6 +72,17 @@ function context( delimiter , str )
             console.log( last, delimiter )
             throw new Error('Not the end of the syntax')
         }
+        current.end = current.closer && current.balance.length===0;
+    }
+
+    //上下文参数
+    if( !current.closer )
+    {
+        if(str)current.param.push( str );
+        if( current.balance.length===0 )
+        {
+            current.closer=true;
+        }
     }
 
     //最近一次的定界符
@@ -77,37 +90,66 @@ function context( delimiter , str )
     return str;
 }
 
-var lastSyntax={};
-var lastTag;
-function checkSyntax( context, val , tag )
-{
-    if( !val )return true;
-    if( /^var/.test( val ) || ( (tag===',' || tag==='=' || tag===';' || tag==='\n') && lastSyntax.name==='var' )  )
-    {
-        if( lastSyntax.name !=='var' )
-        {
-            lastSyntax={name:'var',end:false, content:{} };
-        }
-        val = val.replace(/^var\s*/,'');
-        if( val )
-        {
-            if (/\W/.test(val)) {
-                throw new Error('invalid variable')
-            }
-            if( lastTag !== '=')
-            {
-                lastSyntax.content[val] = null;
-                lastSyntax.lastname = val;
 
-            }else if( lastTag === '=' )
-            {
-                lastSyntax.content[ lastSyntax.lastname ] = val;
-            }
-            context.defvar.push(val);
+
+/**
+ * 根据对象定界符返回新的对象
+ * @param tag
+ * @returns {}
+ */
+function create_object( context, tag , last_object )
+{
+    if( /\{|\[/.test(tag) )
+    {
+        var parent = is_object( last_object ) ? last_object : null;
+        last_object={name:tag==='{' ? 'object' : 'array',content:[], closer:false , parent: parent && !parent.closer ? parent : null }
+        var obj = (last_object.parent || context)
+        obj.content.push( last_object );
+
+    }else if( /\}|\]/.test(tag) )
+    {
+        if( typeof last_object !== "object" || last_object.closer )
+        {
+            throw new Error('invalid context');
         }
+        last_object.closer=true;
     }
-    lastTag=tag;
+    return last_object;
 }
+
+function is_object( last_object )
+{
+    return last_object && (last_object.name==='object' || last_object.name==='array');
+}
+
+
+var last_object;
+
+function appendAndCheckSyntax(context, val , tag )
+{
+
+    last_object = create_object(context, tag, last_object );
+    var check_object=null;
+    if( last_object )
+    {
+        if(val)last_object.content.push( val );
+        last_object.content.push( tag );
+
+        //如果当前对象关闭则返回上一级对象
+        if( last_object.closer ){
+            check_object = last_object;
+            last_object=last_object.parent;
+        }
+
+    }else
+    {
+        if(val)context.content.push( val );
+         context.content.push( tag );
+    }
+
+}
+
+
 
 
 var content = " function doRecursion( propName,strainer, deep )\n\
@@ -115,8 +157,8 @@ var content = " function doRecursion( propName,strainer, deep )\n\
     var currentItem={lll:78,\
     'uuu':'kkkk'\
     }\n\
-    ,bbb\
-    ,ret=[]\n\
+    ,bbb,\
+    ret=[]\n\
     var \n\
     s = typeof strainer === \"string\" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :\n\
         (typeof strainer === \"undefined\" + \"sdfsdf\" ? function(){return this.nodeType===1} : strainer);\n\
@@ -139,9 +181,14 @@ content = " function doRecursion( propName,strainer, deep ){\n\
     var ccc=function(){\
         var cccc='ooooo'\
     }\n\
-    this.ccc.bb(ccc==='9999'){\
-       this.cccc=9999\
-    }\
+   var kkk={jkkk:'mmm'}\
+   var rrrr={fff:'mmm'}\
+   var kkrrrrk={rrr:'mmm',{jjjj:123}}\
+ }";
+
+
+content = " function doRecursion( propName,strainer, deep ){\n\
+   var kkrrrrk={rrr:'mmm',kkk:{jjjj:123,'mmm':'llll'}, bbb:[1,2,3]}\
  }";
 
 
@@ -161,27 +208,24 @@ while ( (ret = newline.exec(content)) && !global_error && pos < len )
     pos += ret.index - pos + tag.length;
     val = context(tag, val);
 
-    //上下文参数
-    if( !current.closer )
+    if( current.start && !current.end )
     {
-        if(val)current.param.push( val );
-        if( current.balance.length===0 )
-        {
-            current.closer=true;
-        }
-    }
-    //正文
-    else if( current.closer )
-    {
-        checkSyntax(current, val, tag);
-        if( val )current.content.push( val );
-        current.content.push( tag );
+        //是否需要标记当前的定界符, 通常为'\n'或';'
+        appendAndCheckSyntax(current, val, tag);
+       // if(val) current.content.push( val );
+       // current.content.push( tag );
     }
 
-    //当前上下文结束，并切换到父上下文
-    if( tag==='}' && current.closer && current.balance.length===0 )
+    //开始写入正文
+    if( !current.start && tag==='{' )
     {
-        current = current.parent;
+        current.start=true;
+    }
+
+    //结束写入正文，并切换到父上下文
+    if( tag==='}' && current.closer && current.end )
+    {
+        current = current.parent || rootcontext;
     }
 }
 
@@ -212,6 +256,6 @@ function toString( rootcontext )
 }
 
 
-console.log( rootcontext.content )
+console.log( rootcontext.content[0].content[3].content[13] )
 
 
