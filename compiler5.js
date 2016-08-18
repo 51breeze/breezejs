@@ -123,8 +123,50 @@ function is_object( last_object )
 }
 
 
+function checkVariableName( val )
+{
+    if( val === 'var' || !/^\w+[\d\w]+$/.test(val) )
+    {
+        throw new Error('invalid variable name for '+val );
+    }
+}
+
+function checkPropName( val )
+{
+    if( !/^\w+[\d\w]+$/.test(val) )
+    {
+        throw new Error('invalid prop name for '+val );
+    }
+}
+
+function checkRefValue(context, val)
+{
+    checkPropName(val);
+    if( context.defvar.indexOf(val) < 0 && !/^\d+$/.test(val) )
+    {
+        throw new Error('undefined property name for '+val );
+    }
+}
+
+
+function checkDelimiter(allow, tag)
+{
+    if( !allow.test( tag ) )
+    {
+        throw new Error('invalid delimiter the "'+ tag+'"' )
+    }
+}
+
+
+
+
+
+
+
+
 var last_object;
 var last_keyword;
+var last_tag;
 var test_contents=[];
 
 /**
@@ -143,54 +185,116 @@ function appendAndCheckSyntax(context, val , tag )
 
     //当前语法的关键词
     var keyword= val && /^(var|if|else\s+if|do|while|switch|try|catch)(\s+|$)/.exec( val ) ? RegExp.$1 : last_keyword;
+
     if(val )test_contents.push( val );
+    test_contents.push( tag );
 
-    if( body.type ==='array' )
+    var _tag = tag;
+
+    if( tag==='&' || tag==='&&' || tag==='|' || tag==='||' || tag==='<' || tag==='<='|| tag==='>' ||
+        tag==='>=' || tag==='!=' || tag==='!==' || tag==='===' || tag==='==' || tag==='?' )
     {
-        if( tag===',' || tag===']' )
+        if( val )
         {
-            var str = test_contents.join('').replace(/\n+/,'');
+            console.log(last_tag, val , tag )
+            checkRefValue(context, val);
+        }
 
-            if( !/^([\'\"])?([^\1]*)\1$/.exec( str ) )
+    }else if( body.type ==='array' )
+    {
+        //是否字符串类型的值
+        var is_str = /[\'\"]/.test(tag);
+        if( val )
+        {
+            //引用的属性值必须在上下文中定义
+            if( !is_str )
             {
-                throw new Error('invalid value');
+               checkRefValue(context, val)
             }
-
-            if( !RegExp.$1 && !/^\d+$/.test(RegExp.$2) && ( /\W/.test(RegExp.$2) || context.defvar.indexOf( RegExp.$2 )<0 ) )
-            {
-                throw new Error('undefined value');
-            }
-            test_contents=[];
+        }
+        //不能与上一次相同的标签。
+        else if( (!is_str && last_tag === tag && tag !=='\n') || ( tag===']' && last_tag===',') )
+        {
+            console.log(last_tag, val , tag )
+            throw new Error('invalid array')
         }
 
     }else if( body.type ==='object' )
     {
-        if( tag===',' || tag==='}' )
+        //是否字符串类型的值
+        var is_str = /[\'\"]/.test(tag);
+
+        if( val )
         {
-            var str = test_contents.join('').replace(/\n+/,'');
-            if( !/^\w\:([\'\"])?([^\1]*)\1$/.exec( str ) )
+            //是否为变量名
+            var is_key = tag === ':' ;
+
+            if( is_key )
             {
-                throw new Error('syntax error for object key')
+                checkPropName( val );
             }
-            if( !RegExp.$1 && !/^\d+$/.test(RegExp.$2) && ( /\W/.test(RegExp.$2) || context.defvar.indexOf( RegExp.$2 )<0 ) )
+            //引用的属性值必须在上下文中定义
+            else if ( last_tag ===':' && !is_str )
             {
-                throw new Error('undefined value');
+                checkRefValue(context, val );
             }
-            test_contents=[];
+
+        }
+        //不能与上一次相同的标签。
+        else if( (!is_str && last_tag === tag && tag !=='\n') || ( tag==='}' && last_tag===',') )
+        {
+            console.log(last_tag, val , tag )
+            throw new Error('invalid object')
         }
 
-    }else if (keyword === 'var')
+
+    }else if (keyword === 'var' )
     {
-        val = val.replace(/^var\s*/, '');
-        if (/\W/.test(val) || val === 'var' || !/^[\n\;\,\=\'\"]$/.test(tag) ) {
-            console.log(tag, context.content, context.content.length - 1)
-            throw new Error('invalid variable')
+
+        //是否字符串类型的值
+        var is_str = /[\'\"]/.test(tag);
+
+        checkDelimiter( /^[\n\;\,\=\'\"\+]$/, tag );
+
+        if( is_str && last_tag==='=' )
+        {
+            _tag='=';
         }
 
-        test_contents=[];
+        if( val )
+        {
+            val = val.replace(/^var\s*/, '');
+
+            //是否为变量名
+            var is_key = last_tag !== '=' && !is_str;
+
+            //变量名只能是以下划线字母打头和数字组成的字符并且不能为var, 并且只能出现在指定的定界符之前
+            if( is_key )
+            {
+                checkVariableName( val );
+                context.defvar.push( val );
+            }
+            //变量的赋值必须出现在等号之后
+            else if( !is_key && last_tag !=='=' )
+            {
+                console.log(last_tag, val , tag )
+                throw new Error('variable assignment must appear after the "=" ')
+            }
+            //引用的属性值必须在上下文中定义
+            else if ( !is_str && !is_key )
+            {
+               checkRefValue(context, val );
+            }
+
+        }
+        //不能与上一次相同的标签。
+        else if( !is_str && last_tag === tag && tag !=='\n' )
+        {
+            console.log(last_tag, val , tag )
+            throw new Error('invalid object')
+        }
     }
 
-    //if( tag !=='[' )test_contents.push( tag );
 
     //写入内容与定界符
     if(val){
@@ -200,6 +304,7 @@ function appendAndCheckSyntax(context, val , tag )
 
     //记录关键词
     last_keyword = keyword;
+    last_tag = _tag;
 
     //如果当前对象关闭则返回上一级对象
     if( last_object && last_object.closer )
@@ -237,10 +342,10 @@ var content = " function doRecursion( propName,strainer, deep )\n\
 }";
 
 content = " function doRecursion( propName,strainer, deep ){\n\
-   var kkk=[12,tttt]\
-   , rrrr=123\n\
-   ,yyy,\n\
-   qqqq='7777'\n\
+   var kkk=[12,'uuu' ]\
+   , rrrr='123'\n\
+   ,yyy={jjj:rrrr,oo:[]},\n\
+   qqqq=kkk\n\
    var uu,ccc\n\
    uuu=777;\
  }";
