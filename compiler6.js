@@ -15,7 +15,8 @@ function newcontext()
         'content': [],
         'closer':false,
         'balance':[],
-        'parent': null,
+        'parent': current ?  current.closer || current.name==='var' ? current.parent : current : null,
+        'level':1
     };
 }
 
@@ -32,38 +33,32 @@ var map_delimiter={
 }
 
 
+
+
 /**
  * 返回新的上下文
  * @param tag
  * @returns {}
  */
-function context( delimiter , str )
+function context( delimiter , str  )
 {
     //生成一个新的上下文
     if( str && /^function(\s+\w+)?$/.exec( str ) )
     {
         var obj = newcontext();
         obj.name=RegExp.$1;
-        obj.parent=current;
         obj.defvar=[];
-        obj.balance=[];
         obj.parent.content.push( obj );
+        obj.level = obj.parent.level+1;
         str='';
         current = obj;
 
     }else if( str && /^(var|if|else\s+if|do|while|switch|case|default|try|catch)(\s+|$)/.exec( str ) )
     {
-        if( current.name==='var' && !current.closer )
-        {
-            current.closer=true;
-        }
-
         var obj = newcontext();
         obj.name=RegExp.$1;
-        obj.parent= current;
-        obj.balance = obj.parent.balance;
         obj.parent.content.push( obj );
-
+        obj.level = obj.parent.level+1;
         current = obj;
         str=obj.name==='var' ? str.replace(/^var\s*/,'') : '';
         if( (obj.name ==='case' || obj.name ==='default') &&  obj.parent.name!=='switch')
@@ -75,42 +70,49 @@ function context( delimiter , str )
     {
         var obj = newcontext();
         obj.name= delimiter==='{' ? 'object' : 'array';
-        obj.parent= current;
-        obj.balance = obj.parent.balance;
         obj.parent.content.push( obj );
+        obj.level = obj.parent.level+1;
+        current = obj;
+
+    }else if( last_delimiter !==delimiter && /[\'\"]/.test(delimiter) )
+    {
+        var obj = newcontext();
+        obj.name= delimiter;
+        obj.parent= current.closer ? current.parent : current;
+        obj.parent.content.push( obj );
+        obj.level = obj.parent.level+1;
         current = obj;
     }
+    symmetrical( current, delimiter );
+    last_delimiter = delimiter;
+    return str;
+}
 
+
+//对称标签
+function symmetrical( context, delimiter )
+{
     //平衡器
     var increase=null;
     if( delimiter ==='"' || delimiter==="'")
     {
         increase = last_delimiter===delimiter ? false : true;
     }
+
     if ( increase===true || /\(|\{|\[/.test(delimiter)  )
     {
-        current.balance.push( map_delimiter[delimiter] );
-        last_delimiter = delimiter;
+        context.balance.push( map_delimiter[delimiter] );
 
     } else if ( increase===false || /\)|\}|\]/.test(delimiter))
     {
-        if( delimiter ==='}' && current.name==='var' && !current.closer )
-        {
-            current.closer=true;
-            current = current.parent || rootcontext;
-            return context( delimiter );
-        }
-
-        var last = current.balance.pop();
+        var last = context.balance.pop();
         if( last !== delimiter )
         {
             console.log( last, delimiter, str , current.name )
             throw new Error('Not the end of the delimiter');
         }
-        current.closer = current.balance.length===0;
-        last_delimiter = delimiter;
+        context.closer = context.balance.length===0;
     }
-    return str;
 }
 
 
@@ -365,8 +367,11 @@ var content = " function doRecursion( propName,strainer, deep )\n\
 }";
 
 content = " function doRecursion( propName,strainer, deep ){\n\
-   if(33){}\
-   var mmm= 455;\
+   if(33){\
+   var mmm= '455'+\n\
+   '222',\
+    \nccc;\
+   }\
  }";
 
 
@@ -374,30 +379,83 @@ content = " function doRecursion( propName,strainer, deep ){\n\
 //content = "var s={ccc:'yyyy','bb':'iiii'+'ccccc'}";
 //content = content.replace(/\=\=\=/g,'__#501#__').replace(/\=\=/g,'__#500#__');
 
-var global_error=false;
-var ret;
-var pos = 0;
-var len = content.length;
 
-while ( (ret = newline.exec(content)) && !global_error && pos < len )
+function start( content )
 {
-    var tag = ret[0];
-    var val = trim( content.substr(pos, ret.index - pos) );
-    pos += ret.index - pos + tag.length;
-    val = context(tag, val);
 
-    //是否需要标记当前的定界符, 通常为'\n'或';'
-    // appendAndCheckSyntax(current, val, tag);
+    var global_error = false;
+    var ret;
+    var pos = 0;
+    var len = content.length;
 
-    if (val) current.content.push(val);
-    if( !/[\(\{\[\]\}\)]/.test(tag) )current.content.push(tag);
-
-    //结束写入正文，并切换到父上下文
-    if( current.closer )
+    while ((ret = newline.exec(content)) && !global_error && pos < len)
     {
-        current = current.parent || rootcontext;
+        var tag = ret[0];
+        var val = trim(content.substr(pos, ret.index - pos));
+        pos += ret.index - pos + tag.length;
+        parsecode( tag , val , pos===len );
+    }
+
+    if( !current.closer && current !== rootcontext )
+    {
+        console.log(current.level)
+        throw new Error('Not the end of the delimiter 2');
     }
 }
+
+function variableItem( delimiter, tag )
+{
+     if( (tag===';' || tag ===',') && current.name==='var' )
+     {
+         if( !(current.items instanceof Array) )
+         {
+             current.items = [];
+             current.indexAt=0;
+         }
+         var arr = current.content.slice( current.indexAt );
+         var item={name:arr[0],value:arr[2] ? arr[2] : undefined };
+         current.items.push( item );
+         current.indexAt+=arr.length;
+         tag='';
+     }
+}
+
+
+function parsecode( delimiter , val , end )
+{
+
+    if( delimiter ==='}' && current.name==='var' && !current.closer )
+    {
+        if( val )
+        {
+            current.content.push(val);
+            val='';
+        }
+        current.closer=true;
+        current = current.parent;
+        return parsecode( delimiter, val );
+
+    } else if ( delimiter !== '\n')
+    {
+        val = context(delimiter, val);
+    }
+
+    if ( !current.closer )
+    {
+
+
+
+        if (val) current.content.push(val);
+        if (delimiter && !/[\(\{\[\'\"\n\]\}\)]/.test(delimiter) )current.content.push(delimiter);
+    }
+
+    //结束写入正文，并切换到父上下文
+    if (current.closer || end )
+    {
+        current = current.parent;
+    }
+}
+
 
 
 
@@ -411,21 +469,24 @@ function toString( rootcontext )
 
     // console.log(  rootcontext  );
 
-    for ( var i in rootcontext.children )
+    for ( var i in rootcontext.content )
     {
-        if( typeof rootcontext.children[i] === "object" )
+        if( typeof rootcontext.content[i] === "object" )
         {
-            str.push( toString( rootcontext.children[i] ) );
+            str.push( toString( rootcontext.content[i] ) );
 
         }else
         {
-            str.push( rootcontext.children[i] )
+            str.push( rootcontext.content[i] )
         }
     }
     return str.join('');
 }
 
+start( content );
 
-console.log( rootcontext.content[1].content)
+//console.log( toString( rootcontext ) )
+
+console.log( rootcontext.content )
 
 
