@@ -80,7 +80,7 @@ function newcontext( context, name, keyword )
  */
 function balance(context, delimiter )
 {
-    if( /[\(\{\[\'\"\]\}\)]/.test(delimiter) )
+    if( !context.closer && /[\(\{\[\'\"\]\}\)]/.test(delimiter) )
     {
         var tag = context.balance.pop();
         if ( delimiter !== tag )
@@ -163,7 +163,7 @@ function context( context, val , tag , queues)
             return true;
         })
 
-    }else if( val && /^(var|if|else\s+if|do|while|switch|case|default|try|catch)(\s+|$)/.exec( val ) )
+    }else if( val && /^(var|if|else\s+if|else|do|while|switch|case|default|try|catch)(\s+\w+|$)/.exec( val ) )
     {
         obj = newcontext(context, RegExp.$1, 'condition' );
         if( (obj.name ==='case' || obj.name ==='default') &&  obj.parent.name!=='switch')
@@ -171,9 +171,21 @@ function context( context, val , tag , queues)
             throw new SyntaxError('The keyword "'+obj.name+'" must appear in the switch');
         }
 
-        if( obj.name==='var')
+        if( obj.name==='else' || obj.name==='case' || obj.name==='default' )
         {
-            //如果上一个变量没有闭
+            obj.closer=true;
+            if ( (obj.name === 'case' || obj.name === 'default') && tag !==':' )
+            {
+                queues.after.push(function (val, tag) {
+                    if (tag === '\n' || tag==='"' || tag==="'")return false;
+                    if ( tag!==':' )throw new SyntaxError('Missing delimiter for ":"');
+                    return true;
+                });
+            }
+
+        }else if( obj.name==='var')
+        {
+            //如果上一个变量没有关闭
             if( context.name==='var' && !context.closer )
             {
                 balance(context, ';' );
@@ -199,6 +211,15 @@ function context( context, val , tag , queues)
                 if( !obj.closer )return false;
                 if(obj.content.length<1)throw new SyntaxError('At least one parameter in "while" ');
                 return true;
+            });
+
+        }else if( obj.name==='else if' || obj.name==='if' || obj.name==='else')
+        {
+            queues.after.push(function(val, tag)
+            {
+                if( !obj.closer || tag ==='\n' )return false;
+                if( obj.closer && ( tag === '{' || val || tag===';' ) ) return true;
+                throw new SyntaxError('invalid "'+obj.name+'"');
             });
         }
         obj.parent.content.push( obj );
@@ -298,7 +319,8 @@ function start( content )
              }
 
              //写入对应的定界符
-             if( !/[\(\{\[\]\}\)\n]/.test(tag) )current.content.push( tag );
+             if( !/[\(\{\[\]\}\)\n]/.test(tag) )
+                 current.content.push( tag );
 
             //如果是一个没有关闭的变量
             if( tag==='}' && current.name==='var' && !current.closer )
@@ -323,7 +345,7 @@ function start( content )
         }catch (e)
         {
             global_error=true;
-            throw new SyntaxError('syntax error in '+num+' line --> '+ e.message );
+            throw new SyntaxError('syntax error in '+num+' line --> '+ e.message + ' for '+ val );
         }
     }
 
@@ -379,17 +401,16 @@ var content = " function doRecursion( propName,strainer, deep )\n\
                 if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );\n\
             }while(1)\n\
         }\n\
+        else \nif(1){}\n\
     })\n\
     return ret;\n\
 }";
 
-
-
 var  rootcontext = start( content );
 
-console.log( toString( rootcontext ) )
+//console.log( toString( rootcontext ) )
 
 //console.log( rootcontext.content[1].content[2].content[3].content[1].content[1].content )
-//console.log( rootcontext.content[1].content[2].content[3].content[1].content )
+console.log( rootcontext.content[1].content[2].content[3].content[1] )
 
 
