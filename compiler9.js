@@ -9,14 +9,7 @@ function trim( str )
 }
 
 var newline =new RegExp('(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/|\\/\\/|\\?|\\n|\\;|\\:|\\,|\\"|\\\'|\\!?\\+?\\=+|\\+|\\|+|\\&+|\\<+\\=?|\\>+\\=?|\\!+|$)','g');
-var last_delimiter;
-var map_delimiter={
-    '(':')',
-    '{':'}',
-    '[':']',
-    '"':'"',
-    "'":"'",
-}
+
 
 function checkVariableName( val )
 {
@@ -72,13 +65,22 @@ function newcontext( context, name, keyword )
 }
 
 
+var map_delimiter={
+    '(':')',
+    '{':'}',
+    '[':']',
+    '"':'"',
+    "'":"'",
+}
+
+
 /**
  * 平衡器
  * @param context
  * @param delimiter
  * @returns {number}
  */
-function balance(context, delimiter )
+function balance(context, delimiter, val )
 {
     if( !context.closer && /[\(\{\[\'\"\]\}\)]/.test(delimiter) )
     {
@@ -87,15 +89,17 @@ function balance(context, delimiter )
         {
             if( tag )
             {
-                if( /[\)\}\]]/.test(delimiter) || /[\'\"]/.test(tag)  )
+                if( /[\)\}\]]/.test(delimiter) || /[\'\"]/.test(tag) )
                 {
-                    throw new Error('Not the end of the delimiter');
+                    console.log( context , tag, '====', delimiter )
+                    throw new Error('Not the end of the delimiter 2');
                 }
                 context.balance.push(tag);
             }
             context.balance.push(map_delimiter[delimiter]);
             return 1;
         }
+
         if( context.balance.length===0 )
         {
             context.closer=true;
@@ -106,7 +110,7 @@ function balance(context, delimiter )
     {
         if( context.balance.pop()!==';' )
         {
-            throw new Error('Not the end of the delimiter');
+            throw new Error('Not the end of the delimiter 1');
         }
         if( context.balance.length===0 )
         {
@@ -124,6 +128,30 @@ function balance(context, delimiter )
 function switchcontext( context )
 {
     return  context.closer ? context.parent : context;
+}
+
+/**
+ * @param obj
+ * @param name
+ * @param indexAt
+ * @returns {*}
+ */
+function getItem( obj , name , indexAt )
+{
+    if( !name )return obj;
+    var prop = name.split('.');
+    var n = prop.pop();
+    var i=0;
+    while (i < prop.length && obj)
+    {
+        obj = obj[ prop[i++] ];
+    }
+    if( typeof indexAt === "number" && obj instanceof Array )
+    {
+        indexAt = indexAt<0 ? obj.length + indexAt : indexAt;
+        obj=obj[ indexAt ] || {};
+    }
+    return obj[n] || null;
 }
 
 /**
@@ -163,77 +191,82 @@ function context( context, val , tag , queues)
             return true;
         })
 
-    }else if( val && /^(var|if|else\s+if|else|do|while|switch|case|default|try|catch)(\s+\w+|$)/.exec( val ) )
+    }else if( val && /^(var)(\s+\w+|$)/.test( val ) )
     {
-        obj = newcontext(context, RegExp.$1, 'condition' );
-        if( (obj.name ==='case' || obj.name ==='default') &&  obj.parent.name!=='switch')
+
+        //如果上一个变量没有关闭
+        if( context.name==='var' && !context.closer )
         {
-            throw new SyntaxError('The keyword "'+obj.name+'" must appear in the switch');
+            balance(context, ';' );
+            obj.parent = switchcontext( context );
         }
 
-        if( obj.name==='else' || obj.name==='case' || obj.name==='default' )
+        obj = newcontext(context, 'var', 'var' );
+        obj.parent.content.push( obj );
+        obj.keyword='var';
+        obj.balance.push(';');
+        syntax(obj, obj.content, val.replace(/^var\s*/,'') , tag );
+
+    }else if( val && /^(if|else\s+if|else|do|while|switch|try|catch)$/.exec( val ) )
+    {
+        obj = newcontext(context, RegExp.$1, 'condition' );
+        obj.parent.content.push( obj );
+
+        if (obj.name === 'do')
         {
-            obj.closer=true;
-            if ( (obj.name === 'case' || obj.name === 'default') && tag !==':' )
+            queues.after.push(function (val, tag)
             {
-                queues.after.push(function (val, tag) {
-                    if (tag === '\n' || tag==='"' || tag==="'")return false;
-                    if ( tag!==':' )throw new SyntaxError('Missing delimiter for ":"');
+                if (tag === '\n' || !obj.closer)return false;
+                if (val !== 'while')throw new SyntaxError('the "do" after must be "while" end');
+                return true;
+            });
+
+        } else if (obj.name === 'while' || obj.name === 'switch')
+        {
+            queues.before.push(function (val, tag)
+            {
+                if (!obj.closer)return false;
+                if (obj.content.length < 1)throw new SyntaxError('Missing parameter in "' + obj.name + '" ');
+                return true;
+            });
+
+        } else if (obj.name === 'else if' || obj.name === 'if' || obj.name === 'else')
+        {
+            if (obj.name !== 'else')
+            {
+                queues.before.push(function ()
+                {
+                    if (!obj.closer)return false;
+                    if ( obj.content.length < 1)throw new SyntaxError('Missing parameter in "' + obj.name + '" ');
                     return true;
+
                 });
             }
 
-        }else if( obj.name==='var')
-        {
-            //如果上一个变量没有关闭
-            if( context.name==='var' && !context.closer )
+            if( tag !=='(')
             {
-                balance(context, ';' );
-                obj.parent = switchcontext( context );
+                queues.after.push(function (val, tag) {
+                    if (tag === '\n')return false;
+                    if ('(')return true;
+                    throw new SyntaxError('invalid "' + obj.name + '"');
+                });
             }
-            obj.keyword='var';
-            obj.balance.push(';');
-            syntax(obj, obj.content, val.replace(/^var\s*/,'') , tag );
 
-        }else if( obj.name ==='do' )
-        {
-            queues.after.push(function(val, tag)
+            queues.after.push(function (val, tag)
             {
-                if( tag ==='\n' || !obj.closer )return false;
-                if( val !=='while')throw new SyntaxError('the "do" after must be "while" end');
-                return true;
-            });
+                if( tag === '\n' || !obj.closer )return false;
+                if ( obj.closer && ( tag === '{' || val || tag === ';' ) )return true;
+                throw new SyntaxError('invalid "' + obj.name + '"');
 
-        }else if( obj.name==='while' )
-        {
-            queues.before.push(function(val, tag)
-            {
-                if( !obj.closer )return false;
-                if(obj.content.length<1)throw new SyntaxError('At least one parameter in "while" ');
-                return true;
-            });
-
-        }else if( obj.name==='else if' || obj.name==='if' || obj.name==='else')
-        {
-            queues.after.push(function(val, tag)
-            {
-                if( !obj.closer || tag ==='\n' )return false;
-                if( obj.closer && ( tag === '{' || val || tag===';' ) ) return true;
-                throw new SyntaxError('invalid "'+obj.name+'"');
             });
         }
-        obj.parent.content.push( obj );
 
     }else if( /[\{\[\(]/.test( tag ) )
     {
         obj = newcontext(context, tag, tag );
         obj.parent.content.push( obj );
-        if( val )
+        if( val && tag !== '{' )
         {
-            if ( tag === '{')
-            {
-                throw new SyntaxError('invalid delimiter for "{" ');
-            }
             obj.keyword='referred';
         }
         syntax(obj, obj.content, val , tag );
@@ -241,8 +274,29 @@ function context( context, val , tag , queues)
     }else if( context.name !== tag && /[\'\"]/.test( tag ) )
     {
         obj = newcontext(context, tag, 'string' );
+        syntax( obj.parent,  obj.parent.content, val , tag );
         obj.parent.content.push( obj );
     }
+
+     //case or default 必须在switch块中
+    if( val==='case' || val==='default' )
+    {
+        if( getItem(context, 'parent.content.name', -2 ) !=='switch' )
+        {
+            throw new SyntaxError('The keyword "' + val + '" must appear in the switch');
+        }
+
+        if ( tag !== ':')
+        {
+            queues.after.push(function (val, tag) {
+
+                if (tag === '\n' || tag === '"' || tag === "'")return false;
+                if ( tag !== ':' )throw new SyntaxError('Missing delimiter for ":"');
+                return true;
+            });
+        }
+    }
+
     return obj;
 }
 
@@ -306,6 +360,7 @@ function start( content )
         pos += ret.index - pos + tag.length;
 
         try{
+
             //关闭之后新的语法开始之前
             execQueue(queues, 'after', val, tag);
 
@@ -330,7 +385,7 @@ function start( content )
             }
 
             //平衡器
-            balance(current, tag );
+            balance(current, tag , val );
 
             //在结束之前需要完成的操作
             execQueue(queues, 'before', val, tag );
@@ -351,6 +406,7 @@ function start( content )
 
     if( current.balance.length !==0 || current !== rootcontext )
     {
+        console.log( current )
         throw new SyntaxError('Not the end of the syntax in '+num+' line');
     }
     return rootcontext;
@@ -379,7 +435,6 @@ function toString( rootcontext )
 }
 
 
-
 var content = " function doRecursion( propName,strainer, deep )\n\
 {\n\
     var currentItem={lll:78,\
@@ -387,9 +442,8 @@ var content = " function doRecursion( propName,strainer, deep )\n\
     }\n\
     ,bbb,\
     ret=[]\n\
-     var s = typeof strainer === \"string\" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :\n\
+     var s = typeof strainer === \"string\" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } : \n\
         (typeof strainer === \"undefined\" + \"sdfsdf\" ? function(){return this.nodeType===1} : strainer);\n\
-\n\
     var uuu = this['forEach'](function(elem)\n\
     {\n\
         if\n\
@@ -401,7 +455,7 @@ var content = " function doRecursion( propName,strainer, deep )\n\
                 if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );\n\
             }while(1)\n\
         }\n\
-        else \nif(1){}\n\
+        else if(1){}\n\
     })\n\
     return ret;\n\
 }";
@@ -410,7 +464,7 @@ var  rootcontext = start( content );
 
 //console.log( toString( rootcontext ) )
 
-//console.log( rootcontext.content[1].content[2].content[3].content[1].content[1].content )
-console.log( rootcontext.content[1].content[2].content[3].content[1] )
+console.log( rootcontext.content[1].content[2].content[3].content[1].content )
+//console.log( rootcontext.content[1].content )
 
 
