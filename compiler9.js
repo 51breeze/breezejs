@@ -106,16 +106,13 @@ function balance(context, delimiter, val )
         }
         return -1;
 
-    }else if( delimiter===';' && context.balance.length > 0 && context.name==='var' )
+    }else if( delimiter===';' && context.name==='var' )
     {
         if( context.balance.pop()!==';' )
         {
             throw new Error('Not the end of the delimiter 1');
         }
-        if( context.balance.length===0 )
-        {
-            context.closer=true;
-        }
+        context.closer=true;
     }
     return 0;
 }
@@ -205,7 +202,9 @@ function context( context, val , tag , queues)
         obj.parent.content.push( obj );
         obj.keyword='var';
         obj.balance.push(';');
-        syntax(obj, obj.content, val.replace(/^var\s*/,'') , tag );
+
+        val = val.replace(/^var\s*/,'');
+        syntax(obj, obj.content, val , tag );
 
     }else if( val && /^(if|else\s+if|else|do|while|switch|try|catch)$/.exec( val ) )
     {
@@ -437,7 +436,7 @@ function toString( rootcontext )
 
 var content = " function doRecursion( propName,strainer, deep )\n\
 {\n\
-    var currentItem={lll:78,\
+    var currentItem={lll:78,\n\
     'uuu':'kkkk'\
     }\n\
     ,bbb,\
