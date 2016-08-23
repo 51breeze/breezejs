@@ -85,14 +85,14 @@ Stack.getInstance=function( code, delimiter )
     var name,keyword;
     if( code )
     {
-        if( /^function(\s+\w+)?$/.exec( code ) )
+        if( /^function(\s+(\w+))?$/.exec( code ) )
         {
-            name = RegExp.$1;
+            name = RegExp.$2;
             keyword = 'function';
 
-        }else if( /^(var)(\s+\w+|$)/.exec( code ) )
+        }else if( /^(var)(\s+(\w+)|$)/.exec( code ) )
         {
-            name = RegExp.$1;
+            name = RegExp.$3;
             keyword = 'var';
 
         }else if( /^(if|else\s+if|else|do|while|switch|try|catch)$/.exec( code ) )
@@ -125,13 +125,13 @@ Stack.prototype.constructor=Stack;
 
 Stack.prototype.append=function( value )
 {
+    if( this.hasListener('addStackBefore') && !this.dispatcher('addStackBefore', value) )
+    {
+        return this;
+    }
+
     if( value instanceof Stack )
     {
-
-        if( this.hasListener('addStackBefore') && !this.dispatcher('addStackBefore', value) )
-        {
-            return this;
-        }
         if( value.parent )throw new Error('child added.');
         value.parent=this;
     }
@@ -233,7 +233,7 @@ Stack.prototype.switch=function( stack )
     {
         if (this.hasListener('switchBefore'))this.dispatcher('switchBefore', stack);
         Stack.current = stack;
-        if (stack.hasListener('switchAfter'))this.dispatcher('switchAfter', this );
+        if (stack.hasListener('switchAfter'))stack.dispatcher('switchAfter', this );
     }
     return this;
 }
@@ -264,6 +264,15 @@ Stack.prototype.check=function( delimiter )
             {
                this.switch( this.parent );
             }
+        }
+        return -1;
+
+    }else if( this.name==='var' && delimiter ===';' && !this.closer )
+    {
+        this.closer=true;
+        if( this.parent )
+        {
+            this.switch( this.parent );
         }
         return -1;
     }
@@ -543,25 +552,41 @@ var task_list={
 
     'getStackName':function(optons){
 
-        this.name =optons.value ? optons.value.replace( new RegExp(this.keyword+'\\s+') ,'') : null;
-        if( optons.delimter!=='(' && optons.delimter!=='\n' )
-        {
+        this.name =optons.value ? optons.value.replace( /^function\s*/ ,'') : null;
+        if (optons.delimter !== '(' && optons.delimter !== '\n') {
             throw new Error('Invalid delimter function');
         }
-
-        if( this.name || optons.delimter==='(')
-        {
-            this.removeListener('task');
+        if ( this.name || optons.delimter === '(') {
+            this.removeListener('task', task_list.getStackName);
         }
     },
     'functionBody':function( optons )
     {
+         if( !(optons instanceof Stack) )return ;
          if( optons.name ==='{' )
          {
              this.param =  this.content.splice(0,this.content.length);
+             this.closer=false;
+             this.content.push( optons );
+             this.switch( optons );
+             this.removeListener('addStackBefore',task_list.functionBody )
              return false;
          }
          return false;
+    },
+    'checkVariable':function (optons)
+    {
+        if( !optons instanceof Stack )return ;
+        var val =optons.value;
+        var delimter =  optons.delimter;
+        if( this.content.length === 0 )
+        {
+            val.replace( /var\s+/ ,'');
+        }
+    },
+    'variableAddContentBefore':function () {
+        if( !optons instanceof Stack )return true;
+        return false;
     }
 }
 
@@ -584,14 +609,18 @@ function start( content )
 
         current = Stack.current;
         var stack = Stack.getInstance(val, tag);
-
         if( !root )root=stack;
-
         if( current !== stack )
         {
-            if( (stack.keyword==='function' || stack.keyword==='var') && !stack.name )
+            if( stack.keyword==='function' && !stack.name )
             {
                 stack.addListener('task', task_list.getStackName );
+            }
+
+            if(  stack.keyword==='var' )
+            {
+                stack.addListener('task', task_list.variableAddContentBefore, 10 );
+                stack.addListener('task', task_list.checkVariable ,0);
             }
 
             if( stack.keyword==='function' )
@@ -615,7 +644,7 @@ function start( content )
        // console.log( current )
        // throw new SyntaxError('Not the end of the syntax in '+num+' line');
     }
-    console.log( root )
+    console.log( root.content[0].content )
     return root;
 }
 

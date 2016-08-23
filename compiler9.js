@@ -268,6 +268,9 @@ function context( context, val , tag , queues)
         {
             obj.keyword='referred';
         }
+
+        var keyword = getItem(obj,'parent.content.keyword',-2);
+        if(  keyword )obj.keyword=keyword;
         syntax(obj, obj.content, val , tag );
 
     }else if( context.name !== tag && /[\'\"]/.test( tag ) )
@@ -373,7 +376,7 @@ function start( content )
              }
 
              //写入对应的定界符
-             if( !/[\(\{\[\]\}\)\n]/.test(tag) )
+            // if( !/[\(\{\[\]\}\)\n]/.test(tag) )
                  current.content.push( tag );
 
             //如果是一个没有关闭的变量
@@ -463,7 +466,8 @@ var  rootcontext = start( content );
 
 //console.log( toString( rootcontext ) )
 
-console.log( rootcontext.content[1].content[2].content[3].content[1].content )
+//console.log( rootcontext.content[1].content[1].content )
+console.log( rootcontext.content )
 //console.log( rootcontext.content[1].content )
 
 
