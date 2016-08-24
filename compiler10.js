@@ -82,35 +82,52 @@ function Stack(keyword, name )
 Stack.current=null;
 Stack.getInstance=function( code, delimiter )
 {
-    var name,keyword;
-    if( code )
+    var name=null,keyword;
+
+    if( code && /^function(\s+(\w+))?$/.exec( code ) )
     {
-        if( /^function(\s+(\w+))?$/.exec( code ) )
-        {
-            name = RegExp.$2;
-            keyword = 'function';
+        name = RegExp.$2 || undefined;
+        keyword = 'function';
 
-        }else if( /^(var)(\s+(\w+)|$)/.exec( code ) )
+    }else if( code && /^(var)(\s+(\w+)|$)/.exec( code ) )
+    {
+        if( Stack.current && Stack.current.keyword==='var' && !Stack.current.closer )
         {
-            name = RegExp.$3;
-            keyword = 'var';
-
-        }else if( /^(if|else\s+if|else|do|while|switch|try|catch)$/.exec( code ) )
-        {
-            name = RegExp.$1;
-            keyword = 'condition';
+            Stack.current.closer=true;
+            if( Stack.current.parent )
+            {
+                Stack.current.switch( Stack.current.parent );
+            }
         }
+        name = RegExp.$3 || undefined;
+        keyword = 'var';
 
-    } else if( /[\{\[\(]/.test( delimiter ) )
+    }else if( code && /^(if|else\s+if|else|do|while|switch|try|catch)$/.exec( code ) )
+    {
+        name = RegExp.$1;
+        keyword = 'condition';
+
+    }else if( /[\{\[\(]/.test( delimiter ) )
     {
         name=delimiter;
         keyword='object';
     }
 
-    var newobj=keyword || !Stack.current ? new Stack(keyword, name) : Stack.current;
-    if( Stack.current !== newobj && Stack.current )
+    var newobj;
+    if( Stack.current && Stack.current.keyword==='function' && delimiter==='{')
     {
-        Stack.current.append( newobj );
+        Stack.current.closer=false;
+        Stack.current.param = Stack.current.content.splice(0,Stack.current.content.length);
+        newobj=Stack.current;
+
+    }else
+    {
+        newobj = keyword || !Stack.current ? new Stack(keyword, name) : Stack.current;
+        if (Stack.current !== newobj ){
+
+            if( Stack.current )Stack.current.append(newobj);
+            newobj.isnew=true;
+        }
     }
 
     Stack.current=newobj;
@@ -125,6 +142,8 @@ Stack.prototype.constructor=Stack;
 
 Stack.prototype.append=function( value )
 {
+    if( !value || value==='\n' )return this;
+
     if( this.hasListener('addStackBefore') && !this.dispatcher('addStackBefore', value) )
     {
         return this;
@@ -138,6 +157,7 @@ Stack.prototype.append=function( value )
 
     if( this.closer )
     {
+        console.log( this , value );
         throw new Error('this is closered');
     }
 
@@ -238,8 +258,31 @@ Stack.prototype.switch=function( stack )
     return this;
 }
 
-Stack.prototype.check=function( delimiter )
+Stack.prototype.execute=function()
 {
+    var code = this.lastCode;
+    var delimiter = this.lastDelimiter;
+
+    if( !this.isnew )
+    {
+        if( this.keyword==='function' && typeof this.name === "undefined" && this.balance.length===0 )
+        {
+            code = trim( code );
+            this.name= code ? code : delimiter==='(' ? '' : undefined;
+            code='';
+
+        }else if( code && this.keyword==='var' && typeof this.name === "undefined" )
+        {
+            code =  trim( code );
+            this.name = code;
+        }
+
+        if (code)this.append(code);
+        if ( !/[\(\[\{\n\;\}\]\)]/.test(delimiter) )this.append(delimiter);
+    }
+
+    this.isnew=false;
+
     if( /[\(\{\[\]\}\)]/.test(delimiter) )
     {
         var tag = this.balance.pop();
@@ -560,20 +603,7 @@ var task_list={
             this.removeListener('task', task_list.getStackName);
         }
     },
-    'functionBody':function( optons )
-    {
-         if( !(optons instanceof Stack) )return ;
-         if( optons.name ==='{' )
-         {
-             this.param =  this.content.splice(0,this.content.length);
-             this.closer=false;
-             this.content.push( optons );
-             this.switch( optons );
-             this.removeListener('addStackBefore',task_list.functionBody )
-             return false;
-         }
-         return false;
-    },
+
     'checkVariable':function (optons)
     {
         if( !optons instanceof Stack )return ;
@@ -584,7 +614,7 @@ var task_list={
             val.replace( /var\s+/ ,'');
         }
     },
-    'variableAddContentBefore':function () {
+    'variableAddContentBefore':function (optons) {
         if( !optons instanceof Stack )return true;
         return false;
     }
@@ -610,31 +640,7 @@ function start( content )
         current = Stack.current;
         var stack = Stack.getInstance(val, tag);
         if( !root )root=stack;
-        if( current !== stack )
-        {
-            if( stack.keyword==='function' && !stack.name )
-            {
-                stack.addListener('task', task_list.getStackName );
-            }
-
-            if(  stack.keyword==='var' )
-            {
-                stack.addListener('task', task_list.variableAddContentBefore, 10 );
-                stack.addListener('task', task_list.checkVariable ,0);
-            }
-
-            if( stack.keyword==='function' )
-            {
-                stack.addListener('addStackBefore', task_list.functionBody )
-            }
-
-        }else if( val )
-        {
-            stack.append(val);
-        }
-
-        stack.dispatcher('task',{delimter:tag,value:val});
-        stack.check(tag);
+        stack.execute();
         current = stack;
 
     }
@@ -644,7 +650,7 @@ function start( content )
        // console.log( current )
        // throw new SyntaxError('Not the end of the syntax in '+num+' line');
     }
-    console.log( root.content[0].content )
+    console.log( root.content[2] )
     return root;
 }
 
@@ -692,7 +698,7 @@ var content = " function doRecursion( propName,strainer, deep )\n\
             }while(1)\n\
         }\n\
         else if(1){}\n\
-    })\n\
+    });\n\
     return ret;\n\
 }";
 
