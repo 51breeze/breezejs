@@ -45,28 +45,6 @@ function checkDelimiter(allow, tag)
     }
 }
 
-/**
- * 返回上下文对象
- * @param context
- * @param name
- * @param keyword
- * @returns {{name: *, keyword: *, content: Array, closer: boolean, balance: Array, parent: null}}
- */
-function newcontext( context, name, keyword )
-{
-    return {
-        'name': name,
-        'keyword':keyword,
-        'content': [],
-        'closer':false,
-        'balance':[],
-        'parent':  context ? (context.closer ? context.parent : context) : null
-    };
-}
-
-
-
-
 
 function Stack(keyword, name )
 {
@@ -86,18 +64,15 @@ function Stack(keyword, name )
 
     this.switch( this );
 
-    var interval= false;
-
     this.addListener('switchBefore',function( stack ){
 
-        if ( !interval && ( this.keyword==='condition' || this.keyword==='function' ) && this.param.length === 0 )
+        if (  ( this.keyword==='condition' || this.keyword==='function' ) && this.param.length === 0 && this.closer )
         {
             this.param =  this.content.splice(0, this.content.length );
             if( this.param.length===0 )
             {
                 this.param.push(null);
             }
-
             if( this.name==='while' && getItem(this,'parent.content.name', -2 )==='do' )
             {
                 return true;
@@ -112,10 +87,17 @@ function Stack(keyword, name )
         var child = event.child;
         var last = this.content[ this.content.length-1 ];
 
-        if ( ( this.keyword==='condition' ) && this.param.length > 0 && this.content.length===0 && !( child instanceof Stack) )
+        //条件表达式可以不需要 {}， 但需要以 ';' 结束
+        if( !( child instanceof Stack) )
         {
-            this.balance.push(';');
-            this.closer=false;
+            if ( ( this.name === 'if' || this.name === 'elseif' ) && this.param.length > 0 && this.content.length === 0)
+            {
+                this.balance.push(';');
+
+            }else if( this.name === 'else' && this.content.length === 0 )
+            {
+                this.balance.push(';');
+            }
         }
 
         if( child instanceof Stack )
@@ -129,7 +111,7 @@ function Stack(keyword, name )
             }
 
             //变量上下文中不能插入变量
-            if ( this.keyword==='var' && child.keyword==='var' )
+            else if ( this.keyword==='var' && child.keyword==='var' )
             {
                 throw new Error('syntax not end');
             }
@@ -138,9 +120,7 @@ function Stack(keyword, name )
             else if ( (this.keyword==='function' || this.keyword==='condition' ) && !this.closer && this.balance.length===0 && child.name === '(' )
             {
                 event.child = this;
-                interval=true;
                 this.switch( this );
-                interval=false;
                 return false;
             }
             //代码块合并 do|try...{}
@@ -178,7 +158,7 @@ Stack.getInstance=function( code, delimiter )
 
     }else if( code && /^(if|else\s+if|else|do|while|switch|try|catch)$/.test( code ) )
     {
-        name = code;
+        name = code.replace(' ','');
         keyword = 'condition';
         if( /^(else|do|try)$/.test(code) )
         {
