@@ -86,57 +86,46 @@ function Stack(keyword, name )
 
     this.switch( this );
 
-    this.addListener('switchBefore',function(){
+    var interval= false;
 
-        if ( ( this.keyword==='condition' && this.name==='if') && this.param.length ===0 )
+    this.addListener('switchBefore',function( stack ){
+
+        if ( !interval && ( this.keyword==='condition' || this.keyword==='function' ) && this.param.length === 0 )
         {
             this.param =  this.content.splice(0, this.content.length );
             if( this.param.length===0 )
             {
                 this.param.push(null);
             }
-            console.log('=====22222=++++====')
+
+            if( this.name==='while' && getItem(this,'parent.content.name', -2 )==='do' )
+            {
+                return true;
+            }
+            this.closer=false;
             return false;
         }
     })
-
 
     this.addListener('appendBefore', function (event)
     {
         var child = event.child;
         var last = this.content[ this.content.length-1 ];
 
-
-        if ( ( this.keyword==='condition' ) && this.content.length===0 && this.closer && this.param.length>0 && child.name!=='{' )
+        if ( ( this.keyword==='condition' ) && this.param.length > 0 && this.content.length===0 && !( child instanceof Stack) )
         {
-
-            console.log('======++++====', this.name, this.param )
-
-           // this.balance.push(';');
+            this.balance.push(';');
             this.closer=false;
-
-           // return false;
         }
 
         if( child instanceof Stack )
         {
-            if( last instanceof Stack )
+            //合并函数的代码体
+            if ( (this.keyword==='function' || this.keyword==='condition' ) && this.content.length===0 && child.name==='{' )
             {
-                //合并函数的代码体
-                if ( (last.keyword==='function' || last.keyword==='condition' ) && last.closer && last.param.length ===0 && child.name==='{' )
-                {
-
-                    last.param =  last.content.splice(0, last.content.length);
-                    if( last.param.length===0 )
-                    {
-                        last.param.push(null);
-                    }
-
-                    last.closer=false;
-                    event.child = last;
-                    this.switch( last );
-                    return false;
-                }
+                event.child=this;
+                this.switch( this );
+                return false;
             }
 
             //变量上下文中不能插入变量
@@ -149,7 +138,9 @@ function Stack(keyword, name )
             else if ( (this.keyword==='function' || this.keyword==='condition' ) && !this.closer && this.balance.length===0 && child.name === '(' )
             {
                 event.child = this;
+                interval=true;
                 this.switch( this );
+                interval=false;
                 return false;
             }
             //代码块合并 do|try...{}
@@ -221,7 +212,6 @@ Stack.getInstance=function( code, delimiter )
 
     var current = Stack.current;
     newobj =current;
-
     if( keyword )
     {
         newobj = new Stack(keyword, name);
@@ -232,7 +222,6 @@ Stack.getInstance=function( code, delimiter )
         var obj = current.append( newobj );
         if( obj instanceof Stack )newobj=obj;
     }
-
     newobj.code=code;
     newobj.delimiter=delimiter;
     return newobj;
@@ -343,13 +332,13 @@ Stack.prototype.removeListener=function(type, callback)
 
 
 
-Stack.prototype.switch=function( stack )
+Stack.prototype.switch=function( stackObject )
 {
-    if( stack instanceof Stack && Stack.current !== stack )
+    if( stackObject instanceof Stack && Stack.current !== stackObject )
     {
-        if ( this.hasListener('switchBefore') && !this.dispatcher('switchBefore', stack) )return this;
-        Stack.current = stack;
-        if (stack.hasListener('switchAfter'))stack.dispatcher('switchAfter', this );
+        if ( this.hasListener('switchBefore') && !this.dispatcher('switchBefore', stackObject) )return this;
+        Stack.current = stackObject;
+        if (stackObject.hasListener('switchAfter'))stackObject.dispatcher('switchAfter', this );
     }
     return this;
 }
@@ -358,7 +347,6 @@ Stack.prototype.execute=function()
 {
     var code = this.code;
     var delimiter = this.delimiter;
-
     //获取函数名称
     if( this.keyword==='function' && typeof this.name === "undefined" )
     {
@@ -374,7 +362,6 @@ Stack.prototype.execute=function()
     }
 
     if (code)this.append(code);
-
     //如果是运算符
     if( balance(this,delimiter)===0 )this.append(delimiter);
 }
@@ -405,6 +392,7 @@ function balance(context, delimiter )
             {
                 if( /[\)\}\]]/.test(delimiter) || /[\'\"]/.test( tag ) )
                 {
+                    console.log( context, delimiter, tag )
                     throw new Error('Not the end of the delimiter 2');
                 }
                 context.balance.push(tag);
@@ -502,8 +490,8 @@ function start( content )
     }
 
    // console.log( current.content[0].content[2].content[3].content[0].content[0] )
-    console.log( current.content[0].content[0].content )
-    //console.log( current.content )
+   // console.log( current.content[0].content[0].content[3] )
+    console.log( current.content )
   //  return root;
 }
 
@@ -554,15 +542,24 @@ var content = " function doRecursion( propName,strainer, deep )\n\
     return ret;\n\
 }";
 
-content = " function doRecursion( propName,strainer, deep )\n\
+/*content = " function doRecursion( propName,strainer, deep )\n\
 {\n\
-   do\n{\n\
+  var cccc={lll:999};\
+  if\
+  \n(888){\n\
+        do\n{\n\
                 currentItem = currentItem[propName];\n\
                 if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );\n\
-            }while(1){}\n\
-}";
+            }while(1)\n\
+   \n}\n\
+}";*/
 
-var  rootcontext = start( content );
+/*content = "function doRecursion( propName,strainer, deep ){\n\
+if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );\n\
+}\
+";*/
+
+var rootcontext = start( content );
 
 //console.log( toString( rootcontext ) )
 
