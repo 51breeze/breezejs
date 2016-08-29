@@ -74,46 +74,105 @@ function Stack(keyword, name )
     this.keyword=keyword;
     this.content=[];
     this.balance=[];
+
+    if( keyword==='function' ||  keyword==='condition' )
+    {
+        this.param=[];
+    }
+
     this.closer=false;
     this.parent=null;
     this.events={};
 
-   /* if( /^(function|if|else\s+if|else|do|switch|try|catch)$/.test( this.keyword ) )
-    {*/
-        this.addListener('switchBefore', function (parentStack)
-        {
-            if ( /^(function|condition)$/.test( this.keyword ) && typeof this.param === "undefined")
-            {
-                this.closer = false;
-                this.param = this.content.splice(0, this.content.length);
-                return false;
-            }
-        })
-    //}
+    this.switch( this );
 
-    this.addListener('appendBefore', function (child)
-    {
-        var last = this.content[ this.content.length-1 ];
-        if ( (last instanceof Stack && !last.closer) || (this.keyword==='var' && child instanceof Stack && child.keyword==='var' ) )
+    this.addListener('switchBefore',function(){
+
+        if ( ( this.keyword==='condition' && this.name==='if') && this.param.length ===0 )
         {
-            throw new Error('syntax not end');
-        }
-        if( child instanceof Stack  && child.name==='while' && last.name==='do' && last.keyword==='black')
-        {
-            child.keyword='black';
+            this.param =  this.content.splice(0, this.content.length );
+            if( this.param.length===0 )
+            {
+                this.param.push(null);
+            }
+            console.log('=====22222=++++====')
+            return false;
         }
     })
 
 
+    this.addListener('appendBefore', function (event)
+    {
+        var child = event.child;
+        var last = this.content[ this.content.length-1 ];
+
+
+        if ( ( this.keyword==='condition' ) && this.content.length===0 && this.closer && this.param.length>0 && child.name!=='{' )
+        {
+
+            console.log('======++++====', this.name, this.param )
+
+           // this.balance.push(';');
+            this.closer=false;
+
+           // return false;
+        }
+
+        if( child instanceof Stack )
+        {
+            if( last instanceof Stack )
+            {
+                //合并函数的代码体
+                if ( (last.keyword==='function' || last.keyword==='condition' ) && last.closer && last.param.length ===0 && child.name==='{' )
+                {
+
+                    last.param =  last.content.splice(0, last.content.length);
+                    if( last.param.length===0 )
+                    {
+                        last.param.push(null);
+                    }
+
+                    last.closer=false;
+                    event.child = last;
+                    this.switch( last );
+                    return false;
+                }
+            }
+
+            //变量上下文中不能插入变量
+            if ( this.keyword==='var' && child.keyword==='var' )
+            {
+                throw new Error('syntax not end');
+            }
+
+            //函数(自定义函数)的表达式合并 if|else if|switch|...()
+            else if ( (this.keyword==='function' || this.keyword==='condition' ) && !this.closer && this.balance.length===0 && child.name === '(' )
+            {
+                event.child = this;
+                this.switch( this );
+                return false;
+            }
+            //代码块合并 do|try...{}
+            else if ( this.keyword==='black' && !this.closer && this.balance.length===0 && child.name === '{' )
+            {
+                event.child = this;
+                this.switch( this );
+                return false;
+            }
+        }
+
+    },100)
+
+
     //变量必须要以';'结束
     if( keyword ==='var' )this.balance.push(';');
-    Stack.current=this;
+
 }
 
 Stack.current=null;
 Stack.getInstance=function( code, delimiter )
 {
-    var name=null,keyword;
+    var name,keyword;
     if( code && /^function(\s+\w+)?$/.test( code ) )
     {
         name = undefined;
@@ -142,13 +201,13 @@ Stack.getInstance=function( code, delimiter )
 
     }else if( /[\{\[\(]/.test( delimiter ) )
     {
-        if( (delimiter==='{' || delimiter==='(') && Stack.current && /^(function|condition)$/.test( Stack.current.keyword) )
+        name=delimiter;
+        keyword='object';
+        if( delimiter==='[' )
         {
-           //console.log( Stack.current.keyword )
-        }else
-        {
-            name=delimiter;
-            keyword='object';
+            name = code;
+            keyword='array';
+            code='';
         }
 
     }else if(  ( !Stack.current || Stack.current.name!==delimiter ) && /[\'\"]/.test( delimiter ) )
@@ -162,16 +221,20 @@ Stack.getInstance=function( code, delimiter )
 
     var current = Stack.current;
     newobj =current;
+
     if( keyword )
     {
         newobj = new Stack(keyword, name);
     }
+
+    if( current && current !== newobj )
+    {
+        var obj = current.append( newobj );
+        if( obj instanceof Stack )newobj=obj;
+    }
+
     newobj.code=code;
     newobj.delimiter=delimiter;
-    if ( current && current !== newobj )
-    {
-        current.append( newobj );
-    }
     return newobj;
 }
 
@@ -179,12 +242,14 @@ Stack.prototype.constructor=Stack;
 
 Stack.prototype.append=function( value )
 {
-    if( !value || value==='\n' )return this;
-    if( this.hasListener('appendBefore') && !this.dispatcher('appendBefore', value) )
+    if( !value || value==='\n' )return value;
+    var event = {child:value};
+    if( this.hasListener('appendBefore') && !this.dispatcher('appendBefore', event) )
     {
-        return this;
+        return event.child;
     }
 
+    value =  event.child;
     if( value instanceof Stack )
     {
         if( value === this )throw new Error('the child and parent is same');
@@ -194,14 +259,15 @@ Stack.prototype.append=function( value )
 
     if( this.closer )
     {
-       // console.log( this , value );
+        console.log( this , value );
         throw new Error('this is closered');
     }
+
     if( value )
     {
         this.content.push( value );
     }
-    return this;
+    return value;
 }
 
 Stack.prototype.dispatcher=function( type, options )
@@ -279,7 +345,7 @@ Stack.prototype.removeListener=function(type, callback)
 
 Stack.prototype.switch=function( stack )
 {
-    if( stack instanceof Stack)
+    if( stack instanceof Stack && Stack.current !== stack )
     {
         if ( this.hasListener('switchBefore') && !this.dispatcher('switchBefore', stack) )return this;
         Stack.current = stack;
@@ -292,19 +358,24 @@ Stack.prototype.execute=function()
 {
     var code = this.code;
     var delimiter = this.delimiter;
-    if( this.keyword==='function' && typeof this.name === "undefined" && !this.closer && this.balance.length===0 )
+
+    //获取函数名称
+    if( this.keyword==='function' && typeof this.name === "undefined" )
     {
         code = trim( code );
         this.name= code ? code : delimiter==='(' ? '' : undefined;
         code='';
-
-    }else if( code && this.keyword==='var' && typeof this.name === "undefined" )
+    }
+    //获取变量名称
+    else if( code && this.keyword==='var' && typeof this.name === "undefined" )
     {
         code =  trim( code );
         this.name = code;
     }
 
     if (code)this.append(code);
+
+    //如果是运算符
     if( balance(this,delimiter)===0 )this.append(delimiter);
 }
 
@@ -338,15 +409,23 @@ function balance(context, delimiter )
                 }
                 context.balance.push(tag);
             }
+
             if( map_delimiter[delimiter] )
             {
                 context.balance.push( map_delimiter[delimiter] );
+            }
+
+            if( context.balance.length === 0 )
+            {
+                console.log( context, delimiter, tag )
+                throw new Error('Not the end of the delimiter 3');
             }
             return 1;
         }
 
         if( context.balance.length===0 )
         {
+            //关闭上下文并切换到父级上下文
            context.closer=true;
            context.switch( context.parent );
         }
@@ -421,8 +500,10 @@ function start( content )
        // console.log( current )
        // throw new SyntaxError('Not the end of the syntax in '+num+' line');
     }
-   // console.log( current.content[0].content[2].content[3].content[0].content[0].content[3].content[3] )
-    console.log( current.content )
+
+   // console.log( current.content[0].content[2].content[3].content[0].content[0] )
+    console.log( current.content[0].content[0].content )
+    //console.log( current.content )
   //  return root;
 }
 
@@ -456,7 +537,7 @@ var content = " function doRecursion( propName,strainer, deep )\n\
     ,bbb,\
     ret=[];\n\
      var s = typeof strainer === \"string\" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0; } : \n\
-        (typeof strainer === \"undefined\" + \"sdfsdf\" ? function(){return this.nodeType===1} : strainer);\n\
+        (typeof strainer === \"undefined\" + \"sdfsdf\" ? function(){return this.nodeType===1; } : strainer);\n\
     var uuu = this['forEach'](function(elem)\n\
     {\n\
         if\n\
@@ -473,25 +554,13 @@ var content = " function doRecursion( propName,strainer, deep )\n\
     return ret;\n\
 }";
 
-/*content = " function doRecursion( propName,strainer, deep )\n\
+content = " function doRecursion( propName,strainer, deep )\n\
 {\n\
-    var currentItem={lll:78,\n\
-    'uuu':'kkkk'\
-    }\n\
-    ,bbb,\
-    ret=[];\n\
-     var s = typeof strainer === \"string\" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0; } : \n\
-        (typeof strainer === \"undefined\" + \"sdfsdf\" ? function(){return this.nodeType===1} : strainer);\n\
-    var uuu = this['forEach'](function(elem)\n\
-    {\n\
-     if\n( elem && elem.nodeType )\n\
-     { this.ccc=234\
-     }else if( ccc && 444 ){\n\
-       this.bbb='99999'\n\
-     }\n\
-    });\n\
-    return ret;\n\
-}";*/
+   do\n{\n\
+                currentItem = currentItem[propName];\n\
+                if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );\n\
+            }while(1){}\n\
+}";
 
 var  rootcontext = start( content );
 

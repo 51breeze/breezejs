@@ -424,7 +424,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                 name = namespace[ len++ ];
                 if( !write )
                 {
-                    return target[ name ] || null ;
+                    return target[ name ] || null;
                 }
 
                 if( value !== null )
