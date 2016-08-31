@@ -9,7 +9,7 @@ function trim( str )
 }
 
 
-var logic_operator=['\\=\\=\\=','\\=\\=','\\!\\=\\=','\\!\\=','\\<\\=','\\>\\=', '\\|\\|' , '\\&\\&', '\\!+','\\<','\\>'];
+var logic_operator=['\\=\\=\\=','\\=\\=','\\!\\=\\=','\\!\\=','\\<\\=','\\>\\=', '\\|\\|' , '\\&\\&', '\\!+','\\<','\\>','instanceof'];
 var logic_operator_regexp = new RegExp( '^\s*'+logic_operator.join('|')+'\s*$' );
 var math_arithmetic=['\\|', '\\&','\\+', '\\-','\\*','\\/', '\\%', '\\^','\\~','\\<\\<','\\>\\>' ,'\\='];
 var math_arithmetic_regexp = new RegExp( '^\s*'+math_arithmetic.join('|')+'\s*$' );
@@ -43,36 +43,46 @@ function isMathArithmetic( val )
 
 function checkVariableName( val )
 {
-    if( val === 'var' || !/^\w+[\d\w]+$/.test(val) )
-    {
-        throw new Error('invalid variable name for '+val );
-    }
+    return typeof val ==="string" && /^\w+([\d\w]+)?$/.test(val) && !isProtectedKeyword(val);
 }
 
 function checkPropName( val )
 {
-    if( !/^\w+[\d\w]+$/.test(val) )
-    {
-        throw new Error('invalid prop name for '+val );
-    }
+    return ( typeof val==='object' && val.keyword==='string') || checkVariableName( val );
 }
 
 function checkRefValue(context, val)
 {
-    checkPropName(val);
-    if( context.defvar.indexOf(val) < 0 && !/^\d+$/.test(val) )
-    {
-        throw new Error('undefined property name for '+val );
-    }
+    return isScalarValue( val ) || context.defvar.indexOf(val)>=0;
+}
+
+function isScalarValue( val )
+{
+   return typeof val==='string' && /^(\-?[\d\.]+|null|true|false|nan)$/i.test(val);
 }
 
 
-function checkDelimiter(allow, tag)
+var protected_keywords=['if','else','var','do','while','for','switch','case','break','default','try','catch','throw','instanceof','typeof','function','return','new','this'];
+var protected_keyword_regex=new RegExp('^('+protected_keywords.join('|')+')$');
+
+
+/**
+ * 检查是否保护的关键字
+ * @param val
+ */
+function isProtectedKeyword( val, exclude )
 {
-    if( !allow.test( tag ) )
-    {
-        throw new Error('invalid delimiter the "'+ tag+'"' )
-    }
+   return typeof val === "string" && exclude !== val && protected_keyword_regex.test( val );
+}
+
+/**
+ * @param item
+ * @param exclude
+ * @returns {boolean}
+ */
+function isExistesItem( arr, item, exclude )
+{
+    return exclude !== item && arr.indexOf( item ) >= 0;
 }
 
 
@@ -95,6 +105,176 @@ function error( msg , type )
             throw new Error(msg);
     }
 }
+
+function create_ternary( context )
+{
+    var len = context.content.length;
+    var last=false;
+    var num=0;
+
+    //获取表达式的起始点
+    while (len>0)
+    {
+        len--;
+        var item = context.content[ len ];
+        if( item==='=' || item===':' )break;
+        if( num > 0 )
+        {
+            var ret = isLogicOperator( item ) || isMathArithmetic(item);
+            if( !last && !ret )break;
+            last = ret;
+        }
+        num++;
+    }
+
+    //运算符不能成双
+    if( num % 2 === 0 )error('Unexpected token ?');
+
+    var obj =  new Stack('ternary', '?' );
+
+    //从指定的起始点开始认为是表达式的参数,并复制到当前对象的参数中
+    obj.param =  context.content.splice( context.content.length-num, num );
+    obj.state=1;
+
+    //三元运算必须以';'结束
+    obj.balance.push(';');
+    return obj;
+}
+
+
+
+function checkSyntax( event )
+{
+    var child = event.child;
+    var is_black= child instanceof Stack;
+
+
+    //三元运算操作
+    if( child==='?' )
+    {
+        var obj = create_ternary(this);
+        this.append( obj );
+        this.switch( obj );
+        return false;
+
+    }
+    //是三元运算操作并且是三元运算的分隔符
+    else if( this.keyword==='ternary' && child===':' )
+    {
+        //如果是一个结束阶段
+        if( this.state===2 )
+        {
+            //如是一个子级三元运算就切换到上一级
+            if( this.parent && this.parent.keyword==='ternary' )
+            {
+                balance(this,';');
+                this.parent.state=2;
+                this.parent.content.push(':');
+                return false;
+
+            }else
+            {
+                error('Unexpected token :');
+            }
+        }
+
+        //设置为结束阶段
+        this.state=2;
+    }
+
+    var lastItem = itemByIndexAt(this.content,-1);
+
+    if( this.keyword==='var' )
+    {
+
+        if( is_black && child.keyword==='var')error('Unexpected token var','syntax');
+
+       /* var refitem = lastItem;
+
+
+        console.log( child,'=========')
+        if( ( !refitem || refitem.end ) || child===',' )
+        {
+            if( (refitem && ( (refitem.delimiter && !refitem.value) || refitem.end )  && child===',' ) || (!refitem && child===',') )
+            {
+                error('Unexpected token ,');
+            }
+
+            if( child !==',' )
+            {
+                if( !checkVariableName(child) )
+                {
+
+                    error('Unexpected variable name');
+                }
+                refitem = {name: child, value: undefined, delimiter: null, end: false}
+                this.content.push(refitem);
+
+            }else if( refitem && !refitem.end )
+            {
+                refitem.end=true;
+            }
+
+        }else if( child === '=' )
+        {
+            refitem.delimiter =  child;
+
+        }else if( refitem.delimiter && !refitem.end )
+        {
+            if( is_black )child.parent=this;
+            refitem.value = child;
+        }
+        return false;*/
+    }
+
+
+    if( this.keyword==='function' )
+    {
+        //初始阶段
+        if( this.state===0 )
+        {
+
+            if( is_black || (child===lastItem && child===',') || ( child !==',' && !checkVariableName(child) ) )error('Unexpected token illegal ','syntax');
+            if( isExistesItem(this.content, child, ',' ) )error('Unexpected override');
+        }
+    }
+
+    //块级的处理
+    if( this.keyword==='function' || this.keyword==='condition' || this.keyword==='black'  )
+    {
+        //如果是一个正文阶段
+        if (this.state === 1)
+        {
+            //设置为结束阶段
+            this.state = 2;
+
+            //合并函数的代码体
+            if ((this.keyword === 'function' || this.keyword === 'condition' || this.keyword === 'black' ) && child.name === '{') {
+                event.child = this;
+                this.switch(this);
+                return false;
+            }
+            //条件表达式可以不需要 {}， 但需要以 ';' 结束
+            else if ((!is_black || child.name !== '{') && (this.name === 'if' || this.name === 'elseif' || this.name === 'else')) {
+                this.balance.push(';');
+            }
+
+        }
+
+        //如果是在初始阶段，函数(自定义函数)的表达式合并 if|else if|switch|...()
+        else if (this.state === 0 && !this.closer && this.balance.length === 0 && is_black)
+        {
+
+            if (( this.keyword === 'function' || this.keyword === 'condition' ) && child.name === '(') {
+                event.child = this;
+                this.switch(this);
+                return false;
+            }
+        }
+    }
+}
+
+
 
 
 //SyntaxError: Unexpected token )
@@ -178,118 +358,7 @@ function Stack(keyword, name )
     })
 
     //添加内容之前
-    this.addListener('appendBefore', function (event)
-    {
-        var child = event.child;
-        var is_black= child instanceof Stack;
-
-        //变量上下文中不能插入变量
-        if ( this.keyword==='var' && is_black && child.keyword==='var' )
-        {
-            error('Unexpected token var','syntax');
-        }
-
-        //三元运算操作
-        if( child==='?' )
-        {
-            var len = this.content.length;
-            var express;
-            var last=false;
-            var num=0;
-            while (len>0)
-            {
-                len--;
-                 var item = this.content[ len ];
-                 if( item==='=' || item===':' )break;
-                 if( num > 0 )
-                 {
-                      var ret = isLogicOperator( item ) || isMathArithmetic(item);
-                      if( !last && !ret )break;
-                      last = ret;
-                 }
-                 num++;
-            }
-            if( num % 2 === 0 )error('Unexpected token ?');
-            len = this.content.length;
-            express =  this.content.splice( len-num, num );
-            var obj =  new Stack('ternary', '?' );
-            obj.param = express;
-            obj.state=1;
-            obj.balance.push(';')
-            this.append( obj );
-            this.switch( obj );
-            return false;
-
-        }else if( child===':' && this.keyword==='ternary' )
-        {
-            //如果是一个结束阶段
-            if( this.state===2 )
-            {
-                //如是一个子级三元运算就切换到上一级
-                if( this.parent && this.parent.keyword==='ternary' )
-                {
-                    balance(this,';');
-                    this.parent.state=2;
-                    this.parent.content.push(':');
-                    return false;
-
-                }else
-                {
-                    error('Unexpected token :');
-                }
-            }
-
-            //设置为结束阶段
-            this.state=2;
-        }
-
-        //初始阶段
-        if( this.state===0 )
-        {
-            var lastItem = itemByIndexAt(this.content,-1);
-            if(  this.keyword==='function' )
-            {
-                if( is_black || !/[\w+\,]/.test(child) )error('Unexpected token illegal 1');
-                if( child===lastItem )error('Unexpected token duplication');
-
-            }else if( this.keyword==='var' && !is_black )
-            {
-                if( !/[\w+\,\=]/.test(child) )error('Unexpected token illegal 2'+ child );
-                if( child===lastItem )error('Unexpected token duplication');
-            }
-        }
-
-        if( this.keyword==='function' || this.keyword==='condition' || this.keyword==='black'  )
-        {
-            //如果是一个正文阶段
-            if (this.state === 1)
-            {
-                //设置为结束阶段
-                this.state = 2;
-
-                //合并函数的代码体
-                if ((this.keyword === 'function' || this.keyword === 'condition' || this.keyword === 'black' ) && child.name === '{') {
-                    event.child = this;
-                    this.switch(this);
-                    return false;
-                }
-                //条件表达式可以不需要 {}， 但需要以 ';' 结束
-                else if ((!is_black || child.name !== '{') && (this.name === 'if' || this.name === 'elseif' || this.name === 'else')) {
-                    this.balance.push(';');
-                }
-
-            } else if (this.state === 0 && !this.closer && this.balance.length === 0 && is_black)
-            {
-                //函数(自定义函数)的表达式合并 if|else if|switch|...()
-                if (( this.keyword === 'function' || this.keyword === 'condition' ) && child.name === '(') {
-                    event.child = this;
-                    this.switch(this);
-                    return false;
-                }
-            }
-        }
-
-    },100);
+    this.addListener('appendBefore', checkSyntax ,0);
 
     //变量必须要以';'结束
     if( keyword ==='var' )this.balance.push(';');
@@ -615,19 +684,6 @@ function itemByIndexAt( arr , index )
 }
 
 
-/**
- * 检查是否保护的属性名
- * @param val
- */
-function protectedKeyword( val )
-{
-    if( val && /^(if|var|else|do|while|switch|case|default|try|catch|instanceof|typeof|function|return|new|throw)$/.test( val ) )
-    {
-        throw new SyntaxError('conflict statement variable name. cannot protected keyword')
-    }
-}
-
-
 function start( content )
 {
     var global_error = false;
@@ -643,11 +699,19 @@ function start( content )
         var tag = ret[0];
         var val = trim(content.substr(pos, ret.index - pos));
         pos += ret.index - pos + tag.length;
-        var stack = Stack.getInstance(val, tag);
-        stack.execute();
+
+        try {
+            var stack = Stack.getInstance(val, tag);
+            stack.execute();
+        }catch (e)
+        {
+           throw new SyntaxError(e.message + ' in line '+num );
+        }
+
         if( len === pos ){
             current.closer=true;
         }
+        if( tag==='\n')num++;
     }
 
     if( current.balance.length !==0 )
@@ -684,7 +748,7 @@ function toString( rootcontext )
     return str.join('');
 }
 
-var content = " function doRecursion( propName,propName,strainer, deep )\n\
+var content = " function doRecursion( propName,strainer, deep )\n\
 {\n\
     var currentItem={lll:78,\n\
     'uuu':'kkkk'\
