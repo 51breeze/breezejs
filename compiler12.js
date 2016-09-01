@@ -280,7 +280,6 @@ var syntax={
             if( this.balance.length === 0 )
             {
                 if( !is_black || child.name !== '(' )error('Missing (', 'syntax');
-
                 //函数(自定义函数)的表达式合并
                 event.child = this;
                 this.switch(this);
@@ -297,21 +296,17 @@ var syntax={
             //合并函数的代码体
             if ( is_black && child.name === '{')
             {
+                this.balance.pop();
                 event.child = this;
                 this.switch(this);
                 return false;
             }
             //条件表达式可以不需要 {}， 但需要以 ';' 结束
-            else if ( this.name === 'if' || this.name === 'elseif' || this.name === 'else' || this.name==='for' )
-            {
-                this.balance.push(';');
-
-            }else
+            else if ( !(this.name === 'if' || this.name === 'elseif' || this.name==='for' || this.name==='while') )
             {
                 error('Missing {', 'syntax');
             }
         }
-
     }
     ,'black':function( event )
     {
@@ -319,14 +314,18 @@ var syntax={
         var is_black= child instanceof Stack;
 
         // do 后面必须为 while
-        if( this.name === 'do' && !this.addAfterWhile )
+        if( (this.name === 'do' || this.name==='try' ) && !this.addAfterWhile )
         {
             this.addAfterWhile=true;
+            var keyword = this.name;
             var afterWhile = function(event){
 
                 var obj = event.child || event;
-                if( !(obj instanceof Stack) || obj.name !=='while' )
+                if( keyword==='do' && ( !(obj instanceof Stack) || obj.name!=='while' ) )
                     error('Missing while after do');
+
+                if(  keyword==='try' && ( !(obj instanceof Stack) || obj.name!=='catch' || obj.name!=='finally' ) )
+                    error('Missing catch or finally after try');
 
                 this.removeListener('appendBefore', afterWhile );
                 this.removeListener('switchBefore', afterWhile );
@@ -341,9 +340,14 @@ var syntax={
             this.state = 2;
             if( is_black && child.name === '{' )
             {
+                this.balance.pop();
                 event.child = this;
                 this.switch(this);
                 return false;
+
+            } else if ( this.name === 'else' )
+            {
+                this.balance.push(';');
 
             }else if( this.balance[0] !=='}' )
             {
@@ -353,150 +357,64 @@ var syntax={
     }
 }
 
-
-
-
-
-/*function checkSyntax( event )
+/**
+ * 结束语法之前
+ * @param setcontext
+ * @returns {boolean}
+ */
+function endSyntaxBefore( setcontext )
 {
-    var child = event.child;
-    var is_black= child instanceof Stack;
-
-
-    //是三元运算操作并且是三元运算的分隔符
-    if( this.keyword==='ternary' && child===':' )
+    //如果三元运算操作未到结束的阶段
+    if( this.keyword === 'ternary' && this.state !== 2  )
     {
-        //如果是一个结束阶段
-        if( this.state===2 )
-        {
-            //如是一个子级三元运算就切换到上一级
-            if( this.parent && this.parent.keyword==='ternary' )
-            {
-                balance(this,';');
-                this.parent.append(':')
-                return false;
-
-            }else
-            {
-                error('Unexpected token :');
-            }
-        }
-
-        //设置为结束阶段
-        this.state=2;
+        error('Unexpected token ;', 'syntax');
     }
 
-    var lastItem = itemByIndexAt(this.content,-1);
-
-    if( this.keyword==='var' )
+    //如果声明的变量
+    if( this.keyword === 'var' )
     {
-        //变量中不能添加变量
-        if( is_black && child.keyword==='var')error('Unexpected token var','syntax');
-        if( typeof this.items === "undefined")this.items=[];
+        var last = itemByIndexAt(this.items,-1);
+        if( !last || ( last.delimiter && typeof last.value=== "undefined" ) )error('Unexpected token var', 'syntax');
+        last.end=true;
+    }
 
-        var refitem = itemByIndexAt(this.items,-1);
-
-        //声明变量或者结束变量，支持使用','声明连续的变量
-        if( ( !refitem || refitem.end ) || child===',' )
+    //如果还是在初始阶段
+    if( this.state===0 )
+    {
+        //是否可以进入到正文阶段
+        if ( ( this.keyword === 'condition' || this.keyword === 'function' ) && this.param.length === 0 && this.closer )
         {
-            //变量不能以','开头
-            if( (refitem && refitem.end && child===',' ) || (!refitem && child===',') )
-            {
-                error('Unexpected token ,');
-            }
-            //变量'='后面必须要赋值
-            else if( refitem && refitem.delimiter && typeof refitem.value === "undefined")
-            {
-                error('Unexpected token =');
-            }
+            this.state = 1;
+            this.param = this.content.splice(0, this.content.length);
 
-            //是一个新了变量
-            if( child !==',' )
+            //条件表达式至少需要一个
+            if (this.keyword === 'condition' )
             {
-                if( !checkVariableName(child) )
+                if( this.param.length === 0 )error('Missing argument', 'syntax');
+
+                if( this.name==='while' || this.name==='catch' || this.name==='finally' )
                 {
-                    error('Unexpected variable name');
+                    var lastname = getItem(this, 'parent.content.name', -2);
+                    //do 之后的 while 不需要{}
+                    if (this.name === 'while' && lastname === 'do')return true;
+                    if (this.name === 'catch' && lastname !== 'try')error('Missing try before catch', 'syntax');
+                    if (this.name === 'finally' && !( lastname === 'catch' || lastname === 'try'))error('Missing try or catch before finally', 'syntax');
                 }
-                refitem = {name: child, value: undefined, delimiter: null, end: false}
-                this.items.push(refitem);
-            }
-            //结束上一个变量
-            else if( refitem && !refitem.end )
-            {
-                refitem.end=true;
-            }
 
-        }
-        //需要设置变量值
-        else if( child === '=' )
-        {
-            refitem.delimiter =  child;
-
-        }
-        //设置变量值
-        else if( refitem.delimiter && !refitem.end )
-        {
-            refitem.value = child;
+                //条件表达式可以不需要 {}， 但需要以 ';' 结束
+                if( this.name==='if' || this.name==='elseif' || this.name==='for' || this.name==='while' )
+                {
+                    this.balance.push(';');
+                }
+            }
+            //函数可以不需要参数
+            if (this.param.length === 0)this.param.push(null);
+            this.closer = false;
+            return false;
         }
     }
+}
 
-
-    if( this.keyword==='function' )
-    {
-        //初始阶段
-        if( this.state===0 )
-        {
-            if( is_black || (child===lastItem && child===',') || ( child !==',' && !checkVariableName(child) ) )error('Unexpected token illegal ','syntax');
-            if( isExistesItem(this.content, child, ',' ) )error('Unexpected override');
-        }
-    }
-
-    //块级的处理
-    if( this.keyword==='function' || this.keyword==='condition' || this.keyword==='black'  )
-    {
-        //如果是一个正文阶段
-        if (this.state === 1)
-        {
-            //设置为结束阶段
-            this.state = 2;
-
-            //合并函数的代码体
-            if ((this.keyword === 'function' || this.keyword === 'condition' || this.keyword === 'black' ) && child.name === '{')
-            {
-                event.child = this;
-                this.switch(this);
-                return false;
-            }
-            //条件表达式可以不需要 {}， 但需要以 ';' 结束
-            else if ((!is_black || child.name !== '{') && (this.name === 'if' || this.name === 'elseif' || this.name === 'else'))
-            {
-                this.balance.push(';');
-            }
-        }
-
-        //如果是在初始阶段，函数(自定义函数)的表达式合并 if|else if|switch|...()
-        else if (this.state === 0 && !this.closer && this.balance.length === 0 && is_black)
-        {
-
-            if (( this.keyword === 'function' || this.keyword === 'condition' ) && child.name === '(') {
-                event.child = this;
-                this.switch(this);
-                return false;
-            }
-        }
-    }
-}*/
-
-
-
-
-//SyntaxError: Unexpected token )
-//SyntaxError: missing ) after argument list
-//Unexpected token ILLEGAL
-//ReferenceError: p is not defined
-// Unexpected string
-//SyntaxError: Unexpected token var
-//Unexpected token
 
 
 /**
@@ -537,63 +455,31 @@ function Stack(keyword, name, delimiter )
     this.switch( this );
 
     //切换上下文之前
-    this.addListener('switchBefore',function( stack ){
-
-        //如果三元运算操作未到结束的阶段
-        if( this.keyword === 'ternary' && this.state !== 2  )
-        {
-            error('Unexpected token ;', 'syntax');
-        }
-
-        //如果声明的变量
-        if( this.keyword === 'var' )
-        {
-            var last = itemByIndexAt(this.items,-1);
-            if( !last || ( last.delimiter && typeof last.value=== "undefined" ) )error('Unexpected token var', 'syntax');
-            last.end=true;
-        }
-
-        //如果还是在初始阶段
-        if( this.state===0 )
-        {
-            //是否可以进入到正文阶段
-            if ( ( this.keyword === 'condition' || this.keyword === 'function' ) && this.param.length === 0 && this.closer )
-            {
-                this.state = 1;
-                this.param = this.content.splice(0, this.content.length);
-
-                //条件表达式至少需要一个
-                if (this.keyword === 'condition' && this.param.length === 0)
-                {
-                    error('missing argument', 'syntax')
-                }
-
-                //函数可以不需要参数
-                if (this.param.length === 0)this.param.push(null);
-
-                //do 之后的 while 不需要{}
-                if(this.name === 'while' && getItem(this, 'parent.content.name', -2) === 'do')return true;
-                this.closer = false;
-                return false;
-            }
-        }
-    })
+    this.addListener('switchBefore',endSyntaxBefore);
 
     //添加之前检查语法
     if( typeof syntax[keyword] === 'function' )
     {
-        this.addListener('appendBefore',syntax[keyword] , 0);
+        this.addListener('appendBefore',syntax[keyword]);
     }
 
     //变量必须要以';'结束
     if( keyword ==='var' )this.balance.push(';');
-
 }
 
 Stack.current=null;
 Stack.getInstance=function( code, delimiter )
 {
+    var current = Stack.current;
     var name,keyword;
+    if( code && /^(case|default)/i.exec(code) )
+    {
+        var obj = new Stack('condition', RegExp.$1);
+        current.append( obj );
+        current= obj;
+        code= trim( code.replace( /^(case|default)/i , '') );
+    }
+
     if( code && /^function(\s+\w+)?$/.test( code ) )
     {
         name = undefined;
@@ -651,7 +537,6 @@ Stack.getInstance=function( code, delimiter )
         code='';
     }
 
-    var current = Stack.current;
     newobj =current;
     if( keyword )
     {
@@ -978,6 +863,7 @@ function toString( rootcontext )
     return str.join('');
 }
 
+
 var content = " function doRecursion( propName,strainer, deep )\n\
 {\n\
     var currentItem={lll:78,\n\
@@ -999,7 +885,7 @@ var content = " function doRecursion( propName,strainer, deep )\n\
             }while(1)\n\
             var bb=123;\
         }\n\
-        else if(1){}\n\
+        else if(1222);\n\
     });\n\
     return ret;\n\
 }";
