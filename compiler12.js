@@ -41,9 +41,9 @@ function isMathArithmetic( val )
     return math_arithmetic_regexp.test( val );
 }
 
-function checkVariableName( val )
+function checkVariableName( val, exclude )
 {
-    return typeof val ==="string" && /^\w+([\d\w]+)?$/.test(val) && !isProtectedKeyword(val);
+    return val===exclude || ( typeof val ==="string" && /^\w+([\d\w]+)?$/.test(val) && !isProtectedKeyword(val) );
 }
 
 function checkPropName( val )
@@ -62,7 +62,7 @@ function isScalarValue( val )
 }
 
 
-var protected_keywords=['if','else','var','do','while','for','switch','case','break','default','try','catch','throw','instanceof','typeof','function','return','new','this'];
+var protected_keywords=['if','else','var','do','while','for','switch','case','break','default','try','catch','finally','throw','instanceof','typeof','function','return','new','this'];
 var protected_keyword_regex=new RegExp('^('+protected_keywords.join('|')+')$');
 
 
@@ -84,7 +84,6 @@ function isExistesItem( arr, item, exclude )
 {
     return exclude !== item && arr.indexOf( item ) >= 0;
 }
-
 
 
 /**
@@ -136,30 +135,236 @@ function create_ternary( context )
     obj.param =  context.content.splice( context.content.length-num, num );
     obj.state=1;
 
-    //三元运算必须以';'结束
+    //下一个阶段的符号';'
     obj.balance.push(';');
     return obj;
 }
 
 
+var syntax={
 
-function checkSyntax( event )
+    'ternary':function( event )
+    {
+        var child = event.child;
+        if( child===':' )
+        {
+            //如果是一个结束阶段
+            if( this.state===2 )
+            {
+                //如是一个子级三元运算就切换到上一级
+                if( this.parent && this.parent.keyword==='ternary' )
+                {
+                    balance(this,';');
+                    this.parent.append(':')
+                    return false;
+
+                }else
+                {
+                    error('Unexpected token :');
+                }
+            }
+
+            //设置为结束阶段
+            this.state=2;
+        }
+    }
+    ,'var':function(event)
+    {
+        var child = event.child;
+        var is_black= child instanceof Stack;
+
+        //变量中不能添加变量
+        if( is_black && child.keyword==='var')error('Unexpected token var','syntax');
+        if( typeof this.items === "undefined")this.items=[];
+
+        var refitem = itemByIndexAt(this.items,-1);
+
+        //声明变量或者结束变量，支持使用','声明连续的变量
+        if( ( !refitem || refitem.end ) || child===',' )
+        {
+            //变量不能以','开头
+            if( (refitem && refitem.end && child===',' ) || (!refitem && child===',') )
+            {
+                error('Unexpected token ,');
+            }
+            //变量'='后面必须要赋值
+            else if( refitem && refitem.delimiter && typeof refitem.value === "undefined")
+            {
+                error('Unexpected token =');
+            }
+
+            //是一个新了变量
+            if( child !==',' )
+            {
+                if( !checkVariableName(child) )
+                {
+                    error('Unexpected variable name');
+                }
+                refitem = {name: child, value: undefined, delimiter: null, end: false}
+                this.items.push(refitem);
+            }
+            //结束上一个变量
+            else if( refitem && !refitem.end )
+            {
+                refitem.end=true;
+            }
+
+        }
+        //需要设置变量值
+        else if( child === '=' )
+        {
+            refitem.delimiter =  child;
+
+        }
+        //设置变量值
+        else if( refitem.delimiter && !refitem.end )
+        {
+            refitem.value = child;
+        }
+    }
+    ,'function':function( event )
+    {
+        var child = event.child;
+        var is_black= child instanceof Stack;
+
+        //初始阶段
+        if( this.state===0 )
+        {
+            if( this.balance.length === 0 )
+            {
+                if(  !is_black || child.name !== '(' )error('Missing (', 'syntax');
+
+                //函数(自定义函数)的表达式合并
+                event.child = this;
+                this.switch(this);
+                return false;
+
+            }else if( !this.closer )
+            {
+                var lastItem = itemByIndexAt(this.content,-1);
+                if( is_black || (child === lastItem && child === ',') || !checkVariableName(child,',') )
+                {
+                    error('Unexpected token illegal', 'syntax');
+                }
+                if( isExistesItem(this.content, child, ',' ) )error('Unexpected override');
+            }
+
+        }
+
+        //如果是一个正文阶段
+        else if (this.state === 1)
+        {
+            //设置为结束阶段
+            this.state = 2;
+
+             //需要 {}
+             if ( !is_black ||  child.name !== '{' )
+             {
+                error('Missing {', 'syntax');
+             }
+
+             //合并函数的代码体
+             event.child = this;
+             this.switch(this);
+             return false;
+        }
+    }
+    ,'condition':function( event )
+    {
+        var child = event.child;
+        var is_black= child instanceof Stack;
+
+        //初始阶段
+        if( this.state===0 )
+        {
+            if( this.balance.length === 0 )
+            {
+                if( !is_black || child.name !== '(' )error('Missing (', 'syntax');
+
+                //函数(自定义函数)的表达式合并
+                event.child = this;
+                this.switch(this);
+                return false;
+            }
+        }
+
+        //如果是一个正文阶段
+        else if (this.state === 1)
+        {
+            //设置为结束阶段
+            this.state = 2;
+
+            //合并函数的代码体
+            if ( is_black && child.name === '{')
+            {
+                event.child = this;
+                this.switch(this);
+                return false;
+            }
+            //条件表达式可以不需要 {}， 但需要以 ';' 结束
+            else if ( this.name === 'if' || this.name === 'elseif' || this.name === 'else' || this.name==='for' )
+            {
+                this.balance.push(';');
+
+            }else
+            {
+                error('Missing {', 'syntax');
+            }
+        }
+
+    }
+    ,'black':function( event )
+    {
+        var child = event.child;
+        var is_black= child instanceof Stack;
+
+        // do 后面必须为 while
+        if( this.name === 'do' && !this.addAfterWhile )
+        {
+            this.addAfterWhile=true;
+            var afterWhile = function(event){
+
+                var obj = event.child || event;
+                if( !(obj instanceof Stack) || obj.name !=='while' )
+                    error('Missing while after do');
+
+                this.removeListener('appendBefore', afterWhile );
+                this.removeListener('switchBefore', afterWhile );
+            };
+            this.parent.addListener('appendBefore',afterWhile,10);
+            this.parent.addListener('switchBefore',afterWhile,10);
+        }
+
+        //初始阶段
+        if( this.state === 0 )
+        {
+            this.state = 2;
+            if( is_black && child.name === '{' )
+            {
+                event.child = this;
+                this.switch(this);
+                return false;
+
+            }else if( this.balance[0] !=='}' )
+            {
+                error('Missing {', 'syntax');
+            }
+        }
+    }
+}
+
+
+
+
+
+/*function checkSyntax( event )
 {
     var child = event.child;
     var is_black= child instanceof Stack;
 
 
-    //三元运算操作
-    if( child==='?' )
-    {
-        var obj = create_ternary(this);
-        this.append( obj );
-        this.switch( obj );
-        return false;
-
-    }
     //是三元运算操作并且是三元运算的分隔符
-    else if( this.keyword==='ternary' && child===':' )
+    if( this.keyword==='ternary' && child===':' )
     {
         //如果是一个结束阶段
         if( this.state===2 )
@@ -168,8 +373,7 @@ function checkSyntax( event )
             if( this.parent && this.parent.keyword==='ternary' )
             {
                 balance(this,';');
-                this.parent.state=2;
-                this.parent.content.push(':');
+                this.parent.append(':')
                 return false;
 
             }else
@@ -186,45 +390,54 @@ function checkSyntax( event )
 
     if( this.keyword==='var' )
     {
-
+        //变量中不能添加变量
         if( is_black && child.keyword==='var')error('Unexpected token var','syntax');
+        if( typeof this.items === "undefined")this.items=[];
 
-       /* var refitem = lastItem;
+        var refitem = itemByIndexAt(this.items,-1);
 
-
-        console.log( child,'=========')
+        //声明变量或者结束变量，支持使用','声明连续的变量
         if( ( !refitem || refitem.end ) || child===',' )
         {
-            if( (refitem && ( (refitem.delimiter && !refitem.value) || refitem.end )  && child===',' ) || (!refitem && child===',') )
+            //变量不能以','开头
+            if( (refitem && refitem.end && child===',' ) || (!refitem && child===',') )
             {
                 error('Unexpected token ,');
             }
+            //变量'='后面必须要赋值
+            else if( refitem && refitem.delimiter && typeof refitem.value === "undefined")
+            {
+                error('Unexpected token =');
+            }
 
+            //是一个新了变量
             if( child !==',' )
             {
                 if( !checkVariableName(child) )
                 {
-
                     error('Unexpected variable name');
                 }
                 refitem = {name: child, value: undefined, delimiter: null, end: false}
-                this.content.push(refitem);
-
-            }else if( refitem && !refitem.end )
+                this.items.push(refitem);
+            }
+            //结束上一个变量
+            else if( refitem && !refitem.end )
             {
                 refitem.end=true;
             }
 
-        }else if( child === '=' )
+        }
+        //需要设置变量值
+        else if( child === '=' )
         {
             refitem.delimiter =  child;
 
-        }else if( refitem.delimiter && !refitem.end )
+        }
+        //设置变量值
+        else if( refitem.delimiter && !refitem.end )
         {
-            if( is_black )child.parent=this;
             refitem.value = child;
         }
-        return false;*/
     }
 
 
@@ -233,7 +446,6 @@ function checkSyntax( event )
         //初始阶段
         if( this.state===0 )
         {
-
             if( is_black || (child===lastItem && child===',') || ( child !==',' && !checkVariableName(child) ) )error('Unexpected token illegal ','syntax');
             if( isExistesItem(this.content, child, ',' ) )error('Unexpected override');
         }
@@ -249,16 +461,17 @@ function checkSyntax( event )
             this.state = 2;
 
             //合并函数的代码体
-            if ((this.keyword === 'function' || this.keyword === 'condition' || this.keyword === 'black' ) && child.name === '{') {
+            if ((this.keyword === 'function' || this.keyword === 'condition' || this.keyword === 'black' ) && child.name === '{')
+            {
                 event.child = this;
                 this.switch(this);
                 return false;
             }
             //条件表达式可以不需要 {}， 但需要以 ';' 结束
-            else if ((!is_black || child.name !== '{') && (this.name === 'if' || this.name === 'elseif' || this.name === 'else')) {
+            else if ((!is_black || child.name !== '{') && (this.name === 'if' || this.name === 'elseif' || this.name === 'else'))
+            {
                 this.balance.push(';');
             }
-
         }
 
         //如果是在初始阶段，函数(自定义函数)的表达式合并 if|else if|switch|...()
@@ -272,7 +485,7 @@ function checkSyntax( event )
             }
         }
     }
-}
+}*/
 
 
 
@@ -304,13 +517,14 @@ function checkSyntax( event )
  * @param name
  * @constructor
  */
-function Stack(keyword, name )
+function Stack(keyword, name, delimiter )
 {
     this.name=name;
     this.keyword=keyword;
     this.content=[];
     this.balance=[];
     this.state=0;
+    this.delimiter = delimiter;
 
     if( keyword==='function' ||  keyword==='condition' )
     {
@@ -326,9 +540,17 @@ function Stack(keyword, name )
     this.addListener('switchBefore',function( stack ){
 
         //如果三元运算操作未到结束的阶段
-        if( this.keyword === 'ternary' && this.state !== 2 )
+        if( this.keyword === 'ternary' && this.state !== 2  )
         {
             error('Unexpected token ;', 'syntax');
+        }
+
+        //如果声明的变量
+        if( this.keyword === 'var' )
+        {
+            var last = itemByIndexAt(this.items,-1);
+            if( !last || ( last.delimiter && typeof last.value=== "undefined" ) )error('Unexpected token var', 'syntax');
+            last.end=true;
         }
 
         //如果还是在初始阶段
@@ -350,15 +572,18 @@ function Stack(keyword, name )
                 if (this.param.length === 0)this.param.push(null);
 
                 //do 之后的 while 不需要{}
-                if (this.name === 'while' && getItem(this, 'parent.content.name', -2) === 'do')return true;
+                if(this.name === 'while' && getItem(this, 'parent.content.name', -2) === 'do')return true;
                 this.closer = false;
                 return false;
             }
         }
     })
 
-    //添加内容之前
-    this.addListener('appendBefore', checkSyntax ,0);
+    //添加之前检查语法
+    if( typeof syntax[keyword] === 'function' )
+    {
+        this.addListener('appendBefore',syntax[keyword] , 0);
+    }
 
     //变量必须要以';'结束
     if( keyword ==='var' )this.balance.push(';');
@@ -381,16 +606,15 @@ Stack.getInstance=function( code, delimiter )
         keyword = 'var';
         code=  code.replace(/^var\s*/,'');
 
-    }else if( code && /^(if|else\s+if|else|do|while|switch|try|catch|for)$/.test( code ) )
+    }else if( code && /^(if|else\s+if|else|do|while|switch|try|catch|for|finally)$/.test( code ) )
     {
         name = code.replace(' ','');
         keyword = 'condition';
-        if( /^(else|do|try)$/.test(code) )
+        if( /^(else|do|try|finally)$/.test(code) )
         {
             keyword='black';
         }
-
-        code= code.replace( /^(if|else\s+if|else|do|while|switch|try|catch|for)$/,'' );
+        code= code.replace( /^(if|else\s+if|else|do|while|switch|try|catch|for|finally)$/,'' );
         if( code ){
             throw new Error('syntax invalid');
         }
@@ -401,9 +625,11 @@ Stack.getInstance=function( code, delimiter )
         keyword='object';
         if( delimiter==='[' )
         {
-            name = code;
             keyword='array';
-            code='';
+        }
+        if( delimiter==='{' )
+        {
+            keyword='express';
         }
 
     }else if(  ( !Stack.current || Stack.current.name!==delimiter ) && /[\'\"]/.test( delimiter ) )
@@ -414,12 +640,22 @@ Stack.getInstance=function( code, delimiter )
             throw new Error('syntax invalid');
         }
     }
+    //三元运算操作
+    else if( delimiter==='?' )
+    {
+        keyword='ternary';
+        if( Stack.current && code )
+        {
+            Stack.current.append( code );
+        }
+        code='';
+    }
 
     var current = Stack.current;
     newobj =current;
     if( keyword )
     {
-        newobj = new Stack(keyword, name);
+        newobj = keyword==='ternary' ? create_ternary(current) : new Stack(keyword, name, delimiter );
     }
 
     if( current && current !== newobj )
@@ -427,6 +663,7 @@ Stack.getInstance=function( code, delimiter )
         var obj = current.append( newobj );
         if( obj instanceof Stack )newobj=obj;
     }
+
     newobj.code=code;
     newobj.delimiter=delimiter;
     return newobj;
@@ -469,10 +706,11 @@ Stack.prototype.dispatcher=function( type, options )
 {
     if( this.events[type] && this.events[type].length > 0 )
     {
-        var len = this.events[type].length;
+        var listener = this.events[type].slice();
+        var len = listener.length;
         for ( var i =0; i<len; i++)
         {
-            if( this.events[type][i].callback.call(this, options) === false )
+            if( listener[i].callback.call(this, options) === false )
             {
                 return false;
             }
@@ -496,9 +734,9 @@ Stack.prototype.addListener=function(type, callback, priority)
 
 Stack.prototype.hasListener=function(type, callback)
 {
-    if( typeof callback === "undefined" && this.events[type] )
+    if( typeof callback === "undefined"  )
     {
-        return true;
+        return !!this.events[type];
 
     }else if( this.events[type] && this.events[type].length > 0 )
     {
@@ -550,8 +788,6 @@ Stack.prototype.switch=function( stackObject )
 
 Stack.prototype.execute=function()
 {
-    //console.log('======execute==='  )
-
     var code = this.code;
     var delimiter = this.delimiter;
     //获取函数名称
@@ -560,12 +796,6 @@ Stack.prototype.execute=function()
         code = trim( code );
         this.name= code ? code : delimiter==='(' ? '' : undefined;
         code='';
-    }
-    //获取变量名称
-    else if( code && this.keyword==='var' && typeof this.name === "undefined" )
-    {
-        code =  trim( code );
-        this.name = code;
     }
 
     if (code)this.append(code);
@@ -595,7 +825,7 @@ function balance(context, delimiter , fake )
         var tag = context.balance.pop();
 
         //在表达式中的三元运算操作可以用 ')' 结束
-        if( context.keyword==='ternary' && context.state===2 && delimiter===')' )
+        if( context.keyword==='ternary' && context.state===2 && delimiter===')' && (context.parent && context.parent.name==='(') )
         {
             context.closer=true;
             context.switch( context.parent , delimiter );
@@ -723,7 +953,7 @@ function start( content )
    // console.log( current.content[0].content[2].content[3].content[0].content[0] )
    // console.log( current.content[0].content[0].content[.content3] )
    // console.log( current.content[0].content[2].content[0].content )
-    console.log( current.content )
+    console.log( current.content[0].content[1] )
   //  return root;
 }
 
@@ -767,6 +997,7 @@ var content = " function doRecursion( propName,strainer, deep )\n\
                 currentItem = currentItem[propName];\n\
                 if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );\n\
             }while(1)\n\
+            var bb=123;\
         }\n\
         else if(1){}\n\
     });\n\
