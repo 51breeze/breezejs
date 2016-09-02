@@ -278,22 +278,7 @@ var syntax={
         //初始阶段
         if( this.state===0 )
         {
-            if( this.name==='case' || this.name==='default' )
-            {
-                if( this.parent.name !== 'switch' )
-                {
-                    console.log( this, child )
-                    error('Unexpected case or default', 'syntax');
-                }
-
-                if( child===':' )
-                {
-                    this.state=1;
-                    this.closer=true;
-                    return false;
-                }
-            }
-            else if( this.balance.length === 0 )
+            if( this.balance.length === 0 )
             {
                 if( !is_black || child.name !== '(' )error('Missing (', 'syntax');
                 //函数(自定义函数)的表达式合并
@@ -308,33 +293,6 @@ var syntax={
         {
             //设置为结束阶段
             this.state = 2;
-
-            if( this.name==='case' || this.name==='default' )
-            {
-
-                if( this.name==='case' || this.name==='default' )
-                {
-                   // console.log(this , '===========', child )
-                }
-
-
-                if( is_black && (child.name==='case' || child.name==='default') )
-                {
-                    console.log('===========')
-                    event.parent= this.parent;
-                    this.closer=true;
-                    return true;
-                }
-
-                if( this.name==='case' )
-                {
-                    if (this.content.length === 0)error('Missing argument', 'syntax');
-                    if (this.content.length !== 1)error('Unexpected illegal argument', 'syntax');
-                }
-                this.param = this.content.splice(0, 1);
-                this.closer=false;
-                return true;
-            }
 
             //合并函数的代码体
             if ( is_black && child.name === '{')
@@ -352,43 +310,49 @@ var syntax={
 
         }else if( this.state===2 )
         {
-            /*if( this.name==='switch' )
+            if( this.name==='switch' )
             {
-                //console.log( this.content , child )
-
-                if ( this.content.length === 0 && child !== 'case')
+                var refobj = this.content[ this.content.length-1 ];
+                if( child==='case' || child==='default' )
                 {
-                    error('Missing case first switch', 'syntax');
+                    refobj={name:child,content:[],param:[],state:0}
+                    this.content.push(refobj);
 
-                } else if( this.content.length===2 && child !== ':')
+                }else if( refobj )
                 {
-                    error('Missing identifier :', 'syntax');
-
-                }else if (this.content.length>2 && child === 'case')
-                {
-                    var index = this.content.indexOf('case');
-                    if (index < 0) error('Unexpected token case', 'syntax');
-                    if (index > 0 && itemByIndexAt(this.content, 2) !== ':')
+                    if( refobj.state===2 )error('Unexpected token illegal', 'syntax');
+                    if( is_black )child.parent=this;
+                    if ( child === ':' )
                     {
+                        refobj.state = 1;
+                        if( refobj.name==='case' && refobj.param.length===0 )error('Missing case argument', 'syntax');
+                        if( refobj.name==='default' && refobj.param.length>0 )error('Unexpected token default', 'syntax');
+
+                    } else if( refobj.state === 0 &&  refobj.param.length===0 )
+                    {
+                        refobj.param.push(child);
+
+                    }else if (refobj.state === 1)
+                    {
+                        refobj.content.push(child);
+                        if( child==='break' )refobj.state = 2;
+                    }else{
                         error('Missing identifier :', 'syntax');
                     }
-                }
 
-                if( child === ':' && itemByIndexAt(this.content, -2) !== 'case' )
+                }else
                 {
-                    error('Unexpected identifier :', 'syntax');
+                    error('Missing case first switch', 'syntax');
                 }
+                return false;
 
-                if( child === 'case' )
+            }else
+            {
+                if( !is_black && /^(case|default)/i.test(child) )
                 {
-                    this.lastCaseIndex = this.content.length;
+                    error('Unexpected token case or default', 'syntax');
                 }
-
-                if( child === 'default' )
-                {
-                    this.lastDefaultIndex = this.content.length;
-                }
-            }*/
+            }
         }
     }
     ,'black':function( event )
@@ -438,6 +402,28 @@ var syntax={
             }
         }
     }
+    ,'object':function (event)
+    {
+        var child = event.child;
+        var len = this.content.length;
+        var m = len%2;
+        if( (child===':' || child===',') && ( m !==1 || len===0) )error('Unexpected identifier '+child, 'syntax');
+
+        if( m===0 && !checkPropName(child) )
+        {
+           error('Unexpected token key ', 'syntax');
+        }
+        if( m === 0 && len>0 )
+        {
+            var last = itemByIndexAt(this.content,-1);
+            if( (last !==',' && last !==':') || last===child )error('Unexpected identifier '+child, 'syntax');
+            if( last===',' && !checkPropName(child) )error('Unexpected token key ', 'syntax');
+        }
+    }
+    ,'array':function (event)
+    {
+
+    }
 }
 
 /**
@@ -447,7 +433,6 @@ var syntax={
  */
 function endSyntaxBefore( setcontext )
 {
-
     //如果三元运算操作未到结束的阶段
     if( this.keyword === 'ternary' && this.state !== 2  )
     {
@@ -462,6 +447,10 @@ function endSyntaxBefore( setcontext )
         last.end=true;
     }
 
+    if( this.state===2 && this.name==='switch' && this.delimiter==='}' && getItem(this,'content.state',-1) === 0 )
+    {
+        error('Missing identifier :', 'syntax');
+    }
 
     //如果还是在初始阶段
     if( this.state===0 )
@@ -491,9 +480,6 @@ function endSyntaxBefore( setcontext )
                 {
                     this.balance.push(';');
                 }
-
-
-
             }
             //函数可以不需要参数
             if (this.param.length === 0)this.param.push(null);
@@ -564,9 +550,7 @@ Stack.getInstance=function( code, delimiter )
 
     if( code && /^(case|default)/i.exec(code) )
     {
-        var obj = new Stack('condition', RegExp.$1 );
-        current.append( obj );
-        current = obj;
+        current.append( RegExp.$1 );
         code=code.replace(/^(case|default)\s*/i,'');
     }
 
@@ -604,7 +588,7 @@ Stack.getInstance=function( code, delimiter )
         {
             keyword='array';
         }
-        if( delimiter==='{' )
+        if( delimiter==='(' )
         {
             keyword='express';
         }
@@ -840,7 +824,7 @@ function balance(context, delimiter , fake )
                balance(context.parent,';', true );
            }
            //如果当前是用';'结束的上下文并且父上下文是'var'
-           else if( ret && !fake, delimiter===';' && context.parent.keyword==='var' )
+           else if( ret && !fake, delimiter===';' && context.parent && context.parent.keyword==='var' )
            {
                balance(context.parent,';' );
            }
@@ -871,7 +855,7 @@ function getItem( obj , name , index )
     {
         obj = itemByIndexAt( obj , index ) || {}
     }
-    return obj[n] || null;
+    return typeof obj[n]=== "undefined" ? null : obj[n];
 }
 
 function itemByIndexAt( arr , index )
@@ -901,13 +885,14 @@ function start( content )
         var val = trim(content.substr(pos, ret.index - pos));
         pos += ret.index - pos + tag.length;
 
-        try {
+        //try {
             var stack = Stack.getInstance(val, tag);
             stack.execute();
-        }catch (e)
-        {
-           throw new SyntaxError(e.message + ' in line '+num );
-        }
+      //  }catch (e)
+       // {
+           // console.log(val, tag )
+          // throw new SyntaxError(e.message + ' in line '+num );
+       // }
 
         if( len === pos ){
             current.closer=true;
@@ -924,7 +909,7 @@ function start( content )
    // console.log( current.content[0].content[2].content[3].content[0].content[0] )
    // console.log( current.content[0].content[0].content[.content3] )
    // console.log( current.content[0].content[2].content[0].content )
-    console.log( current.content[0].content[2].content[3].content[0].content[2] )
+    console.log( current.content[0].content[2].content[3].content[0].content[2].content[0] )
   //  return root;
 }
 
@@ -949,11 +934,10 @@ function toString( rootcontext )
     return str.join('');
 }
 
-
 var content = " function doRecursion( propName,strainer, deep )\n\
 {\n\
-    var currentItem={lll:78,\n\
-    'uuu':'kkkk'\
+    var currentItem={ppp:78,\n\
+    'uuu':'kkkk',\
     }\n\
     ,bbb,\
     ret=[];\n\
@@ -967,17 +951,17 @@ var content = " function doRecursion( propName,strainer, deep )\n\
             currentItem=elem;\n\
             do{\n\
                 currentItem = currentItem[propName];\n\
-                if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );\n\
+                if( currentItem && s.call(currentItem,'cccc') )ret = ret.concat( currentItem );\n\
             }while(1)\n\
             var bb=123;\
         }\n\
         else if(1222);\n\
         \
         switch(1)\n{\
-          case '1': \
+          case '1' : \
              var ccc=1;\n\
-           break;\
-           default\
+             break;\
+           default :\
         \
         }\n \
         \
