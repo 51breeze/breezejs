@@ -15,7 +15,7 @@ var math_arithmetic=['\\|', '\\&','\\+', '\\-','\\*','\\/', '\\%', '\\^','\\~','
 var math_arithmetic_regexp = new RegExp( '^\s*'+math_arithmetic.join('|')+'\s*$' );
 var black_delimiter= ['\\(','\\{','\\[','\\]','\\}','\\)','\\"','\\\''];
 var annotation_delimiter=['\\/\\*','\\*\\/','\\/\\/'];
-var separate = ['\\?','\\n','\\;','\\:','\\,'];
+var separate = ['\\?','\\n','\\;','\\:','\\,','\\.'];
 
 var code_regex = [].concat( black_delimiter, annotation_delimiter, separate ,'[\\=\\!\\<\\>\\|\\&\\%\\^\\~\\/\\*\\+\\-]+', '$' );
 //var newline =new RegExp('(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/|\\/\\/|\\?|\\n|\\;|\\:|\\,|\\"|\\\'|\\!?\\+?\\=+|\\+|\\|+|\\&+|\\<+\\=?|\\>+\\=?|\\!+|$)','g');
@@ -51,21 +51,40 @@ function checkPropName( val )
     return ( typeof val==='object' && val.keyword==='string') || checkVariableName( val );
 }
 
+//验证引用的值是否定义，不验证引用的对象中的属性是否定义
 function checkRefValue(context, val)
 {
-    return isScalarValue( val ) || context.defvar.indexOf(val)>=0;
+    if( typeof val === "object" && (val.keyword==='string' || val.keyword==='object' || val.keyword==='array' ||
+        val.keyword==='express' || val.keyword==='ternary' || val.keyword==='function') )
+    {
+        return true;
+    }else if( typeof val === "string"  )
+    {
+        if( /^typeof/.test(val) )
+        {
+            val = val.replace(/^typeof\s*/i, '');
+
+        }else if( isLogicOperator(val) || isMathArithmetic(val) )
+        {
+            return true;
+        }
+        var pos = val.indexOf('.');
+        if( pos >=0 )
+        {
+            if( pos===0 )return true;
+            val=val.substr(0,pos);
+        }
+    }
+    return isScalarValue( val ) || (context.define.indexOf(val)>=0 || context.param.indexOf(val)) >= 0;
 }
 
 function isScalarValue( val )
 {
-   return typeof val==='string' && /^(\-?[\d\.]+|null|true|false|nan)$/i.test(val);
+   return typeof val==='string' && /^(\-?[\d\.]+|null|true|false|nan|this|undefined)$/i.test(val);
 }
-
-
 
 var protected_keywords=['if','else','var','do','while','for','switch','case','break','default','try','catch','finally','throw','instanceof','typeof','function','return','new','this'];
 var protected_keyword_regex=new RegExp('^('+protected_keywords.join('|')+')$');
-
 
 /**
  * 检查是否保护的关键字
@@ -87,6 +106,21 @@ function isExistesItem( arr, item, exclude )
 }
 
 
+function checkRefProp(context, prop, type)
+{
+    if( typeof prop !=='string' )return false;
+    if( type === 'black' )
+    {
+        prop = prop.replace(/^return\s+/i,'');
+    }
+    var last = itemByIndexAt(context.content, -1);
+    if ( last!=='.' && !checkRefValue(getOwnerContext(context), prop) )
+    {
+        error(prop + ' is not defined', 'reference');
+    }
+}
+
+
 /**
  * @param msg
  * @param type
@@ -104,6 +138,15 @@ function error( msg , type )
         default :
             throw new Error(msg);
     }
+}
+
+function getOwnerContext( context )
+{
+    while ( !(context.keyword ==='function' || context.keyword ==='context') && context )
+    {
+        context = context.parent;
+    }
+    return context;
 }
 
 function create_ternary( context )
@@ -158,15 +201,14 @@ var syntax={
                     balance(this,';');
                     this.parent.append(':')
                     return false;
-
-                }else
-                {
-                    error('Unexpected token :');
                 }
+                error('Unexpected token :');
             }
-
             //设置为结束阶段
             this.state=2;
+        } else
+        {
+            checkRefProp(this, child , 'black');
         }
     }
     ,'var':function(event)
@@ -194,13 +236,16 @@ var syntax={
                 error('Unexpected token =');
             }
 
-            //是一个新了变量
+            //是一个新的变量
             if( child !==',' )
             {
                 if( !checkVariableName(child) )
                 {
+                    console.log( this )
                     error('Unexpected variable name');
                 }
+                var owner = getOwnerContext(this);
+                if(owner)owner.define.push(child);
                 refitem = {name: child, value: undefined, delimiter: null, end: false}
                 this.items.push(refitem);
             }
@@ -209,17 +254,16 @@ var syntax={
             {
                 refitem.end=true;
             }
-
         }
         //需要设置变量值
         else if( child === '=' )
         {
             refitem.delimiter =  child;
-
         }
         //设置变量值
         else if( refitem.delimiter && !refitem.end )
         {
+            checkRefProp(this, child );
             refitem.value = child;
         }
     }
@@ -248,8 +292,8 @@ var syntax={
                     error('Unexpected token illegal', 'syntax');
                 }
                 if( isExistesItem(this.content, child, ',' ) )error('Unexpected override');
+                if( lastItem===',' && child !==',' )this.content.pop();
             }
-
         }
 
         //如果是一个正文阶段
@@ -268,6 +312,10 @@ var syntax={
              event.child = this;
              this.switch(this);
              return false;
+
+        }else if( this.state===2 )
+        {
+            checkRefProp(this, child, 'black');
         }
     }
     ,'condition':function( event )
@@ -286,8 +334,20 @@ var syntax={
                 this.switch(this);
                 return false;
             }
-        }
 
+            // 变量会将 ';' 符号消耗掉，所以在 var 结束后增加 ';'
+            if( this.name==='for' && is_black && child.keyword==='var' )
+            {
+                this.addListener('switchAfter',function (obj) {
+                     this.content.push(';');
+                    this.removeListener('switchAfter')
+                })
+            }
+
+            //除了 for 可以有 ',' 其它的表达式不能出现 ','
+            if( !(this.name==='for' && child===',') )
+                checkRefProp(this,child);
+        }
         //如果是一个正文阶段
         else if (this.state === 1)
         {
@@ -330,12 +390,15 @@ var syntax={
 
                     } else if( refobj.state === 0 &&  refobj.param.length===0 )
                     {
+                        checkRefProp(this,child);
                         refobj.param.push(child);
 
                     }else if (refobj.state === 1)
                     {
                         refobj.content.push(child);
                         if( child==='break' )refobj.state = 2;
+                        else checkRefProp(this,child,'black');
+
                     }else{
                         error('Missing identifier :', 'syntax');
                     }
@@ -348,10 +411,7 @@ var syntax={
 
             }else
             {
-                if( !is_black && /^(case|default)/i.test(child) )
-                {
-                    error('Unexpected token case or default', 'syntax');
-                }
+                checkRefProp(this,child,'black');
             }
         }
     }
@@ -400,6 +460,10 @@ var syntax={
             {
                 error('Missing {', 'syntax');
             }
+
+        }else
+        {
+            checkRefProp(this, child, 'black');
         }
     }
     ,'object':function (event)
@@ -418,13 +482,95 @@ var syntax={
             var last = itemByIndexAt(this.content,-1);
             if( (last !==',' && last !==':') || last===child )error('Unexpected identifier '+child, 'syntax');
             if( last===',' && !checkPropName(child) )error('Unexpected token key ', 'syntax');
+            if( last ===':' )checkRefProp(this,child);
         }
     }
     ,'array':function (event)
     {
+        var child = event.child;
+        if( this.state===0 )
+        {
+            this.state=1;
+            var prev = itemByIndexAt(this.parent.content,-1);
+            if( prev && prev !== '=' )
+            {
+                this.type='reference';
+            }
 
+        }else if( this.state===1  )
+        {
+            if( this.type==='reference' && this.content.length > 0 )error('Unexpected token [', 'reference');
+        }
+        if( child !==',' )checkRefProp(this,child);
+    }
+    ,'express':function (event)
+    {
+        var child = event.child;
+        if( this.state===0 )
+        {
+            this.state===1;
+            var prev = itemByIndexAt(this.parent.content,-1);
+            if( prev && prev !== '=' )
+            {
+                this.type='reference';
+            }
+        }
+        if( child !==',' )checkRefProp(this,child);
     }
 }
+
+var last_identifier;
+function checkIdentifier()
+{
+    var ident = this.delimiter;
+    if( isLogicOperator(ident) || isMathArithmetic(ident) )
+    {
+        if( last_identifier && !this.code )error('Unexpected token '+last_identifier );
+        last_identifier=ident;
+
+    }else if( last_identifier && !this.code && /[\;\)\}\]\?]/.test(ident) )
+    {
+        error('Unexpected token '+last_identifier );
+
+    }else
+    {
+        last_identifier='';
+    }
+}
+
+/**
+ * 在执行检查语法之前
+ */
+function executeBefore()
+{
+    if( this.name==='for' )
+    {
+        if( this.delimiter===';' || this.delimiter===')' )
+        {
+            if( this.code )this.append( this.code );
+            var index = this.content.indexOf(';');
+            if( index>=0 ){
+                this.content.splice(index,1);
+                index--;
+            }
+            var item = this.content.splice(index+1, this.content.length-index+1 );
+            this.content.push( item );
+            if( this.delimiter===')' )
+            {
+                if( this.content.length !== 3)
+                {
+                    error('Unexpected token )','syntax');
+                }
+                this.removeListener('executeBefore',executeBefore);
+                balance(this,this.delimiter);
+                return false;
+            }
+            this.content.push(';')
+            return false;
+        }
+    }
+}
+
 
 /**
  * 结束语法之前
@@ -445,11 +591,19 @@ function endSyntaxBefore( setcontext )
         var last = itemByIndexAt(this.items,-1);
         if( !last || ( last.delimiter && typeof last.value=== "undefined" ) )error('Unexpected token var', 'syntax');
         last.end=true;
+        return true;
     }
 
+    // 检查 case default 是否有 : 符号
     if( this.state===2 && this.name==='switch' && this.delimiter==='}' && getItem(this,'content.state',-1) === 0 )
     {
         error('Missing identifier :', 'syntax');
+    }
+
+    //表达式中至少需要有一个参数
+    if( this.keyword==='express' )
+    {
+        if( this.content.length === 0 )error('Missing argument', 'syntax');
     }
 
     //如果还是在初始阶段
@@ -465,7 +619,6 @@ function endSyntaxBefore( setcontext )
             if (this.keyword === 'condition' )
             {
                 if( this.param.length === 0 )error('Missing argument', 'syntax');
-
                 if( this.name==='while' || this.name==='catch' || this.name==='finally' )
                 {
                     var lastname = getItem(this, 'parent.content.name', -2);
@@ -518,15 +671,22 @@ function Stack(keyword, name, delimiter )
     this.state=0;
     this.delimiter = delimiter;
 
-    if( keyword==='function' ||  keyword==='condition' )
+    if( keyword==='function' ||  keyword==='condition' || keyword==='context' )
     {
         this.param=[];
     }
+
+    if( keyword==='function' || keyword==='context' )this.define=[];
 
     this.closer=false;
     this.parent=null;
     this.events={};
     this.switch( this );
+
+    if( this.name==='for' )
+    {
+        this.addListener('executeBefore',executeBefore);
+    }
 
     //切换上下文之前
     this.addListener('switchBefore',endSyntaxBefore);
@@ -536,6 +696,8 @@ function Stack(keyword, name, delimiter )
     {
         this.addListener('appendBefore',syntax[keyword]);
     }
+
+    this.addListener('executeAfter',checkIdentifier);
 
     //变量必须要以';'结束
     if( keyword ==='var' )this.balance.push(';');
@@ -566,32 +728,40 @@ Stack.getInstance=function( code, delimiter )
         keyword = 'var';
         code=  code.replace(/^var\s*/,'');
 
-    }else if( code && /^(if|else\s+if|else|do|while|switch|try|catch|for|finally)$/.test( code ) )
+    }else if( code && /^(if|else\s+if|do|while|switch|try|catch|for|finally)$/.test( code ) )
     {
         name = code.replace(' ','');
         keyword = 'condition';
-        if( /^(else|do|try|finally)$/.test(code) )
+        if( /^(do|try|finally)$/.test(code) )
         {
             keyword='black';
         }
-        code= code.replace( /^(if|else\s+if|else|do|while|switch|try|catch|for|finally)$/,'' );
+        code= code.replace( /^(if|else\s+if|do|while|switch|try|catch|for|finally)$/,'' );
         if( code ){
             console.log( code )
             throw new Error('syntax invalid');
+        }
+
+    }else if( code && /^else/.test( code ) )
+    {
+        name = 'else'
+        keyword = 'black';
+        code= code.replace( /^else\s*/,'' );
+        if( code )
+        {
+            var obj = new Stack(keyword, name, delimiter );
+            current.append( obj );
+            return Stack.getInstance( code, delimiter);
         }
 
     }else if( /[\{\[\(]/.test( delimiter ) )
     {
         name=delimiter;
         keyword='object';
-        if( delimiter==='[' )
-        {
-            keyword='array';
-        }
-        if( delimiter==='(' )
-        {
-            keyword='express';
-        }
+        if( delimiter==='[' )keyword='array';
+        if( delimiter==='(' )keyword='express';
+        if( current && code )current.append( code );
+        code='';
 
     }else if(  ( !current || current.name!==delimiter ) && /[\'\"]/.test( delimiter ) )
     {
@@ -604,6 +774,7 @@ Stack.getInstance=function( code, delimiter )
     {
         keyword='ternary';
         if( current && code )current.append( code );
+        delimiter='';
         code='';
     }
 
@@ -637,11 +808,21 @@ Stack.prototype.append=function( value )
 
     value =  event.child;
     var parent = event.parent;
-    if( value instanceof Stack )
+    var is = value instanceof Stack;
+    if( is )
     {
         if( value === this )throw new Error('the child and parent is same');
         if( value.parent )throw new Error('child added.');
         value.parent=this;
+
+        //如果一个作用域，引用定义的值
+        if( value.keyword==='function' )
+        {
+            var owner = getOwnerContext( this );
+            if( owner ){
+                value.define= value.define.concat(owner.param.slice(),owner.define);
+            }
+        }
     }
 
     if( parent.closer )
@@ -653,6 +834,7 @@ Stack.prototype.append=function( value )
     if( value )
     {
         parent.content.push( value );
+        if( is && value.hasListener('added') )value.dispatcher('added')
     }
     return value;
 }
@@ -743,8 +925,10 @@ Stack.prototype.switch=function( stackObject )
 
 Stack.prototype.execute=function()
 {
+    if ( this.hasListener('executeBefore') && !this.dispatcher('executeBefore') )return false;
     var code = this.code;
     var delimiter = this.delimiter;
+
     //获取函数名称
     if( this.keyword==='function' && typeof this.name === "undefined" )
     {
@@ -756,6 +940,7 @@ Stack.prototype.execute=function()
     if (code)this.append(code);
     //如果是运算符
     if( balance(this,delimiter)===0 )this.append(delimiter);
+    if( this.hasListener('executeAfter') ) this.dispatcher('executeAfter');
 }
 
 
@@ -779,8 +964,17 @@ function balance(context, delimiter , fake )
     {
         var tag = context.balance.pop();
 
+        var endIdentifier = /[\)\}\]]/.test(delimiter);
+
         //在表达式中的三元运算操作可以用 ')' 结束
-        if( context.keyword==='ternary' && context.state===2 && delimiter===')' && (context.parent && context.parent.name==='(') )
+        if( context.keyword==='ternary' && context.state===2 && endIdentifier )
+        {
+            context.closer=true;
+            context.switch( context.parent , delimiter );
+            return balance( context.parent , delimiter);
+        }
+        // 变量可以用 } 结束
+        if( context.keyword==='var' && delimiter === '}' )
         {
             context.closer=true;
             context.switch( context.parent , delimiter );
@@ -791,7 +985,7 @@ function balance(context, delimiter , fake )
         {
             if( tag )
             {
-                if( /[\)\}\]]/.test(delimiter) || /[\'\"]/.test( tag ) )
+                if( endIdentifier || /[\'\"]/.test( tag ) )
                 {
                     console.log( context, delimiter, tag )
                     throw new Error('Not the end of the delimiter 2');
@@ -804,9 +998,8 @@ function balance(context, delimiter , fake )
                 context.balance.push( map_delimiter[delimiter] );
             }
 
-            if( context.balance.length === 0 && !(context.name==='case' || context.name==='default') )
+            if( context.balance.length === 0 )
             {
-                console.log( context, delimiter, tag )
                 throw new Error('Not the end of the delimiter 3');
             }
             return 1;
@@ -909,7 +1102,7 @@ function start( content )
    // console.log( current.content[0].content[2].content[3].content[0].content[0] )
    // console.log( current.content[0].content[0].content[.content3] )
    // console.log( current.content[0].content[2].content[0].content )
-    console.log( current.content[0].content[2].content[3].content[0].content[2].content[0] )
+    console.log( current.content )
   //  return root;
 }
 
@@ -934,16 +1127,20 @@ function toString( rootcontext )
     return str.join('');
 }
 
-var content = " function doRecursion( propName,strainer, deep )\n\
+
+var content = " function doRecursion( propName,strainer, deep,Breeze )\n\
 {\n\
     var currentItem={ppp:78,\n\
     'uuu':'kkkk',\
+    \nttt: 123,\
     }\n\
     ,bbb,\
     ret=[];\n\
-     var s = typeof strainer === \"string\" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0; } : \n\
+     var s = typeof strainer === \"string\" ? function(){return Breeze\n\
+     .querySelector\n\
+     (strainer, null , null, [this]).length > 0; } : \n\
         (typeof strainer === \"undefined\" + \"sdfsdf\" ? function(){return this.nodeType===1; } : strainer);\n\
-    var uuu = this['forEach'](function(elem)\n\
+    var uuu = this['yyy'](function(elem)\n\
     {\n\
         if\n\
         ( elem && elem.nodeType )\n\
@@ -951,11 +1148,11 @@ var content = " function doRecursion( propName,strainer, deep )\n\
             currentItem=elem;\n\
             do{\n\
                 currentItem = currentItem[propName];\n\
-                if( currentItem && s.call(currentItem,'cccc') )ret = ret.concat( currentItem );\n\
+                if( currentItem && s.call(currentItem,'cccc') )ret = ret.concat( currentItem  );\n\
             }while(1)\n\
-            var bb=123;\
+            var oooo=function(){ var bb=123; }\
         }\n\
-        else if(1222);\n\
+        else uuu=123;\n\
         \
         switch(1)\n{\
           case '1' : \
@@ -964,11 +1161,18 @@ var content = " function doRecursion( propName,strainer, deep )\n\
            default :\
         \
         }\n \
+        var c=0;\n\
+        for( ;; )\n{\
+        \
+       \n}\
         \
         \
     });\n\
+    ret = 11;\
     return ret;\n\
-}";
+}"; 
+
+
 
 /*content = " function doRecursion( propName,strainer, deep )\n\
 {\n\
