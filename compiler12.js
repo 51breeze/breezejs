@@ -15,12 +15,11 @@ var math_arithmetic=['\\|', '\\&','\\+', '\\-','\\*','\\/', '\\%', '\\^','\\~','
 var math_arithmetic_regexp = new RegExp( '^\s*'+math_arithmetic.join('|')+'\s*$' );
 var black_delimiter= ['\\(','\\{','\\[','\\]','\\}','\\)','\\"','\\\''];
 var annotation_delimiter=['\\/\\*','\\*\\/','\\/\\/'];
-var separate = ['\\?','\\n','\\;','\\:','\\,','\\.'];
+var separate = ['\\?','\\n','\\;','\\:','\\,'/*,'\\.'*/];
 
-var code_regex = [].concat( black_delimiter, annotation_delimiter, separate ,'[\\=\\!\\<\\>\\|\\&\\%\\^\\~\\/\\*\\+\\-]+', '$' );
+var code_regex = [].concat( black_delimiter, annotation_delimiter, separate ,'\\/.*\\/','[\\=]+','[\\=\\!\\<\\>\\|\\&\\%\\^\\~\\/\\*\\+\\-]+', '$' );
 //var newline =new RegExp('(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/|\\/\\/|\\?|\\n|\\;|\\:|\\,|\\"|\\\'|\\!?\\+?\\=+|\\+|\\|+|\\&+|\\<+\\=?|\\>+\\=?|\\!+|$)','g');
 var newline =new RegExp('('+code_regex.join('|')+')','g');
-
 
 function isLogicOperator( val )
 {
@@ -60,9 +59,9 @@ function checkRefValue(context, val)
         return true;
     }else if( typeof val === "string"  )
     {
-        if( /^typeof/.test(val) )
+        if( /^typeof|new/.test(val) )
         {
-            val = val.replace(/^typeof\s*/i, '');
+            val = val.replace(/^(typeof|new)\s*/i, '');
 
         }else if( isLogicOperator(val) || isMathArithmetic(val) )
         {
@@ -184,12 +183,30 @@ function create_ternary( context )
     return obj;
 }
 
+function concatPropName(context, propName )
+{
+    var len = context.content.length;
+    var props=[];
+    if( propName )
+
+    //获取表达式的起始点
+    while (len>0)
+    {
+        var item = context.content[ len ];
+        if( typeof item === "string" && item.keyword !=='reference' )break;
+        context.content.pop();
+        props.unshift( item );
+    }
+
+}
+
 
 var syntax={
 
     'ternary':function( event )
     {
         var child = event.child;
+       // if( this.state===0)this.state=1;
         if( child===':' )
         {
             //如果是一个结束阶段
@@ -215,9 +232,10 @@ var syntax={
     {
         var child = event.child;
         var is_black= child instanceof Stack;
+        //if( this.state===0)this.state=1;
 
         //变量中不能添加变量
-        if( is_black && child.keyword==='var')error('Unexpected token var','syntax');
+        if( is_black && child.keyword==='var')error('Unexpected token var eee','syntax');
         if( typeof this.items === "undefined")this.items=[];
 
         var refitem = itemByIndexAt(this.items,-1);
@@ -508,7 +526,7 @@ var syntax={
         var child = event.child;
         if( this.state===0 )
         {
-            this.state===1;
+            this.state=1;
             var prev = itemByIndexAt(this.parent.content,-1);
             if( prev && prev !== '=' )
             {
@@ -517,6 +535,23 @@ var syntax={
         }
         if( child !==',' )checkRefProp(this,child);
     }
+   /* ,'reference':function (event)
+    {
+        var child = event.child;
+        if( this.state===0 )
+        {
+            this.state=1;
+            var len = this.parent.content.length-1;
+            while(len>0)
+            {
+                var item= this.parent.content[--len];
+                if( typeof item === "string" )break;
+            }
+            this.content=this.parent.content.splice(i,len-i);
+            console.log( this.content, this.name     )
+        }
+        if( !(this.name==='(' && child===',') )checkRefProp(this,child);
+    }*/
 }
 
 var last_identifier;
@@ -603,7 +638,7 @@ function endSyntaxBefore( setcontext )
     //表达式中至少需要有一个参数
     if( this.keyword==='express' )
     {
-        if( this.content.length === 0 )error('Missing argument', 'syntax');
+        if( this.content.length === 0 )error('Missing argument ', 'syntax');
     }
 
     //如果还是在初始阶段
@@ -700,7 +735,7 @@ function Stack(keyword, name, delimiter )
     this.addListener('executeAfter',checkIdentifier);
 
     //变量必须要以';'结束
-    if( keyword ==='var' )this.balance.push(';');
+    if( keyword ==='var' || keyword==='property' )this.balance.push(';');
 }
 
 
@@ -709,6 +744,13 @@ Stack.getInstance=function( code, delimiter )
 {
     var current = Stack.current;
     var name,keyword;
+    if( code && code.charAt(code.length-1)==='\\' && /^[\'\"]$/.test( delimiter ) )
+    {
+        current.content.push(code+delimiter)
+        current.code='';
+        current.delimiter='';
+        return current;
+    }
 
     if( code && /^(case|default)/i.exec(code) )
     {
@@ -754,16 +796,21 @@ Stack.getInstance=function( code, delimiter )
             return Stack.getInstance( code, delimiter);
         }
 
-    }else if( /[\{\[\(]/.test( delimiter ) )
+    }else if( /^[\{\[\(]$/.test( delimiter ) )
     {
         name=delimiter;
         keyword='object';
         if( delimiter==='[' )keyword='array';
         if( delimiter==='(' )keyword='express';
-        if( current && code )current.append( code );
-        code='';
 
-    }else if(  ( !current || current.name!==delimiter ) && /[\'\"]/.test( delimiter ) )
+        // if(code)current.append(code);
+        // code='';
+        if( code || (current && current.state>0) )
+        {
+            keyword = 'reference';
+        }
+
+    }else if(  ( !current || current.name!==delimiter ) && /^[\'\"]$/.test( delimiter ) )
     {
         name=delimiter;
         keyword='string';
@@ -774,6 +821,24 @@ Stack.getInstance=function( code, delimiter )
     {
         keyword='ternary';
         if( current && code )current.append( code );
+        delimiter='';
+        code='';
+
+    }
+    //设置属性
+    else if( ( delimiter === '=' ) && current && (current.keyword !=='var' || current.closer ) )
+    {
+        keyword='property';
+    }
+    //正则对象
+    else if( delimiter.length > 1 && delimiter.charAt(0)==='/' && delimiter.charAt(delimiter.length-1)==='/' )
+    {
+        var obj= new Stack('object','regexp' )
+        obj.content.push( delimiter);
+        obj.state=2;
+        obj.closer=true;
+        obj.switch(current);
+        current.append( obj );
         delimiter='';
         code='';
     }
@@ -939,7 +1004,7 @@ Stack.prototype.execute=function()
 
     if (code)this.append(code);
     //如果是运算符
-    if( balance(this,delimiter)===0 )this.append(delimiter);
+    if( delimiter && balance(this,delimiter)===0 )this.append(delimiter);
     if( this.hasListener('executeAfter') ) this.dispatcher('executeAfter');
 }
 
@@ -960,11 +1025,11 @@ var map_delimiter={
  */
 function balance(context, delimiter , fake )
 {
-    if( /[\(\{\[\'\"\;\]\}\)]/.test(delimiter) )
+    if( delimiter && /^[\(\{\[\'\"\;\]\}\)]$/.test(delimiter) )
     {
         var tag = context.balance.pop();
 
-        var endIdentifier = /[\)\}\]]/.test(delimiter);
+        var endIdentifier = /^[\)\}\]]$/.test(delimiter);
 
         //在表达式中的三元运算操作可以用 ')' 结束
         if( context.keyword==='ternary' && context.state===2 && endIdentifier )
@@ -985,10 +1050,10 @@ function balance(context, delimiter , fake )
         {
             if( tag )
             {
-                if( endIdentifier || /[\'\"]/.test( tag ) )
+                if( endIdentifier || /^[\'\"]$/.test( tag ) )
                 {
                     console.log( context, delimiter, tag )
-                    throw new Error('Not the end of the delimiter 2');
+                    throw new Error('Unexpected identifier '+delimiter);
                 }
                 context.balance.push(tag);
             }
@@ -1000,27 +1065,33 @@ function balance(context, delimiter , fake )
 
             if( context.balance.length === 0 )
             {
-                throw new Error('Not the end of the delimiter 3');
+                throw new Error('Unexpected identifier '+delimiter );
             }
             return 1;
         }
 
         if( context.balance.length===0 )
         {
-            //关闭上下文并切换到父级上下文
-           context.closer=true;
-           var ret = context.switch( context.parent );
+             //关闭上下文并切换到父级上下文
+            context.closer=true;
+            var ret = context.switch( context.parent );
 
-           //如果当前是一个子级三元运算域就向上切换。
-           if( ret && context.keyword === 'ternary' && context.parent.keyword==='ternary' && context.parent.state===2 && !context.parent.closer )
-           {
-               balance(context.parent,';', true );
-           }
-           //如果当前是用';'结束的上下文并且父上下文是'var'
-           else if( ret && !fake, delimiter===';' && context.parent && context.parent.keyword==='var' )
-           {
-               balance(context.parent,';' );
-           }
+            if( ret )
+            {
+                //如果当前是一个子级三元运算域就向上切换。
+                if (context.keyword === 'ternary' && context.parent.keyword === 'ternary' && context.parent.state === 2 && !context.parent.closer)
+                {
+                    balance(context.parent, ';', true);
+                }
+                //如果当前是用';'结束的上下文并且父上下文是'var'
+                else if (!fake && delimiter === ';' && context.parent )
+                {
+                    if( itemByIndexAt(context.parent.balance,-1)===';' )
+                    {
+                        balance(context.parent, ';');
+                    }
+                }
+            }
         }
         return -1;
     }
@@ -1139,7 +1210,7 @@ var content = " function doRecursion( propName,strainer, deep,Breeze )\n\
      var s = typeof strainer === \"string\" ? function(){return Breeze\n\
      .querySelector\n\
      (strainer, null , null, [this]).length > 0; } : \n\
-        (typeof strainer === \"undefined\" + \"sdfsdf\" ? function(){return this.nodeType===1; } : strainer);\n\
+        (typeof strainer === \"undefined\" + \"sdf\\\"sdf\" ? function(){return this.nodeType===1; } : strainer);\n\
     var uuu = this['yyy'](function(elem)\n\
     {\n\
         if\n\
@@ -1168,10 +1239,11 @@ var content = " function doRecursion( propName,strainer, deep,Breeze )\n\
         \
         \
     });\n\
-    ret = 11;\
+    ret = 11.4444;\
+    var reg=/(\\/\\*|\\(|\\{|\\[|\\]|\\}|\\)|\\*\\/|\\/\\/|\\?|\\'|\\\"|\\n|\\;|\\:|\\,|\\!?\\+?\\=+|\\+|\\|+|\\&+|\\<+\\=?|\\>+\\=?|\\!+|$)/;\n\
+    ret=new ddssss();\
     return ret;\n\
-}"; 
-
+}";
 
 
 /*content = " function doRecursion( propName,strainer, deep )\n\
