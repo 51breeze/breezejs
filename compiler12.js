@@ -805,10 +805,17 @@ Stack.getInstance=function( code, delimiter )
 
         // if(code)current.append(code);
         // code='';
-        if( code || (current && current.state>0) )
+        if( code || (current && current.keyword!=='var') )
         {
+
+            if(code)current.append(code);
             keyword = 'reference';
+            console.log(  itemByIndexAt(current.content,-1) ,'====', itemByIndexAt(current.content,-2)  )
+
         }
+
+
+
 
     }else if(  ( !current || current.name!==delimiter ) && /^[\'\"]$/.test( delimiter ) )
     {
@@ -1172,9 +1179,9 @@ function start( content )
 
    // console.log( current.content[0].content[2].content[3].content[0].content[0] )
    // console.log( current.content[0].content[0].content[.content3] )
-   // console.log( current.content[0].content[2].content[0].content )
-    console.log( current.content )
-  //  return root;
+    console.log( current.content[0].content[2] )
+   // console.log( current.content )
+   // return current;
 }
 
 
@@ -1262,11 +1269,12 @@ var content = " function doRecursion( propName,strainer, deep,Breeze )\n\
  function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0; };\n\
 ";*/
 
+
+
 var rootcontext = start( content );
 
 //console.log( toString( rootcontext ) )
 
 //console.log( rootcontext.content[1].content[2].content[3].content[1].content )
 //console.log( rootcontext.content[1].content )
-
 
