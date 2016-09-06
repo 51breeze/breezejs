@@ -552,11 +552,28 @@ var syntax={
     ,'reference':function (event)
     {
         var child = event.child;
-        if( child === ',' && this.parent.keyword==='reference' )
+        if( child === ',' && this.parent.keyword==='var' )
         {
-            balance(this.parent,';',true);
+            balance(this,';',true);
             return false;
         }
+        if( ( child==='=' || typeof child==='object' ) && this.content.length < 1 )
+        {
+            error('Unexpected token =', 'syntax');
+        }
+
+        if( typeof child === "string" )
+        {
+            var last = itemByIndexAt(this.content,-1) || undefined;
+            var type = typeof last;
+            var a = type === "string" && last.charAt(last.length-1)==='.' ? '.' : null;
+            var b = child.charAt(0)==='.' ? '.' : null;
+            if( (!last && b==='.') || (type === "object" && b!=='.') || (type === "string" && a && ( a === b || !( a==='.' || b==='.') ) ) )
+            {
+                error('Unexpected token .', 'syntax');
+            }
+        }
+
     }
 }
 
@@ -566,12 +583,12 @@ function checkIdentifier()
     var ident = this.delimiter;
     if( isLogicOperator(ident) || isMathArithmetic(ident) )
     {
-        if( last_identifier && !this.code )error('Unexpected token '+last_identifier );
+        if( last_identifier && !this.code )error('Unexpected token 2 '+last_identifier );
         last_identifier=ident;
 
     }else if( last_identifier && !this.code && /[\;\)\}\]\?]/.test(ident) )
     {
-        error('Unexpected token '+last_identifier );
+      //  error('Unexpected token 23 '+last_identifier );
 
     }else
     {
@@ -754,8 +771,6 @@ Stack.getInstance=function( code, delimiter )
 {
     var current = Stack.current;
     var name,keyword;
-
-
     if( code && code.charAt(code.length-1)==='\\' && /^[\'\"]$/.test( delimiter ) )
     {
         current.content.push(code+delimiter)
@@ -811,11 +826,17 @@ Stack.getInstance=function( code, delimiter )
 
     }else if( code && /^[\w\.]+$/.test( code ) )
     {
-        var obj = new Stack('reference');
-        obj.append(code);
-        current.append( obj );
-        current.switch( obj );
-        return Stack.getInstance( '', delimiter);
+       if( (current.keyword==='reference' /*|| current.keyword==='property'*/ ) && !current.closer )
+       {
+           current.append( code );
+       }else
+       {
+           var obj = new Stack('reference');
+           obj.append(code);
+           current.append(obj);
+           current.switch(obj);
+       }
+       return Stack.getInstance( '', delimiter);
 
     }else if( /^[\{\[\(]$/.test( delimiter ) )
     {
@@ -823,6 +844,7 @@ Stack.getInstance=function( code, delimiter )
         keyword='object';
         if( delimiter==='[' )keyword='array';
         if( delimiter==='(' )keyword='express';
+        //if( current.keyword==='reference' && !current.closer && delimiter==='[' )keyword='property';
 
     }else if(  ( !current || current.name!==delimiter ) && /^[\'\"]$/.test( delimiter ) )
     {
@@ -1054,6 +1076,13 @@ function balance(context, delimiter , fake )
             return balance( context.parent , delimiter);
         }
 
+        //动态属性可以用']'结束
+        if( context.keyword==='reference' && endIdentifier )
+        {
+            context.closer=true;
+            return balance( context.parent , delimiter);
+        }
+
         if ( delimiter !== tag )
         {
             if( tag )
@@ -1180,7 +1209,7 @@ function start( content )
 
    // console.log( current.content[0].content[2].content[3].content[0].content[0] )
    // console.log( current.content[0].content[0].content[.content3] )
-    console.log( current.content[0].content      )
+    console.log( current.content  )
    // console.log( current.content )
    // return current;
 }
@@ -1272,7 +1301,10 @@ var content = " function doRecursion( propName,strainer, deep,Breeze )\n\
 
 
 
-content='var ret=[].concat(), bb=123;';
+content='var yy=vvv[oo](1),cc=rrr\n\
+.ccc.\n\
+count()\
+;\nvar  bb=000;';
 
 
 var rootcontext = start( content );
