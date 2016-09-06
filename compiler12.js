@@ -232,6 +232,17 @@ var syntax={
     {
         var child = event.child;
         var is_black= child instanceof Stack;
+        if( !is_black || child.keyword !== 'reference' )
+        {
+            error('Unexpected token var','syntax');
+        }
+
+
+
+    }/* ,'var':function(event)
+    {
+        var child = event.child;
+        var is_black= child instanceof Stack;
         //if( this.state===0)this.state=1;
 
         //变量中不能添加变量
@@ -263,6 +274,8 @@ var syntax={
                     error('Unexpected variable name');
                 }
                 var owner = getOwnerContext(this);
+
+                //将变量定义到当前的上下文中
                 if(owner)owner.define.push(child);
                 refitem = {name: child, value: undefined, delimiter: null, end: false}
                 this.items.push(refitem);
@@ -284,7 +297,7 @@ var syntax={
             checkRefProp(this, child );
             refitem.value = child;
         }
-    }
+    }*/
     ,'function':function( event )
     {
         var child = event.child;
@@ -505,7 +518,7 @@ var syntax={
     }
     ,'array':function (event)
     {
-        var child = event.child;
+       /* var child = event.child;
         if( this.state===0 )
         {
             this.state=1;
@@ -519,7 +532,8 @@ var syntax={
         {
             if( this.type==='reference' && this.content.length > 0 )error('Unexpected token [', 'reference');
         }
-        if( child !==',' )checkRefProp(this,child);
+        if( child !==',' )checkRefProp(this,child);*/
+
     }
     ,'express':function (event)
     {
@@ -535,23 +549,15 @@ var syntax={
         }
         if( child !==',' )checkRefProp(this,child);
     }
-   /* ,'reference':function (event)
+    ,'reference':function (event)
     {
         var child = event.child;
-        if( this.state===0 )
+        if( child === ',' && this.parent.keyword==='reference' )
         {
-            this.state=1;
-            var len = this.parent.content.length-1;
-            while(len>0)
-            {
-                var item= this.parent.content[--len];
-                if( typeof item === "string" )break;
-            }
-            this.content=this.parent.content.splice(i,len-i);
-            console.log( this.content, this.name     )
+            balance(this.parent,';',true);
+            return false;
         }
-        if( !(this.name==='(' && child===',') )checkRefProp(this,child);
-    }*/
+    }
 }
 
 var last_identifier;
@@ -623,10 +629,10 @@ function endSyntaxBefore( setcontext )
     //如果声明的变量
     if( this.keyword === 'var' )
     {
-        var last = itemByIndexAt(this.items,-1);
+       /* var last = itemByIndexAt(this.items,-1);
         if( !last || ( last.delimiter && typeof last.value=== "undefined" ) )error('Unexpected token var', 'syntax');
         last.end=true;
-        return true;
+        return true;*/
     }
 
     // 检查 case default 是否有 : 符号
@@ -638,7 +644,7 @@ function endSyntaxBefore( setcontext )
     //表达式中至少需要有一个参数
     if( this.keyword==='express' )
     {
-        if( this.content.length === 0 )error('Missing argument ', 'syntax');
+        //if( this.content.length === 0 )error('Missing argument ', 'syntax');
     }
 
     //如果还是在初始阶段
@@ -711,7 +717,11 @@ function Stack(keyword, name, delimiter )
         this.param=[];
     }
 
-    if( keyword==='function' || keyword==='context' )this.define=[];
+    if( keyword==='function' || keyword==='context' )
+    {
+        this.declare=false;
+        this.define=[];
+    }
 
     this.closer=false;
     this.parent=null;
@@ -735,7 +745,7 @@ function Stack(keyword, name, delimiter )
     this.addListener('executeAfter',checkIdentifier);
 
     //变量必须要以';'结束
-    if( keyword ==='var' || keyword==='property' )this.balance.push(';');
+    if( keyword ==='var' || keyword==='property' || keyword==='reference' )this.balance.push(';');
 }
 
 
@@ -744,6 +754,8 @@ Stack.getInstance=function( code, delimiter )
 {
     var current = Stack.current;
     var name,keyword;
+
+
     if( code && code.charAt(code.length-1)==='\\' && /^[\'\"]$/.test( delimiter ) )
     {
         current.content.push(code+delimiter)
@@ -752,7 +764,7 @@ Stack.getInstance=function( code, delimiter )
         return current;
     }
 
-    if( code && /^(case|default)/i.exec(code) )
+    if( code && /^(case|default)$/i.exec(code) )
     {
         current.append( RegExp.$1 );
         code=code.replace(/^(case|default)\s*/i,'');
@@ -764,11 +776,12 @@ Stack.getInstance=function( code, delimiter )
         keyword = 'function';
         code=  code.replace(/^function\s*/,'');
 
-    }else if( code && /^(var)(\s+\w+|$)/.test( code ) )
+    }else if( code && /^var(\s+\w+|$)/.test( code ) )
     {
-        name = undefined;
-        keyword = 'var';
-        code=  code.replace(/^var\s*/,'');
+        var obj = new Stack('var');
+        current.append(obj);
+        current.switch(obj);
+        return Stack.getInstance(code.replace(/^var\s*/,''), delimiter);
 
     }else if( code && /^(if|else\s+if|do|while|switch|try|catch|for|finally)$/.test( code ) )
     {
@@ -784,7 +797,7 @@ Stack.getInstance=function( code, delimiter )
             throw new Error('syntax invalid');
         }
 
-    }else if( code && /^else/.test( code ) )
+    }else if( code && /^else(\s+|$)/.test( code ) )
     {
         name = 'else'
         keyword = 'black';
@@ -796,26 +809,20 @@ Stack.getInstance=function( code, delimiter )
             return Stack.getInstance( code, delimiter);
         }
 
+    }else if( code && /^[\w\.]+$/.test( code ) )
+    {
+        var obj = new Stack('reference');
+        obj.append(code);
+        current.append( obj );
+        current.switch( obj );
+        return Stack.getInstance( '', delimiter);
+
     }else if( /^[\{\[\(]$/.test( delimiter ) )
     {
         name=delimiter;
         keyword='object';
         if( delimiter==='[' )keyword='array';
         if( delimiter==='(' )keyword='express';
-
-        // if(code)current.append(code);
-        // code='';
-        if( code || (current && current.keyword!=='var') )
-        {
-
-            if(code)current.append(code);
-            keyword = 'reference';
-            console.log(  itemByIndexAt(current.content,-1) ,'====', itemByIndexAt(current.content,-2)  )
-
-        }
-
-
-
 
     }else if(  ( !current || current.name!==delimiter ) && /^[\'\"]$/.test( delimiter ) )
     {
@@ -830,12 +837,6 @@ Stack.getInstance=function( code, delimiter )
         if( current && code )current.append( code );
         delimiter='';
         code='';
-
-    }
-    //设置属性
-    else if( ( delimiter === '=' ) && current && (current.keyword !=='var' || current.closer ) )
-    {
-        keyword='property';
     }
     //正则对象
     else if( delimiter.length > 1 && delimiter.charAt(0)==='/' && delimiter.charAt(delimiter.length-1)==='/' )
@@ -1083,7 +1084,7 @@ function balance(context, delimiter , fake )
             context.closer=true;
             var ret = context.switch( context.parent );
 
-            if( ret )
+            if( ret && !fake )
             {
                 //如果当前是一个子级三元运算域就向上切换。
                 if (context.keyword === 'ternary' && context.parent.keyword === 'ternary' && context.parent.state === 2 && !context.parent.closer)
@@ -1091,7 +1092,7 @@ function balance(context, delimiter , fake )
                     balance(context.parent, ';', true);
                 }
                 //如果当前是用';'结束的上下文并且父上下文是'var'
-                else if (!fake && delimiter === ';' && context.parent )
+                else if ( delimiter === ';' && context.parent )
                 {
                     if( itemByIndexAt(context.parent.balance,-1)===';' )
                     {
@@ -1179,7 +1180,7 @@ function start( content )
 
    // console.log( current.content[0].content[2].content[3].content[0].content[0] )
    // console.log( current.content[0].content[0].content[.content3] )
-    console.log( current.content[0].content[2] )
+    console.log( current.content[0].content      )
    // console.log( current.content )
    // return current;
 }
@@ -1213,7 +1214,7 @@ var content = " function doRecursion( propName,strainer, deep,Breeze )\n\
     \nttt: 123,\
     }\n\
     ,bbb,\
-    ret=[];\n\
+    ret=[].concat();\n\
      var s = typeof strainer === \"string\" ? function(){return Breeze\n\
      .querySelector\n\
      (strainer, null , null, [this]).length > 0; } : \n\
@@ -1269,6 +1270,9 @@ var content = " function doRecursion( propName,strainer, deep,Breeze )\n\
  function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0; };\n\
 ";*/
 
+
+
+content='var ret=[].concat(), bb=123;';
 
 
 var rootcontext = start( content );
