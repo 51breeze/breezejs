@@ -299,14 +299,14 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
             //设置 Breeze 的当前元素对象
             if( reference && typeof Breeze !== "undefined" && reference instanceof Breeze && reference.indexOf( listener.currentTarget ) >=0 )
             {
-                reference.current( listener.currentTarget );
+                reference.next( listener.currentTarget );
                 is=true;
             }
             //调度侦听项
             listener.callback.call( reference , event );
 
             //清除 Breeze 的当前元素对象
-            if( is )reference.current( null );
+            if( is )reference.next( null );
 
             if( event.propagationStopped===true )
                return false;

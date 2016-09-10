@@ -62,7 +62,7 @@ define('components/SkinComponent',['./Component','./SkinGroup','../Breeze'],func
      */
     SkinComponent.prototype.viewport=function()
     {
-        var viewport = this.skinGroup().current(null);
+        var viewport = this.skinGroup().next(null);
         if( viewport.length !==1 )
         {
             throw new Error('invalid viewport');

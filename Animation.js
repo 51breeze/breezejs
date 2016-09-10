@@ -188,7 +188,7 @@
 
         keyframe.action=function(){
 
-            var i = tl.current();
+            var i = tl.next();
             if( i >= tl.length()-1 )
             {
                 Breeze.style(element,'left', position.left);

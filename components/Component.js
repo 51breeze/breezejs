@@ -37,7 +37,7 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
                 throw new Error('invalid viewport');
             }
             this.__viewport__=viewport;
-            viewport.current(null);
+            viewport.next(null);
             var instance = Component.getInstance( viewport , this.constructor );
             if( instance instanceof this.constructor )return instance;
             viewport.property( Component.NAME, this.componentProfile).data(this.componentProfile, this);
@@ -95,7 +95,7 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
         {
             throw new Error('invalid viewport');
         }
-        return this.__viewport__.current(null);
+        return this.__viewport__.next(null);
     }
 
     /**
@@ -151,15 +151,15 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
      * @returns {Breeze|Manager|HTMLElement}
      * @public
      */
-    Component.prototype.current=function( element )
+    Component.prototype.next=function(element )
     {
         var viewport = this.viewport();
         if( typeof element !== "undefined" )
         {
-            viewport.current( element );
+            viewport.next( element );
             return this;
         }
-        return viewport.current();
+        return viewport.next();
     }
 
     /**

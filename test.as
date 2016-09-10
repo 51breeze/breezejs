@@ -18,13 +18,14 @@
 
 //类
 
-package{
+package
+{
 
     import B as UU;
 
     public class test extends UU {
 
-        static public var name = 123;
+        static public var name = 3 ;
         private var ccc = 236666;
         protected var tttt = 'tyuuu';
         static private var uuu = 'pppp';

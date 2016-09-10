@@ -167,13 +167,13 @@
     function getParentSize()
     {
         var viewport = this.viewport();
-        viewport.current( viewport[0].parentNode || viewport[0].ownerDocument.body );
+        viewport.next( viewport[0].parentNode || viewport[0].ownerDocument.body );
         var height=viewport.height();
         var width=viewport.width();
 
         if( viewport[0] === viewport[0].ownerDocument.body )
         {
-            viewport.current(window)
+            viewport.next(window)
             height = viewport.height();
             width  = viewport.width();
 
@@ -188,7 +188,7 @@
 
         height+=viewport.scrollTop();
         width+=viewport.scrollLeft();
-        viewport.current(null);
+        viewport.next(null);
         return {'width':width,'height':height};
     }
 
@@ -331,7 +331,7 @@
             ,v=verticalAlign  ===vertical[1]   ? 0.5 : verticalAlign  ===vertical[2]   ? 1 : 0;
 
         var children =  [];
-        var target = this.viewport().current();
+        var target = this.viewport().next();
 
         Breeze( target ).children(':not([includeLayout=false])').forEach(function(elem){
 
@@ -409,7 +409,7 @@
     {
         var size = getParentSize.call(this);
         this.invalidate=false;
-        this.current(null);
+        this.next(null);
         this.updateDisplayList( size.width, size.height );
         return this;
     }

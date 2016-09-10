@@ -766,10 +766,10 @@ function Stack(keyword, name, delimiter )
 }
 
 
-Stack.current=null;
+Stack.next=null;
 Stack.getInstance=function( code, delimiter )
 {
-    var current = Stack.current;
+    var current = Stack.next;
     var name,keyword;
     if( code && code.charAt(code.length-1)==='\\' && /^[\'\"]$/.test( delimiter ) )
     {
@@ -1008,10 +1008,10 @@ Stack.prototype.removeListener=function(type, callback)
 
 Stack.prototype.switch=function( stackObject )
 {
-    if( stackObject instanceof Stack && Stack.current !== stackObject )
+    if( stackObject instanceof Stack && Stack.next !== stackObject )
     {
         if ( this.hasListener('switchBefore') && !this.dispatcher('switchBefore', stackObject) )return false;
-        Stack.current = stackObject;
+        Stack.next = stackObject;
         if (stackObject.hasListener('switchAfter'))stackObject.dispatcher('switchAfter', this );
         return true;
     }

@@ -811,20 +811,454 @@ function createModule(file)
     };
 }
 
+
+var syntax={
+
+    "(keyword)":function (){
+
+        var r = this.current();
+        if( r.value==='package' )
+        {
+            syntax['(package)'].call(this);
+
+        }else if( r.value ==='public' || r.value ==='private' || r.value ==='protected' || r.value ==='static' )
+        {
+             r = this.seek();
+             if( r.value==='class' || r.value==='function' )
+             {
+                  this.scope().current().add( new Scope('(black)') );
+
+             }else if( r.value === 'static' )
+             {
+                 r = this.seek();
+                 if( r.value==='function' )
+                 {
+                     this.scope().current().add( new Scope('(black)') );
+                 }
+             }
+
+        }else if( r.value==='function' )
+        {
+            //this.scope().current().add( new Scope('(black)') );
+        }
+    },
+    "(package)":function (){
+        var s = this.scope();
+        var r = this.next();
+        while( r.type==='(identifier)' && r.id !=='{' )
+        {
+             s.name += r.value;
+        }
+    }
+
+}
+
+
+
+function Scope( type )
+{
+   this.__parent__=null;
+   this.__content__=[];
+   this.__define__=[];
+   this.__balance__=0;
+   this.__type__ = type;
+   if( Scope.__current__===null )Scope.__current__=this;
+}
+
+Scope.__current__=null;
+Scope.prototype.add=function( scope )
+{
+    if( scope instanceof Scope )
+    {
+        scope.__parent__=this;
+        Scope.__current__ = scope;
+    }
+    this.__content__.push( scope );
+}
+
+Scope.prototype.define=function( prop )
+{
+    this.__define__.push( prop );
+}
+
+Scope.prototype.parent=function()
+{
+    return this.__parent__;
+}
+
+Scope.prototype.content=function()
+{
+    return this.__content__;
+}
+
+Scope.prototype.type=function()
+{
+    return this.__type__;
+}
+
+Scope.prototype.current=function()
+{
+    return Scope.__current__;
+}
+
+Scope.prototype.balance=function( open )
+{
+    open ? this.__balance__++ : this.__balance__--;
+    if( this.__balance__ < 0 )throw new SyntaxError('Unexpected token');
+    if( this.__balance__===0 )
+    {
+        Scope.__current__ = this.parent() || Scope.__current__;
+    }
+}
+
+function Ruler( content )
+{
+    this.lines=content.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split(/\n/);
+    this.line=0;
+    this.cursor=0;
+    this.input='';
+    this.closer=null;
+    this.__prev__=null;
+    this.__current__=null;
+    this.__scope__=new Scope('(global)');
+    this.events={};
+}
+
+
+Ruler.prototype.dispatcher=function( type, options )
+{
+    if( this.events[type] && this.events[type].length > 0 )
+    {
+        var listener = this.events[type].slice();
+        var len = listener.length;
+        for ( var i =0; i<len; i++)
+        {
+            if( listener[i].callback.call(this, options) === false )
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+Ruler.prototype.addListener=function(type, callback, priority)
+{
+    var obj = this.events[type] || ( this.events[type]=[] );
+    obj.push({callback:callback, priority:priority || 0});
+    if( obj.length > 1 )obj.sort(function(a,b)
+    {
+        return a.priority=== b.priority ? 0 : (a.priority < b.priority ? 1 : -1);
+    })
+    return this;
+}
+
+
+Ruler.prototype.hasListener=function(type, callback)
+{
+    if( typeof callback === "undefined"  )
+    {
+        return !!this.events[type];
+
+    }else if( this.events[type] && this.events[type].length > 0 )
+    {
+        var len = this.events[type].length;
+        for ( var i =0; i<len; i++)
+        {
+            if( this.events[type][i] && this.events[type][i].callback === callback )
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+Ruler.prototype.removeListener=function(type, callback)
+{
+    if( typeof callback === "undefined" )
+    {
+        delete this.events[type];
+
+    }else if(  this.events[type] &&  this.events[type].length > 0 )
+    {
+        var len = this.events[type].length;
+        for ( var i =0; i<len; i++)
+        {
+            if( this.events[type][i] && this.events[type][i].callback === callback )
+            {
+                this.events[type].splice(i,1);
+                return this;
+            }
+        }
+    }
+    return this;
+}
+
+
+Ruler.prototype.scope=function()
+{
+    return this.__scope__;
+}
+
+Ruler.prototype.done=function()
+{
+    return !(this.line < this.lines.length);
+}
+
+Ruler.prototype.move=function()
+{
+    if ( this.line < this.lines.length )
+    {
+        this.input = this.lines[ this.line ].replace(/\t/g,'  ');
+        var s = trim( this.input );
+        this.line++;
+        this.cursor=0;
+
+        if( s.indexOf('/*',0) === 0 )this.closer='*/';
+        if( this.closer )
+        {
+            if( s.indexOf( this.closer , s.length-2 )>=0 )this.closer=null;
+            return this.move();
+
+        }else if( !s || s.indexOf('//',0)===0 )
+        {
+            return this.move();
+        }
+        return this.input;
+    }
+    return null;
+}
+
+Ruler.prototype.prev=function ()
+{
+   return this.__prev__;
+}
+
+Ruler.prototype.current=function ()
+{
+   return this.__current__;
+}
+
+Ruler.prototype.seek=function ()
+{
+    this.__seek__=true;
+    this.__history__={'cursor':this.cursor,'line':this.line,'input':this.input};
+    var o = this.next();
+    this.__seek__=false;
+    return o;
+}
+
+Ruler.prototype.next=function()
+{
+    if( this.__seek__ === false && this.__history__ )
+    {
+        this.line= this.__history__.line;
+        this.input= this.__history__.input;
+        this.cursor= this.__history__.cursor;
+        this.__history__=null;
+    }
+
+    if( this.input.length === this.cursor )
+    {
+        if( !this.move() )return '(end)';
+        if( this.line > 1 )return '(newline)';
+    }
+
+    var s = this.input.slice( this.cursor );
+    while( s.charAt(0)===" " )
+    {
+        this.cursor++;
+        s = s.slice( 1 );
+    }
+
+    var o = getNumber.call(this,s) || getKeyword.call(this,s) || getOperator.call(this,s) || getIdentifier.call(this,s);
+
+    if( this.__seek__ === true )return o;
+
+    if( typeof o !== 'object' )
+    {
+        if( !isOperator(o) )throw new SyntaxError('Unexpected operator '+o );
+        o = {type:'(operator)' ,value:o, id:o};
+    }
+    if( !o )throw new SyntaxError('Unexpected Illegal '+s );
+
+    if( o.type==='(identifier)' && ( o.id==='{' || o.id==='}' ) )
+    {
+        this.scope().current().balance( o.id==='{' )
+    }
+
+    this.cursor+=o.value.length;
+    this.__prev__=this.__current__;
+    this.__current__=o;
+
+    if( !this.hasListener(o.type) || this.dispatcher(o.type)!==false )
+    {
+        if( syntax[ o.type ] )syntax[ o.type ].call(this);
+    }
+    this.scope().current().add( o.value );
+    return o;
+}
+
+var keyword = ['static','public','private','protected','internal','package','import','class','var','function','as','new'];
+function getKeyword(s)
+{
+    if( /^([a-z_$]+[\w+]?)/i.exec( s ) )
+    {
+        var o = {type: keyword.indexOf(RegExp.$1)>=0 ? '(keyword)' : '(reference)' ,value:RegExp.$1, id:RegExp.$1 };
+        var p = this.current();
+        if(p && p.type ==='(keyword)' && ( p.value==='function' || p.value==='var' || p.value==='const' ) )
+        {
+            o.type='(statement)';
+        }
+        return o;
+    }
+    return null;
+}
+
+function getNumber(s)
+{
+    if( /^(0x[0-9a-f]+|o[0-7]+|[\-\+]?[\d\.]+)/i.exec(s) )
+    {
+        return {type:'(number)' ,value:RegExp.$1, id:RegExp.$1};
+    }
+    return null;
+}
+
+function getIdentifier(s)
+{
+    switch( s.charAt(0) )
+    {
+        case '{' :
+        case '}' :
+        case '(' :
+        case ')' :
+        case '[' :
+        case ']' :
+        case ';' :
+        case ':' :
+        case '.' :
+        case ',' :
+        case '?' :
+            if( s.charAt(0)==='.' && /\d/.test( s.charAt(1) ) )return false;
+            return {type:'(identifier)' ,value:s.charAt(0), id:s.charAt(0)};
+        case '`' :
+        case '"' :
+        case '\'':
+            var i=1;
+            while ( i<s.length && !(s.charAt(0) === s.charAt(i) && s.charAt(i-1) !=='\\') )i++;
+            if( s.charAt(0) !== s.charAt(i) )throw new SyntaxError('Missing identifier '+s.charAt(0));
+            return {type:s.charAt(0)==='`' ? '(template)' : '(string)' ,value: s.substr(0,i+1), id:s.charAt(0)};
+        case '/':
+            var i=1;
+            while ( i<s.length )
+            {
+                var j = s.charAt(i);
+                if( ( j ==='.' || j===';' ) && s.charAt(i-1) !=='\\' )break;
+                i++;
+            }
+            var j = trim( s.substr(0,i) );
+            var g= j.match(/[a-zA-Z]+$/) || '';
+            if( g  )
+            {
+                g = g[0];
+                j = j.substr(0, j.length-g.length );
+            }
+            if( s.charAt(0) !== j.charAt(j.length-1) )throw new SyntaxError('Missing identifier '+s.charAt(0));
+            new RegExp( j.slice(1,-1), g );
+            return {type:'(regexp)' ,value: s.substr(0,i), id:s.charAt(0)};
+    }
+    return null;
+}
+
+function getOperator(s)
+{
+    switch( s.charAt(0) )
+    {
+        case '!' :
+        case '|' :
+        case '&' :
+        case '+' :
+        case '-' :
+        case '*' :
+        case '/' :
+        case '=' :
+        case '>' :
+        case '<' :
+        case '^' :
+        case '%' :
+        case '~' :
+
+            if( s.charAt(0)==='/' && s.charAt(1)!=='=' )
+            {
+                var p = this.current();
+                if( !p || !(p.type==='(number)' || p.type==='(reference)') )return '';
+            }
+
+        return s.substr(0,1) + getOperator.call(this, s.substr(1) );
+        break;
+    }
+    return '';
+}
+
+function isOperator( o )
+{
+    if( o.length > 1 )
+    {
+        switch (o) {
+            case '==' :
+            case '===' :
+            case '!==' :
+            case '&&' :
+            case '||' :
+            case '<=' :
+            case '>=' :
+            case '--' :
+            case '++' :
+            case '+=' :
+            case '-=' :
+            case '*=' :
+            case '/=' :
+            case '%=' :
+            case '^=' :
+            case '&=' :
+            case '|=' :
+            case '!!' :
+            case '<<' :
+            case '>>' :
+                return true;
+        }
+        return false;
+    }
+    return true;
+}
+
+
+
 /**
  * 执行编译
  */
 function make( file , fs )
 {
     var content = fs.readFileSync( pathfile( file ) , 'utf-8');
-    var code = content.split(/[\r]?\n/);
-    var num = code.length;
-    var i = 0;
-    var skip = false;
-    var v;
-    var line;
-    
-    
+  //  var code = content.split(/[\r]*\n/);
+  //  var num = code.length;
+    //var i = 0;
+  //  var balancer=0;
+
+    var r = new Ruler( content );
+    while ( !r.done() )
+    {
+         s= r.next();
+        //console.log(  );
+    }
+
+    console.log( r.scope().content()[7] );
+    return ;
+
+
 
     //模块文件的配置
     var module=createModule(file);
@@ -833,61 +1267,25 @@ function make( file , fs )
     global(module.package)[module.class] = module;
 
     //逐行
-    while (i < num && !global_error )
+    while ( i < num )
     {
-        var item = code[i];
-        i++;
-        if (item !== '')
+        var item = code[i++];
+
+        //注释的内容不解析
+        if( balancer===0 && /^\s*\/\*/.test(item) )
         {
-            //注释的内容不解析
-            if( !skip && /^\s*\/\*/.test(item) )
-            {
-                skip = true;
-                continue;
+            balancer++;
+        } else if( balancer===1 && /\*\/\s*$/.test(item) )
+        {
+            balancer--;
+        }
+        if( balancer===0 &&  item !== '' && !/^\s*\/\//.test(item) )
+        {
 
-            } else if( skip && /\*\/\s*$/.test(item) )
-            {
-                skip = false;
-                continue;
-            }
-
-            if( skip || /^\s*\/\//.test(item) )
-            {
-                continue;
-            }
-
-            //分行
-            line = escape( item ).replace(/\{/g,"\n{").replace(/\}/g,"\n}").replace(/\;/g,"\n");
-
-            //分割成多行
-            line = line.split(/\n/);
-
-            var b=0;
-            var len = line.length;
-
-            //解析和检查每行的代码
-            do{
-                v = trim( line[b++] );
-                if ( v !== '' )
-                {
-                    try {
-                        parse(module, v );
-                    } catch (e) {
-                        global_error = true;
-                        console.log( e.message, file, ' in line ' + i,'->', e );
-                    }
-                }
-            }while( !global_error && b<len )
         }
     }
 
-    if( module.balancer !== 0 )
-    {
-        global_error=true;
-        console.log('syntax error', file,' in line ' + i);
-    }
 
-    if( global_error )return '';
 
     var contents=[];
 
@@ -918,13 +1316,15 @@ var showMem = function()
 
 var main='test';
 var content = make( main , fs );
-if( !global_error )
+
+
+/*if( !global_error )
 {
     var system = fs.readFileSync( './system.js' , 'utf-8');
     var app='\nreturn __g__.getInstance("'+main+'");\n';
     content = "(function(){\n" + system + content + app +'\n})()';
     fs.writeFileSync('./test-min.js', content );
-}
+}*/
 
 
 

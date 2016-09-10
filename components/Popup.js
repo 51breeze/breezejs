@@ -56,7 +56,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             Popup.LAST_INSTANCE.hidden();
         }
 
-        var skin = this.skinGroup().current(null);
+        var skin = this.skinGroup().next(null);
         var containerHeight = skin.height();
         var containerWidth = skin.width();
         var halign=this.horizontal();
@@ -260,7 +260,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
      */
     Popup.prototype.autoHidden=function( flag )
     {
-        this.skinGroup().current(null);
+        this.skinGroup().next(null);
         if( !!flag === false )
         {
             this.skinGroup().removeEventListener(MouseEvent.MOUSE_OUTSIDE);
@@ -285,12 +285,12 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
         var headSkin =  this.skinGroup().getSkin('head');
         if( typeof value === "number" )
         {
-            if( headSkin )this.skinGroup().current( headSkin ).height( value );
-            this.current(null);
+            if( headSkin )this.skinGroup().next( headSkin ).height( value );
+            this.next(null);
             return this;
         }
-        var val =  headSkin ? this.skinGroup().current( headSkin ).height() : 0;
-        this.current(null);
+        var val =  headSkin ? this.skinGroup().next( headSkin ).height() : 0;
+        this.next(null);
         return val;
     }
 
@@ -402,7 +402,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
         var callback =  this.callback();
         if( !callback || callback.call(this, !!flag ) !== false )
         {
-            this.current(null).display(false);
+            this.next(null).display(false);
             if( this.hasEventListener( PopupEvent.CLOSE ) ){
                 this.dispatchEvent( new PopupEvent( PopupEvent.CLOSE ) );
             }
@@ -426,7 +426,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
         if( typeof val !== "undefined" )
         {
             val = parseInt(val);
-            if( !isNaN(val ) )this.skinGroup().current(null).left(val);
+            if( !isNaN(val ) )this.skinGroup().next(null).left(val);
             this.__left__=val;
             return this;
         }
@@ -449,7 +449,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
         if( typeof val !== "undefined" )
         {
             val = parseInt(val);
-            if( !isNaN(val ) )this.skinGroup().current(null).top( val );
+            if( !isNaN(val ) )this.skinGroup().next(null).top( val );
             this.__top__=val;
             return this;
         }
@@ -583,8 +583,8 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
 
         if( skinGroup.getSkin('label') )skinGroup.currentSkin('label').text( this.title() );
         var body = skinGroup.getSkin('body') || skinGroup.getSkin('container');
-        skinGroup.current( body ).html( content );
-        skinGroup.current( null ).style('zIndex',option.zIndex).display(true);
+        skinGroup.next( body ).html( content );
+        skinGroup.next( null ).style('zIndex',option.zIndex).display(true);
 
         var mask = this.mask();
         if( mask )mask.display(true).style('zIndex', option.zIndex-1 );
@@ -600,7 +600,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
         maxWidth = isNaN(maxWidth) ? size.width : maxWidth;
         minWidth = isNaN(minWidth) ? size.width : minWidth;
 
-        skinGroup.current(null);
+        skinGroup.next(null);
         skinGroup.height( Math.max( Math.min(size.height, maxHeight ) , minHeight ) );
         skinGroup.width( Math.max( Math.min(size.width, maxWidth ) , minWidth ) );
         setPositionAndSize.call(this);
@@ -616,7 +616,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
     Popup.prototype.skinInstalled=function( skinGroup )
     {
         SkinComponent.prototype.skinInstalled.call(this,skinGroup);
-        skinGroup.current(null).addEventListener(PropertyEvent.CHANGE,function(event) {
+        skinGroup.next(null).addEventListener(PropertyEvent.CHANGE,function(event) {
             if( event.property==='width' || event.property==='height' )
             {
                 setPositionAndSize.call(this);
@@ -627,7 +627,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
                     var footerSkin = skinGroup.getSkin('footer');
                     var headHeight =headSkin ? Utils.getSize(headSkin,'height') : 0;
                     var footerHeight = footerSkin ? Utils.getSize(footerSkin,'height') : 0;
-                    Utils.style( bodySkin, 'height', skinGroup.current(null).height() - headHeight - footerHeight );
+                    Utils.style( bodySkin, 'height', skinGroup.next(null).height() - headHeight - footerHeight );
                 }
             }
         },false,0,this);
@@ -638,7 +638,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             {
                this.hidden();
             },false,0,this);
-            skinGroup.current(null);
+            skinGroup.next(null);
         }
 
         if( skinGroup.getSkin('footer') )

@@ -52,7 +52,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
         if (this.length != 1)
             throw new Error('invalid viewport');
 
-        var nodename = Breeze.nodeName( this.current() );
+        var nodename = Breeze.nodeName( this.next() );
         if( nodename === 'noscript' || nodename === 'script' || nodename ==='textarea' )
         {
             viewport = this[0];
@@ -205,7 +205,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
             }
         }
 
-        this.current(null);
+        this.next(null);
         var styleName = this.styleName();
         if( styleName )
         {
@@ -291,7 +291,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
     SkinGroup.prototype.currentSkin=function( skinName )
     {
         var skin = this.getSkinAndValidate( skinName );
-        this.current( skin );
+        this.next( skin );
         return this;
     }
 
@@ -329,7 +329,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
                 throw new Error('invalid skin name');
             }
         }
-        return this.__skin__[ key ].current(null);
+        return this.__skin__[ key ].next(null);
     }
     return SkinGroup;
 

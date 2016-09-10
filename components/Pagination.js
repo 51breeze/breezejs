@@ -28,7 +28,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
             .replace("{currentPage}", currentPages );
 
         this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('info')).html( info )
-        this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('link') ).display(true,'inline-block').current('.current').removeClass('current').current(null).forEach(function(elem,index){
+        this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('link') ).display(true,'inline-block').next('.current').removeClass('current').next(null).forEach(function(elem, index){
             this.property('pageIndex',links[index]);
             this.text( links[index] );
             if( currentPages == links[index] )
@@ -224,7 +224,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
                 {
                     if( event.type===MouseEvent.CLICK  || (KeyboardEvent.KEY_PRESS===event.type && event.keycode==13 ) )
                     {
-                        self.currentPage( this.current('input').property('value') );
+                        self.currentPage( this.next('input').property('value') );
                     }
                 });
                 update.call(this, self.totalPages() , self.currentPage() );

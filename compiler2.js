@@ -117,9 +117,9 @@ function balancer( module , code )
     }
 
     //关闭当前上下文
-    if( module.current && module.balancer === 2 && v.indexOf('}') >=0 )
+    if( module.next && module.balancer === 2 && v.indexOf('}') >=0 )
     {
-        module.current=null;
+        module.next=null;
     }
     return v;
 }
@@ -258,27 +258,27 @@ function globalOptions(module, code , keyword )
  */
 function codeContext(module, code)
 {
-    if( module.current )return module.current;
+    if( module.next )return module.next;
     var ret = code.match(/((\w+\s+)+)?function\s+(set\s+|get\s+)?(\w+)/i);
     if( ret )
     {
-        module.current = {'content':[],'param':[],'name':ret[4],'parambreak':true,defvar:[] };
-        module.current.body = module.current.param;
+        module.next = {'content':[],'param':[],'name':ret[4],'parambreak':true,defvar:[] };
+        module.next.body = module.next.param;
         var q = qualifier(module, ret[1] );
         var is_access=ret[3] || '';
         var refobj = q[0]==='static' ? module.static.function[ q[1] ] : is_access !== '' ? (module.accessor[ ret[4] ] || (module.accessor[ ret[4] ]={}))[is_access]=[] : module.dynamic.function[ q[1] ];
 
-        refobj.push( module.current  );
-        if( module.uinque[ module.current.name ]==='' ||
-            module.uinque[ module.current.name ] === 'static' ||
-            module.uinque[ module.current.name ] === is_access )
+        refobj.push( module.next  );
+        if( module.uinque[ module.next.name ]==='' ||
+            module.uinque[ module.next.name ] === 'static' ||
+            module.uinque[ module.next.name ] === is_access )
         {
             throw new Error('[conflict function name]' );
         }
-        module.uinque[ module.current.name ]=q[0] || is_access;
-        return module.current;
+        module.uinque[ module.next.name ]=q[0] || is_access;
+        return module.next;
 
-    }else if( !module.current )
+    }else if( !module.next )
     {
         throw new Error('[syntax invalid]');
     }
@@ -288,21 +288,21 @@ function codeContext(module, code)
 function contextParam(module, code  )
 {
     //换行的参数
-    if( module.current && module.current.parambreak )
+    if( module.next && module.next.parambreak )
     {
         var p = code.match(/(^|\(|\,)([^\(\)]*)(\)|\,|$)/);
         if( p )
         {
             if( p[2] )
             {
-                module.current.body.push(p[2]);
+                module.next.body.push(p[2]);
             }
             if( p[3] === ')')
             {
-                module.current.param = module.current.param.join('');
-                checkParam( module.current.param );
-                module.current.parambreak=false;
-                module.current.body =  module.current.content;
+                module.next.param = module.next.param.join('');
+                checkParam( module.next.param );
+                module.next.parambreak=false;
+                module.next.body =  module.next.content;
             }
         }
     }
@@ -346,18 +346,18 @@ function parse( module, code )
             }
             codeContext(module, code);
 
-        }else if( !module.current )
+        }else if( !module.next )
         {
             globalOptions(module,code, keyword );
         }
     }
 
-    var flag = module.current ? module.current.parambreak : false;
+    var flag = module.next ? module.next.parambreak : false;
 
     //上下文参数
     contextParam(module, code);
 
-    if( module.current )
+    if( module.next )
     {
         if( !flag ) {
 
@@ -410,7 +410,7 @@ function parse( module, code )
                 return b + ' instanceof ' + c;
             })
 
-            module.current.body.push( code );
+            module.next.body.push( code );
         }
 
     }else if( module.balancer > 2 )

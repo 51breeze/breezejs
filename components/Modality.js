@@ -99,7 +99,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
         if( type === Modality.SIMPLE )
             return this;
         var skin = this.skinGroup();
-        skin.current(null);
+        skin.next(null);
         var containerHeight = skin.height();
         var containerWidth = skin.width();
         var top= 0,bottom= 0,right= 0,left= 0,headHeight=0,footerHeight=0;
@@ -127,7 +127,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
              skin.height( containerHeight - headHeight - footerHeight-top-bottom ).width( containerWidth-right-left);
         }
 
-        skin.current(null);
+        skin.next(null);
         var halign=this.horizontal()
             ,valign=this.vertical()
             ,width = Breeze.root().width()
@@ -347,7 +347,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
             this.__shaded__=true;
             this.shade().show(false,zIndex-1);
         }
-        this.current(null);
+        this.next(null);
         this.style({'zIndex':zIndex,"position":'absolute'})
         this.skinGroup().show();
         return this;
@@ -365,11 +365,11 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
         {
             if( this.type() !== Modality.SIMPLE )
             this.currentSkin('label').content( label );
-            this.current(null);
+            this.next(null);
             return this;
         }
         var val = this.type() !== Modality.SIMPLE ? this.skinGroup().currentSkin('label').content() : '';
-        this.current(null);
+        this.next(null);
         return val;
     }
 
@@ -384,12 +384,12 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
         if( typeof content === "undefined" )
         {
             var val =  this.skinGroup().currentSkin('body').html();
-            this.current(null);
+            this.next(null);
             return val;
         }
 
         this.skinGroup().currentSkin('body').html( content );
-        this.current(null);
+        this.next(null);
         return this;
     }
 
@@ -405,11 +405,11 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
         {
             if( this.type() !== Modality.SIMPLE )
             this.skinGroup().currentSkin('head').height( value );
-            this.current(null);
+            this.next(null);
             return this;
         }
         var val = this.type() !== Modality.SIMPLE ? this.skinGroup().currentSkin('head').height():0;
-        this.current(null);
+        this.next(null);
         return val;
     }
 
@@ -425,11 +425,11 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
         {
             if( this.type() === Modality.NORM )
                  this.skinGroup().currentSkin('footer').height(value);
-            this.current(null);
+            this.next(null);
             return this;
         }
         var val = this.type() === Modality.NORM ? this.skinGroup().currentSkin('footer').height(this) : 0;
-        this.current(null);
+        this.next(null);
         return val;
     }
 

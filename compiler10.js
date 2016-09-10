@@ -79,7 +79,7 @@ function Stack(keyword, name )
     this.events={};
 }
 
-Stack.current=null;
+Stack.next=null;
 Stack.getInstance=function( code, delimiter )
 {
     var name=null,keyword;
@@ -91,12 +91,12 @@ Stack.getInstance=function( code, delimiter )
 
     }else if( code && /^(var)(\s+(\w+)|$)/.exec( code ) )
     {
-        if( Stack.current && Stack.current.keyword==='var' && !Stack.current.closer )
+        if( Stack.next && Stack.next.keyword==='var' && !Stack.next.closer )
         {
-            Stack.current.closer=true;
-            if( Stack.current.parent )
+            Stack.next.closer=true;
+            if( Stack.next.parent )
             {
-                Stack.current.switch( Stack.current.parent );
+                Stack.next.switch( Stack.next.parent );
             }
         }
         name = RegExp.$3 || undefined;
@@ -114,23 +114,23 @@ Stack.getInstance=function( code, delimiter )
     }
 
     var newobj;
-    if( Stack.current && Stack.current.keyword==='function' && delimiter==='{')
+    if( Stack.next && Stack.next.keyword==='function' && delimiter==='{')
     {
-        Stack.current.closer=false;
-        Stack.current.param = Stack.current.content.splice(0,Stack.current.content.length);
-        newobj=Stack.current;
+        Stack.next.closer=false;
+        Stack.next.param = Stack.next.content.splice(0,Stack.next.content.length);
+        newobj=Stack.next;
 
     }else
     {
-        newobj = keyword || !Stack.current ? new Stack(keyword, name) : Stack.current;
-        if (Stack.current !== newobj ){
+        newobj = keyword || !Stack.next ? new Stack(keyword, name) : Stack.next;
+        if (Stack.next !== newobj ){
 
-            if( Stack.current )Stack.current.append(newobj);
+            if( Stack.next )Stack.next.append(newobj);
             newobj.isnew=true;
         }
     }
 
-    Stack.current=newobj;
+    Stack.next=newobj;
     newobj.lastCode=code;
     newobj.lastDelimiter=delimiter;
     return newobj;
@@ -252,7 +252,7 @@ Stack.prototype.switch=function( stack )
     if( stack instanceof Stack)
     {
         if (this.hasListener('switchBefore'))this.dispatcher('switchBefore', stack);
-        Stack.current = stack;
+        Stack.next = stack;
         if (stack.hasListener('switchAfter'))stack.dispatcher('switchAfter', this );
     }
     return this;
@@ -637,7 +637,7 @@ function start( content )
         var val = trim(content.substr(pos, ret.index - pos));
         pos += ret.index - pos + tag.length;
 
-        current = Stack.current;
+        current = Stack.next;
         var stack = Stack.getInstance(val, tag);
         if( !root )root=stack;
         stack.execute();

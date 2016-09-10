@@ -531,7 +531,7 @@ var tl= new Timeline(60).addFrame(function(){
      * 当前播放到的侦
      * @returns {number}
      */
-    Timeline.prototype.current=function()
+    Timeline.prototype.next=function()
     {
        return this.__current__;
     }
@@ -700,7 +700,7 @@ var tl= new Timeline(60).addFrame(function(){
      */
     KeyFrame.prototype.timeByIndex=function()
     {
-        return this.timeline().timeByIndex( this.timeline().current() - this.start() );
+        return this.timeline().timeByIndex( this.timeline().next() - this.start() );
     }
 
     /**

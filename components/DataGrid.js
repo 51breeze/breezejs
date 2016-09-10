@@ -370,7 +370,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
                         'anchor':event.currentTarget.parentNode,
                         'vertical':'top',
                         'callback':function(flag){
-                            var value =  this.skinGroup().current('input').value();
+                            var value =  this.skinGroup().next('input').value();
                             var d={};
                             d[column] = value;
                             source.alter(d,'index('+index+')');
@@ -435,7 +435,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
                  this.style('textAlign',  options.theadAlign[name] || options.theadAlign['*'] );
             }).revert(2);
 
-            skinGroup.current( null );
+            skinGroup.next( null );
             dataRender.viewport( skinGroup.getSkin('tbody') );
             dataRender.display( skin.body );
         }
@@ -511,7 +511,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
                 var index = -1
                 if( h )
                 {
-                    this.current( event.currentTarget.parentNode );
+                    this.next( event.currentTarget.parentNode );
                     index = this.getChildIndex( event.currentTarget );
 
                 }else if( v )

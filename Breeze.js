@@ -113,7 +113,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         }
         if( !write )
         {
-            return getter.call(this.current(),name,this);
+            return getter.call(this.next(),name,this);
         }
 
         return this.forEach(function(elem)
@@ -195,7 +195,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     {
         var r = this.__reverts__ || (this.__reverts__ = []);
         r.push( this.splice(0,this.length, elems ) );
-        this.current(null);
+        this.next(null);
         return this;
     }
 
@@ -315,7 +315,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
      * @param selector|HTMLElement element
      * @returns {*}
      */
-    Breeze.prototype.current=function( element )
+    Breeze.prototype.next=function(element )
     {
         if( typeof element !== "undefined" )
         {
@@ -390,7 +390,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
      */
     Breeze.prototype.hasProperty=function( prop )
     {
-        var elem = this.current();
+        var elem = this.next();
         return typeof elem.hasAttributes === 'function' ? elem.hasAttributes( prop ) : !!elem[prop];
     }
 
@@ -595,7 +595,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
      */
     Breeze.prototype.hasClass=function( className )
     {
-        var elem = this.current();
+        var elem = this.next();
         var value=elem['className'] || '';
         return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
     }
@@ -763,7 +763,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.getBoundingRect=function( force )
     {
         var value={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0,'width':0,'height':0};
-        var elem= this.current();
+        var elem= this.next();
         if( Breeze.isWindow(elem) )
         {
             value.left = elem.screenLeft || elem.screenX;
@@ -779,10 +779,10 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             throw new Error('invalid elem. elem not is NodeElement');
 
          var doc =  elem.ownerDocument || elem, docElem=doc.documentElement;
-         this.current( Breeze.getWindow(doc) )
+         this.next( Breeze.getWindow(doc) )
          var scrollTop = this.scrollTop();
          var scrollLeft = this.scrollLeft();
-         this.current( elem );
+         this.next( elem );
 
         if( "getBoundingClientRect" in document.documentElement )
         {
@@ -881,10 +881,10 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     function point(left, top, local )
     {
         var old = this.forEachCurrentItem;
-        var target = this.current();
-        this.current( target.parentNode );
+        var target = this.next();
+        this.next( target.parentNode );
         var offset=this.getBoundingRect();
-        this.current( old );
+        this.next( old );
         left = left || 0;
         top = top || 0;
         return local===true ? {left:offset.left+left,top:offset.top+top} : {left:left-offset.left, top:top-offset.top};
@@ -1061,8 +1061,8 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         return this.forEach(function(elem)
         {
             var wrap=Breeze.createElement( is ? element.call(this,elem) : element );
-            this.current( elem.parentNode ).addChildAt( wrap , elem );
-            this.current( wrap ).addChildAt( elem ,-1);
+            this.next( elem.parentNode ).addChildAt( wrap , elem );
+            this.next( wrap ).addChildAt( elem ,-1);
         });
     }
 
@@ -1083,7 +1083,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                 var children=parent.hasChildNodes() ? parent.childNodes : [];
                 if( parent.parentNode )
                 {
-                    this.current( parent.parentNode );
+                    this.next( parent.parentNode );
                     var len=children.length,i=0;
                     while( i<len ){
                         if( children[i] )this.addChildAt( children[ i ], parent );
@@ -1207,10 +1207,10 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         var isElement= childElemnet && childElemnet.nodeType && typeof childElemnet.nodeName === 'string';
 
         //如果没有父级元素则设置上下文为父级元素
-        if( this.length === 0 && !this.current() )
+        if( this.length === 0 && !this.next() )
         {
             var context = this.context;
-            this.current( context === document ? document.body : context );
+            this.next( context === document ? document.body : context );
         }
 
         return this.forEach(function(parent)
@@ -1232,7 +1232,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                 {
                     this.removeChildAt( child );
                 }
-                this.current(parent);
+                this.next(parent);
                 var refChild=index && index.parentNode && index.parentNode===parent ? index : null;
                 !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
                 refChild && (refChild=index.nextSibling);
@@ -1282,9 +1282,9 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         {
             childElemnet= Breeze.querySelector( childElemnet, null, null, this.toArray() )[0];
             if( !childElemnet )return -1;
-            this.current( childElemnet.parentNode );
+            this.next( childElemnet.parentNode );
         }
-        var parent = this.current();
+        var parent = this.next();
         if( childElemnet.parentNode===parent )
         {
             return this.indexOf.call( getChildNodes(parent), childElemnet );
@@ -1328,7 +1328,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     {
         var is=false;
         if(  index && index.parentNode ){
-            this.current( index.parentNode )
+            this.next( index.parentNode )
             is=true;
 
         }else if( !Breeze.isNumber( index ) )

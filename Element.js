@@ -69,7 +69,7 @@
                return doMake(target,ret,true,true,false);
             }
         }
-        target.current(null);
+        target.next(null);
         return target;
     }
     ,doGrep = function( elements, selector )
@@ -268,7 +268,7 @@
      * @param element
      * @returns {*}
      */
-    Element.prototype.current=function(element )
+    Element.prototype.next=function(element )
     {
         if( typeof element !== "undefined" )
         {
@@ -391,7 +391,7 @@
      */
     Element.prototype.contains=function(child )
     {
-        return Breeze.querySelector( child, this.current() ).length > 0;
+        return Breeze.querySelector( child, this.next() ).length > 0;
     }
 
     /**
@@ -586,7 +586,7 @@
             before=false;
         }
         this.forEach(function(parent){
-            this.current( parent.parentNode ).addChildAt( element, before ? parent : parent.nextSibling );
+            this.next( parent.parentNode ).addChildAt( element, before ? parent : parent.nextSibling );
         })
         return this;
     }
@@ -643,7 +643,7 @@
     {
         var is=false;
         if(  index !== undefined && index.parentNode ){
-            this.current( index.parentNode )
+            this.next( index.parentNode )
             is=true;
         }else if( !Breeze.isNumber( index ) )
             throw new Error('Invalid param the index. in removeChildAt');
@@ -703,10 +703,10 @@
         var isElement= childElemnet && childElemnet.nodeType && typeof childElemnet.nodeName === 'string';
 
         //如果没有父级元素则设置上下文为父级元素
-        if( this.length === 0 && !this.current() )
+        if( this.length === 0 && !this.next() )
         {
             var context = this.context;
-            this.current( context === document ? document.body : context );
+            this.next( context === document ? document.body : context );
         }
 
         return this.forEach(function(parent)
@@ -728,7 +728,7 @@
                 {
                    this.removeChildAt( child );
                 }
-                this.current(parent);
+                this.next(parent);
                 var refChild=index && index.parentNode && index.parentNode===parent ? index : null;
                     !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
                     refChild && (refChild=index.nextSibling);
@@ -778,9 +778,9 @@
         {
             childElemnet= Breeze.querySelector( childElemnet, null, null, this.toArray() )[0];
             if( !childElemnet )return -1;
-            this.current( childElemnet.parentNode );
+            this.next( childElemnet.parentNode );
         }
-        var parent = this.current();
+        var parent = this.next();
         if( childElemnet.parentNode===parent )
         {
             return this.indexOf.call( getChildNodes(parent), childElemnet );
@@ -814,8 +814,8 @@
        return this.forEach(function(elem,index)
        {
             var wrap=Breeze.createElement( is ? element.call(this,elem,index) : element );
-            this.current( elem.parentNode ).addChildAt( wrap , elem );
-            this.current( wrap ).addChildAt( elem ,-1);
+            this.next( elem.parentNode ).addChildAt( wrap , elem );
+            this.next( wrap ).addChildAt( elem ,-1);
        });
     }
 
@@ -833,10 +833,10 @@
             var parent= is ?  elem.parentNode : this.parent( selector , true)[0];
             if( parent && parent.ownerDocument && Sizzle.contains( parent.ownerDocument.body, parent ) )
             {
-               var children=this.current( parent ).children('*',true);
+               var children=this.next( parent ).children('*',true);
                if( parent.parentNode )
                {
-                   this.current( parent.parentNode );
+                   this.next( parent.parentNode );
                    var len=children.length,i=0;
                    while( i<len ){
                       this.addChildAt( children[ i++ ], parent );
@@ -1094,7 +1094,7 @@
      */
     Element.prototype.hasProperty=function(prop)
     {
-        var elem = this.current();
+        var elem = this.next();
         return typeof elem.hasAttributes === 'function' ? elem.hasAttributes( name ) : !!elem[name];
     }
 
@@ -1105,7 +1105,7 @@
      */
     Element.prototype.nodeName=function()
     {
-        var elem= this.current();
+        var elem= this.next();
         return elem && typeof elem.nodeName=== "string" && elem.nodeName!='' ? elem.nodeName.toLowerCase() : '';
     }
 
@@ -1216,7 +1216,7 @@
     Element.prototype.size=function(border )
     {
         var size ={width:0,height:0};
-        var elem = this.current();
+        var elem = this.next();
         if( Breeze.isWindow(elem) )
         {
             var docElem = elem.document.documentElement;
@@ -1403,7 +1403,7 @@
     Element.prototype.getBoundingRect=function(force )
     {
         var value={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0,'width':0,'height':0}, box, size;
-        var elem= this.current();
+        var elem= this.next();
         if( Breeze.isWindow(elem) )
         {
             size = Breeze.getSize(elem);
@@ -1500,7 +1500,7 @@
      */
     var __point__=function(left,top,local)
     {
-        var target=this.current();
+        var target=this.next();
         var point={}
         point['x']=left || 0;
         point['y']=top || 0;

@@ -49,7 +49,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
         var resize = function()
         {
 
-            skinGroup.current(null);
+            skinGroup.next(null);
             var position = skinGroup.getBoundingRect();
             var left = position.left;
             var top  = position.top;
@@ -69,7 +69,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
             var inputHeight =  skinGroup.getSkinGroup('group > input').height();
             var maxHeight = windowHeight - ( top + height + 3 + inputHeight + 5 );
             skinGroup.currentSkin('list').style('maxHeight',maxHeight);
-            skinGroup.current(null);
+            skinGroup.next(null);
         }
 
         Breeze.root().addEventListener(BreezeEvent.RESIZE,resize);
