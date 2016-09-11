@@ -638,13 +638,13 @@ function executeBefore()
 function endSyntaxBefore( setcontext )
 {
     //如果三元运算操作未到结束的阶段
-    if( this.keyword === 'ternary' && this.state !== 2  )
+    if( this.reserved === 'ternary' && this.state !== 2  )
     {
         error('Unexpected token ;', 'syntax');
     }
 
     //如果声明的变量
-    if( this.keyword === 'var' )
+    if( this.reserved === 'var' )
     {
        /* var last = itemByIndexAt(this.items,-1);
         if( !last || ( last.delimiter && typeof last.value=== "undefined" ) )error('Unexpected token var', 'syntax');
@@ -659,7 +659,7 @@ function endSyntaxBefore( setcontext )
     }
 
     //表达式中至少需要有一个参数
-    if( this.keyword==='express' )
+    if( this.reserved==='express' )
     {
         //if( this.content.length === 0 )error('Missing argument ', 'syntax');
     }
@@ -668,13 +668,13 @@ function endSyntaxBefore( setcontext )
     if( this.state===0 )
     {
         //是否可以进入到正文阶段
-        if ( ( this.keyword === 'condition' || this.keyword === 'function' ) && this.param.length === 0 && this.closer )
+        if ( ( this.reserved === 'condition' || this.reserved === 'function' ) && this.param.length === 0 && this.closer )
         {
             this.state = 1;
             this.param = this.content.splice(0, this.content.length);
 
             //条件表达式至少需要一个
-            if (this.keyword === 'condition' )
+            if (this.reserved === 'condition' )
             {
                 if( this.param.length === 0 )error('Missing argument', 'syntax');
                 if( this.name==='while' || this.name==='catch' || this.name==='finally' )

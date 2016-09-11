@@ -797,7 +797,8 @@ function createModule(file)
         'class': classname(file),
         'import':{},
         'extends':null,
-        'accessor':{},
+        'type':'public',
+        'accessor':[],
         'dynamic': {
             'function':{public:[],protected:[],private:[],internal:[]},
             'variable':{public:{},protected:{},private:{},internal:{}}
@@ -806,7 +807,6 @@ function createModule(file)
             'function':{public:[],protected:[],private:[],internal:[]},
             'variable':{public:{},protected:{},private:{},internal:{}}
          },
-        'balancer':0,
         'uinque':{}
     };
 }
@@ -814,46 +814,209 @@ function createModule(file)
 
 var syntax={
 
-    "(keyword)":function (){
-
-        var r = this.current();
-        if( r.value==='package' )
+    '(identifier)':function ()
+    {
+        var c = this.current();
+        if( c.id === '.' || c.id === ',' || c.id==='?' || c.id==='=' || c.id===';' )
         {
-            syntax['(package)'].call(this);
-
-        }else if( r.value ==='public' || r.value ==='private' || r.value ==='protected' || r.value ==='static' )
-        {
-             r = this.seek();
-             if( r.value==='class' || r.value==='function' )
-             {
-                  this.scope().current().add( new Scope('(black)') );
-
-             }else if( r.value === 'static' )
-             {
-                 r = this.seek();
-                 if( r.value==='function' )
-                 {
-                     this.scope().current().add( new Scope('(black)') );
-                 }
-             }
-
-        }else if( r.value==='function' )
-        {
-            //this.scope().current().add( new Scope('(black)') );
+            var p = this.previous();
+            if( ( p.type =='(identifier)' && ( p.id === '.' || p.id === ',' || p.id==='?' || p.id==='=' ) ) )
+            {
+               this.error();
+            }
+            else if( ( c.id==='=' ) && ( isOperator( p.value ) || isIdentifier(p.value ) ) )
+            {
+                this.error();
+            }
         }
     },
-    "(package)":function (){
-        var s = this.scope();
-        var r = this.next();
-        while( r.type==='(identifier)' && r.id !=='{' )
+
+    "package":function (){
+
+        var r = this.current();
+        var s = this.scope().current();
+    },
+
+    'import':function (){
+
+        var s = this.scope().current();
+        if( s.type() !=='package' )this.error('Unexpected import ', 'syntax');
+        var a,str=[];
+        this.expect(function (r)
         {
-             s.name += r.value;
+            if( r.type==='(newline)' || r.id===';' )return false;
+            if( r.id==='(keyword)' && r.value === 'as' )
+            {
+                var r = this.next();
+                a = r.value;
+                return false;
+            }
+            str.push( r.value );
+            return true;
+        });
+
+        var r = this.seek();
+        if( r.id==='(keyword)' && r.value ==='as' )
+        {
+            var r = this.next();
+            a = r.value;
         }
-    }
+        str = str.join('');
+        if( !a )
+        {
+            a = str.match( /\w+$/ );
+            a = a[0];
+        }
+        if( !checkStatement(a) )this.error('Invalid property name');
+        this.module.import[a] = str;
+    },
+    'as':function ()
+    {
+        var p = this.previous();
+        if( !isPropertyName(p.value) ) this.error();
+        this.previous(function (r) {
+            if( r.id==='(keyword)' ){
+                if( r.value !=='import' ) this.error();
+                return false;
+            }
+            return true;
+        })
+    },
+    'public,private,protected,internal,static':function()
+    {
+        var s = this.scope().current();
+        if( s.type() !=='package' && s.type() !=='class' )this.error();
+    },
+    'class':function()
+    {
+        var s = this.scope().current();
+        if( s.type() !=='package' )this.error();
+        s.add( new Scope('class') );
 
+        var p = this.previous();
+        if( p.id==='(keyword)' && (p.value==='static' || p.value==='internal') )
+        {
+            this.module.type=p.value;
+        }
+
+        s = this.next();
+        if(  s.value !== this.module.class )
+        {
+            this.error('Invalid class name');
+        }
+
+        s = this.next();
+        if( s.id==='(keyword)' && s.value==='extends' )
+        {
+            var r = this.next();
+            if( !this.module.import[ r.value ] )
+            {
+                this.error( r.value+' is not defined','reference');
+            }
+            this.module.extends=r.value;
+        }
+    },
+    'var' : function ()
+    {
+        var s = this.scope().current();
+        var category = 'dynamic';
+        var type = 'public';
+
+        if( s.type() === 'class' )
+        {
+            this.previous(function (r) {
+                if (r.id === '(keyword)') {
+                    if (r.value === 'static')category = 'static';
+                    if (r.value === 'private' || r.value === 'protected' || r.value === 'internal')type = r.value;
+                    return true;
+                }
+                return false;
+            })
+        }
+        var r = this.next();
+        if( !checkStatement(r.value) )this.error();
+        if( s.type() === 'class' )
+        {
+            var v = this.next();
+            if( v.type !=='(operator)' || v.id !=='=' )this.error();
+            v = this.next();
+            this.module[category]['variable'][type][ r.value ] = v.value;
+
+        }else
+        {
+            this.expect(function (r)
+            {
+                 if( r.type ==='(newline)')return true;
+                 if( r.id===';')return false;
+            });
+        }
+    },
+    'function' : function ()
+     {
+         var s = this.scope().current();
+         var old=s;
+         s.add( new Scope('function') );
+         s = this.scope().current();
+         if( old.type() === 'class' )
+         {
+             var category = 'dynamic';
+             var type = 'public';
+             this.previous(function (r)
+             {
+                 if (r.id === '(keyword)') {
+                     if (r.value === 'static')category = 'static';
+                     if (r.value === 'private' || r.value === 'protected' || r.value === 'internal')type = r.value;
+                     return true;
+                 }
+                 return false;
+             })
+
+             var r = this.next();
+             if( r.id === '(keyword)' && (r.value==='get' || r.value==='set') )
+             {
+                 s.accessor=r.value;
+                 r = this.next();
+             }
+
+             if( !checkStatement(r.value) )this.error();
+             s.name( r.value );
+             if( this.module.uinque[ r.value ] === s.accessor)
+             {
+                 this.error('Duplicate function '+r.value );
+             }
+             this.module[category]['function'][type].push(s);
+         }
+
+         var r = this.next();
+         if( r.id !== '(' )
+         {
+             if( checkStatement(r.value) )this.error();
+             s.name( r.value );
+             r = this.next();
+         }
+
+         if(  r.id !== '(' )this.error();
+         this.expect(function (r) {
+
+             if( r.type==='(newline)' )return true;
+             if( r.type !=='(identifier)' || r.id==='(keyword)' )this.error();
+             if( r && r.id === ')' )return false;
+             if( r.id !== ',' )
+             {
+                 if( !checkStatement( r.value ) )this.error('Invalid param name');
+                 s.param( r.value )
+             }
+             return true;
+         });
+
+         r = this.expect(function (r) {
+             return r.type==='(newline)';
+         });
+
+         if( r.id !== '{' )this.error();
+     }
+    
 }
-
-
 
 function Scope( type )
 {
@@ -862,6 +1025,9 @@ function Scope( type )
    this.__define__=[];
    this.__balance__=0;
    this.__type__ = type;
+   this.__name__='';
+   this.__param__=[];
+   this.accessor='';
    if( Scope.__current__===null )Scope.__current__=this;
 }
 
@@ -878,7 +1044,20 @@ Scope.prototype.add=function( scope )
 
 Scope.prototype.define=function( prop )
 {
+    if( typeof prop === 'undefined' )return this.__define__.slice(0);
     this.__define__.push( prop );
+}
+
+Scope.prototype.name=function( name )
+{
+    if( typeof name === 'undefined' )return this.__name__;
+    this.__name__=name;
+}
+
+Scope.prototype.param=function( name )
+{
+    if( typeof name === 'undefined' )return this.__param__.slice(0);
+    this.__param__.push( name );
 }
 
 Scope.prototype.parent=function()
@@ -918,10 +1097,13 @@ function Ruler( content )
     this.cursor=0;
     this.input='';
     this.closer=null;
-    this.__prev__=null;
-    this.__current__=null;
-    this.__scope__=new Scope('(global)');
+    this.history=[];
+    this.__scope__=new Scope('package');
     this.events={};
+    for (var type in syntax )
+    {
+        this.addListener( type.split(','), syntax[type] ) ;
+    }
 }
 
 
@@ -945,6 +1127,11 @@ Ruler.prototype.dispatcher=function( type, options )
 
 Ruler.prototype.addListener=function(type, callback, priority)
 {
+    if( type instanceof Array )
+    {
+        for (var i in type )this.addListener( type[i], callback, priority);
+        return this;
+    }
     var obj = this.events[type] || ( this.events[type]=[] );
     obj.push({callback:callback, priority:priority || 0});
     if( obj.length > 1 )obj.sort(function(a,b)
@@ -1032,118 +1219,164 @@ Ruler.prototype.move=function()
     return null;
 }
 
-Ruler.prototype.prev=function ()
+
+Ruler.prototype.previous=function ( step )
 {
-   return this.__prev__;
+    var index =  typeof step === "number" ? step : -2;
+    var i = index < 0 ? this.history.length+index : index;
+    var r = this.history[ i ];
+    if( typeof step === "function"  )
+    {
+        var s;
+        while ( ( s=step.call(this, r ) ) && ( r=this.previous( --index ) ) );
+        return s;
+    }
+    return r;
 }
 
 Ruler.prototype.current=function ()
 {
-   return this.__current__;
+    return this.previous(-1);
+}
+
+Ruler.prototype.error=function (msg, type)
+{
+    var c = this.current();
+    msg =  msg || 'Unexpected token';
+    type = type || 'syntax';
+    console.log( c );
+    console.log( 'error line:', this.line, '  character:', this.cursor );
+    switch ( type )
+    {
+        case 'syntax' :
+            throw new SyntaxError(msg+' '+c.id);
+            break;
+        case 'reference' :
+            throw new ReferenceError(msg);
+            break;
+        default :
+            throw new Error(msg+' '+c.id, c.id );
+    }
 }
 
 Ruler.prototype.seek=function ()
 {
     this.__seek__=true;
-    this.__history__={'cursor':this.cursor,'line':this.line,'input':this.input};
+    this.state={'cursor':this.cursor,'line':this.line,'input':this.input};
     var o = this.next();
     this.__seek__=false;
     return o;
 }
 
+Ruler.prototype.expect=function(callback)
+{
+    var ret = false;
+    var r;
+    do{
+        r = this.next();
+        if( callback )ret = callback.call(this,r);
+    }while( ret && !this.done() )
+    return r;
+}
+
 Ruler.prototype.next=function()
 {
-    if( this.__seek__ === false && this.__history__ )
+    if( this.__seek__ === false && this.state )
     {
-        this.line= this.__history__.line;
-        this.input= this.__history__.input;
-        this.cursor= this.__history__.cursor;
-        this.__history__=null;
+        this.line= this.state.line;
+        this.input= this.state.input;
+        this.cursor= this.state.cursor;
+        this.state=null;
     }
 
+    var o;
     if( this.input.length === this.cursor )
     {
-        if( !this.move() )return '(end)';
-        if( this.line > 1 )return '(newline)';
-    }
+        if( !this.move() ){
+            o={type:'(end)' ,value:'(end)', id:'(end)'};
+        } ;
+        if( this.line > 1 ){
+            o={type:'(newline)' ,value:'(newline)', id:'(newline)'};
+        }
+        o.line= this.line;
+        o.cursor = this.cursor;
+        if (this.__seek__ === true)return o;
 
-    var s = this.input.slice( this.cursor );
-    while( s.charAt(0)===" " )
+    }else
     {
-        this.cursor++;
-        s = s.slice( 1 );
+        var s = this.input.slice(this.cursor);
+        while (s.charAt(0) === " ") {
+            this.cursor++;
+            s = s.slice(1);
+        }
+        o = this.number(s) || this.keyword(s) || this.operator(s) || this.identifier(s);
+
+        if (this.__seek__ === true)return o;
+        if (!o)throw new SyntaxError('Unexpected Illegal ' + s);
+
+        if( o.id === '{' || o.id === '}' )
+        {
+            this.scope().current().balance( o.id === '{' )
+        }
+
+        o.line= this.line;
+        o.cursor = this.cursor;
+
+        this.cursor += o.value.length;
+        this.history.push( o );
     }
 
-    var o = getNumber.call(this,s) || getKeyword.call(this,s) || getOperator.call(this,s) || getIdentifier.call(this,s);
-
-    if( this.__seek__ === true )return o;
-
-    if( typeof o !== 'object' )
+    if( o.id==='(keyword)' && this.hasListener(o.value) )
     {
-        if( !isOperator(o) )throw new SyntaxError('Unexpected operator '+o );
-        o = {type:'(operator)' ,value:o, id:o};
-    }
-    if( !o )throw new SyntaxError('Unexpected Illegal '+s );
+        this.dispatcher( o.value );
 
-    if( o.type==='(identifier)' && ( o.id==='{' || o.id==='}' ) )
+    }else
     {
-        this.scope().current().balance( o.id==='{' )
+        this.dispatcher( o.type );
     }
-
-    this.cursor+=o.value.length;
-    this.__prev__=this.__current__;
-    this.__current__=o;
-
-    if( !this.hasListener(o.type) || this.dispatcher(o.type)!==false )
-    {
-        if( syntax[ o.type ] )syntax[ o.type ].call(this);
-    }
-    this.scope().current().add( o.value );
     return o;
 }
 
-var keyword = ['static','public','private','protected','internal','package','import','class','var','function','as','new'];
-function getKeyword(s)
+var reserved = [
+'static','public','private','protected','internal','package',
+'extends','import','class','var','function','as','new','get',
+'set','typeof','instanceof','if','else','do','while','for',
+'switch','case','break','default','try','catch','throw','Infinity',
+'finally','return','null','false','true','NaN','undefined'
+];
+
+Ruler.prototype.keyword=function(s)
 {
-    if( /^([a-z_$]+[\w+]?)/i.exec( s ) )
+    s = /^([a-z_$]+[\w+]?)/i.exec( s )
+    if( s )
     {
-        var o = {type: keyword.indexOf(RegExp.$1)>=0 ? '(keyword)' : '(reference)' ,value:RegExp.$1, id:RegExp.$1 };
-        var p = this.current();
-        if(p && p.type ==='(keyword)' && ( p.value==='function' || p.value==='var' || p.value==='const' ) )
-        {
-            o.type='(statement)';
-        }
+        var index = reserved.indexOf( s[1] );
+        var o = {type: '(identifier)', value: s[1], id: index >= 0 ? '(keyword)' : '(identifier)'};
         return o;
     }
     return null;
 }
 
-function getNumber(s)
+Ruler.prototype.number=function(s)
 {
-    if( /^(0x[0-9a-f]+|o[0-7]+|[\-\+]?[\d\.]+)/i.exec(s) )
+    if( isNumber(s) )
     {
-        return {type:'(number)' ,value:RegExp.$1, id:RegExp.$1};
+        if( s.charAt(0)==='.' && !/\d/.test( s.charAt(1) ) )return null;
+        s = /^(0x[0-9a-f]+|o[0-7]+|[\-\+]?[\d\.]+)/i.exec(s)
+        return {type:'(number)' ,value:s[1],id:s[1]};
     }
     return null;
 }
 
-function getIdentifier(s)
+Ruler.prototype.identifier=function(s)
 {
+    if( isIdentifier( s.charAt(0) ) )
+    {
+        if( s.charAt(0)==='.' && /\d/.test( s.charAt(1) ) )return false;
+        return {type:'(identifier)' ,value:s.charAt(0), id:s.charAt(0)};
+    }
     switch( s.charAt(0) )
     {
-        case '{' :
-        case '}' :
-        case '(' :
-        case ')' :
-        case '[' :
-        case ']' :
-        case ';' :
-        case ':' :
-        case '.' :
-        case ',' :
-        case '?' :
-            if( s.charAt(0)==='.' && /\d/.test( s.charAt(1) ) )return false;
-            return {type:'(identifier)' ,value:s.charAt(0), id:s.charAt(0)};
         case '`' :
         case '"' :
         case '\'':
@@ -1173,6 +1406,17 @@ function getIdentifier(s)
     return null;
 }
 
+Ruler.prototype.operator=function(s)
+{
+    s = getOperator(s);
+    if( s )
+    {
+        if( !isOperator(s) )throw new SyntaxError('Unexpected operator ' + s);
+        return {type:'(operator)', value: s, id: s};
+    }
+    return null;
+}
+
 function getOperator(s)
 {
     switch( s.charAt(0) )
@@ -1194,45 +1438,103 @@ function getOperator(s)
             if( s.charAt(0)==='/' && s.charAt(1)!=='=' )
             {
                 var p = this.current();
-                if( !p || !(p.type==='(number)' || p.type==='(reference)') )return '';
+                if( !p || !(p.type==='(number)' || isPropertyName(p.value) ) )return '';
             }
-
-        return s.substr(0,1) + getOperator.call(this, s.substr(1) );
-        break;
+            return s.substr(0,1) + getOperator( s.substr(1) );
+            break;
     }
     return '';
 }
 
+function isNumber(s)
+{
+  return /^(0x[0-9a-f]+|o[0-7]+|[\-\+]?[\d\.]+)/i.test(s);
+}
+
+function checkStatement(s)
+{
+    return isPropertyName(s) && reserved.indexOf( s )<0;
+}
+
+function isPropertyName(s)
+{
+   return /^([a-z_$]+[\w+]?)/i.test( s );
+}
+
+function isIdentifier( s )
+{
+    switch( s )
+    {
+        case '{' :
+        case '}' :
+        case '(' :
+        case ')' :
+        case '[' :
+        case ']' :
+        case ';' :
+        case ':' :
+        case '.' :
+        case ',' :
+        case '?' :
+            return true;
+    }
+    return false;
+}
+
+
+function isBlack( s )
+{
+    switch( s )
+    {
+        case '{' :
+        case '}' :
+        case '(' :
+        case ')' :
+        case '[' :
+        case ']' :
+            return true;
+    }
+    return false;
+}
+
 function isOperator( o )
 {
-    if( o.length > 1 )
-    {
-        switch (o) {
-            case '==' :
-            case '===' :
-            case '!==' :
-            case '&&' :
-            case '||' :
-            case '<=' :
-            case '>=' :
-            case '--' :
-            case '++' :
-            case '+=' :
-            case '-=' :
-            case '*=' :
-            case '/=' :
-            case '%=' :
-            case '^=' :
-            case '&=' :
-            case '|=' :
-            case '!!' :
-            case '<<' :
-            case '>>' :
-                return true;
-        }
-        return false;
+    switch (o) {
+        case '=' :
+        case '&' :
+        case '|' :
+        case '<' :
+        case '>' :
+        case '-' :
+        case '+' :
+        case '*' :
+        case '/' :
+        case '%' :
+        case '!' :
+        case '^' :
+        case '==' :
+        case '&&' :
+        case '||' :
+        case '<=' :
+        case '>=' :
+        case '--' :
+        case '++' :
+        case '+=' :
+        case '-=' :
+        case '*=' :
+        case '/=' :
+        case '%=' :
+        case '^=' :
+        case '&=' :
+        case '|=' :
+        case '!!' :
+        case '<<' :
+        case '>>' :
+        case '===' :
+        case '!==' :
+            return true;
     }
-    return true;
+    return false;
 }
 
 
@@ -1248,23 +1550,27 @@ function make( file , fs )
     //var i = 0;
   //  var balancer=0;
 
-    var r = new Ruler( content );
-    while ( !r.done() )
-    {
-         s= r.next();
-        //console.log(  );
-    }
-
-    console.log( r.scope().content()[7] );
-    return ;
-
-
-
     //模块文件的配置
     var module=createModule(file);
 
     //注册到全局模块中
     global(module.package)[module.class] = module;
+
+    var r = new Ruler( content );
+    var s;
+    r.module=module;
+
+    while ( !r.done() )
+    {
+        s= r.next();
+
+        //console.log( s );
+    }
+
+    console.log(module );
+    return ;
+
+
 
     //逐行
     while ( i < num )

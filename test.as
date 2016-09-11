@@ -18,10 +18,11 @@
 
 //类
 
-package
+package com
 {
 
-    import B as UU;
+    import com.B as UU;
+    import com.G;
 
     public class test extends UU {
 
