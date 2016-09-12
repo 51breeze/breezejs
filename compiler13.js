@@ -817,14 +817,6 @@ var syntax={
     '(identifier)':function ()
     {
         var c = this.current();
-
-        if( c.id==='=' )
-        {
-            this.previous(function(){
-
-            })
-        }
-
         if( c.id === '.' || c.id === ',' || c.id==='?' || c.id==='=' || c.id===';' )
         {
             var p = this.previous();
@@ -835,6 +827,22 @@ var syntax={
             else if( ( c.id==='=' ) && ( isOperator( p.value ) || isIdentifier(p.value ) ) )
             {
                 this.error();
+            }
+        }
+
+        if( c.id==='(' )
+        {
+            var a = this.previous(-2);
+            var b = this.previous(-3);
+            var c = this.previous(-4);
+
+            if( a.id !== '(keyword)' && !( b.value==='function' || c.value==='function' ) )
+            {
+                console.log( '==========' , a, b, c )
+                this.expect(function (r) {
+                    console.log( r.value )
+                    return r.id !== ')';
+                })
             }
         }
 
@@ -954,10 +962,6 @@ var syntax={
             v = this.next();
             this.module[category]['variable'][type][ r.value ] = v.value;
         }
-
-
-
-
     },
     'function' : function ()
      {
@@ -1025,7 +1029,20 @@ var syntax={
              return true;
          });
          s.switch('content');
-     }
+     },
+    'if':function () {
+        this.scope().content( 'if' );
+        var r = this.next(true);
+        if( r.id !=='(' )this.error();
+        this.expect(function (r) {
+            if( r.type==='(newline)' )return true;
+            if( r.id===')' )return false;
+            return true;
+        });
+        r = this.next(true);
+        if( isOperator(r.value) )this.error('===');
+        if( r.id===';' )this.error();
+    }
     
 }
 
@@ -1157,7 +1174,7 @@ Scope.prototype.balance=function( o )
          {
              if( !balance[o.id] )
              {
-                 this.ruler.error('Unexpected identifier '+ o.id);
+                 this.ruler.error('Unexpected identifier 1 ');
              }
              b.push(tag);
          }
@@ -1169,7 +1186,7 @@ Scope.prototype.balance=function( o )
 
          if( b.length === 0 )
          {
-             this.ruler.error('Unexpected identifier '+ o.id);
+             this.ruler.error('Unexpected identifier 2');
          }
          return false;
      }
@@ -1352,11 +1369,11 @@ Ruler.prototype.error=function (msg, type)
     }
 }
 
-Ruler.prototype.seek=function ()
+Ruler.prototype.seek=function ( flag )
 {
     this.__seek__=true;
     this.state={'cursor':this.cursor,'line':this.line,'input':this.input};
-    var o = this.next();
+    var o = this.next( flag );
     this.__seek__=false;
     return o;
 }
@@ -1379,7 +1396,7 @@ Ruler.prototype.expect=function(callback)
     return r;
 }
 
-Ruler.prototype.next=function()
+Ruler.prototype.next=function( flag )
 {
     if( this.__seek__ === false && this.state )
     {
@@ -1392,10 +1409,13 @@ Ruler.prototype.next=function()
     var o;
     if( this.input.length === this.cursor )
     {
-        if( !this.move() ){
+        if( !this.move() )
+        {
             o={type:'(end)' ,value:'', id:'(end)'};
-        } ;
-        if( this.line > 1 ){
+        };
+        if( this.line > 1 )
+        {
+            if( flag )return this.next(flag);
             o={type:'(newline)' ,value:'\n', id:'(newline)'};
         }
         o.line= this.line;
@@ -1423,7 +1443,6 @@ Ruler.prototype.next=function()
     if( o.id==='(keyword)' && this.hasListener(o.value) )
     {
         this.dispatcher( o.value );
-
     }else
     {
         this.dispatcher( o.type );
