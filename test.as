@@ -150,7 +150,7 @@ package com
                 while( index < len )
                 {
                     node=element.childNodes.item(index);
-                    if( ( isfn && selector.call(this,node,index) ) || ( !isfn && (selector==='*' || node.nodeType===1) )  )
+                    if(( isfn && selector.call(this,node,index) ) || ( !isfn && (selector==='*' || node.nodeType===1) )  )
                         ret.push( node )
                     if( flag===true && ret.length >0 )break;
                     ++index;
@@ -188,7 +188,7 @@ package com
         /**
          *  @private
          */
-        function doRecursion(propName,strainer, deep )
+        public function set doRecursion(propName,strainer, deep )
         {
             var currentItem,ret=[];
             var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :

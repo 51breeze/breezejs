@@ -817,6 +817,14 @@ var syntax={
     '(identifier)':function ()
     {
         var c = this.current();
+
+        if( c.id==='=' )
+        {
+            this.previous(function(){
+
+            })
+        }
+
         if( c.id === '.' || c.id === ',' || c.id==='?' || c.id==='=' || c.id===';' )
         {
             var p = this.previous();
@@ -829,17 +837,16 @@ var syntax={
                 this.error();
             }
         }
+
     },
 
     "package":function (){
 
-        var r = this.current();
-        var s = this.scope().current();
     },
 
     'import':function (){
 
-        var s = this.scope().current();
+        var s = this.scope();
         if( s.type() !=='package' )this.error('Unexpected import ', 'syntax');
         var a,str=[];
         this.expect(function (r)
@@ -884,14 +891,14 @@ var syntax={
     },
     'public,private,protected,internal,static':function()
     {
-        var s = this.scope().current();
+        var s = this.scope();
         if( s.type() !=='package' && s.type() !=='class' )this.error();
     },
     'class':function()
     {
-        var s = this.scope().current();
+        var s = this.scope();
         if( s.type() !=='package' )this.error();
-        s.add( new Scope('class') );
+        s.add( new Scope('class', this ) );
 
         var p = this.previous();
         if( p.id==='(keyword)' && (p.value==='static' || p.value==='internal') )
@@ -918,9 +925,11 @@ var syntax={
     },
     'var' : function ()
     {
-        var s = this.scope().current();
+        var s = this.scope();
         var category = 'dynamic';
         var type = 'public';
+
+        s.content( 'var' )
 
         if( s.type() === 'class' )
         {
@@ -933,30 +942,30 @@ var syntax={
                 return false;
             })
         }
+
         var r = this.next();
         if( !checkStatement(r.value) )this.error();
+        s.define( r.value );
+
         if( s.type() === 'class' )
         {
             var v = this.next();
             if( v.type !=='(operator)' || v.id !=='=' )this.error();
             v = this.next();
             this.module[category]['variable'][type][ r.value ] = v.value;
-
-        }else
-        {
-            this.expect(function (r)
-            {
-                 if( r.type ==='(newline)')return true;
-                 if( r.id===';')return false;
-            });
         }
+
+
+
+
     },
     'function' : function ()
      {
-         var s = this.scope().current();
+         var s = this.scope();
          var old=s;
-         s.add( new Scope('function') );
-         s = this.scope().current();
+         s = new Scope('function', this );
+         old.add( s );
+
          if( old.type() === 'class' )
          {
              var category = 'dynamic';
@@ -971,31 +980,39 @@ var syntax={
                  return false;
              })
 
-             var r = this.next();
+             var r = this.seek();
              if( r.id === '(keyword)' && (r.value==='get' || r.value==='set') )
              {
-                 s.accessor=r.value;
-                 r = this.next();
+                 s.switch('accessor');
+                 this.next();
              }
 
-             if( !checkStatement(r.value) )this.error();
-             s.name( r.value );
-             if( this.module.uinque[ r.value ] === s.accessor)
+             s.switch('name');
+             r = this.next();
+             if( !checkStatement(r.value) ){
+                 this.error();
+             }
+             if( this.module.uinque[ r.value ] === s.accessor )
              {
                  this.error('Duplicate function '+r.value );
              }
              this.module[category]['function'][type].push(s);
-         }
 
-         var r = this.next();
-         if( r.id !== '(' )
+         }else
          {
-             if( checkStatement(r.value) )this.error();
-             s.name( r.value );
-             r = this.next();
+             var r = this.seek();
+             if( r.id !== '(' )
+             {
+                 s.switch('name');
+                 r = this.next();
+                 if( !checkStatement(r.value) )this.error();
+                 s.define( r.value );
+             }
          }
 
-         if(  r.id !== '(' )this.error();
+         s.switch('param');
+         var r = this.next();
+         if( r.id !== '(' )this.error();
          this.expect(function (r) {
 
              if( r.type==='(newline)' )return true;
@@ -1004,30 +1021,26 @@ var syntax={
              if( r.id !== ',' )
              {
                  if( !checkStatement( r.value ) )this.error('Invalid param name');
-                 s.param( r.value )
              }
              return true;
          });
-
-         r = this.expect(function (r) {
-             return r.type==='(newline)';
-         });
-
-         if( r.id !== '{' )this.error();
+         s.switch('content');
      }
     
 }
 
-function Scope( type )
+function Scope( type, ruler )
 {
    this.__parent__=null;
    this.__content__=[];
    this.__define__=[];
-   this.__balance__=0;
+   this.__balance__=[];
    this.__type__ = type;
    this.__name__='';
    this.__param__=[];
-   this.accessor='';
+   this.__accessor__='';
+   this.ruler=ruler;
+   this.close=false;
    if( Scope.__current__===null )Scope.__current__=this;
 }
 
@@ -1036,28 +1049,49 @@ Scope.prototype.add=function( scope )
 {
     if( scope instanceof Scope )
     {
+        if( scope.__parent__ && this === scope )
+        {
+            throw new Error('Added scope');
+        }
         scope.__parent__=this;
         Scope.__current__ = scope;
+        this.__content__.push( scope );
+        return this;
     }
-    this.__content__.push( scope );
+    this.ruler.error('Not is Scope')
 }
 
 Scope.prototype.define=function( prop )
 {
     if( typeof prop === 'undefined' )return this.__define__.slice(0);
+    if( this.__define__.indexOf(prop)>=0 )
+    {
+        this.ruler.error('cannot define repeat the variables')
+    }
     this.__define__.push( prop );
+    return this;
 }
 
 Scope.prototype.name=function( name )
 {
     if( typeof name === 'undefined' )return this.__name__;
     this.__name__=name;
+    return this;
+}
+
+
+Scope.prototype.accessor=function( name )
+{
+    if( typeof name === 'undefined' )return this.__accessor__;
+    this.__accessor__=name;
+    return this;
 }
 
 Scope.prototype.param=function( name )
 {
     if( typeof name === 'undefined' )return this.__param__.slice(0);
     this.__param__.push( name );
+    return this;
 }
 
 Scope.prototype.parent=function()
@@ -1065,8 +1099,33 @@ Scope.prototype.parent=function()
     return this.__parent__;
 }
 
-Scope.prototype.content=function()
+Scope.prototype.__prop__='content';
+Scope.prototype.switch=function( prop )
 {
+    this.__prop__= prop;
+    return this;
+}
+
+Scope.prototype.content=function( value )
+{
+    if( typeof value !== "undefined" )
+    {
+        switch ( this.__prop__ ){
+
+            case 'name' :
+                this.__name__= value;
+                break;
+            case 'param' :
+                this.__param__.push(value);
+                break;
+            case 'accessor' :
+                this.__accessor__= value;
+                break;
+            default :
+                this.__content__.push( value );
+        }
+        return this;
+    }
     return this.__content__;
 }
 
@@ -1077,17 +1136,51 @@ Scope.prototype.type=function()
 
 Scope.prototype.current=function()
 {
+    if( !Scope.__current__ )
+    {
+        this.ruler.error('Not exists scope instance')
+    }
     return Scope.__current__;
 }
 
-Scope.prototype.balance=function( open )
+
+var balance={'{':'}','(':')','[':']'};
+
+Scope.prototype.balance=function( o )
 {
-    open ? this.__balance__++ : this.__balance__--;
-    if( this.__balance__ < 0 )throw new SyntaxError('Unexpected token');
-    if( this.__balance__===0 )
-    {
+     var b = this.__balance__;
+     var tag = b.pop();
+
+     if ( o.id !== tag )
+     {
+         if( tag )
+         {
+             if( !balance[o.id] )
+             {
+                 this.ruler.error('Unexpected identifier '+ o.id);
+             }
+             b.push(tag);
+         }
+
+         if( balance[o.id] )
+         {
+             b.push( balance[o.id] );
+         }
+
+         if( b.length === 0 )
+         {
+             this.ruler.error('Unexpected identifier '+ o.id);
+         }
+         return false;
+     }
+
+     if( b.length === 0 && o.id==='}' )
+     {
+        this.close=true;
         Scope.__current__ = this.parent() || Scope.__current__;
-    }
+        return true;
+     }
+     return false;
 }
 
 function Ruler( content )
@@ -1098,7 +1191,7 @@ function Ruler( content )
     this.input='';
     this.closer=null;
     this.history=[];
-    this.__scope__=new Scope('package');
+    this.__scope__=new Scope('package', this );
     this.events={};
     for (var type in syntax )
     {
@@ -1187,7 +1280,7 @@ Ruler.prototype.removeListener=function(type, callback)
 
 Ruler.prototype.scope=function()
 {
-    return this.__scope__;
+    return this.__scope__.current();
 }
 
 Ruler.prototype.done=function()
@@ -1268,6 +1361,13 @@ Ruler.prototype.seek=function ()
     return o;
 }
 
+Ruler.prototype.skip=function( len )
+{
+    len = len || 1;
+    this.cursor += len;
+    return this;
+}
+
 Ruler.prototype.expect=function(callback)
 {
     var ret = false;
@@ -1293,10 +1393,10 @@ Ruler.prototype.next=function()
     if( this.input.length === this.cursor )
     {
         if( !this.move() ){
-            o={type:'(end)' ,value:'(end)', id:'(end)'};
+            o={type:'(end)' ,value:'', id:'(end)'};
         } ;
         if( this.line > 1 ){
-            o={type:'(newline)' ,value:'(newline)', id:'(newline)'};
+            o={type:'(newline)' ,value:'\n', id:'(newline)'};
         }
         o.line= this.line;
         o.cursor = this.cursor;
@@ -1314,14 +1414,8 @@ Ruler.prototype.next=function()
         if (this.__seek__ === true)return o;
         if (!o)throw new SyntaxError('Unexpected Illegal ' + s);
 
-        if( o.id === '{' || o.id === '}' )
-        {
-            this.scope().current().balance( o.id === '{' )
-        }
-
         o.line= this.line;
         o.cursor = this.cursor;
-
         this.cursor += o.value.length;
         this.history.push( o );
     }
@@ -1333,6 +1427,32 @@ Ruler.prototype.next=function()
     }else
     {
         this.dispatcher( o.type );
+    }
+
+    if( o.type==='(identifier)' && isBlack( o.id ) )
+    {
+        var s = this.scope();
+        var r = s.balance( o );
+        if( r ){
+            s.content( o.value );
+            return o;
+        }
+    }
+
+    if( o.value && o === this.current() )
+    {
+        if( o.id==='(newline)' )
+        {
+            this.previous(function(r){
+                if( !r || r.id==='(newline)' || r.id==='(keyword)' )return false;
+                this.scope().content( o.value );
+                return false;
+            });
+
+        }else
+        {
+            this.scope().content( o.value );
+        }
     }
     return o;
 }
@@ -1567,7 +1687,7 @@ function make( file , fs )
         //console.log( s );
     }
 
-    console.log(module );
+    console.log( module.dynamic.function.public.slice(-1) );
     return ;
 
 

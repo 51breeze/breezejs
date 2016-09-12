@@ -1301,7 +1301,7 @@ var content = " function doRecursion( propName,strainer, deep,Breeze )\n\
 
 
 
-content='var yy=vvv[oo](1),cc=rrr\n\
+content='var yy=vvv["oo"](1),cc=rrr\n\
 .ccc.\n\
 count()\
 ;\nvar  bb=000;';
