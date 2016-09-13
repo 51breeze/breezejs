@@ -814,47 +814,63 @@ function createModule(file)
 
 var syntax={
 
-    '(identifier)':function ()
+    '(identifier)':function( c )
     {
-        var c = this.current();
-        if( c.id === '.' || c.id === ',' || c.id==='?' || c.id==='=' || c.id===';' )
+        if( c.id === '.' )
         {
             var p = this.previous();
-            if( ( p.type =='(identifier)' && ( p.id === '.' || p.id === ',' || p.id==='?' || p.id==='=' ) ) )
+            if( p.type !=='(identifier)' || !( p.id === ']' || p.id === ')' || isPropertyName(p.value) ) )
             {
                this.error();
             }
-            else if( ( c.id==='=' ) && ( isOperator( p.value ) || isIdentifier(p.value ) ) )
-            {
-                this.error();
-            }
-        }
+            p = this.seek();
+            if( !isPropertyName(p.value) )this.error();
 
-        if( c.id==='(' )
+        } else if( c.id === ',' )
+        {
+            var p = this.previous();
+            if( ( p.type =='(identifier)' && ( p.id === '.' || p.id === ',' || p.id==='?' || isOperator(p.id) ) ) )
+            {
+               this.error();
+            }
+
+        }else if( c.id==='(' )
         {
             var a = this.previous(-2);
             var b = this.previous(-3);
             var c = this.previous(-4);
-
-            if( a.id !== '(keyword)' && !( b.value==='function' || c.value==='function' ) )
+            if( a.id !== '(keyword)' && !( (b.value==='function' && b.id==='(keyword)') || (c.value==='function' && c.id==='(keyword)' ) ) )
             {
-                console.log( '==========' , a, b, c )
                 this.expect(function (r) {
-                    console.log( r.value )
                     return r.id !== ')';
-                })
+                });
             }
-        }
 
+        }else if( c.id==='{' )
+        {
+            var a = this.previous();
+            if( !(a.id === '(keyword)' || a.id === ')') )
+            {
+                this.expect(function (r) {
+                    return r.id !== '}';
+                });
+            }
+
+        }else if( isOperator(c.id) )
+        {
+            var p = this.previous();
+            if( p.id === '.' || p.id === ',' || p.id==='?' || isOperator(p.id)  ) this.error();
+        }
     },
 
     "package":function (){
 
     },
 
-    'import':function (){
+    'import':function (o){
 
         var s = this.scope();
+        this.add( o );
         if( s.type() !=='package' )this.error('Unexpected import ', 'syntax');
         var a,str=[];
         this.expect(function (r)
@@ -885,51 +901,71 @@ var syntax={
         if( !checkStatement(a) )this.error('Invalid property name');
         this.module.import[a] = str;
     },
-    'as':function ()
+    'as':function (o)
     {
         var p = this.previous();
         if( !isPropertyName(p.value) ) this.error();
         this.previous(function (r) {
             if( r.id==='(keyword)' ){
-                if( r.value !=='import' ) this.error();
+                if( r.value !=='import' ) {
+                    this.error();
+                }
                 return false;
             }
             return true;
         })
     },
-    'public,private,protected,internal,static':function()
+    'public,private,protected,internal,static':function(c)
     {
         var s = this.scope();
-        if( s.type() !=='package' && s.type() !=='class' )this.error();
+        var n = this.next();
+        if( (s.type() !=='package' && s.type() !=='class') || ( c.value === n.value ) )this.error();
+
+        if( n.id==='(keyword)' && n.value==='class' )
+        {
+            this.module.type=c.value;
+            n = this.next();
+            if(  n.value !== this.module.class )
+            {
+                this.error('Invalid class name');
+            }
+
+            n = this.next();
+            if( n.id==='(keyword)' && n.value==='extends' )
+            {
+                n = this.next();
+                if( !this.module.import[ n.value ] )
+                {
+                    this.error( r.value+' is not defined','reference');
+                }
+                this.module.extends=r.value;
+                n = this.next();
+            }
+
+            if( n.id !=='{' )this.error();
+            return true;
+
+        }
+
+        if( n.id==='(keyword)' && n.value !== 'function' )
+        {
+            if( (c.value==='static' && 'public,private,protected,internal'.indexOf( n.value )>=0 ) || n.value==='static' )
+            {
+               n = this.next();
+            }
+        }
+
+        if( n.id !== '(keyword)' || n.value !== 'function' )this.error();
+
+
     },
     'class':function()
     {
+
         var s = this.scope();
         if( s.type() !=='package' )this.error();
         s.add( new Scope('class', this ) );
 
-        var p = this.previous();
-        if( p.id==='(keyword)' && (p.value==='static' || p.value==='internal') )
-        {
-            this.module.type=p.value;
-        }
-
-        s = this.next();
-        if(  s.value !== this.module.class )
-        {
-            this.error('Invalid class name');
-        }
-
-        s = this.next();
-        if( s.id==='(keyword)' && s.value==='extends' )
-        {
-            var r = this.next();
-            if( !this.module.import[ r.value ] )
-            {
-                this.error( r.value+' is not defined','reference');
-            }
-            this.module.extends=r.value;
-        }
     },
     'var' : function ()
     {
@@ -961,6 +997,11 @@ var syntax={
             if( v.type !=='(operator)' || v.id !=='=' )this.error();
             v = this.next();
             this.module[category]['variable'][type][ r.value ] = v.value;
+
+        }else
+        {
+
+
         }
     },
     'function' : function ()
@@ -1031,20 +1072,23 @@ var syntax={
          s.switch('content');
      },
     'if':function () {
-        this.scope().content( 'if' );
-        var r = this.next(true);
+
+        var c= this.current();
+        this.scope().content( c.value );
+        var r = this.next();
         if( r.id !=='(' )this.error();
+        r = this.next();
+        if( r.id === ')' )this.error('Missing param');
         this.expect(function (r) {
-            if( r.type==='(newline)' )return true;
-            if( r.id===')' )return false;
-            return true;
+            return r.id!==')';
         });
-        r = this.next(true);
-        if( isOperator(r.value) )this.error('===');
-        if( r.id===';' )this.error();
+        r = this.next();
+        if( isOperator(r.value) )this.error();
+        if( r.id===';' )this.error('Meaningless syntax');
     }
     
 }
+
 
 function Scope( type, ruler )
 {
@@ -1332,9 +1376,10 @@ Ruler.prototype.move=function()
 
 Ruler.prototype.previous=function ( step )
 {
-    var index =  typeof step === "number" ? step : -2;
-    var i = index < 0 ? this.history.length+index : index;
-    var r = this.history[ i ];
+    var c = this.scope().content();
+    var index =  typeof step === "number" ? step : -1;
+    var i = index < 0 ? c.length+index : index;
+    var r = c[ i ];
     if( typeof step === "function"  )
     {
         var s;
@@ -1346,7 +1391,7 @@ Ruler.prototype.previous=function ( step )
 
 Ruler.prototype.current=function ()
 {
-    return this.previous(-1);
+    return this._current;
 }
 
 Ruler.prototype.error=function (msg, type)
@@ -1396,6 +1441,19 @@ Ruler.prototype.expect=function(callback)
     return r;
 }
 
+
+
+Ruler.prototype.add=function( val )
+{
+    if( !this.hasListener('addBefore') || this.dispatcher('addBefore', val ) )
+    {
+        this.scope().switch('content').content( val );
+        return true;
+    }
+    return false;
+}
+
+
 Ruler.prototype.next=function( flag )
 {
     if( this.__seek__ === false && this.state )
@@ -1415,7 +1473,7 @@ Ruler.prototype.next=function( flag )
         };
         if( this.line > 1 )
         {
-            if( flag )return this.next(flag);
+            if( flag !== true )return this.next(flag);
             o={type:'(newline)' ,value:'\n', id:'(newline)'};
         }
         o.line= this.line;
@@ -1429,25 +1487,18 @@ Ruler.prototype.next=function( flag )
             this.cursor++;
             s = s.slice(1);
         }
+
         o = this.number(s) || this.keyword(s) || this.operator(s) || this.identifier(s);
-
-        if (this.__seek__ === true)return o;
-        if (!o)throw new SyntaxError('Unexpected Illegal ' + s);
-
-        o.line= this.line;
-        o.cursor = this.cursor;
         this.cursor += o.value.length;
-        this.history.push( o );
     }
 
-    if( o.id==='(keyword)' && this.hasListener(o.value) )
-    {
-        this.dispatcher( o.value );
-    }else
-    {
-        this.dispatcher( o.type );
-    }
+    if ( !o )throw new SyntaxError('Unexpected Illegal ' + s);
 
+    o.line= this.line;
+    o.cursor = this.cursor;
+    if ( this.__seek__ === true )return o;
+
+    this._current = o;
     if( o.type==='(identifier)' && isBlack( o.id ) )
     {
         var s = this.scope();
@@ -1458,7 +1509,11 @@ Ruler.prototype.next=function( flag )
         }
     }
 
-    if( o.value && o === this.current() )
+    this.dispatcher( o.id==='(keyword)' && this.hasListener(o.value) ? o.value : o.type , o );
+
+    this.add( o );
+
+    /*if( o.value && o === this.current() )
     {
         if( o.id==='(newline)' )
         {
@@ -1472,7 +1527,7 @@ Ruler.prototype.next=function( flag )
         {
             this.scope().content( o.value );
         }
-    }
+    }*/
     return o;
 }
 
@@ -1521,7 +1576,7 @@ Ruler.prototype.identifier=function(s)
         case '\'':
             var i=1;
             while ( i<s.length && !(s.charAt(0) === s.charAt(i) && s.charAt(i-1) !=='\\') )i++;
-            if( s.charAt(0) !== s.charAt(i) )throw new SyntaxError('Missing identifier '+s.charAt(0));
+            if( s.charAt(0) !== s.charAt(i) )this.error('Missing identifier '+s.charAt(0) );
             return {type:s.charAt(0)==='`' ? '(template)' : '(string)' ,value: s.substr(0,i+1), id:s.charAt(0)};
         case '/':
             var i=1;
@@ -1538,7 +1593,7 @@ Ruler.prototype.identifier=function(s)
                 g = g[0];
                 j = j.substr(0, j.length-g.length );
             }
-            if( s.charAt(0) !== j.charAt(j.length-1) )throw new SyntaxError('Missing identifier '+s.charAt(0));
+            if( s.charAt(0) !== j.charAt(j.length-1) )this.error('Missing identifier '+s.charAt(0) );
             new RegExp( j.slice(1,-1), g );
             return {type:'(regexp)' ,value: s.substr(0,i), id:s.charAt(0)};
     }
@@ -1599,6 +1654,14 @@ function isPropertyName(s)
 {
    return /^([a-z_$]+[\w+]?)/i.test( s );
 }
+
+function isReference( scope, val )
+{
+    if( isNumber(val) )return true;
+    if( scope.define().indexOf(val) >=0 )return true;
+    return /^(null|undefined|true|false|NaN|Infinity)$/i.test(val);
+}
+
 
 function isIdentifier( s )
 {

@@ -182,7 +182,7 @@ package com
             var r = this.__reverts__ || (this.__reverts__ = []);
             r.push( this.splice(0,this.length, elems ) );
             this.current(null);
-            return this;
+                return this;
         }
 
         /**
