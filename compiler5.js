@@ -322,10 +322,7 @@ var content = " function doRecursion( propName,strainer, deep )\n\
     'uuu':'kkkk'\
     }\n\
     ,bbb,\
-    ret=[]\n\
-    var \n\
-    s = typeof strainer === \"string\" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :\n\
-        (typeof strainer === \"undefined\" + \"sdfsdf\" ? function(){return this.nodeType===1} : strainer);\n\
+    ret=[];\n\
 \n\
     this.forEach(function(elem)\n\
     {\n\
@@ -341,14 +338,14 @@ var content = " function doRecursion( propName,strainer, deep )\n\
     return ret;\n\
 }";
 
-content = " function doRecursion( propName,strainer, deep ){\n\
+/*content = " function doRecursion( propName,strainer, deep ){\n\
    var kkk=[12,'uuu' ]\
    , rrrr='123'\n\
    ,yyy={jjj:rrrr,oo:[]},\n\
    qqqq=kkk\n\
    var uu,ccc\n\
    uuu=777;\
- }";
+ }";*/
 
 
 

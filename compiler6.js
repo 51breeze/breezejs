@@ -111,7 +111,7 @@ function symmetrical( context, delimiter )
             console.log( last, delimiter, str , current.name )
             throw new Error('Not the end of the delimiter');
         }
-        context.closer = context.balance.length===0;
+        current.closer = current.balance.length===0;
     }
 }
 
@@ -367,11 +367,8 @@ var content = " function doRecursion( propName,strainer, deep )\n\
 }";
 
 content = " function doRecursion( propName,strainer, deep ){\n\
-   if(33){\
-   var mmm= '455'+\n\
-   '222',\
-    \nccc;\
-   }\
+   var mmm= '455',\n\
+    ccc;\
  }";
 
 
@@ -382,7 +379,6 @@ content = " function doRecursion( propName,strainer, deep ){\n\
 
 function start( content )
 {
-
     var global_error = false;
     var ret;
     var pos = 0;
@@ -403,8 +399,9 @@ function start( content )
     }
 }
 
-function variableItem( delimiter, tag )
+function variableItem( current, tag )
 {
+    console.log( current.name, tag )
      if( (tag===';' || tag ===',') && current.name==='var' )
      {
          if( !(current.items instanceof Array) )
@@ -418,37 +415,23 @@ function variableItem( delimiter, tag )
          current.indexAt+=arr.length;
          tag='';
      }
+     return tag;
 }
-
-
 
 function parsecode( delimiter , val , end )
 {
-
     if( delimiter ==='}' && current.name==='var' && !current.closer )
     {
-        if( val )
-        {
-            current.content.push(val);
-            val='';
-        }
-        current.closer=true;
-        current = current.parent;
-        return parsecode( delimiter, val );
+         parsecode( ';', val );
 
     } else if ( delimiter !== '\n')
     {
         val = context(delimiter, val);
     }
 
-    if ( !current.closer )
-    {
-
-
-
-        if (val) current.content.push(val);
-        if (delimiter && !/[\(\{\[\'\"\n\]\}\)]/.test(delimiter) )current.content.push(delimiter);
-    }
+    if (val) current.content.push(val);
+    delimiter = variableItem( current, delimiter );
+    if (delimiter && !/[\(\{\[\'\"\n\]\}\)]/.test(delimiter) )current.content.push(delimiter);
 
     //结束写入正文，并切换到父上下文
     if (current.closer || end )
@@ -488,6 +471,6 @@ start( content );
 
 //console.log( toString( rootcontext ) )
 
-console.log( rootcontext.content )
+console.log( rootcontext.content[1].content[1].content )
 
 
