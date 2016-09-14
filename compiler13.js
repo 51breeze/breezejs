@@ -811,6 +811,10 @@ function createModule(file)
     };
 }
 
+function checkSegmentation( arr )
+{
+    return arr instanceof Array && arr.length > 0 ? arr.length % 2 === 1 : true ;
+}
 
 var syntax={
 
@@ -823,7 +827,7 @@ var syntax={
             {
                this.error();
             }
-            p = this.seek();
+            p = this.next();
             if( !isPropertyName(p.value) )this.error();
 
         } else if( c.id === ',' )
@@ -836,25 +840,16 @@ var syntax={
 
         }else if( c.id==='(' )
         {
-            var a = this.previous(-2);
-            var b = this.previous(-3);
-            var c = this.previous(-4);
-            if( a.id !== '(keyword)' && !( (b.value==='function' && b.id==='(keyword)') || (c.value==='function' && c.id==='(keyword)' ) ) )
-            {
-                this.expect(function (r) {
-                    return r.id !== ')';
-                });
-            }
+            this.expect(function (r) {
+                return r.id !== ')';
+            });
 
         }else if( c.id==='{' )
         {
-            var a = this.previous();
-            if( !(a.id === '(keyword)' || a.id === ')') )
-            {
-                this.expect(function (r) {
-                    return r.id !== '}';
-                });
-            }
+
+            this.expect(function (r) {
+                return r.id !== '}';
+            });
 
         }else if( isOperator(c.id) )
         {
@@ -865,215 +860,215 @@ var syntax={
 
     "package":function (){
 
+        var name=[];
+        var n = this.loop(function(){
+            var n =  this.seek();
+            if( n.id !=='{' )
+            {
+                if( n.value !=='.' && !checkStatement(n.value) )this.error('Invalid package name');
+                name.push( n.value );
+                return true;
+            }
+            return false;
+        });
+
+        if( n.id !=='{' )this.error();
+        if( !checkSegmentation( name ) )
+        {
+            this.error();
+        }
+        name = name.join('');
+        this.scope().name( name );
+        return false;
     },
 
     'import':function (o){
 
         var s = this.scope();
-        this.add( o );
         if( s.type() !=='package' )this.error('Unexpected import ', 'syntax');
         var a,str=[];
-        this.expect(function (r)
-        {
-            if( r.type==='(newline)' || r.id===';' )return false;
-            if( r.id==='(keyword)' && r.value === 'as' )
-            {
-                var r = this.next();
-                a = r.value;
-                return false;
-            }
-            str.push( r.value );
-            return true;
-        });
 
-        var r = this.seek();
-        if( r.id==='(keyword)' && r.value ==='as' )
+        var n = this.seek();
+        while( n.id !== ';' && !this.done() )
         {
-            var r = this.next();
-            a = r.value;
+            if( n.type==='(identifier)' && n.value.toLowerCase() === 'as' )
+            {
+                n = this.seek();
+                a = n.value;
+                break;
+            }
+            str.push( n.value );
+            if( n.value !=='.' && !checkStatement(n.value) )this.error('Invalid property name');
+            n = this.seek(true);
         }
+
+        if( str.length ===0 || !checkSegmentation( str ) )this.error();
+
         str = str.join('');
         if( !a )
         {
             a = str.match( /\w+$/ );
             a = a[0];
         }
-        if( !checkStatement(a) )this.error('Invalid property name');
-        this.module.import[a] = str;
-    },
-    'as':function (o)
-    {
-        var p = this.previous();
-        if( !isPropertyName(p.value) ) this.error();
-        this.previous(function (r) {
-            if( r.id==='(keyword)' ){
-                if( r.value !=='import' ) {
-                    this.error();
-                }
-                return false;
-            }
-            return true;
-        })
+        s.import(a, str );
+        return false;
     },
     'public,private,protected,internal,static':function(c)
     {
         var s = this.scope();
-        var n = this.next();
-        if( (s.type() !=='package' && s.type() !=='class') || ( c.value === n.value ) )this.error();
+        var n = this.seek();
+        if( (s.type() !=='package' && s.type() !=='class') || ( c.value === n.value ) || n.id !=='(keyword)' )this.error();
 
-        if( n.id==='(keyword)' && n.value==='class' )
+        var type ='dynamic';
+        var qualifier = c.value;
+
+        if( !(n.value === 'function' || n.value === 'var' || n.value==='class') )
         {
-            this.module.type=c.value;
-            n = this.next();
-            if(  n.value !== this.module.class )
+            type='static';
+            if( c.value==='static' && 'public,private,protected,internal'.indexOf( n.value )>=0 )
             {
-                this.error('Invalid class name');
+                qualifier = n.value;
             }
-
-            n = this.next();
-            if( n.id==='(keyword)' && n.value==='extends' )
-            {
-                n = this.next();
-                if( !this.module.import[ n.value ] )
-                {
-                    this.error( r.value+' is not defined','reference');
-                }
-                this.module.extends=r.value;
-                n = this.next();
-            }
-
-            if( n.id !=='{' )this.error();
-            return true;
-
+            n = this.seek();
         }
 
-        if( n.id==='(keyword)' && n.value !== 'function' )
+        if( n.value==='class' )
         {
-            if( (c.value==='static' && 'public,private,protected,internal'.indexOf( n.value )>=0 ) || n.value==='static' )
-            {
-               n = this.next();
-            }
-        }
+            syntax.class.call(this);
+            s= this.scope();
+            s.is_static = type === 'static';
+            s.qualifier(qualifier);
 
-        if( n.id !== '(keyword)' || n.value !== 'function' )this.error();
-
-
-    },
-    'class':function()
-    {
-
-        var s = this.scope();
-        if( s.type() !=='package' )this.error();
-        s.add( new Scope('class', this ) );
-
-    },
-    'var' : function ()
-    {
-        var s = this.scope();
-        var category = 'dynamic';
-        var type = 'public';
-
-        s.content( 'var' )
-
-        if( s.type() === 'class' )
+        }else if( n.value === 'function' )
         {
-            this.previous(function (r) {
-                if (r.id === '(keyword)') {
-                    if (r.value === 'static')category = 'static';
-                    if (r.value === 'private' || r.value === 'protected' || r.value === 'internal')type = r.value;
-                    return true;
-                }
-                return false;
-            })
-        }
+            syntax.function.call(this);
+            s= this.scope();
+            s.is_static = type === 'static';
+            s.qualifier(qualifier);
 
-        var r = this.next();
-        if( !checkStatement(r.value) )this.error();
-        s.define( r.value );
-
-        if( s.type() === 'class' )
+        }else if( n.value === 'var' )
         {
-            var v = this.next();
-            if( v.type !=='(operator)' || v.id !=='=' )this.error();
-            v = this.next();
-            this.module[category]['variable'][type][ r.value ] = v.value;
+            syntax.var.call(this);
+            s= this.scope();
+            var d = s.define();
+            var item = d[ d.length-1 ];
+            item.is_static = type === 'static';
+            item.qualifier = qualifier;
 
         }else
         {
-
-
+             this.error();
         }
+        return false;
+    },
+    'class':function()
+    {
+        var s = this.scope();
+        if( s.type() !=='package' )this.error();
+        s.add( new Scope('class') );
+
+        var n = this.seek();
+        if( n.value !== this.module.class )
+        {
+            this.error('Invalid class name');
+        }
+
+        n = this.seek();
+        if( n.id==='(keyword)' && n.value==='extends' )
+        {
+            n = this.seek();
+            this.scope().extends( n.value );
+            n = this.seek();
+        }
+        if( n.id !=='{' )this.error();
+        return false;
+    },
+    'var' : function (c)
+    {
+        var s = this.scope();
+        var n = this.seek();
+        if( !checkStatement(n.value) )this.error();
+
+        if( s.type() === 'class' )
+        {
+            var d = {name:n.value,value:undefined,type:'var',qualifier:'public'};
+            s.define( d );
+
+            n = this.seek();
+            if( n.id==='=' )
+            {
+                var val=[];
+                this.loop(function () {
+                    var n = this.seek();
+                    if(n.id===';')return false;
+                    val.push(n.value);
+                    return true;
+                });
+            }
+
+        }else
+        {
+            this.add(c);
+            this.add(n);
+        }
+        return false;
     },
     'function' : function ()
      {
          var s = this.scope();
          var old=s;
-         s = new Scope('function', this );
+         var n;
+         s = new Scope('function');
          old.add( s );
 
          if( old.type() === 'class' )
          {
-             var category = 'dynamic';
-             var type = 'public';
-             this.previous(function (r)
+             n = this.seek();
+             if( n.id === '(keyword)' && ( n.value==='get' || n.value==='set' ) )
              {
-                 if (r.id === '(keyword)') {
-                     if (r.value === 'static')category = 'static';
-                     if (r.value === 'private' || r.value === 'protected' || r.value === 'internal')type = r.value;
-                     return true;
-                 }
-                 return false;
-             })
-
-             var r = this.seek();
-             if( r.id === '(keyword)' && (r.value==='get' || r.value==='set') )
-             {
-                 s.switch('accessor');
-                 this.next();
+                 s.accessor( n.value );
+                 n = this.seek();
              }
 
-             s.switch('name');
-             r = this.next();
-             if( !checkStatement(r.value) ){
+             if( !checkStatement(n.value) ){
                  this.error();
              }
-             if( this.module.uinque[ r.value ] === s.accessor )
-             {
-                 this.error('Duplicate function '+r.value );
-             }
-             this.module[category]['function'][type].push(s);
+             s.name( n.value );
+             n = this.seek();
 
          }else
          {
-             var r = this.seek();
-             if( r.id !== '(' )
+             n = this.seek();
+             if( n.id !== '(' )
              {
-                 s.switch('name');
-                 r = this.next();
-                 if( !checkStatement(r.value) )this.error();
-                 s.define( r.value );
+                 if( !checkStatement(n.value) )this.error();
+                 s.define( n.value );
+                 s.name(n.value );
+                 n = this.seek();
              }
          }
 
-         s.switch('param');
-         var r = this.next();
-         if( r.id !== '(' )this.error();
-         this.expect(function (r) {
+         if( n.id !== '(' )this.error();
 
-             if( r.type==='(newline)' )return true;
-             if( r.type !=='(identifier)' || r.id==='(keyword)' )this.error();
-             if( r && r.id === ')' )return false;
-             if( r.id !== ',' )
-             {
-                 if( !checkStatement( r.value ) )this.error('Invalid param name');
-             }
+         this.loop(function(){
+
+             var n = this.seek();
+             if( n.id ===')' )return false;
+             if( n.id==='(keyword)' )this.error();
+             if( n.id !== ',' && !checkStatement( n.value ) )this.error('Invalid param name');
+             s.param( n.value );
              return true;
-         });
-         s.switch('content');
+         })
+
+         if( !checkSegmentation( s.param() ) )this.error();
+         n = this.seek();
+         if( n.id !== '{' )this.error();
+         return false;
+
      },
     'if':function () {
 
-        var c= this.current();
+        /*var c= this.current();
         this.scope().content( c.value );
         var r = this.next();
         if( r.id !=='(' )this.error();
@@ -1084,13 +1079,30 @@ var syntax={
         });
         r = this.next();
         if( isOperator(r.value) )this.error();
-        if( r.id===';' )this.error('Meaningless syntax');
+        if( r.id===';' )this.error('Meaningless syntax');*/
     }
     
 }
 
 
-function Scope( type, ruler )
+
+function error(msg, type)
+{
+    switch ( type )
+    {
+        case 'syntax' :
+            throw new SyntaxError(msg);
+            break;
+        case 'reference' :
+            throw new ReferenceError(msg);
+            break;
+        default :
+            throw new Error(msg);
+    }
+}
+
+
+function Scope( type )
 {
    this.__parent__=null;
    this.__content__=[];
@@ -1100,8 +1112,10 @@ function Scope( type, ruler )
    this.__name__='';
    this.__param__=[];
    this.__accessor__='';
-   this.ruler=ruler;
+   this.__qualifier__='public';
    this.close=false;
+   this.__import__={};
+   this.__extends__='';
    if( Scope.__current__===null )Scope.__current__=this;
 }
 
@@ -1119,7 +1133,7 @@ Scope.prototype.add=function( scope )
         this.__content__.push( scope );
         return this;
     }
-    this.ruler.error('Not is Scope')
+    error('Not is Scope')
 }
 
 Scope.prototype.define=function( prop )
@@ -1127,9 +1141,20 @@ Scope.prototype.define=function( prop )
     if( typeof prop === 'undefined' )return this.__define__.slice(0);
     if( this.__define__.indexOf(prop)>=0 )
     {
-        this.ruler.error('cannot define repeat the variables')
+       error('cannot define repeat the variables')
     }
     this.__define__.push( prop );
+    return this;
+}
+
+Scope.prototype.import=function( name , value )
+{
+    if( typeof name !== 'string' )return this.__import__;
+    if( typeof this.__import__[name] !== "undefined" )
+    {
+        error('exists class '+name);
+    }
+    this.__import__[name]=value;
     return this;
 }
 
@@ -1137,6 +1162,24 @@ Scope.prototype.name=function( name )
 {
     if( typeof name === 'undefined' )return this.__name__;
     this.__name__=name;
+    return this;
+}
+
+
+Scope.prototype.extends=function( name )
+{
+    if( typeof name === 'undefined' )return this.__extends__;
+    this.__extends__=name;
+    var p = this.parent();
+    var o = p.import();
+    if( !o[name] ) error(name + ' is not defined','reference');
+    return this;
+}
+
+Scope.prototype.qualifier=function( qualifier )
+{
+    if( typeof qualifier === 'undefined' )return this.__qualifier__;
+    this.__qualifier__=qualifier;
     return this;
 }
 
@@ -1199,11 +1242,15 @@ Scope.prototype.current=function()
 {
     if( !Scope.__current__ )
     {
-        this.ruler.error('Not exists scope instance')
+       error('Not exists scope instance')
     }
     return Scope.__current__;
 }
 
+Scope.prototype.length=function()
+{
+    return this.current().__content__.length;
+}
 
 var balance={'{':'}','(':')','[':']'};
 
@@ -1218,7 +1265,7 @@ Scope.prototype.balance=function( o )
          {
              if( !balance[o.id] )
              {
-                 this.ruler.error('Unexpected identifier 1 ');
+                 error('Unexpected identifier '+o.id );
              }
              b.push(tag);
          }
@@ -1230,7 +1277,7 @@ Scope.prototype.balance=function( o )
 
          if( b.length === 0 )
          {
-             this.ruler.error('Unexpected identifier 2');
+             error('Unexpected identifier '+o.id );
          }
          return false;
      }
@@ -1239,6 +1286,7 @@ Scope.prototype.balance=function( o )
      {
         this.close=true;
         Scope.__current__ = this.parent() || Scope.__current__;
+       // this.ruler.dispatcher('switchScope',{'oldScope':this,'currentScope':Scope.__current__,'item':o} );
         return true;
      }
      return false;
@@ -1251,9 +1299,9 @@ function Ruler( content )
     this.cursor=0;
     this.input='';
     this.closer=null;
-    this.history=[];
-    this.__scope__=new Scope('package', this );
+    this.__scope__=new Scope('package');
     this.events={};
+    this.__end__=false;
     for (var type in syntax )
     {
         this.addListener( type.split(','), syntax[type] ) ;
@@ -1346,7 +1394,7 @@ Ruler.prototype.scope=function()
 
 Ruler.prototype.done=function()
 {
-    return !(this.line < this.lines.length);
+    return this.__end__;
 }
 
 Ruler.prototype.move=function()
@@ -1370,6 +1418,7 @@ Ruler.prototype.move=function()
         }
         return this.input;
     }
+    this.__end__=true;
     return null;
 }
 
@@ -1401,25 +1450,43 @@ Ruler.prototype.error=function (msg, type)
     type = type || 'syntax';
     console.log( c );
     console.log( 'error line:', this.line, '  character:', this.cursor );
-    switch ( type )
-    {
-        case 'syntax' :
-            throw new SyntaxError(msg+' '+c.id);
-            break;
-        case 'reference' :
-            throw new ReferenceError(msg);
-            break;
-        default :
-            throw new Error(msg+' '+c.id, c.id );
-    }
+    error(msg + c.id , type);
 }
 
 Ruler.prototype.seek=function ( flag )
 {
-    this.__seek__=true;
-    this.state={'cursor':this.cursor,'line':this.line,'input':this.input};
-    var o = this.next( flag );
-    this.__seek__=false;
+    var o;
+    if( this.input.length === this.cursor )
+    {
+        if( !this.move() )
+        {
+            o={type:'(end)' ,value:'', id:'(end)'};
+
+        }else if( this.line > 1 )
+        {
+            if( flag !== true )return this.seek(flag);
+            o={type:'(newline)' ,value:'\n', id:'(newline)'};
+        }
+
+    }else
+    {
+        var s = this.input.slice(this.cursor);
+        while (s.charAt(0) === " ") {
+            this.cursor++;
+            s = s.slice(1);
+        }
+        o = this.number(s) || this.keyword(s) || this.operator(s) || this.identifier(s);
+        this.cursor += o.value.length;
+    }
+
+    if ( !o )throw new SyntaxError('Unexpected Illegal ' + s);
+    o.line= this.line;
+    o.cursor = this.cursor;
+    this._current=o;
+    if( o.type==='(identifier)' && isBlack( o.id ) )
+    {
+      this.scope().balance( o );
+    }
     return o;
 }
 
@@ -1442,92 +1509,35 @@ Ruler.prototype.expect=function(callback)
 }
 
 
-
-Ruler.prototype.add=function( val )
+Ruler.prototype.loop=function(callback)
 {
-    if( !this.hasListener('addBefore') || this.dispatcher('addBefore', val ) )
+    while( !this.done() && callback.call(this) );
+    return this.current();
+}
+
+
+Ruler.prototype.add=function( val, index )
+{
+    index = index || this.scope().length();
+    if( this.previous(index) !== val )
     {
-        this.scope().switch('content').content( val );
-        return true;
+        if (!this.hasListener('addBefore') || this.dispatcher('addBefore', val))
+        {
+            this.scope().__content__.splice(index,0, val);
+            return true;
+        }
     }
     return false;
 }
 
-
 Ruler.prototype.next=function( flag )
 {
-    if( this.__seek__ === false && this.state )
+    var o = this.seek( flag );
+    var index = this.scope().length();
+    if( this.dispatcher( o.id==='(keyword)' && this.hasListener(o.value) ? o.value : o.type , o ) )
     {
-        this.line= this.state.line;
-        this.input= this.state.input;
-        this.cursor= this.state.cursor;
-        this.state=null;
+        this.add( o , index );
     }
-
-    var o;
-    if( this.input.length === this.cursor )
-    {
-        if( !this.move() )
-        {
-            o={type:'(end)' ,value:'', id:'(end)'};
-        };
-        if( this.line > 1 )
-        {
-            if( flag !== true )return this.next(flag);
-            o={type:'(newline)' ,value:'\n', id:'(newline)'};
-        }
-        o.line= this.line;
-        o.cursor = this.cursor;
-        if (this.__seek__ === true)return o;
-
-    }else
-    {
-        var s = this.input.slice(this.cursor);
-        while (s.charAt(0) === " ") {
-            this.cursor++;
-            s = s.slice(1);
-        }
-
-        o = this.number(s) || this.keyword(s) || this.operator(s) || this.identifier(s);
-        this.cursor += o.value.length;
-    }
-
-    if ( !o )throw new SyntaxError('Unexpected Illegal ' + s);
-
-    o.line= this.line;
-    o.cursor = this.cursor;
-    if ( this.__seek__ === true )return o;
-
-    this._current = o;
-    if( o.type==='(identifier)' && isBlack( o.id ) )
-    {
-        var s = this.scope();
-        var r = s.balance( o );
-        if( r ){
-            s.content( o.value );
-            return o;
-        }
-    }
-
-    this.dispatcher( o.id==='(keyword)' && this.hasListener(o.value) ? o.value : o.type , o );
-
-    this.add( o );
-
-    /*if( o.value && o === this.current() )
-    {
-        if( o.id==='(newline)' )
-        {
-            this.previous(function(r){
-                if( !r || r.id==='(newline)' || r.id==='(keyword)' )return false;
-                this.scope().content( o.value );
-                return false;
-            });
-
-        }else
-        {
-            this.scope().content( o.value );
-        }
-    }*/
     return o;
 }
 
@@ -1769,7 +1779,7 @@ function make( file , fs )
         //console.log( s );
     }
 
-    console.log( module.dynamic.function.public.slice(-1) );
+    console.log(r.scope().content()[1] );
     return ;
 
 
@@ -1818,6 +1828,9 @@ var showMem = function()
     console.log('Process: heapTotal '+format(mem.heapTotal) + ' heapUsed ' + format(mem.heapUsed) + ' rss ' + format(mem.rss));
     console.log('----------------------------------------');
 };
+
+
+
 
 
 
