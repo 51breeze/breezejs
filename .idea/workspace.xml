@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/compiler13.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/breezejs/.idea/workspace.xml" afterPath="$PROJECT_DIR$/breezejs/.idea/workspace.xml" />
     </list>
     <list id="18e6e159-e815-4edb-b007-a0795730b21e" name="New changelist" comment="" />
     <ignored path="breezejs.iws" />
@@ -48,8 +45,8 @@
       <file leaf-file-name="compiler13.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/compiler13.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="295">
-              <caret line="1573" column="38" selection-start-line="1573" selection-start-column="38" selection-end-line="1573" selection-end-column="38" />
+            <state relative-caret-position="266">
+              <caret line="1572" column="5" selection-start-line="1572" selection-start-column="5" selection-end-line="1572" selection-end-column="5" />
               <folding />
             </state>
           </provider>
@@ -384,14 +381,7 @@
       <workItem from="1473772029294" duration="6205000" />
       <workItem from="1473854330722" duration="34000" />
       <workItem from="1473854961589" duration="199000" />
-      <workItem from="1474124298090" duration="30000" />
-    </task>
-    <task id="LOCAL-00110" summary="架构调整">
-      <created>1466060082489</created>
-      <option name="number" value="00110" />
-      <option name="presentableId" value="LOCAL-00110" />
-      <option name="project" value="LOCAL" />
-      <updated>1466060082490</updated>
+      <workItem from="1474124298090" duration="71000" />
     </task>
     <task id="LOCAL-00111" summary="架构调整">
       <created>1466420471858</created>
@@ -729,11 +719,18 @@
       <option name="project" value="LOCAL" />
       <updated>1473694100353</updated>
     </task>
-    <option name="localTasksCounter" value="159" />
+    <task id="LOCAL-00159" summary="Default">
+      <created>1474124337806</created>
+      <option name="number" value="00159" />
+      <option name="presentableId" value="LOCAL-00159" />
+      <option name="project" value="LOCAL" />
+      <updated>1474124337806</updated>
+    </task>
+    <option name="localTasksCounter" value="160" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="572509000" />
+    <option name="totallyTimeSpent" value="572550000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1144,8 +1141,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/compiler13.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="295">
-          <caret line="1573" column="38" selection-start-line="1573" selection-start-column="38" selection-end-line="1573" selection-end-column="38" />
+        <state relative-caret-position="266">
+          <caret line="1572" column="5" selection-start-line="1572" selection-start-column="5" selection-end-line="1572" selection-end-column="5" />
           <folding />
         </state>
       </provider>
