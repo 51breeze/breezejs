@@ -40,7 +40,7 @@ package com
             this.uuuu(9999,'pppp');
         }
 
-        public function uuuu(name,b)
+        public function uuuu(name,b )
         {
              b=["9999",
             "dsfdsssssss",
@@ -188,7 +188,7 @@ package com
         /**
          *  @private
          */
-        public function set doRecursion(propName,strainer, deep )
+        public function set doRecursion(propName,strainer, deep='' )
         {
             var currentItem,ret=[];
             var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :

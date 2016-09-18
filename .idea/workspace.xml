@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="">
+    <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="Default">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Ruler.js" afterPath="$PROJECT_DIR$/compiler/Ruler.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler13.js" afterPath="$PROJECT_DIR$/compiler13.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test.as" afterPath="$PROJECT_DIR$/test.as" />
     </list>
     <list id="18e6e159-e815-4edb-b007-a0795730b21e" name="New changelist" comment="" />
     <ignored path="breezejs.iws" />
@@ -32,71 +35,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="compiler6.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler6.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="271">
-              <caret line="345" column="29" selection-start-line="345" selection-start-column="29" selection-end-line="345" selection-end-column="29" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="compiler13.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="compiler13.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler13.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="266">
-              <caret line="1572" column="5" selection-start-line="1572" selection-start-column="5" selection-end-line="1572" selection-end-column="5" />
+            <state relative-caret-position="401">
+              <caret line="839" column="5" selection-start-line="836" selection-start-column="2" selection-end-line="839" selection-end-column="5" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="compiler10.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler10.js">
+      <file leaf-file-name="Ruler.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="7627">
-              <caret line="263" column="39" selection-start-line="263" selection-start-column="39" selection-end-line="263" selection-end-column="39" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="compiler12.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler12.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3828">
-              <caret line="132" column="14" selection-start-line="132" selection-start-column="14" selection-end-line="132" selection-end-column="14" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="compiler.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="11774">
-              <caret line="406" column="42" selection-start-line="406" selection-start-column="42" selection-end-line="406" selection-end-column="42" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="require.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/require.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="16675">
-              <caret line="579" column="28" selection-start-line="579" selection-start-column="28" selection-end-line="579" selection-end-column="28" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="compiler2.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler2.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="28101">
-              <caret line="969" column="4" selection-start-line="969" selection-start-column="4" selection-end-line="969" selection-end-column="4" />
+            <state relative-caret-position="503">
+              <caret line="588" column="0" selection-start-line="588" selection-start-column="0" selection-end-line="588" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -105,28 +58,28 @@
       <file leaf-file-name="test.as" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test.as">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6148">
-              <caret line="212" column="1" selection-start-line="212" selection-start-column="1" selection-end-line="212" selection-end-column="1" />
+            <state relative-caret-position="353">
+              <caret line="137" column="25" selection-start-line="137" selection-start-column="25" selection-end-line="137" selection-end-column="25" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Breeze.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Breeze.js">
+      <file leaf-file-name="compiler12.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler12.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5974">
-              <caret line="212" column="13" selection-start-line="212" selection-start-column="13" selection-end-line="212" selection-end-column="13" />
+            <state relative-caret-position="10460">
+              <caret line="936" column="0" selection-start-line="936" selection-start-column="0" selection-end-line="936" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="EcmaScript.js" pinned="false" current-in-tab="false">
-        <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
+      <file leaf-file-name="compiler.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="232">
-              <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
+            <state relative-caret-position="1009">
+              <caret line="39" column="1" selection-start-line="19" selection-start-column="0" selection-end-line="39" selection-end-column="1" />
               <folding />
             </state>
           </provider>
@@ -173,8 +126,9 @@
         <option value="$PROJECT_DIR$/compiler9.js" />
         <option value="$PROJECT_DIR$/compiler12.js" />
         <option value="$PROJECT_DIR$/compiler.js" />
-        <option value="$PROJECT_DIR$/test.as" />
         <option value="$PROJECT_DIR$/compiler13.js" />
+        <option value="$PROJECT_DIR$/test.as" />
+        <option value="$PROJECT_DIR$/compiler/Ruler.js" />
       </list>
     </option>
   </component>
@@ -260,6 +214,20 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="compiler" />
               <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
             </PATH_ELEMENT>
           </PATH>
@@ -381,14 +349,8 @@
       <workItem from="1473772029294" duration="6205000" />
       <workItem from="1473854330722" duration="34000" />
       <workItem from="1473854961589" duration="199000" />
-      <workItem from="1474124298090" duration="71000" />
-    </task>
-    <task id="LOCAL-00111" summary="架构调整">
-      <created>1466420471858</created>
-      <option name="number" value="00111" />
-      <option name="presentableId" value="LOCAL-00111" />
-      <option name="project" value="LOCAL" />
-      <updated>1466420471858</updated>
+      <workItem from="1474124298090" duration="288000" />
+      <workItem from="1474163056632" duration="41333000" />
     </task>
     <task id="LOCAL-00112" summary="架构调整">
       <created>1466506417333</created>
@@ -726,11 +688,18 @@
       <option name="project" value="LOCAL" />
       <updated>1474124337806</updated>
     </task>
-    <option name="localTasksCounter" value="160" />
+    <task id="LOCAL-00160" summary="Default">
+      <created>1474124380710</created>
+      <option name="number" value="00160" />
+      <option name="presentableId" value="LOCAL-00160" />
+      <option name="project" value="LOCAL" />
+      <updated>1474124380710</updated>
+    </task>
+    <option name="localTasksCounter" value="161" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="572550000" />
+    <option name="totallyTimeSpent" value="614100000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -745,13 +714,13 @@
     <frame x="-8" y="-8" width="1456" height="876" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23424068" sideWeight="0.49360147" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.11318052" sideWeight="0.49360147" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.011034483" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="false" weight="0.3189189" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3295129" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32884097" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="WINDOWED" visible="false" show_stripe_button="true" weight="0.9986523" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" x="541" y="18" width="895" height="741" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.9986523" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" x="541" y="18" width="895" height="741" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.20630373" sideWeight="0.50639856" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -808,13 +777,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/require-min.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/components/Template.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -1077,16 +1039,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/compiler6.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="271">
+        <state relative-caret-position="10005">
           <caret line="345" column="29" selection-start-line="345" selection-start-column="29" selection-end-line="345" selection-end-column="29" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="11774">
-          <caret line="406" column="42" selection-start-line="406" selection-start-column="42" selection-end-line="406" selection-end-column="42" />
           <folding />
         </state>
       </provider>
@@ -1099,38 +1053,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/require.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="16675">
-          <caret line="579" column="28" selection-start-line="579" selection-start-column="28" selection-end-line="579" selection-end-column="28" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler12.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3828">
-          <caret line="132" column="14" selection-start-line="132" selection-start-column="14" selection-end-line="132" selection-end-column="14" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="232">
-          <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test.as">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6148">
-          <caret line="212" column="1" selection-start-line="212" selection-start-column="1" selection-end-line="212" selection-end-column="1" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/compiler2.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="28101">
@@ -1139,10 +1061,58 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/require.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="655">
+          <caret line="579" column="28" selection-start-line="579" selection-start-column="28" selection-end-line="579" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="11687">
+          <caret line="403" column="0" selection-start-line="403" selection-start-column="0" selection-end-line="403" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler12.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="10460">
+          <caret line="936" column="0" selection-start-line="936" selection-start-column="0" selection-end-line="936" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1009">
+          <caret line="39" column="1" selection-start-line="19" selection-start-column="0" selection-end-line="39" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/compiler13.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="266">
-          <caret line="1572" column="5" selection-start-line="1572" selection-start-column="5" selection-end-line="1572" selection-end-column="5" />
+        <state relative-caret-position="401">
+          <caret line="839" column="5" selection-start-line="836" selection-start-column="2" selection-end-line="839" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="353">
+          <caret line="137" column="25" selection-start-line="137" selection-start-column="25" selection-end-line="137" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="503">
+          <caret line="588" column="0" selection-start-line="588" selection-start-column="0" selection-end-line="588" selection-end-column="0" />
           <folding />
         </state>
       </provider>
