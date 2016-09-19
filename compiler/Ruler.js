@@ -164,12 +164,6 @@ function isIdentifier( s )
 {
     switch( s )
     {
-        case '{' :
-        case '}' :
-        case '(' :
-        case ')' :
-        case '[' :
-        case ']' :
         case ';' :
         case ':' :
         case '.' :
@@ -181,11 +175,11 @@ function isIdentifier( s )
 }
 
 /**
- * 判断是否一个块级符
+ * 判断是否为一个定界符
  * @param s
  * @returns {boolean}
  */
-function isBlack( s )
+function isDelimiter( s )
 {
     switch( s )
     {
@@ -309,35 +303,54 @@ syntax['(identifier)']=function( c )
         });
         this.endSemicolon();
 
-    }else if( c.id==='(' || c.id==='{' || c.id==='[')
-    {
-        this.expect(function (r) {
-            return r.id !== balance[c.id];
-        });
-
     } else if( c.id ===';' )
     {
 
-    }else if( c.id ===')' || c.id==='}' || c.id===']' )
-    {
 
     }
     else if( c.id !=='(keyword)' )
     {
 
-        if( this.prev.value==='package' || this.prev.value==='import' || this.prev.id==='.' )return true;
-
-        var p = this.previous(function (p) {
-            return p && p.type==='(newline)';
-        });
 
         if( ( !p || p.id !=='.' ) && !isReference( this.scope(), c ) )
         {
             console.log( this.scope().type() )
             this.error(c.value+' not is defined');
         }
+
+
+        var s = this.createScope( new Stack('(reference)') );
+
+
+        this.loop(function(){
+
+            var n = this.seek(true);
+            s.add( n );
+            this.check();
+            if( this.next.id===';' )return false;
+            return this.next.type==='(newline)' || isIdentifier(this.next.id) || isOperator( this.next.id ) || isDelimiter( this.next.id );
+
+        })
+
+
+
+
+
     }
 };
+
+
+syntax['(delimiter)']=function( c )
+{
+    if (c.id === '(' || c.id === '{' || c.id === '[')
+    {
+        this.expect(function (r) {
+            return r.id !== balance[c.id];
+        });
+    }
+}
+
+
 
 syntax['(operator)']=function (o)
 {
@@ -372,10 +385,6 @@ syntax['(operator)']=function (o)
         }
     }
 };
-
-
-
-
 
 
 
@@ -1112,6 +1121,31 @@ Ruler.prototype.hasSemicolon=function()
     return false;
 }
 
+
+/**
+ * 是否结束行
+ * @returns {boolean}
+ */
+Ruler.prototype.endLine=function( o )
+{
+    o = o || this.current;
+    if( o.id === ';' )return true;
+
+    //如果当前或者下个语法是标识符则不能结束
+    if( isIdentifier( o.id ) )return false;
+    if( isIdentifier( this.next.id ) )return false;
+
+    //如果下一个语法是一个换行则移动到下下一个语法
+    if( this.next.type==='(newline)' ){
+
+        this.seek(true);
+        return this.endLine( this.next );
+    }
+    return true;
+}
+
+
+
 /**
  * 将代码移动到下一行
  * @returns {*}
@@ -1265,7 +1299,7 @@ Ruler.prototype.seek=function ( flag )
     this.current = this.next===null ? this.fetch( true ) : this.next;
     this.next    = this.fetch( this.current.type === '(newline)' );
     if( flag === true && this.current.type==='(newline)' )return this.seek( flag );
-    if( this.current.type==='(identifier)' && isBlack( this.current.value ) )
+    if( this.current.type==='(delimiter)' && isDelimiter( this.current.value ) )
         this.balance( this.current );
     return this.current;
 }
@@ -1416,8 +1450,12 @@ Ruler.prototype.identifier=function(s)
 {
     if( isIdentifier( s.charAt(0) ) )
     {
-        if( s.charAt(0)==='.' && /\d/.test( s.charAt(1) ) )return false;
+        if( s.charAt(0)==='.' && /\d/.test( s.charAt(1) ) )return null;
         return describe('(identifier)', s.charAt(0) , s.charAt(0) );
+
+    }else if( isDelimiter(s.charAt(0)) )
+    {
+        return describe('(delimiter)', s.charAt(0) , s.charAt(0) );
     }
     switch( s.charAt(0) )
     {
