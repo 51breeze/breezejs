@@ -388,9 +388,11 @@ syntax['(operator)']=function (o)
 
 
 
-syntax["package"]=function ()
+syntax["package"]=function (event)
 {
-    var s = this.createScope( new Package() );
+    var s = new Statement('(package)').addListener('(end)',function(event){if( event.target.id==='}')this.close=true;});
+    event.target = s;
+
     var name=[];
     this.loop(function(){
         this.seek(true);
@@ -403,13 +405,13 @@ syntax["package"]=function ()
     name = name.join('');
     s.name( name );
     if( this.current.id !=='{' ) this.error('Missing token {');
-    return false;
+
 };
 
 syntax['import']=function (o)
 {
     var s = this.scope();
-    if( s.type() !=='package' )this.error('Unexpected import ', 'syntax');
+    if( s.type() !=='(package)' )this.error('Unexpected import ', 'syntax');
     var a,name=[];
 
     this.loop(function () {
@@ -446,7 +448,7 @@ syntax['private,protected,internal,static,public']=function(c)
 {
     var s = this.scope();
     var n = this.seek(true);
-    if( (s.type() !=='package' && s.type() !=='class') || ( c.value === n.value ) || n.id !=='(keyword)' )this.error();
+    if( (s.type() !=='(package)' && s.type() !=='(class)') || ( c.value === n.value ) || n.id !=='(keyword)' )this.error();
 
     var type ='dynamic';
     var qualifier = c.value;
@@ -478,8 +480,8 @@ syntax['private,protected,internal,static,public']=function(c)
 syntax['class']=function()
 {
     var s = this.scope();
-    if( s.type() !=='package' )this.error();
-    s = this.createScope( new Module() );
+    if( s.type() !=='(package)' )this.error();
+    s = this.createScope( new Class('(class)') );
 
     var n = this.seek(true);
     if( !isPropertyName( n.value) )
@@ -506,10 +508,9 @@ syntax['class']=function()
 syntax['var']=function (c)
 {
     var type = this.scope().type();
-
-    if( type === 'var' )this.error('Statement var unclosed');
+    if( type === '(var)' )this.error('var unclosed');
     var old = this.scope();
-    this.createScope( new Statement('var') );
+    this.createScope( new Statement('(var)') );
     var s = this.scope();
 
     var n = this.seek(true);
@@ -520,7 +521,6 @@ syntax['var']=function (c)
     //定义到作用域中
     old.define(n.value,true);
 
-    if( this.next.type==='(newline)')this.seek(true);
     if( this.next.id==='=' )
     {
         this.seek(true);
@@ -538,7 +538,7 @@ syntax['var']=function (c)
     if( this.current.id===',' )
     {
         //在类中声明的属性不能同时声明多个
-        if( type === 'module' )this.error();
+        if( type === '(class)' )this.error();
 
         //继续声明变量
         syntax['var'].call(this);
@@ -552,9 +552,9 @@ syntax['var']=function (c)
 syntax['function']= function(){
 
     var type = this.scope().type();
-    var s = this.createScope( new Statement('function') );
+    var s = this.createScope( new Statement('(function)') );
     var n = this.seek(true);
-    if( type === 'module' && (n.value === 'get' || n.value === 'set') && this.next.id !== '(' )
+    if( type === '(class)' && (n.value === 'get' || n.value === 'set') && this.next.id !== '(' )
     {
         s.accessor(n.value);
         n = this.seek(true);
@@ -563,7 +563,7 @@ syntax['function']= function(){
     if( n.id !== '(' )
     {
         //类中的属性台台允许与引入的类名相同
-        if( type === 'module' )
+        if( type === '(class)' )
         {
             if ( !checkStatement(n.value) )this.error();
 
@@ -576,7 +576,7 @@ syntax['function']= function(){
     }
 
     // 类中定义的方法不能为匿名函数
-    if( type === 'module' && !s.name() )this.error('Missing function name');
+    if( type === '(class)' && !s.name() )this.error('Missing function name');
     if( n.id !== '(' )this.error();
 
     this.loop(function(){
@@ -596,6 +596,12 @@ syntax['function']= function(){
     return false;
 };
 
+
+/**
+ * 抛出错误信息
+ * @param msg
+ * @param type
+ */
 function error(msg, type)
 {
     switch ( type )
@@ -759,11 +765,11 @@ Stack.__current__=null;
  * 返回当前的作用域
  * @returns {*|null}
  */
-Stack.current=function()
+Stack.current=function( obj )
 {
-    if( !Stack.__current__ )
+    if( Stack.__current__ === null )
     {
-        Stack.__current__ = new Stack('(begin)');
+       Stack.__current__ = obj instanceof Stack ? obj : new Stack('(begin)');
     }
     return Stack.__current__;
 }
@@ -804,6 +810,7 @@ Stack.prototype.add=function( val )
 {
     if( val instanceof Stack )
     {
+        if( val === this )error('Invalid child');
         val.__parent__=this;
         if( this.type()==='var' )val.__parent__=this.parent();
         Stack.__current__ = val;
@@ -870,6 +877,7 @@ function Scope( type )
 {
     this.__name__='';
     this.__param__=[];
+    this.__define__={};
     Stack.call(this,type);
 }
 Scope.prototype = new Stack();
@@ -916,23 +924,12 @@ Scope.prototype.add=function( val )
 }
 
 /**
- * 文件包域
- * @constructor
- */
-function Package(){
-    this.__define__={};
-    Scope.call(this,'package');
-}
-Package.prototype = new Scope('package');
-Package.constructor = Package;
-
-/**
  * 声明一些属性
  * @param prop
  * @param value
  * @returns {*}
  */
-Package.prototype.define=function(prop , value )
+Scope.prototype.define=function(prop , value )
 {
     if( typeof prop === 'undefined' )return this.__define__;
     if( typeof prop === 'string' &&  typeof value === 'undefined' )
@@ -943,18 +940,19 @@ Package.prototype.define=function(prop , value )
     return this;
 }
 
+
+
 /**
- * 声明作用域
+ * 声明属性接口
  * @constructor
  */
 function Statement( type ){
     this.__qualifier__='';
     this.__static__= false ;
     this.__accessor__= '' ;
-    Package.call(this,type);
-    this.__type__ = type;
+    Scope.call(this,type);
 }
-Statement.prototype = new Package('statement');
+Statement.prototype = new Scope();
 Statement.constructor = Statement;
 
 /**
@@ -997,30 +995,33 @@ Statement.prototype.static=function(flag )
 
 
 /**
- * 模块作用域
+ * 类作用域
  * @constructor
  */
-function Module()
+function Class()
 {
     this.__extends__='';
-    Statement.call(this,'module');
+    Statement.call(this,'(class)');
 }
 
-Module.prototype = new Statement('module');
-Module.constructor = Module;
+Class.prototype = new Statement('(class)');
+Class.constructor = Class;
 
 /**
  * 是否有继承
  * @param name
  * @returns {*}
  */
-Module.prototype.extends=function(name )
+Class.prototype.extends=function(name )
 {
     if( typeof name === 'undefined' )return this.__extends__;
     if( !this.parent().define(name) )error(name +' not is import');
     this.__extends__=name;
     return this;
 }
+
+
+
 
 
 /**
@@ -1229,7 +1230,7 @@ Ruler.prototype.balance=function( o )
 
         if( balance[o.id] )
         {
-            this.dispatcher('(beginBlack)', o );
+            this.scope().dispatcher('(begin)', {target:o,type:'(begin)'});
             b.push( balance[o.id] );
         }
 
@@ -1239,7 +1240,7 @@ Ruler.prototype.balance=function( o )
         }
         return false;
     }
-    this.dispatcher('(endBlack)', o);
+    this.scope().dispatcher('(end)', {target:o,type:'(end)'} );
     return true;
 }
 
@@ -1253,11 +1254,14 @@ Ruler.prototype.fetch=function( flag )
     if( this.done() ){
         return describe('(end)','','(end)');
     }
+
     var o;
     if( this.input.length === this.cursor )
     {
         this.move();
-        o=describe('(newline)','\n','(newline)');
+        //o=describe('(newline)','\n','(newline)');
+
+        return this.fetch( flag );
 
     }else
     {
@@ -1266,6 +1270,12 @@ Ruler.prototype.fetch=function( flag )
             this.cursor++;
             s = s.slice(1);
         }
+
+        if( !s )
+        {
+            return this.fetch( flag );
+        }
+
         o = this.number(s) || this.keyword(s) || this.operator(s) || this.identifier(s);
         this.cursor += o.value.length;
     }
@@ -1304,35 +1314,6 @@ Ruler.prototype.seek=function ( flag )
     return this.current;
 }
 
-/**
- * 创建一个新的代码域
- * @param type
- * @returns {*|null}
- */
-Ruler.prototype.createScope=function( scope )
-{
-    var b = this.__balance__.length;
-    var end = function (o) {
-        var c = this.__balance__.length;
-        if( b===c && o.id==='}' ){
-            if( this.scope().type() === 'package' )
-            {
-                this.scope().close=true;
-            }else
-            {
-                this.scope().switch( this.scope().parent() );
-            }
-            this.removeListener('(endBlack)', end );
-        }
-    }
-    this.addListener('(endBlack)', end );
-    if( Stack.__current__ )
-    {
-        this.scope().add( scope );
-    }
-    Stack.__current__ = scope;
-    return this.scope();
-}
 
 /**
  * 返回当前的作用域
@@ -1351,9 +1332,11 @@ Ruler.prototype.scope=function()
 Ruler.prototype.step=function()
 {
     this.seek();
-    if( this.check() )
+    var ret = this.check();
+    if( ret )
     {
-        this.add(this.current);
+        this.add( ret );
+        return ret;
     }
     return this.current;
 }
@@ -1365,7 +1348,12 @@ Ruler.prototype.step=function()
 Ruler.prototype.check=function(o)
 {
     o = o || this.current;
-    return this.dispatcher( o.id==='(keyword)' && this.hasListener(o.value) ? o.value : o.type , o );
+    var event={target:o, type:o.id==='(keyword)' && this.hasListener(o.value) ? o.value : o.type };
+    if( this.dispatcher( event.type , event ) )
+    {
+        return event.target;
+    }
+    return false;
 }
 
 /**
@@ -1404,7 +1392,10 @@ Ruler.prototype.loop=function(callback)
 Ruler.prototype.add=function( val )
 {
     if(val.type==='(end)')return false;
-    this.scope().add( val );
+    if( this.dispatcher('(addBefore)', val) )
+    {
+       this.scope().add(val);
+    }
     return true;
 }
 
