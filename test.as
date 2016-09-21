@@ -188,7 +188,7 @@ package com
         /**
          *  @private
          */
-        public function set doRecursion(propName,strainer, deep='' )
+        public function set doRecursion(propName )
         {
             var currentItem,ret=[];
             var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :
@@ -202,7 +202,7 @@ package com
                     do{
                         currentItem = currentItem[propName];
                         if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );
-                    } while (deep && currentItem)
+                    } while (deep && currentItem);
                 }
             })
             return ret;

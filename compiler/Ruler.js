@@ -242,12 +242,13 @@ var balance={'{':'}','(':')','[':']'};
 var syntax={};
 
 
-syntax['(delimiter)']=function( c )
+syntax['(delimiter)']=function( e )
 {
-    if( c.id === '(' || c.id === '{' || c.id === '[')
+
+    if( e.target.id === '(' || e.target.id === '{' || e.target.id === '[')
     {
-        this.expect(function (r) {
-            return r.id !== balance[c.id];
+        this.expect(function (n) {
+            return n.target.id !== balance[ e.target.id ];
         });
     }
 }
@@ -281,9 +282,10 @@ syntax["package"]=function (event)
     name = name.join('');
     s.name( name );
     if( this.current.id !=='{' ) this.error('Missing token {');
-    this.expect(function(n){
-       return n.id !== '}';
+    this.expect(function(e){
+       return this.next.id !== '}';
     });
+    this.seek();
     if( this.current.id !=='}' ) this.error('Missing token }');
     s.switch();
 };
@@ -385,8 +387,6 @@ syntax['class']=function( event )
 
     n = this.seek(true);
 
-
-
     if( n.id==='(keyword)' && n.value==='extends' )
     {
         n = this.seek(true);
@@ -396,11 +396,12 @@ syntax['class']=function( event )
 
     if(n.id !=='{')this.error('Missing token {');
 
-    this.expect(function(n){
-        return n.id!=='}';
+    this.expect(function(e){
+        return this.next.id!=='}';
     })
-    if(n.id !=='}')this.error('Missing token }');
-    s.switch( this.parent() );
+    this.seek();
+    if(this.current.id !=='}')this.error('Missing token }');
+    s.switch( s.parent() );
 
 };
 
@@ -433,7 +434,6 @@ syntax['var']=function (event)
             return !this.endLine();
         });
     }
-
 
     //结束当前声明的变量
     s.switch();
@@ -480,9 +480,13 @@ syntax['function']= function(event){
     }
 
     // 类中定义的方法不能为匿名函数
-    if( old.type() === '(class)' && !s.name() )this.error('Missing function name');
-    if( n.id !== '(' )this.error();
+    if( old.type() === '(class)' && !s.name() ){
 
+        //console.log( old.type() )
+        this.error('Missing function name');
+    }
+
+    if( n.id !== '(' )this.error();
     this.loop(function(){
         var n = this.seek(true);
         if( n.id ===')' )return false;
@@ -497,21 +501,17 @@ syntax['function']= function(event){
 
     if( s.param().length > 0 && !checkSegmentation( s.param() ) )this.error();
 
-
-
     if( this.seek(true).id !== '{' )this.error( "Missing token {" );
 
     this.expect(function(e){
-        return e.target.id!=='}';
-    })
+        return this.next.id!=='}';
+    });
 
+    this.seek();
     if(this.current.id !=='}')this.error('Missing token }');
     s.switch( s.parent() );
     return false;
 };
-
-
-
 
 
 

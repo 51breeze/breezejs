@@ -839,7 +839,7 @@ function make( file , fs )
 
     r.expect();
 
-   /// console.log( r.scope().content()[0].content().slice(-1)[0] );
+    console.log( r.scope().content()[0].content()  );
     return ;
 
 
