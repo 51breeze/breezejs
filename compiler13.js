@@ -3,6 +3,9 @@ const root = process.cwd().replace('\\','/');
 const suffix = '.as';
 const global_module={};
 
+const ruler = require('./compiler/Ruler.js');
+
+
 function global(name)
 {
     var path = name.replace(/\s+/g,'').split('.');
@@ -831,13 +834,10 @@ function make( file , fs )
     //注册到全局模块中
     global(module.package)[module.class] = module;
 
-    var r = new Ruler( content );
-    var s;
-    r.module=module;
-    while ( !r.done() )
-    {
-        r.step();
-    }
+    var r = new ruler( content );
+
+
+    r.expect();
 
    /// console.log( r.scope().content()[0].content().slice(-1)[0] );
     return ;
