@@ -299,7 +299,7 @@ syntax['import']=function (event)
 {
     event.prevented=true;
     var s = this.scope();
-    if( s.keyowrd() !=='package' )this.error('Unexpected import ', 'syntax');
+    if( s.keyword() !=='package' )this.error('Unexpected import ', 'syntax');
     var a,name=[];
 
     this.loop(function () {
@@ -338,6 +338,7 @@ syntax['private,protected,internal,static,public']=function(event)
     var s = this.scope();
     var n = this.seek();
     var c = event.target;
+
     if( (s.keyword() !=='package' && s.keyword() !=='class') || ( c.value === n.value ) || n.id !=='(keyword)' )this.error();
 
     var type ='dynamic';
@@ -370,7 +371,7 @@ syntax['class']=function( event )
 {
     event.prevented=true;
     var old = this.scope();
-    if( old.type() !=='(package)' )this.error();
+    if( old.keyword() !=='package' )this.error();
     var s =  new Class('class','(Class)');
     old.add( s );
 
@@ -470,7 +471,7 @@ syntax['var']=function (event)
     if( this.current.id===',' )
     {
         //在类中声明的属性不能同时声明多个
-        if( old.type() === '(class)' )this.error();
+        if( old.keyword() === 'class' )this.error();
 
         //继续声明变量
         syntax['var'].call(this,event);
@@ -486,7 +487,7 @@ syntax['function']= function(event){
     old.add( s );
     var n = this.seek(true);
 
-    if( old.type() === '(class)' && (n.value === 'get' || n.value === 'set') && this.next.id !== '(' )
+    if( old.keyword() === 'class' && (n.value === 'get' || n.value === 'set') && this.next.id !== '(' )
     {
         s.accessor(n.value);
         n = this.seek(true);
@@ -495,7 +496,7 @@ syntax['function']= function(event){
     if( n.id !== '(' )
     {
         //类中的属性允许与引入的类名相同
-        if( old.type() === '(class)' )
+        if( old.keyword() === 'class' )
         {
             if ( !checkStatement(n.value) )this.error();
 
@@ -508,7 +509,7 @@ syntax['function']= function(event){
     }
 
     // 类中定义的方法不能为匿名函数
-    if( old.type() === '(class)' && !s.name() ){
+    if( old.keyword() === 'class' && !s.name() ){
 
         //console.log( old.type() )
         this.error('Missing function name');
@@ -831,6 +832,64 @@ Stack.prototype.switch=function( stack )
 
 
 /**
+ * 代码语法个数
+ * @returns {Number}
+ */
+Stack.prototype.toString=function()
+{
+    var data = this.content();
+    var str = [];
+    for ( var i in data )
+    {
+        if( data[i] instanceof Stack )
+        {
+            if( data[i].keyword()==='function' )
+            {
+                str.push(data[i].keyword());
+                str.push(data[i].name());
+                str.push('(');
+                var param =  data[i].param();
+                for( var b in param )
+                {
+                    if( param[b] instanceof Stack )
+                    {
+                        str.push( param[b].toString() );
+                    }else
+                    {
+                        str.push( param[b].value );
+                    }
+                }
+
+                str.push(')');
+
+                str.push('{');
+                str.push('\n');
+                str.push( data[i].toString() );
+                str.push('\n');
+                str.push('}');
+
+            }else if( data[i].keyword()==='var' )
+            {
+                str.push('\n');
+                str.push('var '+ data[i].name() + ' = '+ data[i].toString() );
+                str.push('\n');
+
+            }else if( data[i].keyword()==='package' || data[i].keyword()==='class' )
+            {
+                str.push( data[i].toString() );
+            }
+
+        }else
+        {
+             str.push( data[i].value );
+        }
+    }
+
+    return str.join('');
+}
+
+
+/**
  * 代码块的作用域
  * @param type
  * @constructor
@@ -851,10 +910,10 @@ Scope.prototype.constructor=Scope;
  * @param name
  * @returns {*}
  */
-Scope.prototype.keyowrd=function( keyowrd )
+Scope.prototype.keyword=function(keyword )
 {
-    if( typeof keyowrd === 'undefined' )return this.__keyword__;
-    this.__keyword__=keyowrd;
+    if( typeof keyword === 'undefined' )return this.__keyword__;
+    this.__keyword__=keyword;
     return this;
 }
 
