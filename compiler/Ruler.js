@@ -336,9 +336,8 @@ syntax['private,protected,internal,static,public']=function(event)
 {
     event.prevented=true;
     var s = this.scope();
-    var n = this.seek(true);
+    var n = this.seek();
     var c = event.target;
-
     if( (s.keyword() !=='package' && s.keyword() !=='class') || ( c.value === n.value ) || n.id !=='(keyword)' )this.error();
 
     var type ='dynamic';
