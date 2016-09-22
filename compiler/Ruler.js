@@ -121,6 +121,17 @@ function checkStatement(s, defined )
 }
 
 /**
+ * 验证定义的类型是否存在
+ * @param s
+ * @param defined
+ * @returns {boolean}
+ */
+function checkStatementType( s , defined )
+{
+    return s==='void' || (defined instanceof Array && defined.indexOf(s) >= 0) || objects.indexOf(s) >=0;
+}
+
+/**
  * 是否为一个有效的属性名
  * @param s
  * @returns {boolean}
@@ -264,11 +275,10 @@ syntax['(identifier)']=function( event )
 }
 
 
-
 syntax["package"]=function (event)
 {
     event.prevented=true;
-    var s = new Statement('(package)');
+    var s = new Statement('package','(Package)');
     Stack.current( s );
     var name=[];
     this.loop(function(){
@@ -281,20 +291,15 @@ syntax["package"]=function (event)
     if( name.length > 0 && !checkSegmentation(name) )this.error('Invalid package name');
     name = name.join('');
     s.name( name );
-    if( this.current.id !=='{' ) this.error('Missing token {');
-    this.expect(function(e){
-       return this.next.id !== '}';
-    });
-    this.seek();
-    if( this.current.id !=='}' ) this.error('Missing token }');
-    s.switch();
+    this.executeBlack( s );
+    return false;
 };
 
 syntax['import']=function (event)
 {
     event.prevented=true;
     var s = this.scope();
-    if( s.type() !=='(package)' )this.error('Unexpected import ', 'syntax');
+    if( s.keyowrd() !=='package' )this.error('Unexpected import ', 'syntax');
     var a,name=[];
 
     this.loop(function () {
@@ -311,7 +316,7 @@ syntax['import']=function (event)
         return true;
     });
 
-    this.endLine()
+    this.endLine();
 
     if( !checkSegmentation(name) )this.error('Invalid import filename');
     name = name.join('');
@@ -334,7 +339,7 @@ syntax['private,protected,internal,static,public']=function(event)
     var n = this.seek(true);
     var c = event.target;
 
-    if( (s.type() !=='(package)' && s.type() !=='(class)') || ( c.value === n.value ) || n.id !=='(keyword)' )this.error();
+    if( (s.keyword() !=='package' && s.keyword() !=='class') || ( c.value === n.value ) || n.id !=='(keyword)' )this.error();
 
     var type ='dynamic';
     var qualifier = c.value;
@@ -367,7 +372,7 @@ syntax['class']=function( event )
     event.prevented=true;
     var old = this.scope();
     if( old.type() !=='(package)' )this.error();
-    var s =  new Class('(class)');
+    var s =  new Class('class','(Class)');
     old.add( s );
 
     s.static( event.static );
@@ -386,22 +391,15 @@ syntax['class']=function( event )
     this.config('reserved').push( n.value );
 
     n = this.seek(true);
-
     if( n.id==='(keyword)' && n.value==='extends' )
     {
         n = this.seek(true);
         s.extends( n.value );
-        n=this.seek(true);
+        this.seek(true);
     }
 
-    if(n.id !=='{')this.error('Missing token {');
-
-    this.expect(function(e){
-        return this.next.id!=='}';
-    })
-    this.seek();
-    if(this.current.id !=='}')this.error('Missing token }');
-    s.switch( s.parent() );
+    this.executeBlack( s );
+    return false;
 
 };
 
@@ -409,30 +407,61 @@ syntax['var']=function (event)
 {
     event.prevented=true;
     var old= this.scope();
-    if( old.type() === '(var)' )this.error('var unclosed');
+
+    if( old.type() ==='(var)' )this.error();
     var s = new Statement('(var)')
     this.add( s );
+
+    var type = 'void';
+    var name = this.seek().value;
+    if( this.next.id===':' )
+    {
+        this.seek();
+        type = this.seek().value;
+    }
+
+    if( !checkStatement(name, this.config('reserved') ) )this.error();
+    if( !checkStatementType(type, this.config('reserved') ) )this.error( type+' not is defined');
 
     if( old.type() === '(class)' )
     {
         s.static( event.static );
         s.qualifier( event.qualifier );
+
+    }else
+    {
+
+        if( old.define(name) )error('cannot define repeat the variables');
+
+        //定义到作用域中
+        old.define(name,type);
     }
 
-    var n = this.seek(true);
-    if( !checkStatement(n.value, this.config('reserved') ) )this.error();
-    if( s.define(n.value) )error('cannot define repeat the variables');
-    s.name( n.value );
-
-    //定义到作用域中
-    old.define(n.value,true);
+    s.name( name );
 
     if( this.next.id==='=' )
     {
-        this.seek(true);
+        this.seek();
+
         this.expect(function (n) {
-            return !this.endLine();
+            return this.current.id !==',' && !this.endLine();
         });
+
+        var val= s.content();
+
+        //等号后面必须要有值
+        if( val.length === 0 )this.error();
+
+        //获取数据类型
+        var settype=val[0] instanceof Stack ?  val[0].type() : val[0].type;
+        settype = settype.replace('(','').replace(')','').toLowerCase();
+
+        //如果声明的类型指定了类型并且赋值的类型必须一致
+        if( type !== 'void' && settype !== type.toLowerCase() )
+        {
+             this.error('Invalid type');
+        }
+        s.type( settype );
     }
 
     //结束当前声明的变量
@@ -454,7 +483,7 @@ syntax['function']= function(event){
 
     event.prevented=true;
     var old = this.scope()
-    var s = new Statement('(function)');
+    var s = new Statement('function','(Function)');
     old.add( s );
     var n = this.seek(true);
 
@@ -466,7 +495,7 @@ syntax['function']= function(event){
 
     if( n.id !== '(' )
     {
-        //类中的属性台台允许与引入的类名相同
+        //类中的属性允许与引入的类名相同
         if( old.type() === '(class)' )
         {
             if ( !checkStatement(n.value) )this.error();
@@ -496,20 +525,12 @@ syntax['function']= function(event){
         return true;
     });
 
-    if (s.accessor() === 'get' && s.param().length > 0)this.error('Invalid accessor of get.');
-    if (s.accessor() === 'set' && s.param().length !== 1)this.error('Invalid accessor of set.');
-
+    if (s.accessor() === 'get' && s.param().length > 0)this.error('Invalid accessor get.');
+    if (s.accessor() === 'set' && s.param().length !== 1)this.error('Invalid accessor set.');
     if( s.param().length > 0 && !checkSegmentation( s.param() ) )this.error();
 
-    if( this.seek(true).id !== '{' )this.error( "Missing token {" );
-
-    this.expect(function(e){
-        return this.next.id!=='}';
-    });
-
     this.seek();
-    if(this.current.id !=='}')this.error('Missing token }');
-    s.switch( s.parent() );
+    this.executeBlack( s );
     return false;
 };
 
@@ -815,15 +836,28 @@ Stack.prototype.switch=function( stack )
  * @param type
  * @constructor
  */
-function Scope( type )
+function Scope( keyword, type )
 {
     this.__name__='';
     this.__param__=[];
     this.__define__={};
+    this.__keyword__= keyword;
     Stack.call(this,type);
 }
 Scope.prototype = new Stack();
 Scope.prototype.constructor=Scope;
+
+/**
+ * 设置关键词
+ * @param name
+ * @returns {*}
+ */
+Scope.prototype.keyowrd=function( keyowrd )
+{
+    if( typeof keyowrd === 'undefined' )return this.__keyword__;
+    this.__keyword__=keyowrd;
+    return this;
+}
 
 /**
  * 添加参数
@@ -873,11 +907,11 @@ Scope.prototype.define=function(prop , value )
  * 声明属性接口
  * @constructor
  */
-function Statement( type ){
+function Statement( keyword, type ){
     this.__qualifier__='';
     this.__static__= false ;
     this.__accessor__= '' ;
-    Scope.call(this,type);
+    Scope.call(this,keyword, type);
 }
 Statement.prototype = new Scope();
 Statement.constructor = Statement;
@@ -925,13 +959,13 @@ Statement.prototype.static=function(flag )
  * 类作用域
  * @constructor
  */
-function Class()
+function Class( keyword , type )
 {
     this.__extends__='';
-    Statement.call(this,'(class)');
+    Statement.call(this,keyword, type );
 }
 
-Class.prototype = new Statement('(class)');
+Class.prototype = new Statement();
 Class.constructor = Class;
 
 /**
@@ -946,9 +980,6 @@ Class.prototype.extends=function(name )
     this.__extends__=name;
     return this;
 }
-
-
-
 
 
 /**
@@ -1159,7 +1190,7 @@ Ruler.prototype.balance=function( o )
 
         if( balance[o.id] )
         {
-            this.scope().dispatcher('(begin)', {target:o,type:'(begin)'});
+            this.scope().dispatcher( new Event('(begin)').target = o );
             b.push( balance[o.id] );
         }
 
@@ -1169,7 +1200,7 @@ Ruler.prototype.balance=function( o )
         }
         return false;
     }
-    this.scope().dispatcher('(end)', {target:o,type:'(end)'} );
+    this.scope().dispatcher( new Event('(end)').target = o  );
     return true;
 }
 
@@ -1322,6 +1353,23 @@ Ruler.prototype.add=function( val )
      this.scope().add(val);
      return true;
 }
+
+/**
+ * 获取块中的内容
+ * @param scope 当前的作用域
+ */
+Ruler.prototype.executeBlack=function( scope )
+{
+    if( this.current.id !== '{' )this.error( "Missing token {" );
+    this.expect(function(){
+        return this.next.id!=='}';
+    });
+    this.seek();
+    if(this.current.id !=='}')this.error('Missing token }');
+    scope.switch( scope.parent() );
+    return this;
+}
+
 
 /**
  * 获取关键词

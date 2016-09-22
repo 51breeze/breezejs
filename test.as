@@ -21,10 +21,10 @@
 package com
 {
 
-    import com.B as UU;
+    import com.B;
     import com.G;
 
-    public class test extends UU {
+    public class test extends B {
 
         static public var name = 3 ;
         private var ccc = 236666;
@@ -33,6 +33,9 @@ package com
 
         public function test()
         {
+
+            var uu:Number=123;
+
              this.names=69999;
 
              console.log( this.position() );
