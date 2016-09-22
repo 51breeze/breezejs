@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Ruler.js" afterPath="$PROJECT_DIR$/compiler/Ruler.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler13.js" afterPath="$PROJECT_DIR$/compiler13.js" />
     </list>
     <list id="18e6e159-e815-4edb-b007-a0795730b21e" name="New changelist" comment="" />
     <ignored path="breezejs.iws" />
@@ -47,8 +45,8 @@
       <file leaf-file-name="Ruler.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.4988067">
-              <caret line="863" column="0" selection-start-line="863" selection-start-column="0" selection-end-line="863" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.86634845">
+              <caret line="886" column="0" selection-start-line="886" selection-start-column="0" selection-end-line="886" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -362,12 +360,6 @@
       <workItem from="1474124298090" duration="288000" />
       <workItem from="1474163056632" duration="41333000" />
     </task>
-    <task id="LOCAL-00118" summary="架构调整">
-      <created>1467113593273</created>
-      <option name="number" value="00118" />
-      <option name="project" value="LOCAL" />
-      <updated>1467113593273</updated>
-    </task>
     <task id="LOCAL-00119" summary="架构调整">
       <created>1467193401850</created>
       <option name="number" value="00119" />
@@ -656,7 +648,13 @@
       <option name="project" value="LOCAL" />
       <updated>1474542057007</updated>
     </task>
-    <option name="localTasksCounter" value="167" />
+    <task id="LOCAL-00167" summary="Default">
+      <created>1474548658332</created>
+      <option name="number" value="00167" />
+      <option name="project" value="LOCAL" />
+      <updated>1474548658332</updated>
+    </task>
+    <option name="localTasksCounter" value="168" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -677,11 +675,12 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21641791" sideWeight="0.49360147" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.011034483" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32993197" sideWeight="0.5" order="16" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="false" weight="0.3189189" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3295129" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32884097" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.9130435" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" x="813" y="38" width="927" height="819" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.9130435" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" x="813" y="38" width="927" height="819" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.20630373" sideWeight="0.50639856" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -693,7 +692,6 @@
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.0144605115" sideWeight="0.5" order="14" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32993197" sideWeight="0.5" order="16" side_tool="false" content_ui="tabs" />
       <window_info id="调试" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="15" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Command Line Tools Console" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.31940702" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -1103,8 +1101,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4988067">
-          <caret line="863" column="0" selection-start-line="863" selection-start-column="0" selection-end-line="863" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.86634845">
+          <caret line="886" column="0" selection-start-line="886" selection-start-column="0" selection-end-line="886" selection-end-column="0" />
           <folding />
         </state>
       </provider>
