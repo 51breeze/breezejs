@@ -128,7 +128,7 @@ function checkStatement(s, defined )
  */
 function checkStatementType( s , defined )
 {
-    return s==='void' || (defined instanceof Array && defined.indexOf(s) >= 0) || objects.indexOf(s) >=0;
+    return s==='void' || (defined && typeof defined[s] !== "undefined" ) || objects.indexOf(s) >=0;
 }
 
 /**
@@ -255,27 +255,28 @@ var syntax={};
 
 syntax['(delimiter)']=function( e )
 {
-
     var id = this.current.id
     if( id === '(' || id === '{' || id=== '[' )
     {
-      //  var old = this.scope();
-      //  e.target = new Stack( id==='[' ? '(array)' : '(object)');
-       // Stack.current( e.target );
+        var old = this.scope();
+        e.prevented=true;
+        e.target = new Stack( id==='[' ? '(array)' : '(object)');
+        this.add( e.target );
+        this.add( this.current )
         this.expect(function (n) {
             return this.current.id !== balance[ id ];
         });
-       // if( this.current.id !== balance[id ] )this.error();
-       // e.target.switch( old );
+        if( this.current.id !== balance[id ] )this.error();
+        e.target.switch( old );
     }
 }
 
 syntax['(identifier)']=function( e )
 {
-
     var value = this.current.value;
     if( value==='typeof' )
     {
+        e.prevented=true;
         e.target = new Stack('', '(string)' );
         this.add( e.target );
         this.add( this.current );
@@ -284,20 +285,24 @@ syntax['(identifier)']=function( e )
 
     }else if( value === 'new' )
     {
-       /* var old = this.scope();
+        e.prevented=true;
+        var old = this.scope();
         var name = this.next.value;
-        if( !checkStatementType(name , old.define() ) )this.error( name + ' not is defined' );
-        e.target = new Stack( '('+name+')' );
-        Stack.current( e.target );
+       /* if( !checkStatementType(name , old.parent().define() ) ){
+            console.log( old.define() )
+            this.error( name + ' not is defined' );
+        }*/
+        e.target = new Stack('new', '('+name+')' );
+        this.add( e.target );
         this.add( this.current );
-        this.seek();
-        this.add( this.current );
+        this.add( this.seek() );
         if( this.seek().id !=='(' ) this.error();
+        this.add( this.current );
         this.expect(function (n) {
-            return this.next.id !== ')';
+            return this.current.id !== ')';
         });
-        if( this.seek().id !==')' ) this.error();
-        Stack.current( old );*/
+        if( this.current.id !==')' ) this.error();
+        e.target.switch();
 
     }else if( value === 'return')
     {
@@ -494,12 +499,10 @@ syntax['var']=function (event)
     if( this.next.id==='=' )
     {
         this.seek();
-
         if( old.keyword() !== 'var' )
         {
             this.add( this.current );
         }
-
         if( isIdentifier(this.next.id) || isOperator(this.next.id) )
         {
             this.error();
@@ -768,6 +771,7 @@ function Stack( keyword, type )
     this.__content__=[];
     this.__parent__=null;
     this.__keyword__= keyword;
+    this.__define__={};
     this.type = type;
     this.close=false;
     Listener.call(this);
@@ -817,6 +821,24 @@ Stack.prototype.keyword=function(keyword )
 
 
 /**
+ * 声明一些属性
+ * @param prop
+ * @param value
+ * @returns {*}
+ */
+Stack.prototype.define=function(prop , value )
+{
+    if( typeof prop === 'undefined' )return this.__define__;
+    if( typeof prop === 'string' &&  typeof value === 'undefined' )
+    {
+        return this.__define__[prop];
+    }
+    this.__define__[prop]=value;
+    return this;
+}
+
+
+/**
  * 添加代码语法
  * @param scope
  * @returns {Scope}
@@ -828,9 +850,18 @@ Stack.prototype.add=function( val , indexAt )
         if( val === this )error('Invalid child');
         val.__parent__ = this;
         Stack.current( val );
+        if( this.__parent__ )
+        {
+            merge(val.__define__, this.parent().__define__);
+        }
     }
-    if( this.close )error('stack is end');
-    if( this.dispatcher('(add)') ){
+    if( this.close ){
+        console.log( this , val )
+        error('stack is end');
+    }
+    var e = new Event('(add)');
+    e.target = val;
+    if( this.dispatcher( e ) ){
         indexAt = typeof indexAt !== "number" ? this.__content__.length : indexAt;
         this.__content__.splice(indexAt,0,val);
     }
@@ -937,6 +968,10 @@ Stack.prototype.toString=function()
             }else if( data[i].keyword()==='package' || data[i].keyword()==='class' )
             {
                 str.push( data[i].toString() );
+
+            }else
+            {
+                str.push( data[i].toString() );
             }
 
         }else
@@ -957,7 +992,7 @@ function Scope( keyword, type )
 {
     this.__name__='';
     this.__param__=[];
-    this.__define__={};
+
     Stack.call(this,keyword,type);
 }
 Scope.prototype = new Stack();
@@ -987,25 +1022,6 @@ Scope.prototype.name=function( name )
     this.__name__=name;
     return this;
 }
-
-
-/**
- * 声明一些属性
- * @param prop
- * @param value
- * @returns {*}
- */
-Scope.prototype.define=function(prop , value )
-{
-    if( typeof prop === 'undefined' )return this.__define__;
-    if( typeof prop === 'string' &&  typeof value === 'undefined' )
-    {
-        return this.__define__[prop];
-    }
-    this.__define__[prop]=value;
-    return this;
-}
-
 
 
 /**

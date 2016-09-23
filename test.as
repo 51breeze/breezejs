@@ -23,6 +23,9 @@ package com
 
     import com.B;
     import com.G;
+    import StyleEvent;
+    import PropertyEvent;
+    import ElementEvent;
 
     public class test extends B {
 
