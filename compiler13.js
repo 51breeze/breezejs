@@ -837,9 +837,9 @@ function make( file , fs )
     var r = new ruler( content );
 
 
-    r.expect();
+    r.start();
 
-    console.log( r.scope().toString()  );
+    console.log( r.scope().toString() );
     return ;
 
 
@@ -862,8 +862,6 @@ function make( file , fs )
 
         }
     }
-
-
 
     var contents=[];
 

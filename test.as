@@ -34,7 +34,7 @@ package com
         public function test()
         {
 
-            var uu:Number=123;
+            var uu=123;
 
              this.names=69999;
 
