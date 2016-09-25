@@ -21,7 +21,7 @@
 package com
 {
 
-    import com.B;
+    import coms.B;
     import com.G;
     import StyleEvent;
     import PropertyEvent;
