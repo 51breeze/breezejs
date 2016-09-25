@@ -39,6 +39,8 @@ package com
 
             var uu=123;
 
+            var bb:*=123;
+
              this.names=69999;
 
              console.log( this.position() );
@@ -83,9 +85,9 @@ package com
             this.kkk=23;
         }
 
-        private function position(event)
-        {
-              return true
+        private function position(event) {
+            event=123;
+              return true;
         }
 
 
