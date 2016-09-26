@@ -271,30 +271,31 @@ syntax['(newline)']=function (e)
     e.prevented = true;
 
     //如果下一个语法还是换行则路过
-    if( this.next.type==='(newline)' || e.scope instanceof Scope )return false;
-    if( this.next.id===';' ) {
-        this.seek();
-        return false;
-    }
+    if( e.scope instanceof Scope )return false;
 
-
-    var p = this.previous();
-    if( p )
+    var endline=false;
+    if( this.next.id===';' )
     {
+        this.fetch();
+        endline = true;
+
+    }else if( this.prev )
+    {
+         var p = this.prev;
+
         //如果是一个结束符则结束当前的行
-         var endline = p.id===';' || this.next.type==='(end)';
+         endline = p.id===';' || this.next.type==='(end)';
          if( !endline )
          {
              //如果上一个语法或者下一个语法不为运算符则结束当前的行
              var nextid = this.next.value;
-             var isident = p instanceof Stack ? false : isIdentifier( p.value ) || isOperator(p.value) || isDelimiter(p.value);
-             endline = !( isident || isIdentifier( nextid ) || isOperator(nextid) || isDelimiter(nextid) );
+             endline = !( isIdentifier( p.value ) || isOperator(p.value) || isDelimiter(p.value) || isIdentifier( nextid ) || isOperator(nextid) || isDelimiter(nextid) );
          }
+    }
 
-         if( endline )
-         {
-             e.scope.dispatcher( new Event('(end)') );
-         }
+    if( endline )
+    {
+        e.scope.dispatcher( new Event('(end)') );
     }
 }
 
@@ -395,12 +396,11 @@ syntax['import']=function (event)
         self.removeListener('(seek)', not);
         this.removeListener('(end)', end );
         var filename= this.content();
+
         var len = filename.length;
         if( len<1 )this.error('Invalid import');
         var name = filename.slice(-1)[0];
         filename = len > 2 && filename[ len-2 ]==='as' ? filename.slice(0, len-2 ) : filename;
-
-        console.log( self.current )
 
         var p = this.parent();
         if( p.define(name) )error('The filename '+name+' of the conflict.')
@@ -415,9 +415,13 @@ syntax['import']=function (event)
 
     s.addListener('(end)',end).addListener('(add)',function (e)
     {
+        console.log(e )
         var val = e.target.value;
-        if( val !=='.' && !isPropertyName(val) )self.error('Invalid filename of import');
-        e.target = val;
+        if( val !== ';' )
+        {
+            if (val !== '.' && !isPropertyName(val))self.error('Invalid filename of import');
+            e.target = val;
+        }
     });
 };
 
@@ -965,6 +969,8 @@ Stack.prototype.add=function( val )
     {
         error('stack is end');
     }
+
+    if( !val )error('Invalid val')
 
     var event = new Event('(add)', {target:val} );
     this.dispatcher( event );
