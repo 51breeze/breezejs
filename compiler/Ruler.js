@@ -271,18 +271,12 @@ syntax['(newline)']=function (e)
     e.prevented = true;
 
     //如果下一个语法还是换行则路过
-    if( this.next.type==='(newline)' || !( e.scope instanceof Stack) )return false;
+    if( this.next.type==='(newline)' || e.scope instanceof Scope )return false;
     if( this.next.id===';' ) {
         this.seek();
         return false;
     }
 
-    //支持别名导入
-    if( e.scope.type() === '(import)' && this.next.value==='as' )
-    {
-        this.seek();
-        return false;
-    }
 
     var p = this.previous();
     if( p )
@@ -297,7 +291,8 @@ syntax['(newline)']=function (e)
              endline = !( isident || isIdentifier( nextid ) || isOperator(nextid) || isDelimiter(nextid) );
          }
 
-         if( endline ){
+         if( endline )
+         {
              e.scope.dispatcher( new Event('(end)') );
          }
     }
@@ -395,27 +390,30 @@ syntax['import']=function (event)
     this.addListener('(seek)',not,100);
 
     var self= this;
-    s.addListener('(end)',function (e) {
+    var end = function (e) {
 
-         self.removeListener('(seek)', not);
-         var filename= this.content();
-         var len = filename.length;
-         if( len<1 )this.error('Invalid import');
-         var name = filename.slice(-1)[0];
-         filename = len > 2 && filename[ len-2 ]==='as' ? filename.slice(0, len-2 ) : filename;
+        self.removeListener('(seek)', not);
+        this.removeListener('(end)', end );
+        var filename= this.content();
+        var len = filename.length;
+        if( len<1 )this.error('Invalid import');
+        var name = filename.slice(-1)[0];
+        filename = len > 2 && filename[ len-2 ]==='as' ? filename.slice(0, len-2 ) : filename;
 
-         var p = this.parent();
-         if( p.define(name) )error('The filename '+name+' of the conflict.')
-         p.define( name , filename.join("")  );
+        console.log( self.current )
 
-         //从父级中删除
-         p.content().pop();
+        var p = this.parent();
+        if( p.define(name) )error('The filename '+name+' of the conflict.')
+        p.define( name , filename.join("")  );
 
-         //加入到被保护的属性名中
-         self.config('reserved').push( name );
-    })
+        //从父级中删除
+        p.content().pop();
 
-    s.addListener('(add)',function (e)
+        //加入到被保护的属性名中
+        self.config('reserved').push( name );
+    }
+
+    s.addListener('(end)',end).addListener('(add)',function (e)
     {
         var val = e.target.value;
         if( val !=='.' && !isPropertyName(val) )self.error('Invalid filename of import');
@@ -1474,9 +1472,6 @@ Ruler.prototype.fetch=function( flag )
         if (this.input.length === this.cursor)
         {
             this.move();
-
-            //不返回换行语法描述
-            if (flag === true)return this.fetch(flag);
             o = describe('(newline)', '\n', '(newline)');
 
         } else
@@ -1493,6 +1488,13 @@ Ruler.prototype.fetch=function( flag )
         }
     }
 
+    //不返回连续的换行语法描述
+    if( o.type==='(newline)' && ( flag === true || (this.current && this.current.type==='(newline)') ) )
+    {
+        return this.fetch(flag);
+    }
+
+    //如果当前是空或者没有结束
     if( !this.current || this.current.id !=='(end)' )
     {
         o.line= this.line;
@@ -1500,7 +1502,7 @@ Ruler.prototype.fetch=function( flag )
         this.prev = this.current;
         this.current = this.next;
         this.next = o;
-        if (this.current === null)return this.fetch(flag);
+        if (this.current === null)return this.fetch( flag );
     }
     return this.current;
 }
@@ -1523,36 +1525,35 @@ Ruler.prototype.seek=function ( flag )
 
     this.fetch(flag);
 
-    if( this.current.id===';' && this.scope() instanceof Stack )
+    if( this.current.id===';' && !(this.scope() instanceof Scope) )
     {
-        this.scope().dispatcher( new Event('(end)', {target:this.current, ruler:this} ) );
-        return this.seek( flag );
+        //this.scope().dispatcher( new Event('(end)', {target:this.current, ruler:this} ) );
+        //return this.seek( flag );
     }
 
-    //是否需要创建新的代码堆叠器
-    if( this.current.type!=='(newline)' )
+    //如果是换行则获取下一个
+    if( this.current.type==='(newline)' )
     {
-        var event = new Event('(seek)', {target: this.current, scope: this.scope()});
-        this.dispatcher(event);
+        event = new Event('(newline)',{target:this.current,scope:this.scope()});
+        this.dispatcher( event );
+        return this.seek( true );
+    }
 
-        //如果是一个新的代码堆叠器则添加到父堆叠器中
-        if( !event.prevented && this.scope() !== event.scope ){
-            this.add( event.scope );
-        }
+
+    //是否需要创建新的代码堆叠器
+    var event = new Event('(seek)', {target: this.current, scope: this.scope()});
+    this.dispatcher(event);
+
+    //如果是一个新的代码堆叠器则添加到父堆叠器中
+    if( !event.prevented && this.scope() !== event.scope )
+    {
+        this.add( event.scope );
     }
 
     //检测块级代码堆叠器是否到达结束位置
     if( this.current.type==='(delimiter)' && isDelimiter( this.current.value ) )
     {
         this.balance(this.current);
-    }
-    //如果是换行则获取下一个
-    else if( this.current.type==='(newline)' )
-    {
-        if( flag===true )return this.seek(flag);
-        event = new Event('(newline)',{target:this.current,scope:this.scope()});
-        this.dispatcher( event );
-        if( event.prevented )return this.seek();
     }
     return this.current;
 }
