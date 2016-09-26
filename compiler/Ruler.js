@@ -315,12 +315,9 @@ syntax["(seek)"]=function (e)
         {
             case 'package' :
             case 'class'   :
-                e.scope = new Statement(keyword,type);
-                break;
-            case 'import'  :
-            case 'var'     :
-                e.scope = new Stack('('+keyword+')');
-                break;
+            case 'function': type='('+keyword+')';
+            case 'import'  : type='('+keyword+')';
+            case 'var'     : type='('+keyword+')';
             case 'do'      :
             case 'while'   :
             case 'for'     :
@@ -331,16 +328,12 @@ syntax["(seek)"]=function (e)
             case 'catch'   :
             case 'finally' :
                 e.scope = new Scope(keyword,type);
-                break;
-            case 'function':
-                e.scope = new Scope(keyword,'(function)');
-                break;
+            break;
         }
 
     }else if( e.target.type === '(identifier)' && isPropertyName(e.target.value) )
     {
         e.scope = new Stack('(object)');
-        e.scope.target = this.current;
     }
 
     if( old !== e.scope )
@@ -457,21 +450,23 @@ syntax['private,protected,internal,static,public']=function(event)
 
     if( n.value==='class' || n.value === 'function' )
     {
-        console.log(  s )
 
-        s.static( type === 'static' );
-        s.qualifier( qualifier );
+        console.log( this.scope().static )
+
+        this.scope().static( type === 'static' );
+        this.scope().qualifier( qualifier );
         this.check();
 
-    }else if( n.value==='var' && !(s instanceof Statement) )
+    }else if( n.value==='var' )
     {
-        s.static = type === 'static';
-        s.qualifier = qualifier;
+        //console.log( this.scope().type() )
+        this.scope().static = type === 'static';
+        this.scope().qualifier = qualifier;
         this.check();
 
     }else
     {
-        this.error();
+        this.error('Invalid identifier '+ c.value );
     }
     return true;
 };
@@ -992,7 +987,7 @@ Stack.prototype.add=function( val )
             val.__parent__ = this;
 
             //把添加的子级设置为当前的容器
-            Stack.__current__= val ;
+            Stack.__current__= val;
 
             //如当前的子级是一个块级作用域则引用父级域中定义的属性
             if( this.type() !== '(root)' && val instanceof Scope )
@@ -1001,6 +996,7 @@ Stack.prototype.add=function( val )
                 if( parentScope )merge(val.__define__, parentScope.__define__ );
             }
         }
+
         this.__content__.push(val);
         return true;
     }
@@ -1053,7 +1049,7 @@ Stack.prototype.switch=function()
         {
             this.__close__ = true;
             Stack.__current__ = stack;
-            if( !stack.close() && !(stack instanceof Scope) && !(stack instanceof Statement) )
+            if( !stack.close() && !(stack instanceof Scope) )
             {
                 stack.dispatcher( new Event('(end)') );
             }
@@ -1148,6 +1144,10 @@ function Scope( keyword, type )
     this.__param__=[];
     this.__define__ ={};
     this.__keyword__= keyword;
+    this.__qualifier__='';
+    this.__static__= false ;
+    this.__accessor__= '' ;
+    this.__extends__='';
     Stack.call(this,type);
 }
 Scope.prototype = new Stack();
@@ -1219,26 +1219,11 @@ Scope.prototype.name=function( name )
 
 
 /**
- * 声明模块属性接口
- * @constructor
- */
-function Statement( keyword, type ){
-    if( !(this instanceof Statement) )return new Statement(keyword, type)
-    this.__qualifier__='';
-    this.__static__= false ;
-    this.__accessor__= '' ;
-    this.__extends__='';
-    Scope.call(this,keyword, type);
-}
-Statement.prototype = new Scope();
-Statement.constructor = Statement;
-
-/**
  * 访问器类型
  * @param name get|set
  * @returns {Scope|String}
  */
-Statement.prototype.accessor=function( accessor )
+Scope.prototype.accessor=function( accessor )
 {
     if( typeof accessor === 'undefined' )return this.__accessor__;
     this.__accessor__=accessor;
@@ -1250,7 +1235,7 @@ Statement.prototype.accessor=function( accessor )
  * @param qualifier
  * @returns {*}
  */
-Statement.prototype.qualifier=function(qualifier )
+Scope.prototype.qualifier=function(qualifier )
 {
     if( typeof qualifier === 'undefined' )return this.__qualifier__;
     this.__qualifier__=qualifier;
@@ -1262,7 +1247,7 @@ Statement.prototype.qualifier=function(qualifier )
  * @param flag  true是静态，否则为动态
  * @returns {*}
  */
-Statement.prototype.static=function(flag )
+Scope.prototype.static=function(flag )
 {
     if( flag=== true ){
         this.__static__=true;
@@ -1276,7 +1261,7 @@ Statement.prototype.static=function(flag )
  * @param name
  * @returns {*}
  */
-Statement.prototype.extends=function( name )
+Scope.prototype.extends=function( name )
 {
     if( typeof name === 'undefined' )return this.__extends__;
     if( !this.parent().define(name) )error(name +' not is import');
@@ -1574,7 +1559,7 @@ Ruler.prototype.seek=function ( flag )
 
 /**
  * 返回当前的作用域
- * @returns {Scope|Statement}
+ * @returns {Scope}
  */
 Ruler.prototype.scope=function()
 {
