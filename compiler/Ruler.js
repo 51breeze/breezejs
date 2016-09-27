@@ -266,91 +266,7 @@ var balance={'{':'}','(':')','[':']'};
 //语法验证
 var syntax={};
 
-syntax['(newline)']=function (e)
-{
-    e.prevented = true;
 
-    //如果下一个语法还是换行则路过
-    if( e.scope instanceof Scope )return false;
-
-    var endline=false;
-    if( this.next.id===';' )
-    {
-        this.fetch();
-        endline = true;
-
-    }else if( this.prev )
-    {
-         var p = this.prev;
-
-        //如果是一个结束符则结束当前的行
-         endline = p.id===';' || this.next.type==='(end)';
-         if( !endline )
-         {
-             //如果上一个语法或者下一个语法不为运算符则结束当前的行
-             var nextid = this.next.value;
-             endline = !( isIdentifier( p.value ) || isOperator(p.value) || isDelimiter(p.value) || isIdentifier( nextid ) || isOperator(nextid) || isDelimiter(nextid) );
-         }
-    }
-
-    if( endline )
-    {
-        e.scope.dispatcher( new Event('(end)') );
-    }
-}
-
-syntax["(seek)"]=function (e)
-{
-    var id = e.target.id;
-    var keyword = e.target.value;
-    var type = '(blackscope)';
-    var old= e.scope;
-    if( id==='(keyword)' )
-    {
-        switch ( keyword )
-        {
-            case 'package' :
-            case 'class'   :
-            case 'function': type='('+keyword+')';
-            case 'import'  : type='('+keyword+')';
-            case 'var'     : type='('+keyword+')';
-            case 'do'      :
-            case 'while'   :
-            case 'for'     :
-            case 'if'      :
-            case 'else'    :
-            case 'switch'  :
-            case 'try'     :
-            case 'catch'   :
-            case 'finally' :
-                e.scope = new Scope(keyword,type);
-            break;
-        }
-
-    }else if( e.target.type === '(identifier)' && isPropertyName(e.target.value) )
-    {
-        e.scope = new Stack('(object)');
-    }
-
-    if( old !== e.scope )
-    {
-        var self = this;
-        e.scope.addListener('(end)', function (e) {
-            if( this instanceof Scope )
-            {
-                if (self.current.id === '}') {
-                    this.switch()
-                    self.seek();
-                }
-
-            }else if( this instanceof Stack )
-            {
-                this.switch();
-            }
-        });
-    }
-    return e;
-}
 
 syntax['(identifier)']=function( e )
 {
@@ -367,7 +283,7 @@ syntax["package"]=function (event)
     var name = [];
     this.loop(function(){
         if( this.next.id === '{' || this.next.id === '(keyword)' )return false;
-        this.fetch(true);
+        this.seek();
         if( this.current.value !=='.' && !isPropertyName( this.current.value ) )self.error('Invalid package name');
         name.push( this.current.value );
         return true;
@@ -384,16 +300,16 @@ syntax['import']=function (event)
     var s = event.scope;
     if( s.parent().keyword() !=='package' )this.error('Unexpected import ', 'syntax');
 
-    var not=function (e) {
+    var seek=function (e) {
         e.stopPropagation=true;
         e.prevented=true;
     }
-    this.addListener('(seek)',not,100);
+    this.addListener('(seek)',seek,100);
 
     var self= this;
     var end = function (e) {
 
-        self.removeListener('(seek)', not);
+        self.removeListener('(seek)', seek);
         this.removeListener('(end)', end );
         var filename= this.content();
 
@@ -415,13 +331,9 @@ syntax['import']=function (event)
 
     s.addListener('(end)',end).addListener('(add)',function (e)
     {
-        console.log(e )
         var val = e.target.value;
-        if( val !== ';' )
-        {
-            if (val !== '.' && !isPropertyName(val))self.error('Invalid filename of import');
-            e.target = val;
-        }
+        if (val !== '.' && !isPropertyName(val) )self.error('Invalid filename of import');
+        e.target = val;
     });
 };
 
@@ -429,9 +341,8 @@ syntax['private,protected,internal,static,public']=function(event)
 {
     event.prevented=true;
     var s = this.scope();
-    var n = this.seek( true );
+    var n = this.seek();
     var c = event.target;
-
     if( (s.keyword() !=='package' && s.keyword() !=='class') || ( c.value === n.value ) || n.id !=='(keyword)' )
     {
         this.error();
@@ -452,19 +363,15 @@ syntax['private,protected,internal,static,public']=function(event)
 
     if( n.value==='class' || n.value === 'function' )
     {
-
-        console.log( this.scope().static )
-
+        this.beginStack();
         this.scope().static( type === 'static' );
         this.scope().qualifier( qualifier );
-        this.check();
 
     }else if( n.value==='var' )
     {
-        //console.log( this.scope().type() )
+        this.beginStack();
         this.scope().static = type === 'static';
         this.scope().qualifier = qualifier;
-        this.check();
 
     }else
     {
@@ -478,7 +385,7 @@ syntax['class']=function( event )
 {
     event.prevented=true;
     var s = this.scope();
-    if( s.parent().keyword() !=='package' || s.keyword() !=='class' )this.error();
+    if( s.parent.keyword() !=='package' || s.keyword() !=='class' )this.error();
 
     //获取类名
     var n = this.fetch(true);
@@ -511,13 +418,13 @@ syntax['var']=function (event)
     var s  = this.scope();
     if(event.target.id==='(keyword)')s.add( event.target );
     var type = '*';
-    var name = this.seek(true).value;
+    var name = this.seek().value;
 
     //获取声明的类型
     if( this.next.id===':' )
     {
-        this.seek(true);
-        type = this.seek(true).value;
+        this.seek();
+        type = this.seek().value;
     }
 
     //检查属性名是否可以声明
@@ -560,11 +467,11 @@ syntax['function']= function(event){
 
     event.prevented=true;
     var s = this.scope()
-    var n = this.fetch(true);
+    var n = this.seek();
     if( s.parent().keyword() === 'class' && (n.value === 'get' || n.value === 'set') && this.next.id !== '(' )
     {
         s.accessor(n.value);
-        n = this.fetch(true);
+        n = this.seek();
     }
 
     if( n.id !== '(' )
@@ -578,7 +485,7 @@ syntax['function']= function(event){
             ps.define(n.value,'(function)');
         }
         s.name( n.value );
-        n = this.fetch(true);
+        n = this.seek();
     }
 
     // 类中定义的方法不能为匿名函数
@@ -592,24 +499,36 @@ syntax['function']= function(event){
     if (s.accessor() === 'set' && s.param().length !== 1)this.error('Invalid accessor set.');
     if( n.id !== '(' )this.error('Missing token (');
 
+    console.log( this.scope().keyword(),   this.scope().name() , this.scope.balance )
+
     //获取函数声明的参数
     this.loop(function(){
-        if( n.id ===')' )return false;
-        syntax['var'].call(this,{target:this.current});
+
+        console.log( this.next )
+
+        this.seek();
+
+
+
+        if( this.current.id ===')' )return false;
+        //syntax['var'].call(this,{target:this.current});
+
         return true;
     });
+
+    console.log( this.scope() );
 
     if( this.current.id !==')' ) this.error('Missing token )');
 
     //返回类型
     if( this.next.id===':' )
     {
-        this.fetch(true);
-        var type = this.fetch(true);
+        this.seek();
+        var type = this.seek();
         if( checkStatementType(type, this.config('reserved') ) )this.error( type+' not is defined');
         s.type=type.value;
     }
-    if( this.seek(true).id !=='{' ) this.error('Missing token {');
+    if( this.seek().id !=='{' ) this.error('Missing token {');
 };
 
 
@@ -896,12 +815,13 @@ function describe(type,value,id)
  * @param type
  * @constructor
  */
-function Stack( type )
+function Stack( keyword, type )
 {
-    if( !(this instanceof Stack) )return new Stack(type)
+    if( !(this instanceof Stack) )return new Stack(keyword, type)
     this.__content__=[];
     this.__parent__ =null;
     this.__type__   = type;
+    this.__keyword__ = keyword;
     this.__close__  =false;
     Listener.call(this);
 }
@@ -917,7 +837,7 @@ Stack.current=function()
 {
     if( Stack.__current__=== null )
     {
-        Stack.__current__ = new Stack('(root)');
+        Stack.__current__ = new Stack('rootstack','(rootstack)');
     }
     return Stack.__current__;
 }
@@ -933,6 +853,17 @@ Stack.prototype = new Listener();
  * @type {Scope}
  */
 Stack.prototype.constructor = Stack;
+
+
+/**
+ * 关键字
+ * @param keyword
+ * @returns {*}
+ */
+Stack.prototype.keyword=function()
+{
+    return this.__keyword__;
+}
 
 
 /**
@@ -982,7 +913,7 @@ Stack.prototype.add=function( val )
             if( val === this )error('Invalid child');
 
             //堆叠器中不能添加结构体 比如 if else switch do while try for catch finally
-            if( this.type() !== '(root)' && !(this instanceof Scope) && (val instanceof Scope && val.keyword() !=='function') )
+            if( this.keyword() !== 'rootstack' && !(this instanceof Scope) && val.keyword() !=='function' )
             {
                 error('Invalid syntax ' + val.keyword() );
             }
@@ -1147,30 +1078,14 @@ function Scope( keyword, type )
     this.__name__='';
     this.__param__=[];
     this.__define__ ={};
-    this.__keyword__= keyword;
     this.__qualifier__='';
     this.__static__= false ;
     this.__accessor__= '' ;
     this.__extends__='';
-    Stack.call(this,type);
+    Stack.call(this,keyword,type);
 }
 Scope.prototype = new Stack();
 Scope.prototype.constructor=Scope;
-
-/**
- * 设置域的关键字
- * @param keyword
- * @returns {*}
- */
-Scope.prototype.keyword=function( keyword )
-{
-    if( typeof name === 'string' )
-    {
-        this.__keyword__=keyword;
-        return this;
-    }
-    return this.__keyword__;
-}
 
 
 /**
@@ -1379,6 +1294,7 @@ Ruler.prototype.move=function()
         }
         return this.input;
     }
+
     this.__end__=true;
     return null;
 }
@@ -1432,7 +1348,7 @@ Ruler.prototype.balance=function( o )
         {
             if( !balance[o.id] )
             {
-                error('Unexpected identifier '+o.id );
+                this.error('Unexpected identifier '+o.id );
             }
             b.push(tag);
         }
@@ -1449,7 +1365,7 @@ Ruler.prototype.balance=function( o )
 
         if( b.length === 0 )
         {
-            error('Unexpected identifier '+o.id );
+            this.error('Unexpected identifier '+o.id );
         }
         return false;
     }
@@ -1462,10 +1378,10 @@ Ruler.prototype.balance=function( o )
 }
 
 /**
- * 获取下一个语法描述
+ * 获取语法描述
  * @returns {*}
  */
-Ruler.prototype.fetch=function( flag )
+Ruler.prototype.seek=function( flag )
 {
     var o;
     if( this.done() )
@@ -1478,7 +1394,7 @@ Ruler.prototype.fetch=function( flag )
         if (this.input.length === this.cursor)
         {
             this.move();
-            o = describe('(newline)', '\n', '(newline)');
+            return this.seek( flag );
 
         } else
         {
@@ -1494,12 +1410,6 @@ Ruler.prototype.fetch=function( flag )
         }
     }
 
-    //不返回连续的换行语法描述
-    if( o.type==='(newline)' && ( flag === true || (this.current && this.current.type==='(newline)') ) )
-    {
-        return this.fetch(flag);
-    }
-
     //如果当前是空或者没有结束
     if( !this.current || this.current.id !=='(end)' )
     {
@@ -1507,8 +1417,19 @@ Ruler.prototype.fetch=function( flag )
         o.cursor = this.cursor;
         this.prev = this.current;
         this.current = this.next;
-        this.next = o;
-        if (this.current === null)return this.fetch( flag );
+        this.next    = o;
+        if (this.current === null)return this.seek( flag );
+    }
+
+    //检测块级代码堆叠器是否到达结束位置
+    if( this.current.type==='(delimiter)' && isDelimiter( this.current.value ) )
+    {
+        this.balance(this.current);
+
+    }else if( this.current.id===';' )
+    {
+        this.scope().dispatcher( new Event('(end)',  {target:this.current, ruler:this} ) );
+        return this.seek();
     }
     return this.current;
 }
@@ -1522,47 +1443,6 @@ Ruler.prototype.current=null;
 //下一个语法词
 Ruler.prototype.next=null;
 
-/**
- * 分析语法并获取下一个语法词
- * @returns {*}
- */
-Ruler.prototype.seek=function ( flag )
-{
-
-    this.fetch(flag);
-
-    if( this.current.id===';' && !(this.scope() instanceof Scope) )
-    {
-        //this.scope().dispatcher( new Event('(end)', {target:this.current, ruler:this} ) );
-        //return this.seek( flag );
-    }
-
-    //如果是换行则获取下一个
-    if( this.current.type==='(newline)' )
-    {
-        event = new Event('(newline)',{target:this.current,scope:this.scope()});
-        this.dispatcher( event );
-        return this.seek( true );
-    }
-
-
-    //是否需要创建新的代码堆叠器
-    var event = new Event('(seek)', {target: this.current, scope: this.scope()});
-    this.dispatcher(event);
-
-    //如果是一个新的代码堆叠器则添加到父堆叠器中
-    if( !event.prevented && this.scope() !== event.scope )
-    {
-        this.add( event.scope );
-    }
-
-    //检测块级代码堆叠器是否到达结束位置
-    if( this.current.type==='(delimiter)' && isDelimiter( this.current.value ) )
-    {
-        this.balance(this.current);
-    }
-    return this.current;
-}
 
 /**
  * 返回当前的作用域
@@ -1573,6 +1453,80 @@ Ruler.prototype.scope=function()
     return Stack.current();
 }
 
+
+/**
+ * 生成代码堆叠器
+ * @returns {*}
+ */
+Ruler.prototype.beginStack = function()
+{
+    var id =  this.current.id;
+    var value = this.current.value;
+    var stack = null;
+    if( id==='(keyword)' )
+    {
+        switch ( value )
+        {
+            case 'package' :
+            case 'class'   :
+            case 'function':
+            case 'do'      :
+            case 'while'   :
+            case 'for'     :
+            case 'if'      :
+            case 'else'    :
+            case 'switch'  :
+            case 'try'     :
+            case 'catch'   :
+            case 'finally' :
+                stack = new Scope(value,'(black)');
+                break;
+            case 'import'  :
+            case 'var'     :
+                stack = new Stack(value, '(string)' );
+                break;
+        }
+
+    }else if( this.current.type==='(identifier)' )
+    {
+        switch ( this.prev.value )
+        {
+            case 'package' :
+            case 'class'   :
+            case 'function':
+            case 'extends':
+               break;
+            default :
+               if( this.scope() instanceof Scope )
+               {
+                   console.log( this.current )
+                   stack = new Stack('(object)');
+               }
+        }
+    }
+
+    if( stack )
+    {
+        var self = this;
+        stack.addListener('(end)', function (e) {
+            if( this instanceof Scope )
+            {
+                if (e.target.id === '}') {
+                    this.switch()
+                    self.seek();
+                }
+
+            }else
+            {
+                this.switch();
+            }
+        });
+        this.add( stack );
+    }
+    return stack;
+}
+
+
 /**
  * 步进
  * @param flag
@@ -1581,8 +1535,9 @@ Ruler.prototype.scope=function()
 Ruler.prototype.step=function()
 {
     this.seek();
+    var stack = this.beginStack()
     var event = this.check();
-    if( !event.prevented )
+    if( !stack && !event.prevented && event.target )
     {
         this.add( event.target );
     }
@@ -1756,7 +1711,7 @@ Ruler.prototype.operator=function(s)
     }else if( s==='/=' && !isPropertyName(this.prev.value) )
     {
          return null;
-    }else if( s==='*=' && this.current.id===':' )
+    }else if( s==='*=' && this.next.id===':' )
     {
         return describe('(operator)', s.charAt(0), s.charAt(0) );
     }
