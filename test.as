@@ -37,65 +37,26 @@ package com
         public function test()
         {
 
-            var uu=123;
+            var uu=123,ccc=666;
 
-            var bb:*=123;
+            var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :
+                typeof strainer === "undefined" ? function(){return this.nodeType===1} : strainer ;
 
-             this.names=69999;
-
-             console.log( this.position() );
-
-            this.uuuu(9999,'pppp');
-        }
-
-        public function uuuu(name,b )
-        {
-             b=["9999",
-            "dsfdsssssss",
-            "dsdfdsfdsfdsf","dsfdsfdsfd"];
-            var c="dfdsdssssssssssssssssssss"+
-                    "ccccccccccccccccc"+
-                    "dfdfdsfdsf";
-
-            console.log('this is uuuu', name, b, c);
-
-            test.bbbb();
-        }
-
-        static public function bbbb() {
+            this.forEach(function(elem)
+            {
+                if( elem && elem.nodeType )
+                {
+                    currentItem=elem;
+                    do{
+                        currentItem = currentItem[propName];
+                        if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );
+                    } while (deep && currentItem);
+                }
+            })
 
 
-            console.log('this is bbbb');
 
-            this.onResize()
-
-        }
-
-        private var __style__='pppp';
-
-        public function get style(){
-            return this.__style__;
-        }
-
-        //调整大小
-        function onResize(kkkss,
-                          lll,
-                          bb)
-        {
-            this.kkk=23;
-        }
-
-        private function position(event) {
-            event=123;
-              return true;
-        }
-
-
-        /**
-         * @private
-         */
-        function access(callback, name, newValue)
-        {
+            /*this.names=69999;
             var write= typeof newValue !== 'undefined';
             if( !write && this.length < 1 )return null;
             var getter = this['__'+callback+'__'].get;
@@ -129,95 +90,12 @@ package com
                         this.dispatchEvent( event );
                     }
                 }
-            });
-        }
+            });*/
 
-        /**
-         * @private
-         */
-        function removeChild(parent,child, flag )
-        {
-            if( child && parent.hasChildNodes() && child.parentNode === parent )
-            {
-                var result=parent.removeChild( child );
-                flag===false || dispatchElementEvent.call(this,parent,child,ElementEvent.REMOVE);
-                return !!result;
-            }
-            return false;
-        }
-
-        /**
-         * @private
-         */
-        function getChildNodes(element,selector,flag)
-        {
-            var ret=[],isfn=Breeze.isFunction(selector);
-            if( element.hasChildNodes() )
-            {
-                var len=element.childNodes.length,index= 0,node;
-                while( index < len )
-                {
-                    node=element.childNodes.item(index);
-                    if(( isfn && selector.call(this,node,index) ) || ( !isfn && (selector==='*' || node.nodeType===1) )  )
-                        ret.push( node )
-                    if( flag===true && ret.length >0 )break;
-                    ++index;
-                }
-            }
-            return ret;
-        };
-
-        /**
-         * @private
-         */
-        function dispatchElementEvent(parent, child , type )
-        {
-            if( this instanceof EventDispatcher && this.hasEventListener( type )  )
-            {
-                var event=new ElementEvent( type )
-                event.parent=parent
-                event.child=child
-                return this.dispatchEvent( event );
-            }
-            return true;
-        }
-
-        /**
-         *  @private
-         */
-        function doMake( elems )
-        {
-            var r = this.__reverts__ || (this.__reverts__ = []);
-            r.push( this.splice(0,this.length, elems ) );
-            this.current(null);
-                return this;
-        }
-
-        /**
-         *  @private
-         */
-        public function set doRecursion(propName )
-        {
-            var currentItem,ret=[];
-            var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :
-                typeof strainer === "undefined" ? function(){return this.nodeType===1} : strainer ;
-
-            this.forEach(function(elem)
-            {
-                if( elem && elem.nodeType )
-                {
-                    currentItem=elem;
-                    do{
-                        currentItem = currentItem[propName];
-                        if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );
-                    } while (deep && currentItem);
-                }
-            })
-            return ret;
         }
 
 
-}
+    }
 }
 
 
