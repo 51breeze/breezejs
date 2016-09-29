@@ -267,14 +267,6 @@ var balance={'{':'}','(':')','[':']'};
 var syntax={};
 
 
-
-syntax['(identifier)']=function( e )
-{
-    var id = this.current.value;
-}
-
-
-
 syntax["package"]=function (event)
 {
     event.prevented=true;
@@ -282,15 +274,18 @@ syntax["package"]=function (event)
     var self = this;
     var name = [];
     this.loop(function(){
-        if( this.next.id === '{' || this.next.id === '(keyword)' )return false;
+
         this.seek();
+        if( this.current.id === '{' || this.current.id === '(keyword)' )return false;
         if( this.current.value !=='.' && !isPropertyName( this.current.value ) )self.error('Invalid package name');
         name.push( this.current.value );
         return true;
+
     });
 
-    if( this.next.id !=='{' ) this.error('Missing token {');
+    if( this.current.id !=='{' ) this.error('Missing token {');
     if( !checkSegmentation( name ) )this.error('Invalid package name');
+    this.step();
     event.scope.name( name.join('') );
 };
 
@@ -317,7 +312,6 @@ syntax['import']=function (event)
         if( len<1 )this.error('Invalid import');
         var name = filename.slice(-1)[0];
         filename = len > 2 && filename[ len-2 ]==='as' ? filename.slice(0, len-2 ) : filename;
-
         var p = this.parent();
         if( p.define(name) )error('The filename '+name+' of the conflict.')
         p.define( name , filename.join("")  );
@@ -343,8 +337,10 @@ syntax['private,protected,internal,static,public']=function(event)
     var s = this.scope();
     var n = this.seek();
     var c = event.target;
+
     if( (s.keyword() !=='package' && s.keyword() !=='class') || ( c.value === n.value ) || n.id !=='(keyword)' )
     {
+        console.log(this.current, this.prev, this.next)
         this.error();
     }
 
@@ -358,7 +354,7 @@ syntax['private,protected,internal,static,public']=function(event)
         {
             qualifier = n.value;
         }
-        n = this.seek(true);
+        n = this.seek();
     }
 
     if( n.value==='class' || n.value === 'function' )
@@ -366,12 +362,14 @@ syntax['private,protected,internal,static,public']=function(event)
         this.beginStack();
         this.scope().static( type === 'static' );
         this.scope().qualifier( qualifier );
+        this.check();
 
     }else if( n.value==='var' )
     {
         this.beginStack();
         this.scope().static = type === 'static';
         this.scope().qualifier = qualifier;
+        this.check();
 
     }else
     {
@@ -385,10 +383,11 @@ syntax['class']=function( event )
 {
     event.prevented=true;
     var s = this.scope();
-    if( s.parent.keyword() !=='package' || s.keyword() !=='class' )this.error();
+
+    if( s.parent().keyword() !=='package' || s.keyword() !=='class' )this.error();
 
     //获取类名
-    var n = this.fetch(true);
+    var n = this.seek();
     if( !isPropertyName( n.value ) )this.error('Invalid class name');
     if( s.parent().define(n.value) )error('The class '+n.value+' of the conflict.');
 
@@ -398,14 +397,14 @@ syntax['class']=function( event )
     //将类名加入被保护的属性名中
     this.config('reserved').push( n.value );
 
-    n = this.seek(true);
+    n = this.seek();
 
     //是否有继承
     if( n.id==='(keyword)' && n.value==='extends' )
     {
-        n = this.fetch(true);
+        n = this.seek();
         s.extends( n.value );
-        this.seek(true);
+        this.seek();
     }
     if( this.current.id !=='{' )this.error('Missing token {');
 };
@@ -432,7 +431,9 @@ syntax['var']=function (event)
     }
 
     //检查属性名是否可以声明
-    if( !checkStatement(name, this.config('reserved') ) )this.error();
+    if( !checkStatement(name, this.config('reserved') ) ){
+        this.error();
+    }
 
     //检查声明的类型是否定义
     if( !checkStatementType(type, this.config('reserved') ) )this.error( type+' not is defined');
@@ -449,17 +450,22 @@ syntax['var']=function (event)
         ps.define(name, type);
     }
 
+
     this.step();
+
+
+    console.log( this.current, this.next , this.scope() === s )
+
     if( this.next.id===',' )
     {
         //在类中声明的属性不能同时声明多个
         if( s.parent().keyword() === 'class' )this.error();
         this.seek();
-    }
+        s.switch();
 
-    //函数中可以用 ',' 同时声明多个属性
-    if( this.current.id===',' )
-    {
+        this.add( new Stack('var','(*)') );
+
+        //函数中可以用 ',' 同时声明多个属性
         syntax['var'].call(this, event);
     }
     return true;
@@ -491,28 +497,37 @@ syntax['function']= function(event){
         n = this.seek();
     }
 
+
     // 类中定义的方法不能为匿名函数
     if( s.parent().keyword() === 'class' && !s.name() )
     {
         this.error('Missing function name');
     }
 
+
     //验证访问器的参数
-    if (s.accessor() === 'get' && s.param().length > 0)this.error('Invalid accessor get.');
-    if (s.accessor() === 'set' && s.param().length !== 1)this.error('Invalid accessor set.');
+    if( s.parent().keyword() === 'class' )
+    {
+        if (s.accessor() === 'get' && s.param().length > 0)this.error('Invalid accessor get.');
+        if (s.accessor() === 'set' && s.param().length !== 1)this.error('Invalid accessor set.');
+    }
+
     if( n.id !== '(' )this.error('Missing token (');
 
 
     //获取函数声明的参数
-    this.loop(function(){
+    if( this.next.id !==')' )
+    {
+        var param = new Stack('param')
+        s.add( param );
+        syntax['var'].call(this,{target:this.current});
+        param.switch();
+        s.__param__ = s.content().splice(0, s.length() );
 
-
+    }else
+    {
         this.seek();
-        if( this.current.id ===')' )return false;
-        //syntax['var'].call(this,{target:this.current});
-
-        return true;
-    });
+    }
 
     if( this.current.id !==')' ) this.error('Missing token )');
 
@@ -528,71 +543,13 @@ syntax['function']= function(event){
 };
 
 
-syntax['(delimiter)']=function( e )
-{
-    var id = this.current.id
-    if( id === '(' || id === '{' || id=== '[' )
-    {
-        /*e.prevented=true;
-        e.target = new Stack( id==='[' ? '(array)' : '(objectss)');
-        this.add( e.target );
-        this.add( this.current );
-        this.expect(function (n) {
-            return this.current.id !== balance[ id ];
-        });
-        if( this.current.id !== balance[id ] )this.error();
-        this.scope().switch();*/
-    }
-}
-
-
-/*syntax["return"]=function(event)
-{
-
-}*/
-
-syntax["typeof"]=function(e)
-{
-    e.prevented=true;
-    var s = new Stack('typeof', '(string)' );
-    this.add( s );
-    this.step();
-    s.switch();
-}
-
-syntax["new"]=function(e)
-{
-    e.prevented=true;
-    var name = this.next.value;
-    var s = new Stack('new', '('+name+')' );
-    this.add( s );
-
-     var ps = getParentScope( s );
-     if( !checkStatementType(name , ps.define() ) )
-     {
-         this.error( name + ' not is defined' );
-     }
-
-     this.seek();
-
-     //必须要有括号
-     if( this.next.id !=='(' ) this.error();
-
-     var event = this.check();
-     if( !event.prevented && event.target )
-     {
-         this.add( event.target );
-    }
-}
-
 
 syntax['else']= function(event)
 {
     if( this.scope().keyword() !== event.type )this.error();
 
-    var p = this.parent().previous();
-
-    if( !(p instanceof Stack) || p.keyword()!=='if' )this.error();
+    var p = this.parent().previous(-2);
+    if( p.keyword()!=='if' )this.error();
 
     if( this.next.value==='if' )
     {
@@ -614,22 +571,60 @@ syntax['else']= function(event)
     }
 }
 
+syntax['do,try,finally'] = function(event)
+{
+    event.prevented = true;
+    if( this.scope().keyword() !== event.type )this.error();
+    if( event.type==='finally' )
+    {
+        var p = this.scope().parent().previous(-2);
+        if( !p || p.keyword() !== 'catch' ) this.error();
+    }
 
-syntax['if,switch,while,for']= function(event)
+    this.seek();
+    if( this.current.id !== '{' ) this.error();
+    this.loop(function(){
+
+         this.step();
+         return this.current.id !== '}';
+    });
+    if( this.current.id !== '}' ) this.error();
+    if( event.type==='do' && this.next.value !== 'while' )this.error();
+}
+
+
+syntax['if,switch,while,for,catch'] = function(event)
 {
     event.prevented = true;
 
     if( this.scope().keyword() !== event.type )this.error();
+
+    if( event.type==='catch' )
+    {
+        var p = this.scope().parent().previous(-2);
+        if( !p || p.keyword() !== 'try' ) this.error();
+    }
+
+
     this.seek();
     if( this.current.id !== '(' ) this.error();
-    this.loop(function(){
 
+    var s = this.scope();
+    this.loop(function(){
         this.step();
         return this.current.id !== ')';
     });
 
+    if( s !== this.scope() && !(this.scope() instanceof Scope) )
+    {
+        this.scope().switch();
+    }
+
+    s.__param__ = s.content().splice(0, s.length() );
+
+    if( s !== this.scope() ) this.error();
     if( this.current.id !== ')' )this.error();
-    if( event.type === 'switch' && this.next.id!=='{' )this.error('Missing token {');
+    if( ( event.type === 'switch' || event.type === 'catch' ) && this.next.id!=='{' )this.error('Missing token {');
     if( this.next.id==='{' )
     {
         this.seek();
@@ -645,6 +640,76 @@ syntax['if,switch,while,for']= function(event)
     }
 }
 
+
+syntax["return"]=function(event)
+{
+
+    var s = this.scope();
+
+}
+
+
+syntax["typeof"]=function(e)
+{
+    e.prevented=true;
+    var s = this.scope();
+    s.type('(string)');
+    this.step();
+    s.switch();
+}
+
+syntax["new"]=function(e)
+{
+    e.prevented=true;
+    var name = this.next.value;
+    var s = new Stack('new', '('+name+')' );
+    this.add( s );
+
+    var ps = getParentScope( s );
+    if( !checkStatementType(name , ps.define() ) )
+    {
+        this.error( name + ' not is defined' );
+    }
+
+    this.seek();
+
+    //必须要有括号
+    if( this.next.id !=='(' ) this.error();
+
+    var event = this.check();
+    if( !event.prevented && event.target )
+    {
+        this.add( event.target );
+    }
+}
+
+
+syntax['(delimiter)']=function( e )
+{
+    var id = this.current.id
+    if( id === '(' || id === '{' || id=== '[' )
+    {
+        /* e.prevented=true;
+         var s = new Stack( id==='[' ? '(array)' : '(objects)');
+         this.add( s );
+         this.loop(function () {
+             this.step();
+             return this.current.id !== balance[ id ];
+         });
+         if( this.current.id !== balance[id ] )this.error();
+         s.switch();*/
+    }
+}
+
+
+syntax['(identifier)']=function( e )
+{
+    var id = this.current.id
+
+
+    console.log( this.current.value,'++++++++++' )
+
+}
 
 
 /**
@@ -920,7 +985,7 @@ Stack.prototype.close=function()
  * @param val object | Stack
  * @returns {bool}
  */
-Stack.prototype.add=function( val )
+Stack.prototype.add=function( val, index )
 {
     if( this.close() )
     {
@@ -958,7 +1023,8 @@ Stack.prototype.add=function( val )
             }
         }
 
-        this.__content__.push(val);
+        index = index || this.length();
+        this.__content__.splice(index,0,val);
         return true;
     }
     return false;
@@ -1036,7 +1102,7 @@ Stack.prototype.switch=function()
             return true;
         }
 
-    }else if( this.type() === '(root)' )
+    }else if( this.keyword() === 'rootblack' )
     {
         this.__close__ = true;
         return true;
@@ -1057,25 +1123,31 @@ Stack.prototype.toString=function()
     {
         if( data[i] instanceof Stack )
         {
-            if( data[i].keyword()==='function' )
+            if( data[i] instanceof Scope )
             {
-                str.push(data[i].keyword());
-                str.push(' ');
-                str.push(data[i].name());
-                str.push('(');
-                var param =  data[i].param();
-                for( var b in param )
+                str.push( data[i].keyword() );
+
+                var keyword = data[i].keyword();
+                if( !(keyword==='do' || keyword==='try' || keyword==='finally' || keyword==='else',keyword==='package' || keyword==='class' ) )
                 {
-                    if( param[b] instanceof Stack )
+                    if( keyword==='function' )
                     {
-                        str.push( param[b].toString() );
-                    }else
-                    {
-                        str.push( param[b].value );
+                        str.push(' ');
+                        str.push(data[i].name());
                     }
+
+                    str.push('(');
+                    var param = data[i].param();
+                    for (var b in param) {
+                        if (param[b] instanceof Stack) {
+                            str.push(param[b].toString());
+                        } else {
+                            str.push(param[b].value);
+                        }
+                    }
+                    str.push(')');
                 }
 
-                str.push(')');
                 str.push('{');
                 str.push('\n');
                 str.push( data[i].toString() );
@@ -1083,29 +1155,21 @@ Stack.prototype.toString=function()
                 str.push('}');
                 str.push('\n');
 
-            }else if( data[i].keyword()==='var' )
-            {
-                str.push('\n');
-                if( data[i].length() > 0 ) {
-                    str.push('var ' + data[i].name() + ' = ' + data[i].toString());
-                }else
-                {
-                    str.push('var ' + data[i].name() );
-                }
-                str.push('\n');
-
-            }else if( data[i].keyword()==='package' || data[i].keyword()==='class' )
-            {
-                str.push( data[i].toString() );
-
             }else
             {
+                if( data[i].keyword()==='var' )
+                {
+                    str.push('var '+data[i].name() );
+                }
                 str.push( data[i].toString() );
+
+                //if( data[i].parent() instanceof Scope )
+                   // str.push(';\n');
             }
 
         }else
         {
-             str.push( data[i].value+" " );
+             str.push( data[i].value);
         }
     }
     return str.join('');
@@ -1157,7 +1221,7 @@ Scope.prototype.define=function(prop , type )
  */
 Scope.prototype.param=function( name )
 {
-    if( typeof name === 'string' )
+    if( typeof name !== 'undefined' )
     {
         this.__param__.push( name );
         return this;
@@ -1444,11 +1508,8 @@ Ruler.prototype.seek=function( flag )
         this.scope().dispatcher( new Event('(end)',  {target:this.current, ruler:this} ) );
         return this.seek();
 
-    }else if( this.current.id===',' && this.scope().keyword() ==='var' && !this.scope().close() )
-    {
-        this.scope().dispatcher( new Event('(end)',  {target:this.current, ruler:this} ) );
-        return this.seek();
     }
+
     return this.current;
 }
 
@@ -1482,13 +1543,18 @@ Ruler.prototype.beginStack = function()
     var value = this.current.value;
     var stack = null;
     var type  = '(black)';
+
     if( id==='(keyword)' )
     {
         switch ( value )
         {
             case 'package' :
             case 'class'   :
-            case 'function': type = '(function)';
+                stack = new Scope(value, '(black)' );
+                break;
+            case 'function':
+                stack = new Scope(value, '(function)');
+                break;
             case 'do'      :
             case 'while'   :
             case 'for'     :
@@ -1500,9 +1566,9 @@ Ruler.prototype.beginStack = function()
             case 'finally' :
                 stack = new Scope(value,type);
                 break;
-            case 'import'  : type = '(string)';
-            case 'var'     : type = '(*)';
-                stack = new Stack(value, type );
+            case 'import'  :
+            case 'var'     :
+                stack = new Stack(value, '(*)' );
                 break;
         }
 
@@ -1529,8 +1595,9 @@ Ruler.prototype.beginStack = function()
         stack.addListener('(end)', function (e) {
             if( this instanceof Scope && e.target.id === '}' )
             {
-                this.switch()
+                this.switch();
                 self.seek();
+
             }else
             {
                 this.switch();
@@ -1550,11 +1617,12 @@ Ruler.prototype.beginStack = function()
 Ruler.prototype.step=function()
 {
     this.seek();
-    var stack = this.beginStack()
+    this.beginStack();
+    var index = this.scope().length();
     var event = this.check();
-    if( !stack && !event.prevented && event.target )
+    if( !event.prevented && event.target )
     {
-        this.add( event.target );
+        this.add( event.target , index );
     }
     return event;
 }
