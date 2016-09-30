@@ -539,9 +539,15 @@ syntax['function']= function(event){
         if( checkStatementType(type, this.config('reserved') ) )this.error( type+' not is defined');
         s.type=type.value;
     }
-    if( this.seek().id !=='{' ) this.error('Missing token {');
-};
 
+    if( this.seek().id !=='{' ) this.error('Missing token {');
+    this.loop(function(){
+         this.step();
+         return this.current.id !== '}';
+    })
+    if( this.current.id !=='}' ) this.error('Missing token }');
+
+};
 
 
 syntax['else']= function(event)
@@ -597,6 +603,7 @@ syntax['if,switch,while,for,catch'] = function(event)
 {
     event.prevented = true;
 
+    this.add( this.current );
     if( this.scope().keyword() !== event.type )this.error();
 
     if( event.type==='catch' )
@@ -605,16 +612,23 @@ syntax['if,switch,while,for,catch'] = function(event)
         if( !p || p.keyword() !== 'try' ) this.error();
     }
 
-
-    this.seek();
-    if( this.current.id !== '(' ) this.error();
+    this.add( this.seek() );
+    if( this.current.id !== '(' ) this.error('Missing token (');
 
     var s = this.scope();
+
     this.loop(function(){
+
         this.step();
         return this.current.id !== ')';
+
     });
 
+
+    if( this.current.id !== ')' )this.error('Missing token )');
+
+
+    //如果不是当前的 stack 则结束
     if( s !== this.scope() && !(this.scope() instanceof Scope) )
     {
         this.scope().switch();
@@ -640,20 +654,34 @@ syntax['if,switch,while,for,catch'] = function(event)
     }
 }
 
-
 syntax["return"]=function(event)
 {
+     var s = new Stack('return','(*)');
+     s.add( this.current );
+     this.add( s );
 
-    var s = this.scope();
+     //步进
+     this.step();
 
+     // 如果返回的是一个函数，可以不需要结束符
+     if( this.scope().keyword()==='function' )
+     {
+         s.switch();
+     }
+}
+
+syntax["this"]=function(event)
+{
+    syntax['(identifier)'].call(this, event);
 }
 
 
 syntax["typeof"]=function(e)
 {
     e.prevented=true;
-    var s = this.scope();
-    s.type('(string)');
+    var s = new Stack('typeof', '(string)');
+    s.add( this.current );
+    this.add( s  )
     this.step();
     s.switch();
 }
@@ -661,9 +689,12 @@ syntax["typeof"]=function(e)
 syntax["new"]=function(e)
 {
     e.prevented=true;
-    var name = this.next.value;
+    var current = this.current;
+    var name = this.seek().value;
     var s = new Stack('new', '('+name+')' );
     this.add( s );
+    s.add( current );
+    s.add( this.current );
 
     var ps = getParentScope( s );
     if( !checkStatementType(name , ps.define() ) )
@@ -671,16 +702,16 @@ syntax["new"]=function(e)
         this.error( name + ' not is defined' );
     }
 
-    this.seek();
+    s.add( this.seek() );
 
     //必须要有括号
-    if( this.next.id !=='(' ) this.error();
+    if( this.current.id !=='(' ) this.error();
 
-    var event = this.check();
-    if( !event.prevented && event.target )
-    {
-        this.add( event.target );
-    }
+    this.loop(function(){
+        this.step();
+        return this.current !==')';
+    });
+    if( this.current !==')' )this.error();
 }
 
 
@@ -689,27 +720,178 @@ syntax['(delimiter)']=function( e )
     var id = this.current.id
     if( id === '(' || id === '{' || id=== '[' )
     {
-        /* e.prevented=true;
-         var s = new Stack( id==='[' ? '(array)' : '(objects)');
+         e.prevented=true;
+         var s = new Stack( id==='(' ? '(expression)' : id==='[' ? '(array)' : '(object)');
+        s.add( this.current );
          this.add( s );
          this.loop(function () {
              this.step();
              return this.current.id !== balance[ id ];
          });
          if( this.current.id !== balance[id ] )this.error();
-         s.switch();*/
+         s.switch();
     }
 }
 
 
+syntax["(operator)"]=function(e)
+{
+    e.prevented=true;
+
+    var s=this.scope();
+    if( s instanceof Scope )
+    {
+        s = new Stack('reference','(number)');
+        this.add( s );
+    }
+    s.add( this.current );
+
+
+    // 自增减运算
+    if( this.current.value==='--' || this.current.value==='++' )
+    {
+        if( this.prev.type==='(number)' || (this.prev.type === '(identifier)' && isPropertyName( this.prev.value ) ) )return;
+        if( this.next.type==='(number)' || (this.next.type === '(identifier)' && isPropertyName( this.next.value ) ) )return;
+        this.error();
+    }
+
+    if( this.current.value==='!' || this.current.value==='!!' )
+    {
+        if( this.next.type==='(identifier)' &&  isPropertyName( this.next.value ) )return;
+        this.error();
+    }
+
+
+    var s = new Stack('typeof', '(string)');
+    s.add( this.current );
+    this.add( s );
+    this.step();
+    s.switch();
+}
+
+syntax["(number)"]=function(e)
+{
+
+    e.prevented=true;
+    var s=this.scope();
+    if( s instanceof Scope )
+    {
+        s = new Stack('reference','(number)');
+        this.add( s );
+    }
+    s.add( this.current );
+
+    if( !isOperator(this.next.value) )
+    {
+        s.switch();
+        return ;
+    }
+
+    if( this.next.value==='--' || this.next.value==='++' )
+    {
+        s.add( this.seek() );
+        s.switch();
+        return;
+    }
+
+    this.loop(function(){
+
+        //如果下一个是运算符，直接添加
+        if( isOperator(this.next.value) )
+        {
+            //只有引用的属性才能进行运算并赋值 -= += *= /= 等
+            if( this.next.value.length===2 && this.next.value.charAt(1)==='=' )
+            {
+                var s = this.next.value.charAt(0);
+                if( !(s==='=' || s==='>' || s==='<') )this.error();
+            }
+
+            this.add( this.seek() );
+            this.step();
+            return true;
+        }
+        return false;
+
+    });
+    s.switch();
+}
+
 syntax['(identifier)']=function( e )
 {
     var id = this.current.id
+    if( id==='(keyword)' && this.current.value !== 'this' )return false;
 
+    if( id==='?' )
+    {
+        e.prevented=true;
+        var p = this.scope().previous();
+        if( p instanceof Scope )this.error();
+        this.add( this.current );
 
-    console.log( this.current.value,'++++++++++' )
+        this.loop(function(){
+             this.step();
+             return this.current.id !== ':';
+        });
+        if( this.current.id !==':' )this.error();
+        this.step();
 
+    }else if( isPropertyName(this.current.value) )
+    {
+        e.prevented=true;
+
+        // 如上一个不是引用属性
+        if( this.scope() instanceof Scope )
+        {
+            this.add( new Stack('reference','(*)') );
+        }
+
+        this.add( this.current );
+        this.loop(function(){
+
+            //如果下一个是点运算符，直接添加
+            if( this.next.id==='.' )
+            {
+                this.add( this.seek() );
+                this.add( this.seek() );
+                if( !isPropertyName(this.current.value) ) this.error();
+                return true;
+
+            }
+            //如果是一个动态属
+            else if( this.next.id==='[' )
+            {
+                this.add( this.seek() );
+                if( this.next.type==='(string)' || this.next.type==='(number)' )
+                {
+                    this.add( this.seek() );
+                }else
+                {
+                    this.step();
+                }
+                this.add( this.seek() );
+                if( this.current.id !==']' )this.error();
+                return true;
+
+            }else if( isOperator(this.next.value) )
+            {
+                //自增减运算
+                if( this.next.value==='--' || this.next.value==='++' )
+                {
+                    this.add( this.seek() );
+                    return true;
+                }
+                this.step();
+            }
+            return false;
+
+        });
+
+        this.scope().switch();
+    }
 }
+
+
+
 
 
 /**
