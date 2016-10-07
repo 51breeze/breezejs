@@ -37,26 +37,12 @@ package com
         public function test()
         {
 
-            var uu=123,ccc=666;
-
-            var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :
-                typeof strainer === "undefined" ? function(){return this.nodeType===1} : strainer ;
-
-            this.forEach(function(elem)
-            {
-                if( elem && elem.nodeType )
-                {
-                    currentItem=elem;
-                    do{
-                        currentItem = currentItem[propName];
-                        if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );
-                    } while (deep && currentItem);
-                }
-            })
+            this.forEach(function () {
+                
+            });
 
 
-
-            /*this.names=69999;
+            this.names=69999;
             var write= typeof newValue !== 'undefined';
             if( !write && this.length < 1 )return null;
             var getter = this['__'+callback+'__'].get;
@@ -90,11 +76,59 @@ package com
                         this.dispatchEvent( event );
                     }
                 }
-            });*/
+            });
 
         }
 
 
+        /**
+         * @private
+         */
+        function dispatchElementEvent(parent, child , type )
+        {
+            if( this instanceof EventDispatcher && this.hasEventListener( type )  )
+            {
+                var event=new ElementEvent( type )
+                event.parent=parent;
+                event.child=child;
+                return this.dispatchEvent( event );
+            }
+            return true;
+        }
+
+        /**
+         *  @private
+         */
+        function doMake( elems )
+        {
+            var r = this.__reverts__ || (this.__reverts__ = []);
+            r.push( this.splice(0,this.length, elems ) );
+            this.next(null);
+            return this;
+        }
+
+        /**
+         *  @private
+         */
+        function doRecursion(propName,strainer, deep )
+        {
+            var currentItem,ret=[];
+            var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0 } :
+                typeof strainer === "undefined" ? function(){return this.nodeType===1} : strainer ;
+
+            this.forEach(function(elem)
+            {
+                if( elem && elem.nodeType )
+                {
+                    currentItem=elem;
+                    do{
+                        currentItem = currentItem[propName];
+                        if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );
+                    } while (deep && currentItem)
+                }
+            })
+            return ret;
+        }
     }
 }
 
