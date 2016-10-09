@@ -38,7 +38,7 @@ package com
         {
 
             this.forEach(function () {
-                
+
             });
 
 
@@ -124,9 +124,9 @@ package com
                     do{
                         currentItem = currentItem[propName];
                         if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );
-                    } while (deep && currentItem)
+                    } while (deep && currentItem);
                 }
-            })
+            });
             return ret;
         }
     }

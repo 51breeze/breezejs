@@ -716,41 +716,13 @@ syntax['if,switch,while,for,catch'] = function(event)
         });
     }
 
-   // if( event.type==='if')
-    //{
-
-    console.log( this.scope().keyword() )
-
-
-        //获取条件表达式
-        this.loop(function(){
-            if( this.next.id===')' )return false;
-            this.step();
-            return true;
-        });
-
-        s.__param__ = s.content().splice(0, s.length() );
-
-
-
-        if(s.param().length===2 )
-        {
-
-          //  console.log(s.param());
-         //   error();
-
-
-        }
-
-
-
-       // if( s.param().length !== 1 )this.error();
-
-    //}
-
-
-
-    console.log( this.scope().keyword() )
+    //获取条件表达式
+    this.loop(function(){
+        if( this.next.id===')' )return false;
+        this.step();
+        return true;
+    });
+    s.__param__ = s.content().splice(0, s.length() );
 
 
     //跳到下一个结束符 )
@@ -797,8 +769,6 @@ syntax["return"]=function(event)
      var s = new Stack('return','(*)');
      this.add( s );
      this.step();
-
-     console.log( this.current )
      this.end();
 }
 
@@ -924,16 +894,6 @@ syntax["(operator)"]=function(e)
 
     //步进
     this.step();
-    this.loop(function(){
-        var id = this.next.id;
-        if( id===',' || isOperator(id) )
-        {
-            this.add( this.seek() );
-            this.step();
-            return true;
-        }
-        return false;
-    })
     this.end();
 }
 
@@ -1080,7 +1040,9 @@ syntax['(identifier)']=function( e )
                 this.add( this.seek() );
                 if( this.next.id !==')')this.step();
                 this.add( this.seek() );
-                if( this.current.id !==')' )this.error();
+                if( this.current.id !==')' ){
+                    this.error();
+                }
                 return true;
             }
             //如果是布尔运算符
@@ -1973,12 +1935,12 @@ Ruler.prototype.end=function( stack )
         this.seek();
         return this.end( stack );
 
-    }else if( this.next.id ===')' || this.next.id ===']' || this.next.id ==='}' )
+    }else if( (this.next.id ===')' || this.next.id ===']' || this.next.id ==='}' || this.next.id ==='?' || this.next.id ===':') && !(stack instanceof Scope) )
     {
         stack.switch();
         return true;
     }
-    this.error('is not close syntax');
+    if( !(stack instanceof Scope) )this.error('is not close syntax');
 }
 
 /**
