@@ -82,6 +82,7 @@ function isOperator( o )
         case '!' :
         case '^' :
         case '==' :
+        case '!=' :
         case '&&' :
         case '||' :
         case '<=' :
@@ -106,6 +107,47 @@ function isOperator( o )
     }
     return false;
 }
+
+
+/**
+ * 布尔运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isBoolOperator(o)
+{
+    switch (o) {
+        case '<' :
+        case '>' :
+        case '<=' :
+        case '>=' :
+        case '==' :
+        case '!=' :
+        case '&&' :
+        case '||' :
+        case '!!' :
+        case '===' :
+        case '!==' :
+        case 'instanceof' :
+            return true;
+    }
+    return false;
+}
+
+function isBitOperator(o)
+{
+    switch (o) {
+        case '&' :
+        case '|' :
+        case '^' :
+        case '<<' :
+        case '>>' :
+            return true;
+    }
+    return false;
+}
+
+
 
 /**
  * 判断是为一个数字类型
@@ -506,12 +548,12 @@ syntax['var']=function (event)
         s.switch();
 
         //添加一个新变量容器
-        this.add( new Stack('var','(*)') );
+        this.add( new Stack( s.keyword() ,'(*)' ) );
 
         //函数中可以用 ',' 同时声明多个属性
         syntax['var'].call(this, event);
 
-    }else
+    }else if( s.keyword() !=='param' )
     {
         this.end();
     }
@@ -676,6 +718,10 @@ syntax['if,switch,while,for,catch'] = function(event)
 
    // if( event.type==='if')
     //{
+
+    console.log( this.scope().keyword() )
+
+
         //获取条件表达式
         this.loop(function(){
             if( this.next.id===')' )return false;
@@ -704,18 +750,12 @@ syntax['if,switch,while,for,catch'] = function(event)
 
 
 
+    console.log( this.scope().keyword() )
+
 
     //跳到下一个结束符 )
     this.seek();
     if( this.current.id !== ')' )this.error('Missing token )');
-
-    //如果不是当前的 stack 则结束
-    if( s !== this.scope() && !this.scope().close() )
-    {
-        this.scope().switch();
-    }
-
-
 
     if( s !== this.scope() ) this.error();
 
@@ -862,85 +902,77 @@ syntax['(delimiter)']=function( e )
 //前置或者后置运算符  ++ --
 syntax["(operator)"]=function(e)
 {
-    // 自增减运算
-    if( this.current.value==='--' || this.current.value==='++' )
-    {
-        if( this.next.type==='(number)' || (this.next.type === '(identifier)' && isPropertyName( this.next.value ) ) )
-        {
-            e.prevented=true;
-            var s = new Stack('reference','(number)');
-            this.add( s );
-            s.add( this.current );
-            this.step();
-            s.switch();
-            return;
-        }
-        this.error();
-
-    }else if( this.current.value==='!' || this.current.value==='!!' )
-    {
-        if( this.next.type==='(identifier)' &&  isPropertyName( this.next.value ) )
-        {
-            e.prevented=true;
-            var s = new Stack('reference','(boolean)');
-            this.add( s );
-            this.add( this.current );
-            this.step();
-            s.switch();
-            return;
-        }
-        this.error();
-    }
-}
-
-syntax["(number)"]=function(e)
-{
-    if( !isOperator(this.next.value) )return;
-
     e.prevented=true;
-
+    var id = this.current.id;
     var s= this.scope();
     if( s.keyword()!=='reference' || s.close() )
     {
         s = new Stack('reference','(number)');
         this.add( s );
     }
-    s.add( this.current );
 
-    //自增减运算符
-    if( this.next.value==='--' || this.next.value==='++' )
+    this.add( this.current );
+    if( id==='!' || id==='!!' )
     {
-        s.add( this.seek() );
-        s.switch();
-        return;
+        s.type('(boolean)')
+
+    }else if( id==='--' || id==='++' )
+    {
+        //自增减运算后面必须是数字或者引用的属性（数字类型）
+        if( this.next.type!=='(number)' || this.next.type !== '(identifier)' || !isPropertyName( this.next.value ) )this.error();
     }
 
+    //步进
+    this.step();
     this.loop(function(){
-
-        //如果下一个是运算符，直接添加
-        if( isOperator(this.next.value) )
+        var id = this.next.id;
+        if( id===',' || isOperator(id) )
         {
-            //只有引用的属性才能进行运算并赋值 -= += *= /= 等
-            if( this.next.value.length===2 && this.next.value.charAt(1)==='=' )
-            {
-                var s = this.next.value.charAt(0);
-                if( !(s==='=' || s==='>' || s==='<') )this.error();
-            }
-
             this.add( this.seek() );
             this.step();
             return true;
         }
         return false;
+    })
+    this.end();
+}
+
+syntax["(number)"]=function(e)
+{
+    e.prevented=true;
+    var s= this.scope();
+    if( s.keyword()!=='reference' || s.close() )
+    {
+        s = new Stack('reference','(number)');
+        this.add( s );
+    }
+
+    this.add( this.current );
+    this.loop(function(){
+
+        var id = this.next.value;
+        //如果下一个是运算符，直接添加
+        if( isOperator(id) || id===',' )
+        {
+            this.add( this.seek() );
+
+            //数字打头的不能用'.' 或者 '=' 运算符
+            if( id==='.' || id==='=' )this.error();
+
+            //数字打头的不能用 '-=,+=,*=,/=' 等运算符
+            if( id.length===2 && id.charAt(1)==='=' && !isBoolOperator( id ) )this.error();
+            if( isBoolOperator(id) )s.type('(boolean)');
+            this.step();
+            return true;
+        }
+        return false;
     });
-    s.switch();
+    this.end();
 }
 
 
 syntax["(string)"]=function(e)
 {
-    if( !isOperator(this.next.value) )return;
-
     e.prevented=true;
     var s= this.scope();
     if( s.keyword()!=='reference' || s.close() )
@@ -951,39 +983,54 @@ syntax["(string)"]=function(e)
 
     s.add( this.current );
     this.loop(function(){
-        if( isOperator( this.next.value ) )
+
+        var id = this.next.id;
+        if( id===',' )
         {
             this.add( this.seek() );
             this.step();
             return true;
         }
+
+        var type = id==='.' ? '(*)' : id==='+' ? '(string)' : null;
+        if( isBoolOperator(id) )
+        {
+            type='(boolean)';
+        }else if( isBitOperator(id) )
+        {
+            type='(number)';
+        }
+
+        if( type !==null )
+        {
+            s.type( type );
+            this.add( this.seek() );
+            this.step();
+            return true;
+
+        }else if( isOperator(id) )
+        {
+            this.error();
+        }
         return false;
     });
-    s.switch();
+    this.end();
 }
 
 syntax['(identifier)']=function( e )
 {
-
-    //if( !isOperator(this.next.value) && isIdentifier(this.next.value) )return;
-    var id = this.current.id;
     var s = this.scope();
     if( s.keyword()==='import' )return false;
+    var id = this.current.id;
     if( id==='(keyword)' && this.current.value !== 'this' )return false;
+
+    e.prevented=true;
 
     if( id==='?' )
     {
-        e.prevented=true;
         var p = this.scope().previous();
         if( p instanceof Scope )this.error();
-
-
         p = this.scope().previous(-4);
-      //  console.log( this.scope().keyword() );
-
-       // error();
-
-
         this.add( this.current );
         this.loop(function(){
              this.step();
@@ -994,15 +1041,11 @@ syntax['(identifier)']=function( e )
 
     }else if( isPropertyName(this.current.value) )
     {
-        e.prevented=true;
-
         if( s.keyword()!=='reference' || s.close() )
         {
             s = new Stack('reference','(*)');
             this.add( s );
         }
-
-
         this.add( this.current );
         this.loop(function(){
 
@@ -1014,7 +1057,9 @@ syntax['(identifier)']=function( e )
                 if( !isPropertyName(this.current.value) ) this.error();
                 return true;
 
-            }else if( this.next.value===',' )
+            }
+            //如果赋值或者是连续属性
+            else if( this.next.value===',' || this.next.value==='=' )
             {
                 this.add( this.seek() );
                 this.step();
@@ -1029,7 +1074,7 @@ syntax['(identifier)']=function( e )
                 if( this.current.id !==']' )this.error();
                 return true;
 
-            } //如果是一个动态属
+            } //如果是一调用函数
             else if( this.next.value==='(' )
             {
                 this.add( this.seek() );
@@ -1038,14 +1083,25 @@ syntax['(identifier)']=function( e )
                 if( this.current.id !==')' )this.error();
                 return true;
             }
-            //如果是运算符
+            //如果是布尔运算符
+            else if( isBoolOperator(this.next.value) )
+            {
+                this.add( this.seek() );
+                s.type('(boolean)');
+                this.step();
+                return true;
+
+            }
+            //如果是数学或位运算符
             else if( isOperator(this.next.value) )
             {
                 this.add( this.seek() );
-
-                //自增减运算
-                if( this.current.value==='--' || this.current.value==='++' )
+                //自身运算符（-=,+=,*=,/=）之后必须结束
+                if( this.current.value.length===2 && this.current.value.charAt(1)==='=' && !isBoolOperator(this.current.value) )
                 {
+                    //下一个必须是数字或者引用的数字
+                    if( this.next.type !== '(number)' && ( this.next.type!=='(identifier)' || this.next.id==='(keyword)' ) )this.error();
+                    this.step();
                     return false;
                 }
                 this.step();
@@ -1053,7 +1109,7 @@ syntax['(identifier)']=function( e )
             }
             return false;
         });
-        s.switch();
+        this.end();
     }
 }
 
@@ -1904,16 +1960,23 @@ Ruler.prototype.scope=function()
 Ruler.prototype.end=function( stack )
 {
     stack = stack || Stack.current();
+
+    //块级必须用定界符结束(if,else,for,while)除外
     if( stack.close() || (stack instanceof Scope && !(stack.keyword()==='if' || stack.keyword()==='else' || stack.keyword()==='for' || stack.keyword()==='while' ) ) )return true;
     if( this.current.id === ';' )
     {
-        if( !stack.close() )stack.switch();
+        stack.switch();
         return true;
 
     }else if( this.next.id===';' )
     {
         this.seek();
         return this.end( stack );
+
+    }else if( this.next.id ===')' || this.next.id ===']' || this.next.id ==='}' )
+    {
+        stack.switch();
+        return true;
     }
     this.error('is not close syntax');
 }

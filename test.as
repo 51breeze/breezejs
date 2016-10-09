@@ -88,7 +88,7 @@ package com
         {
             if( this instanceof EventDispatcher && this.hasEventListener( type )  )
             {
-                var event=new ElementEvent( type )
+                var event=new ElementEvent( type );
                 event.parent=parent;
                 event.child=child;
                 return this.dispatchEvent( event );
