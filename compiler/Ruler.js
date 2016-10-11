@@ -4,7 +4,7 @@
  */
 var reserved = [
     'static','public','private','protected','internal','package',
-    'extends','import','class','var','function','new','typeof','const',
+    'extends','import','class','var','let','function','new','typeof','const',
     'instanceof','if','else','do','while','for','in','of','switch','case',
     'break','default','try','catch','throw','Infinity','this',
     'finally','return','null','false','true','NaN','undefined',
@@ -18,7 +18,7 @@ var reserved = [
 var objects = [
     'Number','String','Object','RegExp','Error','EvalError','RangeError',
     'ReferenceError','SyntaxError','TypeError','URIError','Math','Function',
-    'Arguments','Date','Boolean','Array',
+    'Arguments','Date','Boolean','Array','Symbol'
 ];
 
 /**
@@ -31,34 +31,6 @@ var globals=[
     'isNaN','isFinite','decodeURI','decodeURIComponent','encodeURI','encodeURIComponent',
 ];
 
-/**
- * 获取组合运算符
- * @param s
- * @returns {*}
- */
-function getOperator(s)
-{
-    switch( s.charAt(0) )
-    {
-        case '.' :
-        case '!' :
-        case '|' :
-        case '&' :
-        case '+' :
-        case '-' :
-        case '*' :
-        case '/' :
-        case '=' :
-        case '>' :
-        case '<' :
-        case '^' :
-        case '%' :
-        case '~' :
-            return s.substr(0,1) + getOperator( s.substr(1) );
-        break;
-    }
-    return '';
-}
 
 /**
  * 判断是否为一个有效的运算符
@@ -69,6 +41,9 @@ function isOperator( o )
 {
     switch (o) {
         case '.' :
+        case ',' :
+        case ':' :
+        case '?' :
         case '=' :
         case '&' :
         case '|' :
@@ -106,6 +81,7 @@ function isOperator( o )
         case '!==' :
         case '>>>=' :
         case 'instanceof' :
+        case 'in' :
             return true;
     }
     return false;
@@ -164,17 +140,9 @@ function isBitOperator(o)
  * @param s
  * @returns {boolean}
  */
-function isIdentifier( s )
+function isIdentifier( o )
 {
-    switch( s )
-    {
-        case ';' :
-        case ',' :
-        case ':' :
-        case '?' :
-            return true;
-    }
-    return false;
+   return o.type==='(identifier)' ||  o.type==='(string)' ||  o.type==='(regexp)' ||  o.type==='(number)';
 }
 
 /**
@@ -349,7 +317,6 @@ syntax["package"]=function (event)
         this.step();
         return true;
     });
-
     this.seek();
     if( this.current.id !=='}' ) this.error('Missing token }');
 };
@@ -504,9 +471,6 @@ syntax['var']=function (event)
     var type = '*';
     var name = this.seek().value;
 
-    // switch 结构体中不能声明变量
-    if( s.parent().keyword()==='switch' )this.error();
-
     //获取声明的类型
     if( this.next.id===':' )
     {
@@ -563,12 +527,7 @@ syntax['var']=function (event)
 
         //函数中可以用 ',' 同时声明多个属性
         syntax['var'].call(this, event);
-
-    }else if( s.keyword() !=='param' )
-    {
-        this.end();
     }
-    return true;
 };
 
 
@@ -621,6 +580,43 @@ syntax['function']= function(event){
         syntax['var'].call(this,{target:this.current});
         this.scope().switch();
         param.switch();
+
+        this.loop(function(){
+
+             this.add( this.seek() )
+             var name = this.current.value;
+             var type = '*';
+             if( !isPropertyName(name) )this.error();
+
+             //有定义类型
+             if( this.next.id===':' )
+             {
+                 var current = this.current;
+                 var prev = this.prev;
+                 this.seek();
+                 type = this.seek().value;
+                 this.current= current;
+                 this.prev = prev;
+             }
+
+            //声明的参数名和类型
+             s.define(name, type);
+             s.param( name );
+
+             //定义的默认值
+             if( this.next.id==='=' )
+             {
+                 this.add( new Stack('expression','(*)') );
+                 this.add( this.current );
+                 this.add( this.seek() );
+                 this.loop(function(){
+                     this.step();
+                     return !(this.next.id===',' || this.next.id===')');
+                 });
+                 this.scope().switch();
+             }
+             return !(this.next.id===',' || this.next.id===')');
+        });
         s.__param__ = s.content().splice(0, s.length() );
     }
 
@@ -715,17 +711,7 @@ syntax['if,switch,while,for,catch'] = function(event)
 
     var s = this.scope();
 
-
-    // for 需要有三个条件， 每一个条件需要用';'来结束
-    if( event.type==='for' )
-    {
-        s.addListener('(end)',function(event){
-            event.stopPropagation=true;
-            if( event.target.id===';' ){
-                this.add( event.target );
-            }
-        });
-    }
+    console.log(s.keyword()     )
 
     //获取条件表达式
     this.loop(function(){
@@ -733,15 +719,18 @@ syntax['if,switch,while,for,catch'] = function(event)
         this.step();
         return true;
     });
-    s.__param__ = s.content().splice(0, s.length() );
 
+    this.scope().switch();
+    s.__param__ = s.content().splice(0, s.length() );
 
     //跳到下一个结束符 )
     this.seek();
     if( this.current.id !== ')' )this.error('Missing token )');
+    if( s !== this.scope() ) {
 
-    if( s !== this.scope() ) this.error();
-
+        console.log( this.scope())
+        this.error();
+    }
 
     // switch catch 必须要 {}
     if( ( event.type === 'switch' || event.type === 'catch' ) && this.next.id!=='{' )this.error('Missing token {');
@@ -756,95 +745,48 @@ syntax['if,switch,while,for,catch'] = function(event)
         this.seek();
         if( this.current.id !== '}' )this.error('Missing token }');
 
-        //console.log( this.current, this.scope().parent().keyword() );
-
     }else
     {
-        // if while for允许用 ; 结束
-        s.addListener('(end)', function (e) {
-
-            if (e.target.id === ';'){
-                this.switch();
-            }
-
-        }, 100);
-
-        this.step();
-        this.end(s);
+        if( this.next.id !==';' )this.step();
+        if( !s.close() )
+        {
+            s.switch();
+        }
     }
 }
 
 syntax["return"]=function(event)
 {
      event.prevented=true;
-     var s = new Stack('return','(*)');
+     if( this.scope().keyword()==='expression' )this.error();
+     var s = new Stack('expression','(*)');
+     s.add( this.current );
      this.add( s );
-     this.step();
-     this.end();
 }
 
-syntax["in"]=function(event)
+syntax["in"]=function(e)
 {
-     event.prevented=true;
+     //in 运算符 var name in property  'name' in property
+     if( !(this.scope().keyword()==='expression' || this.scope().keyword()==='var') )this.error();
 
-     //如果在in之前声明了变量并且没有关闭
-     if( this.scope().keyword()==='var' && !this.scope().close() )this.scope().switch();
-
-     //上一个语法
-     var prev = this.scope().content().pop();
-
-     // in 之前必须要有定义的属性名
-     if( !prev || !(prev instanceof Stack) || !(prev.keyword()==='var' || (prev.keyword()==='reference' && prev.length()===1) ) )this.error();
-
-     // in 只能在for中出现
-     if( this.scope().keyword()!=='for' ) this.error();
-
-     this.add( new Stack('in', '(*)') );
-     this.add( prev );
-
-     //添加到容器中
-     this.add( this.current );
-
-     //步进引用的对象
-     this.step();
-
-     //关闭
-     this.scope().switch();
+     //var 中的 in 只能在 for 表达式中
+     if( this.scope().keyword()==='var' && this.scope().parent().keyword() !== 'for' )this.error();
 }
-
-syntax["this"]=function(event)
-{
-    syntax['(identifier)'].call(this, event);
-}
-
 
 syntax["typeof"]=function(e)
 {
-    e.prevented=true;
-    var s= this.scope();
-    if( s.keyword()!=='reference' || s.close() )
+    if( this.scope().keyword() !== 'expression' )
     {
-        s = new Stack('reference','(string)');
-        this.add( s );
+        this.add( new Stack('expression','(string)') );
     }
-    s.type('(string)');
-    this.add( this.current );
-    this.step();
-    this.end();
 }
 
 syntax["new"]=function(e)
 {
-    e.prevented=true;
-    var s= this.scope();
-    if( s.keyword()!=='reference' || s.close() )
+    if( this.scope().keyword()!=='expression')
     {
-        s = new Stack('reference', '('+this.next.value+')' );
-        this.add( s );
+        this.add( new Stack('expression', '('+this.next.value+')' ) );
     }
-    s.add( this.current );
-    this.step();
-    this.end();
 }
 
 syntax['(delimiter)']=function( e )
@@ -853,45 +795,27 @@ syntax['(delimiter)']=function( e )
     if( id === '(' || id === '{' || id=== '[' )
     {
          e.prevented=true;
-         var s = new Stack('reference', id==='(' ? '(expression)' : id==='[' ? '(array)' : '(object)');
-         s.add( this.current );
-         this.add( s );
-
-        var check = null;
-        if( s.type()==='(object)' )
-        {
-            check=function () {
-
-                //是否为一个有效的属性名
-                var type = this.current.type;
-                if( !(type==='(string)' || type==='(number)' || type==='(identifier)') )this.error('Invalid property for '+this.current.value);
-
-                //是否为一个标识符 ':'
-                this.add( this.seek() );
-                if( this.current.id!==':') this.error();
-
-                //步进
-                this.step();
-                return true;
-            };
-            this.addListener('(seek)', check );
-        }
-
+         this.add( new Stack('expression', id==='(' ? '(*)' : id==='[' ? '(array)' : '(object)') );
+         this.add( this.current );
          this.loop(function () {
             if (this.next.id === balance[id]) return false;
             this.step();
             return true;
          });
-
-         this.removeListener('(seek)', check );
          this.add( this.seek() );
          if( this.current.id !== balance[id ] )this.error();
-         this.end();
+
+
+        console.log( this.scope().previous(), this.current )
+        error()
+
+         //结束表达式
+         this.scope().switch();
     }
 }
 
 //前置或者后置运算符  ++ --
-syntax["(operator)"]=function(e)
+/*syntax["(operator)"]=function(e)
 {
     e.prevented=true;
     var id = this.current.id;
@@ -1001,89 +925,72 @@ syntax["(string)"]=function(e)
             this.add( this.seek() );
             this.step();
             return true;
-
-        }else if( isOperator(id) )
-        {
-            this.error();
         }
         return false;
     });
     this.end();
-}
+}*/
 
-syntax['(identifier)']=function( e )
+syntax['(identifier),(string),(number),(operator),(regexp)']=function( e )
 {
-    e.prevented=true;
+
     var s = this.scope();
-    if( s.keyword()!=='reference' || s.close() )
+    var id = this.current.value;
+    if( s.keyword() !=='expression' )
     {
-        s = new Stack('reference','(*)');
+        s = new Stack('expression','(*)');
         this.add( s );
     }
 
-    this.add( this.current );
-    this.loop(function(){
-
-        //如果下一个是点运算符，直接添加
-        if( this.next.value==='.' )
-        {
-            this.add( this.seek() );
-            this.add( this.seek() );
-            if( !isPropertyName(this.current.value) ) this.error();
-            return true;
-        }
-        //三元运算符
-        else if( this.next.value==='?' || this.next.value===':' )
-        {
-            this.add( this.seek() );
-            this.step();
-            return true;
-        }
-        //如果是一个动态属
-        else if( this.next.value==='[' )
-        {
-            this.add( this.seek() );
-            this.step();
-            this.add( this.seek() );
-            if( this.current.id !==']' )this.error();
-            return true;
-
-        } //如果是一调用函数
-        else if( this.next.value==='(' )
-        {
-            this.add( this.seek() );
-            if( this.next.id !==')')this.step();
-            this.add( this.seek() );
-            if( this.current.id !==')' )this.error();
-            return true;
-        }
-        //如果是数学或位运算符
-        else if( isOperator(this.next.value) )
-        {
-            this.add( this.seek() );
-
-            //自身运算符（-=,+=,*=,/=）之后必须结束
-            if( this.current.value.length===2 && this.current.value.charAt(1)==='=' && !isBoolOperator(this.current.value) )
-            {
-                //下一个必须是数字或者引用的数字
-                if( this.next.type !== '(number)' && ( this.next.type!=='(identifier)' || this.next.id==='(keyword)' ) )this.error();
-                this.add( this.seek() );
-                return false;
-            }
-            this.step();
-            return true;
-        }
-        return false;
-    });
-
-    if( this.next.id === ',' )
+    if( e.type==='(string)' || e.type==='(number)' || e.type==='(regexp)' )
     {
-        this.seek();
-        s.switch();
+        s.type( e.type );
+    }
 
-    }else
+    //如果是点运算符
+    if( id==='.' )
     {
-        this.end();
+        //数字后面不能有点运算符
+        if( this.prev.type==='(number)' ) this.error();
+
+        //点运算符后面只能是属性名
+        if( !isPropertyName(this.next.value) ) this.error();
+    }
+    //三元运算符
+    else if( id==='?' )
+    {
+        e.prevented=true;
+        this.add( this.current );
+
+        this.loop(function(){
+            this.step();
+            return this.next.id !== ':';
+        });
+        this.add( this.seek() );
+        if( this.current.id !== ':' )this.error();
+        //:后面必须有值
+        if( this.next.id === ';' )this.error();
+        this.step();
+    }
+    //如果是数学运算符
+    else if( id==='-' || id==='*' || id==='/' || id==='%' )
+    {
+        if (!(this.prev.type === '(number)' || this.prev.type === '(identifier)' && this.prev.id !== '(keyword)'))this.error();
+        if (!(this.next.type === '(number)' || this.next.type === '(identifier)' && this.next.id !== '(keyword)'))this.error();
+    }
+    //运算并赋值
+    else if( id==='+=' || id==='-=' || id==='*=' || id==='/=' || id==='%=' )
+    {
+        if( this.prev.type !=='(identifier)' || this.prev.id==='(keyword)' )this.error();
+
+        //下一个必须是数字或者引用的数字
+        if( !(this.next.type==='(number)' || this.next.type ==='(identifier)' && this.next.id!=='(keyword)') )this.error();
+
+    }
+    //赋值
+    else if( id==='=' )
+    {
+        if( this.prev.type !=='(identifier)' || this.prev.id==='(keyword)' )this.error();
     }
 }
 
@@ -1890,17 +1797,30 @@ Ruler.prototype.seek=function( flag )
         if (this.current === null)return this.seek( flag );
     }
 
+    //seek before dispatch event
+    this.hasListener('(seek)') && this.dispatcher(new Event('(seek)', {target: this.current,scope:this.scope()}));
+
     //检测块级代码堆叠器是否到达结束位置
     if( this.current.type==='(delimiter)' && isDelimiter( this.current.value ) )
     {
         this.balance(this.current);
-
-    }else if( this.current.id===';' )
-    {
-        this.scope().dispatcher( new Event('(end)',  {target:this.current, ruler:this} ) );
     }
+    //是否可以结束表达式
+    else if( this.scope().keyword()==='expression' || this.current.id===';' )
+    {
+        if( this.current.id===';' )
+        {
+            this.scope().dispatcher( new Event('(end)',  {target:this.current, ruler:this} ) );
+            return this.seek(flag);
+        }
 
-    this.hasListener('(seek)') && this.dispatcher(new Event('(seek)', {target: this.current,scope:this.scope()}));
+        if( this.next.id !==';' && isIdentifier(this.next) && isIdentifier( this.current ) )
+        {
+            //如果没有换行
+            if( this.current.line === this.next.line )this.error('syntax not end');
+            this.scope().dispatcher( new Event('(end)',  {target:this.current, ruler:this} ) );
+        }
+    }
     return this.current;
 }
 
@@ -2025,28 +1945,16 @@ Ruler.prototype.check=function( o )
     return event;
 }
 
+/**
+ * 开始分析
+ * @returns {Scope}
+ */
 Ruler.prototype.start=function()
 {
     do{
        this.step();
     }while( !this.done() )
     return this.scope();
-}
-
-/**
- * 逐个进行语法分析
- * @param callback
- * @returns {*}
- */
-Ruler.prototype.expect=function(callback)
-{
-    var ret = false;
-    var r;
-    do{
-        r =this.step();
-        if( callback )ret = callback.call(this,r);
-    }while( ret && !this.done() )
-    return r;
 }
 
 /**
@@ -2106,11 +2014,10 @@ Ruler.prototype.keyword=function(s)
  */
 Ruler.prototype.number=function(s)
 {
-    if( isNumber(s) )
+    if( s.charAt(0)==='.' && !/\d/.test( s.charAt(1) ) )return null;
+    if( /^(0x[0-9a-f]+|o[0-7]+|[\-\+]?[\d\.]+)/i.exec(s) )
     {
-        if( s.charAt(0)==='.' && !/\d/.test( s.charAt(1) ) )return null;
-        s = /^(0x[0-9a-f]+|o[0-7]+|[\-\+]?[\d\.]+)/i.exec(s);
-        return describe('(number)', s[1] , s[1] );
+        return describe('(number)', RegExp.$1 , RegExp.$1 );
     }
     return null;
 }
@@ -2122,7 +2029,7 @@ Ruler.prototype.number=function(s)
  */
 Ruler.prototype.identifier=function(s)
 {
-    if( isIdentifier( s.charAt(0) ) )
+    if( s.charAt(0)===';' )
     {
         if( s.charAt(0)==='.' && /\d/.test( s.charAt(1) ) )return null;
         return describe('(identifier)', s.charAt(0) , s.charAt(0) );
@@ -2162,6 +2069,9 @@ Ruler.prototype.identifier=function(s)
     return null;
 }
 
+//@private
+var operator_reg = /[\.\,\:\?\!\|\&\+\-\*\/\>\<\%\~\=\^]/;
+
 /**
  * 获取运算符
  * @param s
@@ -2169,17 +2079,24 @@ Ruler.prototype.identifier=function(s)
  */
 Ruler.prototype.operator=function(s)
 {
-    s = getOperator(s);
+    var index = 0;
+    while( operator_reg.test( s.charAt( index ) ) )index++;
+    if( index === 0 )return null;
 
-    // 有可能是正则对象
+    s = s.substr(0, index);
+
+    //有可能是正则对象
     if( s==='/' && !( this.prev.type==='(number)' || isPropertyName(this.prev.value) ) )
     {
         return null;
-
-    }else if( s==='/=' && !isPropertyName(this.prev.value) )
+    }
+    //如果不是赋值运算
+    else if( s==='/=' && !isPropertyName(this.prev.value) )
     {
          return null;
-    }else if( s==='*=' && this.next.id===':' )
+    }
+    //声明的类型 var name:*=123;
+    else if( s==='*=' && this.next.id===':' )
     {
         return describe('(operator)', s.charAt(0), s.charAt(0) );
     }
