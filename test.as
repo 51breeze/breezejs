@@ -37,14 +37,10 @@ package com
         public function test()
         {
 
-            this.forEach(function () {
-
-            });
-
 
             this.names=69999;
             var write= typeof newValue !== 'undefined';
-            if( !write && this.length < 1 )return null;
+            if( !write && this['length'] < 1 )return null;
             var getter = this['__'+callback+'__'].get;
             var setter = this['__'+callback+'__'].set;
             if( fix.fnHooks[callback] )
@@ -57,7 +53,7 @@ package com
                 return getter.call(this.current(),name,this);
             }
 
-            return this.forEach(function(elem)
+            return this.forEach(function(elem:ElementEvent,ddd)
             {
                 var oldValue= getter.call(elem,name,this);
                 if( oldValue !== newValue )

@@ -82,6 +82,8 @@ function isOperator( o )
         case '>>>=' :
         case 'instanceof' :
         case 'in' :
+        case 'new' :
+        case 'typeof' :
             return true;
     }
     return false;
@@ -459,7 +461,6 @@ syntax['class']=function( event )
         return true;
     });
     this.seek();
-
     if( this.current.id !=='}' ) this.error('Missing token }');
 };
 
@@ -468,6 +469,11 @@ syntax['var']=function (event)
 {
     event.prevented=true;
     var s  = this.scope();
+    if( s.keyword() !== event.type ){
+       s = new Stack( event.type , '*');
+       this.add( s );
+    }
+
     var type = '*';
     var name = this.seek().value;
 
@@ -488,14 +494,11 @@ syntax['var']=function (event)
         this.error();
     }
 
-    //检查声明的类型是否定义
-    if( !checkStatementType(type, this.config('reserved') ) )this.error( type+' not is defined');
-
-    s.name( name );
-    s.type( type );
-
-    //如果当前是函数作用域则定义到域中
     var ps = getParentScope(s);
+
+    //检查声明的类型是否定义
+    if( !checkStatementType(type, ps.define() ) )this.error( type+' not is defined');
+
     if( ps.keyword()==='function' )
     {
         //不能重复声明属性
@@ -503,30 +506,19 @@ syntax['var']=function (event)
         ps.define(name, type);
     }
 
-    //如果有赋值，跳过赋值符并步进
-    if( this.next.id==='=' )
+    this.add( new Stack('expression', type) );
+    this.add( this.current );
+    if( this.next.id === '=' )
     {
-        this.seek();
+        this.add( this.seek() );
         this.step();
     }
 
-    //如果是连续声明的变量
     if( this.next.id===',' )
     {
-        //在类中声明的属性不能同时声明多个
-        if( s.parent().keyword() === 'class' )this.error();
-
-        //跳过','
-        this.seek();
-
-        //结束声明的变量
-        s.switch();
-
-        //添加一个新变量容器
-        this.add( new Stack( s.keyword() ,'(*)' ) );
-
-        //函数中可以用 ',' 同时声明多个属性
-        syntax['var'].call(this, event);
+        this.scope().switch();
+        this.add( this.seek() );
+        syntax['var'].call(this,event);
     }
 };
 
@@ -575,49 +567,11 @@ syntax['function']= function(event){
     //获取函数声明的参数
     if( this.next.id !==')' )
     {
-        var param = new Stack('param')
-        s.add( param );
-        syntax['var'].call(this,{target:this.current});
+        this.add( new Stack('param', '*') );
+        syntax['var'].call(this,{target:this.current,type:'param'});
         this.scope().switch();
-        param.switch();
-
-        this.loop(function(){
-
-             this.add( this.seek() )
-             var name = this.current.value;
-             var type = '*';
-             if( !isPropertyName(name) )this.error();
-
-             //有定义类型
-             if( this.next.id===':' )
-             {
-                 var current = this.current;
-                 var prev = this.prev;
-                 this.seek();
-                 type = this.seek().value;
-                 this.current= current;
-                 this.prev = prev;
-             }
-
-            //声明的参数名和类型
-             s.define(name, type);
-             s.param( name );
-
-             //定义的默认值
-             if( this.next.id==='=' )
-             {
-                 this.add( new Stack('expression','(*)') );
-                 this.add( this.current );
-                 this.add( this.seek() );
-                 this.loop(function(){
-                     this.step();
-                     return !(this.next.id===',' || this.next.id===')');
-                 });
-                 this.scope().switch();
-             }
-             return !(this.next.id===',' || this.next.id===')');
-        });
-        s.__param__ = s.content().splice(0, s.length() );
+        this.scope().switch();
+        s.__param__ = s.content().pop();
     }
 
     this.seek();
@@ -628,19 +582,20 @@ syntax['function']= function(event){
     {
         this.seek();
         var type = this.seek();
-        if( checkStatementType(type, this.config('reserved') ) )this.error( type+' not is defined');
-        s.type=type.value;
+        var ps   = getParentScope( s );
+        if( checkStatementType(type, ps.define() ) )this.error( type+' not is defined');
+        s.type = type.value;
     }
-    
+
     if( this.seek().id !=='{' ) this.error('Missing token {');
     this.loop(function(){
          if( this.next.id === '}' ) return false;
          this.step();
          return true;
     });
+
     this.seek();
     if( this.current.id !=='}' ) this.error('Missing token }');
-
 };
 
 
@@ -711,26 +666,20 @@ syntax['if,switch,while,for,catch'] = function(event)
 
     var s = this.scope();
 
-    console.log(s.keyword()     )
-
     //获取条件表达式
     this.loop(function(){
         if( this.next.id===')' )return false;
         this.step();
         return true;
     });
-
     this.scope().switch();
     s.__param__ = s.content().splice(0, s.length() );
 
     //跳到下一个结束符 )
     this.seek();
     if( this.current.id !== ')' )this.error('Missing token )');
-    if( s !== this.scope() ) {
+    if( s !== this.scope() )this.error();
 
-        console.log( this.scope())
-        this.error();
-    }
 
     // switch catch 必须要 {}
     if( ( event.type === 'switch' || event.type === 'catch' ) && this.next.id!=='{' )this.error('Missing token {');
@@ -804,10 +753,6 @@ syntax['(delimiter)']=function( e )
          });
          this.add( this.seek() );
          if( this.current.id !== balance[id ] )this.error();
-
-
-        console.log( this.scope().previous(), this.current )
-        error()
 
          //结束表达式
          this.scope().switch();
@@ -933,18 +878,25 @@ syntax["(string)"]=function(e)
 
 syntax['(identifier),(string),(number),(operator),(regexp)']=function( e )
 {
-
     var s = this.scope();
     var id = this.current.value;
+
+    if( id===',' )
+    {
+        if( s.keyword() ==='expression' )s.switch();
+        return;
+    }
+
+    if( id===';' )
+    {
+        e.prevented=true;
+        return;
+    }
+
     if( s.keyword() !=='expression' )
     {
         s = new Stack('expression','(*)');
         this.add( s );
-    }
-
-    if( e.type==='(string)' || e.type==='(number)' || e.type==='(regexp)' )
-    {
-        s.type( e.type );
     }
 
     //如果是点运算符
@@ -1187,7 +1139,10 @@ function Stack( keyword, type )
     this.addListener('(end)', function (e) {
         if( !(this instanceof Scope) || e.target.id === '}' )
         {
-            this.switch();
+            if( this.switch() && e.target.id===';' &&  this.parent() )
+            {
+                this.parent().dispatcher( e );
+            }
         }
     });
 }
@@ -1294,6 +1249,7 @@ Stack.prototype.add=function( val, index )
             //堆叠器中不能添加结构体 比如 if else switch do while try for catch finally
             if( this.keyword() !== 'rootblack' && !(this instanceof Scope) && val.type() ==='(black)' )
             {
+                console.log( this )
                 error('Invalid syntax ' + val.keyword() );
             }
 
@@ -1384,10 +1340,6 @@ Stack.prototype.switch=function()
         {
             this.__close__ = true;
             Stack.__current__ = stack;
-            if( !stack.close() && !(stack instanceof Scope) )
-            {
-                stack.dispatcher( new Event('(end)') );
-            }
             return true;
         }
 
@@ -1698,7 +1650,7 @@ Ruler.prototype.error=function (msg, o)
 {
     o = o || this.current;
     msg =  msg || 'Unexpected token '+o.value;
-    console.log( 'error line:', o.line, '  character:', o.cursor );
+    console.log( 'error line:', o.line, '  character:', o.cursor, o );
     error(msg , 'syntax');
 }
 
@@ -1811,10 +1763,8 @@ Ruler.prototype.seek=function( flag )
         if( this.current.id===';' )
         {
             this.scope().dispatcher( new Event('(end)',  {target:this.current, ruler:this} ) );
-            return this.seek(flag);
-        }
 
-        if( this.next.id !==';' && isIdentifier(this.next) && isIdentifier( this.current ) )
+        }else if( this.next.id !== ';' && isIdentifier(this.next) && isIdentifier( this.current ) )
         {
             //如果没有换行
             if( this.current.line === this.next.line )this.error('syntax not end');
@@ -1998,11 +1948,9 @@ Ruler.prototype.keyword=function(s)
     if( s )
     {
         var index = reserved.indexOf( s[1] );
-        if( s[1] === 'instanceof' )
-        {
-            return describe('(operator)', s[1] , s[1] );
-        }
-        return describe('(identifier)', s[1] , index >= 0 ? '(keyword)' : '(identifier)' );
+        var type = '(identifier)';
+        if( isOperator( s[1] )  )type='(operator)';
+        return describe(type, s[1] , index >= 0 ? '(keyword)' : '(identifier)' );
     }
     return null;
 }
