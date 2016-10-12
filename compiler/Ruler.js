@@ -735,12 +735,8 @@ syntax["return"]=function(event)
      var s = this.scope()
 
      this.step();
-
-
-    console.log( s )
-
+     console.log( s )
      this.error();
-
 
 }
 
