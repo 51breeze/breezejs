@@ -29,7 +29,7 @@ package com
 
     public class test extends B {
 
-        /*static public var name = 3 ;
+        static public var name = 3 ;
         private var ccc = 236666;
         protected var tttt = 'tyuuu';
         static private var uuu = 'pppp';
@@ -74,13 +74,13 @@ package com
                 }
             });
 
-        }*/
+        }
 
 
         /**
          * @private
          */
-        /*function dispatchElementEvent(parent, child , type )
+        function dispatchElementEvent(parent, child , type )
         {
             if( this instanceof EventDispatcher && this.hasEventListener( type )  )
             {
@@ -90,31 +90,29 @@ package com
                 return this.dispatchEvent( event );
             }
             return true;
-        }*/
+        }
 
         /**
          *  @private
          */
-        /*function doMake( elems )
+        function doMake( elems )
         {
             var r = this.__reverts__ || (this.__reverts__ = []);
             r.push( this.splice(0,this.length, elems ) );
             this.next(null);
             return this;
-        }*/
+        }
 
         /**
          *  @private
          */
         function doRecursion(propName,strainer, deep )
         {
-            //var currentItem,ret=[];
+            var currentItem,ret=[];
+            var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0; } :
+                typeof strainer === "undefined" ? function(){return this.nodeType===1;} : strainer ;
 
-            return Breeze.querySelector(strainer, null , null, [this]).length > 0;
-
-           // var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0; } : strainer ;
-
-           /* this.forEach(function(elem)
+            this.forEach(function(elem)
             {
                 if( elem && elem.nodeType )
                 {
@@ -125,7 +123,7 @@ package com
                     } while (deep && currentItem);
                 }
             });
-            return ret;*/
+            return ret;
         }
     }
 }

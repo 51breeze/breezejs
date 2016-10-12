@@ -692,6 +692,8 @@ syntax['if,switch,while,for,catch'] = function(event)
     if( this.scope().keyword()==='expression' )this.scope().switch();
     if( this.scope().keyword()==='param' )this.scope().switch();
 
+    console.log( '===', this.scope() )
+
     //跳到下一个结束符 )
     this.add( this.seek() );
     if( this.current.id !== ')' )this.error('Missing token )');
@@ -727,16 +729,18 @@ syntax['if,switch,while,for,catch'] = function(event)
 
 syntax["return"]=function(event)
 {
+
+    console.log( '=============' )
+
      event.prevented=true;
      if( this.scope().keyword()==='expression' )this.error();
      this.add( new Stack('expression','(*)') );
      this.add( this.current );
 
-     var s = this.scope()
-
+    console.log( this.current, this.next )
      this.step();
-     console.log( s )
-     this.error();
+
+
 
 }
 
@@ -782,7 +786,9 @@ syntax['(delimiter)']=function( e )
          this.add( this.seek() );
          if( this.current.id !== balance[id ] )this.error();
          //结束表达式
-         this.scope().switch();
+
+         if( this.scope().keyword()==='expression')this.scope().switch();
+         if( s !== this.scope() )this.scope().switch();
          if( this.next.type === '(operator)' )this.step();
     }
 }
@@ -824,38 +830,11 @@ syntax['(identifier),(string),(number),(operator),(regexp)']=function( e )
     else if( id==='?' || id===':' )
     {
 
-       // console.log( this.prev  ,'=====')
-
         this.scope().content().pop();
         this.scope().switch();
         this.add( this.current  );
         this.add( new Stack('expression','(*)')  );
         this.step();
-
-
-        //console.log( this.current,'++++++++++', this.scope() )
-
-       // this.error();
-
-       /* this.loop(function(){
-            this.step();
-            return this.next.id !== ':';
-        });
-
-        this.add( this.seek() );
-        if( this.current.id !== ':' )this.error();
-
-        //:后面必须有值
-        if( this.next.id === ';' )this.error();
-
-        this.loop(function(){
-            this.step();
-            return !( this.next.id === ';' || this.scope().close() );
-        })
-
-        if( this.next.id === ';' )this.seek();
-        if( !s.close() )this.error('syntax not end');*/
-
     }
     //如果是数学运算符
     else if( id==='-' || id==='*' || id==='/' || id==='%' )
