@@ -29,16 +29,21 @@ package com
 
     public class test extends B {
 
-        static public var name = 3 ;
+        /*static public var name = 3 ;
         private var ccc = 236666;
         protected var tttt = 'tyuuu';
-        static private var uuu = 'pppp';
+        static private var uuu = 'pppp';*/
 
         public function test()
         {
 
 
-            this.names=69999;
+            var s = strainer? function(){} :
+                strainer  ? function(){} : strainer ;
+
+
+
+           /* this.names=69999;
             var write= typeof newValue !== 'undefined';
             if( !write && this['length'] < 1 )return null;
             var getter = this['__'+callback+'__'].get;
@@ -72,7 +77,7 @@ package com
                         this.dispatchEvent( event );
                     }
                 }
-            });
+            });*/
 
         }
 
@@ -80,7 +85,7 @@ package com
         /**
          * @private
          */
-        function dispatchElementEvent(parent, child , type )
+       /* function dispatchElementEvent(parent, child , type )
         {
             if( this instanceof EventDispatcher && this.hasEventListener( type )  )
             {
@@ -90,41 +95,41 @@ package com
                 return this.dispatchEvent( event );
             }
             return true;
-        }
+        }*/
 
         /**
          *  @private
          */
-        function doMake( elems )
+        /*function doMake( elems )
         {
             var r = this.__reverts__ || (this.__reverts__ = []);
             r.push( this.splice(0,this.length, elems ) );
             this.next(null);
             return this;
-        }
+        }*/
 
         /**
          *  @private
          */
-        function doRecursion(propName,strainer, deep )
+        /*function doRecursion(propName,strainer, deep )
         {
             var currentItem,ret=[];
-          /*  var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0; } :
-                typeof strainer === "undefined" ? function(){return this.nodeType===1;} : strainer ;*/
+            var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0; } :
+                typeof strainer === "undefined" ? function(){return this.nodeType===1;} : strainer ;
 
             this.forEach(function(elem)
             {
-               /* if( elem && elem.nodeType )
+                if( elem && elem.nodeType )
                 {
                     currentItem=elem;
                     do{
                         currentItem = currentItem[propName];
                         if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );
-                    } while (deep && currentItem);
-                }*/
+                    } while ( deep && currentItem )
+                }
             });
             return ret;
-        }
+        }*/
     }
 }
 
