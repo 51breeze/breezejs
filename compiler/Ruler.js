@@ -144,7 +144,7 @@ function isBitOperator(o)
  */
 function isIdentifier( o )
 {
-   return o.type==='(identifier)' ||  o.type==='(string)' ||  o.type==='(regexp)' ||  o.type==='(number)';
+   return (o.type==='(identifier)' ||  o.type==='(string)' ||  o.type==='(regexp)' ||  o.type==='(number)') && ( o.id !== '(keyword)' || isConstant(o.value) );
 }
 
 /**
@@ -540,8 +540,6 @@ syntax['function']= function(event){
         n = this.seek();
     }
 
-
-
     if( n.id !== '(' )
     {
         if ( !checkStatement(n.value) )this.error();
@@ -692,8 +690,6 @@ syntax['if,switch,while,for,catch'] = function(event)
     if( this.scope().keyword()==='expression' )this.scope().switch();
     if( this.scope().keyword()==='param' )this.scope().switch();
 
-    console.log( '===', this.scope() )
-
     //跳到下一个结束符 )
     this.add( this.seek() );
     if( this.current.id !== ')' )this.error('Missing token )');
@@ -729,19 +725,11 @@ syntax['if,switch,while,for,catch'] = function(event)
 
 syntax["return"]=function(event)
 {
-
-    console.log( '=============' )
-
      event.prevented=true;
      if( this.scope().keyword()==='expression' )this.error();
      this.add( new Stack('expression','(*)') );
      this.add( this.current );
-
-    console.log( this.current, this.next )
      this.step();
-
-
-
 }
 
 syntax["in"]=function(e)
@@ -751,72 +739,83 @@ syntax["in"]=function(e)
 
      //var 中的 in 只能在 for 表达式中
      if( this.scope().keyword()==='var' && this.scope().parent().keyword() !== 'for' )this.error();
+
+    e.prevented=true;
+    this.add( this.current );
+    if( !(this.scope().keyword() ==='var' || this.scope().keyword() ==='for') )
+       this.step();
 }
 
 syntax["typeof"]=function(e)
 {
-    if( this.scope().keyword() !== 'expression' )
+    e.prevented=true;
+    if( this.scope().keyword()!=='expression')
     {
-        this.add( new Stack('expression','(string)') );
+        this.add( new Stack('expression', '(string)' ) );
     }
+    this.add( this.current );
+    this.step();
 }
 
 syntax["new"]=function(e)
 {
+    e.prevented=true;
     if( this.scope().keyword()!=='expression')
     {
         this.add( new Stack('expression', '('+this.next.value+')' ) );
     }
+    this.add( this.current )
+    this.step();
 }
 
 syntax['(delimiter)']=function( e )
 {
-    var id = this.current.id
-    if( id === '(' || id === '{' || id=== '[' )
+    var id = this.current.value;
+    if( balance[id] )
     {
          e.prevented=true;
          var s = new Stack('expression', id==='(' ? '(expression)' : id==='[' ? '(array)' : '(object)');
          this.add( s );
          this.add( this.current );
          this.loop(function () {
-            if (this.next.id === balance[id] ) return false;
+            if (this.next.value === balance[id] ) return false;
+            if( this.scope() === s )this.add(  new Stack('expression','(*)') );
             this.step();
             return true;
          });
-         this.add( this.seek() );
-         if( this.current.id !== balance[id ] )this.error();
-         //结束表达式
 
+         this.add( this.seek() );
+         if( this.current.value !== balance[id ] )this.error();
+
+         //结束表达式
          if( this.scope().keyword()==='expression')this.scope().switch();
-         if( s !== this.scope() )this.scope().switch();
-         if( this.next.type === '(operator)' )this.step();
+         if( s === this.scope() )this.scope().switch();
+         if( !s.close() )this.error();
+         if( isOperator(this.next.value) )this.step();
+         if(  balance[this.next.value] )this.step();
     }
 }
 
-syntax['(identifier),(string),(number),(operator),(regexp)']=function( e )
+syntax['(operator)']=function( e )
 {
     var s = this.scope();
     var id = this.current.value;
     e.prevented=true;
-    if( id===';' )return;
-
-    if( id===',' && s.keyword() ==='expression'  )
+    if( s.keyword() !=='expression' )
     {
-        s.switch();
-        this.add( this.current );
-        return;
+        this.add( new Stack('expression','(*)') );
     }
-
-    if( s.keyword() !=='expression' || s.type()==='(expression)' || s.type()==='(array)' || s.type()==='(object)' )
-    {
-        s = new Stack('expression','(*)');
-        this.add( s );
-    }
-
     this.add( this.current );
 
+    //先后运算符
+    if( id===','  )
+    {
+        if( s.keyword() ==='expression' )s.switch();
+        this.add( this.current );
+        this.step();
+    }
     //如果是点运算符
-    if( id==='.' )
+    else if( id==='.' )
     {
         //数字后面不能有点运算符
         if( this.prev.type==='(number)' ) this.error();
@@ -829,12 +828,13 @@ syntax['(identifier),(string),(number),(operator),(regexp)']=function( e )
     //三元运算符
     else if( id==='?' || id===':' )
     {
-
         this.scope().content().pop();
         this.scope().switch();
+        var s =  this.scope();
         this.add( this.current  );
         this.add( new Stack('expression','(*)')  );
         this.step();
+       // if( s.previous(-2).id!==':'  ) this.error('Missing token :');
     }
     //如果是数学运算符
     else if( id==='-' || id==='*' || id==='/' || id==='%' )
@@ -848,9 +848,8 @@ syntax['(identifier),(string),(number),(operator),(regexp)']=function( e )
     {
         if( this.prev.type !=='(identifier)' || this.prev.id==='(keyword)' )this.error();
 
-        //下一个必须是数字或者引用的数字
-        if( !(this.next.type==='(number)' || this.next.type ==='(identifier)' && this.next.id!=='(keyword)') )this.error();
-
+        //下一个必须是数字或者引用的数字(+=)除外
+        if( id !=='+=' && !(this.next.type==='(number)' || this.next.type ==='(identifier)' && this.next.id!=='(keyword)') )this.error();
         this.step();
 
     }
@@ -859,8 +858,51 @@ syntax['(identifier),(string),(number),(operator),(regexp)']=function( e )
     {
         if( this.prev.type !=='(identifier)' || this.prev.id==='(keyword)' )this.error();
         this.step();
+    }
 
-    }else if( this.next.type === '(operator)' || this.current.type==='(operator)' || this.next.value==='(' || this.next.value==='[' )
+    if( this.next.value==='{' && this.current.line===this.next.line )this.error();
+    if( this.next.value==='(' || this.next.value==='[' ||  isIdentifier( this.next ) )
+    {
+        this.step();
+    }
+}
+
+syntax['(identifier)']=function( e )
+{
+    var s = this.scope();
+    var id = this.current.value;
+    e.prevented=true;
+    if( id===';' )return;
+
+    //如果不是表达式
+    if( s.keyword() !=='expression' )
+    {
+        s = new Stack('expression','(*)');
+        this.add( s );
+    }
+    this.add( this.current );
+    if( this.next.value==='{' && this.current.line===this.next.line )this.error();
+    if( this.next.type === '(operator)' || this.next.value==='(' || this.next.value==='[' )
+    {
+        this.step();
+    }
+}
+
+syntax['(string),(number),(regexp)']=function( e )
+{
+    var s = this.scope();
+    e.prevented=true;
+
+    //如果不是表达式
+    if( s.keyword() !=='expression')
+    {
+        s = new Stack('expression','(*)');
+        this.add( s );
+    }
+
+    this.add( this.current );
+    if( (this.next.value==='(' || this.next.value==='[') && this.current.line===this.next.line )this.error();
+    if( isOperator(this.next.value) )
     {
         this.step();
     }
@@ -1311,7 +1353,8 @@ Stack.prototype.toString=function()
     var p =  this.parent();
     if( p && this.keyword()!=='param' && p instanceof Scope && !(this instanceof Scope) )
     {
-        str.push(';\n');
+        if( this === p.content()[ p.length()-1]  || this.keyword()==='var' )
+            str.push(';\n');
     }
     return str.join('');
 }
