@@ -858,16 +858,15 @@ syntax['(operator)']=function( e )
         this.scope().content().pop();
         this.scope().switch();
         this.add( this.current  );
-        var obj =  new Stack('expression','(*)');
-        this.add( obj );
+        var s= this.scope();
+        this.add( new Stack('expression', '(*)') );
         this.step();
-        if( obj.parent().previous(-2).id!==':'  ) {
-
-            console.log( obj.parent() )
+        if( this.next.value === '?' ) this.step();
+        if( this.next.value === ':' ) this.step();
+        if( s.previous(-2).id!==':'  )
+        {
             this.error('Missing token :');
         }
-
-        return;
     }
     //如果是数学运算符
     else if( id==='-' || id==='*' || id==='/' || id==='%' )

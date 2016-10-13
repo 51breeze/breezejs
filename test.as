@@ -38,8 +38,8 @@ package com
         {
 
 
-            var s = strainer? function(){} :
-                strainer  ? function(){} : strainer ;
+            var s = typeof strainer === "string" ? typeof strainer === "undefined" ?
+                strainer === "undefined" : function(){return this.nodeType===1;} : strainer ;
 
 
 
