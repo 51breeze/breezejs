@@ -21,30 +21,28 @@
 package com
 {
 
-    import coms.B;
-    import com.G;
+   import coms.B;
+      import com.G;
     import StyleEvent;
     import PropertyEvent;
     import ElementEvent;
 
     public class test extends B {
 
-        /*static public var name = 3 ;
+        static public var name = 3 ;
         private var ccc = 236666;
         protected var tttt = 'tyuuu';
-        static private var uuu = 'pppp';*/
+        static private var uuu = 'pppp';
 
         public function test()
         {
 
 
-            var s = typeof strainer === "string" ? typeof strainer === "undefined" ?
-                strainer === "undefined" : function(){return this.nodeType===1;} : strainer ;
+           // this.names=69999;
 
+            {ddd ,'9999'};
 
-
-           /* this.names=69999;
-            var write= typeof newValue !== 'undefined';
+           /* var write= typeof newValue !== 'undefined';
             if( !write && this['length'] < 1 )return null;
             var getter = this['__'+callback+'__'].get;
             var setter = this['__'+callback+'__'].set;
@@ -66,7 +64,7 @@ package com
                     var event = setter.call(elem,name,newValue,this);
                     if( typeof event === "string" )
                     {
-                        event = event===StyleEvent.CHANGE ?  new StyleEvent( StyleEvent.CHANGE ) :  new PropertyEvent( PropertyEvent.CHANGE );
+                        event = event===StyleEvent.CHANGE ? new StyleEvent( StyleEvent.CHANGE ) :  new PropertyEvent( PropertyEvent.CHANGE );
                         event.property = name;
                     }
                     if( event instanceof PropertyEvent && this.hasEventListener( event.type ) )
@@ -74,7 +72,7 @@ package com
                         event.property = event.property || name;
                         event.newValue = event.newValue || newValue;
                         event.oldValue = event.oldValue || oldValue;
-                        this.dispatchEvent( event );
+                        this.dispatchEvent( event ) ;
                     }
                 }
             });*/
@@ -97,21 +95,17 @@ package com
             return true;
         }*/
 
-        /**
-         *  @private
-         */
+
         /*function doMake( elems )
         {
             var r = this.__reverts__ || (this.__reverts__ = []);
             r.push( this.splice(0,this.length, elems ) );
             this.next(null);
             return this;
-        }*/
+        }
 
-        /**
-         *  @private
-         */
-        /*function doRecursion(propName,strainer, deep )
+
+        function doRecursion(propName,strainer, deep )
         {
             var currentItem,ret=[];
             var s = typeof strainer === "string" ? function(){return Breeze.querySelector(strainer, null , null, [this]).length > 0; } :
@@ -124,7 +118,9 @@ package com
                     currentItem=elem;
                     do{
                         currentItem = currentItem[propName];
-                        if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );
+                        if( currentItem && s.call(currentItem) )
+                            ret = ret.concat( currentItem );
+
                     } while ( deep && currentItem )
                 }
             });
