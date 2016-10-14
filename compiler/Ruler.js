@@ -594,19 +594,16 @@ syntax['function']= function(event){
         s.type( type.value );
     }
 
-    var s = this.scope();
-
-    this.seek();
+    this.add( this.seek() );
     if( this.current.id !=='{' ) this.error('Missing token {');
     this.loop(function(){
          if( this.next.id === '}' ) return false;
          this.step();
          return true;
     });
-
+    this.add( this.next );
     this.seek();
     if( this.current.id !=='}' ) this.error('Missing token }');
-
 };
 
 
@@ -629,12 +626,13 @@ syntax['else']= function(event)
 
     }else if( this.next.id === '{' )
     {
-        this.seek();
+        this.add( this.seek() );
         this.loop(function(){
             if( this.next.id==='}' )return false;
             this.step();
             return true;
         })
+        this.add( this.next );
         this.seek();
         if( this.current.id !=='}' )this.error('Missing token }');
 
@@ -657,13 +655,14 @@ syntax['do,try,finally'] = function(event)
         if( !p || !(p.keyword() === 'catch' || p.keyword()==='try') ) this.error();
     }
 
-    this.seek();
+    this.add(this.seek());
     if( this.current.id !== '{' ) this.error('Missing token {');
     this.loop(function(){
         if( this.next.id==='}' )return false;
         this.step();
         return true;
     });
+    this.add(this.next());
     this.seek();
     if( this.current.id !== '}' ) this.error('Missing token }');
     if( event.type==='do' && this.next.value !== 'while' )this.error();
@@ -704,12 +703,13 @@ syntax['if,switch,while,for,catch'] = function(event)
     if( ( event.type === 'switch' || event.type === 'catch' ) && this.next.id!=='{' )this.error('Missing token {');
     if( this.next.id==='{' )
     {
-        this.seek();
+        this.add(this.seek());
         this.loop(function () {
             if( this.next.id==='}' )return false;
             this.step();
             return true;
         });
+        this.add(this.next());
         this.seek();
         if( this.current.id !== '}' )this.error('Missing token }');
 
@@ -799,42 +799,61 @@ syntax['(seek)']=function( e )
         this.error('Unexpected token '+this.next.value, this.next);
 }
 
+var jsontag={',':':',':':','}
 syntax['(delimiter)']=function( e )
 {
     var id = this.current.value;
     if( balance[id] )
     {
-         e.prevented=true;
-
-         var s = new Stack('expression', id==='(' ? '(expression)' : id==='[' ? '(array)' : '(object)');
+        e.prevented=true;
+        var s = new Stack('expression', id==='(' ? '(expression)' : id==='[' ? '(array)' : '(object)');
+        if( s.type()==='(object)' )
+        {
+            var self= this;
+            s.addListener('(add)',function (e) {
+                if( e.target.value==='{' ||  e.target.value==='}' )return;
+                if( !(e.target instanceof Stack)  )
+                {
+                    var id = e.target.value;
+                    var p = this.previous(-2);
+                    if( ( p && jsontag[id]===p.value ) || ( id ===':' && this.length()<3 ) )
+                        return ;
+                    self.error();
+                }
+            });
+        }else if( s.type()==='(array)' )
+        {
+            var self= this;
+            s.addListener('(add)',function (e) {
+                if( e.target.value==='[' ||  e.target.value===']' )return;
+                if( !(e.target instanceof Stack) && e.target.value !==',' )
+                {
+                    self.error();  
+                }
+            })
+        }
+        
          this.add( s );
          this.add( this.current );
          this.loop(function () {
             if (this.next.value === balance[id] || this.next.value===';' ) return false;
-            /*if( this.scope() === s && this.next.value!=='function' )*/
             this.add( new Stack('expression','(*)') );
             this.step();
             return true;
          });
 
          if( this.scope().keyword()==='expression' && s !== this.scope() )this.scope().switch();
-
          this.add( this.seek() );
-
          if( this.current.value !== balance[id ] )this.error();
          if( s === this.scope() )this.scope().switch();
          if( !s.close() ){
-
-            // console.log(s.parent().keyword() )
              this.error();
          }
-
          if( isOperator(this.next.value) || balance[this.next.value] )
          {
              this.step();
              return;
          }
-
          this.end();
     }
 }
@@ -968,17 +987,13 @@ syntax['(operator)']=function( e )
 
 syntax['(identifier)']=function( e )
 {
-    var s = this.scope();
-    var id = this.current.value;
     e.prevented=true;
 
     //如果不是表达式
-    if( s.keyword() !=='expression' )
+    if( this.scope().keyword() !=='expression' )
     {
-        s = new Stack('expression','(*)');
-        this.add( s );
+        this.add( new Stack('expression','(*)') );
     }
-
     this.add( this.current );
     if( this.next.value==='{' && this.current.line===this.next.line )this.error();
     if( this.next.type === '(operator)' || this.next.value==='(' || this.next.value==='[' )
@@ -987,30 +1002,10 @@ syntax['(identifier)']=function( e )
         return;
     }
     this.end();
+
 }
 
-syntax['(string),(number),(regexp)']=function( e )
-{
-    var s = this.scope();
-    e.prevented=true;
-
-    //如果不是表达式
-    if( s.keyword() !=='expression')
-    {
-        s = new Stack('expression','(*)');
-        this.add( s );
-    }
-
-    this.add( this.current );
-    if( (this.next.value==='(' || this.next.value==='[') && this.current.line===this.next.line )this.error();
-    if( isOperator(this.next.value) )
-    {
-        this.step();
-        return;
-    }
-    if( this.scope().keyword()==='expression' )this.end();
-}
-
+syntax['(string),(number),(regexp)']=syntax['(identifier)'];
 
 /**
  * 抛出错误信息
@@ -1201,20 +1196,10 @@ function Stack( keyword, type )
     this.__close__  =false;
     Listener.call(this);
 
-    this.addListener('(begin)',function(e)
-    {
-        if( e.target && e.target.id === '{' && this instanceof Scope )
-        {
-           if( !(this.keyword()==='package' || this.keyword()==='class') )this.add(  e.target );
-        }
-    })
-
     this.addListener('(end)', function (e) {
         if( e.target && e.target.id === '}' && this instanceof Scope )
         {
-            if( !(this.keyword()==='package' || this.keyword()==='class') )this.add(  e.target );
             this.switch();
-
         }else if( e.target && e.target.id===';' && !(this instanceof Scope) )
         {
             this.switch();
@@ -1316,6 +1301,7 @@ Stack.prototype.add=function( val, index )
     var event = new Event('(add)', {target:val} );
     this.dispatcher( event );
     val = event.target;
+
     if( !event.prevented )
     {
         if( val instanceof Stack )
@@ -1455,20 +1441,21 @@ Stack.prototype.toString=function()
 
         }else
         {
-            str.push(data[i].value);
+            if( data[i].value==='}')str.push('\n');
+            str.push(data[i].value || data[i] );
             if( data[i].value==='{')str.push('\n');
+
             if( (data[i].type==='(identifier)' || data[i].id==='(keyword)' ) &&
                 (data[i+1] && (  data[i+1] instanceof Stack || data[i+1].type==='(identifier)' || data[i+1].id==='(keyword)') ) )
                 str.push(' ');
-
         }
     }
 
     var p =  this.parent();
     if( p && this.keyword()!=='param' && p instanceof Scope && !(this instanceof Scope) )
     {
-        if( this === p.content()[ p.length()-1]  || this.keyword()==='var' )
-            str.push(';\n');
+        //if( this === p.content()[ p.length()-1]  || this.keyword()==='var' )
+            //str.push(';\n');
     }
     return str.join('');
 }
@@ -1819,6 +1806,8 @@ Ruler.prototype.seek=function( flag )
     {
         if( this.current.id===';' )
         {
+            this.add( this.current );
+            this.scope().content().push('\n');
             this.scope().dispatcher( new Event('(end)',  {target:this.current, ruler:this} ) );
 
         }/*else if( this.next.id !== ';' && isIdentifier(this.next) && isIdentifier( this.current ) )
@@ -1867,7 +1856,6 @@ Ruler.prototype.end=function( stack )
     if( this.current.value === ';')
     {
         stack.switch();
-        this.add( this.current );
         return true;
 
     }else if( this.next.value===';' )
@@ -1880,12 +1868,12 @@ Ruler.prototype.end=function( stack )
         var t = stack.parent().type();
 
         //嵌套在对象中的对象可以用这些操作操作
-       if( t==='(expression)' || t==='(object)' || t==='(array)' )
+       /*if( t==='(expression)' || t==='(object)' || t==='(array)' )
         {
             stack.switch();
             return true;
 
-        }else
+        }else*/
         //(expression1, expression2) or expression2 ? expression3 : expression4 ...
          if( this.next.value===')' || this.next.value===']' || this.next.value==='}' || this.next.value==='?' || this.next.value===':' || this.next.value===',' )
         {
@@ -2005,6 +1993,7 @@ Ruler.prototype.add=function( val , index )
         this.scope().add(val, index);
      }catch (e)
      {
+         console.log( this.scope()  , val )
         this.error(e.message);
      }
      return true;

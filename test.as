@@ -38,9 +38,13 @@ package com
         {
 
 
-           // this.names=69999;
+var cc= {
+ddd:'9999',
+jj:'ssss',
+    nam:{cc:333,bb:'pppp'}
+};
 
-            {ddd ,'9999'};
+            var bb=[sss,kkk,nnnn];
 
            /* var write= typeof newValue !== 'undefined';
             if( !write && this['length'] < 1 )return null;
