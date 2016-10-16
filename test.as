@@ -33,10 +33,33 @@ package com
 
          public function test()
          {
+
+             const uuuu=333 ;
+
+             var lets;
+
+             var n = ~1;
+             var gg= n++, bbb=--n;
+             let weerh=999,uupo;
+
+              gg *= 2;
+              gg != 2;
+              gg -= +2;
+              gg %= -2;
+              gg = 2 && b;
+              gg = ~2 && b;
+              gg = 2 >= b;
+              gg = 2 <= --b;
+              gg != !2 <= b++;
+
+             this['name']++;
+
              var getters = fix.cssHooks[name] && typeof fix.cssHooks[name].get === "function" ? fix.cssHooks[name].get : null;
              var currentStyle = Breeze.hasStyle(this) ? (document.defaultView && document.defaultView.getComputedStyle ?
                  document.defaultView.getComputedStyle(this, null) : this.currentStyle || this.style) : {};
-             return getters ? getter.call(this, currentStyle, name) : currentStyle[name];
+             return getters ? getter.call(this, currentStyle, --name) : currentStyle[name];
+
+
 
 
              var getAttrExp = /(\w+)(\s*=\s*([\"\'])([^\3]*?)[^\\]\3)?/g;
@@ -71,14 +94,18 @@ package com
 
              this.current( (1 && 2) ,[this],[] );
 
-             var name;
-         for ( name in ccc )
+
+         for ( var name in ccc )
          {
 
          }
-         for ( var i=0,b=8; i<9 ; i++, --b )
+         for ( let i=0,b=8; i<9 ; i++, --b )
          {
+             do{
+                 currentItem = currentItem[propName];
 
+
+             } while ( deep && currentItem )
          }
 
 
@@ -292,7 +319,7 @@ package com
                 }
             }
             return object;
-        } 
+        }
     }
 
 }
