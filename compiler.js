@@ -3,6 +3,9 @@ const root = process.cwd().replace('\\','/');
 const suffix = '.as';
 const global_module={};
 
+const ruler = require('./compiler/Ruler.js');
+
+
 function global(name)
 {
     var path = name.replace(/\s+/g,'').split('.');
@@ -797,7 +800,8 @@ function createModule(file)
         'class': classname(file),
         'import':{},
         'extends':null,
-        'accessor':{},
+        'type':'public',
+        'accessor':[],
         'dynamic': {
             'function':{public:[],protected:[],private:[],internal:[]},
             'variable':{public:{},protected:{},private:{},internal:{}}
@@ -806,10 +810,10 @@ function createModule(file)
             'function':{public:[],protected:[],private:[],internal:[]},
             'variable':{public:{},protected:{},private:{},internal:{}}
          },
-        'balancer':0,
         'uinque':{}
     };
 }
+
 
 /**
  * 执行编译
@@ -817,14 +821,10 @@ function createModule(file)
 function make( file , fs )
 {
     var content = fs.readFileSync( pathfile( file ) , 'utf-8');
-    var code = content.split(/[\r]?\n/);
-    var num = code.length;
-    var i = 0;
-    var skip = false;
-    var v;
-    var line;
-    
-    
+  //  var code = content.split(/[\r]*\n/);
+  //  var num = code.length;
+    //var i = 0;
+  //  var balancer=0;
 
     //模块文件的配置
     var module=createModule(file);
@@ -832,62 +832,34 @@ function make( file , fs )
     //注册到全局模块中
     global(module.package)[module.class] = module;
 
+    var r = new ruler( content );
+
+
+    r.start();
+
+    console.log( r.scope().toString() );
+    return ;
+
+
+
     //逐行
-    while (i < num && !global_error )
+    while ( i < num )
     {
-        var item = code[i];
-        i++;
-        if (item !== '')
+        var item = code[i++];
+
+        //注释的内容不解析
+        if( balancer===0 && /^\s*\/\*/.test(item) )
         {
-            //注释的内容不解析
-            if( !skip && /^\s*\/\*/.test(item) )
-            {
-                skip = true;
-                continue;
+            balancer++;
+        } else if( balancer===1 && /\*\/\s*$/.test(item) )
+        {
+            balancer--;
+        }
+        if( balancer===0 &&  item !== '' && !/^\s*\/\//.test(item) )
+        {
 
-            } else if( skip && /\*\/\s*$/.test(item) )
-            {
-                skip = false;
-                continue;
-            }
-
-            if( skip || /^\s*\/\//.test(item) )
-            {
-                continue;
-            }
-
-            //分行
-            line = escape( item ).replace(/\{/g,"\n{").replace(/\}/g,"\n}").replace(/\;/g,"\n");
-
-            //分割成多行
-            line = line.split(/\n/);
-
-            var b=0;
-            var len = line.length;
-
-            //解析和检查每行的代码
-            do{
-                v = trim( line[b++] );
-                if ( v !== '' )
-                {
-                    try {
-                        parse(module, v );
-                    } catch (e) {
-                        global_error = true;
-                        console.log( e.message, file, ' in line ' + i,'->', e );
-                    }
-                }
-            }while( !global_error && b<len )
         }
     }
-
-    if( module.balancer !== 0 )
-    {
-        global_error=true;
-        console.log('syntax error', file,' in line ' + i);
-    }
-
-    if( global_error )return '';
 
     var contents=[];
 
@@ -916,15 +888,20 @@ var showMem = function()
 
 
 
+
+
+
 var main='test';
 var content = make( main , fs );
-if( !global_error )
+
+
+/*if( !global_error )
 {
     var system = fs.readFileSync( './system.js' , 'utf-8');
     var app='\nreturn __g__.getInstance("'+main+'");\n';
     content = "(function(){\n" + system + content + app +'\n})()';
     fs.writeFileSync('./test-min.js', content );
-}
+}*/
 
 
 
