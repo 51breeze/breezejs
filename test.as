@@ -26,15 +26,19 @@ package com
 
     public class test extends B {
 
-        /* static public var name = 3 ;
+         static public var name = 3 ;
          private var ccc = 236666;
          protected var tttt = 'tyuuu';
-         static private var uuu = 'pppp';*/
+         static private var uuu = 'pppp';
 
          public function test()
          {
 
              const uuuu=333 ;
+
+             var bbcc:Number=123;
+
+             var yuuos = new String();
 
              var lets;
 

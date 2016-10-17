@@ -834,7 +834,6 @@ function make( file , fs )
 
     var r = new ruler( content );
 
-
     r.start();
 
     console.log( r.scope().toString() );

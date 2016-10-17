@@ -16,21 +16,202 @@ var reserved = [
  * 系统全局对象
  * @type {string[]}
  */
-var objects = [
-    'Number','String','Object','RegExp','Error','EvalError','RangeError',
-    'ReferenceError','SyntaxError','TypeError','URIError','Math','Function',
-    'Arguments','Date','Boolean','Array','Symbol'
-];
+var objects = {
+    'Number':{},
+    'String':{},
+    'Object':{},
+    'RegExp':{},
+    'Error':{},
+    'EvalError':{},
+    'RangeError':{},
+    'ReferenceError':{},
+    'SyntaxError':{},
+    'TypeError':{},
+    'URIError':{},
+    'Function':{},
+    'Date':{},
+    'Boolean':{},
+    'Symbol':{},
+    'Atomics':{},
+    'DataView':{
+        'static':{},
+        'properties':{
+            'buffer':'ArrayBuffer',
+            'byteLength':'Number',
+            'byteOffset':'*',
+        },
+        'methods':{
+            'getInt8':'*',
+            'getUint8':'*',
+            'getInt16':'*',
+            'getUint16':'*',
+            'getInt32':'*',
+            'getUint32':'*',
+            'getFloat32':'*',
+            'getFloat64':'*',
+            'setInt8':'*',
+            'setUint8':'*',
+            'setInt16':'*',
+            'setUint16':'*',
+            'setInt32':'*',
+            'setUint32':'*',
+            'setFloat32':'*',
+            'setFloat64':'*',
+        },
+    },
+    'Array':{
+        'static':{
+            'from':'Array',
+            'isArray':'Boolean',
+            'of':'Array',
+        },
+        'properties':{'length':'Number'},
+        'methods':{
+            'concat':'Array',
+            'copyWithin':'Array',
+            'entries':'Iterator',
+            'every':'Boolean',
+            'fill':'Array',
+            'filter':'Array',
+            'find':'*',
+            'findIndex':'Number',
+            'forEach':'undefined',
+            'includes':'Boolean',
+            'indexOf':'Number',
+            'join':'String',
+            'keys':'Iterator',
+            'lastIndexOf':'Number',
+            'map':'Array',
+            'pop':'*',
+            'push':'Number',
+            'reduce':'*',
+            'reduceRight':'*',
+            'reverse':'Array',
+            'shift':'*',
+            'slice':'Array',
+            'some':'Boolean',
+            'sort':'Array',
+            'splice':'Array',
+            'toLocaleString':'String',
+            'toSource':'String',
+            'toString':'String',
+            'unshift':'Number',
+            'values':'Iterator',
+        },
+    },
+    'ArrayBuffer':{},
+    'Float32Array':{},
+    'Float64Array':{},
+    'Int16Array':{},
+    'Int32Array':{},
+    'Int8Array':{},
+    'Intl':{
+        'static':{
+           'DateTimeFormat':'*',
+           'NumberFormat':'*',
+           'Collator':'*',
+        },
+        'properties':{},
+        'methods':{},
+    },
+    'Iterator':{},
+    'JSON':{},
+    'ParallelArray':{},
+    'Promise':{},
+    'Proxy':{},
+    'Reflect':{},
+    'SIMD':{
+        'static':{
+            'Bool16x8':'*',
+            'Bool32x4':'*',
+            'Bool64x2':'*',
+            'Bool8x16':'*',
+            'Float32x4':'*',
+            'Float64x2':'*',
+            'Int16x8':'*',
+            'Int32x4':'*',
+            'Int8x16':'*',
+            'Uint16x8':'*',
+            'Uint32x4':'*',
+            'Uint8x16':'*',
+        },
+        'properties':{},
+        'methods':{},
+    },
+    'Set':{},
+    'SharedArrayBuffer':{},
+    'StopIteration':{},
+    'TypedArray':{},
+    'URIError':{},
+    'Uint16Array':{},
+    'Uint32Array':{},
+    'Uint8Array':{},
+    'Uint8ClampedArray':{},
+    'WeakMap':{},
+    'WeakSet':{},
+    'decodeURI':'String',
+    'decodeURIComponent':'String',
+    'encodeURI':'String',
+    'encodeURIComponent':'String',
+    'escape':'String',
+    'eval':'void',
+    'isFinite':'Boolean',
+    'isNaN':'Boolean',
+    'parseFloat':'Number',
+    'parseInt':'Number',
+    'unescape':'String',
+    'uneval':'String',
+    'setInterval':'Number',
+    'clearInterval':'Boolean',
+    'setTimeout':'Number',
+    'clearTimeout':'Boolean',
+    'alert':'void',
+    'confirm':'void',
+    'window':{},
+    'console':{},
+    'document':{},
+    'location':{},
+    'undefined':'undefined',
+    'arguments':{},
+    'null':'null',
+    'NaN':'NaN',
+    'Math':{},
+    'Infinity':'Infinity',
+};
 
-/**
- * 系统全局属性
- * @type {string[]}
- */
-var globals=[
-    'window','document','location','setInterval','clearInterval','setTimeout',
-    'clearTimeout','console','alert','confirm','eval','parseInt','parseFloat',
-    'isNaN','isFinite','decodeURI','decodeURIComponent','encodeURI','encodeURIComponent',
-];
+
+var nonew={
+    'window':false,
+    'document':false,
+    'location':false,
+    'decodeURI':false,
+    'decodeURIComponent':false,
+    'encodeURI':false,
+    'encodeURIComponent':false,
+    'escape':false,
+    'eval':false,
+    'isFinite':false,
+    'isNaN':false,
+    'parseFloat':false,
+    'parseInt':false,
+    'unescape':false,
+    'uneval':false,
+    'setInterval':false,
+    'clearInterval':false,
+    'setTimeout':false,
+    'clearTimeout':false,
+    'alert':false,
+    'confirm':false,
+    'Math':false,
+    'JSON':false,
+    'Intl':false,
+    'SIMD':false,
+    'arguments':false,
+    'null':false,
+    'NaN':false,
+    'Infinity':false,
+    'this':false,
+};
 
 
 /**
@@ -132,26 +313,7 @@ function isBoolOperator(o)
         case '===' :
         case '!==' :
         case 'instanceof' :
-            return true;
-    }
-    return false;
-}
-
-/**
- * 是否为位运算符
- * @param o
- * @returns {boolean}
- */
-function isBitOperator(o)
-{
-    switch (o) {
-        case '~' :
-        case '&' :
-        case '|' :
-        case '^' :
-        case '<<' :
-        case '>>' :
-        case '>>>' :
+        case 'in' :
             return true;
     }
     return false;
@@ -219,7 +381,7 @@ function checkStatement(s, defined )
  */
 function checkStatementType( s , defined )
 {
-    return s==='(*)' || (defined && typeof defined[s] !== "undefined" ) || objects.indexOf(s) >=0;
+    return s==='(*)' || (defined && typeof defined[s] !== "undefined" ) || typeof objects[s] !== "undefined";
 }
 
 /**
@@ -243,7 +405,7 @@ function isReference( scope, obj )
 {
     if( obj.type==='(regexp)' || obj.type==='(string)' || obj.type==='(number)' )return true;
     if( scope.define( obj.value ) )return true;
-    if( globals.indexOf(obj.value)>=0 )return true;
+    if( objects.indexOf(obj.value)>=0 )return true;
     return isConstant(obj.value);
 }
 
@@ -321,7 +483,8 @@ var syntax={};
 syntax["package"]=function (event)
 {
     event.prevented=true;
-    if( event.scope.keyword() !== 'package' )this.error();
+    this.add( new Scope('package', '(black)' ) );
+
     var self = this;
     var name = [];
     this.loop(function(){
@@ -353,11 +516,12 @@ syntax["package"]=function (event)
 syntax['import']=function (event)
 {
     event.prevented=true;
-    var s = event.scope;
 
     // import 只能出现在 package 中
-    if( s.parent().keyword() !=='package' )this.error('Unexpected import ', 'syntax');
+    if( this.scope().keyword() !=='package' )this.error('Unexpected import ', 'syntax');
+    this.add( new Stack('import', '(string)' ) );
 
+    var s = this.scope();
     var filename=[];
     var name=null;
     this.loop(function()
@@ -429,14 +593,14 @@ syntax['private,protected,internal,static,public']=function(event)
 
     if( n.value==='class' || n.value === 'function' )
     {
-        this.beginStack();
+        this.add( new Scope('class', '(black)' ) );
         this.scope().static( type === 'static' );
         this.scope().qualifier( qualifier );
         this.check();
 
     }else if( n.value==='var' )
     {
-        this.beginStack();
+        this.add( new Stack('var', '(*)' ) );
         this.scope().static = type === 'static';
         this.scope().qualifier = qualifier;
         this.check();
@@ -452,8 +616,8 @@ syntax['private,protected,internal,static,public']=function(event)
 syntax['class']=function( event )
 {
     event.prevented=true;
+    if(this.scope().keyword()!=='class')this.add( new Scope('class', '(black)' ) );
     var s = this.scope();
-
     if( s.parent().keyword() !=='package' || s.keyword() !=='class' )this.error();
 
     //获取类名
@@ -490,22 +654,19 @@ syntax['class']=function( event )
 syntax['var,let']=function (event)
 {
     event.prevented=true;
+    if(this.scope().keyword() !== event.type )this.add( new Stack( event.type, '(*)' ) );
     this.add( this.current );
+
     var parent = this.scope().parent();
-    if( parent.type() !== '(black)' &&  parent.type() !== '(function)' )
+
+    //var 只能出现在块级或者for中
+    if( !(parent instanceof Scope) )
     {
-        while (parent && parent.keyword() !== 'for' ){
-            parent = parent.parent();
-        }
+        while( parent && parent.keyword() !== 'for' )parent = parent.parent();
+        if( !parent )this.error();
     }
 
     if( !isPropertyName(this.next.value) )this.error('Invalid statement for '+this.next.value );
-
-    //var 只能出现在块级或者for中
-    if( !parent || !(parent.keyword()==='for' || parent.type()==='(black)' || parent.type()==='(function)' ) ){
-        //console.log( parent.type() )
-        this.error();
-    }
     var variable = this.scope();
     var statement =  new Stack('statement' , '(expression)');
     this.add( statement );
@@ -528,6 +689,7 @@ syntax['var,let']=function (event)
 syntax['const']=function (event)
 {
     event.prevented=true;
+    this.add( new Stack( event.type, '(*)' ) );
     this.add( this.current );
     if( !isPropertyName(this.next.value) )this.error();
     if( !(this.scope().parent() instanceof Scope) )this.error('Invalid const');
@@ -540,6 +702,7 @@ syntax['const']=function (event)
 syntax['function']= function(event){
 
     event.prevented=true;
+    this.add( new Scope( event.type, '(Function)' ) );
     this.add( this.current );
     var s = this.scope()
     var n = this.seek();
@@ -647,6 +810,7 @@ syntax['else']= function(event)
 syntax['do,try,finally'] = function(event)
 {
     event.prevented = true;
+    this.add( new Scope( event.type, '(black)' ) );
     if( this.scope().keyword() !== event.type )this.error();
     this.add( this.current );
     if( event.type==='finally' )
@@ -671,6 +835,7 @@ syntax['do,try,finally'] = function(event)
 syntax['if,switch,while,for,catch'] = function(event)
 {
     event.prevented = true;
+    this.add( new Scope( event.type, '(black)' ) );
     var s = this.scope();
     if( s.keyword() !== event.type )this.error();
     if( event.type==='catch' )
@@ -810,6 +975,10 @@ syntax["in"]=function(e)
 {
     e.prevented=true;
     this.add( this.current );
+    var p = this.scope().parent().parent();
+    this.scope().type('(boolean)');
+    if( p.keyword()==='var' || p.keyword()==='left' )this.scope().type('(string)');
+    if( !(this.next.type ==='(identifier)' && this.next.id !=='(keyword)' || this.next.value==='this') )this.error('',this.next);
     this.step();
 }
 
@@ -821,6 +990,8 @@ syntax["typeof"]=function(e)
     {
         this.add( new Stack('expression', '(string)' ) );
     }
+    this.scope().type('(string)');
+    if( isBoolOperator(this.prev.value) ) this.scope().type('(boolean)');
     this.add( this.current );
     this.step();
 }
@@ -838,6 +1009,15 @@ syntax["new"]=function(e)
         s = new Stack('expression', '('+this.next.value+')' );
         this.add( s );
     }
+
+    if( nonew[ this.next.value ] === false )this.error('cannot use new operator for '+this.next.value , this.next );
+
+    var ps = getParentScope(this.scope());
+    if( !checkStatementType(this.next.value, ps.define() ) )
+    {
+        this.error(this.next.value+' not define');
+    }
+
     this.add( this.current );
     this.step();
 }
@@ -942,6 +1122,7 @@ syntax['(operator)']=function( e )
     if( id==='!' || id==='!!' )
     {
         if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(boolean)') );
+        this.scope().type('(boolean)');
         this.add(this.current);
         if( !isIdentifier(this.next) || this.next.value===';' )this.error();
         this.step();
@@ -1011,7 +1192,9 @@ syntax['(operator)']=function( e )
                 if( this.length()>5 )self.error('Not end expression');
             }).addListener('(switch)',function(){
                 var p = this.previous(-2);
-                if( !p || p.id !==':' )self.error('Missing token :');
+                if( !p || p.id !==':' ){
+                    self.error('Missing token :');
+                }
             });
 
         }else if( id===':' && this.scope().keyword()==='ternary' )
@@ -1050,6 +1233,7 @@ syntax['(operator)']=function( e )
             //右边是引用或者数字
             if (!(this.next.type === '(number)' || this.next.type === '(identifier)' && this.next.id !== '(keyword)'))this.error();
         }
+        this.scope().type('(number)');
         this.step();
         return;
     }
@@ -1058,6 +1242,9 @@ syntax['(operator)']=function( e )
     {
         this.add( this.current );
         if( this.prev.type !=='(identifier)' || this.prev.id==='(keyword)' )this.error();
+
+        this.scope().type('(number)');
+        if( id==='!=' )this.scope().type('(boolean)');
 
         //下一个必须是数字或者引用的数字(+=)除外
         if( id !=='+=' )
@@ -1088,6 +1275,7 @@ syntax['(operator)']=function( e )
 
         if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(number)') );
         this.add( this.current );
+        this.scope().type('(number)');
         if( left && this.next.value ===',' || !left && right )
         {
             this.step();
@@ -1098,8 +1286,7 @@ syntax['(operator)']=function( e )
     else if( id==='=' )
     {
         this.add( this.current );
-        if( (this.prev.type !=='(identifier)' || this.prev.id==='(keyword)' ) && this.prev.value!==']' )
-            this.error();
+        if( (this.prev.type !=='(identifier)' || this.prev.id==='(keyword)' ) && this.prev.value!==']' )this.error();
         if( this.next.value===';' || !(this.next.value ==='-' || this.next.value==='+' || balance[ this.next.value ] ||
             isIdentifier(this.next) || isLeftOperator(this.next.value)) )
         {
@@ -1111,6 +1298,7 @@ syntax['(operator)']=function( e )
     else if( id==='~' )
     {
          if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(number)') );
+         this.scope().type('(number)');
          this.add( this.current );
          this.step();
          return;
@@ -1120,13 +1308,18 @@ syntax['(operator)']=function( e )
         var v = this.next.value;
         var is = v==='-' ||  v==='+' || isLeftOperator(v);
         this.add(this.current);
+        this.scope().type('(number)');
+        if( isBoolOperator(this.current.value) )
+        {
+            this.scope().type('(boolean)');
+        }
         if( is || balance[ v ] || isIdentifier( this.next ) )
         {
             this.step();
             return;
         }
      }
-    this.end();
+     this.end();
 }
 
 
@@ -1192,6 +1385,12 @@ syntax['(identifier)']=function( e )
         this.add( new Stack('expression','(*)') );
     }
     this.add( this.current );
+
+    if( this.current.type==='(string)' || this.current.type==='(number)' || this.current.type==='(regexp)' )
+    {
+        this.scope().type( this.current.type );
+    }
+
     if( this.next.type === '(operator)' || this.next.value==='(' || this.next.value==='[' )
     {
         var left = this.prev.value;
@@ -1624,6 +1823,8 @@ Stack.prototype.toString=function()
     var str = [];
     var i = 0;
     var len = data.length;
+    var ps = getParentScope(this);
+
     for ( ; i< len ; i++ )
     {
         if( data[i] instanceof Stack )
@@ -1631,6 +1832,9 @@ Stack.prototype.toString=function()
             str.push( data[i].toString() );
         }else
         {
+
+           // ps.define()
+
             var n = data[i+1];
             str.push(data[i].value || data[i] );
             if( (data[i].type==='(identifier)' || data[i].id==='(keyword)') &&
@@ -2082,54 +2286,6 @@ Ruler.prototype.end=function( stack )
     this.error('syntax not end');
 }
 
-var syntax_keyword=['package','class','function','do','while','for','if','switch','try','catch','finally','import','var','const','let'];
-
-/**
- * 生成代码堆叠器
- * @returns {*}
- */
-Ruler.prototype.beginStack = function()
-{
-    var id =  this.current.id;
-    var value = this.current.value;
-    var stack = null;
-    var type  = '(black)';
-    if( id==='(keyword)' )
-    {
-        switch ( value )
-        {
-            case 'package' :
-            case 'class'   :
-                stack = new Scope(value, '(black)' );
-                break;
-            case 'function':
-                stack = new Scope(value, '(function)');
-                break;
-            case 'do'      :
-            case 'while'   :
-            case 'for'     :
-            case 'if'      :
-            case 'switch'  :
-            case 'try'     :
-            case 'catch'   :
-            case 'finally' :
-                stack = new Scope(value,type);
-                break;
-            case 'import'  :
-            case 'var'     :
-            case 'const'   :
-            case 'let'     :
-                stack = new Stack(value, '(*)' );
-                break;
-        }
-    }
-    if( stack ){
-        if( syntax_keyword.indexOf(this.next.value)>=0 )this.error('',this.next);
-        this.add( stack );
-    }
-    return stack;
-}
-
 
 /**
  * 步进
@@ -2139,12 +2295,12 @@ Ruler.prototype.beginStack = function()
 Ruler.prototype.step=function()
 {
     this.seek();
-    this.beginStack();
+    var s = this.scope();
     var index = this.scope().length();
     var event = this.check();
     if( !event.prevented && event.target )
     {
-        this.add( event.target , index );
+        s.add( event.target , index );
     }
 }
 
@@ -2223,6 +2379,11 @@ Ruler.prototype.keyword=function(s)
 }
 
 /**
+ * @type {RegExp}
+ */
+var number_regexp = /^(0x[0-9a-f]+|o[0-7]+|[\-\+]?[\d\.]+)/i;
+
+/**
  * 获取数字类型
  * @param s
  * @returns {*}
@@ -2230,7 +2391,7 @@ Ruler.prototype.keyword=function(s)
 Ruler.prototype.number=function(s)
 {
     if( s.charAt(0)==='.' && !/\d/.test( s.charAt(1) ) )return null;
-    if( /^(0x[0-9a-f]+|o[0-7]+|[\-\+]?[\d\.]+)/i.exec(s) )
+    if( number_regexp.exec(s) )
     {
         return describe('(number)', RegExp.$1 , RegExp.$1 );
     }
