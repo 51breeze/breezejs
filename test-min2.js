@@ -126,6 +126,8 @@ return true;
 }},
 static:{bbbb:function(){
 },name:123,uuu:'pppp'}};
+
+
 var module={constructor:test,package:'',dynamic:{function:{protected:{},internal:{}},variable:{protected:{tttt:"'tyuuu'"},internal:{}}},static:{function:{protected:{},internal:{}},variable:{protected:{},internal:{}}}};
 __g__.merge(map.dynamic,__g__.module("B.dynamic.function.protected"));
 __g__.merge(module.dynamic.function.protected,__g__.module("B.dynamic.function.protected"));

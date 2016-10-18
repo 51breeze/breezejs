@@ -64,8 +64,6 @@ package com
              return getters ? getter.call(this, currentStyle, --name) : currentStyle[name];
 
 
-
-
              var getAttrExp = /(\w+)(\s*=\s*([\"\'])([^\3]*?)[^\\]\3)?/g;
              var lrQuoteExp = /^[\'\"]|[\'\"]$/g;
 

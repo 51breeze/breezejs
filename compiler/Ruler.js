@@ -2,185 +2,20 @@
  * 保护的关键词 , 不可当参数名， 不可声明为变量
  * @type {string[]}
  */
-var reserved = [
+const reserved = [
     'static','public','private','protected','internal','package',
     'extends','import','class','var','let','function','new','typeof','const',
     'instanceof','if','else','do','while','for','in','of','switch','case',
     'break','default','try','catch','throw','Infinity','this','debugger',
-    'finally','return','null','false','true','NaN','undefined',
+    'finally','return','null','false','true','NaN','undefined','delete',
     /*'export',*/
 ];
 
 
-/**
- * 系统全局对象
- * @type {string[]}
- */
-var objects = {
-    'Number':{},
-    'String':{},
-    'Object':{},
-    'RegExp':{},
-    'Error':{},
-    'EvalError':{},
-    'RangeError':{},
-    'ReferenceError':{},
-    'SyntaxError':{},
-    'TypeError':{},
-    'URIError':{},
-    'Function':{},
-    'Date':{},
-    'Boolean':{},
-    'Symbol':{},
-    'Atomics':{},
-    'DataView':{
-        'static':{},
-        'properties':{
-            'buffer':'ArrayBuffer',
-            'byteLength':'Number',
-            'byteOffset':'*',
-        },
-        'methods':{
-            'getInt8':'*',
-            'getUint8':'*',
-            'getInt16':'*',
-            'getUint16':'*',
-            'getInt32':'*',
-            'getUint32':'*',
-            'getFloat32':'*',
-            'getFloat64':'*',
-            'setInt8':'*',
-            'setUint8':'*',
-            'setInt16':'*',
-            'setUint16':'*',
-            'setInt32':'*',
-            'setUint32':'*',
-            'setFloat32':'*',
-            'setFloat64':'*',
-        },
-    },
-    'Array':{
-        'static':{
-            'from':'Array',
-            'isArray':'Boolean',
-            'of':'Array',
-        },
-        'properties':{'length':'Number'},
-        'methods':{
-            'concat':'Array',
-            'copyWithin':'Array',
-            'entries':'Iterator',
-            'every':'Boolean',
-            'fill':'Array',
-            'filter':'Array',
-            'find':'*',
-            'findIndex':'Number',
-            'forEach':'undefined',
-            'includes':'Boolean',
-            'indexOf':'Number',
-            'join':'String',
-            'keys':'Iterator',
-            'lastIndexOf':'Number',
-            'map':'Array',
-            'pop':'*',
-            'push':'Number',
-            'reduce':'*',
-            'reduceRight':'*',
-            'reverse':'Array',
-            'shift':'*',
-            'slice':'Array',
-            'some':'Boolean',
-            'sort':'Array',
-            'splice':'Array',
-            'toLocaleString':'String',
-            'toSource':'String',
-            'toString':'String',
-            'unshift':'Number',
-            'values':'Iterator',
-        },
-    },
-    'ArrayBuffer':{},
-    'Float32Array':{},
-    'Float64Array':{},
-    'Int16Array':{},
-    'Int32Array':{},
-    'Int8Array':{},
-    'Intl':{
-        'static':{
-           'DateTimeFormat':'*',
-           'NumberFormat':'*',
-           'Collator':'*',
-        },
-        'properties':{},
-        'methods':{},
-    },
-    'Iterator':{},
-    'JSON':{},
-    'ParallelArray':{},
-    'Promise':{},
-    'Proxy':{},
-    'Reflect':{},
-    'SIMD':{
-        'static':{
-            'Bool16x8':'*',
-            'Bool32x4':'*',
-            'Bool64x2':'*',
-            'Bool8x16':'*',
-            'Float32x4':'*',
-            'Float64x2':'*',
-            'Int16x8':'*',
-            'Int32x4':'*',
-            'Int8x16':'*',
-            'Uint16x8':'*',
-            'Uint32x4':'*',
-            'Uint8x16':'*',
-        },
-        'properties':{},
-        'methods':{},
-    },
-    'Set':{},
-    'SharedArrayBuffer':{},
-    'StopIteration':{},
-    'TypedArray':{},
-    'URIError':{},
-    'Uint16Array':{},
-    'Uint32Array':{},
-    'Uint8Array':{},
-    'Uint8ClampedArray':{},
-    'WeakMap':{},
-    'WeakSet':{},
-    'decodeURI':'String',
-    'decodeURIComponent':'String',
-    'encodeURI':'String',
-    'encodeURIComponent':'String',
-    'escape':'String',
-    'eval':'void',
-    'isFinite':'Boolean',
-    'isNaN':'Boolean',
-    'parseFloat':'Number',
-    'parseInt':'Number',
-    'unescape':'String',
-    'uneval':'String',
-    'setInterval':'Number',
-    'clearInterval':'Boolean',
-    'setTimeout':'Number',
-    'clearTimeout':'Boolean',
-    'alert':'void',
-    'confirm':'void',
-    'window':{},
-    'console':{},
-    'document':{},
-    'location':{},
-    'undefined':'undefined',
-    'arguments':{},
-    'null':'null',
-    'NaN':'NaN',
-    'Math':{},
-    'Infinity':'Infinity',
-};
+const objects= require('./Objects.js');
 
 
-var nonew={
+const nonew={
     'window':false,
     'document':false,
     'location':false,
@@ -212,7 +47,6 @@ var nonew={
     'Infinity':false,
     'this':false,
 };
-
 
 /**
  * 判断是否为一个有效的运算符
@@ -365,12 +199,12 @@ function isNumber(s)
 /**
  * 验证是否可以声明为参数名或者变量名
  * @param s 准备声明的变量名或者参数名
- * @param defined 已经声明的，不可以再声明
+ * @param include 包括这里指定的，不可以再声明
  * @returns {boolean}
  */
-function checkStatement(s, defined )
+function checkStatement(s, include )
 {
-    return isPropertyName(s) && reserved.indexOf( s )<0 && ( !defined || defined.indexOf(s)<0 );
+    return isPropertyName(s) && reserved.indexOf( s )<0 && ( !include || include.indexOf(s)<0 );
 }
 
 /**
@@ -483,7 +317,7 @@ var syntax={};
 syntax["package"]=function (event)
 {
     event.prevented=true;
-    this.add( new Scope('package', '(black)' ) );
+    this.add( new Scope('package', '(block)' ) );
 
     var self = this;
     var name = [];
@@ -593,7 +427,7 @@ syntax['private,protected,internal,static,public']=function(event)
 
     if( n.value==='class' || n.value === 'function' )
     {
-        this.add( new Scope('class', '(black)' ) );
+        this.add( new Scope('class', '(block)' ) );
         this.scope().static( type === 'static' );
         this.scope().qualifier( qualifier );
         this.check();
@@ -616,7 +450,7 @@ syntax['private,protected,internal,static,public']=function(event)
 syntax['class']=function( event )
 {
     event.prevented=true;
-    if(this.scope().keyword()!=='class')this.add( new Scope('class', '(black)' ) );
+    if(this.scope().keyword()!=='class')this.add( new Scope('class', '(block)' ) );
     var s = this.scope();
     if( s.parent().keyword() !=='package' || s.keyword() !=='class' )this.error();
 
@@ -810,7 +644,7 @@ syntax['else']= function(event)
 syntax['do,try,finally'] = function(event)
 {
     event.prevented = true;
-    this.add( new Scope( event.type, '(black)' ) );
+    this.add( new Scope( event.type, '(block)' ) );
     if( this.scope().keyword() !== event.type )this.error();
     this.add( this.current );
     if( event.type==='finally' )
@@ -835,7 +669,7 @@ syntax['do,try,finally'] = function(event)
 syntax['if,switch,while,for,catch'] = function(event)
 {
     event.prevented = true;
-    this.add( new Scope( event.type, '(black)' ) );
+    this.add( new Scope( event.type, '(block)' ) );
     var s = this.scope();
     if( s.keyword() !== event.type )this.error();
     if( event.type==='catch' )
@@ -994,6 +828,18 @@ syntax["typeof"]=function(e)
     if( isBoolOperator(this.prev.value) ) this.scope().type('(boolean)');
     this.add( this.current );
     this.step();
+}
+
+syntax["delete"]=function(e)
+{
+    e.prevented=true;
+    if( this.next.type !==' (identifier)' || this.next.id==='(keyword)' )this.error();
+    if( !(this.scope() instanceof Scope) )this.error('Delete operator can only appear in the block scope');
+    this.add( new Stack('expression', '(boolean)' ) );
+    if( typeof objects[ this.next.value ] !== "undefined" )this.error('Invalid operator the "delete" on the global object', this.next );
+    this.add( this.current );
+    this.step();
+    this.end();
 }
 
 syntax["new"]=function(e)
@@ -1343,6 +1189,12 @@ function statement()
     if( !checkStatement(name, this.config('reserved') ) )
     {
         this.error(reserved.indexOf( name )>0 ? 'Reserved keyword not is statemented for '+name : 'Invalid statement for '+name);
+    }
+
+    //如是函数声明的参数
+    if( this.scope().parent().keyword()==='function' )
+    {
+        this.scope().parent().param( type );
     }
 
     var ps = getParentScope( this.scope() ) ;
@@ -1709,7 +1561,7 @@ Stack.prototype.add=function( val, index )
             if( val === this )error('Invalid child');
 
             //堆叠器中不能添加结构体 比如 if else switch do while try for catch finally
-            if( this.keyword() !== 'rootblack' && !(this instanceof Scope) && val.type() ==='(black)' )
+            if( this.keyword() !== 'rootblack' && !(this instanceof Scope) && val.type() ==='(block)' )
             {
                 error('Invalid syntax ' + val.keyword() );
             }
@@ -1830,6 +1682,7 @@ Stack.prototype.toString=function()
         if( data[i] instanceof Stack )
         {
             str.push( data[i].toString() );
+
         }else
         {
 
@@ -1885,15 +1738,15 @@ Scope.prototype.define=function(prop , type )
 
 
 /**
- * 添加参数
- * @param name
+ * 添加参数的类型
+ * @param type
  * @returns {*}
  */
-Scope.prototype.param=function( name )
+Scope.prototype.param=function( type )
 {
     if( typeof name !== 'undefined' )
     {
-        this.__param__.push( name );
+        this.__param__.push( type );
         return this;
     }
     return this.__param__;
