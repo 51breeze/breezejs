@@ -26,21 +26,37 @@ package com
 
     public class test extends B {
 
-         static public var name = 3 ;
+        static public var name = 3 ;
          private var ccc = 236666;
          protected var tttt = 'tyuuu';
          static private var uuu = 'pppp';
 
-         public function test()
+
+        public function test()
          {
 
-             const uuuu=333 ;
+             var letsr=333 ;
 
-             var bbcc:Number=123;
+            /* var bbcc:Number=123;
 
-             var yuuos = new String();
+             var yuuos = new String();*/
 
-             var lets;
+             var obj=22;
+
+             const pp = 123;
+
+             for( let yuuos in obj )
+             {
+                const pp=999;
+             }
+
+
+
+
+
+
+
+             var lets,b,c;
 
              var n = ~1;
              var gg= n++, bbb=--n;
@@ -56,16 +72,6 @@ package com
               gg = 2 <= --b;
               gg != !2 <= b++;
 
-             this['name']++;
-
-             var getters = fix.cssHooks[name] && typeof fix.cssHooks[name].get === "function" ? fix.cssHooks[name].get : null;
-             var currentStyle = Breeze.hasStyle(this) ? (document.defaultView && document.defaultView.getComputedStyle ?
-                 document.defaultView.getComputedStyle(this, null) : this.currentStyle || this.style) : {};
-             return getters ? getter.call(this, currentStyle, --name) : currentStyle[name];
-
-
-             var getAttrExp = /(\w+)(\s*=\s*([\"\'])([^\3]*?)[^\\]\3)?/g;
-             var lrQuoteExp = /^[\'\"]|[\'\"]$/g;
 
              var defaultOptions= {
                  'duration':'1s',
@@ -77,10 +83,12 @@ package com
                  'mode':'forwards'
              };
 
+             var a=6;
+
              switch (a)
              {
                  case 'a' :
-                     var bb=c;
+                     var bbc=c;
                      break;   case 'a' :
                        return 8999;
                      break; case 'a' :
@@ -101,6 +109,11 @@ package com
          {
 
          }
+
+
+             var currentItem,propName,deep;
+
+
          for ( let i=0,b=8; i<9 ; i++, --b )
          {
              do{
@@ -119,7 +132,7 @@ package com
 
 
 
-         var c,b,d //sdfds
+         var d //sdfds
          ;
 
 
@@ -131,12 +144,16 @@ package com
          }],
          };
 
-         var bb=[sss,kkk,nnnn,];
+         var bb=['sss','kkk','nnnn',123];
 
          var write= typeof newValue !== 'undefined';
          if( !write && this['length'] < 1 )return null;
          var getter = this['__'+callback+'__'].get;
          var setter = this['__'+callback+'__'].set;
+
+             var fix;
+
+
          if( fix.fnHooks[callback] )
          {
          getter = typeof fix.fnHooks[callback].get === "function" ? fix.fnHooks[callback].get : getter ;
@@ -170,6 +187,8 @@ package com
 
          }
 
+
+
          function dispatchElementEvent(parent:ElementEvent, child , type )
          {
          if( this instanceof EventDispatcher && this.hasEventListener( type )  )
@@ -192,6 +211,9 @@ package com
          this.next(null);
          return this;
          }
+
+
+
 
 
         function doRecursion(propName, strainer, deep) {
