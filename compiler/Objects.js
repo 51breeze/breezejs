@@ -206,19 +206,11 @@ module.exports = {
 },
 'console':{
     'properties':{
-        'hash':'String',
-        'host':'String',
-        'hostname':'String',
-        'href':'String',
-        'pathname':'String',
-        'port':'Number',
-        'protocol':'String',
-        'search':'String',
-    },
+     },
     'methods':{
-        'assign':'void',
-        'reload':'void',
-        'replace':'void',
+        'log':'void',
+        'err':'void',
+        'trac':'void',
     },
 },
 'document':{

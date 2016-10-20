@@ -481,6 +481,7 @@ syntax['class']=function( event )
 
     var name = n.value;
     if( this.scope().parent().define( name ) )error('class name the "'+name+'" is already been declared');
+    this.scope().define('this', {'type':'('+name+')','id':'class',scope:this.scope()} )
 
     //类名
     this.scope().name( name );
@@ -838,8 +839,8 @@ syntax["in"]=function(e)
     e.prevented=true;
     this.add( this.current );
     var p = this.scope().parent().parent();
-    this.scope().type('(boolean)');
-    if( p.keyword()==='var' || p.keyword()==='left' )this.scope().type('(string)');
+    this.scope().type('(Boolean)');
+    if( p.keyword()==='var' || p.keyword()==='left' )this.scope().type('(String)');
     if( !(this.next.type ==='(identifier)' && this.next.id !=='(keyword)' || this.next.value==='this') )this.error('',this.next);
     this.step();
 }
@@ -850,10 +851,10 @@ syntax["typeof"]=function(e)
     if( isOperator(this.next.value) )this.error();
     if( this.scope().keyword()!=='expression')
     {
-        this.add( new Stack('expression', '(string)' ) );
+        this.add( new Stack('expression', '(String)' ) );
     }
-    this.scope().type('(string)');
-    if( isBoolOperator(this.prev.value) ) this.scope().type('(boolean)');
+    this.scope().type('(String)');
+    if( isBoolOperator(this.prev.value) ) this.scope().type('(Boolean)');
     this.add( this.current );
     this.step();
 }
@@ -916,9 +917,9 @@ syntax['(delimiter)']=function( e )
     {
         e.prevented=true;
 
-        var s = new Stack('object', id==='(' ? '(expression)' : id==='[' ? '(array)' : '(json)');
+        var s = new Stack('object', id==='(' ? '(expression)' : id==='[' ? '(Array)' : '(Object)');
         var self= this;
-        if( s.type()==='(json)' )
+        if( s.type()==='(Object)' )
         {
             s.addListener('(add)',function (e) {
                 if( e.target.value==='{' ||  e.target.value==='}' )return;
@@ -932,10 +933,11 @@ syntax['(delimiter)']=function( e )
                 }
             });
 
-        }else if( s.type()==='(array)' )
+        }else if( s.type()==='(Array)' )
         {
             var is=false;
-            if( this.prev.type==='(identifier)' && this.prev.id!=='(keyword)' || this.prev.value==='this' ){
+            if( this.prev.type==='(identifier)' && this.prev.id!=='(keyword)' || this.prev.value==='this' )
+            {
                 is=true;
                 s.type('(property)');
             }
@@ -995,8 +997,8 @@ syntax['(operator)']=function( e )
 
     if( id==='!' || id==='!!' )
     {
-        if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(boolean)') );
-        this.scope().type('(boolean)');
+        if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(Boolean)') );
+        this.scope().type('(Boolean)');
         this.add(this.current);
         if( !isIdentifier(this.next) || this.next.value===';' )this.error();
         this.step();
@@ -1023,7 +1025,7 @@ syntax['(operator)']=function( e )
         if( this.scope().keyword()==='expression' )this.scope().switch();
 
         //json object
-        if( id===':' && this.scope().type()==='(json)')
+        if( id===':' && this.scope().type()==='(Object)')
         {
              this.add( this.current );
              if( !(this.prev.type === '(string)' || isPropertyName(this.prev.value) ) )this.error('Invalid property name', this.prev );
@@ -1099,8 +1101,9 @@ syntax['(operator)']=function( e )
     {
 
         if( this.next.type === '(delimiter)' )this.error();
-        if( (id==='-' || id==='+') && this.scope().keyword() !== 'expression' )this.add(new Stack('expression', '(number)'));
+        if( (id==='-' || id==='+') && this.scope().keyword() !== 'expression' )this.add(new Stack('expression', '(Number)'));
         this.add( this.current );
+        this.scope().type('(Number)');
         if( id !=='+' )
         {
             //左边是引用或者数字
@@ -1108,9 +1111,12 @@ syntax['(operator)']=function( e )
 
             //右边是引用或者数字
             if (!(this.next.type === '(number)' || this.next.type === '(identifier)' && this.next.id !== '(keyword)'))this.error();
+
+        }else if( this.next.type ==='(string)' || this.next.value==='typeof' )
+        {
+            this.scope().type('(String)');
         }
 
-        this.scope().type('(number)');
         this.step();
         return;
     }
@@ -1119,7 +1125,7 @@ syntax['(operator)']=function( e )
     {
         this.add( this.current );
         if( this.prev.type !=='(identifier)' || this.prev.id==='(keyword)' )this.error();
-        this.scope().type('(number)');
+        this.scope().type('(Number)');
 
         //下一个必须是数字或者引用的数字(+=)除外
         if( id !=='+=' )
@@ -1148,9 +1154,9 @@ syntax['(operator)']=function( e )
         if( left && right )this.error();
         if( !left && !right )this.error();
 
-        if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(number)') );
+        if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(Number)') );
         this.add( this.current );
-        this.scope().type('(number)');
+        this.scope().type('(Number)');
         if( left && this.next.value ===',' || !left && right )
         {
             this.step();
@@ -1170,10 +1176,11 @@ syntax['(operator)']=function( e )
         this.step();
         return;
     }
+    //反转操作数的比特位
     else if( id==='~' )
     {
-         if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(number)') );
-         this.scope().type('(number)');
+         if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(Number)') );
+         this.scope().type('(Number)');
          this.add( this.current );
          this.step();
          return;
@@ -1182,11 +1189,12 @@ syntax['(operator)']=function( e )
     {
         var v = this.next.value;
         var is = v==='-' ||  v==='+' || isLeftOperator(v);
-        this.add(this.current);
-        this.scope().type('(number)');
+        this.add( this.current );
+        this.scope().type('(Number)');
+
         if( isBoolOperator(this.current.value) )
         {
-            this.scope().type('(boolean)');
+            this.scope().type('(Boolean)');
         }
         if( is || balance[ v ] || isIdentifier( this.next ) )
         {
@@ -1239,7 +1247,7 @@ function statement()
 
     //不能重复声明属性
     if( val && val.scope === ps )this.error('Identifier "'+name+'" has already been declared');
-    ps.define(name, {'type':type, id:id, scope:ps } );
+    ps.define(name, {'type':'('+type+')', id:id, scope:ps } );
 
     //声明的属性后面只能是 '=','in' 或者 ','操作符
     if( isOperator(this.next.value) && !(this.next.value==='=' || this.next.value===',' || this.next.value==='in') )
@@ -1249,13 +1257,14 @@ function statement()
 
     //常量必须指定默认值
     if( id==='const' && this.next.value !=='=' )this.error('Missing default value in const',this.next);
-    this.add( new Stack('expression',type) );
+    this.add( new Stack('expression', '('+type+')' ) );
 }
 
 
 syntax['(identifier)']=function( e )
 {
     e.prevented=true;
+    if( this.current.value===';')return;
 
     var id = this.scope().keyword();
 
@@ -1275,25 +1284,49 @@ syntax['(identifier)']=function( e )
         this.add( new Stack('expression','(*)') );
     }
 
-    // 检查是否声明
-    if( id !== 'statement' && this.current.id !=='(keyword)' && e.type==='(identifier)' && this.prev.value !=='.' && this.scope().parent().type() !=='(json)' )
+    if( this.scope().length()===0 )
     {
-        var ps = getParentScope( this.scope() );
-        var item = ps.define( this.current.value );
-        if( !item ){
-            this.error(this.current.value+' not is defined');
-        }
-        if( item.id==='const' && this.next.value === '=' )
+        if (isConstant(this.current.value))
         {
-            this.error(this.current.value+' constant can not be alter');
+            switch (this.current.value) {
+                case 'NaN' :
+                case 'Infinity' :
+                    this.scope().type('(Number)');
+                    break;
+                case 'true' :
+                case 'false' :
+                    this.scope().type('(Boolean)');
+                    break;
+            }
+
+        } else {
+            switch (this.current.type) {
+                case '(string)' :
+                    this.scope().type('(String)');
+                    break;
+                case '(number)' :
+                    this.scope().type('(Number)');
+                    break;
+                case '(regexp)' :
+                    this.scope().type('(RegExp)');
+                    break;
+            }
         }
     }
 
     this.add( this.current );
 
-    if( this.current.type==='(string)' || this.current.type==='(number)' || this.current.type==='(regexp)' )
+    // 检查所有的引用是否为先声明再使用。
+    if( id !=='statement' && this.current.type==='(identifier)' && this.current.id !== '(keyword)' && this.prev.value!=='.')
     {
-        this.scope().type( this.current.type );
+        var iskey = this.scope().parent().type()==='(Object)' && this.next.value ===':';
+        if( !iskey )
+        {
+            var ps = getParentScope( this.scope() );
+            var desc = ps.define(this.current.value);
+            if( !desc && !objects[ this.current.value ] )this.error( this.current.value + ' not is defined' , this.current, 'reference' );
+            if( desc && (this.scope().length()===0 || this.prev.value==='=') )this.scope().type( desc.type );
+        }
     }
 
     if( this.next.type === '(operator)' || this.next.value==='(' || this.next.value==='[' )
@@ -1314,8 +1347,9 @@ syntax['(string),(number),(regexp)']=syntax['(identifier)'];
  * @param msg
  * @param type
  */
-function error(msg, type)
+function error(msg, type, obj )
 {
+    if( obj )console.log( obj );
     switch ( type )
     {
         case 'syntax' :
@@ -1733,39 +1767,65 @@ Stack.prototype.toString=function()
     var str = [];
     var i = 0;
     var len = data.length;
-    var ps = getParentScope(this);
+    var item;
 
     for ( ; i< len ; i++ )
     {
-        if( data[i] instanceof Stack )
+        item = data[i];
+        if( item instanceof Stack )
         {
-            str.push( data[i].toString() );
+            str.push( item.toString() );
 
         }else
         {
-          /* if( this.keyword() === 'expression' && this.parent().type() !=='(json)' )
-           {
-                if( data[i].type==='(identifier)' && data[i].id!=='(keyword)' && i===0 )
-                {
-                   if( !ps.define( data[i].value ) ){
+            // 检查类型
+            if( item.value === '=' && this.parent().keyword() !=='statement' )
+            {
+               var ps   = getParentScope(this);
+               var prev = data[i-1];
+               var desc = ps.define( prev.value );
 
-                       console.log( data[i], this.parent().type() );
-                       error( data[i].value+' not is defined','reference');
+               //如果不是指定的类型
+               if( desc.type !=='(*)' && desc.type !== this.type() )error('type is not consistent, can only be '+desc.type, 'type', prev );
 
-                   }else if( data[i+1] && data[i+1].value==='=' && ps.define( data[i].value ).id==='const' )
-                   {
+               //如果修改常量
+               if( desc && desc.id === 'const')error('constant can not be alter for "' + prev.value + '"', 'syntax', prev);
 
+            }else if( item.value === '.' )
+            {
+               var prev = this.previous(i-1);
+               var next = this.previous(i+1);
+               if( prev instanceof Stack && prev.type() === 'property' )
+               {
+
+               }else
+               {
+                   var ps   = getParentScope(this);
+                   var obj = prev.value==='this' ? ps.define('this').scope.define( next.value ) : ps.define( next.value );
+                   if( !obj && typeof objects[ prev.value ] === 'object' ){
+                       obj = objects[ prev.value ] || {};
+                       obj = obj[ next.value ];
                    }
+
+                   //检查对象中的方法或者属性是否定义
+                   if( !obj )
+                   {
+                       error( next.value+' not is defined', 'reference', item );
+                   }
+               }
+            }
+
+            str.push( item.value || item );
+
+            //空格
+            if( item.type==='(identifier)' || item.id==='(keyword)' )
+            {
+                var n = data[i+1];
+                if( n && ( n instanceof Stack && n.keyword() !=='object' || n.type==='(identifier)' || n.id==='(keyword)' || n.type==='(number)' ) )
+                {
+                    str.push(' ');
                 }
-           }*/
-
-           // ps.define()
-
-            var n = data[i+1];
-            str.push(data[i].value || data[i] );
-            if( (data[i].type==='(identifier)' || data[i].id==='(keyword)') &&
-                (n && ( (n instanceof Stack && n.keyword()!=='object') || n.type==='(identifier)' || n.id==='(keyword)' || n.type==='(number)') ) )
-                str.push(' ');
+            }
         }
     }
     return str.join('');
@@ -2025,7 +2085,7 @@ Ruler.prototype.error=function (msg, o, type )
     msg =  msg || 'Unexpected token '+o.value;
     console.log( 'error line:', o.line, '  character:', o.cursor, o );
     type = type || 'syntax'
-    error(msg , 'syntax');
+    error(msg , type );
 }
 
 /**
@@ -2395,6 +2455,10 @@ Ruler.prototype.operator=function(s)
 
     //声明的类型 var name:*=123;
     if( s==='*=' && this.next.id===':' )
+    {
+        return describe('(operator)', s.charAt(0), s.charAt(0) );
+
+    }else if( s===':*=' || s===':*' )
     {
         return describe('(operator)', s.charAt(0), s.charAt(0) );
     }
