@@ -39,10 +39,17 @@ package com
               return this;
          }
 
-        public function names()
+        public function names():test
         {
 
+            var bb:Number = 88, cc:Number;
+
+           cc = bb;
+            
+            
+
             console.log('====');
+            return test;
 
         }
     }

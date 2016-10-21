@@ -205,12 +205,14 @@ module.exports = {
     },
 },
 'console':{
+    'static':{
+        'log':{type:'void',param:['...','String']},
+        'error':{type:'void',param:['...','String']},
+        'info':{type:'void',param:['...','String']},
+    },
     'properties':{
      },
     'methods':{
-        'log':'void',
-        'err':'void',
-        'trac':'void',
     },
 },
 'document':{

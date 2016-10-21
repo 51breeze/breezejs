@@ -221,7 +221,7 @@ function checkStatement(s, include )
  */
 function checkStatementType( type , defined )
 {
-    if( type==='(*)' )return true;
+    if( type==='*' || type==='void' )return true;
     if( defined && typeof defined[type] === "object" && defined[type].id==='class' )return true;
     return objects[type] && typeof objects[type] === "object";
 }
@@ -481,7 +481,8 @@ syntax['class']=function( event )
 
     var name = n.value;
     if( this.scope().parent().define( name ) )error('class name the "'+name+'" is already been declared');
-    this.scope().define('this', {'type':'('+name+')','id':'class',scope:this.scope()} )
+    this.scope().define('this', {'type':'('+name+')','id':'class',scope:this.scope()} );
+    this.scope().define(name, {'type':'('+name+')','id':'class',scope:this.scope()} );
 
     //类名
     this.scope().name( name );
@@ -559,7 +560,11 @@ syntax['const']=function (event)
 syntax['function']= function(event){
 
     event.prevented=true;
-    if( this.scope().keyword() !=='function' ) this.add( new Scope( event.type, '(Function)' ) );
+    if( this.prev.value === '=' && this.scope().keyword() === 'expression')
+    {
+        this.scope().type('(Function)');
+    }
+    if( this.scope().keyword() !=='function' ) this.add( new Scope( event.type, '(*)' ) );
     this.add( this.current );
     var s = this.scope()
     var n = this.seek();
@@ -569,28 +574,25 @@ syntax['function']= function(event){
         n = this.seek();
     }
 
+    var name='';
     if( n.id !== '(' )
     {
-        var name = n.value;
+        name = n.value;
         if ( !checkStatement( name ) )this.error();
-        var ps = getParentScope(s);
-        if( ps )
-        {
-            //不能重复声明函数
-            var val = ps.define( name );
-            if( val && val.scope === ps )this.error('function "'+name+'" has already been declared');
-            ps.define( name ,{type:'Function','id':'function',scope:ps});
-        }
         s.name( name );
         this.add( this.current );
         n = this.seek();
     }
 
-
     // 类中定义的方法不能为匿名函数
     if( s.parent().keyword() === 'class' && !s.name() )
     {
         this.error('Missing function name');
+    }
+    // 方法中的函数只能是匿名
+    else if( s.parent().keyword() !== 'class' && s.name() )
+    {
+        this.error('Can only be an anonymous function');
     }
 
     this.add( this.current );
@@ -609,7 +611,6 @@ syntax['function']= function(event){
     //验证访问器的参数
     if( s.parent().keyword() === 'class' )
     {
-
         if( s.accessor() === 'get' && ( param && param.length() > 0 ) )this.error('getter accessor cannot has parameter');
         if (s.accessor() === 'set' && ( !param || param.length() !== 1 ) )this.error('setter accessor be only one parameter');
     }
@@ -617,14 +618,44 @@ syntax['function']= function(event){
     this.add( this.seek() );
     if( this.current.id !==')' ) this.error('Missing token )');
 
+    var type='*';
+    var ps   = getParentScope( s );
+
     //返回类型
     if( this.next.id===':' )
     {
         this.seek();
-        var type = this.seek();
-        var ps   = getParentScope( s );
-        if( checkStatementType(type, ps.define() ) )this.error( type+' not is defined');
-        s.type( type.value );
+        type = this.seek().value;
+        if( !checkStatementType(type, ps.define() ) )this.error( type+' not is defined');
+        if( type !=='void' )
+        {
+            s.addListener('(switch)', function (e) {
+                if (!this.isReturn)error('Must be return');
+            });
+        }
+    }
+
+    s.type('('+type+')');
+
+    //定义到作用域中
+    if( ps && name )
+    {
+        //不能重复声明函数
+        var val = ps.define( name );
+        if( val && val.scope === ps )
+        {
+            //构造函数
+            if( val.id==='class' && !ps.construct )
+            {
+                ps.construct=s;
+            }else {
+                this.error('function "'+name+'" has already been declared');
+            }
+
+        }else
+        {
+            ps.define(name, {type: '(' + type + ')', 'id': 'function', scope: ps});
+        }
     }
 
     this.add( this.seek() );
@@ -788,12 +819,18 @@ syntax["return"]=function(event)
      event.prevented=true;
      if( isOperator(this.next.value) )this.error();
      if( !(this.scope() instanceof Scope) )this.error();
-     this.add( new Stack('expression','(*)') );
+     var s = new Stack('expression','(*)');
+     var current = this.current;
+     this.add( s );
      this.add( this.current );
      this.step();
      this.end();
+     var funScope = getParentFunction( s );
+     funScope.isReturn=true;
+     var type = funScope.type();
+     if( type==='(void)' )this.error('Do not return');
+     if(type!=='(*)' && type !== s.type() )this.error('Can only return '+type, current,'type' );
 }
-
 
 syntax["case,default"]=function(e)
 {
@@ -886,7 +923,7 @@ syntax["new"]=function(e)
     }
 
     if( nonew[ this.next.value ] === false )this.error(this.next.value +' is not a constructor' , this.next ,'type');
-    var ps = getParentScope(this.scope());
+    var ps = getParentScope( this.scope() );
     if( !checkStatementType(this.next.value, ps.define() ) )
     {
         this.error(this.next.value+' not define');
@@ -916,8 +953,13 @@ syntax['(delimiter)']=function( e )
     if( balance[id] )
     {
         e.prevented=true;
-
         var s = new Stack('object', id==='(' ? '(expression)' : id==='[' ? '(Array)' : '(Object)');
+        if( this.prev.value === '=' )
+        {
+            var ps = this.scope();
+            ps.type( s.type() ==='(expression)' ? '(*)' : s.type() );
+        }
+
         var self= this;
         if( s.type()==='(Object)' )
         {
@@ -927,8 +969,7 @@ syntax['(delimiter)']=function( e )
                 {
                     var id = e.target.value;
                     var p = this.previous(-2);
-                    if( ( p && jsontag[id]===p.value ) || ( id ===':' && this.length()<3 ) )
-                        return ;
+                    if( ( p && jsontag[id]===p.value ) || ( id ===':' && this.length()<3 ) )return ;
                     self.error();
                 }
             });
@@ -1208,7 +1249,7 @@ syntax['(operator)']=function( e )
 
 function statement()
 {
-    var type = '(*)';
+    var type = '*';
     var name = this.current.value;
 
     //获取声明的类型
@@ -1284,7 +1325,8 @@ syntax['(identifier)']=function( e )
         this.add( new Stack('expression','(*)') );
     }
 
-    if( this.scope().length()===0 )
+    //获取类型
+    if( this.scope().length()===0 || this.prev.value==='=' || this.prev.value==='return' )
     {
         if (isConstant(this.current.value))
         {
@@ -1296,6 +1338,11 @@ syntax['(identifier)']=function( e )
                 case 'true' :
                 case 'false' :
                     this.scope().type('(Boolean)');
+                    break;
+                case 'this' :
+                    var ps = getParentScope( this.scope() );
+                    var desc = ps.define( 'this' );
+                    this.scope().type( desc.type );
                     break;
             }
 
@@ -1314,20 +1361,45 @@ syntax['(identifier)']=function( e )
         }
     }
 
-    this.add( this.current );
-
-    // 检查所有的引用是否为先声明再使用。
+    // 检查所有的引用是否为先声明再使用。对象中的属性不会检查
     if( id !=='statement' && this.current.type==='(identifier)' && this.current.id !== '(keyword)' && this.prev.value!=='.')
     {
         var iskey = this.scope().parent().type()==='(Object)' && this.next.value ===':';
         if( !iskey )
         {
             var ps = getParentScope( this.scope() );
-            var desc = ps.define(this.current.value);
-            if( !desc && !objects[ this.current.value ] )this.error( this.current.value + ' not is defined' , this.current, 'reference' );
-            if( desc && (this.scope().length()===0 || this.prev.value==='=') )this.scope().type( desc.type );
+
+            // 是否有声明
+            var desc = ps.define( this.current.value );
+            if( !desc )
+            {
+                var global = objects[ this.current.value ];
+
+                // 不是全局对象
+                if( !global )this.error(this.current.value + ' not is defined', this.current, 'reference');
+            }
+
+            if( desc && (this.scope().length()===0 || this.prev.value==='=' || this.prev.value==='return') )
+            {
+                this.scope().type( desc.type );
+            }
+
+            if( desc && this.next.value==='=' )
+            {
+                var current = this.current;
+
+                //如果修改常量
+                if( desc.id === 'const')this.error('constant can not be alter for "' + current.value + '"', 'syntax', current);
+
+                //如果引用的类型不一致
+                this.scope().addListener('(switch)',function (e) {
+                    if( this.type() !== desc.type )error('type is not consistent, can only be '+desc.type, 'type', current );
+                });
+            }
         }
     }
+
+    this.add( this.current );
 
     if( this.next.type === '(operator)' || this.next.value==='(' || this.next.value==='[' )
     {
@@ -1786,7 +1858,10 @@ Stack.prototype.toString=function()
                var desc = ps.define( prev.value );
 
                //如果不是指定的类型
-               if( desc.type !=='(*)' && desc.type !== this.type() )error('type is not consistent, can only be '+desc.type, 'type', prev );
+               if( desc.type !=='(*)' && desc.type !== this.type() ){
+                   console.log( this.type() )
+                   error('type is not consistent, can only be '+desc.type, 'type', prev );
+               }
 
                //如果修改常量
                if( desc && desc.id === 'const')error('constant can not be alter for "' + prev.value + '"', 'syntax', prev);
@@ -1804,7 +1879,7 @@ Stack.prototype.toString=function()
                    var obj = prev.value==='this' ? ps.define('this').scope.define( next.value ) : ps.define( next.value );
                    if( !obj && typeof objects[ prev.value ] === 'object' ){
                        obj = objects[ prev.value ] || {};
-                       obj = obj[ next.value ];
+                       obj = obj.static[ next.value ];
                    }
 
                    //检查对象中的方法或者属性是否定义
