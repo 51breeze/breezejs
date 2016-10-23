@@ -17,41 +17,24 @@
 
 package com
 {
+    public class Test {
 
-   import coms.B;
-      import com.G as GG;
-    import StyleEvent;
-    import PropertyEvent;
-    import ElementEvent;
+         static public var name:String = '3' ;
+         public var name:String = '3' ;
+         public const age:String = '3' ;
 
-    public class test extends B {
-
-         static public var name = 3 ;
-         private var ccc = 236666;
-         protected var tttt = 'tyuuu';
-         static private var uuu = 'pppp';
-
-
-          public function test()
+          public function Test():void
           {
               var cc:Number=66;
-              this.tttt;
-              return this;
+              this.name = '9999';
          }
 
-        public function names():test
-        {
-
+        static public function names(bbs:String='999'):Test
+         {
             var bb:Number = 88, cc:Number;
-
-           cc = bb;
-            
-            
-
-            console.log('====');
-            return test;
-
-        }
+            cc = bb;
+            return this;
+         }
     }
 
 }

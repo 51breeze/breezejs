@@ -205,15 +205,15 @@ module.exports = {
     },
 },
 'console':{
+    'type':'Object',
+    'id':'object',
     'static':{
-        'log':{type:'void',param:['...','String']},
-        'error':{type:'void',param:['...','String']},
-        'info':{type:'void',param:['...','String']},
+        'log':{type:'void',id:'function',param:['...']},
+        'error':{type:'void',id:'function',param:['...']},
+        'info':{type:'void',id:'function',param:['...']},
     },
-    'properties':{
-     },
-    'methods':{
-    },
+    'properties':{},
+    'methods':{},
 },
 'document':{
     'properties':{
