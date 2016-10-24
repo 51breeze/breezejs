@@ -3,7 +3,7 @@
  * @type {string[]}
  */
 const reserved = [
-    'static','public','private','protected','internal','package',
+    'static','public','private','protected','internal','package','override','final',
     'extends','import','class','var','let','function','new','typeof','const',
     'instanceof','if','else','do','while','for','in','of','switch','case',
     'break','default','try','catch','throw','Infinity','this','debugger',
@@ -276,6 +276,7 @@ function trim( str )
     return typeof str === "string" ? str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,'') : '';
 }
 
+
 /**
  * 合并对象到指定的第一个参数
  * @returns {*}
@@ -424,47 +425,62 @@ syntax['import']=function (event)
     //this.config('reserved').push( name );
 };
 
-syntax['private,protected,internal,static,public']=function(event)
+syntax['private,protected,internal,static,public,override,final']=function(event)
 {
     event.prevented=true;
     var s = this.scope();
-    var n = this.seek();
-    var c = event.target;
-    if( ( s.keyword() !=='package' && s.keyword() !=='class') || ( c.value === n.value ) || n.id !=='(keyword)' )
-    {
-        this.error();
-    }
-
-    var type ='dynamic';
-    var qualifier = c.value;
-
-    if( !(n.value === 'function' || n.value === 'var' ||  n.value==='const' || n.value==='class') )
-    {
-        type='static';
-        if( c.value==='static' && 'public,private,protected,internal'.indexOf( n.value )>=0 )
-        {
-            qualifier = n.value;
-        }
+    if( s.keyword() !=='package' && s.keyword() !=='class' )this.error();
+    var arr = [event.target.value];
+    var self= this;
+    var n;
+    this.loop(function(){
+        if( 'private,protected,internal,static,public,override,final'.indexOf( this.next.value )<0 )return false;
         n = this.seek();
+        if( arr.indexOf(n.value) >=0  )self.error();
+        arr.push( n.value );
+        return true;
+    });
+
+    var q = 'public';
+    var s ='';
+    var o = '';
+    var f = '';
+    for (var i =0; i<arr.length; i++)
+    {
+        switch (arr[i])
+        {
+            case 'static'  :s='static'  ;break;
+            case 'override':o='override';break;
+            case 'final'   :
+                f='final';
+                if( arr.indexOf('override')>=0 )this.error();
+                break;
+            default:q=arr[i];
+        }
     }
 
+    n = this.seek();
     if( n.value==='class' || n.value === 'function' )
     {
         this.add( new Scope( n.value , '(block)' ) );
-        this.scope().static( type === 'static' );
-        this.scope().qualifier( qualifier );
+        this.scope().static( s );
+        this.scope().qualifier( q );
+        this.scope().override( o );
+        this.scope().final( f );
         this.check();
 
     }else if( n.value==='var' || n.value==='const' )
     {
         this.add( new Stack(n.value, '(*)' ) );
-        this.scope().static( type === 'static' );
-        this.scope().qualifier( qualifier );
+        this.scope().static( s );
+        this.scope().qualifier( q );
+        this.scope().override( o );
+        this.scope().final( f );
         this.check();
 
     }else
     {
-        this.error('Invalid identifier '+ c.value );
+        this.error('Invalid identifier '+n.value );
     }
     return true;
 };
@@ -553,6 +569,7 @@ syntax['const']=function (event)
     this.add( this.current );
     if( this.next.type!=='(identifier)' || this.next.id==='(keyword)' )this.error('Invalid identifier for '+this.next.value,  this.next );
     if( !(this.scope().parent() instanceof Scope) )this.error('Invalid const');
+    this.scope().name( this.next.value );
     var statement =  new Stack('statement' , '(expression)');
     this.add( statement );
     this.step();
@@ -1621,7 +1638,9 @@ function Stack( keyword, type )
     this.__name__='';
     this.__close__  =false;
     this.__qualifier__='';
-    this.__static__= false ;
+    this.__static__= '' ;
+    this.__override__= '' ;
+    this.__final__= '' ;
     Listener.call(this);
 
     this.addListener('(end)', function (e) {
@@ -1857,15 +1876,41 @@ Stack.prototype.qualifier=function(qualifier )
     return this;
 }
 
+
+/**
+ * 设置不可改变
+ * @param qualifier
+ * @returns {*}
+ */
+Stack.prototype.final=function( val )
+{
+    if( typeof val === 'undefined' )return this.__final__;
+    this.__final__=val;
+    return this;
+}
+
+
+/**
+ * 设置可修改
+ * @param qualifier
+ * @returns {*}
+ */
+Stack.prototype.override=function( val )
+{
+    if( typeof val === 'undefined' )return this.__override__;
+    this.__override__=val;
+    return this;
+}
+
 /**
  * 标记是动态还是静态模块
  * @param flag  true是静态，否则为动态
  * @returns {*}
  */
-Stack.prototype.static=function(flag )
+Stack.prototype.static=function( val )
 {
-    if( flag=== true ){
-        this.__static__=true;
+    if( typeof val !== "undefined" ){
+        this.__static__=val;
         return this;
     }
     return this.__static__;
@@ -1928,6 +1973,192 @@ function checkProperty( scope )
 }
 
 
+/**
+ * 创建属性的描述
+ * @param stack
+ * @returns {string}
+ */
+function createDescribe( stack )
+{
+    var desc = [
+        ['k', stack.keyword() ].join('":"'),
+        ['t', stack.type().replace(/^\(|\)$/g,'') ].join('":"'),
+        ['q', stack.qualifier() ].join('":"'),
+    ];
+
+    if( stack.final() )
+    {
+        desc.push( ['f',stack.final() ].join('":"') );
+    }
+
+    if( stack.keyword() === 'function' )
+    {
+        if( stack.param().length > 0 )
+        {
+            desc.push(['p', stack.param().join('","')].join('":"'));
+        }
+
+        if( stack.accessor() )
+        {
+            desc.push( ['a',stack.accessor() ].join('":"') );
+        }
+    }
+    return 'name:{"'+desc.join('","')+'"}';
+}
+
+
+/**
+ * 创建默认参数
+ * @param stack
+ * @returns {{param: Array, expre: Array}}
+ */
+function createDefaultParam( stack )
+{
+    var data = stack.content();
+    var obj = {'param':[],'expre':[]};
+    var name;
+    var type='*';
+    var value;
+
+    for ( var j=0; j< data.length ; j++ )
+    {
+        var item = data[j];
+        if( item instanceof Stack )
+        {
+            var o = createDefaultParam( item );
+            obj.param = obj.param.concat( o.param );
+            obj.expre = obj.expre.concat( o.expre );
+
+        }else if( item && item.value!==',' )
+        {
+            if( j===0 ) name = item.value;
+            if( item.value === ':' )type = data[++j].value;
+            if( item.value === '=' )
+            {
+                item = data[++j];
+                value = item instanceof Stack ? item.toString() : item.value;
+            }
+        }
+    }
+
+    if( name )
+    {
+        var ps = getParentScope(stack);
+        var desc = ps.define( name );
+
+        if (value) {
+            obj.expre.push(name + '=typeof ' + name + '=== "undefined" ?' + value + ':' + name+';\n');
+        }
+
+        if (desc) {
+
+            type = desc.type.replace(/^\(|\)$/g,'');
+            if( type !=='*' )
+            {
+                obj.expre.push('if( !(' + name + ' instanceof ' + type + ') )throw new TypeError("Specify the type of mismatch");\n');
+            }
+        }
+        obj.param.push( name );
+    }
+    return obj;
+}
+
+
+function createModule( stack )
+{
+    var data = stack.content();
+    var str = [];
+    var i = 0;
+    var item;
+    var len = data.length;
+
+    str.push( 'var ');
+    str.push( stack.name() );
+    str.push( '=' );
+    str.push( '{' );
+
+    var stat={'prop':[],'info':[]};
+    var proto= {'prop':[],'info':[]};
+    for ( ; i< len ; i++ )
+    {
+        item = data[i];
+        if( item instanceof Stack ){
+
+            var val = [];
+            if( item.keyword() === 'function' )
+            {
+                val.push( item.name() );
+                val.push( ':' );
+            }
+
+            var content=[];
+            var children = item.content();
+            for(var b=0; b< children.length; b++)
+            {
+                var child = children[b];
+                if( child instanceof Stack )
+                {
+                    var v = child.toString();
+                   // console.log(  child.keyword() )
+                    if( child.keyword()==='var' || child.keyword()==='const' || child.keyword()==='statement' )
+                    {
+                        v = v.replace('=',':');
+                    }
+                    content.push( v );
+
+                }else
+                {
+                    //获取函数的默认参数
+                    if( child.value==='function' )
+                    {
+                        content.push(child.value);
+                        while( children[++b].value !=='(' );
+                        content.push( children[b].value );
+                        child = children[++b];
+                        var param;
+                        if( child instanceof Stack && child.keyword()==='statement' )
+                        {
+                            param = createDefaultParam(child);
+                            content.push( param.param.join(',') );
+                            child = children[++b];
+                        }
+                        content.push( child.value );
+                        child = children[++b];
+                        content.push( child.value );
+                        if( param && child.value==='{' )
+                        {
+                            content.push( param.expre.join('') );
+                        }
+
+                    }else if( !(child.value==='var' || child.value==='const' ) )
+                    {
+                        content.push(child.value);
+                    }
+                }
+            }
+
+            val.push( content.join('') );
+
+            if( item.static() )
+            {
+                stat.prop.push( val.join('') );
+                stat.info.push( createDescribe(item) );
+
+            }else
+            {
+                proto.prop.push( val.join('') );
+                proto.info.push( createDescribe(item) );
+            }
+        }
+    }
+
+    str.push( ['static',':','{',[['map',':','{', stat.prop.join(',') ,'}'].join(''),['info',':','{', stat.info.join(',') ,'}'].join('')].join(','),'}'].join('') );
+    str.push( ',' );
+    str.push( ['proto',':','{',[['map',':','{', proto.prop.join(',') ,'}'].join(''),['info',':','{', proto.info.join(',') ,'}'].join('')].join(','),'}'].join('') );
+    str.push( '}' );
+    return str.join('');
+}
+
 
 /**
  * 转换语法
@@ -1935,88 +2166,17 @@ function checkProperty( scope )
  */
 Stack.prototype.toString=function()
 {
+    if( this.keyword()==='class' )
+    {
+       return createModule( this );
+    }
+
     var data = this.content();
     var str = [];
     var i = 0;
     var len = data.length;
     var item;
     checkProperty(this);
-    var ps = getParentScope( this );
-    if( this.keyword()==='class' )
-    {
-        str.push( 'var ');
-        str.push( this.name() );
-        str.push( '=' );
-        str.push( '{' );
-
-        var s=[];
-        var d= [];
-        var info=[];
-        for ( ; i< len ; i++ )
-        {
-            item = data[i];
-            if( item instanceof Stack ){
-
-                var val = [];
-                var desc = []
-
-                desc.push( item.name() );
-                desc.push( ':' );
-                desc.push( '{' );
-                desc.push( 'id:"' );
-                desc.push( item.keyword() );
-                desc.push( '",' );
-                desc.push( 'type:"' )
-                desc.push( item.type().replace(/^\(|\)$/g,'') );
-                desc.push( '",' )
-                desc.push( 'q:"' );
-                desc.push( item.qualifier() );
-                desc.push( '"' );
-
-                if( item.keyword() === 'function' )
-                {
-                    val.push( item.name() );
-                    val.push( ':' );
-                    val.push(item.toString());
-                    desc.push(',');
-                    desc.push('param:[');
-                    if( item.param().length >0  ) {
-                        desc.push('"' + item.param().join('","') + '"')
-                    }
-                    desc.push(']');
-
-                }else{
-                    val.push(item.toString());
-                }
-
-                info.push( desc.join('') );
-                if( item.static() ){
-                    s.push( val.join('') );
-                }else{
-                    d.push( val.join('') );
-                }
-            }
-        }
-
-        str.push( 's:{' );
-        str.push( s.join(',') );
-        str.push( '},' );
-        str.push( '\n' );
-
-        str.push( 'd:{' );
-        str.push( d.join(',') );
-        str.push( '},' );
-        str.push( '\n' );
-
-        str.push( 'i:{' );
-        str.push( info.join(',') );
-        str.push( '}' );
-        str.push( '\n' );
-        str.push( '}' );
-        return str.join('');
-    }
-
-
     for ( ; i< len ; i++ )
     {
         item = data[i];
@@ -2025,19 +2185,6 @@ Stack.prototype.toString=function()
             str.push( item.toString() );
         }else
         {
-
-            if( ps.keyword() === 'class' || this.keyword() === 'class' ){
-
-                if( item.value==='var' || item.value==='const'){
-                   continue;
-                }
-                if( item.value==='='){
-                    item.value=':';
-                }
-            }
-
-
-
             str.push( item.value || item );
 
             //空格
