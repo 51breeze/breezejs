@@ -5,7 +5,7 @@
 const reserved = [
     'static','public','private','protected','internal','package','override','final',
     'extends','import','class','var','let','function','new','typeof','const',
-    'instanceof','if','else','do','while','for','in','of','switch','case',
+    'instanceof','if','else','do','while','for','in','of','switch','case','super',
     'break','default','try','catch','throw','Infinity','this','debugger',
     'finally','return','null','false','true','NaN','undefined','delete',
     /*'export',*/
@@ -340,8 +340,8 @@ var syntax={};
 syntax["package"]=function (event)
 {
     event.prevented=true;
+    if( this.scope().keyword() !=='rootblock' )this.error();
     this.add( new Scope('package', '(block)' ) );
-
     var self = this;
     var name = [];
     this.loop(function(){
@@ -354,7 +354,7 @@ syntax["package"]=function (event)
 
     if( this.current.id !=='{' ) this.error('Missing token {');
     if( !checkSegmentation( name ) )this.error('Invalid package name');
-    event.scope.name( name.join('') );
+    this.scope().name( name.join('') );
 
     this.loop(function(){
         if( this.next.id === '}') return false;
@@ -460,6 +460,10 @@ syntax['private,protected,internal,static,public,override,final']=function(event
     }
 
     n = this.seek();
+
+    // override 只能出现在函数的修饰符中
+    if( o && n.value !== 'function' )this.error('Invalid override.');
+
     if( n.value==='class' || n.value === 'function' )
     {
         this.add( new Scope( n.value , '(block)' ) );
@@ -587,13 +591,13 @@ syntax['function']= function(event){
     this.add( this.current );
     var s = this.scope()
     var n = this.seek();
+    var name='';
     if( s.parent().keyword() === 'class' && (n.value === 'get' || n.value === 'set') && this.next.id !== '(' )
     {
         s.accessor(n.value);
         n = this.seek();
     }
 
-    var name='';
     if( n.id !== '(' )
     {
         name = n.value;
@@ -654,6 +658,12 @@ syntax['function']= function(event){
         }
     }
 
+    //构造函数不能有返回值
+    if( s.parent().keyword() ==='class' && s.parent().name()=== s.name() )
+    {
+        type='void';
+    }
+
     s.type('('+type+')');
     var prefix = s.static() ? 'static_' : '';
 
@@ -662,19 +672,18 @@ syntax['function']= function(event){
     {
         //不能重复声明函数
         var val = ps.define( prefix+name );
-        if( val && val.scope === ps )
+        if( val )
         {
-            //构造函数
-            if( val.id==='class' && !ps.construct )
-            {
-                ps.construct=s;
-            }else {
+            if( val.scope === ps  && s.accessor() === val.scope.accessor() && ps.construct || (!s.accessor() && (val.get || val.set) ) )
                 this.error('function "'+name+'" has already been declared');
-            }
+            if( val.id==='class' )ps.construct=true;
+            if( s.accessor() )val[ s.accessor() ]=true;
 
         }else
         {
-            ps.define(prefix+name, {type: '(' + type + ')', 'id': 'function', scope: ps});
+            var obj = {type: '(' + type + ')', 'id':'function',scope: ps};
+            if( s.accessor() )obj[ s.accessor() ]=true;
+            ps.define( prefix+name,  obj );
         }
     }
 
@@ -888,6 +897,17 @@ syntax["debugger"]=function (e)
     if( !(this.prev.value===';' || this.prev.value==='}' || this.prev.line !== this.current.line ) )this.error();
     this.add( new Stack('expression','(*)') );
     this.add( this.current );
+    this.end();
+}
+
+syntax["super"]=function (e)
+{
+    this.add( new Stack('expression','(*)') );
+    var fun = getParentFunction( this.scope() );
+    if( !fun || fun.parent().keyword() !=='class' )this.error();
+    if( !fun.parent().extends() )this.error('No parent class inheritance');
+    this.add( this.current );
+    this.step();
     this.end();
 }
 
@@ -1666,7 +1686,7 @@ Stack.current=function()
 {
     if( Stack.__current__=== null )
     {
-        Stack.__current__ = new Stack('rootblack','(rootblack)');
+        Stack.__current__ = new Stack('rootblock','(rootblock)');
     }
     return Stack.__current__;
 }
@@ -1759,7 +1779,7 @@ Stack.prototype.add=function( val, index )
             if( val === this )error('Invalid child');
 
             //堆叠器中不能添加结构体 比如 if else switch do while try for catch finally
-            if( this.keyword() !== 'rootblack' && val.type() ==='(block)' && !(this instanceof Scope) )
+            if( this.keyword() !== 'rootblock' && val.type() ==='(block)' && !(this instanceof Scope) )
             {
                 error('Invalid syntax ' + val.keyword() );
             }
@@ -1771,7 +1791,7 @@ Stack.prototype.add=function( val, index )
             Stack.__current__= val;
 
             //如当前的子级是一个作用域则引用父级域中定义的属性
-            if( this.type() !== '(rootblack)' && val instanceof Scope )
+            if( this.type() !== '(rootblock)' && val instanceof Scope )
             {
                 var parentScope = getParentScope( val );
                 if( parentScope )merge(val.__define__, parentScope.__define__ );
@@ -1856,7 +1876,7 @@ Stack.prototype.switch=function()
             return true;
         }
 
-    }else if( this.keyword() === 'rootblack' )
+    }else if( this.keyword() === 'rootblock' )
     {
         this.__close__ = true;
         return true;
@@ -2003,7 +2023,7 @@ function createDescribe( stack )
             desc.push( ['a',stack.accessor() ].join('":"') );
         }
     }
-    return 'name:{"'+desc.join('","')+'"}';
+    return '"'+desc.join('","')+'"';
 }
 
 
@@ -2064,21 +2084,23 @@ function createDefaultParam( stack )
 }
 
 
+/**
+ * 生成模块信息
+ * @param stack
+ * @returns {string}
+ */
 function createModule( stack )
 {
     var data = stack.content();
-    var str = [];
     var i = 0;
     var item;
     var len = data.length;
+    var stat=[];
+    var proto=[];
+    var isstatic = stack.static();
+    var constructor= isstatic ? 'function(){}' : 'function(){ if( !(this instanceof '+stack.name()+') )throw new SyntaxError("Please use the new operation to build instances."); return this;}';
+    var accessor={stat:{},proto:{}}
 
-    str.push( 'var ');
-    str.push( stack.name() );
-    str.push( '=' );
-    str.push( '{' );
-
-    var stat={'prop':[],'info':[]};
-    var proto= {'prop':[],'info':[]};
     for ( ; i< len ; i++ )
     {
         item = data[i];
@@ -2087,76 +2109,109 @@ function createModule( stack )
             var val = [];
             if( item.keyword() === 'function' )
             {
-                val.push( item.name() );
-                val.push( ':' );
-            }
-
-            var content=[];
-            var children = item.content();
-            for(var b=0; b< children.length; b++)
-            {
-                var child = children[b];
-                if( child instanceof Stack )
+                item.content().splice(1,1);
+                if( item.name() === stack.name() && !isstatic )
                 {
-                    var v = child.toString();
-                   // console.log(  child.keyword() )
-                    if( child.keyword()==='var' || child.keyword()==='const' || child.keyword()==='statement' )
-                    {
-                        v = v.replace('=',':');
-                    }
-                    content.push( v );
+                    constructor=createFunction(item, true);
+                    continue;
 
                 }else
                 {
-                    //获取函数的默认参数
-                    if( child.value==='function' )
-                    {
-                        content.push(child.value);
-                        while( children[++b].value !=='(' );
-                        content.push( children[b].value );
-                        child = children[++b];
-                        var param;
-                        if( child instanceof Stack && child.keyword()==='statement' )
-                        {
-                            param = createDefaultParam(child);
-                            content.push( param.param.join(',') );
-                            child = children[++b];
-                        }
-                        content.push( child.value );
-                        child = children[++b];
-                        content.push( child.value );
-                        if( param && child.value==='{' )
-                        {
-                            content.push( param.expre.join('') );
-                        }
-
-                    }else if( !(child.value==='var' || child.value==='const' ) )
-                    {
-                        content.push(child.value);
-                    }
+                    val.push( createFunction(item) );
                 }
+
+            }else if( item.keyword() === 'var' || item.keyword() === 'const' )
+            {
+                item.content().shift();
+                var ret = item.toString().replace( new RegExp('^'+item.name()+'\\s*\\=?'), '' );
+                val.push( ret ? ret : 'null' );
             }
 
-            val.push( content.join('') );
-
-            if( item.static() )
+            if( item.static() || isstatic  )
             {
-                stat.prop.push( val.join('') );
-                stat.info.push( createDescribe(item) );
+                stat.push( item.name()+':{'+createDescribe(item)+',"v":'+val.join('')+'}' );
 
             }else
             {
-                proto.prop.push( val.join('') );
-                proto.info.push( createDescribe(item) );
+                proto.push( item.name()+':{'+createDescribe(item)+',"v":'+val.join('')+'}' );
             }
         }
     }
 
-    str.push( ['static',':','{',[['map',':','{', stat.prop.join(',') ,'}'].join(''),['info',':','{', stat.info.join(',') ,'}'].join('')].join(','),'}'].join('') );
-    str.push( ',' );
-    str.push( ['proto',':','{',[['map',':','{', proto.prop.join(',') ,'}'].join(''),['info',':','{', proto.info.join(',') ,'}'].join('')].join(','),'}'].join('') );
-    str.push( '}' );
-    return str.join('');
+    // 组合接口
+    var list = [];
+    list.push( 'static'+':'+'{'+stat.join(',')+'}' );
+    list.push( 'proto'+':'+'{'+proto.join(',')+'}' );
+
+    var define = stack.parent().define();
+    var include=[];
+    for ( var j in define )
+    {
+        include.push( j+':"'+define[j].value+'"' )
+    }
+    list.push('constructor' + ':'+constructor );
+    list.push('import' + ':{' + include.join(',') + '}');
+    list.push('extends' + ':"' + stack.extends() + '"');
+    list.push('package' + ':"' + stack.parent().name() + '"');
+    list.push('class' + ':"' + stack.name() + '"');
+    list.push('instance' + ':' + ( isstatic ? 'false' : 'true' ) );
+    return 'packages'+'("'+stack.parent().name()+'",{'+list.join(',')+'});';
+}
+
+/**
+ * 生成函数
+ * @param stack
+ * @returns {string}
+ */
+function createFunction( stack, is )
+{
+    var children = stack.content();
+    var i=0;
+    var len = children.length;
+    var content=[];
+    var param;
+
+    for(;i<len; i++)
+    {
+        var child = children[i];
+        if( child instanceof Stack )
+        {
+            if( child.keyword() === 'statement' )
+            {
+                param = createDefaultParam( child );
+                content.push( param.param.join(',') );
+
+            }else
+            {
+                content.push( child.toString() );
+            }
+        }
+        //获取函数的默认参数
+        else
+        {
+            if( child.value==='}' && i+1 === len && is )
+            {
+                content.push( '\nreturn this;' );
+            }
+            content.push( child.value );
+            if ( param && child.value === '{' )
+            {
+                content.push( param.expre.join('') );
+                if( is )
+                {
+                    content.push( 'if( !(this instanceof '+stack.parent().name()+') )throw new SyntaxError("Please use the new operation to build instances.");' );
+                    if( stack.parent().extends() )
+                    {
+                        var p = param.param.slice(0);
+                        p.unshift('this');
+                        content.push( '\n'+stack.parent().extends()+'.call('+p.join(',')+');\n');
+                    }
+                }
+                param=null;
+            }
+        }
+    }
+    return content.join('');
 }
 
 
@@ -2169,6 +2224,10 @@ Stack.prototype.toString=function()
     if( this.keyword()==='class' )
     {
        return createModule( this );
+
+    }else if(  this.keyword()==='function' )
+    {
+        return createFunction( this );
     }
 
     var data = this.content();
@@ -2294,19 +2353,11 @@ var default_config = {
 
 /**
  *  语法分析器
- * @param content
  * @param config
  * @constructor
  */
-function Ruler( content, config )
+function Ruler( config )
 {
-    this.lines=content.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split(/\n/);
-    this.line=0;
-    this.cursor=0;
-    this.input='';
-    this.skip=false;
-    this.__end__=false;
-    this.__balance__=[];
     this.__config__= merge(default_config,config || {});
     Listener.call(this);
     for (var type in syntax )
@@ -2645,8 +2696,19 @@ Ruler.prototype.check=function( o )
  * 开始分析
  * @returns {Scope}
  */
-Ruler.prototype.start=function()
+Ruler.prototype.start=function( content )
 {
+    this.lines=content.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split(/\n/);
+    this.line=0;
+    this.cursor=0;
+    this.input='';
+    this.skip=false;
+    this.current=null;
+    this.prev=null;
+    this.next=null;
+    this.__end__=false;
+    this.__balance__=[];
+    Stack.__current__=null;
     do{
         this.step();
     }while( !this.done() )
