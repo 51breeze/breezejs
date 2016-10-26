@@ -47,13 +47,13 @@ define('components/SkinComponent',['./Component','./SkinGroup','../Breeze'],func
         if( !skinGroup.skinObject() )skinGroup.skinObject( this.defaultSkinObject() );
         if( !skinGroup.styleName() )skinGroup.styleName( this.styleName() );
         skinGroup.createSkin();
-    }
+    };
 
     /**
      * @returns {SkinObject}
      * @protected
      */
-    SkinComponent.prototype.defaultSkinObject=function(){  return new SkinObject('<div></div>') }
+    SkinComponent.prototype.defaultSkinObject=function(){  return new SkinObject('<div></div>') };
 
     /**
      * 获取视口对象
@@ -68,7 +68,7 @@ define('components/SkinComponent',['./Component','./SkinGroup','../Breeze'],func
             throw new Error('invalid viewport');
         }
         return viewport;
-    }
+    };
 
     /**
      * @private
@@ -88,7 +88,7 @@ define('components/SkinComponent',['./Component','./SkinGroup','../Breeze'],func
             return this;
         }
         return typeof this.__styleName__ === "string" ? this.__styleName__ : '.'+Breeze.lcfirst( this.componentProfile );
-    }
+    };
 
     /**
      * 获取设置皮肤组
@@ -117,7 +117,7 @@ define('components/SkinComponent',['./Component','./SkinGroup','../Breeze'],func
             this.skinInstalled( this.__skinGroup__ );
         }
         return this.__skinGroup__;
-    }
+    };
 
     /**
      * @param string skinName
@@ -127,7 +127,7 @@ define('components/SkinComponent',['./Component','./SkinGroup','../Breeze'],func
     SkinComponent.prototype.getSkin=function(skinName)
     {
        return this.skinGroup().getSkin( skinName );
-    }
+    };
 
     /**
      * @param skinName
@@ -137,8 +137,8 @@ define('components/SkinComponent',['./Component','./SkinGroup','../Breeze'],func
     SkinComponent.prototype.currentSkin=function(skinName)
     {
         return this.skinGroup().currentSkin( skinName );
-    }
+    };
 
     return SkinComponent;
 
-})
+});

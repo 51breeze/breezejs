@@ -2,6 +2,8 @@ const fs = require('fs');
 const root = process.cwd().replace('\\','/');
 const suffix = '.as';
 const global_module={};
+const Ruler = require('./compiler/Ruler.js');
+const r = new Ruler();
 
 
 function global(name)
@@ -47,13 +49,14 @@ function pathfile( file )
 }
 
 
-function checkfile( file )
+function isExistsCacheFile(file )
 {
-    try{
-        return fs.statSync( pathfile(file) ).isFile();
-    } catch (e) {
-        return false;
-    }
+    return fs.existsSync( getCacheFilePath(file) );
+}
+
+function getCacheFilePath(file, suffix )
+{
+    return root+'/compiler/cache/'+file.replace('.','_')+ (suffix || '.js');
 }
 
 
@@ -68,44 +71,67 @@ function trim( str )
 }
 
 
+var cacheEnable=true;
 
 
 /**
  * 执行编译
  */
-function make( file , fs )
+function make( file )
 {
-    var content = fs.readFileSync( pathfile( file ) , 'utf-8');
-    var scope = r.start( content );
 
+    var source = pathfile(file);
+    var stat = fs.statSync( source );
+    var id =  new Date(stat.mtime).getTime();
+    var is = false;
+    var data;
+    console.log( source,'...' );
 
-    var pack =  scope.content()[0];
-    var include = pack.define();
-    for( var i in include )make( include[i].value, fs );
-    console.log( scope.toString() );
+    if( isExistsCacheFile(file) && cacheEnable )
+    {
+         var json = fs.readFileSync( getCacheFilePath(file) , 'utf-8');
+         data = JSON.parse( json );
+         is = json.id === id;
+    }
 
+    if( !is )
+    {
+        var content = fs.readFileSync( source , 'utf-8');
+        var scope = r.start(content);
+        data = Ruler.createModule(scope, id);
+        fs.writeFileSync(getCacheFilePath(file, '.js'), JSON.stringify(data) );
+    }
+
+    for( var i in data.import )
+    {
+        make( data.import[i] );
+    }
 }
 
-const ruler = require('./compiler/Ruler.js');
-const r = new ruler();
+
+
+
+
+
+
 
 
 function format(bytes)
 {
     return (bytes/1024/1024).toFixed(2)+'MB';
-};
-
+}
 function showMem()
 {
     var mem = process.memoryUsage();
     console.log('Process: heapTotal '+format(mem.heapTotal) + ' heapUsed ' + format(mem.heapUsed) + ' rss ' + format(mem.rss));
-};
-
-
-
-
+}
 var main='test';
+
+
+
+console.log('========start make=======' );
 var content = make( main , fs );
+console.log('===========done=========\n' );
 
 
 /*if( !global_error )

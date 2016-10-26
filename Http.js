@@ -9,7 +9,7 @@
 
 define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,HttpEvent)
 {
-    'use strict'
+    'use strict';
 
     var XHR=window.XMLHttpRequest || window.ActiveXObject
         ,localUrl = location.href
@@ -28,7 +28,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
                 ,'Accept':"text/html"
                 ,'X-Requested-With':'XMLHttpRequest'
             }
-        }
+        };
 
     var dispatchEvent=function( type, data, status,xhr)
     {
@@ -40,7 +40,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
         if( this.hasEventListener( type ) )
         {
             var event = new HttpEvent( type );
-            event.data = data || null
+            event.data = data || null;
             event.status = status || 0;
             event.url=xhr.__url__ || null;
             this.dispatchEvent( event );
@@ -50,7 +50,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
             clearTimeout( xhr.__timeoutTimer__ );
             xhr.__timeoutTimer__= null;
         }
-    }
+    };
 
     var done=function(event){
 
@@ -75,11 +75,11 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
                     result = eval("(" + xhr.responseText + ")");
                 }catch(e){
                     result=null;
-                };
+                }
             }
         }
         dispatchEvent.call(this, result!==null ? HttpEvent.SUCCESS : type , result, xhr.status ,xhr);
-    }
+    };
 
 
     /**
@@ -123,7 +123,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
             return true;
         }
         return false;
-    }
+    };
 
     /**
      * 当前Http 是否有正请求的任务
@@ -132,7 +132,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
     Http.prototype.loading=function()
     {
        return (this.__xhrs__ && this.__xhrs__.length>0);
-    }
+    };
 
     /**
      * 发送请求
@@ -149,7 +149,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
         var method = method || options.method;
 
         try{
-            var xhr
+            var xhr;
             if( options.dataType === 'jsonp' )
             {
                 xhr =new ScriptRequest();
@@ -168,7 +168,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
 
         if( typeof method==='string' )
         {
-            method=method.toUpperCase()
+            method=method.toUpperCase();
             if( !(method in Http.METHOD) )
             {
                 throw new Error('invalid method for '+method);
@@ -200,7 +200,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
             {
                 if( !/charset/i.test(options.header.contentType) )options.header.contentType +=';'+ options.charset;
                 try {
-                    var name
+                    var name;
                     for ( name in options.header )
                     {
                         xhr.setRequestHeader( name, options.header[ name ] );
@@ -230,7 +230,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
             }
         })(xhr), options.timeout * 1000 );
         return true;
-    }
+    };
 
     /**
      * 设置Http请求头信息
@@ -249,7 +249,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
             }
         }
         return this;
-    }
+    };
 
     /**
      * 获取已经响应的头信息
@@ -260,7 +260,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
     {
         var responseHeaders = this.__responseHeaders__;
         return typeof name==='undefined' || !responseHeaders ? responseHeaders || '' : responseHeaders[ name.toLowerCase() ] || '';
-    }
+    };
 
 
     /**
@@ -292,7 +292,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
         XML:'xml',
         JSON:'json',
         JSONP:'jsonp'
-    }
+    };
 
     /**
      * Difine Http method
@@ -368,7 +368,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
         {
             (document.head || document.getElementsByTagName( "head" )[0]).appendChild( target );
         }
-    }
+    };
 
     /**
      * 终止请求
@@ -382,7 +382,7 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
             target.parentNode.removeChild( target );
         }
         return true;
-    }
+    };
 
     /**
      * 脚本请求后的响应回调函数

@@ -20,4 +20,4 @@ define('events/PropertyEvent',['./BreezeEvent'],function(BreezeEvent)
     BreezeEvent.fix.map[ PropertyEvent.CHANGE ] = 'input';
     return PropertyEvent;
 
-})
+});

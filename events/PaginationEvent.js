@@ -7,4 +7,4 @@ define('events/PaginationEvent',['./BreezeEvent'],function(BreezeEvent)
     PaginationEvent.CHANGED='paginationChanged';
     return PaginationEvent;
 
-})
+});

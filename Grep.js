@@ -22,7 +22,7 @@ define('Grep',[],function(){
         this[ this.length ]= {'logic':logic,'column':column,'value':value,'operational':operational,'type':type};
         this.length++;
         return this;
-    }
+    };
 
     /**
      * 根据据指定的条件生成筛选器
@@ -87,7 +87,7 @@ define('Grep',[],function(){
             return null;
         }
         return new Function('return ( '+command.join(' ')+' )' );
-    }
+    };
 
 
     /**
@@ -177,7 +177,7 @@ define('Grep',[],function(){
             }).replace(/\s+(or|and)\s+/gi,function(a,b)
             {
                 return b.toLowerCase()=='or' ? ' || ' : ' && ';
-            })
+            });
             this.__filter__=new Function('try{ return !!('+filter+') }catch(e){ throw new Error("syntax error is in grep:'+old+'");}');
 
         }else if( filter === null )
@@ -185,7 +185,7 @@ define('Grep',[],function(){
             this.__filter__=null;
         }
         return this.__filter__;
-    }
+    };
 
     /**
      * @returns {Grep}
@@ -199,7 +199,7 @@ define('Grep',[],function(){
         this.__filter__=null;
         this.length=0;
         return this;
-    }
+    };
 
     /**
      * 查询数据
@@ -226,7 +226,7 @@ define('Grep',[],function(){
             result=data;
         }
         return result;
-    }
+    };
 
     /**
      * 指定范围
@@ -243,7 +243,7 @@ define('Grep',[],function(){
             strainer.call(this,column,start+','+end,'range',logic);
             return this;
         }
-    }
+    };
 
 
     /**
@@ -263,7 +263,7 @@ define('Grep',[],function(){
             strainer.call(this,'index',start+','+start+end,'index',logic);
             return this;
         }
-    }
+    };
 
     /**
      * 筛选等于指定列的值
@@ -276,7 +276,7 @@ define('Grep',[],function(){
     {
         strainer.call(this,column,value,'==',logic);
         return this;
-    }
+    };
 
     /**
      * 筛选不等于指定列的值
@@ -289,7 +289,7 @@ define('Grep',[],function(){
     {
         strainer.call(this,column,value,'!=',logic);
         return this;
-    }
+    };
 
     /**
      * 筛选大于列的值
@@ -302,7 +302,7 @@ define('Grep',[],function(){
     {
         strainer.call(this,column,value,'>',logic);
         return this;
-    }
+    };
 
     /**
      * 筛选小于列的值
@@ -315,7 +315,7 @@ define('Grep',[],function(){
     {
         strainer.call(this,column,value,'<',logic);
         return this;
-    }
+    };
 
     /**
      * 筛选大于等于列的值
@@ -328,7 +328,7 @@ define('Grep',[],function(){
     {
         strainer.call(this,column,value,'>=',logic);
         return this;
-    }
+    };
 
     /**
      * 筛选小于等于列的值
@@ -341,7 +341,7 @@ define('Grep',[],function(){
     {
         strainer.call(this,column,value,'<=',logic);
         return this;
-    }
+    };
 
     /**
      * 筛选模糊匹配列的值
@@ -354,7 +354,7 @@ define('Grep',[],function(){
     {
         strainer.call(this,column,value,'like',logic,type);
         return this;
-    }
+    };
 
     /**
      * 筛选排除模糊匹配列的值
@@ -367,7 +367,7 @@ define('Grep',[],function(){
     {
         strainer.call(this,column,value,'notlike',logic,type);
         return this;
-    }
+    };
 
     Grep.LIKE_LEFT='left';
     Grep.LIKE_RIGHT='right';
@@ -375,4 +375,4 @@ define('Grep',[],function(){
 
     return Grep;
 
-})
+});

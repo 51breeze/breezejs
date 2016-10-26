@@ -9,9 +9,9 @@ define('events/MouseEvent',['./BreezeEvent'],function(BreezeEvent)
     function MouseEvent( type, bubbles,cancelable  ){ BreezeEvent.call(this,  type, bubbles,cancelable );}
     MouseEvent.prototype=new BreezeEvent();
     MouseEvent.prototype.constructor=MouseEvent;
-    MouseEvent.prototype.pageX= NaN
-    MouseEvent.prototype.pageY= NaN
-    MouseEvent.prototype.offsetX=NaN
+    MouseEvent.prototype.pageX= NaN;
+    MouseEvent.prototype.pageY= NaN;
+    MouseEvent.prototype.offsetX=NaN;
     MouseEvent.prototype.offsetY=NaN;
     MouseEvent.prototype.screenX= NaN;
     MouseEvent.prototype.screenY= NaN;
@@ -32,4 +32,4 @@ define('events/MouseEvent',['./BreezeEvent'],function(BreezeEvent)
     window.MouseEvent=MouseEvent;
     return MouseEvent;
 
-})
+});

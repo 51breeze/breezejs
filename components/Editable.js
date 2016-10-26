@@ -34,11 +34,11 @@
         {
             if( typeof options !== "undefined" )
             {
-                _options = Breeze.extend(true, _options, options)
+                _options = Breeze.extend(true, _options, options);
                 return this;
             }
             return _options;
-        }
+        };
 
         /**
          * @private
@@ -62,12 +62,12 @@
                 return this;
             }
             return _dataSource;
-        }
+        };
 
         this.display=function()
         {
 
-        }
+        };
 
         this.skin=function( skin )
         {
@@ -110,4 +110,4 @@
     window.EditableEvent=EditableEvent;
     window.Editable= Editable;
 
-})( window )
+})( window );

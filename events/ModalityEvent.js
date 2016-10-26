@@ -18,4 +18,4 @@ define('events/ModalityEvent',['./BreezeEvent'],function(BreezeEvent)
     ModalityEvent.SUBMIT='modalitySubmit';
     return ModalityEvent;
 
-})
+});

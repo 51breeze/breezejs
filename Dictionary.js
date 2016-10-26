@@ -17,14 +17,14 @@ define('Dictionary',[],function(){
         if( !(this instanceof Dictionary) )
             return new Dictionary();
 
-        var map=new Array()
+        var map=[]
             ,indexByKey=function(key)
             {
                 var i = 0,len=map.length,isscalar=( typeof key==='string' );
                 for(; i<len ; i++) if( ( isscalar && i===key ) || ( !isscalar && map[i] && map[i].key===key ) )
                     return i;
                 return -1;
-            }
+            };
 
         /**
          * 设置指定键值的数据,如果相同的键值则会覆盖之前的值。
@@ -37,9 +37,9 @@ define('Dictionary',[],function(){
             if( typeof key==='string' )
                 return map[ key ]=value;
             this.remove( key );
-            map.push({'key':key,'value':value})
+            map.push({'key':key,'value':value});
             return value;
-        }
+        };
 
         /**
          * 获取已设置的值
@@ -52,7 +52,7 @@ define('Dictionary',[],function(){
                 return map[ key ];
             var index=indexByKey(key);
             return index >=0 ?  map[ index ].value : null ;
-        }
+        };
 
         /**
          * 返回所有已设置的数据
@@ -62,7 +62,7 @@ define('Dictionary',[],function(){
         this.getAll=function()
         {
             return map;
-        }
+        };
 
         /**
          * 返回有的key值
@@ -70,10 +70,10 @@ define('Dictionary',[],function(){
          */
         this.toKeys=function()
         {
-            var value=[],i
+            var value=[],i;
             for( i in map ) value.push( typeof map[i] ==='object' ? map[i].key : i );
             return value;
-        }
+        };
 
         /**
          * 删除已设置过的对象,并返回已删除的值（如果存在）否则为空。
@@ -96,7 +96,7 @@ define('Dictionary',[],function(){
                 }
             }
             return value;
-        }
+        };
 
         /**
          * 返回已设置数据的总数
@@ -108,4 +108,4 @@ define('Dictionary',[],function(){
         }
     }
     return Dictionary;
-})
+});

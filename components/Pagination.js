@@ -27,7 +27,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
             .replace("{rows}", this.rows() )
             .replace("{currentPage}", currentPages );
 
-        this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('info')).html( info )
+        this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('info')).html( info );
         this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('link') ).display(true,'inline-block').next('.current').removeClass('current').next(null).forEach(function(elem, index){
             this.property('pageIndex',links[index]);
             this.text( links[index] );
@@ -52,7 +52,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
 
         var hiddenLeft = this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('hiddenLeft') );
         var hiddenRight = this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('hiddenRight') );
-        hiddenLeft.display( links[0] > 1, 'inline-block' )
+        hiddenLeft.display( links[0] > 1, 'inline-block' );
         hiddenRight.display( links[ links.length-1 ] < totalPages , 'inline-block');
     }
 
@@ -82,7 +82,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
             'wheelTarget':null,
             'profile':{'info':'总共{totalRows}条记录','firstPage':'第一页','prevPage':'上一页','nextPage':'下一页','lastPage':'最后页','button':'跳转到'},
             'themeSkin':'{firstPage}{prevPage}{links}{nextPage}{lastPage}{goto}'
-        }
+        };
         return SkinComponent.call(this,viewport , context);
     }
 
@@ -109,7 +109,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
             return this;
         }
         return this.__options__;
-    }
+    };
 
     /**
      * @private
@@ -126,7 +126,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
         {
             if( !(dataSource instanceof DataSource) )throw new Error('invalid dataSource');
             this.__dataSource__ = dataSource;
-            dataSource.rows( this.rows() )
+            dataSource.rows( this.rows() );
             var initialized = false;
             dataSource.addEventListener(DataSourceEvent.FETCH,function(event)
             {
@@ -158,7 +158,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
             return this;
         }
         return this.__dataSource__;
-    }
+    };
 
     /**
      * @private
@@ -184,7 +184,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
                     {
                         this.text( profile );
                     }
-                })
+                });
 
                 if( eventType.indexOf(MouseEvent.CLICK) >=0 )
                 {
@@ -232,7 +232,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
             },false,0, this);
         }
         return  this.__template__;
-    }
+    };
 
     /**
      * 设置获取总分页数
@@ -243,7 +243,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
     {
         var dataSource = this.dataSource();
         return dataSource ? dataSource.totalPages() : this.totalRows() >0 ? Math.ceil( this.totalRows() / this.rows() ) : 0;
-    }
+    };
 
     /**
      * @private
@@ -264,7 +264,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
         }
         this.__totalRows__ = totalRows;
         return this;
-    }
+    };
 
     /**
      * @private
@@ -286,7 +286,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
         !dataSource || dataSource.rows( rows );
         this.__rows__ = rows;
         return this;
-    }
+    };
 
     /**
      * @private
@@ -322,7 +322,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
             }
         }
         return this;
-    }
+    };
 
     /**
      * 显示分页视图
@@ -332,7 +332,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
     {
         this.dataSource().fetch();
         return this;
-    }
+    };
 
     /**
      * 获取默认皮肤
@@ -370,8 +370,8 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
             'info':{'class':'info'}
         },['firstPage','prevPage','nextPage','lastPage']);
         return skinObject;
-    }
+    };
 
     return Pagination;
 
-})
+});

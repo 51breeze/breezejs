@@ -7,4 +7,4 @@ define('events/KeyboardEvent',['./BreezeEvent'],function(BreezeEvent)
     KeyboardEvent.KEY_UP='keyup';
     KeyboardEvent.KEY_DOWN='keydown';
     return KeyboardEvent;
-})
+});

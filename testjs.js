@@ -24,7 +24,7 @@
             'variable': {
                 'cccc':123
             }
-        }
+        };
 
 
         var module = {
@@ -78,4 +78,4 @@
     })(packages)
 
 
-})
+});

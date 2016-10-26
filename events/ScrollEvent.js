@@ -14,4 +14,4 @@ define('events/ScrollEvent',['./PropertyEvent'],function(PropertyEvent)
     ScrollEvent.CHANGE='scrollChange';
     return ScrollEvent;
 
-})
+});

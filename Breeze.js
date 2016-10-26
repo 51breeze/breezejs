@@ -165,14 +165,13 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             {
                 node=element.childNodes.item(index);
                 if( ( isfn && selector.call(this,node,index) ) || ( !isfn && (selector==='*' || node.nodeType===1) )  )
-                    ret.push( node )
+                    ret.push( node );
                 if( flag===true && ret.length >0 )break;
                 ++index;
             }
         }
         return ret;
-    };
-
+    }
     /**
      * @private
      */
@@ -180,9 +179,9 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     {
         if( this instanceof EventDispatcher && this.hasEventListener( type )  )
         {
-            var event=new ElementEvent( type )
+            var event=new ElementEvent( type );
             event.parent=parent;
-            event.child=child
+            event.child=child;
             return this.dispatchEvent( event );
         }
         return true;
@@ -218,7 +217,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                     if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );
                 } while (deep && currentItem)
             }
-        })
+        });
         return ret;
     }
 
@@ -262,8 +261,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         EventDispatcher.call(this);
         this.forEachCurrentItem=null;
         this.forEachCurrentIndex=NaN;
-    };
-
+    }
     Breeze.prototype= new EventDispatcher();
     Breeze.prototype.constructor = Breeze;
     Breeze.prototype.context = undefined;
@@ -308,7 +306,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             this.forEachCurrentIndex= NaN;
         }
         return typeof result === 'undefined' ? this : result;
-    }
+    };
 
     /**
      * 设置获取当前游标位置的元素
@@ -338,7 +336,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             return this;
         }
         return this.forEachCurrentItem || this[0];
-    }
+    };
 
     /**
      * @private
@@ -352,7 +350,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
              ( fix.attrtrue[name] || typeof this.setAttribute !== "function"  ? this[name] = newValue : this.setAttribute(name, newValue) );
              return PropertyEvent.CHANGE;
         }
-    }
+    };
 
     /**
      * 为每一个元素设置属性值
@@ -381,7 +379,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             throw new Error('the style property names only use style method to operate in property');
         }
         return access.call(this,'property',name,value);
-    }
+    };
 
     /**
      * 判断当前匹配元素是否有指定的属性名
@@ -392,7 +390,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     {
         var elem = this.next();
         return typeof elem.hasAttributes === 'function' ? elem.hasAttributes( prop ) : !!elem[prop];
-    }
+    };
 
 
     /**
@@ -437,7 +435,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                 }
             }
         })
-    }
+    };
 
 
     /**
@@ -475,7 +473,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                 var elem = this;
                 value = value.replace(/([\w\-]+)\s*\:([^\;]*)/g, function (all, name, value) {
                     if (fix.cssHooks[name] && typeof fix.cssHooks[name].set === "function") {
-                        var obj = {}
+                        var obj = {};
                         fix.cssHooks[name].set.call(elem, obj, value);
                         return Breeze.serialize(obj, 'style');
                     }
@@ -496,7 +494,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             }
             return StyleEvent.CHANGE;
         }
-    }
+    };
 
     /**
      * 设置所有匹配元素的样式
@@ -517,7 +515,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             name='cssText';
         }
         return access.call(this,'style',name,value);
-    }
+    };
 
     /**
      * 显示元素
@@ -529,7 +527,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             var type = this.data('display') || 'block';
             this.style('display', type );
         })
-    }
+    };
 
     /**
      * 隐藏当前元素
@@ -542,7 +540,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             this.data('display', Breeze.isEmpty( d ) ? 'block' : d );
             this.style('display', 'none' )
         })
-    }
+    };
 
 
     /**
@@ -554,7 +552,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             typeof this.textContent === "string" ? this.textContent=newValue : this.innerText=newValue;
             return PropertyEvent.CHANGE;
         }
-    }
+    };
 
 
     /**
@@ -564,7 +562,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.text=function( value )
     {
         return access.call(this,'text','text',value);
-    }
+    };
 
     /**
      * @private
@@ -575,7 +573,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             this.hasAttribute('value') ? this.value=newValue : null ;
             return PropertyEvent.CHANGE;
         }
-    }
+    };
 
 
     /**
@@ -585,7 +583,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.value=function( value )
     {
         return access.call(this,'value','value',value);
-    }
+    };
 
 
     /**
@@ -598,7 +596,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         var elem = this.next();
         var value=elem['className'] || '';
         return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
-    }
+    };
 
 
     /**
@@ -633,7 +631,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             }
         });
         return this;
-    }
+    };
 
     /**
      * 移除指定的类名或者清除所有的类名。
@@ -664,7 +662,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                 }
             }catch(e){}
         })
-    }
+    };
 
     /**
      * 获取设置元素宽度
@@ -674,7 +672,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.width=function( value )
     {
         return access.call(this,'style','width',value);
-    }
+    };
 
     /**
      * 获取设置元素高度
@@ -684,7 +682,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.height=function( value )
     {
         return access.call(this,'style','height',value);
-    }
+    };
 
     /**
      * @private
@@ -715,7 +713,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                 return event;
             }
         }
-    }
+    };
 
     /**
      * 获取设置滚动条顶部的位置
@@ -724,7 +722,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.scrollTop=function(value)
     {
         return access.call(this,'scroll','Top',value);
-    }
+    };
 
     /**
      * 获取设置滚动条左部的位置
@@ -733,7 +731,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.scrollLeft=function(value)
     {
         return access.call(this,'scroll','Left',value);
-    }
+    };
 
     /**
      * 获取滚动条的宽度
@@ -742,7 +740,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.scrollWidth=function()
     {
         return access.call(this,'scroll','Width');
-    }
+    };
 
     /**
      * 获取滚动条的高度
@@ -751,7 +749,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.scrollHeight=function()
     {
         return access.call(this,'scroll','Height');
-    }
+    };
 
     /**
      * 获取元素相对文档页面边界的矩形坐标。
@@ -779,7 +777,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             throw new Error('invalid elem. elem not is NodeElement');
 
          var doc =  elem.ownerDocument || elem, docElem=doc.documentElement;
-         this.next( Breeze.getWindow(doc) )
+         this.next( Breeze.getWindow(doc) );
          var scrollTop = this.scrollTop();
          var scrollLeft = this.scrollLeft();
          this.next( elem );
@@ -819,7 +817,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             value.bottom -= scrollTop;
         }
         return value;
-    }
+    };
 
     /**
      * @private
@@ -832,7 +830,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             if( obj.style('position')==='static' )obj.style('position','relative');
             return obj.style(prop,parseInt(newValue) || 0 );
         }
-    }
+    };
 
 
     /**
@@ -843,7 +841,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.left=function( val )
     {
         return access.call(this,'position','left',val)
-    }
+    };
 
     /**
      * 获取或者设置相对于父元素的顶边位置
@@ -853,7 +851,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.top=function(val )
     {
         return access.call(this,'position','top',val)
-    }
+    };
 
     /**
      * 获取或者设置相对于父元素的右边位置
@@ -863,7 +861,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.right=function(val )
     {
         return access.call(this,'position','right',val)
-    }
+    };
 
     /**
      * 获取或者设置相对于父元素的底端位置
@@ -873,7 +871,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.bottom=function( val )
     {
         return access.call(this,'position','bottom',val)
-    }
+    };
 
     /**
      * @private
@@ -899,7 +897,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.localToGlobal=function(left, top)
     {
        return point.call(this,left, top, true);
-    }
+    };
 
     /**
      *  将视图的全局点转成相对本地坐标点
@@ -910,7 +908,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.globalToLocal=function(left, top )
     {
         return point.call(this,left, top);
-    }
+    };
 
 
 
@@ -933,7 +931,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             this.splice(0,this.length, reverts.splice(step, len-step).shift() );
         }
         return this;
-    }
+    };
 
     /**
      * 查找当前匹配的第一个元素下的指定选择器的元素
@@ -945,9 +943,9 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         var ret=[];
         this.forEach(function(elem){
             ret = ret.concat.apply(ret,Breeze.querySelector(selector, elem ) );
-        })
+        });
         return doMake.call( this, ret );
-    }
+    };
 
     /**
      * 查找所有匹配元素的父级元素或者指定selector的父级元素（不包括祖辈元素）
@@ -957,7 +955,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.parent=function( selector )
     {
         return doMake.call( this, DataArray( doRecursion.call(this,'parentNode',selector ) ).unique().toArray() );
-    }
+    };
 
     /**
      * 查找所有匹配元素的祖辈元素或者指定 selector 的祖辈元素。
@@ -968,7 +966,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.parents=function( selector )
     {
         return doMake.call( this, DataArray( doRecursion.call(this,'parentNode',selector, true ) ).unique().toArray() );
-    }
+    };
 
     /**
      * 获取所有匹配元素向上的所有同辈元素,或者指定selector的同辈元素
@@ -978,7 +976,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.prevAll=function( selector )
     {
         return doMake.call( this, doRecursion.call(this,'previousSibling', selector, true ) );
-    }
+    };
 
     /**
      * 获取所有匹配元素紧邻的上一个同辈元素,或者指定selector的同辈元素
@@ -988,7 +986,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.prev=function( selector )
     {
         return doMake.call( this, doRecursion.call(this,'previousSibling', selector ) );
-    }
+    };
 
     /**
      * 获取所有匹配元素向下的所有同辈元素或者指定selector的同辈元素
@@ -998,7 +996,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.nextAll=function( selector )
     {
         return doMake.call( this, doRecursion.call(this,'nextSibling', selector , true ) );
-    }
+    };
 
     /**
      * 获取每一个匹配元素紧邻的下一个同辈元素或者指定selector的同辈元素
@@ -1008,7 +1006,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.next=function( selector )
     {
         return doMake.call( this, doRecursion.call(this,'nextSibling', selector ) );
-    }
+    };
 
     /**
      * 获取每一个匹配元素的所有同辈元素
@@ -1019,7 +1017,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     {
         var results=[].concat( doRecursion.call(this,'previousSibling',selector,true) , doRecursion.call(this,'nextSibling',selector, true) );
         return doMake.call( this, results );
-    }
+    };
 
     /**
      * 查找所有匹配元素的所有子级元素，不包括孙元素
@@ -1044,7 +1042,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             }
         });
         return doMake.call( this, DataArray(results).unique().toArray() );
-    }
+    };
 
 
 
@@ -1064,7 +1062,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             this.next( elem.parentNode ).addChildAt( wrap , elem );
             this.next( wrap ).addChildAt( elem ,-1);
         });
-    }
+    };
 
     /**
      * 取消当前所有匹配元素的父级元素。不指定选择器则默认为父级元素，否则为指定选择器的祖辈元素。
@@ -1093,7 +1091,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                 }
             }
         });
-    }
+    };
 
 
     /**
@@ -1118,7 +1116,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                         html=elem.outerHTML;
                     }else
                     {
-                        var cloneElem=Breeze.clone( elem, true)
+                        var cloneElem=Breeze.clone( elem, true);
                         if( cloneElem )
                         {
                             html=document.createElement( 'div' ).appendChild( cloneElem ).innerHTML;
@@ -1169,7 +1167,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                 return true;
             }
         });
-    }
+    };
 
 
     /**
@@ -1180,7 +1178,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.prototype.addChild=function( childElemnet )
     {
         return this.addChildAt( childElemnet,-1);
-    }
+    };
 
     /**
      * 在指定位置加子级元素（所有已匹配的元素）。
@@ -1241,7 +1239,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             }
             if( isElement ) return this;
         })
-    }
+    };
 
     /**
      * 返回指定索引位置的子级元素( 匹配选择器的第一个元素 )
@@ -1269,7 +1267,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             }
             return child;
         })
-    }
+    };
 
     /**
      * 返回子级元素的索引位置( 匹配选择器的第一个元素 )
@@ -1290,7 +1288,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             return this.indexOf.call( getChildNodes(parent), childElemnet );
         }
         return -1;
-    }
+    };
 
 
     /**
@@ -1316,7 +1314,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             this.removeChildAt( childElemnet );
         }
         return this;
-    }
+    };
 
     /**
      * 移除子级元素
@@ -1328,7 +1326,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     {
         var is=false;
         if(  index && index.parentNode ){
-            this.next( index.parentNode )
+            this.next( index.parentNode );
             is=true;
 
         }else if( !Breeze.isNumber( index ) )
@@ -1340,7 +1338,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             if(  removeChild.call(this,parent,child) && is )
                return this;
         });
-    }
+    };
 
 
 
@@ -1392,7 +1390,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             eval('result = result ' + expr.replace(/\s*/, '') + ' version;');
         }
         return result;
-    }
+    };
 
     /**
      * @private
@@ -1409,7 +1407,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             __root__ = Breeze(window);
         }
         return __root__;
-    }
+    };
 
     /**
      * 文档加载就绪事件
@@ -1422,7 +1420,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         {
             return Breeze.root().addEventListener( BreezeEvent.READY ,callback);
         }
-    }
+    };
 
     /**
      * 选择元素
@@ -1480,7 +1478,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             return ret;
         }
         return results;
-    }
+    };
 
     /**
      * 指定的选择器是否为当前作用域的子级
@@ -1500,7 +1498,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             }
         }
         return Breeze.querySelector( child, parent ).length > 0;
-    }
+    };
 
 
     /**
@@ -1549,7 +1547,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                     html="<table>"+ html +"</table>";
                 }
 
-                var div = document.createElement( "div")
+                var div = document.createElement( "div");
                 div.innerHTML =  html;
                 var len=div.childNodes.length;
 
@@ -1571,7 +1569,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             return  html.parentNode ?Breeze.clone(html,true) : html;
 
         throw new Error('Uitls.createElement param invalid')
-    }
+    };
 
     /**
      * 取得当前的时间戳
@@ -1580,7 +1578,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.time=function()
     {
         return ( new Date() ).getTime();
-    }
+    };
 
     /**
      * 将字符串的首字母转换为大写
@@ -1590,7 +1588,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.ucfirst=function( str )
     {
         return typeof str === "string" ? str.charAt(0).toUpperCase()+str.substr(1) : str;
-    }
+    };
 
     /**
      * 将字符串的首字母转换为小写
@@ -1600,7 +1598,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.lcfirst=function( str )
     {
         return typeof str === "string" ? str.charAt(0).toLowerCase()+str.substr(1) : str;
-    }
+    };
 
 
     /**
@@ -1635,7 +1633,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             str=str.concat(  typeof val==='object' ?Breeze.serialize( val ,type , group ? key : false ) : key + separate + val  );
         }
         return str.join( joint );
-    }
+    };
 
     /**
      * 将一个已序列化的字符串反序列化为一个对象
@@ -1647,7 +1645,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         var object={},index,joint='&',separate='=',val,ref,last,group=false;
         if( /[\w\-]+\s*\=.*?(?=\&|$)/.test( str ) )
         {
-            str=str.replace(/^&|&$/,'')
+            str=str.replace(/^&|&$/,'');
             group=true;
 
         }else if( /[\w\-\_]+\s*\:.*?(?=\;|$)/.test( str ) )
@@ -1657,17 +1655,17 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             str=str.replace(/^;|;$/,'')
         }
 
-        str=str.split( joint )
+        str=str.split( joint );
         for( index in str )
         {
-            val=str[index].split( separate )
+            val=str[index].split( separate );
             if( group &&  /\]\s*$/.test( val[0] ) )
             {
                 ref=object,last;
                 val[0].replace(/\w+/ig,function(key){
                     last=ref;
                     ref=!ref[ key ] ? ref[ key ]={} : ref[ key ];
-                })
+                });
                 last && ( last[ RegExp.lastMatch ]=val[1] );
             }else
             {
@@ -1675,7 +1673,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             }
         }
         return object;
-    }
+    };
 
     var getAttrExp = /(\w+)(\s*=\s*([\"\'])([^\3]*?)[^\\]\3)?/g;
     var lrQuoteExp = /^[\'\"]|[\'\"]$/g;
@@ -1712,7 +1710,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             return strAttr;
         }
         return null;
-    }
+    };
 
     /**
      * 克隆节点元素
@@ -1732,7 +1730,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             return node;
         }
         return null;
-    }
+    };
 
     /**
      * 合并元素属性。
@@ -1764,7 +1762,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             }
         }
         return target;
-    }
+    };
 
     /**
      * 判断元素是否有Style
@@ -1773,7 +1771,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.hasStyle=function( elem )
     {
         return !( !elem || !elem.nodeType || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style );
-    }
+    };
 
     /**
      * 获取元素所在的窗口对象
@@ -1785,7 +1783,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         if( typeof elem !== "object" )return null;
         elem= elem.ownerDocument || elem ;
         return elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || window || null;
-    }
+    };
 
     //form elements
     var formPatternReg=/select|input|textarea|button/i;
@@ -1802,7 +1800,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             return ret && typeof exclude === 'string' ? exclude.toLowerCase() !== this.nodeName() : ret;
         }
         return false;
-    }
+    };
 
     /**
      * 以小写的形式返回元素的节点名
@@ -1811,7 +1809,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.nodeName=function( elem )
     {
         return elem && typeof elem.nodeName=== "string" && elem.nodeName!='' ? elem.nodeName.toLowerCase() : '';
-    }
+    };
 
     /**
      * @private
@@ -1827,7 +1825,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     {
         if( typeof elem !== "object" )return false;
         return ishtmlobject ? elem instanceof HTMLElement : ( elem.nodeType === 1 && typeof elem.nodeName === "string" );
-    }
+    };
 
     /**
      * 判断是否为一个节点类型元素
@@ -1839,7 +1837,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         if( typeof elem !== "object" ) return false;
         return typeof Node !== "undefined" ? elem instanceof Node :
             !!( elem.nodeType && typeof elem.nodeName === "string" && (typeof elem.tagName === "string" || elem.nodeType===9) );
-    }
+    };
 
     /**
      * 判断是否为一个html容器元素。
@@ -1851,7 +1849,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     {
         if( typeof elem !== "object" ) return false;
         return this.isHTMLElement() || this.isDocument();
-    }
+    };
 
     /**
      * 判断是否为一个事件元素
@@ -1861,7 +1859,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.isEventElement=function(elem)
     {
         return (elem && ( typeof elem.addEventListener === "function" || typeof elem.attachEvent=== "function" ) );
-    }
+    };
 
     /**
      * 判断是否为窗口对象
@@ -1871,7 +1869,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.isWindow=function( elem )
     {
         return ( elem && elem === elem.window );
-    }
+    };
 
     /**
      * 决断是否为文档对象
@@ -1880,7 +1878,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.isDocument=function( elem )
     {
         return elem && elem.nodeType===9;
-    }
+    };
 
     /**
      * 判断是否为一个框架元素
@@ -1904,7 +1902,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         while( i>0 ) if( typeof arguments[ --i ] === 'undefined' )
             return false;
         return true;
-    }
+    };
 
     /**
      * 判断是否为数组
@@ -1914,7 +1912,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.isArray=function(val )
     {
         return val instanceof Array;
-    }
+    };
 
     /**
      * 判断是否为函数
@@ -1923,7 +1921,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
      */
     Breeze.isFunction=function(val ){
         return typeof val === 'function';
-    }
+    };
 
     /**
      * 判断是否为布尔类型
@@ -1932,7 +1930,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
      */
     Breeze.isBoolean=function(val ){
         return typeof val === 'boolean';
-    }
+    };
 
     /**
      * 判断是否为字符串
@@ -1942,7 +1940,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.isString=function(val )
     {
         return typeof val === 'string';
-    }
+    };
 
     /**
      * 判断是否为一个标量
@@ -1953,7 +1951,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     {
         var t=typeof val;
         return t==='string' || t==='number' || t==='float' || t==='boolean';
-    }
+    };
 
     /**
      * 判断是否为数字类型
@@ -1963,7 +1961,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.isNumber=function(val )
     {
         return typeof val === 'number';
-    }
+    };
 
     /**
      * 判断是否为一个空值
@@ -1983,7 +1981,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             return ret===undefined;
         }
         return false;
-    }
+    };
 
     /**
      * 判断是否为一个可遍历的对象
@@ -1994,7 +1992,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.isObject=function(val , flag )
     {
         return val && typeof val === "object" ? !!( val.constructor === Object || ( flag &&Breeze.isArray(val) ) ) : false;
-    }
+    };
 
 
     /**
@@ -2009,7 +2007,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         if(Breeze.isObject(object,true) )for( key in object  ) if( object[ key ]===val )
             return key;
         return null;
-    }
+    };
 
 
     /**
@@ -2023,7 +2021,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         if(Breeze.isObject( object ) )
             for(var i in object)keys.push(i);
         return keys;
-    }
+    };
 
     /**
      * @type {RegExp}
@@ -2038,7 +2036,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.trim=function(val )
     {
         return typeof val==='string' ? val.replace( TRIM_LEFT, "" ).replace( TRIM_RIGHT, "" ) : '';
-    }
+    };
 
     /**
      * 合并其它参数到指定的 target 对象中
@@ -2098,7 +2096,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             }
         }
         return target;
-    }
+    };
 
     /**
      * 格式化输出
@@ -2108,7 +2106,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
      */
     Breeze.sprintf=function()
     {
-        var str='',i= 1,len=arguments.length,param
+        var str='',i= 1,len=arguments.length,param;
         if( len > 0 )
         {
             str=arguments[0];
@@ -2131,7 +2129,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             str.replace(/%(s|d|f)/g,'');
         }
         return str;
-    }
+    };
 
 
     /**
@@ -2148,7 +2146,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             file= file.src || file.href;
         }
 
-        var type = file.match(/\.(css|js)(\?.*?)?$/i)
+        var type = file.match(/\.(css|js)(\?.*?)?$/i);
         if( !type )throw new Error('import script file format of invalid');
 
         file+=( !type[2] ? '?t=' : '&t=')+Breeze.time();
@@ -2173,7 +2171,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                 if( typeof callback ==='function' )
                     callback( event );
             }
-        }
+        };
 
         if( type==='link' )
         {
@@ -2185,7 +2183,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             script.setAttribute('type','text/javascript');
             script.setAttribute('src', file );
         }
-    }
+    };
 
 
     /**
@@ -2196,7 +2194,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.boolean=function(val )
     {
         return typeof val==='string' && /^\s*(0+|false|null)\s*$/.test(val) ? false : !!val;
-    }
+    };
 
     /**
      * 将指定的标量转成数组
@@ -2206,7 +2204,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.toArray=function(val , separator )
     {
         return val instanceof Array ? val : String(val).split(separator || ',');
-    }
+    };
 
 
     /**
@@ -2226,7 +2224,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             startIndex++;
         }
         return arr;
-    }
+    };
 
     /**
      * 复制字符串到指定的次数
@@ -2241,7 +2239,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             return new Array( (parseInt(num) || 0)+1 ).join(str);
         }
         return '';
-    }
+    };
 
 
     /**
@@ -2264,7 +2262,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             return c > d ? 1 : (c < d ? -1 : 0);
         }
         return isNaN(c) ? 1 : -1;
-    }
+    };
   
   
     /**
@@ -2281,7 +2279,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
     Breeze.isSelector=function(selector )
     {
         return typeof selector === "string" ? selectorExpr.test( selector ) : false;
-    }
+    };
 
     /**
      * 统一规范的样式名
@@ -2300,7 +2298,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         if( fix.cssPrefix[name] === true )
             return fix.cssPrefix+name;
         return name;
-    }
+    };
 
 
     /**
@@ -2323,7 +2321,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             animationSupport = div.style[prop] === 'paused';
         }
         return animationSupport;
-    }
+    };
 
 
     /**
@@ -2356,7 +2354,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
         if( !Breeze.isAnimationSupport() )
             return false;
 
-        options =Breeze.extend(defaultOptions,options || {})
+        options =Breeze.extend(defaultOptions,options || {});
         var  css=[];
         for( var i in properties )
         {
@@ -2391,7 +2389,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                 'direction': options.reverse,  // alternate-reverse  reverse alternate normal
                 'timing-function': timing,  //ease  ease-in  ease-out  cubic-bezier  linear
                 'play-state':options.state //paused running
-            }
+            };
             for( var p in  param )
             {
                 css.push(prefix+'animation-'+p+':'+param[p]+';');
@@ -2405,7 +2403,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             head.appendChild( style );
         }
         return stylename;
-    }
+    };
 
     /**
      * @private
@@ -2451,7 +2449,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             return true;
         }
         return false;
-    }
+    };
 
 
     // fix style name add prefix
@@ -2487,7 +2485,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             style['-khtml-user-fetch'] = value;
             return true;
         }
-    }
+    };
 
     //set hooks for radialGradient and linearGradient style
     fix.cssHooks.radialGradient=fix.cssHooks.linearGradient={
@@ -2518,7 +2516,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                     value = value.split(',');
                     if( deg )
                     {
-                        deg = deg[1]
+                        deg = deg[1];
                         value.splice(0,1);
                     }
                     deg=parseFloat(deg) || 0;
@@ -2541,7 +2539,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
                 var height=  Breeze.getSize(this,'height');
                 if(name==='radialGradient')
                 {
-                    position = position.split(/\,/,2)
+                    position = position.split(/\,/,2);
                     var point = Breeze.trim(position[0]).split(/\s+/,2);
                     if(point.length===1)point.push('50%');
                     var point = point.join(' ');
@@ -2568,7 +2566,7 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             var prop = 'background-image';
             if(  Breeze.isBrowser(Breeze.BROWSER_IE,10,'<') )
             {
-                value=value.split(',')
+                value=value.split(',');
                 var deg = value.splice(0,1).toString();
                 deg = parseFloat( deg ) || 0;
                 var color=[];
@@ -2592,17 +2590,17 @@ function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEv
             style[ prop ] = value ;
             return true;
         }
-    }
+    };
 
     //add get width hooks
     fix.cssHooks.width= {
         get:function(style){ return parseInt( fix.getsizeval.call(this,'Width') || style['width'] ) || 0 }
-    }
+    };
 
     //add get height hooks
     fix.cssHooks.height={
         get:function (style){return parseInt( fix.getsizeval.call(this,'Height') || style['height'] ) || 0;}
-    }
+    };
 
 
     //在指定的目标元素外按下鼠标

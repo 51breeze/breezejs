@@ -78,7 +78,7 @@
         var type = typeof selector;
         if( type === 'undefined' )
         {
-            selector = function( elem ) { return elem.nodeType === 1; }
+            selector = function( elem ) { return elem.nodeType === 1; };
             type='function';
         }
         if( type === "function" )
@@ -135,9 +135,9 @@
     }
    ,dispatchElementEvent=function( target, parent, child , type )
     {
-        var event=new ElementEvent( type )
+        var event=new ElementEvent( type );
         event.parent=parent;
-        event.child=child
+        event.child=child;
         event.dispatcher=target;
         return dispatchEventAll(target, event );
     }
@@ -151,7 +151,7 @@
             {
                 node=element.childNodes.item(index);
                 if( ( isfn && selector.call(this,node,index) ) || ( !isfn && (selector==='*' || node.nodeType===1) )  )
-                     ret.push( node )
+                     ret.push( node );
                 if( flag===true && ret.length >0 )break;
                 ++index;
             }
@@ -235,7 +235,7 @@
      * Extends EventDispatcher Class
      * @type {EventDispatcher}
      */
-    Element.prototype= new EventDispatcher()
+    Element.prototype= new EventDispatcher();
     Element.prototype.slice= DataArray.prototype.slice;
     Element.prototype.concat= DataArray.prototype.concat;
     Element.prototype.indexOf= DataArray.prototype.indexOf;
@@ -292,7 +292,7 @@
             return this;
         }
         return this.forEachCurrentItem || this[0];
-    }
+    };
 
     /**
      * 设置获取当前元素的索引
@@ -312,7 +312,7 @@
             throw new Error('Out range of index')
         }
         return this.forEachCurrentIndex;
-    }
+    };
 
     /**
      * 遍历元素
@@ -351,7 +351,7 @@
             this.forEachCurrentIndex= NaN;
         }
         return result === undefined ? this : result;
-    }
+    };
 
     /**
      * 返回此对象名称
@@ -360,7 +360,7 @@
     Element.prototype.toString=function()
     {
         return 'breeze_'+this.__COUNTER__;
-    }
+    };
 
     /**
      * 判断指定的选择器是否在当前匹配的项中。
@@ -382,7 +382,7 @@
             }
         });
         return result;
-    }
+    };
 
     /**
      * 指定的选择器是否为当前作用域的子级
@@ -392,7 +392,7 @@
     Element.prototype.contains=function(child )
     {
         return Breeze.querySelector( child, this.next() ).length > 0;
-    }
+    };
 
     /**
      * 回撒到指定步骤的选择器所匹配的元素,不包含初始化的步骤。
@@ -411,7 +411,7 @@
             doMake( this, reverts.splice(step, len-step).shift() ,true , true );
         }
         return this;
-    }
+    };
 
     //==================================================
     // 筛选匹配元素
@@ -425,7 +425,7 @@
     Element.prototype.grep=function(selector )
     {
         return doGrep(this,strainer);
-    }
+    };
 
     /**
      * 查找当前匹配的第一个元素下的指定选择器的元素
@@ -435,7 +435,7 @@
     Element.prototype.find=function(selector )
     {
         return doMake( this, doGrep(this,selector) ,true );
-    }
+    };
 
     /**
      * 查找所有匹配元素的父级元素或者指定selector的父级元素（不包括祖辈元素）
@@ -447,7 +447,7 @@
         var results=doRecursion.call(this,'parentNode',false);
         results= typeof selector !== "undefined" ? doGrep(results,selector) : results;
         return doMake( this, results ,true );
-    }
+    };
 
     /**
      * 查找所有匹配元素的祖辈元素或者指定 selector 的祖辈元素。
@@ -468,7 +468,7 @@
             return true;
         });
         return doMake( this, results ,true );
-    }
+    };
 
     /**
      * 获取所有匹配元素向上的所有同辈元素,或者指定selector的同辈元素
@@ -478,9 +478,9 @@
     Element.prototype.prevAll=function(selector )
     {
         var results=doRecursion.call(this,'previousSibling',true);
-        results=typeof selector !== "undefined" ? doGrep(results,selector) : results
+        results=typeof selector !== "undefined" ? doGrep(results,selector) : results;
         return doMake( this, results ,true );
-    }
+    };
 
     /**
      * 获取所有匹配元素紧邻的上一个同辈元素,或者指定selector的同辈元素
@@ -503,7 +503,7 @@
         });
         results=typeof selector !== "undefined" ? doGrep(results,selector) : results;
         return  doMake( this, results ,true );
-    }
+    };
 
     /**
      * 获取所有匹配元素向下的所有同辈元素或者指定selector的同辈元素
@@ -515,7 +515,7 @@
         var results=doRecursion.call(this,'nextSibling',true);
         results=typeof selector !== "undefined" ? doGrep(results,selector) : results;
         return doMake( this, results ,true );
-    }
+    };
 
     /**
      * 获取每一个匹配元素紧邻的下一个同辈元素或者指定selector的同辈元素
@@ -525,9 +525,9 @@
     Element.prototype.next=function(selector )
     {
         var results=doRecursion.call(this,'nextSibling',false);
-        results=typeof selector !== "undefined" ? doGrep(results,selector) : results
+        results=typeof selector !== "undefined" ? doGrep(results,selector) : results;
         return doMake( this, results ,true );
-    }
+    };
 
     /**
      * 获取每一个匹配元素的所有同辈元素
@@ -536,11 +536,11 @@
      */
     Element.prototype.siblings=function(selector)
     {
-        var results=[].concat( doRecursion.call(this,'previousSibling',true,null,true) , doRecursion.call(this,'nextSibling',true,null,true) )
+        var results=[].concat( doRecursion.call(this,'previousSibling',true,null,true) , doRecursion.call(this,'nextSibling',true,null,true) );
         if( results.length > 1 )results=DataArray.prototype.unique.call( results );
         if( typeof selector !== "undefined" )results= doGrep(results,selector);
         return doMake( this, results ,true );
-    }
+    };
 
     /**
      * 查找所有匹配元素的所有子级元素，不包括孙元素
@@ -554,17 +554,16 @@
         {
             selector=Breeze.trim(selector);
             has = selector !== '*';
-        };
-
+        }
         var results=[];
         this.forEach(function(element)
         {
            if( !Breeze.isFrame( element ) )
                results=results.concat( DataArray.prototype.slice.call( element.childNodes,0 ) );
-        })
+        });
         if( has )results=doGrep(results,selector);
         return doMake( this, results ,true );
-    }
+    };
 
     //=================================================
     // DOM Element 操作,这是一些破坏性的操作
@@ -587,9 +586,9 @@
         }
         this.forEach(function(parent){
             this.next( parent.parentNode ).addChildAt( element, before ? parent : parent.nextSibling );
-        })
+        });
         return this;
-    }
+    };
 
     /**
      * 删除当前匹配的元素
@@ -602,9 +601,9 @@
             this.index( index );
         this.forEach(function(element){
             this.removeChildAt( element );
-        })
+        });
         return this;
-    }
+    };
 
     //内部操作
 
@@ -631,7 +630,7 @@
             this.removeChildAt( childElemnet );
         }
         return this;
-    }
+    };
 
     /**
      * 移除子级元素
@@ -643,7 +642,7 @@
     {
         var is=false;
         if(  index !== undefined && index.parentNode ){
-            this.next( index.parentNode )
+            this.next( index.parentNode );
             is=true;
         }else if( !Breeze.isNumber( index ) )
             throw new Error('Invalid param the index. in removeChildAt');
@@ -654,7 +653,7 @@
             if( removeChild(this,parent,child) && is )
               return this;
         });
-    }
+    };
 
     var removeChild= function(target,parent,child)
     {
@@ -666,7 +665,7 @@
             return !!result;
         }
         return false;
-    }
+    };
 
     /**
      * 添加子级元素（所有已匹配的元素）
@@ -676,7 +675,7 @@
     Element.prototype.addChild=function(childElemnet )
     {
         return this.addChildAt(childElemnet,-1);
-    }
+    };
 
     /**
      * 在指定位置加子级元素（所有已匹配的元素）。
@@ -737,7 +736,7 @@
             }
             if( isElement ) return this;
         })
-    }
+    };
 
     /**
      * 返回指定索引位置的子级元素( 匹配选择器的第一个元素 )
@@ -765,7 +764,7 @@
             }
             return child;
         })
-    }
+    };
 
     /**
      * 返回子级元素的索引位置( 匹配选择器的第一个元素 )
@@ -786,7 +785,7 @@
             return this.indexOf.call( getChildNodes(parent), childElemnet );
         }
         return -1;
-    }
+    };
 
     /**
      * 返回指定的元素在当前匹配项中的位置
@@ -801,7 +800,7 @@
            return index;
         }
         return -1;
-    }
+    };
 
     /**
      * 用指定的元素来包裹当前所有匹配到的元素
@@ -817,7 +816,7 @@
             this.next( elem.parentNode ).addChildAt( wrap , elem );
             this.next( wrap ).addChildAt( elem ,-1);
        });
-    }
+    };
 
     /**
      * 取消当前所有匹配元素的父级元素。不指定选择器则默认为父级元素，否则为指定选择器的祖辈元素。
@@ -845,7 +844,7 @@
                }
             }
         });
-    }
+    };
 
     /**
      * 获取或者设置 html
@@ -869,7 +868,7 @@
                         html=elem.outerHTML;
                     }else
                     {
-                        var cloneElem=Breeze.clone( elem, true)
+                        var cloneElem=Breeze.clone( elem, true);
                         if( cloneElem )
                         {
                             html=document.createElement( 'div' ).appendChild( cloneElem ).innerHTML;
@@ -919,7 +918,7 @@
                 return true;
             }
         });
-    }
+    };
 
     //访问和操作属性值
     function access(name, newValue, callback, eventType, fnName )
@@ -1004,7 +1003,7 @@
                     value=value.replace(/([\w\-]+)\s*\:([^\;]*)/g, function (all, name,value) {
                         if( fix.cssHooks[name] && typeof fix.cssHooks[name].set ==="function" )
                         {
-                            var obj={}
+                            var obj={};
                             fix.cssHooks[name].set.call(elem,obj,value );
                             return Breeze.serialize( obj,'style');
                         }
@@ -1022,7 +1021,7 @@
             }
 
         }, StyleEvent.CHANGE , 'style' ) || '';
-    }
+    };
 
     /**
      * 为当前每个元素设置数据缓存
@@ -1040,7 +1039,7 @@
                 Breeze.storage(this,prop,newValue);
             }
         });
-    }
+    };
 
     /**
      * 为每一个元素设置属性值
@@ -1085,7 +1084,7 @@
                 return true;
             }
         },PropertyEvent.CHANGE);
-    }
+    };
 
     /**
      * 判断当前匹配元素是否有指定的属性名
@@ -1096,7 +1095,7 @@
     {
         var elem = this.next();
         return typeof elem.hasAttributes === 'function' ? elem.hasAttributes( name ) : !!elem[name];
-    }
+    };
 
     /**
      * 获取匹配第一个元素的节点名称
@@ -1107,7 +1106,7 @@
     {
         var elem= this.next();
         return elem && typeof elem.nodeName=== "string" && elem.nodeName!='' ? elem.nodeName.toLowerCase() : '';
-    }
+    };
 
     /**
      * 获取设置当前元素的文本内容。
@@ -1132,7 +1131,7 @@
                 typeof this.textContent === "string" ? this.textContent=newValue : this.innerText=newValue;
             }
         },PropertyEvent.CHANGE) || '';
-    }
+    };
 
     /**
      * 获取设置表单元素的值。此方法只会对表单元素有用。
@@ -1149,7 +1148,7 @@
                 if( this.hasAttribute('value') )this.value=newValue;
             }
         },PropertyEvent.CHANGE) || null;
-    }
+    };
 
     /**
      * 判断是否有指定的类名
@@ -1160,7 +1159,7 @@
     {
         var value=this.property('class');
         return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
-    }
+    };
 
     /**
      * 添加指定的类名
@@ -1182,7 +1181,7 @@
             }
         });
         return this;
-    }
+    };
 
     /**
      * 移除指定的类名或者清除所有的类名。
@@ -1204,9 +1203,9 @@
             try {
                 elem.offsetWidth = element.offsetWidth;
             }catch(e){}
-        })
+        });
         return this;
-    }
+    };
 
     /**
      * 获取元素大小
@@ -1270,7 +1269,7 @@
             }
         }
         return size;
-    }
+    };
 
 
     /**
@@ -1291,7 +1290,7 @@
                 obj.style(this,prop,newValue);
             }
         },PropertyEvent.CHANGE) || 0;
-    }
+    };
 
     /**
      * @private
@@ -1307,7 +1306,7 @@
                 return Breeze.style(this,prop,parseInt(newValue) || 0 );
             }
         },PropertyEvent.CHANGE) || 0;
-    }
+    };
 
     /**
      * 设置所有匹配元素的宽度
@@ -1317,7 +1316,7 @@
     Element.prototype.width=function(value )
     {
         return __size__.call(this,'width',value);
-    }
+    };
 
     /**
      * 获取匹配第一个元素的高度
@@ -1327,7 +1326,7 @@
     Element.prototype.height=function(value )
     {
         return __size__.call(this,'height',value);
-    }
+    };
 
     /**
      * 获取设置滚动条的位置
@@ -1391,7 +1390,7 @@
             }
 
         },PropertyEvent.CHANGE) || 0;
-    }
+    };
 
     /**
      * 获取元素相对文档页面边界的矩形坐标。
@@ -1453,7 +1452,7 @@
             value.bottom -= scroll.top;
         }
         return value;
-    }
+    };
 
     /**
      * 获取或者设置相对于父元素的左边位置
@@ -1463,7 +1462,7 @@
     Element.prototype.left=function(val )
     {
         return __position__.call(this,'left',val)
-    }
+    };
 
     /**
      * 获取或者设置相对于父元素的顶边位置
@@ -1473,7 +1472,7 @@
     Element.prototype.top=function(val )
     {
         return __position__.call(this,'top',val)
-    }
+    };
 
     /**
      * 获取或者设置相对于父元素的右边位置
@@ -1483,7 +1482,7 @@
     Element.prototype.right=function(val )
     {
         return __position__.call(this,'right',val)
-    }
+    };
 
     /**
      * 获取或者设置相对于父元素的底端位置
@@ -1493,7 +1492,7 @@
     Element.prototype.bottom=function(val )
     {
         return __position__.call(this,'bottom',val)
-    }
+    };
 
     /**
      * @private
@@ -1501,7 +1500,7 @@
     var __point__=function(left,top,local)
     {
         var target=this.next();
-        var point={}
+        var point={};
         point['x']=left || 0;
         point['y']=top || 0;
         if( target && target.parentNode )
@@ -1518,7 +1517,7 @@
             }
         }
         return point;
-    }
+    };
 
     /**
      * 将本地坐标点转成相对视图的全局点
@@ -1529,7 +1528,7 @@
     Element.prototype.localToGlobal=function(left, top  )
     {
        return __point__.call(this,left,top,true);
-    }
+    };
 
     /**
      *  将视图的全局点转成相对本地坐标点
@@ -1540,7 +1539,7 @@
     Element.prototype.globalToLocal=function(left, top )
     {
         return __point__.call(this,left,top,false);
-    }
+    };
 
     /**
      * 显示元素
@@ -1551,7 +1550,7 @@
         var type = this.data('__display__') || 'block';
         this.style('display', type );
         return this;
-    }
+    };
 
     /**
      * 隐藏当前元素
@@ -1562,7 +1561,7 @@
         this.data('__display__', this.style('display') || 'block' );
         this.style('display', 'none' );
         return this;
-    }
+    };
 
     /**
      * 执行一个动画
@@ -1572,12 +1571,12 @@
      */
     Element.prototype.animation=function(options , callback )
     {
-        var tl=  new Timeline().bind( this.toArray() )
+        var tl=  new Timeline().bind( this.toArray() );
         options=[].concat( options );
         for( var i in options )
         {
             var d = options[i].duration;
-            delete options[i].duration
+            delete options[i].duration;
             tl.addKeyFrame( options[i] , d );
         }
         if( typeof callback === 'function' )
@@ -1586,7 +1585,7 @@
         }
         tl.play();
         return tl;
-    }
+    };
 
     /**
      * 将一个元素淡入
@@ -1599,7 +1598,7 @@
         this.style('opacity',0);
         this.animation({'opacity':1,'duration':duration},callback);
         return this;
-    }
+    };
 
     /**
      * 将一个元素淡出
@@ -1612,7 +1611,7 @@
         this.style('opacity',1);
         this.animation({'opacity':0,'duration':duration},callback);
         return this;
-    }
+    };
 
 
     /**
@@ -1630,7 +1629,7 @@
             __rootEvent__ = EventDispatcher(window);
         }
         return __rootEvent__;
-    }
+    };
 
 
     /**
@@ -1657,4 +1656,4 @@
         return false;
     });
 
-})
+});

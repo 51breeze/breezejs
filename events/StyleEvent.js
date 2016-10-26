@@ -13,4 +13,4 @@ define('events/StyleEvent',['./PropertyEvent'],function(PropertyEvent)
     StyleEvent.CHANGE='styleChange';
     return StyleEvent;
 
-})
+});

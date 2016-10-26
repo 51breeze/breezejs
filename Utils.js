@@ -26,7 +26,7 @@
 {
     "use strict";
 
-    var Utils= {}
+    var Utils= {};
 
 
     /**
@@ -73,7 +73,7 @@
             eval('result = result ' + expr.replace(/\s*/, '') + ' version;');
         }
         return result;
-    }
+    };
 
 
     /**
@@ -118,7 +118,7 @@
         results = Array.prototype.slice.call( document.querySelectorAll(selector) );
         if(has)context.removeAttribute('id');
         return results;
-    }
+    };
 
     /**
      * @type {RegExp}
@@ -166,7 +166,7 @@
                     html="<table>"+ html +"</table>";
                 }
 
-                var div = document.createElement( "div")
+                var div = document.createElement( "div");
                 div.innerHTML =  html;
                 var len=div.childNodes.length;
 
@@ -188,7 +188,7 @@
             return  html.parentNode ?Breeze.clone(html,true) : html;
 
         throw new Error('Uitls.createElement param invalid')
-    }
+    };
 
     /**
      * 取得当前的时间戳
@@ -197,7 +197,7 @@
    Breeze.time=function()
     {
         return ( new Date() ).getTime();
-    }
+    };
 
     /**
      * 将字符串的首字母转换为大写
@@ -207,7 +207,7 @@
    Breeze.ucfirst=function( str )
     {
         return typeof str === "string" ? str.charAt(0).toUpperCase()+str.substr(1) : str;
-    }
+    };
 
     /**
      * 将字符串的首字母转换为小写
@@ -217,7 +217,7 @@
     Breeze.lcfirst=function( str )
     {
         return typeof str === "string" ? str.charAt(0).toLowerCase()+str.substr(1) : str;
-    }
+    };
 
 
     /**
@@ -252,7 +252,7 @@
             str=str.concat(  typeof val==='object' ?Breeze.serialize( val ,type , group ? key : false ) : key + separate + val  );
         }
         return str.join( joint );
-    }
+    };
 
     /**
      * 将一个已序列化的字符串反序列化为一个对象
@@ -264,7 +264,7 @@
         var object={},index,joint='&',separate='=',val,ref,last,group=false;
         if( /[\w\-]+\s*\=.*?(?=\&|$)/.test( str ) )
         {
-            str=str.replace(/^&|&$/,'')
+            str=str.replace(/^&|&$/,'');
             group=true;
 
         }else if( /[\w\-\_]+\s*\:.*?(?=\;|$)/.test( str ) )
@@ -274,17 +274,17 @@
             str=str.replace(/^;|;$/,'')
         }
 
-        str=str.split( joint )
+        str=str.split( joint );
         for( index in str )
         {
-            val=str[index].split( separate )
+            val=str[index].split( separate );
             if( group &&  /\]\s*$/.test( val[0] ) )
             {
                 ref=object,last;
                 val[0].replace(/\w+/ig,function(key){
                     last=ref;
                     ref=!ref[ key ] ? ref[ key ]={} : ref[ key ];
-                })
+                });
                 last && ( last[ RegExp.lastMatch ]=val[1] );
             }else
             {
@@ -292,7 +292,7 @@
             }
         }
         return object;
-    }
+    };
 
     var getAttrExp = /(\w+)(\s*=\s*([\"\'])([^\3]*?)[^\\]\3)?/g;
     var lrQuoteExp = /^[\'\"]|[\'\"]$/g;
@@ -329,7 +329,7 @@
             return strAttr;
         }
         return null;
-    }
+    };
 
     /**
      * 克隆节点元素
@@ -349,7 +349,7 @@
             return node;
         }
         return null;
-    }
+    };
 
     /**
      * 合并元素属性。
@@ -381,7 +381,7 @@
             }
         }
         return target;
-    }
+    };
 
     /**
      * 判断元素是否有Style
@@ -390,7 +390,7 @@
    Breeze.hasStyle=function( elem )
     {
         return !( !elem || !elem.nodeType || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style );
-    }
+    };
 
     /**
      * 获取元素所在的窗口对象
@@ -402,7 +402,7 @@
         if( typeof elem !== "object" )return null;
         elem= elem.ownerDocument || elem ;
         return elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || window || null;
-    }
+    };
 
     //form elements
     var formPatternReg=/select|input|textarea|button/i;
@@ -419,7 +419,7 @@
             return ret && typeof exclude === 'string' ? exclude.toLowerCase() !== this.nodeName() : ret;
         }
         return false;
-    }
+    };
 
     /**
      * 以小写的形式返回元素的节点名
@@ -428,7 +428,7 @@
    Breeze.nodeName=function( elem )
     {
         return elem && typeof elem.nodeName=== "string" && elem.nodeName!='' ? elem.nodeName.toLowerCase() : '';
-    }
+    };
 
     /**
      * @private
@@ -444,7 +444,7 @@
     {
         if( typeof elem !== "object" )return false;
         return ishtmlobject ? elem instanceof HTMLElement : ( elem.nodeType === 1 && typeof elem.nodeName === "string" );
-    }
+    };
 
     /**
      * 判断是否为一个节点类型元素
@@ -456,7 +456,7 @@
         if( typeof elem !== "object" ) return false;
         return typeof Node !== "undefined" ? elem instanceof Node :
             !!( elem.nodeType && typeof elem.nodeName === "string" && (typeof elem.tagName === "string" || elem.nodeType===9) );
-    }
+    };
 
     /**
      * 判断是否为一个html容器元素。
@@ -468,7 +468,7 @@
     {
         if( typeof elem !== "object" ) return false;
         return this.isHTMLElement() || this.isDocument();
-    }
+    };
 
     /**
      * 判断是否为一个事件元素
@@ -478,7 +478,7 @@
    Breeze.isEventElement=function(elem)
     {
         return (elem && ( typeof elem.addEventListener === "function" || typeof elem.attachEvent=== "function" ) );
-    }
+    };
 
     /**
      * 判断是否为窗口对象
@@ -488,7 +488,7 @@
     Breeze.prototype.isWindow=function( elem )
     {
         return ( elem && elem === elem.window );
-    }
+    };
 
     /**
      * 决断是否为文档对象
@@ -497,7 +497,7 @@
     Breeze.prototype.isDocument=function( elem )
     {
         return elem && elem.nodeType===9;
-    }
+    };
 
     /**
      * 判断是否为一个框架元素
@@ -523,7 +523,7 @@
         while( i>0 ) if( typeof arguments[ --i ] === 'undefined' )
             return false;
         return true;
-    }
+    };
 
     /**
      * 判断是否为数组
@@ -533,7 +533,7 @@
    Breeze.isArray=function(val )
     {
         return val instanceof Array;
-    }
+    };
 
     /**
      * 判断是否为函数
@@ -542,7 +542,7 @@
      */
    Breeze.isFunction=function(val ){
         return typeof val === 'function';
-    }
+    };
 
     /**
      * 判断是否为布尔类型
@@ -551,7 +551,7 @@
      */
    Breeze.isBoolean=function(val ){
         return typeof val === 'boolean';
-    }
+    };
 
     /**
      * 判断是否为字符串
@@ -561,7 +561,7 @@
    Breeze.isString=function(val )
     {
         return typeof val === 'string';
-    }
+    };
 
     /**
      * 判断是否为一个标量
@@ -572,7 +572,7 @@
     {
         var t=typeof val;
         return t==='string' || t==='number' || t==='float' || t==='boolean';
-    }
+    };
 
     /**
      * 判断是否为数字类型
@@ -582,7 +582,7 @@
    Breeze.isNumber=function(val )
     {
         return typeof val === 'number';
-    }
+    };
 
     /**
      * 判断是否为一个空值
@@ -602,7 +602,7 @@
             return ret===undefined;
         }
         return false;
-    }
+    };
 
     /**
      * 判断是否为一个可遍历的对象
@@ -613,7 +613,7 @@
    Breeze.isObject=function(val , flag )
     {
         return val && typeof val === "object" ? !!( val.constructor === Object || ( flag &&Breeze.isArray(val) ) ) : false;
-    }
+    };
 
 
     /**
@@ -628,7 +628,7 @@
         if(Breeze.isObject(object,true) )for( key in object  ) if( object[ key ]===val )
             return key;
         return null;
-    }
+    };
 
 
     /**
@@ -642,7 +642,7 @@
         if(Breeze.isObject( object ) )
             for(var i in object)keys.push(i);
         return keys;
-    }
+    };
 
     /**
      * @type {RegExp}
@@ -657,7 +657,7 @@
    Breeze.trim=function(val )
     {
         return typeof val==='string' ? val.replace( TRIM_LEFT, "" ).replace( TRIM_RIGHT, "" ) : '';
-    }
+    };
 
     /**
      * 合并其它参数到指定的 target 对象中
@@ -717,7 +717,7 @@
             }
         }
         return target;
-    }
+    };
 
     /**
      * 格式化输出
@@ -727,7 +727,7 @@
      */
    Breeze.sprintf=function()
     {
-        var str='',i= 1,len=arguments.length,param
+        var str='',i= 1,len=arguments.length,param;
         if( len > 0 )
         {
             str=arguments[0];
@@ -750,7 +750,7 @@
             str.replace(/%(s|d|f)/g,'');
         }
         return str;
-    }
+    };
 
 
     /**
@@ -767,7 +767,7 @@
             file= file.src || file.href;
         }
 
-        var type = file.match(/\.(css|js)(\?.*?)?$/i)
+        var type = file.match(/\.(css|js)(\?.*?)?$/i);
         if( !type )throw new Error('import script file format of invalid');
 
         file+=( !type[2] ? '?t=' : '&t=')+Breeze.time();
@@ -792,7 +792,7 @@
                 if( typeof callback ==='function' )
                     callback( event );
             }
-        }
+        };
 
         if( type==='link' )
         {
@@ -804,7 +804,7 @@
             script.setAttribute('type','text/javascript');
             script.setAttribute('src', file );
         }
-    }
+    };
 
 
     /**
@@ -815,7 +815,7 @@
    Breeze.boolean=function(val )
     {
         return typeof val==='string' && /^\s*(0+|false|null)\s*$/.test(val) ? false : !!val;
-    }
+    };
 
     /**
      * 将指定的标量转成数组
@@ -825,7 +825,7 @@
    Breeze.toArray=function(val , separator )
     {
         return val instanceof Array ? val : String(val).split(separator || ',');
-    }
+    };
 
 
     /**
@@ -845,7 +845,7 @@
             startIndex++;
         }
         return arr;
-    }
+    };
 
     /**
      * 复制字符串到指定的次数
@@ -860,7 +860,7 @@
             return new Array( (parseInt(num) || 0)+1 ).join(str);
         }
         return '';
-    }
+    };
 
 
 
@@ -884,7 +884,7 @@
             return c > d ? 1 : (c < d ? -1 : 0);
         }
         return isNaN(c) ? 1 : -1;
-    }
+    };
     
     
     

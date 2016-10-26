@@ -11,4 +11,4 @@ define('events/TemplateEvent',['./BreezeEvent'],function(BreezeEvent)
     TemplateEvent.DONE='templateDone';
     TemplateEvent.REFRESH='templateRefresh';
     return TemplateEvent;
-})
+});

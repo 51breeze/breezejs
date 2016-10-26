@@ -16,14 +16,14 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
     {
         if( this.hasEventListener(type) )
         {
-            var e = new DataSourceEvent(type)
+            var e = new DataSourceEvent(type);
             e.originalEvent=event || null;
             e.data=data || null;
             e.index = index || NaN;
             return this.dispatchEvent( e );
         }
         return true;
-    }
+    };
 
     /**
      * 修改、插入、删除后是否需要刷新当前渲染的数据
@@ -36,7 +36,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             if( synch && synch.enable )dosynch.call(this, result, type,index,synch);
             !this.__fetchCalled__ || this.fetch();
         }
-    }
+    };
 
     /**
      * 向远程服务器开始加载数据
@@ -69,7 +69,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             return true;
         }
         return false;
-    }
+    };
 
     var lastSynch=null;
 
@@ -127,7 +127,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
                 error='timeOut';
                 status = 403;
             }
-            var e = new DataSourceEvent( DataSourceEvent.SYNCH_FAILED )
+            var e = new DataSourceEvent( DataSourceEvent.SYNCH_FAILED );
             e.originalEvent=event;
             e.status =status;
             e.error= error;
@@ -141,7 +141,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
         url = /\?/.test(url) ? url+'&'+param : url+'?'+param;
 
         lastSynch.send( url, data , setting.method );
-    }
+    };
 
     /**
      * 预加载数据
@@ -180,7 +180,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
                 flag = doload.call(this, queue.shift() );
             }
         }
-    }
+    };
 
     /**
      * 对数据进行排序
@@ -193,7 +193,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             return true;
         }
         return false;
-    }
+    };
 
     /**
      * 数据源
@@ -258,7 +258,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
     DataSource.prototype.isRemote=function()
     {
         return this.__isRemote__;
-    }
+    };
 
     /**
      * @private
@@ -280,7 +280,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             return this;
         }
         return this.__options__;
-    }
+    };
 
     /**
      * @private
@@ -386,7 +386,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             }
         }
         return this;
-    }
+    };
 
     /**
      * @private
@@ -405,7 +405,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             return this;
         }
         return this.__preloadPages__;
-    }
+    };
 
     /**
      * @private
@@ -425,7 +425,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             return this;
         }
         return this.__rows__;
-    }
+    };
 
     /**
      * @private
@@ -445,7 +445,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             return this;
         }
         return this.__preloadRows__;
-    }
+    };
 
     /**
      * @private
@@ -464,7 +464,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             return this;
         }
         return Math.max(this.__predicts__ ,this.length);
-    }
+    };
 
     /**
      * @private
@@ -478,7 +478,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
     DataSource.prototype.grep=function()
     {
         return this.__grep__ || ( this.__grep__=new Grep( this ) );
-    }
+    };
 
     /**
      * 从指定条件中查询
@@ -490,7 +490,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             this.grep().filter( filter )
         }
         return this;
-    }
+    };
 
     /**
      * @private
@@ -518,7 +518,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
         }
         var c =  Math.max(this.__currentPage__,1);
         return Math.min( c  , this.totalPages() || c  );
-    }
+    };
 
     /**
      * 根据当前加载的页码，计算当前向服务器请求的段数
@@ -529,7 +529,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
         page = Math.max( (page || this.__currentPage__) , 1 );
         page = Math.min( page, this.totalPages() || page);
         return Math.floor( (page-1) * this.rows() / this.preloadRows() );
-    }
+    };
 
     /**
      * 总分页数
@@ -538,7 +538,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
     DataSource.prototype.totalPages=function()
     {
         return this.predicts() >0 ? Math.max( Math.ceil( this.predicts() / this.rows() ) , 1) : NaN ;
-    }
+    };
 
     /**
      * @private
@@ -578,7 +578,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             }
         }
         return this;
-    }
+    };
 
     /**
      * 通过视图索引返回对应数据源的索引位置
@@ -598,7 +598,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             return offset * preloadRows + index;
         }
         return NaN;
-    }
+    };
 
     /**
      * 根据视图索引返回数据项
@@ -612,7 +612,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             return this[index] || null;
         }
         return null;
-    }
+    };
 
     DataSource.prototype.__increment__=0;
 
@@ -658,7 +658,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             var oldlen= this.length;
             index = typeof index === 'number' ? index : this.length;
             index = index < 0 ? index + this.length+1 : index;
-            index = Math.min( this.length, Math.max( index, 0 ) )
+            index = Math.min( this.length, Math.max( index, 0 ) );
             this.splice(index,0,item);
             if( this.isRemote() && this.__predicts__>0 )
             {
@@ -667,7 +667,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
             doupdate.call(this,true,DataSourceEvent.APPEND,item,index);
         }
         return this;
-    }
+    };
 
     /**
      * 移除指定索引下的数据项
@@ -680,7 +680,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
         var result = this.grep().execute( filter );
         var synch = this.synchronize();
         var primary = synch.primary;
-        var d = []
+        var d = [];
         for(var i=0; i<result.length ; i++)
         {
             index = this.indexOf( result[i] );
@@ -698,11 +698,11 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
                 throw new Error('index invalid');
             }
         }
-        result={}
+        result={};
         result[primary] = d.join(',');
         doupdate.call(this,d.length > 0,DataSourceEvent.REMOVE,result);
         return this;
-    }
+    };
 
     /**
      * 修改数据
@@ -716,7 +716,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
         var update=[];
         for(var i=0; i<result.length ; i++)
         {
-            var d={}
+            var d={};
             update.push( d );
             for( var c in data )
             {
@@ -736,7 +736,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
         }
         doupdate.call(this,flag, DataSourceEvent.ALTER,  update.length >1 ? {'data':update} : update[0] );
         return flag;
-    }
+    };
 
 
     /**
@@ -778,7 +778,7 @@ function(EventDispatcher,DataArray,Http,Breeze,DataSourceEvent){
         }
         preloadData.call(this);
         return this;
-    }
+    };
     return DataSource;
 
-})
+});

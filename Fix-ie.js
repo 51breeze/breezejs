@@ -29,7 +29,7 @@
         },
         set: function( style, value )
         {
-            value=isNaN(value) ? 1 : Math.max( ( value > 1 ? ( Math.min(value,100) / 100 ) : value ) , 0 )
+            value=isNaN(value) ? 1 : Math.max( ( value > 1 ? ( Math.min(value,100) / 100 ) : value ) , 0 );
             var opacity = "alpha(opacity=" + (value* 100) + ")", filter = style.filter || "";
             style.zoom = 1;
             style.filter = Breez.trim( filter.replace(cssAalpha,'') + " " + opacity );
@@ -70,7 +70,7 @@
             }
             style['height']=value;
             return true;
-        }
+        };
 
         fix.cssHooks.width.set=function( style, value )
         {
@@ -83,7 +83,7 @@
             }
             style['width']=value;
             return true;
-        }
+        };
 
         //获取元素样式
         fix.fnHooks.style.get=function( name )
@@ -140,7 +140,7 @@
             dispatch( event );
             remove.call(target, type);
         }
-    }
+    };
 
     //定义 load 事件
     EventDispatcher.SpecialEvent(BreezeEvent.LOAD,
@@ -181,14 +181,14 @@
             if( !win || !doc )return;
             var handle=function(event)
             {
-                event= BreezeEvent.create( event )
+                event= BreezeEvent.create( event );
                 if( event )
                 {
                     event.currentTarget= doc;
                     event.getProxyTarget=doc;
                     readyState.call(this,event,BreezeEvent.READY, dispatch, add, remove );
                 }
-            }
+            };
 
             add.call(win,'DOMContentLoaded', listener, handle );
             add.call(doc, type , listener, handle );
@@ -212,7 +212,7 @@
                             return;
                         }
                         handle( {'srcElement':doc,'type':type} );
-                    }
+                    };
                     doCheck();
                 }
                 handle({'srcElement':doc,'type':type});
@@ -220,5 +220,5 @@
             return true;
         });
 
-})
+});
 

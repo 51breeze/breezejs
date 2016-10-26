@@ -57,7 +57,7 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
             return viewport.data(subClass.prototype.componentProfile );
         }
         return null;
-    }
+    };
 
     Component.prototype=new EventDispatcher();
     Component.prototype.constructor=Component;
@@ -73,14 +73,14 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
      * initialized 组件中的方法初始完成
      * @protected
      */
-    Component.prototype.initialized=function(){}
+    Component.prototype.initialized=function(){};
 
     /**
      * overwrite method
      * initializing 组件中的方法初始进行中
      * @protected
      */
-    Component.prototype.initializing=function(){}
+    Component.prototype.initializing=function(){};
 
 
     /**
@@ -96,7 +96,7 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
             throw new Error('invalid viewport');
         }
         return this.__viewport__.next(null);
-    }
+    };
 
     /**
      * @param name
@@ -109,7 +109,7 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
         var viewport = this.viewport();
         var result = viewport.style(name,value);
         return result===viewport ? this : result;
-    }
+    };
 
     /**
      * @param name
@@ -126,7 +126,7 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
             return this;
         }
         return viewport.property(name);
-    }
+    };
 
     /**
      * @param name
@@ -143,7 +143,7 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
             return this;
         }
         return viewport.data(name);
-    }
+    };
 
     /**
      * @param name
@@ -160,7 +160,7 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
             return this;
         }
         return viewport.next();
-    }
+    };
 
     /**
      * 获取/设置宽度
@@ -177,7 +177,7 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
             return this;
         }
         return viewport.width();
-    }
+    };
 
     /**
      * 获取/设置高度
@@ -194,7 +194,7 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
             return this;
         }
         return viewport.height();
-    }
+    };
 
     /**
      * @param x
@@ -206,7 +206,7 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
     {
         this.viewport().left(x).top(y);
         return this;
-    }
+    };
 
 
     /**
@@ -270,9 +270,9 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
             }
             instance.initialized();
             instance.initializeCompleted=true;
-        })
+        });
         Breeze.root().dispatchEvent( new ComponentEvent( ComponentEvent.INITIALIZE_COMPLETED ) )
-    }
+    };
 
     //初始化组件
    /* Breeze.root().addEventListener( BreezeEvent.READY,function(){
@@ -289,4 +289,4 @@ define('components/Component',['Breeze','EventDispatcher','../events/BreezeEvent
     define('ComponentEvent',[],ComponentEvent);
     return Component;
 
-})
+});

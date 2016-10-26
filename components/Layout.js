@@ -114,7 +114,7 @@
     Layout.rootLayout=function()
     {
         return rootLayout;
-    }
+    };
 
     /**
      * 继承 Breeze
@@ -148,7 +148,7 @@
             this.updateDisplayList();
 
         },false, 0 , this );
-    }
+    };
 
     /**
      * 输出布局组件名称
@@ -157,7 +157,7 @@
     Layout.prototype.toString=function()
     {
         return 'Layout';
-    }
+    };
 
     var padding=['Left','Right','Top','Bottom'];
 
@@ -173,7 +173,7 @@
 
         if( viewport[0] === viewport[0].ownerDocument.body )
         {
-            viewport.next(window)
+            viewport.next(window);
             height = viewport.height();
             width  = viewport.width();
 
@@ -210,7 +210,7 @@
         var paddingRight =  parseInt( this.style('paddingRight') ) || 0;
         width-=left+right+paddingRight+paddingLeft;
         return this.getMaxOrMinWidth( width );
-    }
+    };
 
     /**
      * 根据当前的布局特性计算所需要的高度
@@ -230,7 +230,7 @@
         var paddingBottom =  parseInt( this.style('paddingBottom') ) || 0;
         height-=bottom+top+paddingTop+paddingBottom;
         return this.getMaxOrMinHeight( height );
-    }
+    };
 
     /**
      * 获取布局已设置的最大或者最小宽度
@@ -241,7 +241,7 @@
     {
         var min=Math.max( this.minWidth() || width , width );
         return Math.min( min,  Math.min( this.maxWidth() || min , min ) );
-    }
+    };
 
     /**
      * 获取布局已设置的最大或者最小高度
@@ -252,7 +252,7 @@
     {
         var min=Math.max( this.minHeight() || height , height );
         return Math.min( min,  Math.min( this.maxHeight() || min , min ) );
-    }
+    };
 
     /**
      * @param x
@@ -263,7 +263,7 @@
     {
         this.left( x ).top( y );
         return this;
-    }
+    };
 
     /**
      * @param val  hidden|visible|auto
@@ -278,7 +278,7 @@
         }
         var overflowY= this.style('overflowY');
         return !(overflowY === 'hidden');
-    }
+    };
 
     /**
      * @param val  hidden|visible|auto
@@ -293,7 +293,7 @@
         }
         var overflowX= this.style('overflowX');
         return !(overflowX === 'hidden');
-    }
+    };
 
     /**
      * @param width
@@ -312,7 +312,7 @@
             this.dispatchEvent( new LayoutEvent(LayoutEvent.CHANGE) )
         }
         return this;
-    }
+    };
 
     /**
      * @param parentWidth
@@ -320,9 +320,9 @@
      */
     Layout.prototype.measureChildren=function(parentWidth,parentHeight)
     {
-        var paddingLeft  = parseInt( this.style('paddingLeft') )  || 0
+        var paddingLeft  = parseInt( this.style('paddingLeft') )  || 0;
         var paddingRight = parseInt( this.style('paddingRight') ) || 0;
-        var paddingTop   = parseInt( this.style('paddingTop') )   || 0
+        var paddingTop   = parseInt( this.style('paddingTop') )   || 0;
         var paddingBottom= parseInt( this.style('paddingBottom') )|| 0;
         var gap=this.gap(),x=gap+paddingLeft,y=gap+paddingTop,maxHeight=0,countHeight= 0,countWidth=0;
         var horizontalAlign=this.horizontal()
@@ -361,7 +361,7 @@
             maxHeight = Math.max(maxHeight, childHeight + gap+marginTop+marginBottom);
             countHeight = maxHeight + y;
             countWidth = Math.max(countWidth, x+paddingRight );
-        })
+        });
 
         this.measureChildrenItem=children;
         this.measureChildrenHeight=countHeight;
@@ -399,7 +399,7 @@
             }
         }
         this.setLayoutSize(parentWidth, parentHeight);*/
-    }
+    };
 
     /**
      * 验证布局
@@ -412,7 +412,7 @@
         this.next(null);
         this.updateDisplayList( size.width, size.height );
         return this;
-    }
+    };
 
 
     /**
@@ -441,7 +441,7 @@
         }
 
 
-    }
+    };
 
     /**
      * 获取设置左边位置
@@ -451,7 +451,7 @@
     Layout.prototype.left=function(val)
     {
         return __method__.call(this,'left',val,'left');
-    }
+    };
 
     /**
      * 获取设置顶边位置
@@ -461,7 +461,7 @@
     Layout.prototype.top=function(val)
     {
         return __method__.call(this,'top',val,'top');
-    }
+    };
 
     /**
      * 获取设置右边位置
@@ -471,7 +471,7 @@
     Layout.prototype.right=function(val)
     {
         return __method__.call(this,'right',val,'right');
-    }
+    };
 
     /**
      * 获取设置底边位置
@@ -481,7 +481,7 @@
     Layout.prototype.bottom=function(val)
     {
         return __method__.call(this,'bottom',val,'bottom');
-    }
+    };
 
     /**
      * 设置获取指定明确的宽度
@@ -491,7 +491,7 @@
     Layout.prototype.width=function(val)
     {
         return __method__.call(this,'width',val,'width');
-    }
+    };
 
     /**
      * 设置获取指定明确的宽度
@@ -501,7 +501,7 @@
     Layout.prototype.height=function(val)
     {
         return __method__.call(this,'height',val,'height');
-    }
+    };
 
     /**
      * 设置获取指定明确的宽度
@@ -511,7 +511,7 @@
     Layout.prototype.explicitWidth=function(val)
     {
         return __method__.call(this,'explicitWidth',val,'width');
-    }
+    };
 
     /**
      * 设置获取指定明确的高度
@@ -521,7 +521,7 @@
     Layout.prototype.explicitHeight=function(val)
     {
         return __method__.call(this,'explicitHeight',val,'height');
-    }
+    };
 
     /**
      * 设置获取指定百分比的宽度
@@ -531,7 +531,7 @@
     Layout.prototype.percentWidth=function(val)
     {
         return __method__.call(this,'percentWidth',val, false );
-    }
+    };
 
     /**
      * 设置获取指定百分比的高度
@@ -541,7 +541,7 @@
     Layout.prototype.percentHeight=function(val)
     {
         return __method__.call(this,'percentHeight',val, false);
-    }
+    };
 
     /**
      * 获取设置最大宽度
@@ -551,7 +551,7 @@
     Layout.prototype.maxWidth=function(val)
     {
         return __method__.call(this,'maxWidth',val, true);
-    }
+    };
 
     /**
      * 获取设置最大高度
@@ -561,7 +561,7 @@
     Layout.prototype.maxHeight=function(val)
     {
         return __method__.call(this,'maxHeight',val, true);
-    }
+    };
 
     /**
      * 获取设置最小宽度
@@ -571,7 +571,7 @@
     Layout.prototype.minWidth=function(val)
     {
         return __method__.call(this,'minWidth',val, true);
-    }
+    };
 
     /**
      * 获取设置最小高度
@@ -581,7 +581,7 @@
     Layout.prototype.minHeight=function(val)
     {
         return __method__.call(this,'minHeight',val, true);
-    }
+    };
 
     /**
      * 设置水平对齐的方位
@@ -601,7 +601,7 @@
             return this;
         }
         return old;
-    }
+    };
 
     /**
      * 设置垂直对齐的方位
@@ -621,7 +621,7 @@
             return this;
         }
         return old;
-    }
+    };
 
     /**
      * 获取设置间隔
@@ -631,14 +631,16 @@
     Layout.prototype.gap=function(val)
     {
         return __method__.call(this,'gap', val ,false) || 0;
-    }
+    };
 
     /**
      * @param src
      * @param props
      * @constructor
      */
-    function LayoutEvent(type, bubbles,cancelable ){ BreezeEvent.call(this,type, bubbles,cancelable ); };
+    function LayoutEvent(type, bubbles, cancelable) {
+        BreezeEvent.call(this, type, bubbles, cancelable);
+    }
     LayoutEvent.prototype=new BreezeEvent();
     LayoutEvent.prototype.constructor=LayoutEvent;
     LayoutEvent.CHANGE='layoutChange';
@@ -662,4 +664,4 @@
 
 
 
-})
+});

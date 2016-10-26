@@ -4,7 +4,7 @@
  */
 const reserved = [
     'static','public','private','protected','internal','package','override','final',
-    'extends','import','class','var','let','function','new','typeof','const',
+    'extends','import','class','var','let','function','new','typeof','const','interface','implements',
     'instanceof','if','else','do','while','for','in','of','switch','case','super',
     'break','default','try','catch','throw','Infinity','this','debugger',
     'finally','return','null','false','true','NaN','undefined','delete',
@@ -376,8 +376,8 @@ syntax['import']=function (event)
 
     // import 只能出现在 package 中
     if( this.scope().keyword() !=='package' )this.error('Unexpected import ', 'syntax');
-    this.add( new Stack('import', '(string)' ) );
-
+    var index = this.scope().length();
+    this.add( new Stack('import', '(string'+this.line+')' ) );
     var s = this.scope();
     var filename=[];
     var name=null;
@@ -419,7 +419,7 @@ syntax['import']=function (event)
     p.define( name , desc );
 
     //从父级中删除
-    p.content().pop();
+    p.content().splice(index, p.length()-index);
 
     //加入到被保护的属性名中
     //this.config('reserved').push( name );
@@ -674,15 +674,18 @@ syntax['function']= function(event){
         var val = ps.define( prefix+name );
         if( val )
         {
-            if( val.scope === ps  && s.accessor() === val.scope.accessor() && ps.construct || (!s.accessor() && (val.get || val.set) ) )
-                this.error('function "'+name+'" has already been declared');
-            if( val.id==='class' )ps.construct=true;
-            if( s.accessor() )val[ s.accessor() ]=true;
+            var isacessor = s.accessor() !== (val.get || val.set) && s.accessor() && (val.get || val.set);
+            if( val.scope === ps && ps.construct && !isacessor )this.error('function "'+name+'" has already been declared');
+            if( val.id==='class' ){
+                ps.construct=true;
+                if(s.qualifier() !== 'public' )this.error('can only is public qualifier of constructor function');
+            }
+            if( s.accessor() )val[ s.accessor() ]=s.accessor();
 
         }else
         {
             var obj = {type: '(' + type + ')', 'id':'function',scope: ps};
-            if( s.accessor() )obj[ s.accessor() ]=true;
+            if( s.accessor() )obj[ s.accessor() ]=s.accessor();
             ps.define( prefix+name,  obj );
         }
     }
@@ -1657,7 +1660,7 @@ function Stack( keyword, type )
     this.__keyword__ = keyword;
     this.__name__='';
     this.__close__  =false;
-    this.__qualifier__='';
+    this.__qualifier__='public';
     this.__static__= '' ;
     this.__override__= '' ;
     this.__final__= '' ;
@@ -1936,7 +1939,10 @@ Stack.prototype.static=function( val )
     return this.__static__;
 }
 
-
+/**
+ * 检查属性是否存在
+ * @param scope
+ */
 function checkProperty( scope )
 {
     var ref =  scope.keyword()==='expression' ? getParentScope(scope) : null;
@@ -1990,40 +1996,6 @@ function checkProperty( scope )
             }
         }
     }
-}
-
-
-/**
- * 创建属性的描述
- * @param stack
- * @returns {string}
- */
-function createDescribe( stack )
-{
-    var desc = [
-        ['k', stack.keyword() ].join('":"'),
-        ['t', stack.type().replace(/^\(|\)$/g,'') ].join('":"'),
-        ['q', stack.qualifier() ].join('":"'),
-    ];
-
-    if( stack.final() )
-    {
-        desc.push( ['f',stack.final() ].join('":"') );
-    }
-
-    if( stack.keyword() === 'function' )
-    {
-        if( stack.param().length > 0 )
-        {
-            desc.push(['p', stack.param().join('","')].join('":"'));
-        }
-
-        if( stack.accessor() )
-        {
-            desc.push( ['a',stack.accessor() ].join('":"') );
-        }
-    }
-    return '"'+desc.join('","')+'"';
 }
 
 
@@ -2085,91 +2057,18 @@ function createDefaultParam( stack )
 
 
 /**
- * 生成模块信息
- * @param stack
- * @returns {string}
- */
-function createModule( stack )
-{
-    var data = stack.content();
-    var i = 0;
-    var item;
-    var len = data.length;
-    var stat=[];
-    var proto=[];
-    var isstatic = stack.static();
-    var constructor= isstatic ? 'function(){}' : 'function(){ if( !(this instanceof '+stack.name()+') )throw new SyntaxError("Please use the new operation to build instances."); return this;}';
-    var accessor={stat:{},proto:{}}
-
-    for ( ; i< len ; i++ )
-    {
-        item = data[i];
-        if( item instanceof Stack ){
-
-            var val = [];
-            if( item.keyword() === 'function' )
-            {
-                item.content().splice(1,1);
-                if( item.name() === stack.name() && !isstatic )
-                {
-                    constructor=createFunction(item, true);
-                    continue;
-
-                }else
-                {
-                    val.push( createFunction(item) );
-                }
-
-            }else if( item.keyword() === 'var' || item.keyword() === 'const' )
-            {
-                item.content().shift();
-                var ret = item.toString().replace( new RegExp('^'+item.name()+'\\s*\\=?'), '' );
-                val.push( ret ? ret : 'null' );
-            }
-
-            if( item.static() || isstatic  )
-            {
-                stat.push( item.name()+':{'+createDescribe(item)+',"v":'+val.join('')+'}' );
-
-            }else
-            {
-                proto.push( item.name()+':{'+createDescribe(item)+',"v":'+val.join('')+'}' );
-            }
-        }
-    }
-
-    // 组合接口
-    var list = [];
-    list.push( 'static'+':'+'{'+stat.join(',')+'}' );
-    list.push( 'proto'+':'+'{'+proto.join(',')+'}' );
-
-    var define = stack.parent().define();
-    var include=[];
-    for ( var j in define )
-    {
-        include.push( j+':"'+define[j].value+'"' )
-    }
-    list.push('constructor' + ':'+constructor );
-    list.push('import' + ':{' + include.join(',') + '}');
-    list.push('extends' + ':"' + stack.extends() + '"');
-    list.push('package' + ':"' + stack.parent().name() + '"');
-    list.push('class' + ':"' + stack.name() + '"');
-    list.push('instance' + ':' + ( isstatic ? 'false' : 'true' ) );
-    return 'packages'+'("'+stack.parent().name()+'",{'+list.join(',')+'});';
-}
-
-/**
  * 生成函数
  * @param stack
  * @returns {string}
  */
-function createFunction( stack, is )
+function createFunction( stack )
 {
     var children = stack.content();
     var i=0;
     var len = children.length;
     var content=[];
     var param;
+    var is = stack.parent().keyword()=== 'class' && stack.parent().name()=== stack.name() && stack.keyword()==='function' && !stack.static() && stack.parent().static();
 
     for(;i<len; i++)
     {
@@ -2221,11 +2120,7 @@ function createFunction( stack, is )
  */
 Stack.prototype.toString=function()
 {
-    if( this.keyword()==='class' )
-    {
-       return createModule( this );
-
-    }else if(  this.keyword()==='function' )
+    if(  this.keyword()==='function' )
     {
         return createFunction( this );
     }
@@ -2875,5 +2770,105 @@ Ruler.prototype.operator=function(s)
     }
     return null;
 }
+
+
+/**
+ * 创建属性的描述
+ * @param stack
+ * @returns {string}
+ */
+function createDescribe( stack )
+{
+    var desc = {};
+    desc['id'] =stack.keyword();
+    desc['type'] =stack.type().replace(/^\(|\)$/g,'');
+    desc['privilege'] =stack.qualifier();
+    if( stack.final() )
+    {
+        desc['final'] =stack.final();
+    }
+    if( stack.keyword() === 'function' &&  stack.param().length > 0 )
+    {
+        desc['param'] =stack.param().join('","');
+    }
+    return desc;
+}
+
+
+/**
+ * 生成模块信息
+ * @param stack
+ * @returns {string}
+ */
+Ruler.createModule=function( stack, id )
+{
+    stack = stack.content()[0].content()[0];
+    if( stack.keyword() !=='class' )error('Invalid scope');
+
+    var data = stack.content();
+    var i = 0;
+    var item;
+    var len = data.length;
+    var isstatic = stack.static();
+    var constructor= isstatic ? 'function(){}' : 'function(){ if( !(this instanceof '+stack.name()+') )throw new SyntaxError("Please use the new operation to build instances."); return this;}';
+
+    // 组合接口
+    var list = {'static':{},'proto':{},'import':{}};
+    var define = stack.parent().define();
+    for ( var j in define )
+    {
+        list['import'][j]=define[j].value;
+    }
+
+    for ( ; i< len ; i++ )
+    {
+        item = data[i];
+        if( item instanceof Stack ){
+
+            var val = [];
+            if( item.keyword() === 'function' )
+            {
+                item.content().splice(1,1);
+                if( item.name() === stack.name() && !isstatic )
+                {
+                    constructor=item.toString();
+                    continue;
+
+                }else
+                {
+                    val.push( item.toString() );
+                }
+
+            }else if( item.keyword() === 'var' || item.keyword() === 'const' )
+            {
+                item.content().shift();
+                var ret = item.toString().replace( new RegExp('^'+item.name()+'\\s*\\=?'), '' );
+                val.push( ret ? ret : 'null' );
+            }
+
+            var ref =  item.static() || isstatic ? list.static : list.proto;
+            var desc =  ref[ item.name() ];
+            if( !desc )desc = ref[ item.name() ] = createDescribe(item);
+            if( item instanceof Scope && item.accessor() )
+            {
+                 var o = desc.v || ( desc.v={} );
+                  o[ item.accessor() ] = val.join('');
+
+            }else
+            {
+                desc.v=val.join('');
+            }
+        }
+    }
+
+    list['constructor']=constructor;
+    list['extends']=stack.extends();
+    list['package']=stack.parent().name();
+    list['class']=stack.name();
+    list['instance']= isstatic ? 'false' : 'true';
+    list['id']= id || new Date().getTime();
+    return list;
+}
+
 
 module.exports = Ruler;

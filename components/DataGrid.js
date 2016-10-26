@@ -107,7 +107,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             category = category || 'tbody';
             option = Utils.extend(defualt,option || {});
             if( typeof option.template !== "string" )
-               throw new Error('invalid html template.')
+               throw new Error('invalid html template.');
 
             option.template = option.template.replace(/(\<\s*(\w+))/ig, function (a, b, c) {
 
@@ -138,7 +138,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             return this;
         }
         return this.__plus__;
-    }
+    };
 
     /**
      * @private
@@ -164,7 +164,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             return this;
         }
         return this.__options__;
-    }
+    };
 
 
     /**
@@ -184,7 +184,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             return options.columnWidth[column];
         }
         return options.columnWidth;
-    }
+    };
 
     /**
      * @param height
@@ -199,7 +199,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             return this;
         }
         return options.headHeight;
-    }
+    };
 
     /**
      * @param height
@@ -214,7 +214,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             return this;
         }
         return options.rowHeight;
-    }
+    };
 
     /**
      * 在模板中添加需要编辑的操作
@@ -230,7 +230,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             'eventType':MouseEvent.CLICK
         }, option );
         return this;
-    }
+    };
 
     /**
      * 在模板中添加需要移除的操作
@@ -250,7 +250,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             'eventType':MouseEvent.CLICK
         },option);
         return this;
-    }
+    };
 
     /**
      * 在模板中添加需要插入数据的操作
@@ -272,7 +272,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             'eventType':MouseEvent.CLICK
         },option);
         return this;
-    }
+    };
 
     /**
      * @private
@@ -296,7 +296,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             this.__columns__ = columns.split(',')
         }
         return this;
-    }
+    };
 
     /**
      * @type {{}}
@@ -325,7 +325,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             'eventType':MouseEvent.CLICK
         },option,'thead');
         return this;
-    }
+    };
 
     /**
      * 设置指定列中需要设置的组件
@@ -344,7 +344,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             'editable':true
         }, option );
         return this;
-    }
+    };
 
 
     /**
@@ -381,7 +381,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             }
         }, option );
         return this;
-    }
+    };
 
 
     /**
@@ -397,7 +397,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             return this;
         }
         return this.dataRender().dataProfile();
-    }
+    };
 
     /**
      * 获取设置数据源对象
@@ -410,7 +410,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             return  this.dataRender().dataSource();
         this.dataRender().dataSource().source( source );
         return this;
-    }
+    };
 
     /**
      * 渲染显示组件
@@ -453,7 +453,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             }
         }
         return this;
-    }
+    };
 
     /**
      * @param selector|NodeElement viewport
@@ -471,7 +471,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
         }
         this.dataRender().pagination( viewport , context );
         return this;
-    }
+    };
 
     /**
      * @type {null}
@@ -492,7 +492,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             return this;
         }
         return this.__resizeEnable__;
-    }
+    };
 
     var resize = function()
     {
@@ -502,13 +502,13 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
 
             var rect = this.getBoundingRect();
             var space = 2;
-            var h = (rect.left+space > event.pageX && rect.left-space < event.pageX) || (rect.right+space > event.pageX && rect.right-space < event.pageX)
-            var v = (rect.top+space > event.pageY && rect.top-space < event.pageY) || (rect.bottom+space > event.pageY && rect.bottom-space < event.pageY)
+            var h = (rect.left+space > event.pageX && rect.left-space < event.pageX) || (rect.right+space > event.pageX && rect.right-space < event.pageX);
+            var v = (rect.top+space > event.pageY && rect.top-space < event.pageY) || (rect.bottom+space > event.pageY && rect.bottom-space < event.pageY);
 
             if( h || v )
             {
                 var downEvent=event;
-                var index = -1
+                var index = -1;
                 if( h )
                 {
                     this.next( event.currentTarget.parentNode );
@@ -555,7 +555,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
                         }
                     }
                     last= val;
-                }
+                };
 
                 Utils.root()
                     .addEventListener(MouseEvent.MOUSE_MOVE,resize)
@@ -564,7 +564,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
                     });
             }
         })
-    }
+    };
 
     /**
      * @type {null}
@@ -605,7 +605,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
                             }
                         }
                     }
-                })
+                });
 
                 if( this.hasEventListener(DataGridEvent.PLUS_INITIALIZED) )
                 {
@@ -620,7 +620,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             });
         }
         return this.__dataRender__;
-    }
+    };
 
     /**
      * 获取默认皮肤
@@ -644,7 +644,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             'container':{border:0,cellpadding:0,cellspacing:0}
         },['thead','tbody']);
         return skinObject;
-    }
+    };
 
     function DataGridEvent( src, props ){ BreezeEvent.call(this, src, props);}
     DataGridEvent.prototype=new BreezeEvent();
@@ -655,4 +655,4 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
     window.DataGridEvent=DataGridEvent;
     window.DataGrid= DataGrid;
 
-})( window )
+})( window );

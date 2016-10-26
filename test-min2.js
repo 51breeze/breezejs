@@ -87,9 +87,9 @@ var __g__={
 };
 
 
-+(function(){;
-var B=function(){
-console.log(' this is B')
++(function () {
+        var B=function(){
+console.log(' this is B');
 this.__uniqid__=__g__.uniqid();
 __g__.prop.call(this,{},{},{},{});
 return this;
@@ -106,11 +106,11 @@ return __g__.prop.call(this,"names")
 proto.avg=map.dynamic.avg;
 __g__.module("B", module);
 })()
-+(function(){;
-var B=__g__.module("B.constructor");
++ (function () {
+    var B=__g__.module("B.constructor");
 var test=function(){
-var c = new B()
-console.log('=====')
+var c = new B();
+console.log('=====');
 var param=[].slice.call(arguments);
 param.unshift('constructor');
 param.unshift('B');
@@ -145,7 +145,7 @@ test.bbbb=map.static.bbbb;
 test.name=map.static.name;
 proto.onResize=map.dynamic.onResize;
 __g__.module("test", module);
-})()
+})();
 return __g__.getInstance("test");
 
-})()
+})();

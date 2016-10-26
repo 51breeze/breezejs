@@ -8,7 +8,9 @@
 
 define('events/TouchEvent',['./BreezeEvent'],function(BreezeEvent){
 
-    function TouchEvent(type, bubbles,cancelable  ){ BreezeEvent.call(this,type, bubbles,cancelable );};
+    function TouchEvent(type, bubbles, cancelable) {
+        BreezeEvent.call(this, type, bubbles, cancelable);
+    }
     TouchEvent.prototype.constructor=TouchEvent ;
     TouchEvent.prototype=new BreezeEvent();
     TouchEvent.TOUCH_START='touchStart';
@@ -16,7 +18,9 @@ define('events/TouchEvent',['./BreezeEvent'],function(BreezeEvent){
     TouchEvent.TOUCH_END='touchEnd';
     TouchEvent.TOUCH_CANCEL='touchCancel';
 
-    function TouchPinchEvent(type, bubbles, cancelable ){ TouchEvent.call(this,type, bubbles,cancelable );};
+    function TouchPinchEvent(type, bubbles, cancelable) {
+        TouchEvent.call(this, type, bubbles, cancelable);
+    }
     TouchPinchEvent.prototype.constructor=TouchPinchEvent ;
     TouchPinchEvent.prototype=new TouchEvent();
     TouchPinchEvent.prototype.moveX=NaN;
@@ -31,7 +35,9 @@ define('events/TouchEvent',['./BreezeEvent'],function(BreezeEvent){
     TouchPinchEvent.TOUCH_PINCH_MOVE='touchPinchMove';
     TouchPinchEvent.TOUCH_PINCH_END='touchPinchEnd';
 
-    function TouchDragEvent(type, bubbles, cancelable ){ TouchEvent.call(this,type, bubbles,cancelable );};
+    function TouchDragEvent(type, bubbles, cancelable) {
+        TouchEvent.call(this, type, bubbles, cancelable);
+    }
     TouchDragEvent.prototype.constructor=TouchDragEvent;
     TouchDragEvent.prototype=new TouchEvent();
     TouchDragEvent.prototype.startX=NaN;
@@ -48,7 +54,9 @@ define('events/TouchEvent',['./BreezeEvent'],function(BreezeEvent){
     TouchDragEvent.TOUCH_DRAG_MOVE='touchDragMove';
     TouchDragEvent.TOUCH_DRAG_END='touchDragEnd';
 
-    function TouchSwipeEvent(type, bubbles, cancelable ){ TouchEvent.call(this,type, bubbles,cancelable );};
+    function TouchSwipeEvent(type, bubbles, cancelable) {
+        TouchEvent.call(this, type, bubbles, cancelable);
+    }
     TouchSwipeEvent.prototype.constructor=TouchSwipeEvent;
     TouchSwipeEvent.prototype=new TouchEvent();
     TouchSwipeEvent.prototype.startX=NaN;
@@ -72,7 +80,7 @@ define('events/TouchEvent',['./BreezeEvent'],function(BreezeEvent){
     var getDistance=function(startX,endX,startY,endY)
     {
         return endX === startX && endY === startY ? 0 : Math.sqrt( Math.pow( (endX - startX), 2 ) + Math.pow( (endY - startY), 2 ) );
-    }
+    };
 
     TouchEvent.setting =
     {
@@ -113,7 +121,7 @@ define('events/TouchEvent',['./BreezeEvent'],function(BreezeEvent){
 
         if( touches.length > 0 )
         {
-            x=touches[0].pageX
+            x=touches[0].pageX;
             y=touches[0].pageY
         }
         if( touches.length === 1 )
@@ -161,7 +169,7 @@ define('events/TouchEvent',['./BreezeEvent'],function(BreezeEvent){
             delete this[dataName];
             this.dispatchEvent( event );
         }
-    })
+    });
 
     //=============================== PinchEvent ===============================
 
@@ -183,7 +191,7 @@ define('events/TouchEvent',['./BreezeEvent'],function(BreezeEvent){
                 y1: touches[0].pageY,
                 x2: touches[1].pageX,
                 y2: touches[1].pageY
-            }
+            };
             points.centerX = (points.x1 + points.x2) / 2;
             points.centerY = (points.y1 + points.y2) / 2;
 
@@ -195,7 +203,7 @@ define('events/TouchEvent',['./BreezeEvent'],function(BreezeEvent){
                         'startX' : points.centerX,
                         'startY' : points.centerY,
                         'startDistance': getDistance( points.x1,points.x2,points.y1,points.y2 )
-                    }
+                    };
                     event=new TouchPinchEvent( event , data );
                     event.type=TouchPinchEvent.TOUCH_PINCH_START;
                     this.dispatchEvent( event );
@@ -226,7 +234,7 @@ define('events/TouchEvent',['./BreezeEvent'],function(BreezeEvent){
             delete this[dataName];
             this.dispatchEvent( event );
         }
-    })
+    });
 
     //=============================== SwipeEvent ===============================
     type={};
@@ -247,7 +255,7 @@ define('events/TouchEvent',['./BreezeEvent'],function(BreezeEvent){
         {
             if( touches.length > 0 )
             {
-                x=touches[0].pageX
+                x=touches[0].pageX;
                 y=touches[0].pageY
             }
 
@@ -322,7 +330,7 @@ define('events/TouchEvent',['./BreezeEvent'],function(BreezeEvent){
             event.type=TouchSwipeEvent.TOUCH_SWIPE_END;
             this.dispatchEvent( event ,data);
         }
-    })
+    });
 
     define('events/TouchDragEvent',['./TouchEvent'], function(){ return TouchDragEvent } );
     define('events/TouchPinchEvent',['./TouchEvent'], function(){ return TouchPinchEvent } );

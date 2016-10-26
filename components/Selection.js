@@ -70,7 +70,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
             var maxHeight = windowHeight - ( top + height + 3 + inputHeight + 5 );
             skinGroup.currentSkin('list').style('maxHeight',maxHeight);
             skinGroup.next(null);
-        }
+        };
 
         Breeze.root().addEventListener(BreezeEvent.RESIZE,resize);
 
@@ -244,7 +244,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
             return this;
         }
         return this.__labelProfile__;
-    }
+    };
 
     /**
      * 数据项数据值字段
@@ -255,11 +255,11 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
     {
         if( typeof profile === "string" )
         {
-            this.__valueProfile__ = profile
+            this.__valueProfile__ = profile;
             return this;
         }
         return this.__valueProfile__;
-    }
+    };
 
     /**
      * 获取数据渲染器
@@ -290,7 +290,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
                     var dataSource = self.dataRender().dataSource();
                     var labelProfile = self.labelProfile();
                     var valueProfile = self.valueProfile();
-                    var dataItems = []
+                    var dataItems = [];
                     list.forEach(function()
                     {
                         if (!this.hasProperty( valueProfile ))
@@ -307,7 +307,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
             this.__dataRender__.dataSource().addEventListener(DataSourceEvent.CHANGED,this.display,false,0,this);
         }
         return this.__dataRender__;
-    }
+    };
 
     /**
      * 获取设置数据源
@@ -322,7 +322,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
             return this;
         }
         return this.dataRender().source();
-    }
+    };
 
     /**
      * @private
@@ -353,7 +353,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
             });
         }
         return this.__bindable__;
-    }
+    };
 
     /**
      * @private
@@ -373,7 +373,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
             return this;
         }
         return this.__defaultLabel__;
-    }
+    };
 
     /**
      * @private
@@ -411,7 +411,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
             }
         }
         return this;
-    }
+    };
 
     /**
      * @private
@@ -428,7 +428,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
           return this.__searchable__;
         this.__searchable__ = !!searchable;
         return this;
-    }
+    };
 
     /**
      * @private
@@ -445,7 +445,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
           return this.__multiple__;
         this.__multiple__ = !!multiple;
         return this;
-    }
+    };
 
     /**
      * @private
@@ -462,7 +462,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
             return this.__placeholder__;
         this.__placeholder__ = msg || this.__placeholder__;
         return this;
-    }
+    };
 
 
     /**
@@ -478,7 +478,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
         }
         this.dataRender().dataProfile( dataProfile );
         return this;
-    }
+    };
 
     /**
      * @private
@@ -510,7 +510,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
         }
         commitSelectedIndex.call(this, this.__selectedIndex__ );
         return true;
-    }
+    };
 
     /**
      * 获取默认皮肤
@@ -534,7 +534,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
             'container':{'class':'selection text-unselect'}
         });
         return skinObject;
-    }
+    };
     return Selection;
 
-})
+});

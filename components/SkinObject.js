@@ -103,7 +103,7 @@ define('components/SkinObject',['Breeze'],function( Breeze )
                 str += Breeze.serialize(attr, 'attr');
             }
             return str.replace(htmlReg,parser);
-        }
+        };
 
         this.skins.container = this.container;
         for (var name in this.skins)
@@ -125,7 +125,7 @@ define('components/SkinObject',['Breeze'],function( Breeze )
         }
         this.container=this.skins.container.replace(htmlReg,parser);
         return this.container;
-    }
+    };
 
 
 
@@ -186,7 +186,7 @@ define('components/SkinObject',['Breeze'],function( Breeze )
             return this;
         }
         return this.__styleName__;
-    }
+    };
 
     /**
      * 将一个皮肤对象生成html格式的字符串
@@ -197,7 +197,7 @@ define('components/SkinObject',['Breeze'],function( Breeze )
         if( this.created===true )return this.container;
             this.created=true;
         return toString.call( this );
-    }
+    };
 
     /**
      * 获取皮肤对象中的属性。
@@ -217,7 +217,7 @@ define('components/SkinObject',['Breeze'],function( Breeze )
             }
         }
         return result;
-    }
+    };
     return SkinObject;
 
-})
+});

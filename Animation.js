@@ -22,7 +22,7 @@
             tl.addEventListener( TimelineEvent.FINISH , options.callback );
         }
         return tl;
-    }
+    };
 
 
     /**
@@ -69,7 +69,7 @@
             tl.addKeyFrame(KeyFrame(options.duration * 60).motions(function(t,d,f){
                 var value = name === 'fadeOut' ? f(t,1,-1,d) : f(t,0,1,d);
                 Breeze.style(element,'opacity',value);
-            }))
+            }));
             if( options.state )tl.play();
             return tl;
         }
@@ -84,7 +84,7 @@
     Animation.fadeIn=function(element, duration, options )
     {
        return fade.call(element,'fadeIn',duration, options);
-    }
+    };
 
     /**
      * 调整元素到指定的大小
@@ -95,7 +95,7 @@
     Animation.fadeOut=function(element, duration, options )
     {
         return fade.call(element,'fadeOut',duration, options);
-    }
+    };
 
     /**
      * 调整元素到指定的大小
@@ -111,9 +111,9 @@
         var tl =createTimeline(options);
         var width = Breeze.getSize(element,'width');
         var height =  Breeze.getSize(element,'height');
-        var motion = new Motions( element )
+        var motion = new Motions( element );
 
-        if( typeof options.width === "number")motion.set('width', width, options.width )
+        if( typeof options.width === "number")motion.set('width', width, options.width );
         if( typeof options.height === "number")motion.set('height', height, options.height );
 
         if( options.point > 1  )
@@ -145,7 +145,7 @@
         tl.addKeyFrame( KeyFrame(options.duration * 60).motions(motion) );
         if( options.state )tl.play();
         return tl;
-    }
+    };
 
 
     /**
@@ -161,14 +161,14 @@
 
         var tl =createTimeline(options);
         var position = Breeze.getBoundingRect(element);
-        var motion = new Motions( element )
+        var motion = new Motions( element );
 
-        if( typeof options.x === "number" )motion.set('left', position.left, options.x )
+        if( typeof options.x === "number" )motion.set('left', position.left, options.x );
         if( typeof options.y === "number" )motion.set('top', position.top, options.y );
         tl.addKeyFrame( KeyFrame(options.duration * 60).motions(motion) );
         if( options.state )tl.play();
         return tl;
-    }
+    };
 
     /**
      * 抖动元素
@@ -184,7 +184,7 @@
         var tl =createTimeline(options);
         var position = Breeze.getBoundingRect(element);
         var size = options.size || 4;
-        var keyframe = KeyFrame( options.duration * 60 )
+        var keyframe = KeyFrame( options.duration * 60 );
 
         keyframe.action=function(){
 
@@ -198,13 +198,13 @@
                 var val = position[prop];
                 Breeze.style(element,prop,i % 4 < 2 ?val: val + size);
             }
-        }
+        };
 
         tl.addKeyFrame( keyframe  );
         if( options.state )tl.play();
         return tl;
-    }
+    };
 
     window.Animation=Animation;
 
-})(window)
+})(window);

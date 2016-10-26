@@ -64,7 +64,7 @@ var include,main;
     include= function(file)
     {
         queue.push( file );
-    }
+    };
 
     include.config=function( options )
     {
@@ -76,7 +76,7 @@ var include,main;
            return obj;
        }
        merge( config, options);
-    }
+    };
 
     function merge( target, object )
     {
@@ -111,7 +111,7 @@ var include,main;
             file= file.src || file.href;
         }
 
-        var type = file.match(/\.(css|js)(\?.*?)?$/i)
+        var type = file.match(/\.(css|js)(\?.*?)?$/i);
         if( !type )throw new Error('import script file format of invalid');
 
         file+=( !type[2] ? '?t=' : '&t=')+Breeze.time();
@@ -136,7 +136,7 @@ var include,main;
                 if( typeof callback ==='function' )
                     callback( event );
             }
-        }
+        };
 
         if( type==='link' )
         {
@@ -151,13 +151,13 @@ var include,main;
     }
 
 
-})(this)
+})(this);
 
 
-console.log( location )
+console.log( location );
 
 
-include('./sizzle')
+include('./sizzle');
 
 try{
    sss;

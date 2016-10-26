@@ -11,4 +11,4 @@ define('events/HttpEvent',['./BreezeEvent'],function(BreezeEvent)
     HttpEvent.DONE    = 'httpDone';
     return HttpEvent;
 
-})
+});

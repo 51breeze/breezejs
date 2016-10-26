@@ -146,9 +146,9 @@
 
             themes[name]=colorObject;
         }
-    }
+    };
 
     window.ColorThemes=ColorThemes;
 
-})(window)
+})(window);
 

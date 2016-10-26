@@ -18,7 +18,7 @@ define('events/DataSourceEvent',['./BreezeEvent'],function(BreezeEvent)
     DataSourceEvent.CHANGED='dataSourceChanged';
     return DataSourceEvent;
 
-})
+});
 
 
 

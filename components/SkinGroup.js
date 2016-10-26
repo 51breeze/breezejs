@@ -83,7 +83,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
     SkinGroup.skinName = function(skinName)
     {
         return SkinGroup.NAME==='class' ? '.'+skinName : Breeze.sprintf('[%s="%s"]',SkinGroup.NAME,skinName);
-    }
+    };
 
     /**
      * @private
@@ -110,7 +110,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
             return this;
         }
         return this.skinObject() ? this.skinObject().styleName() : this.__styleName__ ;
-    }
+    };
 
     /**
      * 验证是否为一个完整的皮肤
@@ -146,7 +146,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
             }
         }
         return this.__validated__;
-    }
+    };
 
     /**
      * 生成皮肤对象并添加到当前容器中。
@@ -155,7 +155,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
      */
     SkinGroup.prototype.createSkin=function()
     {
-        var skinObject = this.skinObject()
+        var skinObject = this.skinObject();
         var styleSheet = skinObject.styleSheet;
         var sn =  this.styleName();
         for( var name in styleSheet )
@@ -212,7 +212,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
             this.addClass(styleName.replace(/\./, ''));
         }
         return this;
-    }
+    };
 
     /**
      * 获取设置皮肤组对象
@@ -232,7 +232,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
             }
         }
         return this.__skinObject__;
-    }
+    };
 
     /**
      * 添加子级皮肤到当前皮肤组
@@ -251,7 +251,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
             Breeze.property(childSkin,SkinGroup.NAME, skinName);
         }
         return childSkin;
-    }
+    };
 
     /**
      * @private
@@ -281,7 +281,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
             }
         }
         return this.__skin__[skinName];
-    }
+    };
 
     /**
      * 设置指定皮肤名为当前操作的元素
@@ -293,7 +293,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
         var skin = this.getSkinAndValidate( skinName );
         this.next( skin );
         return this;
-    }
+    };
 
     /**
      * 获取皮肤对象。如果不存在则报错
@@ -305,7 +305,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
         var skin = this.getSkin( skinName );
         if( !skin ) throw new Error('Not found skin for '+skinName );
         return skin;
-    }
+    };
 
     /**
      * 获取指定的皮肤并以Breeze对象返回
@@ -320,7 +320,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
         {
             skinName = skinName.replace(/(\w+)\s+?(\>?)\s+?(.*)/, function (all, a, b, c) {
                 return c === '' ? " return Breeze(this.getSkinAndValidate('" + a + "'))" : "Breeze('" + c + "',this.getSkinAndValidate('" + a + "'))";
-            })
+            });
 
             try {
                 this.__skin__[key] = eval(skinName + ';');
@@ -330,7 +330,7 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
             }
         }
         return this.__skin__[ key ].next(null);
-    }
+    };
     return SkinGroup;
 
-})
+});

@@ -47,7 +47,7 @@ function(EventDispatcher, TemplateEvent, Variable, Breeze )
         {
             if( _result[1] === 'foreach' )
             {
-                var isforeach=foreachReg.exec( _result[2] )
+                var isforeach=foreachReg.exec( _result[2] );
 
                 if( typeof _result[2] ==='string' && isforeach )
                 {
@@ -109,7 +109,7 @@ function(EventDispatcher, TemplateEvent, Variable, Breeze )
         code += replace( template.substr(cursor, template.length - cursor) );
         code += 'return ___code___;';
         return new Function( code ).call( variable , template );
-    }
+    };
 
     /**
      * @private
@@ -172,7 +172,7 @@ function(EventDispatcher, TemplateEvent, Variable, Breeze )
             return this;
         }
         throw new Error('invalid viewport');
-    }
+    };
 
     /**
      * 获取此模板的作用域
@@ -197,7 +197,7 @@ function(EventDispatcher, TemplateEvent, Variable, Breeze )
         }
         this.__variable__.set(name, value);
         return this;
-    }
+    };
 
     /**
      * @private
@@ -214,7 +214,7 @@ function(EventDispatcher, TemplateEvent, Variable, Breeze )
         if( typeof view !== "undefined" )
             this.__view__= getTemplateContent( view );
         return this.__view__;
-    }
+    };
 
     /**
      * 渲染模板视图
@@ -253,7 +253,7 @@ function(EventDispatcher, TemplateEvent, Variable, Breeze )
             return event.html;
         }
         return false;
-    }
+    };
     return Template;
 
-})
+});

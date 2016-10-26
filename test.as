@@ -26,7 +26,7 @@ package com
          public var name:String = '3' ;
          public const age:String = '3' ;
 
-          public function Test(jj:String)
+            function Test(jj:String)
           {
               var cc:Number=66;
               this.name = '9999';

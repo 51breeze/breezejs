@@ -63,7 +63,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
     Modality.prototype=  new SkinComponent();
     Modality.prototype.constructor=Modality;
     Modality.prototype.componentProfile='modality';
-    Modality.prototype.initializeMethod=['show','hidden','label','headHeight','footerHeight','type','vertical','horizontal']
+    Modality.prototype.initializeMethod=['show','hidden','label','headHeight','footerHeight','type','vertical','horizontal'];
 
     //窗体布局主题风格
     Modality.NORM='norm';
@@ -86,7 +86,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
     {
         event.stopPropagation();
         if( event.property==='width' || event.property==='height' )this.setPositionAndSize();
-    }
+    };
 
     /**
      * 设置此模态框的位置和大小
@@ -139,7 +139,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
         yOffset = Math.floor( (height-containerHeight) * v);
         this.moveTo(xOffset,yOffset);
         return this;
-    }
+    };
 
     /**
      * 皮肤安装完成
@@ -173,7 +173,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
         },true,0,this);
         this.setPositionAndSize();
         return this;
-    }
+    };
 
     /**
      * 获取模态框的默认皮肤
@@ -201,9 +201,9 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
                 container:{ 'style':{'width':'800px',height:'550px','display':'none',overflow:'hidden',"getBoundingRect":'absolute','zIndex':999,'backgroundColor':'#3a3a3a','shadow':'0px 0px 10px 2px #444444','radius':'5px'}},
                 footer:{ 'style':{'width':'100%',height:'35px',lineHeight:'30px','display':'block',backgroundColor:'#d6d6db'}}
             }
-        }
+        };
         return new SkinGroup(  this.theme( this.type() ) , defaultSkin,  document.body );
-    }
+    };
 
 
     /**
@@ -226,7 +226,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
             return this;
         }
         return typeof type === "string" && this.__theme__[ type ] ?  this.__theme__[ type ] :  this.__theme__[ this.type() ] ;
-    }
+    };
 
     /**
      * 设置获取模态窗口的类型,默认标准
@@ -243,7 +243,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
             return this;
         }
         return  this.__type__;
-    }
+    };
 
     /**
      * 设置获取模态窗口的水平位置,默认中间
@@ -261,7 +261,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
             return this;
         }
         return this.__horizontal__;
-    }
+    };
 
     /**
      * 设置获取模态窗口的垂直位置,默认中间
@@ -279,7 +279,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
             return this;
         }
         return this.__vertical__;
-    }
+    };
 
     /**
      * 隐藏此模态框
@@ -294,7 +294,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
         }
         this.display(false);
         return this;
-    }
+    };
 
     /**
      * @private
@@ -311,14 +311,14 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
     {
         if( _shade === null )
         {
-            _shade = new Modality()
+            _shade = new Modality();
             _shade.type(Modality.SIMPLE);
             _shade.style({'opacity':0.5,'backgroundColor':'#000000','radius':'0px','shadow':'none','left':'0px','top':'0px'});
-            _shade.style('width','100%').style('height', Breeze(document).height() )
+            _shade.style('width','100%').style('height', Breeze(document).height() );
 
             Breeze.root().addEventListener(BreezeEvent.RESIZE,function(event)
             {
-                var height = Breeze(window).height() + Breeze(document).scrollTop()
+                var height = Breeze(window).height() + Breeze(document).scrollTop();
                 _shade.style('height', height );
 
             },true);
@@ -329,7 +329,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
             });
         }
         return _shade;
-    }
+    };
 
     /**
      * 显示模态框
@@ -348,10 +348,10 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
             this.shade().show(false,zIndex-1);
         }
         this.next(null);
-        this.style({'zIndex':zIndex,"position":'absolute'})
+        this.style({'zIndex':zIndex,"position":'absolute'});
         this.skinGroup().show();
         return this;
-    }
+    };
 
     /**
      * 设置获取模态框标题
@@ -371,7 +371,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
         var val = this.type() !== Modality.SIMPLE ? this.skinGroup().currentSkin('label').content() : '';
         this.next(null);
         return val;
-    }
+    };
 
     /**
      * 设置获取模态框内容
@@ -391,7 +391,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
         this.skinGroup().currentSkin('body').html( content );
         this.next(null);
         return this;
-    }
+    };
 
     /**
      * 设置获取标题头的高度
@@ -411,7 +411,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
         var val = this.type() !== Modality.SIMPLE ? this.skinGroup().currentSkin('head').height():0;
         this.next(null);
         return val;
-    }
+    };
 
     /**
      * 设置获取脚部的高度
@@ -431,8 +431,8 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
         var val = this.type() === Modality.NORM ? this.skinGroup().currentSkin('footer').height(this) : 0;
         this.next(null);
         return val;
-    }
+    };
 
     return Modality;
 
-})
+});

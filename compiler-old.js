@@ -405,7 +405,7 @@ function parse( module, code )
                 c = torefe(c);
             }
             return b + ' instanceof ' + c;
-        })
+        });
 
         module.next.body.push( code );
 
@@ -617,7 +617,7 @@ function create( module )
     var classname = trim(module.class);
     module.constructor='function(){}';
 
-    var map = makeMap( module , classname )
+    var map = makeMap( module , classname );
     var accessor = makeAccessor( module );
     var variable = makeVariable( module );
 

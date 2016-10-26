@@ -55,7 +55,7 @@ define('Bindable',['Breeze','EventDispatcher','./events/PropertyEvent','Dictiona
                 }
             }
         }
-    }
+    };
 
     /**
      * 绑定属性变更事件
@@ -153,7 +153,7 @@ define('Bindable',['Breeze','EventDispatcher','./events/PropertyEvent','Dictiona
             this.__subscription__=new Dictionary();
         }
         return this.__subscription__;
-    }
+    };
 
     /**
      * 指定对象到当前绑定器。(订阅)
@@ -181,7 +181,7 @@ define('Bindable',['Breeze','EventDispatcher','./events/PropertyEvent','Dictiona
             obj[ property ] = callback;
         }
         return this;
-    }
+    };
 
     /**
      * 解除绑定(取消订阅)
@@ -199,7 +199,7 @@ define('Bindable',['Breeze','EventDispatcher','./events/PropertyEvent','Dictiona
             return true;
         }
         return false;
-    }
+    };
 
     /**
      * 提交属性的值到绑定器。
@@ -221,7 +221,7 @@ define('Bindable',['Breeze','EventDispatcher','./events/PropertyEvent','Dictiona
             return true;
         }
         return false;
-    }
+    };
 
     /**
      * 检查是否有指定的属性名
@@ -231,8 +231,8 @@ define('Bindable',['Breeze','EventDispatcher','./events/PropertyEvent','Dictiona
     Bindable.prototype.hasProperty=function(name)
     {
         return typeof this[name] !== 'undefined';
-    }
+    };
 
     return Bindable;
 
-})
+});

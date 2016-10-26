@@ -39,7 +39,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
         }
         obj[ name ] = value;
         return true;
-    }
+    };
 
 
     /**
@@ -57,8 +57,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
         this.getProxyTarget = target ?
             function(){ return target.length > 0 ? target : [this] } :
             function(){return this.forEachCurrentItem ? [ this.forEachCurrentItem ] : ( this.length > 0 ? this : [this] )}
-    };
-
+    }
     //Constructor
     EventDispatcher.prototype.constructor=EventDispatcher;
 
@@ -81,7 +80,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
             index++;
         }
         return false;
-    }
+    };
 
     /**
      * 添加侦听器
@@ -119,9 +118,9 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
                 addEventListener.call(target[index], listener );
             }
             index++;
-        };
+        }
         return this;
-    }
+    };
 
     /**
      * 移除指定类型的侦听器
@@ -139,7 +138,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
              b++;
         }
         return true;
-    }
+    };
 
     /**
      * 调度指定事件
@@ -149,7 +148,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
     EventDispatcher.prototype.dispatchEvent=function( event )
     {
         if( !(event instanceof BreezeEvent) )
-            throw new Error('invalid event.')
+            throw new Error('invalid event.');
 
         var target = this.getProxyTarget();
         var i=0;
@@ -161,9 +160,9 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
             event.target = event.target || element;
             dispatchEvent( event );
             i++;
-        };
+        }
         return !event.propagationStopped;
-    }
+    };
 
     /**
      * 添加侦听器到元素中
@@ -200,9 +199,9 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
         if( events['listener'].length > 1 ) events['listener'].sort(function(a,b)
         {
             return a.priority=== b.priority ? 0 : (a.priority < b.priority ? 1 : -1);
-        })
+        });
         return true;
-    }
+    };
 
 
     /**
@@ -269,7 +268,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
             delete old[ type ];
         }
         return true;
-    }
+    };
 
     /**
      * 调度指定侦听项
@@ -312,7 +311,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
                return false;
         }
         return true;
-    }
+    };
 
 
     /**
@@ -338,7 +337,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
         this.dispatcher=null;
         this.currentTarget=null;
         this.type=null;
-    }
+    };
     EventDispatcher.Listener.prototype.constructor= EventDispatcher.Listener;
     EventDispatcher.Listener.prototype.useCapture=false;
     EventDispatcher.Listener.prototype.dispatcher=null;
@@ -390,7 +389,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
                 return __callback__.call(this,element,listener,type,useCapture,dispatcher);
             }
             return false;
-        }
+        };
 
         /**
          * 获取类型
@@ -399,7 +398,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
         this.getType=function()
         {
             return __type__;
-        }
+        };
 
         /**
          * 设置特定事件在绑定元素之前所需要执行的函数
@@ -414,7 +413,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
             }
             __callback__=callback;
             return this;
-        }
+        };
 
         /**
          * 设置特定事件的类型，可以是一个数组。
@@ -432,14 +431,14 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
                 __type__ = type;
             }
             return this;
-        }
+        };
 
         if( callback )
             this.setCallback(callback);
 
         if( type )
             this.setType(type);
-    }
+    };
     EventDispatcher.SpecialEvent.prototype.constructor=EventDispatcher.SpecialEvent;
 
     // 定义ready事件
@@ -461,7 +460,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
                 remove.call(doc,'DOMContentLoaded');
                 remove.call(win,'load');
             }
-        }
+        };
         add.call(doc,listener, handle );
         add.call(win,listener, handle );
 
@@ -474,4 +473,4 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
 
     return EventDispatcher;
 
-})
+});

@@ -32,7 +32,7 @@ define('Variable',[],function()
             return this;
         }
         throw new Error('param undefined for val');
-    }
+    };
 
     /**
      * 获取数据
@@ -42,7 +42,7 @@ define('Variable',[],function()
     Variable.prototype.get=function(name)
     {
         return typeof name === 'undefined' ? this.__data__ : this.__data__[name];
-    }
+    };
 
     /**
      * 删除变量
@@ -63,7 +63,7 @@ define('Variable',[],function()
             return false;
         }
         return val;
-    }
+    };
 
     /**
      * 判断是否一个对象
@@ -80,7 +80,7 @@ define('Variable',[],function()
      * 发生错误时的返回值
      * @returns {string}
      */
-    Variable.prototype.error=function(){return '';}
+    Variable.prototype.error=function(){return '';};
     return Variable;
 
-})
+});

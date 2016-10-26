@@ -45,8 +45,7 @@ define([],function()
                 this.cancelable = !(cancelable===false);
             }
         }
-    };
-
+    }
     /**
      * event property
      * @public
@@ -102,7 +101,7 @@ define([],function()
             'webkitAnimationIteration':true,
             'DOMContentLoaded':true
         }
-    }
+    };
     if( navigator.userAgent.match(/msie ([\d.]+)/i) && RegExp.$1 < 9 )
     {
         fix.onPrefix='on';
@@ -129,7 +128,7 @@ define([],function()
             return type;
         }
         return fix.eventname[ type ]===true ? type : fix.onPrefix+type.toLowerCase();
-    }
+    };
 
     /**
      * 根据原型事件创建一个Breeze BreezeEvent
@@ -216,9 +215,9 @@ define([],function()
         breezeEvent.button= event.button;
         breezeEvent.ctrlKey= !!event.ctrlKey;
         breezeEvent.shiftKey= !!event.shiftKey;
-        breezeEvent.metaKey= !!event.metaKey
+        breezeEvent.metaKey= !!event.metaKey;
         return breezeEvent;
-    }
+    };
 
     BreezeEvent.SUBMIT='submit';
     BreezeEvent.RESIZE='resize';
@@ -243,4 +242,4 @@ define([],function()
 
     return BreezeEvent;
 
-})
+});

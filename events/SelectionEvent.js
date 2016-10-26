@@ -8,4 +8,4 @@ define('events/SelectionEvent',['./BreezeEvent'],function(BreezeEvent)
     SelectionEvent.CHANGE='selectionChanged';
     return SelectionEvent;
 
-})
+});

@@ -52,7 +52,7 @@ function(Template, DataSource, DataSourceEvent, Pagination)
             },false,0,this);
         }
         return this.__dataSource__;
-    }
+    };
 
     /**
      * 获取设置数据源
@@ -65,7 +65,7 @@ function(Template, DataSource, DataSourceEvent, Pagination)
            return this.dataSource().source();
         this.dataSource().source(source);
         return this;
-    }
+    };
 
     /**
      * 显示视图
@@ -76,7 +76,7 @@ function(Template, DataSource, DataSourceEvent, Pagination)
         this.view( view );
         this.dataSource().fetch();
         return this;
-    }
+    };
 
     /**
      * @type {boolean}
@@ -100,7 +100,7 @@ function(Template, DataSource, DataSourceEvent, Pagination)
             return this;
         }
         return this.__pagination__;
-    }
+    };
 
     /**
      * @type {string}
@@ -120,7 +120,7 @@ function(Template, DataSource, DataSourceEvent, Pagination)
             return this;
         }
         return this.__dataProfile__;
-    }
+    };
     return DataRender;
 
-})
+});

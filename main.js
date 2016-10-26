@@ -60,12 +60,12 @@ require(['Breeze'],function(Breeze){
 
         require(['./components/Selection','events/SelectionEvent'],function( Selection , SelectionEvent){
 
-              var selection = new Selection( '#selection' )
+              var selection = new Selection( '#selection' );
               selection.dataSource( [{'id':1,'label':'张三'},{'id':2,'label':'李四'},{'id':3,'label':'赵三'}] );
               //selection.selectedIndex(2).searchable(true).multiple(false)
               selection.addEventListener( SelectionEvent.CHANGE ,function( event ){
                   console.log( event )
-              })
+              });
               selection.display();
 
           })

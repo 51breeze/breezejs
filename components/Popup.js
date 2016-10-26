@@ -181,14 +181,14 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
     Popup.info=function( message , option )
     {
         option = Utils.extend({zIndex:999} , option || {});
-        var popup = Popup( Popup.SIMPLE )
+        var popup = Popup( Popup.SIMPLE );
         if( option.anchor instanceof MouseEvent )
         {
             popup.vertical('top').horizontal('left');
         }
         Popup.LAST_INSTANCE= popup;
         return popup.show( Utils.sprintf('<div style="margin: 5px;">%s</div>',message) , option);
-    }
+    };
 
     //警告框
     Popup.alert=function( message , option )
@@ -197,7 +197,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
         var popup =  Popup( Popup.NORM );
         //Popup.LAST_INSTANCE= popup;
         return popup.show( message , option);
-    }
+    };
 
     //确认框
     Popup.confirm=function( message , option )
@@ -207,7 +207,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
         var popup =  Popup( Popup.TYPICAL );
         //Popup.LAST_INSTANCE= popup;
         return  popup.show( message , option);
-    }
+    };
 
     //模态框
     Popup.modality=function(title, content , option )
@@ -222,7 +222,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
         delete option.style;
         popup.title( title ).show( content , option );
         return  popup;
-    }
+    };
 
     Popup.prototype=  new SkinComponent();
     Popup.prototype.constructor=Popup;
@@ -251,7 +251,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             return this;
         }
         return this.__callback__;
-    }
+    };
 
     /**
      * 设置提示框是否自动隐藏
@@ -272,7 +272,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             },true,0,this);
         }
         return this;
-    }
+    };
 
     /**
      * 设置获取标题头的高度
@@ -292,7 +292,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
         var val =  headSkin ? this.skinGroup().next( headSkin ).height() : 0;
         this.next(null);
         return val;
-    }
+    };
 
     /**
      * 设置获取模态窗口的类型,默认标准
@@ -302,7 +302,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
     Popup.prototype.type=function()
     {
         return this.__type__;
-    }
+    };
 
     /**
      * 设置获取模态窗口的水平位置,默认中间
@@ -319,7 +319,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             return this;
         }
         return this.__horizontal__;
-    }
+    };
 
     /**
      * 设置获取模态窗口的垂直位置,默认中间
@@ -336,7 +336,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             return this;
         }
         return this.__vertical__;
-    }
+    };
 
     /**
      * @private
@@ -356,7 +356,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             return this;
         }
         return this.__title__;
-    }
+    };
 
     /**
      * 庶罩层
@@ -377,7 +377,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
                 .style('cssText',"background-color:#000000;opacity:0;width:100%;height:100%;position:fixed;z-index:998;top:0px;left:0px;display:none" );
             var callback = function(event){
                 this.height( Utils.getSize(window,'height'));
-            }
+            };
             Utils.root().addEventListener(BreezeEvent.RESIZE,callback,true,0,mask);
             callback.call(mask);
             mask.addEventListener( MouseEvent.MOUSE_DOWN,function(event){
@@ -387,7 +387,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             Utils.storage(context,name, mask);
         }
         return mask;
-    }
+    };
 
     /**
      * 隐藏此弹框
@@ -408,7 +408,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             }
         }
         return this;
-    }
+    };
 
     /**
      * @private
@@ -431,7 +431,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             return this;
         }
         return this.__left__;
-    }
+    };
 
     /**
      * @private
@@ -454,7 +454,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             return this;
         }
         return this.__top__;
-    }
+    };
 
     /**
      * @private
@@ -475,7 +475,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             return this;
         }
         return this.__maxHeight__;
-    }
+    };
 
     /**
      * @private
@@ -496,7 +496,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             return this;
         }
         return this.__minHeight__;
-    }
+    };
 
     /**
      * @private
@@ -517,7 +517,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             return this;
         }
         return this.__maxWidth__;
-    }
+    };
 
     /**
      * @private
@@ -538,7 +538,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             return this;
         }
         return this.__minWidth__;
-    }
+    };
 
     /**
      * @private
@@ -564,7 +564,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             return this;
         }
         return this.__anchor__;
-    }
+    };
 
     /**
      * 显示弹框
@@ -605,7 +605,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
         skinGroup.width( Math.max( Math.min(size.width, maxWidth ) , minWidth ) );
         setPositionAndSize.call(this);
         return this;
-    }
+    };
 
     /**
      * 皮肤安装完成
@@ -658,7 +658,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             setPositionAndSize.call(this);
         },false,0,this);
         return this;
-    }
+    };
 
 
     /**
@@ -702,7 +702,7 @@ define('components/Popup',['./SkinComponent','../events/ModalityEvent','../Breez
             'cancel':{ 'class':'cancel btn btn-default'},
             'submit':{ 'class':'submit btn btn-default'}
         },theme =='' ? [] : ['head','body']);
-    }
+    };
     return Popup;
 
-})
+});

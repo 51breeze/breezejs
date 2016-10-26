@@ -20,7 +20,7 @@ define('DataArray',[],function(){
         this.concat.apply(this,arguments);
     }
 
-    DataArray.prototype=new Array();
+    DataArray.prototype=[];
     DataArray.prototype.length=0;
     DataArray.prototype.constructor = DataArray;
 
@@ -42,7 +42,7 @@ define('DataArray',[],function(){
               items.push( this[ index ] );
         }
         return items;
-    }
+    };
 
     /**
      * 将元素数据转换成数组并返回
@@ -51,7 +51,7 @@ define('DataArray',[],function(){
     DataArray.prototype.toArray=function()
     {
         return this.slice();
-    }
+    };
 
     /**
      * 删除替换压入操作
@@ -68,7 +68,7 @@ define('DataArray',[],function(){
             arg=arg.concat( arguments[i] );
         }
         return Array.prototype.splice.apply(this, arg );
-    }
+    };
 
     /**
      * 合并元素到对象中
@@ -85,7 +85,7 @@ define('DataArray',[],function(){
             this.length++;
         }
         return this;
-    }
+    };
 
     /**
      * 返回指定元素的索引位置
@@ -98,7 +98,7 @@ define('DataArray',[],function(){
         for( ; i<this.length; i++ )if( this[i]===searchElement )
             return i;
         return -1;
-    }
+    };
 
     /**
      * 根据指定的列进行排序
@@ -119,12 +119,12 @@ define('DataArray',[],function(){
              type = DataArray.DESC === orderGroup[c].toLowerCase() ?  DataArray.DESC :  DataArray.ASC;
              orderby.push( type===DataArray.DESC ? "Breeze.compare(b['"+c+"'],a['"+c+"']):s;" : "Breeze.compare(a['"+c+"'],b['"+c+"']):s;");
         }
-        orderby = orderby.join("\r\ns=s==0?")
+        orderby = orderby.join("\r\ns=s==0?");
         orderby+="\r\n  return s;";
         var fn = new Function( orderby );
         var s = DataArray.prototype.sort.call(this, fn);
         return this;
-    }
+    };
 
     /**
      * 过滤数组
@@ -149,7 +149,7 @@ define('DataArray',[],function(){
              }
          }
          return this;
-    }
+    };
 
     /**
      * 统计数组中所有值的和
@@ -174,7 +174,7 @@ define('DataArray',[],function(){
             result+=callback.call( this ,this[index] ) || 0;
         }
         return result;
-    }
+    };
 
 
     /**
@@ -195,7 +195,7 @@ define('DataArray',[],function(){
                 break;
         }
         return this;
-    }
+    };
 
     /**
      * 去掉重复的元素
@@ -216,9 +216,9 @@ define('DataArray',[],function(){
         }
         this.splice(0,this.length, arr);
         return this;
-    }
+    };
 
     DataArray.DESC='desc';
     DataArray.ASC='asc';
     return DataArray;
-})
+});

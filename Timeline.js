@@ -45,8 +45,7 @@ var tl= new Timeline(60).addFrame(function(){
      function getTime()
      {
         return now ? now.call(performance) : new Date().getTime();
-     };
-
+     }
     /**
      * @private
      * @param type
@@ -155,7 +154,7 @@ var tl= new Timeline(60).addFrame(function(){
             return this;
         }
         return this.__repeats__ || 1;
-    }
+    };
 
     /**
      * 动画函数
@@ -166,12 +165,12 @@ var tl= new Timeline(60).addFrame(function(){
         var type = typeof timing;
         if( type !== "undefined" )
         {
-            if( type !=='function' )throw new Error('invalid timing')
+            if( type !=='function' )throw new Error('invalid timing');
             this.__timing__= timing ;
             return this;
         }
         return this.__timing__ || null;
-    }
+    };
 
     /**
      * 当播放头到达结尾时是否需要倒转播放
@@ -186,7 +185,7 @@ var tl= new Timeline(60).addFrame(function(){
             return this;
         }
         return !!this.__reverse__;
-    }
+    };
 
     /**
      * 播放头是处于正序播放还是倒序播放的状态
@@ -195,7 +194,7 @@ var tl= new Timeline(60).addFrame(function(){
     Timeline.prototype.positive=function()
     {
         return !!this.__positive__;
-    }
+    };
 
     /**
      * 开始播放时间轴
@@ -205,7 +204,7 @@ var tl= new Timeline(60).addFrame(function(){
     {
         this.gotoAndPlay( Math.min(this.__current__+1, this.__length__ ) );
         return this;
-    }
+    };
 
     /**
      * @pirvate
@@ -223,7 +222,7 @@ var tl= new Timeline(60).addFrame(function(){
         this.__current__ = 0;
         this.__delay__=0;
         this.__positive__ = true;
-    }
+    };
 
     //private
     var cancel = function()
@@ -232,7 +231,7 @@ var tl= new Timeline(60).addFrame(function(){
             cancelAnimationFrame( this.__tid__ );
             this.__tid__=null;
         }
-    }
+    };
 
     /**
      * 停止播放时间轴
@@ -244,7 +243,7 @@ var tl= new Timeline(60).addFrame(function(){
         initState.call(this);
         dipatcher.call(this, TimelineEvent.STOP );
         return this;
-    }
+    };
 
     /**
      * 暂停播放
@@ -261,7 +260,7 @@ var tl= new Timeline(60).addFrame(function(){
             this.__pauseTime__=getTime();
         }
         return this;
-    }
+    };
 
     /**
      * 获取已播放的时长,以毫秒为单位
@@ -270,7 +269,7 @@ var tl= new Timeline(60).addFrame(function(){
     Timeline.prototype.time=function()
     {
         return Math.round( this.__time__ );
-    }
+    };
 
     /**
      * 获取心跳间隔
@@ -279,7 +278,7 @@ var tl= new Timeline(60).addFrame(function(){
     Timeline.prototype.interval=function()
     {
        return Math.max(1000 / this.fps(), 16.7 );
-    }
+    };
 
     /**
      * 获取当前动画需要持续的总时长,以毫秒为单位。
@@ -288,7 +287,7 @@ var tl= new Timeline(60).addFrame(function(){
     Timeline.prototype.duration=function( length )
     {
         return Math.round( ( length >=0 ? length : this.__length__ ) * this.interval() );
-    }
+    };
 
     /**
      * 根据侦格索引返回当前时间。以毫秒为单位。
@@ -297,7 +296,7 @@ var tl= new Timeline(60).addFrame(function(){
     Timeline.prototype.timeByIndex=function( index )
     {
         return Math.round( index * this.interval() );
-    }
+    };
 
     /**
      * 时间轴侦格的总长度。
@@ -306,7 +305,7 @@ var tl= new Timeline(60).addFrame(function(){
     Timeline.prototype.length=function()
     {
         return this.__length__;
-    }
+    };
 
     /**
      * 设置播放时的延时时间
@@ -321,7 +320,7 @@ var tl= new Timeline(60).addFrame(function(){
             return this;
         }
         return parseInt(this.__delay__) || 0;
-    }
+    };
 
     /**
      * 跳转到指定祯并播放
@@ -473,7 +472,7 @@ var tl= new Timeline(60).addFrame(function(){
 
         running(0);
         return true;
-    }
+    };
 
     /**
      * 跳转到指定祯并停止
@@ -495,7 +494,7 @@ var tl= new Timeline(60).addFrame(function(){
             return true;
         }
         return false;
-    }
+    };
 
     /**
      * 每秒播放多少侦
@@ -510,7 +509,7 @@ var tl= new Timeline(60).addFrame(function(){
             return this;
         }
         return this.__fps__ || 60;
-    }
+    };
 
     /**
      * 是否严格按时间来播放
@@ -525,7 +524,7 @@ var tl= new Timeline(60).addFrame(function(){
             return this;
         }
         return !!this.__strict__;
-    }
+    };
 
     /**
      * 当前播放到的侦
@@ -534,7 +533,7 @@ var tl= new Timeline(60).addFrame(function(){
     Timeline.prototype.next=function()
     {
        return this.__current__;
-    }
+    };
 
     /**
      * 添加关键侦
@@ -567,7 +566,7 @@ var tl= new Timeline(60).addFrame(function(){
         keyframe.__end__ = this.__length__-1;
         this.__frames__.push( keyframe );
         return this;
-    }
+    };
 
     /**
      * 根据名称或者索引获取关键侦
@@ -587,7 +586,7 @@ var tl= new Timeline(60).addFrame(function(){
             return  this.__frames__[index] || null;
         }
         return this.__frames__;
-    }
+    };
 
     /**
      * 删除关键侦或者裁剪时间轴
@@ -633,7 +632,7 @@ var tl= new Timeline(60).addFrame(function(){
             }
         }
         return false;
-    }
+    };
 
     /**
      * 关键侦构造函数
@@ -667,7 +666,7 @@ var tl= new Timeline(60).addFrame(function(){
     KeyFrame.prototype.prevKeyFrame=function()
     {
         return this.__prevKeyFrame__;
-    }
+    };
 
     /**
      * 紧邻的下一个关键侦
@@ -677,7 +676,7 @@ var tl= new Timeline(60).addFrame(function(){
     KeyFrame.prototype.nextKeyFrame=function()
     {
         return this.__nextKeyFrame__;
-    }
+    };
 
     /**
      * 获取时间轴对象
@@ -691,7 +690,7 @@ var tl= new Timeline(60).addFrame(function(){
             throw new Error('timeline instance is empty');
         }
         return this.__timeline__;
-    }
+    };
 
     /**
      * 当前关键需要播放的总时长
@@ -701,7 +700,7 @@ var tl= new Timeline(60).addFrame(function(){
     KeyFrame.prototype.timeByIndex=function()
     {
         return this.timeline().timeByIndex( this.timeline().next() - this.start() );
-    }
+    };
 
     /**
      * 动作入口
@@ -744,7 +743,7 @@ var tl= new Timeline(60).addFrame(function(){
                    motion.call(this,t,d,timing);
                }
            }
-    }
+    };
 
 
     /**
@@ -755,7 +754,7 @@ var tl= new Timeline(60).addFrame(function(){
     KeyFrame.prototype.start=function()
     {
         return this.__start__;
-    }
+    };
 
     /**
      * 关键侦在侦格上的结束位置
@@ -765,7 +764,7 @@ var tl= new Timeline(60).addFrame(function(){
     KeyFrame.prototype.end=function()
     {
         return this.__end__;
-    }
+    };
 
     /**
      * 关键侦在侦格上持续的长度
@@ -783,7 +782,7 @@ var tl= new Timeline(60).addFrame(function(){
              return this;
          }
          return this.__lenght__;
-    }
+    };
 
     /**
      * 设置获取运动属性对象
@@ -801,7 +800,7 @@ var tl= new Timeline(60).addFrame(function(){
             return this;
         }
         return this.__motions__;
-    }
+    };
 
     /**
      * 设置获取关键侦名称
@@ -817,7 +816,7 @@ var tl= new Timeline(60).addFrame(function(){
             return this;
         }
         return this.__name__;
-    }
+    };
 
     /**
      * 目标运动属性对象
@@ -849,7 +848,7 @@ var tl= new Timeline(60).addFrame(function(){
     Motions.prototype.target=function()
     {
         return this.__target__;
-    }
+    };
 
     /**
      * 设置运动属性方位
@@ -870,7 +869,7 @@ var tl= new Timeline(60).addFrame(function(){
         if( isNaN(to)  )throw new Error('The to type must be is number');
         this.__properties__.push( {'property':property,'from': from, 'to': to, flag: type === "function" } );
         return this;
-    }
+    };
 
     /**
      * 获取运动属性
@@ -889,10 +888,10 @@ var tl= new Timeline(60).addFrame(function(){
             return this.__properties__[index];
         }
         return null;
-    }
+    };
 
     window.Motions=Motions;
     window.KeyFrame=KeyFrame;
     window.Timeline=Timeline;
 
-})(window)
+})(window);

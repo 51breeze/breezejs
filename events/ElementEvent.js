@@ -20,4 +20,4 @@ define('events/ElementEvent',['./BreezeEvent'],function(BreezeEvent)
     ElementEvent.REMOVE='elementRemove';
     return ElementEvent;
 
-})
+});

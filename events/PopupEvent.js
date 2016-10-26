@@ -18,4 +18,4 @@ define('events/PopupEvent',['./BreezeEvent'],function(BreezeEvent)
     PopupEvent.SUBMIT='popupSubmit';
     return PopupEvent;
 
-})
+});
