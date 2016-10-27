@@ -17,9 +17,7 @@
 
 package com
 {
-
     import com.B;
-
     public class Test extends B {
 
          static public var name:String = '3' ;

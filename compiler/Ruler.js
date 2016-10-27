@@ -377,7 +377,7 @@ syntax['import']=function (event)
     // import 只能出现在 package 中
     if( this.scope().keyword() !=='package' )this.error('Unexpected import ', 'syntax');
     var index = this.scope().length();
-    this.add( new Stack('import', '(string'+this.line+')' ) );
+    this.add( new Stack('import', '(string)' ) );
     var s = this.scope();
     var filename=[];
     var name=null;
@@ -420,6 +420,7 @@ syntax['import']=function (event)
 
     //从父级中删除
     p.content().splice(index, p.length()-index);
+    this.dispatcher( new Event('loadModule',{name:desc.value}) );
 
     //加入到被保护的属性名中
     //this.config('reserved').push( name );
@@ -429,7 +430,10 @@ syntax['private,protected,internal,static,public,override,final']=function(event
 {
     event.prevented=true;
     var s = this.scope();
-    if( s.keyword() !=='package' && s.keyword() !=='class' )this.error();
+    if( s.keyword() !=='package' && s.keyword() !=='class' ){
+        console.log( s )
+        this.error();
+    }
     var arr = [event.target.value];
     var self= this;
     var n;
@@ -1790,9 +1794,6 @@ Stack.prototype.add=function( val, index )
             //指定的子级的父级对象的引用
             val.__parent__ = this;
 
-            //把添加的子级设置为当前的容器
-            Stack.__current__= val;
-
             //如当前的子级是一个作用域则引用父级域中定义的属性
             if( this.type() !== '(rootblock)' && val instanceof Scope )
             {
@@ -2251,8 +2252,19 @@ var default_config = {
  * @param config
  * @constructor
  */
-function Ruler( config )
+function Ruler( content, config )
 {
+    this.lines=content.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split(/\n/);
+    this.line=0;
+    this.cursor=0;
+    this.input='';
+    this.skip=false;
+    this.current=null;
+    this.prev=null;
+    this.next=null;
+    this.currentScope = new Stack('rootblock', '(rootblock)');
+    this.__end__=false;
+    this.__balance__=[];
     this.__config__= merge(default_config,config || {});
     Listener.call(this);
     for (var type in syntax )
@@ -2266,6 +2278,7 @@ function Ruler( config )
  * @type {Listener}
  */
 Ruler.prototype = new Listener();
+Ruler.prototype.currentScope = null;
 
 /**
  * 指定构造函数为语法分析器
@@ -2508,7 +2521,7 @@ Ruler.prototype.next=null;
  */
 Ruler.prototype.scope=function()
 {
-    return Stack.current();
+    return this.currentScope;
 }
 
 
@@ -2591,19 +2604,8 @@ Ruler.prototype.check=function( o )
  * 开始分析
  * @returns {Scope}
  */
-Ruler.prototype.start=function( content )
+Ruler.prototype.start=function()
 {
-    this.lines=content.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split(/\n/);
-    this.line=0;
-    this.cursor=0;
-    this.input='';
-    this.skip=false;
-    this.current=null;
-    this.prev=null;
-    this.next=null;
-    this.__end__=false;
-    this.__balance__=[];
-    Stack.__current__=null;
     do{
         this.step();
     }while( !this.done() )
@@ -2631,7 +2633,13 @@ Ruler.prototype.add=function( val , index )
 {
     if(val.type==='(end)')return false;
     try {
-        this.scope().add(val, index);
+
+        this.currentScope.add(val, index);
+        if( val instanceof Stack )
+        {
+            this.currentScope= val;
+        }
+
     }catch (e)
     {
         // console.log( this.scope()  , val )
