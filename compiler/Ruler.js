@@ -420,7 +420,10 @@ syntax['import']=function (event)
 
     //从父级中删除
     p.content().splice(index, p.length()-index);
+
+    var current = Stack.current();
     this.dispatcher( new Event('loadModule',{name:desc.value}) );
+    Stack.__current__=current;
 
     //加入到被保护的属性名中
     //this.config('reserved').push( name );
@@ -1793,6 +1796,7 @@ Stack.prototype.add=function( val, index )
 
             //指定的子级的父级对象的引用
             val.__parent__ = this;
+            Stack.__current__ = val;
 
             //如当前的子级是一个作用域则引用父级域中定义的属性
             if( this.type() !== '(rootblock)' && val instanceof Scope )
@@ -2262,10 +2266,10 @@ function Ruler( content, config )
     this.current=null;
     this.prev=null;
     this.next=null;
-    this.currentScope = new Stack('rootblock', '(rootblock)');
     this.__end__=false;
     this.__balance__=[];
     this.__config__= merge(default_config,config || {});
+    Stack.__current__=null;
     Listener.call(this);
     for (var type in syntax )
     {
@@ -2278,7 +2282,6 @@ function Ruler( content, config )
  * @type {Listener}
  */
 Ruler.prototype = new Listener();
-Ruler.prototype.currentScope = null;
 
 /**
  * 指定构造函数为语法分析器
@@ -2521,7 +2524,7 @@ Ruler.prototype.next=null;
  */
 Ruler.prototype.scope=function()
 {
-    return this.currentScope;
+    return Stack.current();
 }
 
 
@@ -2634,11 +2637,7 @@ Ruler.prototype.add=function( val , index )
     if(val.type==='(end)')return false;
     try {
 
-        this.currentScope.add(val, index);
-        if( val instanceof Stack )
-        {
-            this.currentScope= val;
-        }
+        this.scope().add(val, index);
 
     }catch (e)
     {
@@ -2808,7 +2807,7 @@ function createDescribe( stack )
  * @param stack
  * @returns {string}
  */
-Ruler.createModule=function( stack, id )
+Ruler.createModule=function( stack )
 {
     stack = stack.content()[0].content()[0];
     if( stack.keyword() !=='class' )error('Invalid scope');
@@ -2874,7 +2873,6 @@ Ruler.createModule=function( stack, id )
     list['package']=stack.parent().name();
     list['class']=stack.name();
     list['instance']= isstatic ? 'false' : 'true';
-    list['id']= id || new Date().getTime();
     return list;
 }
 

@@ -20,7 +20,7 @@ package com
     import com.B;
     public class Test extends B {
 
-         static public var name:String = '3' ;
+         static public var name:String = '3 sdfsdf' ;
          public var name:String = '3' ;
          public const age:String = '3' ;
 

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const root = process.cwd();
 const global_module={};
-const config = {'suffix':'as','main':'main','root':root,'cache':true};
+const config = {'suffix':'as','main':'main','root':root,'cache':true,'cachePath':'./cache'};
 const QS = require('querystring');
 const PATH = require('path');
 const Ruler = require('./Ruler.js');
@@ -86,6 +86,9 @@ function merge()
  */
 function make( file )
 {
+    var has = module(file);
+    if( has )return has;
+
     //获取源文件的路径
     var sourcefile = pathfile(file, config.suffix, config.lib );
 
@@ -100,12 +103,12 @@ function make( file )
     var data;
 
     //缓存文件的路径
-    var cachefile = pathfile( file.replace(/\./g,'_').toLowerCase(), 'json', config.make+'/cache' );
+    var cachefile = pathfile( file.replace(/\./g,'_').toLowerCase(), 'json', config.cachePath );
     if( config.cache && fs.existsSync(cachefile) )
     {
         var json = fs.readFileSync( cachefile , 'utf-8');
         data = JSON.parse( json );
-        isupdate = json.id === id;
+        isupdate = data.id === id;
     }
 
     //编译源文件
@@ -116,13 +119,15 @@ function make( file )
         var R= new Ruler( content, config );
         R.addListener('loadModule',function(e){
             make( e.name );
-        })
+        });
         var scope = R.start();
-        data = Ruler.createModule(scope, id);
+        data = Ruler.createModule(scope);
+        data['id']= id;
         fs.writeFileSync( cachefile , JSON.stringify(data) );
     }
     var name = data.package ? data.package+'.'+data.class : data.class;
     module(name,data);
+    for(var i in data.import)return make( data.import[i] );
     return data;
 }
 
@@ -150,11 +155,7 @@ function showMem()
 // 合并传入的参数
 var arguments = process.argv.splice(1);
 config.make = PATH.dirname( arguments.shift() );
-for(var b in arguments )
-{
-    var item = arguments[b];
-    merge(config, QS.parse( arguments[b] ) );
-}
+for(var b in arguments )merge(config, QS.parse( arguments[b] ) );
 
 //检查是否有指定需要编译的库文件
 if( !config.lib  )
@@ -169,6 +170,8 @@ if( !config.lib  )
 
 //返回绝对路径
 config.lib = PATH.resolve( config.lib );
+config.cachePath = PATH.resolve(config.lib, config.cachePath);
+if( !fs.existsSync(config.cachePath) )fs.mkdirSync( config.cachePath );
 
 //如果指定的配置文件
 if( config.config )
@@ -195,6 +198,9 @@ if( config.config )
    merge(config,data);
 }
 
+//引用已加载的全局模块
+config.loadModule = module;
+
 //必须指主文件
 if( !config.main )
 {
@@ -202,9 +208,14 @@ if( !config.main )
     process.exit();
 }
 
-
 console.log('========start make=======' );
 make( config.main );
+
+
+
+
+
+
 console.log('===========done=========\n' );
 
 
