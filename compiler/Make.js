@@ -80,6 +80,19 @@ function merge()
     return target;
 }
 
+/**
+ * 获取模块全名
+ * @param a
+ * @param b
+ * @returns {string}
+ */
+function getModuleName(a, b)
+{
+    return a ? a+'.'+b : b;
+}
+
+
+var moduleList=[];
 
 /**
  * 执行编译
@@ -125,9 +138,10 @@ function make( file )
         data['id']= id;
         fs.writeFileSync( cachefile , JSON.stringify(data) );
     }
-    var name = data.package ? data.package+'.'+data.class : data.class;
-    module(name,data);
-    for(var i in data.import)return make( data.import[i] );
+
+    for(var i in data.import)make( data.import[i] );
+    module( getModuleName( data.package, data.class), data );
+    moduleList.push( data );
     return data;
 }
 
@@ -156,6 +170,8 @@ function showMem()
 var arguments = process.argv.splice(1);
 config.make = PATH.dirname( arguments.shift() );
 for(var b in arguments )merge(config, QS.parse( arguments[b] ) );
+config.cache = config.cache!=='off';
+
 
 //检查是否有指定需要编译的库文件
 if( !config.lib  )
@@ -212,8 +228,64 @@ console.log('========start make=======' );
 make( config.main );
 
 
+function getMethods(name,param)
+{
+    return '__g__.'+name+'('+param.join(',')+')';
+}
 
 
+function toValue( describe, flag )
+{
+     var code=[];
+     for( var p in describe )
+     {
+         if( typeof describe[p].v === "object" )
+         {
+            code.push( p+':'+ toValue(describe[p].v, true) );
+
+         }else
+         {
+             code.push(p + ':' + (flag===true ? describe[p] : describe[p].v) );
+         }
+     }
+     return '{'+code.join(',')+'}';
+}
+
+var code=[];
+moduleList.forEach(function(o){
+
+    var str= '(function(){\n';
+    for (var i in o.import )
+    {
+        str += 'var '+i+'='+getMethods('module', ['"' + o.import[i] + '.constructor"'])+';\n';
+    }
+    str+='var '+o.class+'='+o.constructor+';\n';
+    str+='var map={';
+    str+='"constructor":'+o.class+',\n';
+    str+='"static":'+ toValue(o.static)+',\n';
+    str+='"proto":'+ toValue(o.proto);
+    str+='};\n';
+
+    if( o.extends )str+=o.class+'.prototype= new '+o.extends+'();\n';
+    str+= o.class+'.constructor= '+o.class+';\n';
+    str+= 'return map;\n';
+    str+= '})()';
+    code.push( getMethods('module', ['"'+getModuleName(o.package,o.class)+'"', str ] )  );
+
+});
+
+code = code.join(';\n')+';\n';
+
+var mainfile = pathfile( config.main , config.suffix, config.lib );
+var filename = PATH.resolve(PATH.dirname( mainfile ),PATH.basename(mainfile,'.'+config.suffix)+'-min.js' );
+var system = fs.readFileSync( PATH.resolve(config.make, 'System.js') , 'utf-8');
+
+code = '(function(){\n' + system + code;
+code+='})();'
+
+
+
+fs.writeFileSync(  filename, code );
 
 
 console.log('===========done=========\n' );

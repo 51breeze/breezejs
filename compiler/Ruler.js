@@ -2073,7 +2073,7 @@ function createFunction( stack )
     var len = children.length;
     var content=[];
     var param;
-    var is = stack.parent().keyword()=== 'class' && stack.parent().name()=== stack.name() && stack.keyword()==='function' && !stack.static() && stack.parent().static();
+    var is = stack.parent().keyword()=== 'class' && stack.parent().name()=== stack.name() && stack.keyword()==='function' && !stack.static() && !stack.parent().static();
 
     for(;i<len; i++)
     {

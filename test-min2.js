@@ -1,5 +1,24 @@
 (function(){
-var packages={};
+var packages={
+
+    'test':(function(B){
+
+        var Test=function(){}
+        var module={proto:{name:function(){}}}
+        Test.prototype=new B();
+        var proto = Test.prototype.prototype;
+        proto.name = proto.name;
+
+
+
+    })(B),
+
+
+
+};
+
+
+
 var object={};
 var __g__={
     module:function(name, value)

@@ -24,15 +24,22 @@ package com
          public var name:String = '3' ;
          public const age:String = '3' ;
 
-            function Test(jj:String)
+          function Test(jj:String)
           {
               var cc:Number=66;
               this.name = '9999';
+
          }
 
           private function elem():Test
           {
+              this.cre();
               return this;
+          }
+
+          protected function cre()
+          {
+
           }
 
          static public function names(bbs:String='999'):Test
