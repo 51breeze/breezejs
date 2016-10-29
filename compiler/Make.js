@@ -464,7 +464,8 @@ function loadModuleDescribe( file )
 {
     var has = module(file);
     if( has )return has;
-
+    module( file, {} );
+    
     //获取源文件的路径
     var sourcefile = pathfile(file, config.suffix, config.lib );
 
@@ -492,7 +493,6 @@ function loadModuleDescribe( file )
     {
         console.log( sourcefile,'...' );
         var content = fs.readFileSync( sourcefile , 'utf-8');
-        module( file, {} );
         var R= new Ruler( content, config );
         R.addListener('checkPackageName',function (e) {
             var path = file.split('.')
