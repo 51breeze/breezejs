@@ -15,13 +15,14 @@
 
 //类
 
-package com
+package
 {
     import com.B;
     public class Test extends B {
 
          static public var name:String = '3 sdfsdf' ;
          public var name:String = '3' ;
+         public var jj:Array = [] ;
          public const age:String = '3' ;
 
           function Test(jj:String)

@@ -354,8 +354,9 @@ syntax["package"]=function (event)
 
     if( this.current.id !=='{' ) this.error('Missing token {');
     if( !checkSegmentation( name ) )this.error('Invalid package name');
-    this.scope().name( name.join('') );
-
+    var e = new Event('checkPackageName',{value:name.join('')});
+    this.dispatcher( e )
+    this.scope().name( e.value );
     this.loop(function(){
         if( this.next.id === '}') return false;
         this.step();
@@ -506,8 +507,9 @@ syntax['class']=function( event )
     //获取类名
     var n = this.seek();
     if( !isPropertyName( n.value ) )this.error('Invalid class name');
-
-    var name = n.value;
+    var e = new Event('checkClassName',{value:n.value});
+    this.dispatcher( e );
+    var name = e.value;
     if( this.scope().parent().define( name ) )this.error('class name the "'+name+'" is already been declared',this.current);
     this.scope().define('this', {'type':'('+name+')','id':'class',scope:this.scope()} );
     this.scope().define(name, {'type':'(Class)','id':'class',scope:this.scope()} );
@@ -1576,7 +1578,7 @@ Listener.prototype.addListener=function(type, callback, priority)
         for (var i in type )this.addListener( type[i], callback, priority);
         return this;
     }
-    var obj = this.events[type] || ( this.events[type]=[] );
+    var obj = this.events[type] instanceof Array ? this.events[type] : ( this.events[type]=[] );
     obj.push({callback:callback, priority:priority || 0});
     if( obj.length > 1 )obj.sort(function(a,b)
     {
@@ -1944,223 +1946,6 @@ Stack.prototype.static=function( val )
     return this.__static__;
 }
 
-/**
- * 检查属性是否存在
- * @param scope
- */
-function checkProperty( scope )
-{
-    var ref =  scope.keyword()==='expression' ? getParentScope(scope) : null;
-    if( !ref )return;
-    var data = scope.content();
-    var i=0;
-    var item;
-    var obj = ref.define('this');
-    for(;i<data.length; i++)
-    {
-        item = data[i];
-        if( item.value==='this' || item.value === obj.scope.name() )
-        {
-            var prefix = item.value==='this' ? '' : 'static_';
-            var desc = obj.scope;
-            var next = data[++i];
-            while ( next && ( next.value === '.' || ( next instanceof Stack && next.type() === '(property)' ) ) )
-            {
-                if( next.value === '.' )next = data[++i];
-                item = next;
-                if (item instanceof Stack && item.type() === '(property)')
-                {
-                    var prop = item.content()[1];
-                    if (prop.length() === 1 && prop.type() === '(String)') {
-                        var v = prop.content()[0].value.replace(/^[\'\"]|[\'\"]$/g, '');
-                        desc = desc instanceof Scope ? desc.define(prefix + v) : desc[v];
-                    }
-
-                } else
-                {
-                    desc = desc instanceof Scope ? desc.define(prefix + item.value) : desc[item.value];
-                }
-
-                next = data[i + 1];
-                var id = next instanceof Stack && next.type() === '(expression)' ? 'Function' : 'Property';
-
-                if (!desc || (id === 'Function' && desc.id !== 'function') || (id === 'Property' && !(desc.id === 'var' || desc.id === 'const') ))
-                    error(id + ' the "' + item.value + '" does not exist', 'reference', item);
-
-                if (id === 'Function') {
-                    item = data[++i];
-                } else if (next && next.value === '=') {
-                    if (desc.id === 'const')  error('Constant values cannot be changed after the defined', 'syntax', item);
-                    if ((desc.id === 'var' || desc.id === 'const') && desc.type !== '(*)' && desc.type !== scope.type())
-                        error('type is not consistent, can only be ' + desc.type, 'type', item);
-                }
-                var type = desc.type;
-                if (type === '(*)')break;
-                desc = ref.define(type);
-                if (!desc)desc = objects[type.replace(/^\(|\)$/g, '')];
-            }
-        }
-    }
-}
-
-
-/**
- * 创建默认参数
- * @param stack
- * @returns {{param: Array, expre: Array}}
- */
-function createDefaultParam( stack )
-{
-    var data = stack.content();
-    var obj = {'param':[],'expre':[]};
-    var name;
-    var type='*';
-    var value;
-
-    for ( var j=0; j< data.length ; j++ )
-    {
-        var item = data[j];
-        if( item instanceof Stack )
-        {
-            var o = createDefaultParam( item );
-            obj.param = obj.param.concat( o.param );
-            obj.expre = obj.expre.concat( o.expre );
-
-        }else if( item && item.value!==',' )
-        {
-            if( j===0 ) name = item.value;
-            if( item.value === ':' )type = data[++j].value;
-            if( item.value === '=' )
-            {
-                item = data[++j];
-                value = item instanceof Stack ? item.toString() : item.value;
-            }
-        }
-    }
-
-    if( name )
-    {
-        var ps = getParentScope(stack);
-        var desc = ps.define( name );
-
-        if (value) {
-            obj.expre.push(name + '=typeof ' + name + '=== "undefined" ?' + value + ':' + name+';\n');
-        }
-
-        if (desc) {
-
-            type = desc.type.replace(/^\(|\)$/g,'');
-            if( type !=='*' )
-            {
-                obj.expre.push('if( !(' + name + ' instanceof ' + type + ') )throw new TypeError("Specify the type of mismatch");\n');
-            }
-        }
-        obj.param.push( name );
-    }
-    return obj;
-}
-
-
-/**
- * 生成函数
- * @param stack
- * @returns {string}
- */
-function createFunction( stack )
-{
-    var children = stack.content();
-    var i=0;
-    var len = children.length;
-    var content=[];
-    var param;
-    var is = stack.parent().keyword()=== 'class' && stack.parent().name()=== stack.name() && stack.keyword()==='function' && !stack.static() && !stack.parent().static();
-
-    for(;i<len; i++)
-    {
-        var child = children[i];
-        if( child instanceof Stack )
-        {
-            if( child.keyword() === 'statement' )
-            {
-                param = createDefaultParam( child );
-                content.push( param.param.join(',') );
-
-            }else
-            {
-                content.push( child.toString() );
-            }
-        }
-        //获取函数的默认参数
-        else
-        {
-            if( child.value==='}' && i+1 === len && is )
-            {
-                content.push( '\nreturn this;' );
-            }
-            content.push( child.value );
-            if ( param && child.value === '{' )
-            {
-                content.push( param.expre.join('') );
-                if( is )
-                {
-                    content.push( 'if( !(this instanceof '+stack.parent().name()+') )throw new SyntaxError("Please use the new operation to build instances.");' );
-                    if( stack.parent().extends() )
-                    {
-                        var p = param.param.slice(0);
-                        p.unshift('this');
-                        content.push( '\n'+stack.parent().extends()+'.call('+p.join(',')+');\n');
-                    }
-                }
-                param=null;
-            }
-        }
-    }
-    return content.join('');
-}
-
-
-/**
- * 转换语法
- * @returns {String}
- */
-Stack.prototype.toString=function()
-{
-    if(  this.keyword()==='function' )
-    {
-        return createFunction( this );
-    }
-
-    var data = this.content();
-    var str = [];
-    var i = 0;
-    var len = data.length;
-    var item;
-    checkProperty(this);
-    for ( ; i< len ; i++ )
-    {
-        item = data[i];
-        if( item instanceof Stack )
-        {
-            str.push( item.toString() );
-        }else
-        {
-            str.push( item.value || item );
-
-            //空格
-            if( item.type==='(identifier)' || item.id==='(keyword)' )
-            {
-                var n = data[i+1];
-                if( n && ( n instanceof Stack && n.keyword() !=='object' || n.type==='(identifier)' || n.id==='(keyword)' || n.type==='(number)' ) )
-                {
-                    str.push(' ');
-                }
-            }
-        }
-    }
-    return str.join('');
-}
-
-
 
 /**
  * 代码块的作用域
@@ -2251,6 +2036,7 @@ var default_config = {
     'reserved':[],
 }
 
+
 /**
  *  语法分析器
  * @param config
@@ -2271,10 +2057,7 @@ function Ruler( content, config )
     this.__config__= merge(default_config,config || {});
     Stack.__current__=null;
     Listener.call(this);
-    for (var type in syntax )
-    {
-        this.addListener( type.split(','), syntax[type] ) ;
-    }
+    for (var type in syntax )this.addListener( type.split(','), syntax[type] ) ;
 }
 
 /**
@@ -2288,7 +2071,6 @@ Ruler.prototype = new Listener();
  * @type {Ruler}
  */
 Ruler.prototype.constructor = Ruler;
-
 
 /**
  * 调度事件
@@ -2508,16 +2290,6 @@ Ruler.prototype.seek=function( flag )
     return this.current;
 }
 
-//上一个语法词
-Ruler.prototype.prev=null;
-
-//当前的语法词
-Ruler.prototype.current=null;
-
-//下一个语法词
-Ruler.prototype.next=null;
-
-
 /**
  * 返回当前的作用域
  * @returns {Scope}
@@ -2526,7 +2298,6 @@ Ruler.prototype.scope=function()
 {
     return Stack.current();
 }
-
 
 /**
  * 指定结束点
@@ -2778,103 +2549,8 @@ Ruler.prototype.operator=function(s)
     return null;
 }
 
-
-/**
- * 创建属性的描述
- * @param stack
- * @returns {string}
- */
-function createDescribe( stack )
-{
-    var desc = {};
-    desc['id'] =stack.keyword();
-    desc['type'] =stack.type().replace(/^\(|\)$/g,'');
-    desc['privilege'] =stack.qualifier();
-    if( stack.final() )
-    {
-        desc['final'] =stack.final();
-    }
-    if( stack.keyword() === 'function' &&  stack.param().length > 0 )
-    {
-        desc['param'] =stack.param().join('","');
-    }
-    return desc;
-}
-
-
-/**
- * 生成模块信息
- * @param stack
- * @returns {string}
- */
-Ruler.createModule=function( stack )
-{
-    stack = stack.content()[0].content()[0];
-    if( stack.keyword() !=='class' )error('Invalid scope');
-
-    var data = stack.content();
-    var i = 0;
-    var item;
-    var len = data.length;
-    var isstatic = stack.static();
-    var constructor= isstatic ? 'function(){}' : 'function(){ if( !(this instanceof '+stack.name()+') )throw new SyntaxError("Please use the new operation to build instances."); return this;}';
-
-    // 组合接口
-    var list = {'static':{},'proto':{},'import':{}};
-    var define = stack.parent().define();
-    for ( var j in define )
-    {
-        list['import'][j]=define[j].value;
-    }
-
-    for ( ; i< len ; i++ )
-    {
-        item = data[i];
-        if( item instanceof Stack ){
-
-            var val = [];
-            if( item.keyword() === 'function' )
-            {
-                item.content().splice(1,1);
-                if( item.name() === stack.name() && !isstatic )
-                {
-                    constructor=item.toString();
-                    continue;
-
-                }else
-                {
-                    val.push( item.toString() );
-                }
-
-            }else if( item.keyword() === 'var' || item.keyword() === 'const' )
-            {
-                item.content().shift();
-                var ret = item.toString().replace( new RegExp('^'+item.name()+'\\s*\\=?'), '' );
-                val.push( ret ? ret : 'null' );
-            }
-
-            var ref =  item.static() || isstatic ? list.static : list.proto;
-            var desc =  ref[ item.name() ];
-            if( !desc )desc = ref[ item.name() ] = createDescribe(item);
-            if( item instanceof Scope && item.accessor() )
-            {
-                 var o = desc.v || ( desc.v={} );
-                  o[ item.accessor() ] = val.join('');
-
-            }else
-            {
-                desc.v=val.join('');
-            }
-        }
-    }
-
-    list['constructor']=constructor;
-    list['extends']=stack.extends();
-    list['package']=stack.parent().name();
-    list['class']=stack.name();
-    list['instance']= isstatic ? 'false' : 'true';
-    return list;
-}
-
-
+Ruler.getParentScope=getParentScope;
+Ruler.getParentFunction=getParentFunction;
+Ruler.SCOPE=Scope;
+Ruler.STACK=Stack;
 module.exports = Ruler;
