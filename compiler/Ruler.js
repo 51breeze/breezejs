@@ -434,10 +434,7 @@ syntax['private,protected,internal,static,public,override,final']=function(event
 {
     event.prevented=true;
     var s = this.scope();
-    if( s.keyword() !=='package' && s.keyword() !=='class' ){
-        console.log( s )
-        this.error();
-    }
+    if( s.keyword() !=='package' && s.keyword() !=='class' )this.error();
     var arr = [event.target.value];
     var self= this;
     var n;
@@ -511,8 +508,10 @@ syntax['class']=function( event )
     this.dispatcher( e );
     var name = e.value;
     if( this.scope().parent().define( name ) )this.error('class name the "'+name+'" is already been declared',this.current);
-    this.scope().define('this', {'type':'('+name+')','id':'class',scope:this.scope()} );
-    this.scope().define(name, {'type':'(Class)','id':'class',scope:this.scope()} );
+
+    var classname = this.scope().parent().name() ? this.scope().parent().name()+'.'+name : name;
+    this.scope().define('this', {'type':'('+name+')','id':'class','value':classname,scope:this.scope()} );
+    this.scope().define(name, {'type':'(Class)','id':'class','value':classname,scope:this.scope()} );
 
     //类名
     this.scope().name( name );
@@ -1331,6 +1330,10 @@ function statement()
         this.scope().parent().param( type );
     }else
     {
+        if( id ==='var' || id==='const' || id==='let')
+        {
+              ps.type( type );
+        }
         ps = getParentScope( this.scope() );
         var pid = this.scope().parent().keyword();
         prefix = this.scope().parent().static() ? 'static_' : '';
@@ -1485,7 +1488,10 @@ syntax['(string),(number),(regexp)']=syntax['(identifier)'];
  */
 function error(msg, type, obj )
 {
-    if( obj )console.log( obj );
+    if( obj )
+    {
+        console.log('error line:',obj.line, ' characters:', obj.cursor );
+    }
     switch ( type )
     {
         case 'syntax' :
@@ -2170,9 +2176,8 @@ Ruler.prototype.error=function (msg, o, type )
 {
     o = o || this.current;
     msg =  msg || 'Unexpected token '+o.value;
-    console.log( 'error line:', o.line, '  character:', o.cursor, o );
     type = type || 'syntax'
-    error(msg , type );
+    error(msg , type , o);
 }
 
 /**

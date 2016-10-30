@@ -219,6 +219,7 @@ function createDescribe( stack )
     desc['id'] =stack.keyword();
     desc['type'] =stack.type().replace(/^\(|\)$/g,'');
     desc['privilege'] =stack.qualifier();
+
     if( stack.final() )
     {
         desc['final'] =stack.final();
@@ -230,61 +231,121 @@ function createDescribe( stack )
     return desc;
 }
 
+/**
+ * 抛出错误信息
+ * @param msg
+ * @param type
+ */
+function error(msg, type, obj )
+{
+    if( obj )
+    {
+        console.log('error line:',obj.line, ' characters:', obj.cursor );
+    }
+    switch ( type )
+    {
+        case 'syntax' :
+            throw new SyntaxError(msg);
+            break;
+        case 'reference' :
+            throw new ReferenceError(msg);
+            break;
+        case 'type' :
+            throw new TypeError(msg);
+            break;
+        default :
+            throw new Error(msg);
+    }
+}
+
 
 /**
  * 检查属性是否存在
  * @param scope
  */
-function checkProperty( scope )
+function checkPropExists( scope )
 {
     var ref =  scope.keyword()==='expression' ? Ruler.getParentScope(scope) : null;
     if( !ref )return;
     var data = scope.content();
     var i=0;
     var item;
-    var obj = ref.define('this');
+
     for(;i<data.length; i++)
     {
         item = data[i];
-        if( item.value==='this' || item.value === obj.scope.name() )
+        var obj = ref.define( item.value );
+        var isref=false;
+
+        //这里是声明引用
+        if( obj && (obj.id==='var' || obj.id==='const') )
         {
-            var prefix = item.value==='this' ? '' : 'static_';
-            var desc = obj.scope;
+            var type = obj.type.replace(/^\(|\)$/g,'');
+            if( type !=='*' ) {
+                obj = ref.define(type);
+                isref=true;
+            }
+        }
+
+        if( obj && obj.id==='class' )
+        {
+            var desc = module( obj.value );
             var next = data[++i];
+
+            //引用属性的描述信息
+            desc = item.value!=='this' && desc.class === item.value ? desc['static'] : desc['proto'];
+
+            //不能直接对类名作赋值操作
+            if( !isref && next && !(next instanceof Ruler.STACK) && next.value==='=' )
+            {
+                error('the "'+item.value+'" class constant cannot be assigned', '', item);
+            }
+
             while ( next && ( next.value === '.' || ( next instanceof Ruler.STACK && next.type() === '(property)' ) ) )
             {
                 if( next.value === '.' )next = data[++i];
                 item = next;
+                var prop=item.value;
                 if (item instanceof Ruler.STACK && item.type() === '(property)')
                 {
                     var prop = item.content()[1];
-                    if (prop.length() === 1 && prop.type() === '(String)') {
-                        var v = prop.content()[0].value.replace(/^[\'\"]|[\'\"]$/g, '');
-                        desc = desc instanceof Ruler.SCOPE ? desc.define(prefix + v) : desc[v];
+                    if (prop.length() === 1 && prop.type() === '(String)')
+                    {
+                        prop = prop.content()[0].value.replace(/^[\'\"]|[\'\"]$/g, '');
                     }
+                }
+                desc = desc[prop];
 
-                } else
+                //属性必须先定义后使用
+                if( !desc )
                 {
-                    desc = desc instanceof Ruler.SCOPE ? desc.define(prefix + item.value) : desc[item.value];
+                    error( prop+' does not exist', 'reference', item);
                 }
 
                 next = data[i + 1];
-                var id = next instanceof Ruler.STACK && next.type() === '(expression)' ? 'Function' : 'Property';
 
-                if (!desc || (id === 'Function' && desc.id !== 'function') || (id === 'Property' && !(desc.id === 'var' || desc.id === 'const') ))
-                    error(id + ' the "' + item.value + '" does not exist', 'reference', item);
-
-                if (id === 'Function') {
+                //是否为调用
+                if ( next instanceof Ruler.STACK && next.type() === '(expression)' )
+                {
+                    //必须是函数
+                    if( desc.id !== 'function' )error( prop+' is not function', 'type', item);
                     item = data[++i];
-                } else if (next && next.value === '=') {
-                    if (desc.id === 'const')  error('Constant values cannot be changed after the defined', 'syntax', item);
-                    if ((desc.id === 'var' || desc.id === 'const') && desc.type !== '(*)' && desc.type !== scope.type())
-                        error('type is not consistent, can only be ' + desc.type, 'type', item);
+
+                } else if ( next && next.value === '=' )
+                {
+                    //常量是不可以改变的
+                    if ( desc.id === 'const' )  error('Constant values cannot be changed after the defined', 'syntax', item);
+
+                    //检查类型是否一致
+                    if ( (desc.id === 'var' || desc.id === 'const') && desc.type !== '*' )
+                    {
+                        if( desc.type !== scope.type().replace(/^\(|\)$/g,'') )
+                        {
+                            error('type is not consistent. can only be ' + desc.type, 'type', item);
+                        }
+                    }
                 }
-                var type = desc.type;
-                if (type === '(*)')break;
-                desc = ref.define(type);
-               // if (!desc)desc = objects[type.replace(/^\(|\)$/g, '')];
+                desc = module( desc.type );
             }
         }
     }
@@ -306,7 +367,7 @@ function toString( stack )
     {
         return createFunction( stack );
     }
-    checkProperty(stack);
+    checkPropExists(stack);
     for ( ; i< len ; i++ )
     {
         item = data[i];
@@ -433,7 +494,6 @@ function getPropertyDescribe( stack )
             {
                 continue;
             }
-
             var ref =  item.static() || isstatic ? list.static : list.proto;
             var desc =  ref[ item.name() ];
             if( !desc )desc = ref[ item.name() ] = createDescribe(item);
@@ -491,7 +551,7 @@ function loadModuleDescribe( file )
     //编译源文件
     if( !isupdate )
     {
-        console.log( sourcefile,'...' );
+        console.log('Checking file', sourcefile,'...' );
         var content = fs.readFileSync( sourcefile , 'utf-8');
         var R= new Ruler( content, config );
         R.addListener('checkPackageName',function (e) {
@@ -512,7 +572,13 @@ function loadModuleDescribe( file )
         });
 
         //解析代码语法
-        var scope = R.start();
+        try{
+            var scope = R.start();
+        }catch (e){
+            console.log(e.name, e.message )
+            process.exit();
+        }
+
         scope = scope.content()[0].content()[0];
         if( typeof scope.keyword !=='function' || scope.keyword() !== 'class' )
         {
@@ -590,12 +656,21 @@ function showMem()
 function start()
 {
     loadModuleDescribe( config.main );
+    console.log('Making starting...' );
     for( var i in needMakeModules )
     {
-        var data = makeModule( needMakeModules[i] );
-        var cachefile = data.cachefile;
-        delete data.cachefile;
-        fs.writeFileSync(cachefile, JSON.stringify(data) );
+        var module = needMakeModules[i];
+        console.log('  Making ',  pathfile( getModuleName( module.parent().name(), module.name() )  , config.suffix, config.lib ) );
+        try {
+            var data = makeModule(module);
+            var cachefile = data.cachefile;
+            delete data.cachefile;
+            fs.writeFileSync(cachefile, JSON.stringify(data));
+        }catch (e)
+        {
+            console.log(e.name, e.message )
+            process.exit();
+        }
     }
 
     var code=[];
@@ -629,6 +704,7 @@ function start()
     var filename = PATH.resolve(PATH.dirname( mainfile ),PATH.basename(mainfile,'.'+config.suffix)+'-min.js' );
     var system = fs.readFileSync( PATH.resolve(config.make, 'System.js') , 'utf-8');
     fs.writeFileSync(  filename, ['(function(){\n',system,code.join(';\n'),';\n})();'].join('') );
+    console.log('Making done.' );
 }
 
 // 合并传入的参数
@@ -686,6 +762,4 @@ if( !config.main )
     process.exit();
 }
 
-console.log('===========start=========' );
 start();
-console.log('===========done=========' );
