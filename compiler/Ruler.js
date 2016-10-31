@@ -223,8 +223,7 @@ function checkStatement(s, include )
 function checkStatementType( type , defined )
 {
     if( type==='*' || type==='void' )return true;
-    if( defined && typeof defined[type] === "object" && defined[type].id==='class' )return true;
-    return objects[type] && typeof objects[type] === "object";
+    return defined && typeof defined[type] === "object" && defined[type].id==='class';
 }
 
 /**
@@ -972,16 +971,14 @@ syntax["new"]=function(e)
         s = new Stack('expression', '('+this.next.value+')' );
         this.add( s );
     }
-
-    if( nonew[ this.next.value ] === false )this.error(this.next.value +' is not a constructor' , this.next ,'type');
     var ps = getParentScope( this.scope() );
     if( !checkStatementType(this.next.value, ps.define() ) )
     {
         this.error(this.next.value+' not define');
     }
-
     this.add( this.current );
     this.step();
+    this.end();
 }
 
 syntax['(seek)']=function( e )

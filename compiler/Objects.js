@@ -2,7 +2,7 @@
  * 系统全局对象
  * @type {string[]}
  */
-module.exports = {
+var objects= {
 'Number':{},
 'String':{},
 'Object':{},
@@ -135,6 +135,8 @@ module.exports = {
 'Uint8ClampedArray':{},
 'WeakMap':{},
 'WeakSet':{},
+
+
 'decodeURI':'String',
 'decodeURIComponent':'String',
 'encodeURI':'String',
@@ -151,8 +153,12 @@ module.exports = {
 'clearInterval':'Boolean',
 'setTimeout':'Number',
 'clearTimeout':'Boolean',
+
+
 'alert':'void',
 'confirm':'void',
+
+
 'window':{
     'static':{
     },
@@ -204,17 +210,7 @@ module.exports = {
         'setTimeout':'Number',
     },
 },
-'console':{
-    'type':'Object',
-    'id':'object',
-    'static':{
-        'log':{type:'void',id:'function',param:['...']},
-        'error':{type:'void',id:'function',param:['...']},
-        'info':{type:'void',id:'function',param:['...']},
-    },
-    'properties':{},
-    'methods':{},
-},
+
 'document':{
     'properties':{
         'all':{type:'Array','write':false},
@@ -278,11 +274,44 @@ module.exports = {
         'reload':'void',
         'replace':'void',
     },
-},
-'undefined':'undefined',
-'arguments':{},
-'null':'null',
-'NaN':'NaN',
-'Math':{},
-'Infinity':'Infinity',
+}
 };
+
+
+var global_methods= {
+'decodeURI':'String',
+'decodeURIComponent':'String',
+'encodeURI':'String',
+'encodeURIComponent':'String',
+'escape':'String',
+'eval':'void',
+'isFinite':'Boolean',
+'isNaN':'Boolean',
+'parseFloat':'Number',
+'parseInt':'Number',
+'unescape':'String',
+'uneval':'String',
+'setInterval':'Number',
+'clearInterval':'Boolean',
+'setTimeout':'Number',
+'clearTimeout':'Boolean',
+'Math':{},
+'arguments':{},
+'console':{
+    'type':'Object',
+    'id':'object',
+    'static':{
+        'log':{type:'void',id:'function',param:['...']},
+        'error':{type:'void',id:'function',param:['...']},
+        'info':{type:'void',id:'function',param:['...']},
+    },
+    'properties':{},
+    'methods':{},
+},
+}
+
+
+
+
+
+module.exports=objects;

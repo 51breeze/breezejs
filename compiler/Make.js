@@ -1,10 +1,10 @@
 const fs = require('fs');
 const root = process.cwd();
-const global_module={};
-const config = {'suffix':'as','main':'main','root':root,'cache':true,'cachePath':'./cache'};
 const QS = require('querystring');
 const PATH = require('path');
 const Ruler = require('./Ruler.js');
+const global_module=require('./Objects.js');
+const config = {'suffix':'.as','main':'main','root':root,'cache':true,'cachePath':'./cache','debug':'off'};
 
 /**
  * 全局模块
@@ -43,7 +43,7 @@ function pathfile( file, suffix , lib)
 {
     lib = lib || config.lib;
     suffix = suffix || config.suffix;
-    return  PATH.resolve(lib, file.replace('.',PATH.sep) +'.'+ suffix );
+    return  PATH.resolve(lib, file.replace('.',PATH.sep) + suffix );
 }
 
 /**
@@ -398,7 +398,7 @@ function toString( stack )
  * @param stack
  * @returns {string}
  */
-function makeModule(stack )
+function makeModule( stack )
 {
     if( stack.keyword() !=='class' )
     {
@@ -538,6 +538,8 @@ function loadModuleDescribe( file )
     //是否需要重新编译
     var isupdate = false;
     var data;
+    var packagename = file.split('.').slice(0,-1).join('.');
+
 
     //缓存文件的路径
     var cachefile = pathfile( file.replace(/\./g,'_').toLowerCase(), 'json', config.cachePath );
@@ -555,21 +557,16 @@ function loadModuleDescribe( file )
         var content = fs.readFileSync( sourcefile , 'utf-8');
         var R= new Ruler( content, config );
         R.addListener('checkPackageName',function (e) {
-            var path = file.split('.')
-            path.pop();
-            path = path.join('.');
-            if( e.value !== path ){
+
+            if( e.value !== packagename ){
                R.error('the package "'+e.value+'" and the actual path is not the same')
             }
+
         }).addListener('checkClassName',function (e)
         {
             var name = file.split('.').pop();
-            if( e.value !== name )R.error('the class "'+e.value+'" and the actual file name is not the same')
-
-        }).addListener('loadModule',function(e)
-        {
-            loadModuleDescribe( e.name );
-        });
+            if( e.value !== name )R.error('the class "'+e.value+'" and the actual file name is not the same');
+        })
 
         //解析代码语法
         try{
@@ -585,6 +582,7 @@ function loadModuleDescribe( file )
             console.log('error');
             process.exit();
         }
+
         needMakeModules.push( scope );
         data = getPropertyDescribe( scope );
         data.cachefile = cachefile;
@@ -668,7 +666,11 @@ function start()
             fs.writeFileSync(cachefile, JSON.stringify(data));
         }catch (e)
         {
-            console.log(e.name, e.message )
+            if( config.debug==='on' ){
+                console.log( e );
+            }else {
+                console.log(e.name, e.message)
+            }
             process.exit();
         }
     }

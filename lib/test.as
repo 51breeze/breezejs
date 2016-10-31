@@ -18,6 +18,10 @@
 package
 {
     import com.B;
+    import String;
+    import Array;
+    import Number;
+
     public class Test extends B {
 
          static public var name:String = '3 sdfsdf' ;
@@ -29,7 +33,6 @@ package
           {
               var cc:Number=66;
               this.name = '9999';
-
          }
 
           private function elem():Test
