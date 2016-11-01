@@ -3,8 +3,9 @@ const root = process.cwd();
 const QS = require('querystring');
 const PATH = require('path');
 const Ruler = require('./Ruler.js');
-const global_module=require('./Objects.js');
-const config = {'suffix':'.as','main':'main','root':root,'cache':true,'cachePath':'./cache','debug':'off'};
+const functions=require('./lib/Functions.js');
+const global_module=require('./lib/Global.js');
+const config = {'suffix':'.as','main':'main','root':root,'cache':true,'cachePath':'./cache','debug':'off', 'browser':'enable' ,'functions':functions};
 
 /**
  * 全局模块
@@ -715,8 +716,14 @@ config.make = PATH.dirname( arguments.shift() );
 for(var b in arguments )merge(config, QS.parse( arguments[b] ) );
 config.cache = config.cache!=='off';
 
+//浏览器中的全局模块
+if( config.browser !=='disable' )
+{
+    var browser = require('./lib/Browser.js');
+    for(var b in browser)global_module[b]=browser[b];
+}
 
-//检查是否有指定需要编译的库文件
+//检查是否有指定需要编译的源文件目录
 if( !config.lib  )
 {
     if( config.make === root )

@@ -1,5 +1,5 @@
 /**
- * 保护的关键词 , 不可当参数名， 不可声明为变量
+ * 保护的语法关键词 , 不可当参数名， 不可声明为变量
  * @type {string[]}
  */
 const reserved = [
@@ -10,44 +10,6 @@ const reserved = [
     'finally','return','null','false','true','NaN','undefined','delete',
     /*'export',*/
 ];
-
-
-const objects= require('./Objects.js');
-
-
-const nonew={
-    'window':false,
-    'document':false,
-    'console':false,
-    'location':false,
-    'decodeURI':false,
-    'decodeURIComponent':false,
-    'encodeURI':false,
-    'encodeURIComponent':false,
-    'escape':false,
-    'eval':false,
-    'isFinite':false,
-    'isNaN':false,
-    'parseFloat':false,
-    'parseInt':false,
-    'unescape':false,
-    'uneval':false,
-    'setInterval':false,
-    'clearInterval':false,
-    'setTimeout':false,
-    'clearTimeout':false,
-    'alert':false,
-    'confirm':false,
-    'Math':false,
-    'JSON':false,
-    'Intl':false,
-    'SIMD':false,
-    'arguments':false,
-    'null':false,
-    'NaN':false,
-    'Infinity':false,
-    'this':false,
-};
 
 /**
  * 判断是否为一个有效的运算符
@@ -1431,16 +1393,26 @@ syntax['(identifier)']=function( e )
             if( !desc )desc = ps.define( 'static_'+this.current.value );
             if( !desc )
             {
-                var global = objects[ this.current.value ];
-
-                // 不是全局对象
-                if( !global )this.error(this.current.value + ' not is defined', this.current, 'reference');
+                //是否为全局对象
+                var global = this.config('functions');
+                var current = this.current;
+                desc = global[ this.current.value ];
+                if( !desc )this.error(this.current.value + ' not is defined', this.current, 'reference');
+                this.scope().type( desc.type );
+                if (this.next.value === '=' )
+                {
+                    this.error('system functions can not be alter for "' + current.value + '"', current, 'syntax');
+                }
 
             }else
             {
-                if (this.scope().length() === 0 || this.prev.value === '=' || this.prev.value === 'return') {
-                    this.scope().type(desc.type);
+                //设置当前表达式返回的类型
+                if (this.scope().length() === 0 || this.prev.value === '=' || this.prev.value === 'return')
+                {
+                    this.scope().type( desc.type );
                 }
+
+                //如果对此表达式进行赋值则检查引用的类型是否与表达式的类型一致
                 if (this.next.value === '=')
                 {
                     var current = this.current;
