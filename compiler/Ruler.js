@@ -374,7 +374,7 @@ syntax['import']=function (event)
     if( !checkSegmentation( filename, true ) )this.error('Invalid import');
 
     var p = s.parent();
-    var desc = {'type':name,'id':'class','value':filename.join("") };
+    var desc = {'type':name,'id':'class','classname':filename.join("") };
 
     //防止定义重复的类名
     if( p.define(name) )error('class name the "'+name+'" is already been defined')
@@ -384,7 +384,7 @@ syntax['import']=function (event)
     p.content().splice(index, p.length()-index);
 
     var current = Stack.current();
-    this.dispatcher( new Event('loadModule',{name:desc.value}) );
+    this.dispatcher( new Event('loadModule',{name:desc.classname}) );
     Stack.__current__=current;
 
     //加入到被保护的属性名中
@@ -471,8 +471,8 @@ syntax['class']=function( event )
     if( this.scope().parent().define( name ) )this.error('class name the "'+name+'" is already been declared',this.current);
 
     var classname = this.scope().parent().name() ? this.scope().parent().name()+'.'+name : name;
-    this.scope().define('this', {'type':'('+name+')','id':'class','value':classname,scope:this.scope()} );
-    this.scope().define(name, {'type':'(Class)','id':'class','value':classname,scope:this.scope()} );
+    this.scope().define('this', {'type':'('+name+')','id':'class','classname':classname,scope:this.scope()} );
+    this.scope().define(name, {'type':'(Class)','id':'class','classname':classname,scope:this.scope()} );
 
     //类名
     this.scope().name( name );
@@ -645,7 +645,8 @@ syntax['function']= function(event){
         {
             var isacessor = s.accessor() !== (val.get || val.set) && s.accessor() && (val.get || val.set);
             if( val.scope === ps && ps.construct && !isacessor )this.error('function "'+name+'" has already been declared');
-            if( val.id==='class' ){
+            if( val.id==='class' )
+            {
                 ps.construct=true;
                 if(s.qualifier() !== 'public' )this.error('can only is public qualifier of constructor function');
             }
@@ -1380,7 +1381,7 @@ syntax['(identifier)']=function( e )
         }
     }
 
-    // 检查所有的引用是否为先声明再使用。对象中的属性不会检查
+    //检查所有的引用是否为先声明再使用。对象中的属性不会检查
     if( this.current.type==='(identifier)' && this.current.id !== '(keyword)' && this.prev.value!=='.')
     {
         var iskey = this.scope().parent().type()==='(Object)' && this.next.value ===':';
@@ -1395,14 +1396,9 @@ syntax['(identifier)']=function( e )
             {
                 //是否为全局对象
                 var global = this.config('functions');
-                var current = this.current;
                 desc = global[ this.current.value ];
-                if( !desc )this.error(this.current.value + ' not is defined', this.current, 'reference');
+                if( !desc || this.next.value === '=' )this.error(this.current.value + ' not is defined', this.current, 'reference');
                 this.scope().type( desc.type );
-                if (this.next.value === '=' )
-                {
-                    this.error('system functions can not be alter for "' + current.value + '"', current, 'syntax');
-                }
 
             }else
             {
@@ -1426,11 +1422,13 @@ syntax['(identifier)']=function( e )
                         this.error('class can not be alter for "' + current.value + '"', current, 'syntax');
 
                     //如果引用的类型不一致
-                    if (desc.type !== '(*)') {
-                        this.scope().addListener('(switch)', function (e) {
+                    /*if (desc.type !== '(*)')
+                    {
+                        this.scope().addListener('(switch)', function (e)
+                        {
                             if (this.type() !== desc.type)error('type is not consistent, can only be ' + desc.type, 'type', current);
                         });
-                    }
+                    }*/
                 }
             }
         }

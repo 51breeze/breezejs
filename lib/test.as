@@ -32,11 +32,23 @@ package
           function Test(jj:String)
           {
               var cc:Number=66;
+
+              cc = '111';
+
               this.name = '9999';
+
+              this['namessss'] = 123;
+
+              new Number('666');
          }
 
           private function elem():Test
           {
+
+              var Number = 666;
+
+              console.log( decodeURI('sss') );
+
               this.cre();
               return this;
           }

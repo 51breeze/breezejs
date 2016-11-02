@@ -259,6 +259,16 @@ function error(msg, type, obj )
     }
 }
 
+/**
+ * 获取类型
+ * @param type
+ * @returns {string}
+ */
+function getType( type )
+{
+   return typeof type=== "string" ? type.replace(/^\(|\)$/g,'') : '';
+}
+
 
 /**
  * 检查属性是否存在
@@ -275,80 +285,128 @@ function checkPropExists( scope )
     for(;i<data.length; i++)
     {
         item = data[i];
-        var obj = ref.define( item.value );
+        var obj;
         var isref=false;
+        var isglobal=false;
+
+        if( item instanceof Ruler.STACK )
+        {
+            if( item.type() ==='(Object)' || item.type() ==='(Array)' )
+            {
+                obj = ref.define( getType( item.type() ) );
+            }
+
+        }else if( item.type==='(string)' || item.type==='(boolean)' || item.type==='(number)' || item.type==='(regexp)' )
+        {
+            var type = getType( item.type);
+            obj = ref.define( type.charAt(0).toUpperCase()+type.substr(1) );
+
+        }else
+        {
+            if( item.value !=='this' && (item.type !== '(identifier)' || item.id==='(keyword)') )continue;
+            obj = ref.define( item.value );
+        }
 
         //这里是声明引用
-        if( obj && (obj.id==='var' || obj.id==='const') )
+        if( obj && (obj.id==='var' || obj.id==='const' || obj.id==='let') )
         {
-            var type = obj.type.replace(/^\(|\)$/g,'');
-            if( type !=='*' ) {
+            var type =  getType(obj.type);
+            if( type !=='*' )
+            {
                 obj = ref.define(type);
                 isref=true;
             }
         }
+        //系统全局对象
+        else if( !obj )
+        {
+            obj = functions[ item.value ];
+            isglobal=true;
+        }
 
+        //如果没有定义
+        if( !obj )
+        {
+            error(item.value + ' is not defined.', 'reference', item);
+        }
+
+        //属性描述
+        var desc = obj;
+        var next = data[++i];
+
+        //如果是一个引用的类
         if( obj && obj.id==='class' )
         {
-            var desc = module( obj.value );
-            var next = data[++i];
-
-            //引用属性的描述信息
-            desc = item.value!=='this' && desc.class === item.value ? desc['static'] : desc['proto'];
-
             //不能直接对类名作赋值操作
             if( !isref && next && !(next instanceof Ruler.STACK) && next.value==='=' )
             {
-                error('the "'+item.value+'" class constant cannot be assigned', '', item);
+                error('the "'+item.value+'" is class constant cannot be assigned', '', item);
+            }
+            desc = module( obj.classname );
+        }
+
+        //引用属性的描述信息
+        if( isglobal )
+        {
+            desc = obj.id==='object' ? desc['static'] : desc;
+        }else
+        {
+            desc = item.value !=='this' && !isref ? desc['static'] : desc['proto'];
+        }
+
+        while ( next && ( next.value === '.' || ( next instanceof Ruler.STACK && next.type() === '(property)' ) ) )
+        {
+            if( next.value === '.' )next = data[++i];
+            item = next;
+            var prop=item.value;
+            if (item instanceof Ruler.STACK && item.type() === '(property)')
+            {
+                next = data[++i];
+                continue;
             }
 
-            while ( next && ( next.value === '.' || ( next instanceof Ruler.STACK && next.type() === '(property)' ) ) )
+            desc = desc[prop];
+
+            //属性必须先定义后使用
+            if( !desc )
             {
-                if( next.value === '.' )next = data[++i];
-                item = next;
-                var prop=item.value;
-                if (item instanceof Ruler.STACK && item.type() === '(property)')
+                error( prop+' does not exist', 'reference', item);
+            }
+
+            next = data[i + 1];
+
+            //是否为调用
+            if ( next instanceof Ruler.STACK && next.type() === '(expression)' )
+            {
+                //必须是函数
+                if( desc.id !== 'function' )error( prop+' is not function', 'type', item);
+                next = data[++i];
+                next = data[++i];
+
+            } else if ( next && next.value === '=' )
+            {
+                //常量是不可以改变的
+                if ( desc.id === 'const' ) error('Constant values cannot be changed after the defined', 'syntax', item);
+
+                //检查类型是否一致
+                if( (desc.id === 'var' || desc.id==='let') && desc.type !== '*' )
                 {
-                    var prop = item.content()[1];
-                    if (prop.length() === 1 && prop.type() === '(String)')
+                    if( desc.type !== getType( scope.type() ) )
                     {
-                        prop = prop.content()[0].value.replace(/^[\'\"]|[\'\"]$/g, '');
+                        error('type is not consistent. can only be ' + desc.type, 'type', item);
                     }
                 }
-                desc = desc[prop];
+            }
 
-                //属性必须先定义后使用
-                if( !desc )
-                {
-                    error( prop+' does not exist', 'reference', item);
+            if( desc.type !=='*' && desc.type !=='void' )
+            {
+                desc = module(desc.type);
+                if (!desc) {
+                    error('"' + desc.type + '" is not defined.', 'type', item);
                 }
-
-                next = data[i + 1];
-
-                //是否为调用
-                if ( next instanceof Ruler.STACK && next.type() === '(expression)' )
-                {
-                    //必须是函数
-                    if( desc.id !== 'function' )error( prop+' is not function', 'type', item);
-                    item = data[++i];
-
-                } else if ( next && next.value === '=' )
-                {
-                    //常量是不可以改变的
-                    if ( desc.id === 'const' )  error('Constant values cannot be changed after the defined', 'syntax', item);
-
-                    //检查类型是否一致
-                    if ( (desc.id === 'var' || desc.id === 'const') && desc.type !== '*' )
-                    {
-                        if( desc.type !== scope.type().replace(/^\(|\)$/g,'') )
-                        {
-                            error('type is not consistent. can only be ' + desc.type, 'type', item);
-                        }
-                    }
-                }
-                desc = module( desc.type );
             }
         }
+
     }
 }
 
@@ -459,12 +517,7 @@ function makeModule( stack )
             }
         }
     }
-
     list['constructor']=constructor.replace('####{props}####', props.length > 0 ? props.join(';\n')+';\n' : '' )
-    list['extends']=stack.extends();
-    list['package']=stack.parent().name();
-    list['class']=stack.name();
-    list['instance']= isstatic ? 'false' : 'true';
     return list;
 }
 
@@ -485,7 +538,7 @@ function getPropertyDescribe( stack )
     // 组合接口
     var list = {'static':{},'proto':{},'import':{}};
     var define = stack.parent().define();
-    for ( var j in define )list['import'][j]=define[j].value;
+    for ( var j in define )list['import'][j]=define[j].classname;
     for ( ; i< len ; i++ )
     {
         item = data[i];
@@ -508,7 +561,6 @@ function getPropertyDescribe( stack )
     list['extends']=stack.extends();
     list['package']=stack.parent().name();
     list['class']=stack.name();
-    list['instance']= isstatic ? 'false' : 'true';
     return list;
 }
 
@@ -573,7 +625,11 @@ function loadModuleDescribe( file )
         try{
             var scope = R.start();
         }catch (e){
-            console.log(e.name, e.message )
+            if( config.debug==='on' ){
+                console.log( e );
+            }else {
+                console.log(e.name, e.message)
+            }
             process.exit();
         }
 
