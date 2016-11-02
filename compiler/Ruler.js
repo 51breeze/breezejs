@@ -297,6 +297,7 @@ var balance={'{':'}','(':')','[':']'};
 //语法验证
 var syntax={};
 
+const globalObject=['String','Number','RegExp','Boolean','Object','Array'];
 
 syntax["package"]=function (event)
 {
@@ -318,6 +319,13 @@ syntax["package"]=function (event)
     var e = new Event('checkPackageName',{value:name.join('')});
     this.dispatcher( e )
     this.scope().name( e.value );
+
+    //定义全局对象
+    for (var b in globalObject )
+    {
+        this.scope().define( globalObject[b], {'type':globalObject[b],'id':'class','classname':globalObject[b] });
+    }
+
     this.loop(function(){
         if( this.next.id === '}') return false;
         this.step();
@@ -377,7 +385,7 @@ syntax['import']=function (event)
     var desc = {'type':name,'id':'class','classname':filename.join("") };
 
     //防止定义重复的类名
-    if( p.define(name) )error('class name the "'+name+'" is already been defined')
+    if( p.define(name) && globalObject.indexOf(name)<0 )error('class name the "'+name+'" is already been defined')
     p.define( name , desc );
 
     //从父级中删除
@@ -454,7 +462,6 @@ syntax['private,protected,internal,static,public,override,final']=function(event
     }
     return true;
 };
-
 
 syntax['class']=function( event )
 {
@@ -1422,13 +1429,16 @@ syntax['(identifier)']=function( e )
                         this.error('class can not be alter for "' + current.value + '"', current, 'syntax');
 
                     //如果引用的类型不一致
-                    /*if (desc.type !== '(*)')
+                    this.scope().addListener('(switch)', function (e)
                     {
-                        this.scope().addListener('(switch)', function (e)
+                        if (desc.type !== '(*)')
                         {
                             if (this.type() !== desc.type)error('type is not consistent, can only be ' + desc.type, 'type', current);
-                        });
-                    }*/
+                        }else
+                        {
+                            desc.type=this.type();
+                        }
+                    });
                 }
             }
         }

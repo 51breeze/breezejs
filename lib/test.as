@@ -18,38 +18,31 @@
 package
 {
     import com.B;
-    import String;
-    import Array;
-    import Number;
+
 
     public class Test extends B {
 
-         static public var name:String = '3 sdfsdf' ;
+         static public var name:String = '3 sdfsdf 6666' ;
          public var name:String = '3' ;
          public var jj:Array = [] ;
          public const age:String = '3' ;
 
           function Test(jj:String)
-          {
+          {     
               var cc:Number=66;
-
-              cc = '111';
-
               this.name = '9999';
-
-              this['namessss'] = 123;
-
-              new Number('666');
+              var b:B = new B();
+              this['name']='666';
+              b.createName();   
          }
 
           private function elem():Test
           {
-
-              var Number = 666;
-
-              console.log( decodeURI('sss') );
-
               this.cre();
+              Test.name;
+              console.log('666');
+              var bb = [];
+              bb.splice().length;
               return this;
           }
 

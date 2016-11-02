@@ -291,7 +291,7 @@ function checkPropExists( scope )
 
         if( item instanceof Ruler.STACK )
         {
-            if( item.type() ==='(Object)' || item.type() ==='(Array)' )
+            if( item.type() ==='(Object)' || item.type() ==='(Array)' || item.type() ==='(Boolean)' )
             {
                 obj = ref.define( getType( item.type() ) );
             }
@@ -303,7 +303,7 @@ function checkPropExists( scope )
 
         }else
         {
-            if( item.value !=='this' && (item.type !== '(identifier)' || item.id==='(keyword)') )continue;
+            if( item.value !== 'this' && (item.type !== '(identifier)' || item.id==='(keyword)') )continue;
             obj = ref.define( item.value );
         }
 
@@ -327,6 +327,7 @@ function checkPropExists( scope )
         //如果没有定义
         if( !obj )
         {
+            console.log( item, obj )
             error(item.value + ' is not defined.', 'reference', item);
         }
 
@@ -401,9 +402,8 @@ function checkPropExists( scope )
             if( desc.type !=='*' && desc.type !=='void' )
             {
                 desc = module(desc.type);
-                if (!desc) {
-                    error('"' + desc.type + '" is not defined.', 'type', item);
-                }
+                if (!desc)error('"' + desc.type + '" is not defined', 'type', item);
+                desc = desc['proto'];
             }
         }
 

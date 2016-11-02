@@ -13,7 +13,14 @@ module.exports={
     'URIError':{'id':'class', 'type':'URIError'},
     'Function':{'id':'class', 'type':'Function'},
     'Date':{'id':'class', 'type':'Date'},
-    'Boolean':{'id':'class', 'type':'Boolean'},
+    'Boolean':{
+        'id':'class',
+        'type':'Boolean',
+        'proto':{
+            'valueOf':{'type':'Boolean','id':'function','param':[]}
+        }
+
+    },
     'Symbol':{'id':'class', 'type':'Symbol'},
     'Atomics':{'id':'class', 'type':'Atomics'},
     'DataView':{
@@ -46,13 +53,14 @@ module.exports={
     },
     'Array':{
         'id':'class',
+        'type':'Array',
         'static':{
             'from':'Array',
             'isArray':'Boolean',
             'of':'Array',
         },
-        'properties':{'length':'Number'},
-        'methods':{
+        'proto':{
+            'length':{'type':'Number','id':'const'},
             'concat':'Array',
             'copyWithin':'Array',
             'entries':'Iterator',
@@ -69,7 +77,7 @@ module.exports={
             'lastIndexOf':'Number',
             'map':'Array',
             'pop':'*',
-            'push':'Number',
+            'push':{'type':'Number','id':'function','param':['*']},
             'reduce':'*',
             'reduceRight':'*',
             'reverse':'Array',
@@ -77,7 +85,7 @@ module.exports={
             'slice':'Array',
             'some':'Boolean',
             'sort':'Array',
-            'splice':'Array',
+            'splice':{'type':'Array','id':'function','param':['*']},
             'toLocaleString':'String',
             'toSource':'String',
             'toString':'String',
