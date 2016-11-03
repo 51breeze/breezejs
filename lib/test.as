@@ -28,12 +28,10 @@ package
          public const age:String = '3' ;
 
           function Test(jj:String)
-          {     
-              var cc:Number=66;
-              this.name = '9999';
-              var b:B = new B();
-              this['name']='666';
-              b.createName();   
+          {
+
+             this.test();
+
          }
 
           private function elem():Test

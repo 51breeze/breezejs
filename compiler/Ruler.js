@@ -971,10 +971,15 @@ syntax['(delimiter)']=function( e )
     if( balance[id] )
     {
         e.prevented=true;
+        var ps = this.scope();
+        if( ps.keyword() !=='expression' )
+        {
+            this.add( new Stack('expression', '(*)') );
+        }
+
         var s = new Stack('object', id==='(' ? '(expression)' : id==='[' ? '(Array)' : '(Object)');
         if( this.prev.value === '=' )
         {
-            var ps = this.scope();
             ps.type( s.type() ==='(expression)' ? '(*)' : s.type() );
         }
 
@@ -1007,6 +1012,7 @@ syntax['(delimiter)']=function( e )
                 if( is=== true && e.target.value===',')self.error();
             });
         }
+
         this.add( s );
         this.add( this.current );
         this.loop(function () {
@@ -1020,7 +1026,7 @@ syntax['(delimiter)']=function( e )
         if( this.current.value !== balance[id ] )this.error();
         s.switch();
 
-        if( isDelimiter(this.next.value) && !balance[this.next.value] ) return;
+       // if( isDelimiter(this.next.value) && !balance[this.next.value] )return;
 
         // 如果下一个是运算符或者是一个定界符
         if( isOperator(this.next.value) || balance[this.next.value] )
@@ -1091,7 +1097,9 @@ syntax['(operator)']=function( e )
             this.step();
             return;
 
-        }else if( id===':' && this.scope().keyword()==='switch' )
+        }
+        //switch case condition :
+        else if( id===':' && this.scope().keyword()==='switch' )
         {
             this.add( this.current );
             if( this.next.value==='{' )

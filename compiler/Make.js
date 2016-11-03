@@ -5,7 +5,7 @@ const PATH = require('path');
 const Ruler = require('./Ruler.js');
 const functions=require('./lib/Functions.js');
 const global_module=require('./lib/Global.js');
-const config = {'suffix':'.as','main':'main','root':root,'cache':true,'cachePath':'./cache','debug':'off', 'browser':'enable' ,'functions':functions};
+const config = {'suffix':'.as','main':'main','root':root,'cache':'off','cachePath':'./cache','debug':'on', 'browser':'enable' ,'functions':functions};
 
 /**
  * 全局模块
@@ -294,6 +294,10 @@ function checkPropExists( scope )
             if( item.type() ==='(Object)' || item.type() ==='(Array)' || item.type() ==='(Boolean)' )
             {
                 obj = ref.define( getType( item.type() ) );
+
+            }else if( item.type() ==='(expression)' )
+            {
+                return;
             }
 
         }else if( item.type==='(string)' || item.type==='(boolean)' || item.type==='(number)' || item.type==='(regexp)' )
@@ -305,6 +309,7 @@ function checkPropExists( scope )
         {
             if( item.value !== 'this' && (item.type !== '(identifier)' || item.id==='(keyword)') )continue;
             obj = ref.define( item.value );
+            if( !obj ) obj = ref.define('static_'+item.value );
         }
 
         //这里是声明引用
@@ -327,7 +332,7 @@ function checkPropExists( scope )
         //如果没有定义
         if( !obj )
         {
-            console.log( item, obj )
+            console.log( scope.parent().previous(-3) )
             error(item.value + ' is not defined.', 'reference', item);
         }
 
@@ -433,6 +438,7 @@ function toString( stack )
         if( item instanceof Ruler.STACK )
         {
             str.push( toString(item)  );
+
         }else
         {
             str.push( item.value || item );
@@ -449,6 +455,31 @@ function toString( stack )
         }
     }
     return str.join('');
+}
+
+
+/**
+ * 继承描述信息
+ * @param childClass
+ * @param parentClass
+ */
+function inheritDescribe(childClass, parentClass)
+{
+    var internal =  childClass.package === parentClass.package;
+    var category=['static','proto'];
+    for( var i in category )
+    {
+        var refObj = parentClass[ category[i] ];
+        for (var b in refObj )
+        {
+            var item = refObj[ b ];
+            if( item.privilege === 'public' || item.privilege === 'protected' || (internal && item.privilege === 'internal') )
+            {
+                var obj = merge({'inherit': getModuleName(parentClass.package,parentClass.class)},item);
+                childClass[ category[i] ][b]=obj;
+            }
+        }
+    }
 }
 
 
@@ -475,6 +506,13 @@ function makeModule( stack )
 
     // 组合接口
     var list = module( getModuleName( stack.parent().name(), stack.name() ) );
+
+    //继承父类
+    if( list.extends )
+    {
+        inheritDescribe(list,  module( list.import[ list.extends ] ) );
+    }
+
     for ( ; i< len ; i++ )
     {
         item = data[i];
@@ -677,6 +715,11 @@ function toValue( describe, flag )
         if( typeof describe[p].v === "object" )
         {
             code.push( p+':'+ toValue(describe[p].v, true) );
+
+        }else if( describe[p].inherit )
+        {
+            code.push(p + ':' + getMethods('module',['"'+describe[p].inherit+'.proto.'+p+'"'])  );
+
         }else
         {
             code.push(p + ':' + (flag===true ? describe[p] : describe[p].v) );
@@ -714,10 +757,10 @@ function start()
     console.log('Making starting...' );
     for( var i in needMakeModules )
     {
-        var module = needMakeModules[i];
-        console.log('  Making ',  pathfile( getModuleName( module.parent().name(), module.name() )  , config.suffix, config.lib ) );
+        var moduleObject = needMakeModules[i];
+        console.log('  Making ',  pathfile( getModuleName( moduleObject.parent().name(), moduleObject.name() )  , config.suffix, config.lib ) );
         try {
-            var data = makeModule(module);
+            var data = makeModule(moduleObject);
             var cachefile = data.cachefile;
             delete data.cachefile;
             fs.writeFileSync(cachefile, JSON.stringify(data));
@@ -738,8 +781,13 @@ function start()
         var str= '(function(){\n';
         for (var i in o.import )
         {
-            str += 'var '+i+'='+getMethods('module', ['"'+o.import[i]+'.constructor"'])+';\n';
+            var obj = module( o.import[i] );
+            if( typeof obj.id === "number" )
+            {
+                str += 'var ' + i + '=' + getMethods('module', ['"' + o.import[i] + '.constructor"']) + ';\n';
+            }
         }
+
         str+='var '+o.class+'='+o.constructor+';\n';
         str+='var map={'
         str+='"constructor":'+o.class+',\n';
