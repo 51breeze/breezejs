@@ -475,7 +475,7 @@ function inheritDescribe(childClass, parentClass)
             var item = refObj[ b ];
             if( item.privilege === 'public' || item.privilege === 'protected' || (internal && item.privilege === 'internal') )
             {
-                var obj = merge({'inherit': getModuleName(parentClass.package,parentClass.class)},item);
+                var obj = merge({'inherit': parentClass.class},item);
                 childClass[ category[i] ][b]=obj;
             }
         }
@@ -718,7 +718,7 @@ function toValue( describe, flag )
 
         }else if( describe[p].inherit )
         {
-            code.push(p + ':' + getMethods('module',['"'+describe[p].inherit+'.proto.'+p+'"'])  );
+            code.push(p + ':' + describe[p].inherit+'.proto.'+p  );
 
         }else
         {
@@ -784,7 +784,7 @@ function start()
             var obj = module( o.import[i] );
             if( typeof obj.id === "number" )
             {
-                str += 'var ' + i + '=' + getMethods('module', ['"' + o.import[i] + '.constructor"']) + ';\n';
+                str += 'var ' + i + '=' + getMethods('module', ['"' + o.import[i] + '"']) + ';\n';
             }
         }
 
@@ -794,12 +794,10 @@ function start()
         str+='"static":'+ toValue(o.static)+',\n';
         str+='"proto":'+ toValue(o.proto);
         str+='};\n';
-
-        if( o.extends )str+=o.class+'.prototype= new '+o.extends+'();\n';
-
-        str+=getMethods('merge', [o.class+'.prototype', 'map.proto'])+';\n';
-        str+=getMethods('merge', [o.class, 'map.static'])+';\n';
-
+        if( o.extends ){
+            str+=o.extends+'='+o.extends+'.constructor;\n';
+            str+=o.class+'.prototype= new '+o.extends+'();\n';
+        }
         str+= o.class+'.prototype.constructor= '+o.class+';\n';
         str+= 'return map;\n';
         str+= '})()';
