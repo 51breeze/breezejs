@@ -214,7 +214,7 @@ function createFunction( stack )
  * @param stack
  * @returns {string}
  */
-function createDescribe( stack )
+function createDescription(stack )
 {
     var desc = {};
     desc['id'] =stack.keyword();
@@ -565,7 +565,7 @@ function makeModule( stack )
  * @param stack
  * @returns {string}
  */
-function getPropertyDescribe( stack )
+function getPropertyDescription(stack )
 {
     var data = stack.content();
     var i = 0;
@@ -588,7 +588,7 @@ function getPropertyDescribe( stack )
             }
             var ref =  item.static() || isstatic ? list.static : list.proto;
             var desc =  ref[ item.name() ];
-            if( !desc )desc = ref[ item.name() ] = createDescribe(item);
+            if( !desc )desc = ref[ item.name() ] = createDescription(item);
             if( item instanceof Ruler.SCOPE && item.accessor() )
             {
                 var o = desc.v || ( desc.v={} );
@@ -611,7 +611,7 @@ var syntaxDescribe=[];
  * @param file 模块名的全称。含包名 比如 com.Test。
  * @returns
  */
-function loadModuleDescribe( file )
+function loadModuleDescription(file )
 {
     var has = module(file);
     if( has )return has;
@@ -679,12 +679,12 @@ function loadModuleDescribe( file )
         }
 
         needMakeModules.push( scope );
-        data = getPropertyDescribe( scope );
+        data = getPropertyDescription( scope );
         data.cachefile = cachefile;
         data.id= id;
     }
 
-    for(var i in data.import )loadModuleDescribe( data.import[i] );
+    for(var i in data.import )loadModuleDescription( data.import[i] );
     syntaxDescribe.push( data );
     module( file, data);
 }
@@ -753,7 +753,7 @@ function showMem()
  */
 function start()
 {
-    loadModuleDescribe( config.main );
+    loadModuleDescription( config.main );
     console.log('Making starting...' );
     for( var i in needMakeModules )
     {
@@ -776,9 +776,13 @@ function start()
     }
 
     var code=[];
+    var index = 0;
     syntaxDescribe.forEach(function(o){
 
+        index++;
         var str= '(function(){\n';
+        str+='var id = '+o.id+''+index+';\n';
+
         for (var i in o.import )
         {
             var obj = module( o.import[i] );
@@ -796,12 +800,12 @@ function start()
         str+='};\n';
         if( o.extends ){
             str+=o.extends+'='+o.extends+'.constructor;\n';
-            str+=o.class+'.prototype= new '+o.extends+'();\n';
+            str+=o.class+'.prototype.__proto__='+o.extends+'.prototype;\n';
         }
         str+= o.class+'.prototype.constructor= '+o.class+';\n';
         str+= 'return map;\n';
         str+= '})()';
-        code.push( getMethods('module', ['"'+getModuleName(o.package,o.class)+'"', str ] )  );
+        code.push( getMethods('module', ['"'+getModuleName(o.package,o.class)+'"', str ] ) );
 
     });
 
