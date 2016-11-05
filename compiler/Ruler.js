@@ -122,6 +122,22 @@ function isBoolOperator(o)
     return false;
 }
 
+/**
+ * 逻辑运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isLogicOperator(o)
+{
+    switch (o) {
+        case '&&=' :
+        case '||=' :
+        case '&&' :
+        case '||' :
+            return true;
+    }
+    return false;
+}
 
 /**
  * 判断是否为一个标识符
@@ -1096,7 +1112,6 @@ syntax['(operator)']=function( e )
             if( !(this.prev.type === '(string)' || isPropertyName(this.prev.value) ) )this.error('Invalid property name', this.prev );
             this.step();
             return;
-
         }
         //switch case condition :
         else if( id===':' && this.scope().keyword()==='switch' )
@@ -1166,7 +1181,6 @@ syntax['(operator)']=function( e )
     //如果是数学运算符
     else if( id==='-' || id==='+' || id==='*' || id==='/' || id==='%' )
     {
-
         if( this.next.type === '(delimiter)' )this.error();
         if( (id==='-' || id==='+') && this.scope().keyword() !== 'expression' )this.add(new Stack('expression', '(Number)'));
         this.add( this.current );
@@ -1258,10 +1272,9 @@ syntax['(operator)']=function( e )
         var is = v==='-' ||  v==='+' || isLeftOperator(v);
         this.add( this.current );
         this.scope().type('(Number)');
-
         if( isBoolOperator(this.current.value) )
         {
-            this.scope().type('(Boolean)');
+           this.scope().type('(Boolean)');
         }
         if( is || balance[ v ] || isIdentifier( this.next ) )
         {
@@ -1334,6 +1347,49 @@ function statement()
     this.add( new Stack('expression', '('+type+')' ) );
 }
 
+/**
+ * 根据当前的语法标识符返回对应的类型
+ * @param o
+ * @returns {*}
+ */
+function toType( o , scope )
+{
+    if ( isConstant(o.value) )
+    {
+        switch (o.value) {
+            case 'NaN' :
+            case 'Infinity' :
+                return '(Number)';
+                break;
+            case 'true' :
+            case 'false' :
+                return '(Boolean)';
+                break;
+            case 'this' :
+                var ps = getParentScope( scope );
+                var desc = ps.define( 'this' );
+                return desc.type;
+                break;
+        }
+
+    } else
+    {
+        switch (o.type) {
+            case '(template)' :
+            case '(string)' :
+                return '(String)';
+                break;
+            case '(number)' :
+                return '(Number)';
+                break;
+            case '(regexp)' :
+                return '(RegExp)';
+                break;
+        }
+    }
+    return null;
+}
+
 
 syntax['(identifier)']=function( e )
 {
@@ -1358,97 +1414,58 @@ syntax['(identifier)']=function( e )
         this.add( new Stack('expression','(*)') );
     }
 
-    //获取类型
-    if( this.scope().length()===0 || this.prev.value==='=' || this.prev.value==='return' )
-    {
-        if (isConstant(this.current.value))
-        {
-            if( this.next.value==='=')this.error();
-            switch (this.current.value) {
-                case 'NaN' :
-                case 'Infinity' :
-                    this.scope().type('(Number)');
-                    break;
-                case 'true' :
-                case 'false' :
-                    this.scope().type('(Boolean)');
-                    break;
-                case 'this' :
-                    var ps = getParentScope( this.scope() );
-                    var desc = ps.define( 'this' );
-                    this.scope().type( desc.type );
-                    break;
-            }
 
-        } else {
-            switch (this.current.type) {
-                case '(template)' :
-                case '(string)' :
-                    this.scope().type('(String)');
-                    break;
-                case '(number)' :
-                    this.scope().type('(Number)');
-                    break;
-                case '(regexp)' :
-                    this.scope().type('(RegExp)');
-                    break;
-            }
-        }
-    }
-
-    //检查所有的引用是否为先声明再使用。对象中的属性不会检查
-    if( this.current.type==='(identifier)' && this.current.id !== '(keyword)' && this.prev.value!=='.')
+    //检查所有的引用属性是否为先声明再使用。对象中的属性不会检查
+    if( this.prev.value !=='.' )
     {
-        var iskey = this.scope().parent().type()==='(Object)' && this.next.value ===':';
+        //Json 对象中的键名不检查
+        var iskey = this.scope().parent().keyword()==='object' && this.scope().parent().type()==='(Object)' && this.next.value ===':';
         if( !iskey )
         {
-            var ps = getParentScope( this.scope() );
-
-            // 是否有声明
-            var desc = ps.define( this.current.value );
-            if( !desc )desc = ps.define( 'static_'+this.current.value );
-            if( !desc )
+            var type = toType( this.current, this.scope() );
+            if( !type )
             {
-                //是否为全局对象
-                var global = this.config('functions');
-                desc = global[ this.current.value ];
-                if( !desc || this.next.value === '=' )this.error(this.current.value + ' not is defined', this.current, 'reference');
-                this.scope().type( desc.type );
+                var ps = getParentScope(this.scope());
 
-            }else
-            {
-                //设置当前表达式返回的类型
-                if (this.scope().length() === 0 || this.prev.value === '=' || this.prev.value === 'return')
+                // 是否有声明
+                var desc = ps.define( this.current.value );
+                if (!desc)desc = ps.define('static_' + this.current.value );
+                if ( !desc )
                 {
-                    this.scope().type( desc.type );
-                }
+                    //是否为全局对象
+                    var global = this.config('functions');
+                    desc = global[this.current.value];
+                    if (!desc || this.next.value === '=')this.error(this.current.value + ' not is defined', this.current, 'reference');
 
-                //如果对此表达式进行赋值则检查引用的类型是否与表达式的类型一致
-                if (this.next.value === '=')
+                } else
                 {
-                    var current = this.current;
-
-                    //如果修改常量
-                    if (desc.id === 'const' && id !=='statement' )
-                        this.error('constant can not be alter for "' + current.value + '"', current, 'syntax');
-
-                    //类引用不能修改
-                    if (desc.id === 'class' )
-                        this.error('class can not be alter for "' + current.value + '"', current, 'syntax');
-
-                    //如果引用的类型不一致
-                    this.scope().addListener('(switch)', function (e)
+                    //如果对此表达式进行赋值则检查引用的类型是否与表达式的类型一致
+                    if (this.next.value === '=')
                     {
-                        if (desc.type !== '(*)')
-                        {
-                            if (this.type() !== desc.type)error('type is not consistent, can only be ' + desc.type, 'type', current);
-                        }else
-                        {
-                            desc.type=this.type();
-                        }
-                    });
+                        var current = this.current;
+
+                        //如果修改常量
+                        if (desc.id === 'const' && id !== 'statement')
+                            this.error('constant can not be alter for "' + current.value + '"', current, 'syntax');
+
+                        //类引用不能修改
+                        if (desc.id === 'class')
+                            this.error('class can not be alter for "' + current.value + '"', current, 'syntax');
+
+                        //如果引用的类型不一致
+                        this.scope().addListener('(switch)', function (e) {
+                            if (desc.type !== '(*)') {
+                                if (this.type() !== desc.type)error('type is not consistent, can only be ' + desc.type, 'type', current);
+                            } else {
+                                desc.type = this.type();
+                            }
+                        });
+                    }
                 }
+                type = desc.type;
             }
+            //设置当前表达式返回的类型
+            this.scope().type(type);
         }
     }
 

@@ -1,3 +1,68 @@
+if (typeof Object.create !== 'function' )
+{
+    Object.create = (function() {
+        var fn = function(){}
+        var has = Object.prototype.hasOwnProperty;
+        return function (proto,props) {
+            if( typeof proto != 'object' )throw TypeError('Object prototype may only be an Object or null');
+            fn.prototype = proto;
+            var obj = new fn();
+            fn.prototype = null;
+            if ( props )
+            {
+                props = Object( props );
+                for (var p in props)if( has.call(props, p) )
+                {
+                   obj[p] = props[p];
+                }
+            }
+            return obj;
+        };
+    })();
+}
+
+if (typeof Object.defineProperty !== 'function' )
+{
+    var has = Object.prototype.hasOwnProperty;
+    Object.defineProperty=function (obj, prop, desc)
+    {
+        if( !obj || typeof obj !== 'object' )throw TypeError('Invalid object');
+        if( !prop || typeof prop === 'object' )throw TypeError('Invalid prop name');
+        if( !desc || typeof desc !== 'object' )throw TypeError('Property description must be an object');
+        var d = {};
+        if( has.call(desc, "enumerable") )d.enumerable = !!desc.enumerable;
+        if (has.call(desc, "configurable"))d.configurable = !!desc.configurable;
+        if (has.call(desc, "value"))d.value = desc.value;
+        if (has.call(desc, "writable"))d.writable = !!desc.writable;
+        if (has.call(desc, "get"))
+        {
+            if ( typeof desc.get !== "function" )throw new TypeError("Invalid getter");
+            d.get = desc.get;
+        }
+        if( has.call(desc, "set") )
+        {
+            if ( typeof desc.set !== "function" )throw new TypeError("Invalid setter");
+            d.set = desc.set;
+        }
+        if (("get" in d || "set" in d) && ("value" in d || "writable" in d))throw new TypeError("identity-confused descriptor");
+        obj[ prop ]= d;
+        return obj;
+    }
+}
+
+if (typeof Object.defineProperties !== 'function' )
+{
+    var has = Object.prototype.hasOwnProperty;
+    Object.defineProperties = function(obj, props)
+    {
+        if ( obj !== Object(props) )throw new TypeError("Invalid props");
+        for( var p in props )if( has.call(props, p ) )Object.defineProperty(obj, p, props[p] );
+        return obj;
+    }
+}
+
+
+
 var packages={};
 var object={};
 

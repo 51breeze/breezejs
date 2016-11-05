@@ -188,18 +188,18 @@ function createFunction( stack )
             content.push( child.value );
             if ( param && child.value === '{' )
             {
+                content.push( param.expre.join('') );
                 if( is )
                 {
-                    content.push( 'if( !(this instanceof '+stack.parent().name()+') )throw new SyntaxError("Please use the new operation to build instances.");' );
+                    content.push( 'if( !(this instanceof '+stack.parent().name()+') )throw new SyntaxError("Please use the new operation to build instances.");\n' );
                     if( stack.parent().extends() )
                     {
                         var p = param.param.slice(0);
                         p.unshift('this');
-                        content.push( '\n'+stack.parent().extends()+'.call('+p.join(',')+');\n');
+                        content.push( stack.parent().extends()+'.call('+p.join(',')+');\n');
                     }
                     content.push('####{props}####');
                 }
-                content.push( param.expre.join('') );
                 param=null;
             }
         }
@@ -218,7 +218,7 @@ function createDescription(stack )
 {
     var desc = {};
     desc['id'] =stack.keyword();
-    desc['type'] =stack.type().replace(/^\(|\)$/g,'');
+    desc['type'] = getType( stack.type() );
     desc['privilege'] =stack.qualifier();
 
     if( stack.final() )
@@ -332,7 +332,6 @@ function checkPropExists( scope )
         //如果没有定义
         if( !obj )
         {
-            console.log( scope.parent().previous(-3) )
             error(item.value + ' is not defined.', 'reference', item);
         }
 
@@ -359,6 +358,7 @@ function checkPropExists( scope )
         {
             desc = item.value !=='this' && !isref ? desc['static'] : desc['proto'];
         }
+        var old = item;
 
         while ( next && ( next.value === '.' || ( next instanceof Ruler.STACK && next.type() === '(property)' ) ) )
         {
@@ -380,6 +380,31 @@ function checkPropExists( scope )
             }
 
             next = data[i + 1];
+            if( old.value==='this' )
+            {
+                if( desc.privilege==='private' && desc.id==='var' )
+                {
+                    old.value='this[uid]';
+
+                }else if( desc.id==='function' && typeof desc.value ==='object' )
+                {
+                    if ( desc.value.get && !next )
+                    {
+                        item.value = prop + '.get.call(this)';
+
+                    } else if (desc.value.set && next && next.value === '=')
+                    {
+                        item.value = prop + '.set.call(this,';
+                        next = data[++i];
+                        next.value='';
+                        next = data[++i];
+                        item.value+=(next instanceof Ruler.STACK ? toString(next) : next.value);
+                        item.value+=')';
+                        next.value='';
+                        break;
+                    }
+                }
+            }
 
             //是否为调用
             if ( next instanceof Ruler.STACK && next.type() === '(expression)' )
@@ -415,7 +440,6 @@ function checkPropExists( scope )
     }
 }
 
-
 /**
  * 转换语法
  * @returns {String}
@@ -438,10 +462,9 @@ function toString( stack )
         if( item instanceof Ruler.STACK )
         {
             str.push( toString(item)  );
-
         }else
         {
-            str.push( item.value || item );
+            str.push( typeof item.value !=="undefined" ? item.value : item );
 
             //空格
             if( item.type==='(identifier)' || item.id==='(keyword)' )
@@ -454,7 +477,8 @@ function toString( stack )
             }
         }
     }
-    return str.join('');
+    str = str.join('');
+    return str;
 }
 
 
@@ -537,25 +561,27 @@ function makeModule( stack )
                 item.content().shift();
                 var ret = toString( item ).replace( new RegExp('^'+item.name()+'\\s*\\=?'), '' );
                 val.push( ret ? ret : 'null' );
-                if( !item.static() ){
-                    props.push('this.'+item.name()+'='+ (ret ? ret : 'null') )
+                if( !item.static() && item.keyword() !== 'const' && item.qualifier() ==='private' )
+                {
+                    props.push('"'+item.name()+'":'+ (ret ? ret : 'null') )
                 }
             }
 
-            var ref =  item.static() || isstatic ? list.static : list.proto;
+            var ref =  item.static() || item.keyword() === 'const' || isstatic ? list.static : list.proto;
             var desc =  ref[ item.name() ];
             if( item instanceof Ruler.SCOPE && item.accessor() )
             {
-                var o = desc.v || ( desc.v={} );
+                var o = desc.value || ( desc.value={} );
                 o[ item.accessor() ] = val.join('');
 
             }else
             {
-                desc.v=val.join('');
+                desc.value=val.join('');
             }
         }
     }
-    list['constructor']=constructor.replace('####{props}####', props.length > 0 ? props.join(';\n')+';\n' : '' )
+    props = 'this[uid]={'+props.join(',')+'};\n';
+    list['constructor']=constructor.replace('####{props}####', props );
     return list;
 }
 
@@ -586,12 +612,12 @@ function getPropertyDescription(stack )
             {
                 continue;
             }
-            var ref =  item.static() || isstatic ? list.static : list.proto;
+            var ref =  item.static() || item.keyword() === 'const' || isstatic ? list.static : list.proto;
             var desc =  ref[ item.name() ];
             if( !desc )desc = ref[ item.name() ] = createDescription(item);
             if( item instanceof Ruler.SCOPE && item.accessor() )
             {
-                var o = desc.v || ( desc.v={} );
+                var o = desc.value || ( desc.value={} );
                 o[ item.accessor() ] = true;
             }
         }
@@ -707,25 +733,42 @@ function getMethods(name,param)
  * @param flag
  * @returns {string}
  */
-function toValue( describe, flag )
+function toValue( describe )
 {
     var code=[];
     for( var p in describe )
     {
-        if( typeof describe[p].v === "object" )
+        if( describe[p].id==='var' && describe[p].privilege !== 'public' )continue;
+        if( describe[p].inherit )
         {
-            code.push( p+':'+ toValue(describe[p].v, true) );
-
-        }else if( describe[p].inherit )
-        {
-            code.push(p + ':' + describe[p].inherit+'.proto.'+p  );
-
+            code.push(p + ':' + describe[p].inherit+'.prototype.'+p );
         }else
         {
-            code.push(p + ':' + (flag===true ? describe[p] : describe[p].v) );
+            var val=[];
+            var isenum=false;
+            if( typeof describe[p].value === "object" )
+            {
+                if (describe[p].value.get)
+                {
+                    val.push('get:' + describe[p].value.get);
+                    isenum=true;
+                }
+                if (describe[p].value.set)val.push('set:' + describe[p].value.set)
+
+            }else
+            {
+                val.push('value:' + describe[p].value )
+            }
+            if( describe[p].id==='var')
+            {
+                isenum=true;
+                val.push('writable:true' );
+            }
+            if( isenum )val.push('enumerable:true' );
+            code.push( p+':{'+val.join(',')+'}' );
         }
     }
-    return '{'+code.join(',')+'}';
+    return '{\n'+code.join(',\n')+'\n}';
 }
 
 /**
@@ -781,29 +824,22 @@ function start()
 
         index++;
         var str= '(function(){\n';
-        str+='var id = '+o.id+''+index+';\n';
-
+        str+='var uid = '+o.id+''+index+';\n';
         for (var i in o.import )
         {
             var obj = module( o.import[i] );
             if( typeof obj.id === "number" )
             {
-                str += 'var ' + i + '=' + getMethods('module', ['"' + o.import[i] + '"']) + ';\n';
+                str += 'var ' + i + '=' + getMethods('module', ['"' + o.import[i]+'"'])+';\n';
             }
         }
 
         str+='var '+o.class+'='+o.constructor+';\n';
-        str+='var map={'
-        str+='"constructor":'+o.class+',\n';
-        str+='"static":'+ toValue(o.static)+',\n';
-        str+='"proto":'+ toValue(o.proto);
-        str+='};\n';
-        if( o.extends ){
-            str+=o.extends+'='+o.extends+'.constructor;\n';
-            str+=o.class+'.prototype.__proto__='+o.extends+'.prototype;\n';
-        }
-        str+= o.class+'.prototype.constructor= '+o.class+';\n';
-        str+= 'return map;\n';
+        var proto = o.extends ? o.extends+'.prototype' : null;
+        str+=o.class+'.prototype=Object.create('+proto+','+toValue(o.proto)+');\n';
+        str+='Object.defineProperties('+o.class+','+toValue(o.static)+');\n';
+        str+=o.class+'.prototype.constructor='+o.class+';\n';
+        str+= 'return '+o.class+';\n';
         str+= '})()';
         code.push( getMethods('module', ['"'+getModuleName(o.package,o.class)+'"', str ] ) );
 

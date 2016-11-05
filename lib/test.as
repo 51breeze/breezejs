@@ -18,6 +18,7 @@
 package
 {
     import com.B;
+    import com.D;
 
 
     public class Test extends B {
@@ -29,8 +30,11 @@ package
 
           function Test(jj:String)
           {
-
              this.test();
+              this.jj=['123'];
+
+              this.names='uuiiii';
+             console.log(this.names);
 
          }
 
@@ -46,14 +50,18 @@ package
 
           protected function cre()
           {
-
+              console.log( this.name );
           }
 
-         static public function names(bbs:String='999'):Test
+         private var _names:String='999';
+
+         public function set names(bbs:String):void
          {
-            var bb:Number = 88, cc:Number;
-            cc = bb;
-            return this;
+              this._names=bbs;
+         }
+          public function get names()
+         {
+             return this._names;
          }
     }
 
