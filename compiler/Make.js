@@ -266,6 +266,7 @@ function error(msg, type, obj )
  */
 function getType( type )
 {
+   if(type==='*' || type==='void')return type;
    return typeof type=== "string" ? type.replace(/^\(|\)$/g,'') : '';
 }
 
@@ -440,6 +441,90 @@ function checkPropExists( scope )
     }
 }
 
+function Iteration( data )
+{
+    var index=0;
+    this.index=index;
+    this.data=data.slice(0);
+    this.prev=undefined;
+    this.next=undefined;
+    this.current=undefined;
+    this.length=this.data.length;
+    this.seek=function(){
+        if( index >= this.length )return false;
+        this.prev = this.current;
+        this.current = this.data[index];
+        index++;
+        this.next = this.data[index];
+        return true;
+    };
+}
+Iteration.prototype.constructor=Iteration;
+
+
+function checkReferenceProp( it, desc )
+{
+    if( !desc )error(it.current.value + ' is not defined.', 'reference', it.current);
+    var isconst = desc.id==='const' || desc.id==='class';
+    var str=[it.current];
+
+    //这里是声明引用
+    if( desc.id==='var' || desc.id==='const' || desc.id==='let' )
+    {
+        var type = getType(desc.type);
+        if( type !=='*' )desc = scope.define( type );
+    }
+
+    if( desc.id==='class' )
+    {
+        desc = module( desc.classname );
+        desc = it.current.value==='this' ? desc.proto : desc.static;
+    }
+
+    //调用函数或者动态引用属性
+    if( it.next instanceof Ruler.STACK )
+    {
+       it.seek();
+       str.push( toString( it.current ) );
+
+       if( it.current.type() === '(expression)' )
+       {
+           if( desc.id !=='function' )error( '"'+it.prev.value+'" is not function', 'type', it.prev );
+
+           //检查参数类型
+           if( desc.param instanceof Array )
+           {
+               var expres = it.current.content();
+               for(var i in desc.param)
+               {
+                   if( desc.param[i] !=='*' && ( !expres[i] || expres[i].type() !== desc.param[i] ) )
+                       error('"'+expres[i].value+'" parameter type does not match.', 'type', expres[i] );
+               }
+           }
+
+       }else
+       {
+           it.current.values
+           var its = Iteration()
+       }
+    }
+    //常量不可赋值
+    else if( it.next.value === '=' && isconst )
+    {
+        error('"'+it.current.value+'" is constant', '', it.current );
+    }
+
+    //检测点运算符后面的属性
+    if( it.next.value==='.' )
+    {
+        it.seek();
+        str.push( it.current.value );
+        it.seek();
+        str.push( checkReferenceProp( it, desc[ it.current.value ] ) );
+    }
+    return str.join('');
+}
+
 /**
  * 转换语法
  * @returns {String}
@@ -448,39 +533,43 @@ function toString( stack )
 {
     var data = stack.content();
     var str = [];
-    var i = 0;
-    var len = data.length;
-    var item;
     if( stack.keyword() === 'function' )
     {
         return createFunction( stack );
     }
-    checkPropExists(stack);
-    for ( ; i< len ; i++ )
+
+    var it = new Iteration( data );
+    var scope=null,desc=null;
+    while ( it.seek() )
     {
-        item = data[i];
-        if( item instanceof Ruler.STACK )
+        if( it.current instanceof Ruler.STACK )
         {
-            str.push( toString(item)  );
+            str.push( toString(it.current) );
+        }
+        else if( it.current.type === '(identifier)' && it.current.id !== '(keyword)' || it.current.value==='this' ||
+            it.current.type ==='(string)' || it.current.type ==='(regexp)' ||
+            (!it.prev || it.prev.value !=='.') )
+        {
+            if (!scope)scope = Ruler.getParentScope(stack);
+            if( !desc )
+            {
+                desc = scope.define(it.current.value);
+                if (!desc)desc = functions[it.current.value];
+            }
+            str.push( checkReferenceProp(it, desc) );
+            desc=null;
+
         }else
         {
-            str.push( typeof item.value !=="undefined" ? item.value : item );
+            str.push(typeof current.value !== "undefined" ? current.value : current);
 
-            //空格
-            if( item.type==='(identifier)' || item.id==='(keyword)' )
-            {
-                var n = data[i+1];
-                if( n && ( n instanceof Ruler.STACK && n.keyword() !=='object' || n.type==='(identifier)' || n.id==='(keyword)' || n.type==='(number)' ) )
-                {
-                    str.push(' ');
-                }
-            }
+            //关键字的后面必须跟空格
+            if( current.id === '(keyword)' && it.next && !(it.next instanceof Ruler.STACK) )str.push(' ');
         }
     }
     str = str.join('');
     return str;
 }
-
 
 /**
  * 继承描述信息

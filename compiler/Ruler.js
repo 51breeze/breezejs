@@ -996,7 +996,7 @@ syntax['(delimiter)']=function( e )
         var s = new Stack('object', id==='(' ? '(expression)' : id==='[' ? '(Array)' : '(Object)');
         if( this.prev.value === '=' )
         {
-            ps.type( s.type() ==='(expression)' ? '(*)' : s.type() );
+            this.scope().type( s.type() ==='(expression)' ? '(*)' : s.type() );
         }
 
         var self= this;
@@ -1042,7 +1042,7 @@ syntax['(delimiter)']=function( e )
         if( this.current.value !== balance[id ] )this.error();
         s.switch();
 
-       // if( isDelimiter(this.next.value) && !balance[this.next.value] )return;
+        if( s.type() !=='(expression)' && this.next.value==='.' )this.error('', this.next );
 
         // 如果下一个是运算符或者是一个定界符
         if( isOperator(this.next.value) || balance[this.next.value] )
@@ -1463,6 +1463,10 @@ syntax['(identifier)']=function( e )
                     }
                 }
                 type = desc.type;
+
+            }else if( type==='(Boolean)' &&  this.next.value==='.' )
+            {
+                this.error('', this.next );
             }
             //设置当前表达式返回的类型
             this.scope().type(type);

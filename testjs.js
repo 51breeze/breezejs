@@ -1,21 +1,25 @@
-function A() {}
+(function(_object){
 
-A.prototype.constructor=A;
-A.prototype.name=function () {
-}
-
-function B() {
-}
-
-B.prototype=Object.create(A.prototype,{age:{value:function () {
-    console.log('====')
-}} } );
-B.prototype.constructor=B;
-var b=new B();
-b.bb='123';
+    var Object = function(){};
 
 
+   // Object.prototype=_object.create(_object.prototype)
 
-console.log( Object.prototype.hasOwnProperty.call(b,'bb') )
+
+    Object.prototype.valueOf=function()
+    {
+        return {};
+    }
+
+    Object.prototype.ccc=function(){}
+
+
+
+    //Object.prototype.create=c;
+
+    console.log( new Object()  )
+
+})(Object,Array,Number,RegExp,Boolean);
+
 
 

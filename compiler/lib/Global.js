@@ -1,8 +1,43 @@
+
+
 module.exports={
 
     'Number':{'id':'class', 'type':'Number'},
     'String':{'id':'class', 'type':'String'},
-    'Object':{'id':'class', 'type':'Object'},
+    'Object':{
+        'id':'class',
+        'static': {
+            'assign': {'type': 'Object', 'id': 'function', param: []},
+            'create': {'type': 'Object', 'id': 'function', param: []},
+            'defineProperty': {'type': 'Object', 'id': 'function', param: []},
+            'defineProperties': {'type': 'Object', 'id': 'function', param: []},
+            'entries': {'type': 'Object', 'id': 'function', param: []},
+            'freeze': {'type': 'Object', 'id': 'function', param: []},
+            'getOwnPropertyDescriptor': {'type': 'Object', 'id': 'function', param: []},
+            'getOwnPropertyNames': {'type': 'Object', 'id': 'function', param: []},
+            'getOwnPropertySymbols': {'type': 'Object', 'id': 'function', param: []},
+            'getPrototypeOf': {'type': 'Object', 'id': 'function', param: []},
+            'is': {'type': 'Object', 'id': 'function', param: []},
+            'isExtensible': {'type': 'Object', 'id': 'function', param: []},
+            'isFrozen': {'type': 'Object', 'id': 'function', param: []},
+            'isSealed': {'type': 'Object', 'id': 'function', param: []},
+            'keys': {'type': 'Object', 'id': 'function', param: []},
+            'preventExtensions': {'type': 'Object', 'id': 'function', param: []},
+            'seal': {'type': 'Object', 'id': 'function', param: []},
+            'setPrototypeOf': {'type': 'Object', 'id': 'function', param: []},
+            'values': {'type': 'Object', 'id': 'function', param: []}
+        },
+        'proto':{
+            constructor:{'type': 'Function', 'id': 'var'},
+            hasOwnProperty: {'type': 'Boolean', 'id': 'function', param: []},
+            isPrototypeOf: {'type': 'Boolean', 'id': 'function', param: []},
+            propertyIsEnumerable: {'type': 'Boolean', 'id': 'function', param: []},
+            toSource: {'type': 'String', 'id': 'function', param: []},
+            toLocaleString: {'type': 'String', 'id': 'function', param: []},
+            toString: {'type': 'String', 'id': 'function', param: []},
+            valueOf: {'type': 'String', 'id': 'function', param: []},
+       }
+    },
     'RegExp':{'id':'class', 'type':'RegExp'},
     'Error':{'id':'class', 'type':'Error'},
     'EvalError':{'id':'class', 'type':'EvalError'},
@@ -19,7 +54,6 @@ module.exports={
         'proto':{
             'valueOf':{'type':'Boolean','id':'function','param':[]}
         }
-
     },
     'Symbol':{'id':'class', 'type':'Symbol'},
     'Atomics':{'id':'class', 'type':'Atomics'},
