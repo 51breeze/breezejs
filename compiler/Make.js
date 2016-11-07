@@ -461,12 +461,73 @@ function Iteration( data )
 }
 Iteration.prototype.constructor=Iteration;
 
+/**
+ * @param stack
+ * @returns {Array}
+ */
+function getContentStack( data )
+{
+    var arr=[];
+    for(var i in data )
+    {
+        if( data[i] instanceof Ruler.STACK )
+        {
+            arr.push( data[i] );
+        }
+    }
+    return arr;
+}
+
 
 function checkReferenceProp( it, desc )
 {
-    if( !desc )error(it.current.value + ' is not defined.', 'reference', it.current);
+    var str=[];
+    if( it.current instanceof Ruler.STACK )
+    {
+        if( !desc )error(it.prev.value + ' is not defined.', 'reference', it.prev);
+        str.push( toString(it.current) );
+
+        //调用函数
+        if( it.current.type() === '(expression)' && it.prev && it.prev.type==='(identifier)' )
+        {
+            if( desc.id !=='function' )error( '"'+it.prev.value+'" is not function', 'type', it.prev );
+
+            //检查参数类型
+            if( desc.param instanceof Array )
+            {
+                var expres = getContentStack( it.current.content() );
+                for(var i in desc.param)
+                {
+                    if( !expres[i] )error('Missing parameter', '', it.prev );
+                    if( desc.param[i] !=='*' && expres[i].type() !== desc.param[i] )
+                        error('"'+expres[i].value+'" parameter type does not match.', 'type', expres[i] );
+                }
+            }
+            desc = desc[ desc.type ];
+        }
+        //检查动态属性是否存在
+        else
+        {
+            //[,stack,];
+            var expres = it.current.previous(-2);
+            if( expres instanceof Ruler.STACK )
+            {
+                var values = expres.returnValues;
+                for( var i in values )
+                {
+                    if( !desc[ values[i].value ] )error('"'+values[i].value+'" property does not exists.', 'reference', values[i] );
+                }
+                desc = desc[ values[0].value ];
+            }
+        }
+
+    }else
+    {
+        if( !desc )error(it.current.value + ' is not defined.', 'reference', it.current);
+        str.push( it.current.value );
+    }
+
     var isconst = desc.id==='const' || desc.id==='class';
-    var str=[it.current];
 
     //这里是声明引用
     if( desc.id==='var' || desc.id==='const' || desc.id==='let' )
@@ -474,7 +535,7 @@ function checkReferenceProp( it, desc )
         var type = getType(desc.type);
         if( type !=='*' )desc = scope.define( type );
     }
-
+    //引用类模块
     if( desc.id==='class' )
     {
         desc = module( desc.classname );
@@ -484,43 +545,21 @@ function checkReferenceProp( it, desc )
     //调用函数或者动态引用属性
     if( it.next instanceof Ruler.STACK )
     {
-       it.seek();
-       str.push( toString( it.current ) );
-
-       if( it.current.type() === '(expression)' )
-       {
-           if( desc.id !=='function' )error( '"'+it.prev.value+'" is not function', 'type', it.prev );
-
-           //检查参数类型
-           if( desc.param instanceof Array )
-           {
-               var expres = it.current.content();
-               for(var i in desc.param)
-               {
-                   if( desc.param[i] !=='*' && ( !expres[i] || expres[i].type() !== desc.param[i] ) )
-                       error('"'+expres[i].value+'" parameter type does not match.', 'type', expres[i] );
-               }
-           }
-
-       }else
-       {
-           it.current.values
-           var its = Iteration()
-       }
+        it.seek();
+        str.push( checkReferenceProp( it, desc ) );
+    }
+    //检测点运算符后面的属性
+    else if( it.next.value==='.' )
+    {
+        it.seek();
+        str.push( it.current.value );
+        it.seek();
+        str.push( checkReferenceProp( it, desc[ it.current.value ]) );
     }
     //常量不可赋值
     else if( it.next.value === '=' && isconst )
     {
         error('"'+it.current.value+'" is constant', '', it.current );
-    }
-
-    //检测点运算符后面的属性
-    if( it.next.value==='.' )
-    {
-        it.seek();
-        str.push( it.current.value );
-        it.seek();
-        str.push( checkReferenceProp( it, desc[ it.current.value ] ) );
     }
     return str.join('');
 }
