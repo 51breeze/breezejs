@@ -36,6 +36,14 @@ package
               this.names='uuiiii';
              console.log(this.names);
 
+              var b= Test;
+              this.age;
+
+         }
+
+         public function bbb():Class
+         {
+             return B;
          }
 
           private function elem():Test
@@ -44,7 +52,7 @@ package
               Test.name;
               console.log('666');
               var bb = [];
-              bb.splice().length;
+              bb.splice(1).length;
               return this;
           }
 
@@ -59,7 +67,7 @@ package
          {
               this._names=bbs;
          }
-          public function get names()
+         override public function get names()
          {
              return this._names;
          }

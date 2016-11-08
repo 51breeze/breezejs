@@ -313,7 +313,7 @@ var balance={'{':'}','(':')','[':']'};
 //语法验证
 var syntax={};
 
-const globalObject=['String','Number','RegExp','Boolean','Object','Array'];
+const globalObject=['String','Number','RegExp','Boolean','Object','Array','Class'];
 
 syntax["package"]=function (event)
 {
@@ -844,17 +844,24 @@ syntax["return"]=function(event)
     event.prevented=true;
     if( isOperator(this.next.value) )this.error();
     if( !(this.scope() instanceof Scope) )this.error();
-    var s = new Stack('expression','(*)');
-    var current = this.current;
-    this.add( s );
     this.add( this.current );
+    var current = this.current;
+    var s = new Stack('expression','(*)');
+    this.add( s );
     this.step();
     this.end();
+
     var funScope = getParentFunction( s );
+   // if( !funScope.returnValues )funScope.returnValues=[];
     funScope.isReturn=true;
+   // funScope.returnValues.push( s );
+
     var type = funScope.type();
     if( type==='(void)' )this.error('Do not return');
-    if(type!=='(*)' && type !== s.type() )this.error('Can only return '+type, current,'type' );
+    if(type!=='(*)' && type !== s.type() && type!=='(Object)' )
+    {
+        this.error('Can only return '+type, current,'type' );
+    }
 }
 
 syntax["case,default"]=function(e)
@@ -1426,6 +1433,7 @@ syntax['(identifier)']=function( e )
             if( !type )
             {
                 var ps = getParentScope(this.scope());
+                var isthis = this.current.value ==='this';
 
                 // 是否有声明
                 var desc = ps.define( this.current.value );
@@ -1463,6 +1471,10 @@ syntax['(identifier)']=function( e )
                     }
                 }
                 type = desc.type;
+                if( !isthis && desc.id==='class' )
+                {
+                    type='(Class)';
+                }
 
             }else if( type==='(Boolean)' &&  this.next.value==='.' )
             {

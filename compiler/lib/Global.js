@@ -2,6 +2,7 @@
 
 module.exports={
 
+    'Class':{'id':'class', 'type':'Class'},
     'Number':{'id':'class', 'type':'Number'},
     'String':{'id':'class', 'type':'String'},
     'Object':{

@@ -186,6 +186,8 @@ function createFunction( stack )
                 content.push( '\nreturn this;' );
             }
             content.push( child.value );
+            if( child.id==='(keyword)' && i<len )content.push(' ');
+
             if ( param && child.value === '{' )
             {
                 content.push( param.expre.join('') );
@@ -220,10 +222,13 @@ function createDescription(stack )
     desc['id'] =stack.keyword();
     desc['type'] = getType( stack.type() );
     desc['privilege'] =stack.qualifier();
-
     if( stack.final() )
     {
         desc['final'] =stack.final();
+    }
+    if( stack.override() )
+    {
+        desc['override'] =stack.override();
     }
     if( stack.keyword() === 'function' &&  stack.param().length > 0 )
     {
@@ -441,6 +446,12 @@ function checkPropExists( scope )
     }
 }
 
+
+/**
+ * 迭代器
+ * @param data
+ * @constructor
+ */
 function Iteration( data )
 {
     var index=0;
@@ -479,12 +490,21 @@ function getContentStack( data )
 }
 
 
-function checkReferenceProp( it, desc )
+/**
+ * 生成表达式
+ * @param it
+ * @param desc
+ * @param scope
+ * @returns {string}
+ */
+function createExpression(it, desc , scope )
 {
     var str=[];
+
+    //动态属性或者调用
     if( it.current instanceof Ruler.STACK )
     {
-        if( !desc )error(it.prev.value + ' is not defined.', 'reference', it.prev);
+        if( !desc )error(it.prev.value + ' is not defined.', 'reference', it.prev );
         str.push( toString(it.current) );
 
         //调用函数
@@ -499,17 +519,34 @@ function checkReferenceProp( it, desc )
                 for(var i in desc.param)
                 {
                     if( !expres[i] )error('Missing parameter', '', it.prev );
-                    if( desc.param[i] !=='*' && expres[i].type() !== desc.param[i] )
-                        error('"'+expres[i].value+'" parameter type does not match.', 'type', expres[i] );
+
+                    //未实现
+                   // if( desc.param[i] !=='*' && expres[i].type() !== desc.param[i] )
+                        //error('"'+expres[i].value+'" parameter type does not match.', 'type', expres[i] );
                 }
             }
-            desc = desc[ desc.type ];
+
+            var type =getType( desc.type );
+            if( type ==='void' && it.next )error('"'+it.prev.value+'" function not return.', 'reference', it.prev );
+
+            //未指定类型后面的不检查
+            if( type ==='*' )
+            {
+                return str.join('');
+
+            }else if( type !=='void' )
+            {
+                desc = module( type+'.proto' );
+            }
         }
         //检查动态属性是否存在
         else
         {
+            //未实现，暂不检查
+            return str.join('');
+
             //[,stack,];
-            var expres = it.current.previous(-2);
+            /*var expres = it.current.previous(-2);
             if( expres instanceof Ruler.STACK )
             {
                 var values = expres.returnValues;
@@ -518,14 +555,13 @@ function checkReferenceProp( it, desc )
                     if( !desc[ values[i].value ] )error('"'+values[i].value+'" property does not exists.', 'reference', values[i] );
                 }
                 desc = desc[ values[0].value ];
-            }
+            }*/
         }
-
-    }else
-    {
-        if( !desc )error(it.current.value + ' is not defined.', 'reference', it.current);
-        str.push( it.current.value );
     }
+
+
+    if( !desc )error(it.current.value + ' is not defined.', 'reference', it.current );
+    str.push( it.current.value );
 
     var isconst = desc.id==='const' || desc.id==='class';
 
@@ -535,31 +571,44 @@ function checkReferenceProp( it, desc )
         var type = getType(desc.type);
         if( type !=='*' )desc = scope.define( type );
     }
+
+    var is = it.current.value==='this';
+
     //引用类模块
     if( desc.id==='class' )
     {
         desc = module( desc.classname );
-        desc = it.current.value==='this' ? desc.proto : desc.static;
+        desc = it.current.value === desc.classname ? desc.static : desc.proto;
     }
 
+    if( !it.next )return str.join('');
+
     //调用函数或者动态引用属性
-    if( it.next instanceof Ruler.STACK )
+    if (it.next instanceof Ruler.STACK)
     {
         it.seek();
-        str.push( checkReferenceProp( it, desc ) );
+        str.push( createExpression(it, desc, scope) );
     }
     //检测点运算符后面的属性
-    else if( it.next.value==='.' )
+    else if (it.next.value === '.')
     {
         it.seek();
-        str.push( it.current.value );
+        str.push(it.current.value);
         it.seek();
-        str.push( checkReferenceProp( it, desc[ it.current.value ]) );
+        desc = desc[it.current.value];
+        if( is )
+        {
+            if( (desc.id==='var' || desc.id==='const') && desc.privilege==='private' )
+            {
+                str.splice(0,1, 'this[uid]' );
+            }
+        }
+        str.push( createExpression(it, desc , scope) );
     }
     //常量不可赋值
-    else if( it.next.value === '=' && isconst )
+    else if (it.next.value === '=' && isconst)
     {
-        error('"'+it.current.value+'" is constant', '', it.current );
+        error('"' + it.current.value + '" is constant', '', it.current );
     }
     return str.join('');
 }
@@ -579,31 +628,37 @@ function toString( stack )
 
     var it = new Iteration( data );
     var scope=null,desc=null;
+    var isstatement= stack.parent().keyword() === 'statement';
     while ( it.seek() )
     {
         if( it.current instanceof Ruler.STACK )
         {
             str.push( toString(it.current) );
         }
-        else if( it.current.type === '(identifier)' && it.current.id !== '(keyword)' || it.current.value==='this' ||
-            it.current.type ==='(string)' || it.current.type ==='(regexp)' ||
-            (!it.prev || it.prev.value !=='.') )
+        else if( (!it.prev || it.prev.value !=='.') && !isstatement &&
+            ( it.current.id === '(identifier)' || it.current.value==='this' || it.current.type ==='(string)' || it.current.type ==='(regexp)') )
         {
-            if (!scope)scope = Ruler.getParentScope(stack);
+            if (!scope)scope = Ruler.getParentScope( stack );
             if( !desc )
             {
-                desc = scope.define(it.current.value);
-                if (!desc)desc = functions[it.current.value];
+                var prop = it.current.value;
+                switch ( it.current.type )
+                {
+                    case '(string)' : prop='String'; break;
+                    case '(regexp)' : prop='RegExp'; break;
+                }
+                desc = scope.define( prop );
+                if (!desc)desc = functions[ prop ];
             }
-            str.push( checkReferenceProp(it, desc) );
+            str.push( createExpression(it, desc, scope) );
             desc=null;
 
         }else
         {
-            str.push(typeof current.value !== "undefined" ? current.value : current);
+            str.push(typeof it.current.value !== "undefined" ? it.current.value : it.current );
 
             //关键字的后面必须跟空格
-            if( current.id === '(keyword)' && it.next && !(it.next instanceof Ruler.STACK) )str.push(' ');
+            if( it.current.id === '(keyword)' && it.next )str.push(' ');
         }
     }
     str = str.join('');
@@ -695,7 +750,7 @@ function makeModule( stack )
                 }
             }
 
-            var ref =  item.static() || item.keyword() === 'const' || isstatic ? list.static : list.proto;
+            var ref =  item.static() || isstatic ? list.static : list.proto;
             var desc =  ref[ item.name() ];
             if( item instanceof Ruler.SCOPE && item.accessor() )
             {
@@ -740,14 +795,16 @@ function getPropertyDescription(stack )
             {
                 continue;
             }
-            var ref =  item.static() || item.keyword() === 'const' || isstatic ? list.static : list.proto;
-            var desc =  ref[ item.name() ];
-            if( !desc )desc = ref[ item.name() ] = createDescription(item);
+            var ref =  item.static() || isstatic ? list.static : list.proto;
+            var desc = createDescription(item);
             if( item instanceof Ruler.SCOPE && item.accessor() )
             {
                 var o = desc.value || ( desc.value={} );
-                o[ item.accessor() ] = true;
+                if( o[ item.accessor() ] )error('error');
+                o[ item.accessor() ] = desc;
             }
+            ref[ item.name() ] = desc;
+
         }
     }
     list['extends']=stack.extends();
