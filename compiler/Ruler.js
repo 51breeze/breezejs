@@ -453,6 +453,7 @@ syntax['private,protected,internal,static,public,override,final']=function(event
 
     // override 只能出现在函数的修饰符中
     if( o && n.value !== 'function' )this.error('Invalid override.');
+    if( o && this.scope().keyword() === 'class' && !this.scope().extends() )this.error('The "override" only can be used in subclasses.');
 
     if( n.value==='class' || n.value === 'function' )
     {

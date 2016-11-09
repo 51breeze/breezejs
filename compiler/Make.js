@@ -680,13 +680,49 @@ function inheritDescribe(childClass, parentClass)
         for (var b in refObj )
         {
             var item = refObj[ b ];
-            if( item.privilege === 'public' || item.privilege === 'protected' || (internal && item.privilege === 'internal') )
+            var child = childClass[ category[i] ];
+            if( !child[b] )
             {
-                var obj = merge({'inherit': parentClass.class},item);
-                childClass[ category[i] ][b]=obj;
+                //继承访问器
+                if( typeof item.value === 'object' )
+                {
+                    if( typeof child[b].value !== 'object' )child[b].value={};
+                    if( item.value.get && !child[b].value.get )
+                    {
+                        var obj = inheritParentMethods(item.value.get , parentClass.class,internal );
+                        if( obj )child[b].value.get = obj;
+                    }
+                    if( item.value.set && !child[b].value.set )
+                    {
+                        var obj = inheritParentMethods(item.value.set , parentClass.class,internal );
+                        if( obj )child[b].value.set = obj;
+                    }
+                }
+                //继承方法
+                else
+                {
+                    var obj = inheritParentMethods(item , parentClass.class, internal );
+                    if( obj )child[b] = obj;
+                }
             }
         }
     }
+}
+
+/**
+ * 继承父类方法
+ * @param parentMethod
+ * @param inheritName
+ * @param internal
+ * @returns {*}
+ */
+function inheritParentMethods(parentMethod, inheritName, internal )
+{
+    if( parentMethod.privilege === 'public' || parentMethod.privilege === 'protected' || (internal && parentMethod.privilege === 'internal') )
+    {
+        return merge({'inherit': inheritName },parentMethod);
+    }
+    return null;
 }
 
 
@@ -714,10 +750,18 @@ function makeModule( stack )
     // 组合接口
     var list = module( getModuleName( stack.parent().name(), stack.name() ) );
 
+    //父类
+    var parent = null;
+
     //继承父类
     if( list.extends )
     {
-        inheritDescribe(list,  module( list.import[ list.extends ] ) );
+        //终结的类不可以扩展
+        if( stack.final() )error('parent class not is extends.');
+
+        //继承父类的成员
+        parent =  module( list.import[ list.extends ] );
+        inheritDescribe(list, parent );
     }
 
     for ( ; i< len ; i++ )
@@ -726,38 +770,79 @@ function makeModule( stack )
         if( item instanceof Ruler.STACK ){
 
             var val = [];
+
+            //是静态成员还是动态成功
+            var ref =  item.static() || isstatic ? list.static : list.proto;
+
+            //类中的成员方法
             if( item.keyword() === 'function' )
             {
                 item.content().splice(1,1);
+
+                //如果有继承，检查扩展的方法
+                if( parent )
+                {
+                    var info = !item.static() ? parent['proto'] : parent['static'];
+                    info = info[ item.name() ];
+
+                    //终结的方法子类中不可扩展
+                    if( info && info.final )error('the "'+item.name()+'" method not is extends. in parent class');
+
+                    //覆盖的方法必须与父类的方法相匹配
+                    if( info && !( typeof info.value ==='object' && item.accessor() ) )error('the "'+item.name()+'" method not matched','', item.content()[0]);
+                    if( info && item.accessor() && typeof info.value ==='object' )info = info.value[ item.accessor() ];
+
+                    //覆盖的方法必须在父类中已定义
+                    if( item.override() && !info )
+                    {
+                        if( item.accessor() ){
+                            error('the "'+item.name()+'" '+item.accessor()+'ter does exists in super class','', item.content()[0] );
+                        }else{
+                            error('the "'+item.name()+'" method does exists in super class','', item.content()[0] );
+                        }
+                    }
+
+                    //子类中必须使用 override 关键字才能扩展父中的方法
+                    if( info && !item.override() )error('Missing override','', item.content()[0] );
+                }
+
+                //构造函数
                 if( item.name() === stack.name() && !isstatic )
                 {
                     constructor= toString( item );
                     continue;
-
-                }else
+                }
+                //普通函数
+                else
                 {
                     val.push(  toString( item ) );
                 }
 
-            }else if( item.keyword() === 'var' || item.keyword() === 'const' )
+            }
+            //类中的成员属性
+            else if( item.keyword() === 'var' || item.keyword() === 'const' )
             {
                 item.content().shift();
                 var ret = toString( item ).replace( new RegExp('^'+item.name()+'\\s*\\=?'), '' );
-                val.push( ret ? ret : 'null' );
-                if( !item.static() && item.keyword() !== 'const' && item.qualifier() ==='private' )
+                ret = ret ? ret : 'undefined';
+
+                //私有属性直接放到构造函数中
+                if( !item.static() && item.qualifier() ==='private' )
                 {
-                    props.push('"'+item.name()+'":'+ (ret ? ret : 'null') )
+                    props.push('"'+item.name()+'":'+ ret );
                 }
+                val.push( ret );
             }
 
-            var ref =  item.static() || isstatic ? list.static : list.proto;
             var desc =  ref[ item.name() ];
+
+            //访问器的原始代码
             if( item instanceof Ruler.SCOPE && item.accessor() )
             {
-                var o = desc.value || ( desc.value={} );
-                o[ item.accessor() ] = val.join('');
-
-            }else
+                desc.value[ item.accessor() ].value = val.join('');
+            }
+            //成员的原始代码
+            else
             {
                 desc.value=val.join('');
             }
@@ -797,14 +882,17 @@ function getPropertyDescription(stack )
             }
             var ref =  item.static() || isstatic ? list.static : list.proto;
             var desc = createDescription(item);
+
+            //访问器
             if( item instanceof Ruler.SCOPE && item.accessor() )
             {
-                var o = desc.value || ( desc.value={} );
-                if( o[ item.accessor() ] )error('error');
-                o[ item.accessor() ] = desc;
-            }
-            ref[ item.name() ] = desc;
+                ref =  ref[ item.name() ] || (ref[ item.name() ]={id:'function',type:desc.type,privilege:desc.privilege,value:{}});
+                ref.value[ item.accessor() ] = desc;
 
+            }else
+            {
+                ref[ item.name() ] = desc;
+            }
         }
     }
     list['extends']=stack.extends();
@@ -923,37 +1011,32 @@ function toValue( describe )
     var code=[];
     for( var p in describe )
     {
-        if( describe[p].id==='var' && describe[p].privilege !== 'public' )continue;
-        if( describe[p].inherit )
-        {
-            code.push(p + ':' + describe[p].inherit+'.prototype.'+p );
-        }else
+        if( describe[p].id==='var' || describe[p].id==='const' && describe[p].privilege === 'private' )continue;
+        if( typeof describe[p].value === "object" )
         {
             var val=[];
-            var isenum=false;
-            if( typeof describe[p].value === "object" )
-            {
-                if (describe[p].value.get)
-                {
-                    val.push('get:' + describe[p].value.get);
-                    isenum=true;
-                }
-                if (describe[p].value.set)val.push('set:' + describe[p].value.set)
-
-            }else
-            {
-                val.push('value:' + describe[p].value )
-            }
-            if( describe[p].id==='var')
-            {
-                isenum=true;
-                val.push('writable:true' );
-            }
-            if( isenum )val.push('enumerable:true' );
+            if ( describe[p].value.get )val.push('get:' + toInheritValue( describe[p].value.get,p+'.get' ) );
+            if ( describe[p].value.set )val.push('set:' + toInheritValue( describe[p].value.set,p+'.set' ) );
             code.push( p+':{'+val.join(',')+'}' );
+
+        }else
+        {
+            code.push( p+':'+ toInheritValue(describe[p],p) );
         }
     }
     return '{\n'+code.join(',\n')+'\n}';
+}
+
+/**
+ * 返回需要继承父类成员的表现式
+ * @param describe
+ * @param prop
+ * @returns {*}
+ */
+function toInheritValue( describe , prop )
+{
+    if( describe.inherit )return describe.inherit+'.prototype.'+prop;
+    return describe.value;
 }
 
 /**
@@ -965,7 +1048,6 @@ function format(bytes)
 {
     return (bytes/1024/1024).toFixed(2)+'MB';
 }
-
 
 /**
  * 获取占用的内存信息
@@ -991,7 +1073,7 @@ function start()
             var data = makeModule(moduleObject);
             var cachefile = data.cachefile;
             delete data.cachefile;
-            fs.writeFileSync(cachefile, JSON.stringify(data));
+            fs.writeFileSync(cachefile, JSON.stringify(data) );
         }catch (e)
         {
             if( config.debug==='on' ){
@@ -1031,7 +1113,7 @@ function start()
     });
 
     var mainfile = pathfile( config.main , config.suffix, config.lib );
-    var filename = PATH.resolve(PATH.dirname( mainfile ),PATH.basename(mainfile,'.'+config.suffix)+'-min.js' );
+    var filename = PATH.resolve(PATH.dirname( mainfile ),PATH.basename(mainfile,config.suffix)+'-min.js' );
     var system = fs.readFileSync( PATH.resolve(config.make, 'System.js') , 'utf-8');
     fs.writeFileSync(  filename, ['(function(){\n',system,code.join(';\n'),';\n})();'].join('') );
     console.log('Making done.' );
