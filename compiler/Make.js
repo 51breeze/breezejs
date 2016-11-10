@@ -570,6 +570,23 @@ function createExpression(it, desc , scope )
     {
         var type = getType(desc.type);
         if( type !=='*' )desc = scope.define( type );
+
+    }
+    //访问器
+    else if( desc.id==='function' && typeof desc.value === "object" )
+    {
+        if( it.next && it.next.value === '=' )
+        {
+            if( !desc.value.get )error('the "'+ it.current.value+'" accessor not setter');
+            it.seek();
+            it.seek();
+            var val = it.current instanceof Ruler.STACK ? toString( it.current ) : it.current.value;
+            str.push('.set('+ val+')');
+        }else
+        {
+            if( !desc.value.get )error('the "'+it.current.value+'" accessor not getter');
+            str.push('.get()');
+        }
     }
 
     var is = it.current.value==='this';
@@ -596,12 +613,11 @@ function createExpression(it, desc , scope )
         str.push(it.current.value);
         it.seek();
         desc = desc[it.current.value];
-        if( is )
+
+        //类的私有属性
+        if( is && (desc.id==='var' || desc.id==='const') && desc.privilege==='private' )
         {
-            if( (desc.id==='var' || desc.id==='const') && desc.privilege==='private' )
-            {
-                str.splice(0,1, 'this[uid]' );
-            }
+            str.splice(0,1, 'this[uid]' );
         }
         str.push( createExpression(it, desc , scope) );
     }
