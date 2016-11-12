@@ -1,8 +1,8 @@
 
 
 
-if (typeof Object.create !== 'function' )
-{
+/*if (typeof Object.create !== 'function' )
+{*/
     Object.create = (function() {
         var fn = function(){}
         var has = Object.prototype.hasOwnProperty;
@@ -22,7 +22,7 @@ if (typeof Object.create !== 'function' )
             return obj;
         };
     })();
-}
+//}
 
 if (typeof Object.defineProperty !== 'function' )
 {

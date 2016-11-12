@@ -26,18 +26,24 @@ package
          static public var name:String = '3 sdfsdf 6666' ;
          public var name:String = '3' ;
          public var jj:Array = [] ;
-         public const age:String = '3' ;
+        // public const age:String = '3' ;
 
-          function Test(jj:String)
+          function Test(jj)
           {
-             this.test();
+
               this.jj=['123'];
 
               this.names='uuiiii';
              console.log(this.names);
 
               var b= Test;
-              this.age;
+             console.log( this.age , 'this is parent age');
+
+              super('666');
+
+             //var d =  new D();
+
+             this.cre();
 
          }
 
@@ -56,19 +62,22 @@ package
               return this;
           }
 
-          protected function cre()
+          override protected function cre()
           {
-              console.log( this.name );
+              super.cre();
+              //console.log(  );
           }
 
          private var _names:String='999';
 
          public function set names(bbs:String):void
          {
+             console.log('set names = ', bbs );
               this._names=bbs;
          }
-         override public function get names()
+         public function get names():String
          {
+             console.log('get names ' );
              return this._names;
          }
     }

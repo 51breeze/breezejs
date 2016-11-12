@@ -861,8 +861,9 @@ syntax["return"]=function(event)
     if( type==='(void)' )this.error('Do not return');
     if(type!=='(*)' && type !== s.type() && type!=='(Object)' )
     {
-        this.error('Can only return '+type, current,'type' );
-    }
+        //console.log(s.type())
+        //this.error('Can only return '+type, current,'type' );
+    } 
 }
 
 syntax["case,default"]=function(e)
@@ -906,7 +907,9 @@ syntax["debugger"]=function (e)
 
 syntax["super"]=function (e)
 {
+    e.prevented=true;
     this.add( new Stack('expression','(*)') );
+    var s = this.scope();
     var fun = getParentFunction( this.scope() );
     if( !fun || fun.parent().keyword() !=='class' )this.error();
     if( !fun.parent().extends() )this.error('No parent class inheritance');
@@ -1422,7 +1425,6 @@ syntax['(identifier)']=function( e )
         this.add( new Stack('expression','(*)') );
     }
 
-
     //检查所有的引用属性是否为先声明再使用。对象中的属性不会检查
     if( this.prev.value !=='.' )
     {
@@ -1472,7 +1474,7 @@ syntax['(identifier)']=function( e )
                     }
                 }
                 type = desc.type;
-                if( !isthis && desc.id==='class' )
+                if( !isthis && desc.id==='class' && this.prev.value !=='new')
                 {
                     type='(Class)';
                 }

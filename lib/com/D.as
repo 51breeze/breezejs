@@ -24,12 +24,11 @@ package com
 
     public class D {
 
-         static public var name:String = '3999 yyy fsss 666' ;
          public var name:String = '3' ;
-         public const age:String = '3' ;
+         protected const age:String = '3' ;
 
 
-         function D(jj:String)
+         function D(jj)
           {
               var cc:Number=66;
               this.name = '9999';
