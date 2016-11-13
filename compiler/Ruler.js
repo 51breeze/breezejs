@@ -911,7 +911,7 @@ syntax["super"]=function (e)
     this.add( new Stack('expression','(*)') );
     var s = this.scope();
     var fun = getParentFunction( this.scope() );
-    if( !fun || fun.parent().keyword() !=='class' )this.error();
+    if( !fun || fun.parent().keyword() !=='class' || fun.static() )this.error();
     if( !fun.parent().extends() )this.error('No parent class inheritance');
     this.add( this.current );
     this.step();

@@ -277,177 +277,6 @@ function getType( type )
 
 
 /**
- * 检查属性是否存在
- * @param scope
- */
-function checkPropExists( scope )
-{
-    var ref =  scope.keyword()==='expression' ? Ruler.getParentScope(scope) : null;
-    if( !ref )return;
-    var data = scope.content();
-    var i=0;
-    var item;
-
-    for(;i<data.length; i++)
-    {
-        item = data[i];
-        var obj;
-        var isref=false;
-        var isglobal=false;
-
-        if( item instanceof Ruler.STACK )
-        {
-            if( item.type() ==='(Object)' || item.type() ==='(Array)' || item.type() ==='(Boolean)' )
-            {
-                obj = ref.define( getType( item.type() ) );
-
-            }else if( item.type() ==='(expression)' )
-            {
-                return;
-            }
-
-        }else if( item.type==='(string)' || item.type==='(boolean)' || item.type==='(number)' || item.type==='(regexp)' )
-        {
-            var type = getType( item.type);
-            obj = ref.define( type.charAt(0).toUpperCase()+type.substr(1) );
-
-        }else
-        {
-            if( item.value !== 'this' && (item.type !== '(identifier)' || item.id==='(keyword)') )continue;
-            obj = ref.define( item.value );
-            if( !obj ) obj = ref.define('static_'+item.value );
-        }
-
-        //这里是声明引用
-        if( obj && (obj.id==='var' || obj.id==='const' || obj.id==='let') )
-        {
-            var type =  getType(obj.type);
-            if( type !=='*' )
-            {
-                obj = ref.define(type);
-                isref=true;
-            }
-        }
-        //系统全局对象
-        else if( !obj )
-        {
-            obj = functions[ item.value ];
-            isglobal=true;
-        }
-
-        //如果没有定义
-        if( !obj )
-        {
-            error(item.value + ' is not defined.', 'reference', item);
-        }
-
-        //属性描述
-        var desc = obj;
-        var next = data[++i];
-
-        //如果是一个引用的类
-        if( obj && obj.id==='class' )
-        {
-            //不能直接对类名作赋值操作
-            if( !isref && next && !(next instanceof Ruler.STACK) && next.value==='=' )
-            {
-                error('the "'+item.value+'" is class constant cannot be assigned', '', item);
-            }
-            desc = module( obj.classname );
-        }
-
-        //引用属性的描述信息
-        if( isglobal )
-        {
-            desc = obj.id==='object' ? desc['static'] : desc;
-        }else
-        {
-            desc = item.value !=='this' && !isref ? desc['static'] : desc['proto'];
-        }
-        var old = item;
-
-        while ( next && ( next.value === '.' || ( next instanceof Ruler.STACK && next.type() === '(property)' ) ) )
-        {
-            if( next.value === '.' )next = data[++i];
-            item = next;
-            var prop=item.value;
-            if (item instanceof Ruler.STACK && item.type() === '(property)')
-            {
-                next = data[++i];
-                continue;
-            }
-
-            desc = desc[prop];
-
-            //属性必须先定义后使用
-            if( !desc )
-            {
-                error( prop+' does not exist', 'reference', item);
-            }
-
-            next = data[i + 1];
-            if( old.value==='this' )
-            {
-                if( desc.privilege==='private' && desc.id==='var' )
-                {
-                    old.value='this[uid]';
-
-                }else if( desc.id==='function' && typeof desc.value ==='object' )
-                {
-                    if ( desc.value.get && !next )
-                    {
-                        item.value = prop + '.get.call(this)';
-
-                    } else if (desc.value.set && next && next.value === '=')
-                    {
-                        item.value = prop + '.set.call(this,';
-                        next = data[++i];
-                        next.value='';
-                        next = data[++i];
-                        item.value+=(next instanceof Ruler.STACK ? toString(next) : next.value);
-                        item.value+=')';
-                        next.value='';
-                        break;
-                    }
-                }
-            }
-
-            //是否为调用
-            if ( next instanceof Ruler.STACK && next.type() === '(expression)' )
-            {
-                //必须是函数
-                if( desc.id !== 'function' )error( prop+' is not function', 'type', item);
-                next = data[++i];
-                next = data[++i];
-
-            } else if ( next && next.value === '=' )
-            {
-                //常量是不可以改变的
-                if ( desc.id === 'const' ) error('Constant values cannot be changed after the defined', 'syntax', item);
-
-                //检查类型是否一致
-                if( (desc.id === 'var' || desc.id==='let') && desc.type !== '*' )
-                {
-                    if( desc.type !== getType( scope.type() ) )
-                    {
-                        error('type is not consistent. can only be ' + desc.type, 'type', item);
-                    }
-                }
-            }
-
-            if( desc.type !=='*' && desc.type !=='void' )
-            {
-                desc = module(desc.type);
-                if (!desc)error('"' + desc.type + '" is not defined', 'type', item);
-                desc = desc['proto'];
-            }
-        }
-
-    }
-}
-
-
-/**
  * 迭代器
  * @param data
  * @constructor
@@ -606,6 +435,7 @@ function createExpression(it, desc , scope , uid )
         {
             desc = desc.static;
             isStatic=true;
+
         }else
         {
             isStatic=false;
@@ -654,7 +484,9 @@ function createExpression(it, desc , scope , uid )
             //检查是否有访问的权限
             if( desc.privilege==='public' || self || internal || ischild )
             {
-                str.splice(0,1, identifier+'["'+uid+'"]' );
+                //私有属性
+                if( desc.privilege==='private' )str.splice(0,1, identifier+'["'+uid+'"]' );
+
             }else{
                 error(it.current.value+' does not exist.','reference', it.current)
             }
@@ -668,6 +500,223 @@ function createExpression(it, desc , scope , uid )
     }
     return str.join('');
 }
+
+/**
+ * 获取引用超类成员的表达式
+ * @param it
+ * @param stack
+ * @param uid
+ * @returns {string}
+ */
+function superToString(it, stack , uid )
+{
+    var str=[];
+    var scope = Ruler.getParentFunction( stack );
+    var parent=null;
+    var desc =  null;
+    if( scope && scope.parent() )
+    {
+        parent = scope.parent().extends();
+        desc = scope.define( parent );
+    }
+
+    if( !desc )error('No parent class', 'reference', it.current);
+    desc = module( desc.classname );
+    var internal = scope.define('this').scope.parent().name() === desc.package;
+    desc = desc.proto;
+
+    //替换成父类的原型引用
+    str.push( parent );
+    var name = '';
+
+    //如果有指定超类方法名
+    if( it.next.value==='.' )
+    {
+        it.seek();
+        it.seek();
+        name=propertyToString(str,it,desc,uid,'this',internal,true,false);
+    }
+
+    //将指针向前移动
+    it.seek();
+
+    //超类方法
+    if( (it.current instanceof Ruler.STACK) && it.current.type() ==='(expression)' )
+    {
+        str.push( name ? '.prototype.'+name+'.call' : '.call' );
+
+        //删除表达式的左右括号
+        it.current.content().shift();
+        it.current.content().pop();
+        var param = ['this'];
+        if( it.current.content().length > 0 ){
+            param.push( toString(it.current, uid ) );
+        }
+        str.push( '('+param.join(',')+')' );
+    }
+    //超类属性
+    else
+    {
+        if( !name )error('Unexpected super','', it.prev )
+        str.push( name );
+    }
+    return str.join('');
+}
+
+/**
+ * 获取引用自身成员的属性
+ * @param it
+ * @param stack
+ * @param uid
+ * @returns {string}
+ */
+function thisToString(it, stack , uid )
+{
+    var str=['this'];
+    var name = '';
+    var old = it.current;
+    var desc =  null;
+    var scope;
+
+    //如果有指定超类方法名
+    if( it.next.value==='.' )
+    {
+        it.seek();
+        it.seek();
+        name=it.current.value;
+    }
+
+    //成员属性名
+    if( name )
+    {
+        scope = Ruler.getParentFunction( stack );
+        if( scope )
+        {
+            desc = scope.define('this');
+            desc = module( desc.classname + '.proto' );
+        }
+        if( !desc || scope.static() )error('Unexpected this', 'reference', old );
+        str.push('.');
+        str.push( propertyToString(it, desc, uid , 'this', true, true, true ) );
+    }
+    return str.join('');
+}
+
+/**
+ * 获取类成员的表达式
+ * @param it
+ * @param desc
+ * @param uid
+ * @param instance
+ * @param internal
+ * @param inherit
+ * @param self
+ * @returns {string}
+ */
+function propertyToString(str, it, desc , uid, instance , internal, inherit, self )
+{
+    desc = desc ? desc[ it.current.value ] : null;
+    if( !desc )error('"'+it.current.value+'" does not exits','reference', it.current );
+
+    //包内访问权限
+    internal = internal && desc.privilege==='internal';
+
+    //子类访问权限
+    inherit =  inherit && desc.privilege==='protected';
+
+    //判断访问权限
+    if( !self && !(internal || inherit) )
+        error('"'+name+'" can not access','reference', it.current );
+
+    str.push( it.current.value );
+
+    //成员普通属性
+    if( desc.id==='var' ||  desc.id === 'const' )
+    {
+        //常量不可赋值
+        if (desc.id === 'const' && it.next && it.next.value === '=')error('"' + it.current.value + '" assige a const', 'reference', it.current);
+
+        //私有属性
+        if( desc.privilege==='private' && uid )str.unshift('["'+uid+'"].');
+
+    }
+    //成员访问方法或者访问器
+    else if( desc.id==='function' )
+    {
+        var iscall = (it.next instanceof Ruler.STACK) && it.next.type() === '(expression)';
+        if( typeof desc.value === 'object' )
+        {
+            //访问器不能当函数调用
+            if( iscall )error('"' + it.current.value + '" is an accessor', 'reference', it.current);
+            if (it.next && it.next.value === '=')
+            {
+                if (!desc.value.set)error('"' + it.current.value + '" setter not exists', 'reference', it.current);
+                it.seek();
+                it.seek();
+                if (!it.current)error('Missing expression', '', it.prev);
+                var param = [instance];
+                str.push('.set.call');
+                param.push(it.current instanceof Ruler.STACK ? toString(it.current, uid) : it.current.value);
+                str.push('(' + param.join(',') + ')');
+
+            } else
+            {
+                if( !desc.value.get )error('"' + it.current.value + '" getter not exists', 'reference', it.current);
+                str.push('.get.call(' + instance + ')');
+            }
+
+        }else if( iscall )
+        {
+            it.seek();
+            callToString(str, it, desc , uid);
+        }
+    }
+    return str.join('');
+}
+
+function callToString(str, it, desc , uid)
+{
+    if( desc.id !=='function' )error( '"'+it.prev.value+'" is not function', 'type', it.prev );
+
+    //检查参数类型
+    if( desc.param instanceof Array )
+    {
+        var expres = getContentStack( it.current.content() );
+        for(var i in desc.param)
+        {
+            if( !expres[i] )error('Missing parameter', '', it.prev );
+        }
+    }
+
+    var type =getType( desc.type );
+
+    //没有返回值
+    if( type ==='void' && it.next )error('"'+it.prev.value+'" function not return.', 'reference', it.prev );
+    str.push( toString(it.current ,uid ) );
+
+    //未指定类型后面的不检查
+    if( type !=='*' &&  type !=='void' && it.next && it.next.value==='.' )
+    {
+        it.seek();
+        var scope = Ruler.getParentScope(it.current);
+        var child = scope.define('this');
+        desc = scope.define(type);
+        desc = module(desc.classname);
+        var puid = desc.id;
+        var internal = child.scope.parent().name() === desc.package;
+        var inherit = !!child.scope.extends();
+        desc = type === 'Class' ? desc.static : desc.proto;
+        if( type === child.scope.name() )
+        {
+            propertyToString(str, it, desc, uid, 'this', internal, inherit, true);
+        }else
+        {
+            str.push( propertyToString(str,it, desc, puid , str.splice(0, str.length).join(''), internal, inherit, false ) );
+        }
+    }
+}
+
+
 
 /**
  * 转换语法
@@ -696,31 +745,11 @@ function toString( stack , uid )
         {
             if( it.current.value==='super' )
             {
-                scope = Ruler.getParentFunction( stack );
-                if( !scope.parent().extends() )error('No parent class', 'reference', it.current);
+                str.push( superToString(it, stack, uid ) );
 
-                //替换成父类的原型引用
-                str.push( scope.parent().extends() );
-                var name = '.call';
-                if( it.next.value==='.' )
-                {
-                    it.seek();
-                    it.seek();
-                    name='.prototype.'+it.current.value+name;
-                }
-                str.push( name );
-                it.seek();
-                if( (it.current instanceof Ruler.STACK) && it.current.type() ==='(expression)' )
-                {
-                    //删除表达式的左右括号
-                    it.current.content().shift();
-                    it.current.content().pop();
-                    var param = ['this'];
-                    if( it.current.content().length > 0 ){
-                        param.push( toString(it.current, uid ) );
-                    }
-                    str.push( '('+param.join(',')+')' );
-                }
+            }else if( it.current.value==='this' )
+            {
+                str.push( thisToString(it, stack , uid ) );
 
             }else
             {
@@ -922,7 +951,7 @@ function makeModule( stack )
                 ret = ret ? ret : 'undefined';
 
                 //私有属性直接放到构造函数中
-                if( !item.static() )
+                if( !item.static() && item.qualifier()==='private' )
                 {
                     props.push('"'+item.name()+'":'+ ret );
                 }
@@ -990,7 +1019,7 @@ function getPropertyDescription(stack )
     }
     list['extends']=stack.extends();
     list['package']=stack.parent().name();
-    list['class']=stack.name();
+    list['classname']=stack.name();
     return list;
 }
 
@@ -1099,14 +1128,13 @@ function getMethods(name,param)
  * @param flag
  * @returns {string}
  */
-function toValue( describe )
+function toValue( describe, flag )
 {
     var code=[];
     for( var p in describe )
     {
-         if( describe[p].inherit )continue;
-
-        //if( describe[p].id==='var' || describe[p].id==='const' && describe[p].privilege === 'private' )continue;
+        if( describe[p].inherit )continue;
+        if( (describe[p].id==='var' || describe[p].id==='const') && describe[p].privilege === 'private' && !flag )continue;
         if( typeof describe[p].value === "object" )
         {
             var val=[];
@@ -1195,17 +1223,14 @@ function start()
             }
         }
 
-        str+='var '+o.class+'='+o.constructor+';\n';
+        str+='var '+o.classname+'='+o.constructor+';\n';
         var proto = o.extends ? o.extends+'.prototype' : null;
-        str+=o.class+'.prototype=Object.create('+proto+','+toValue(o.proto)+');\n';
-
-       // console.log( o.static )
-
-        str+='merge('+o.class+','+toValue(o.static)+');\n';
-        str+=o.class+'.prototype.constructor='+o.class+';\n';
-        str+= 'return '+o.class+';\n';
+        str+=o.classname+'.prototype=Object.create('+proto+','+toValue(o.proto)+');\n';
+        str+='merge('+o.classname+','+toValue(o.static, true )+');\n';
+        str+=o.classname+'.prototype.constructor='+o.classname+';\n';
+        str+= 'return '+o.classname+';\n';
         str+= '})()';
-        code.push( getMethods('module', ['"'+getModuleName(o.package,o.class)+'"', str ] ) );
+        code.push( getMethods('module', ['"'+getModuleName(o.package,o.classname)+'"', str ] ) );
 
     });
 
@@ -1215,7 +1240,8 @@ function start()
 
     fs.writeFileSync(  filename,[
         '(function(){\n',
-        system,code.join(';\n'),
+        system,
+        code.join(';\n'),
         ';\n',
         'var main='+getMethods('module', ['"'+config.main+'"'] ),
         ';\nnew main();\n',

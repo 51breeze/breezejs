@@ -24,6 +24,7 @@ package
     public class Test extends B {
 
          static public var name:String = '3 sdfsdf 6666' ;
+         static private var address:String = 'shu line' ;
          public var name:String = '3' ;
          public var jj:Array = [] ;
         // public const age:String = '3' ;
@@ -35,6 +36,7 @@ package
 
               this.names='uuiiii';
              console.log(this.names);
+             console.log( B.address, ' is a static prop');
 
               var b= Test;
              console.log( this.age , 'this is parent age');
