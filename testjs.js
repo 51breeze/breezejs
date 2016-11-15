@@ -1,100 +1,107 @@
+(function(){
 
-var Animal = (function () {
 
-        var Animal = function()
-        {
-            Animal.prototype.name='Tom Animal +';
-        }
 
-        var map={
-            props:{},
-            methods:{
-                sleep:function()
-                {
-                    console.log(this.name + '正在睡觉！');
-                },
-                setname:function (val) {
-                    this.name=val;
-                }
+    var A = (function () {
+
+        var uid = 123456;
+        var A = function () {
+            this[uid] = {
+                _name: '123 A',
+                age:30,
             }
+        };
+
+        A.prototype.constructor = A;
+        A.prototype.name = function () {
+            console.log(this[uid]._name);
         }
 
-        Animal.prototype.prop=function (name,val) {
-
+        A.prototype.age=30;
+        A.prototype.getAge = function () {
+            console.log( this[uid].age );
         }
 
-        Animal.prototype.method=function (name,param) {
-             map.methods[name].apply(this,param || []);
+        A.prototype.setAge = function (age) {
+            this[uid].age = age;
         }
 
-        Animal.prototype.name='Tom Animal';
-        return Animal;
+        return A;
 
-    })();
+    })()
 
 
-var Cat = (function () {
 
-     function Cat() {
-        Animal.call(this);
-       // this.name = 'Tom 123';
-         Cat.prototype.name = 'Tom 123';
-     }
+    var B = (function (A){
 
-    var s = function () {};
-    s.prototype = Animal.prototype;
-    Cat.prototype = new s();
-    Cat.prototype.constructor = Cat;
-    Cat.prototype.name='Tom';
+        var uid = 54996565;
+        var map={};
 
-    var map={
-        props:{},
-        methods:{
-            age:function () {
-                console.log( this.name ,'====');
-            },
-            setage:function (val) {
-                Cat.prototype.name = val;
+        var B = function () {
+            A.call(this);
+            this.BP={
+               _name: '123 B',
+               age:28,
             }
+        };
+
+        var s = function(){};
+        s.prototype= A.prototype;
+        B.prototype= new s();
+        B.prototype.constructor = B;
+        B.prototype.BM=map;
+
+
+        map.name =function () {
+
+            A.prototype.name.call(this);
+            //console.log( this[uid]._name );
         }
-    }
 
+        map.age=28;
+        map.getAge =function () {
 
-    Cat.prototype.prop=function () {
-    }
+           // console.log( this[uid].age );
 
-    Cat.prototype.method=function (name,param) {
-        if( map.methods[name] )
-        {
-            map.methods[name].apply(this, param || []);
-        }else {
-            Animal.prototype.method.call(this, name, param);
+             A.prototype.getAge.call(this);
         }
+
+
+        map.setAge =function (age) {
+
+           // console.log( this[uid].age );
+
+             A.prototype.setAge.call(this, age+1 );
+        }
+
+        return B;
+
+
+    })(A)
+
+
+    var b =  new B();
+    b.name();
+
+    b.getAge();
+
+    b.setAge(98);
+
+    b.getAge();
+
+
+    for( var i in b )
+    {
+
+        if( Object.prototype.propertyIsEnumerable.call(b, i ) )
+            console.log( i ,'==')
+
     }
 
-    return Cat;
-
-})();
 
 
 
-var cat1 = new Cat();
-cat1.method('setage',[99])
-cat1.method('age')
 
+})()
 
-var cat2 = new Cat();
-cat2.method('setage',[120])
-cat2.method('age')
-
-cat1.method('age')
-
-console.log( cat1.__proto__ === Cat.prototype )
-
-/*cat.method('sleep')
-cat.method('setname',['yejun'])
-cat.method('sleep')*/
-
-
-//console.log( cat.prop )
 

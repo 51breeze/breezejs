@@ -36,16 +36,14 @@ package
 
               this.names='uuiiii';
              console.log(this.names);
-             console.log( B.address, ' is a static prop');
+            // console.log( B.address, ' is a static prop');
 
               var b= Test;
-             console.log( this.age , 'this is parent age');
+        //     console.log( this.age , 'this is parent age');
 
-              super('666');
+          //    super('666');
 
              //var d =  new D();
-
-             this.cre();
 
          }
 
@@ -56,7 +54,6 @@ package
 
           private function elem():Test
           {
-              this.cre();
               Test.name;
               console.log('666');
               var bb = [];
@@ -64,20 +61,16 @@ package
               return this;
           }
 
-          override protected function cre()
-          {
-              super.cre();
-              //console.log(  );
-          }
+
 
          private var _names:String='999';
 
-         public function set names(bbs:String):void
+         override public function set names(bbs:String):void
          {
              console.log('set names = ', bbs );
               this._names=bbs;
          }
-         public function get names():String
+        override public function get names():String
          {
              console.log('get names ' );
              return this._names;

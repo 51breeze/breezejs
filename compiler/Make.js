@@ -3,9 +3,8 @@ const root = process.cwd();
 const QS = require('querystring');
 const PATH = require('path');
 const Ruler = require('./Ruler.js');
-const functions=require('./lib/Functions.js');
-const global_module=require('./lib/Global.js');
-const config = {'suffix':'.as','main':'main','root':root,'cache':'off','cachePath':'./cache','debug':'on', 'browser':'enable' ,'functions':functions};
+const globals=require('./lib/Global.js');
+const config = {'suffix':'.as','main':'main','root':root,'cache':'off','cachePath':'./cache','debug':'on', 'browser':'enable','globals':globals };
 
 /**
  * 全局模块
@@ -17,7 +16,7 @@ function module(name, module)
     var path = name.replace(/\s+/g,'').split('.');
     var classname = path.pop();
     var deep=0;
-    var obj=global_module;
+    var obj=globals;
     var len =path.length;
     while(deep < len )
     {
@@ -281,11 +280,12 @@ function getType( type )
  * @param data
  * @constructor
  */
-function Iteration( data )
+function Iteration( stack )
 {
     var index=0;
+    this.stack = stack;
     this.index=index;
-    this.data=data.slice(0);
+    this.data=stack.content().slice(0);
     this.prev=undefined;
     this.next=undefined;
     this.current=undefined;
@@ -299,6 +299,8 @@ function Iteration( data )
         return true;
     };
 }
+
+
 Iteration.prototype.constructor=Iteration;
 
 /**
@@ -399,7 +401,7 @@ function createExpression(it, desc , scope , uid )
     if( desc.id==='var' || desc.id==='const' || desc.id==='let' )
     {
         var type = getType(desc.type);
-        if( type !=='*' )desc = scope.define( type );
+        if( type !=='*' )desc = module( type )
         identifier = it.current.value;
     }
     //访问器
@@ -424,10 +426,13 @@ function createExpression(it, desc , scope , uid )
     var refCN=null;
     var isStatic=false;
 
+
+
+
     //引用类模块
     if( desc.id==='class' )
     {
-        desc = module( desc.classname );
+        desc = module( desc.classname || desc.type );
         uid = desc.id;
         refPN = desc.package;
         refCN = desc.classname;
@@ -508,25 +513,18 @@ function createExpression(it, desc , scope , uid )
  * @param uid
  * @returns {string}
  */
-function superToString(it, stack , uid )
+function superToString( it )
 {
     var str=[];
-    var scope = Ruler.getParentFunction( stack );
-    var parent=null;
-    var desc =  null;
-    if( scope && scope.parent() )
-    {
-        parent = scope.parent().extends();
-        desc = scope.define( parent );
-    }
+    var scope = it.stack.scope();
+    var parent= scope.define('super').classname;
+    var desc  = getDescriptionByType(it, parent);
+    if( !parent )error('No parent class', 'reference', it.current);
 
-    if( !desc )error('No parent class', 'reference', it.current);
-    desc = module( desc.classname );
-    var internal = scope.define('this').scope.parent().name() === desc.package;
-    desc = desc.proto;
 
     //替换成父类的原型引用
     str.push( parent );
+
     var name = '';
 
     //如果有指定超类方法名
@@ -534,8 +532,12 @@ function superToString(it, stack , uid )
     {
         it.seek();
         it.seek();
-        name=propertyToString(str,it,desc,uid,'this',internal,true,false);
+        name = checkReference(str, it, desc.desc, desc.uid, 'this', desc.internal, desc.inherit, desc.self );
     }
+
+
+
+
 
     //将指针向前移动
     it.seek();
@@ -674,11 +676,9 @@ function propertyToString(str, it, desc , uid, instance , internal, inherit, sel
     return str.join('');
 }
 
-function callToString(str, it, desc , uid)
+//检查参数类型
+function checkParameter(it, desc )
 {
-    if( desc.id !=='function' )error( '"'+it.prev.value+'" is not function', 'type', it.prev );
-
-    //检查参数类型
     if( desc.param instanceof Array )
     {
         var expres = getContentStack( it.current.content() );
@@ -687,33 +687,174 @@ function callToString(str, it, desc , uid)
             if( !expres[i] )error('Missing parameter', '', it.prev );
         }
     }
+    return true;
+}
 
-    var type =getType( desc.type );
-
-    //没有返回值
-    if( type ==='void' && it.next )error('"'+it.prev.value+'" function not return.', 'reference', it.prev );
-    str.push( toString(it.current ,uid ) );
-
-    //未指定类型后面的不检查
-    if( type !=='*' &&  type !=='void' && it.next && it.next.value==='.' )
+function callToString(str, it, desc)
+{
+    if( desc.id !=='function' )error( '"'+it.current.value+'" is not function', 'type', it.current );
+    it.seek();
+    checkParameter(it, desc);
+    var type = getType( desc.type );
+    it.stack.type( type );
+    str.push( toString( it.current ) ) ;
+    if( it.next && it.next.value==='.' )
     {
-        it.seek();
-        var scope = Ruler.getParentScope(it.current);
-        var child = scope.define('this');
-        desc = scope.define(type);
-        desc = module(desc.classname);
-        var puid = desc.id;
-        var internal = child.scope.parent().name() === desc.package;
-        var inherit = !!child.scope.extends();
-        desc = type === 'Class' ? desc.static : desc.proto;
-        if( type === child.scope.name() )
+        //没有返回值
+        if( type === 'void' )error('"' + it.prev.value + '" function not return.', 'reference', it.prev);
+
+        //未指定类型后面的不检查
+        if( !(type === '*' || type === 'void') )
         {
-            propertyToString(str, it, desc, uid, 'this', internal, inherit, true);
-        }else
-        {
-            str.push( propertyToString(str,it, desc, puid , str.splice(0, str.length).join(''), internal, inherit, false ) );
+            it.seek();
+            str.push( it.current.value );
+            it.seek();
+            var info = getDescriptionByType(it,type)
+            str.push( checkReference( it, info.desc, info.uid, '', info.internal, info.inherit, info.self ) );
         }
     }
+    return str.join('');
+}
+
+
+function parseEexpression( it )
+{
+    if( !( it.prev && it.prev.value === '.')   ||
+        !(
+            it.current.id   === '(identifier)' ||
+            it.current.value==='this'          ||
+            it.current.value==='super'         ||
+            it.current.type ==='(string)'      ||
+            it.current.type ==='(regexp)'
+        )
+    )return false;
+    return checkReference([], it, getDescription(it) );
+}
+
+
+function checkReference(str, it, info)
+{
+
+    str.push( it.current.value );
+
+    //如果没有下一个则退出
+    if( !it.next )return str.join('');
+
+    var prop='';
+
+    //调用函数
+    if( it.next instanceof Ruler.STACK )
+    {
+        if( it.next.type() === '(expression)' )
+        {
+            it.seek();
+            if (info.desc.id !== 'function' || typeof info.desc.value === 'object')error('"' + it.prev.value + '" is not function', 'reference', it.prev);
+            callToString(str,it,info.desc);
+            return str.join('');
+
+        }else if( it.next.type() === '(property)' )
+        {
+
+        }
+
+    }else if( it.next.value==='.' )
+    {
+        it.seek();
+        str.push( it.current.value );
+        it.seek();
+        str.push( it.current.value );
+        prop = it.current.value;
+    }
+
+    if( prop )
+    {
+        var desc = info.desc[ prop ];
+        if (!desc)error('"' + it.current.value + '" does not exits', 'reference', it.current);
+        if ( !info.isGlobal )
+        {
+            //包内访问权限
+            var internal = info.internal && desc.privilege === 'internal';
+
+            //子类访问权限
+            var inherit = info.inherit && desc.privilege === 'protected';
+
+            //判断访问权限
+            if (!self && !(internal || inherit || desc.privilege === 'public'))
+                error('"' + it.current.value + '" can not access', 'reference', it.current);
+        }
+
+        //普通属性
+        if (desc.id === 'var' || desc.id === 'const')
+        {
+            //引用对象的私有属性
+            if (info.self && desc.privilege === 'private')str.splice(1, 0, '["' + uid + '"]');
+        }
+        //访问器
+        else if (desc.id === 'function' && typeof desc.value === "object")
+        {
+            if (it.next && it.next.value === '=')
+            {
+                if (!desc.value.set)error('"' + it.current.value + '" setter not exists', 'reference', it.current);
+                it.seek();
+                it.seek();
+                if (!it.current)error('Missing expression', '', it.prev);
+                var param = [instance];
+                str.push('.set.call');
+                param.push(it.current instanceof Ruler.STACK ? toString(it.current, uid) : it.current.value);
+                str.push('(' + param.join(',') + ')');
+
+            } else {
+                if (!desc.value.get)error('"' + it.current.value + '" getter not exists', 'reference', it.current);
+                str.push('.get.call(' + instance + ')');
+            }
+        }
+    }
+
+    return str.join('');
+
+}
+
+
+
+/**
+ * 根据类型返回对应的属性描述
+ * @param it
+ * @param type
+ * @returns {}
+ */
+function getDescription( it )
+{
+    var type,desc,is=false,self = module( it.stack.scope().define('this').classname );
+    switch ( it.current.type )
+    {
+        case '(string)' : type ='Strin'; break;
+        case '(regexp)' : type ='RegExp'; break;
+        default :
+            desc = it.stack.scope().define( it.current.value );
+            if( desc )
+            {
+                type = getType( desc.classname || desc.type );
+
+            }else if( globals[ it.current.value ] )
+            {
+                type = it.current.value;
+                is=true;
+            }else
+            {
+                error('"' + it.current.value + '" not is defined');
+            }
+    }
+    it.stack.type(type);
+    if( desc.id === 'function' )it.stack.type('Function');
+    desc = module( type );
+    return{
+        isGlobal:is,
+        internal:self.packge === desc.package,
+        inherit:!!desc.extends,
+        self:self.classname === desc.classname,
+        uid:self.classname === desc.classname ? desc.id : '',
+        desc:desc.id==='object' || desc.type === 'Class' ? desc.static || {} : ( desc.id==='class' ?  desc.proto || {} : desc ),
+    };
 }
 
 
@@ -724,14 +865,13 @@ function callToString(str, it, desc , uid)
  */
 function toString( stack , uid )
 {
-    var data = stack.content();
-    var str = [];
     if( stack.keyword() === 'function' )
     {
         return createFunction( stack , uid );
     }
 
-    var it = new Iteration( data );
+    var str = [];
+    var it = new Iteration( stack );
     var scope=null,desc=null;
     var isstatement= stack.parent().keyword() === 'statement';
     while ( it.seek() )
@@ -743,18 +883,11 @@ function toString( stack , uid )
         else if( (!it.prev || it.prev.value !=='.') && !isstatement && ( it.current.id === '(identifier)' || it.current.value==='this' ||
             it.current.value==='super' || it.current.type ==='(string)' || it.current.type ==='(regexp)') )
         {
-            if( it.current.value==='super' )
-            {
-                str.push( superToString(it, stack, uid ) );
 
-            }else if( it.current.value==='this' )
-            {
-                str.push( thisToString(it, stack , uid ) );
+                scope = stack.scope();
+                if (!desc)
+                {
 
-            }else
-            {
-                if (!scope)scope = Ruler.getParentScope(stack);
-                if (!desc) {
                     var prop = it.current.value;
                     switch (it.current.type) {
                         case '(string)' :
@@ -764,12 +897,11 @@ function toString( stack , uid )
                             prop = 'RegExp';
                             break;
                     }
-                    desc = scope.define(prop);
-                    if (!desc)desc = functions[prop];
+                    desc =  module( prop );
+
                 }
                 str.push(createExpression(it, desc, scope, uid));
                 desc = null;
-            }
 
         }else
         {
@@ -1259,7 +1391,7 @@ config.cache = config.cache!=='off';
 if( config.browser !=='disable' )
 {
     var browser = require('./lib/Browser.js');
-    for(var b in browser)global_module[b]=browser[b];
+    for(var b in browser)globals[b]=browser[b];
 }
 
 //检查是否有指定需要编译的源文件目录

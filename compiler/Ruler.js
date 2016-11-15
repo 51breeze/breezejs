@@ -198,9 +198,10 @@ function checkStatement(s, include )
  * @param defined
  * @returns {boolean}
  */
-function checkStatementType( type , defined )
+function checkStatementType( type , defined , globals )
 {
     if( type==='*' || type==='void' )return true;
+    if( globals && typeof globals[type] === "object" && globals[type].id==='class' )return true;
     return defined && typeof defined[type] === "object" && defined[type].id==='class';
 }
 
@@ -313,7 +314,6 @@ var balance={'{':'}','(':')','[':']'};
 //语法验证
 var syntax={};
 
-const globalObject=['String','Number','RegExp','Boolean','Object','Array','Class'];
 
 syntax["package"]=function (event)
 {
@@ -335,13 +335,6 @@ syntax["package"]=function (event)
     var e = new Event('checkPackageName',{value:name.join('')});
     this.dispatcher( e )
     this.scope().name( e.value );
-
-    //定义全局对象
-    for (var b in globalObject )
-    {
-        this.scope().define( globalObject[b], {'type':globalObject[b],'id':'class','classname':globalObject[b] });
-    }
-
     this.loop(function(){
         if( this.next.id === '}') return false;
         this.step();
@@ -511,6 +504,9 @@ syntax['class']=function( event )
     {
         n = this.seek();
         this.scope().extends( n.value );
+        var p =  this.scope().define( n.value );
+        if( !p ) this.error('"'+n.value+'" not is defined');
+        this.scope().define('super', p );
         this.seek();
     }
     if( this.current.id !=='{' )this.error('Missing token {');
@@ -635,14 +631,14 @@ syntax['function']= function(event){
     if( this.current.id !==')' ) this.error('Missing token )');
 
     var type='*';
-    var ps   = getParentScope( s );
+    var ps = s.scope();
 
     //返回类型
     if( this.next.id===':' )
     {
         this.seek();
         type = this.seek().value;
-        if( !checkStatementType(type, ps.define() ) )this.error( type+' not is defined');
+        if( !checkStatementType(type, ps.define(), this.config('globals') ) )this.error( type+' not is defined');
         if( type !=='void' )
         {
             s.addListener('(switch)', function (e) {
@@ -968,8 +964,8 @@ syntax["new"]=function(e)
         s = new Stack('expression', '('+this.next.value+')' );
         this.add( s );
     }
-    var ps = getParentScope( this.scope() );
-    if( !checkStatementType(this.next.value, ps.define() ) )
+    var ps =  this.scope().scope();
+    if( !checkStatementType(this.next.value, ps.define() , this.config('globals') ) )
     {
         this.error(this.next.value+' not define');
     }
@@ -1333,13 +1329,13 @@ function statement()
         {
               ps.type( type );
         }
-        ps = getParentScope( this.scope() );
+        ps = this.scope().scope();
         var pid = this.scope().parent().keyword();
         prefix = this.scope().parent().static() ? 'static_' : '';
     }
 
     //检查声明的类型是否定义
-    if( !checkStatementType(type, ps.define() ) )this.error( type+' not is defined');
+    if( !checkStatementType(type, ps.define() , this.config('globals') ) )this.error( type+' not is defined');
 
     var val = ps.define( prefix+name );
 
@@ -1377,7 +1373,7 @@ function toType( o , scope )
                 return '(Boolean)';
                 break;
             case 'this' :
-                var ps = getParentScope( scope );
+                var ps = scope.scope();
                 var desc = ps.define( 'this' );
                 return desc.type;
                 break;
@@ -1435,7 +1431,7 @@ syntax['(identifier)']=function( e )
             var type = toType( this.current, this.scope() );
             if( !type )
             {
-                var ps = getParentScope(this.scope());
+                var ps = this.scope().scope();
                 var isthis = this.current.value ==='this';
 
                 // 是否有声明
@@ -1444,8 +1440,8 @@ syntax['(identifier)']=function( e )
                 if ( !desc )
                 {
                     //是否为全局对象
-                    var global = this.config('functions');
-                    desc = global[this.current.value];
+                    var global = this.config('globals');
+                    desc = global[ this.current.value ];
                     if (!desc || this.next.value === '=')this.error(this.current.value + ' not is defined', this.current, 'reference');
 
                 } else
@@ -1700,6 +1696,7 @@ function Stack( keyword, type )
     this.__static__= '' ;
     this.__override__= '' ;
     this.__final__= '' ;
+    this.__scope__= null ;
     Listener.call(this);
 
     this.addListener('(end)', function (e) {
@@ -1742,6 +1739,20 @@ Stack.prototype = new Listener();
  */
 Stack.prototype.constructor = Stack;
 
+
+/**
+ * 所在的作用域
+ * @param keyword
+ * @returns {*}
+ */
+Stack.prototype.scope=function()
+{
+   if( !this.__scope__  && this.type() !== '(rootblock)' )
+   {
+       this.__scope__ = getParentScope( this );
+   };
+   return this.__scope__;
+}
 
 /**
  * 关键字
@@ -1831,7 +1842,8 @@ Stack.prototype.add=function( val, index )
             if( this.type() !== '(rootblock)' && val instanceof Scope )
             {
                 var parentScope = getParentScope( val );
-                if( parentScope )merge(val.__define__, parentScope.__define__ );
+                val.__scope__ = parentScope;
+                if( parentScope )merge( val.__define__, parentScope.__define__ );
             }
         }
 

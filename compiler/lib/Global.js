@@ -1,12 +1,10 @@
-
-
-module.exports={
-
-    'Class':{'id':'class', 'type':'Class'},
-    'Number':{'id':'class', 'type':'Number'},
-    'String':{'id':'class', 'type':'String'},
+var objects = {
+    'Class':{'id':'class', 'type':'Class', 'inherit':'Object'},
+    'Number':{'id':'class', 'type':'Number', 'inherit':'Object'},
+    'String':{'id':'class', 'type':'String', 'inherit':'Object'},
     'Object':{
         'id':'class',
+        'type':'Object',
         'static': {
             'assign': {'type': 'Object', 'id': 'function', param: []},
             'create': {'type': 'Object', 'id': 'function', param: []},
@@ -178,4 +176,76 @@ module.exports={
     'Uint8ClampedArray':{},
     'WeakMap':{},
     'WeakSet':{},
-}
+
+
+    //系统全局方法
+    'decodeURI':{type:'String',id:'function',param:['String']},
+    'decodeURIComponent':{type:'String',id:'function',param:['String']},
+    'encodeURI':{type:'String',id:'function',param:['String']},
+    'encodeURIComponent':{type:'String',id:'function',param:['String']},
+    'escape':{type:'String',id:'function',param:['String']},
+    'eval':{type:'*',id:'function',param:['String']},
+    'isFinite':{type:'Boolean',id:'function',param:['*']},
+    'isNaN':{type:'Boolean',id:'function',param:['*']},
+    'parseFloat':{type:'Number',id:'function',param:['*']},
+    'parseInt':{type:'Number',id:'function',param:['*']},
+    'unescape':{type:'String',id:'function',param:['String']},
+    'uneval':{type:'String',id:'function',param:['*']},
+    'Math':{
+         'id':'object',
+         'type':'Object',
+         'static': {
+            'E': {type: 'Number', id: 'const'},
+            'LN10': {type: 'Number', id: 'const'},
+            'LN2': {type: 'Number', id: 'const'},
+            'LOG10E': {type: 'Number', id: 'const'},
+            'LOG2E': {type: 'Number', id: 'const'},
+            'PI': {type: 'Number', id: 'const'},
+            'SQRT1_2': {type: 'Number', id: 'const'},
+            'SQRT2': {type: 'Number', id: 'const'},
+            'abs': {type: 'Number', id: 'function', param: ['Number']},
+            'acos': {type: 'Number', id: 'function', param: ['Number']},
+            'asin': {type: 'Number', id: 'function', param: ['Number']},
+            'atan2': {type: 'Number', id: 'function', param: ['Number']},
+            'ceil': {type: 'Number', id: 'function', param: ['Number']},
+            'cos': {type: 'Number', id: 'function', param: ['Number']},
+            'exp': {type: 'Number', id: 'function', param: ['Number']},
+            'floor': {type: 'Number', id: 'function', param: ['Number']},
+            'log': {type: 'Number', id: 'function', param: ['Number']},
+            'max': {type: 'Number', id: 'function', param: ['Number']},
+            'min': {type: 'Number', id: 'function', param: ['Number']},
+            'pow': {type: 'Number', id: 'function', param: ['Number']},
+            'random': {type: 'Number', id: 'function', param: ['Number']},
+            'round': {type: 'Number', id: 'function', param: ['Number']},
+            'sin': {type: 'Number', id: 'function', param: ['Number']},
+            'sqrt': {type: 'Number', id: 'function', param: ['Number']},
+            'tan': {type: 'Number', id: 'function', param: ['Number']},
+         }
+    },
+    'arguments':{
+        'id':'object',
+        'type':'Object',
+        'static': {
+            'callee': {type: '*', id: 'function'},
+            'caller': {type: '*', id: 'function', 'state': 'delete'},
+            'length': {type: 'Number', id: 'const'},
+        }
+    },
+    'console':{
+        'id':'object',
+        'type':'Object',
+        'static': {
+            'log': {type: 'void', id: 'function', param: ['...']},
+            'error': {type: 'void', id: 'function', param: ['...']},
+            'info': {type: 'void', id: 'function', param: ['...']},
+            'warn': {type: 'void', id: 'function', param: ['...']},
+            'dir': {type: 'void', id: 'function', param: ['*']},
+            'trace': {type: 'void', id: 'function', param: ['*']},
+            'time': {type: 'void', id: 'function', param: ['String']},
+            'timeEnd': {type: 'void', id: 'function', param: ['String']},
+            'assert': {type: 'void', id: 'function', param: ['*']},
+        }
+    },
+};
+
+module.exports  = objects;
