@@ -49,6 +49,7 @@ package
 
          public function bbb():Class
          {
+             super.cre(666);
              return B;
          }
 
@@ -65,12 +66,12 @@ package
 
          private var _names:String='999';
 
-         override public function set names(bbs:String):void
+          public function set names(bbs:String):void
          {
              console.log('set names = ', bbs );
               this._names=bbs;
          }
-        override public function get names():String
+         public function get names():String
          {
              console.log('get names ' );
              return this._names;
