@@ -193,7 +193,7 @@ var objects = {
     'uneval':{type:'String',id:'function',param:['*']},
     'Math':{
          'id':'object',
-         'type':'Object',
+         'type':'Math',
          'static': {
             'E': {type: 'Number', id: 'const'},
             'LN10': {type: 'Number', id: 'const'},
@@ -224,7 +224,7 @@ var objects = {
     },
     'arguments':{
         'id':'object',
-        'type':'Object',
+        'type':'arguments',
         'static': {
             'callee': {type: '*', id: 'function'},
             'caller': {type: '*', id: 'function', 'state': 'delete'},
@@ -233,7 +233,7 @@ var objects = {
     },
     'console':{
         'id':'object',
-        'type':'Object',
+        'type':'console',
         'static': {
             'log': {type: 'void', id: 'function', param: ['...']},
             'error': {type: 'void', id: 'function', param: ['...']},

@@ -720,8 +720,13 @@ function expression( it )
             it.current.type ==='(regexp)'
         )
     )return false;
-    if( it.current.value === 'super' )return superToString( [it.current.value],it, getDescription(it) );
-    return checkReference( [it.current.value],it, getDescription(it) )
+
+    var type = getIdentifierType(it);
+    if( type )
+    {
+        if (it.current.value === 'super')return superToString([it.current.value], it, getDescriptionByType(it, type, '', 'this'));
+        return checkReference([it.current.value], it, getDescriptionByType(it, type))
+    }
 }
 
 function checkReference(str, it, info)
@@ -809,6 +814,23 @@ function checkPropery(str,it,info)
     }
 }
 
+function getIdentifierType( it )
+{
+    if( it.current instanceof Ruler.STACK && it.current.type()==='(expression)' && !it.prev )
+        return getType( it.current.type() );
+    switch ( it.current.type )
+    {
+        case '(string)' :
+            return 'String';
+        case '(regexp)' :
+            return 'RegExp';
+        default :
+            var desc = it.stack.scope().define( it.current.value );
+            return desc ? getType( desc.type ) : null;
+    }
+    return null;
+}
+
 
 /**
  * 根据类型返回对应的属性描述
@@ -857,7 +879,6 @@ function getDescription( it )
     var desc = module( classname || type );
     if( desc.id === 'function' )it.stack.type('Function');
     if( desc.id === 'object' )prop='static';
-
     return{
         isglobal:!!globals[ type ],
         type:it.stack.type(),
@@ -868,6 +889,38 @@ function getDescription( it )
         uid:self.classname === desc.classname ? desc.id : '',
         prop:prop,
         module:desc,
+    };
+}
+
+/**
+ * 根据类型返回对应的属性描述
+ * @param it
+ * @param type
+ * @returns {}
+ */
+function getDescriptionByType( it , type , propname, instance )
+{
+    var self = module( it.stack.scope().define('this').classname );
+    propname = propname || type;
+    var prop = 'proto';
+
+    console.log( propname , type ,'888')
+    if( it.stack.scope().define(propname) && !it.stack.scope().define(propname).classname )
+    var object = it.stack.scope().define(propname) ? module( it.stack.scope().define(propname).classname ) : globals[ propname];
+    if( type !=='*' && type!=='void' )it.stack.type(type);
+    if( object.id === 'function' )it.stack.type('Function');
+    if( object.id === 'object' || type==='Class' || (it.current.value===type && !it.prev) )prop='static';
+    if( !instance && it.current.id==='(identifier)' && it.current.value!==type )instance=it.current.value;
+    return{
+        global: !it.stack.scope().define(type),
+        type:it.stack.type(),
+        instance:instance || 'this',
+        internal:self.packge === object.package,
+        inherit:self.extends,
+        self:self.classname === object.classname,
+        uid:self.classname === object.classname ? object.id : '',
+        prop:prop,
+        module:object,
     };
 }
 
