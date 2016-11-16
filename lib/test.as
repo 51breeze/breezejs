@@ -41,7 +41,7 @@ package
               var b= Test;
         //     console.log( this.age , 'this is parent age');
 
-          //    super('666');
+             super('666');
 
              //var d =  new D();
 
@@ -55,6 +55,11 @@ package
 
           private function elem():Test
           {
+
+              new D();
+
+
+
               Test.name;
               console.log('666');
               var bb = [];
@@ -66,12 +71,12 @@ package
 
          private var _names:String='999';
 
-          public function set names(bbs:String):void
+         override public function set names(bbs:String):void
          {
              console.log('set names = ', bbs );
               this._names=bbs;
          }
-         public function get names():String
+        override  public function get names():String
          {
              console.log('get names ' );
              return this._names;

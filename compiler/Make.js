@@ -534,10 +534,7 @@ function superToString(str, it, info )
     //超类方法
     if( (it.current instanceof Ruler.STACK) && it.current.type() ==='(expression)' )
     {
-        if( str.length > 1 )
-        {
-            str.splice(1,0,'.prototype')
-        }
+        if( str.length > 1 )str.splice(1,0,'.prototype');
         str.push( '.call' );
 
         //删除表达式的左右括号
@@ -685,12 +682,14 @@ function checkParameter(it, desc )
 
 function callToString(str, it, desc)
 {
-    if( desc.id !=='function' )error( '"'+it.current.value+'" is not function', 'type', it.current );
+
+    if( !desc )error( '"'+it.current.value+'" is not function', 'type', it.current );
+    if( desc.id !=='function' && desc.id !=='class' )error( '"'+it.current.value+'" is not function', 'type', it.current );
     it.seek();
     checkParameter(it, desc);
     var type = getType( desc.type );
-    it.stack.type( type );
-    str.push( toString( it.current ) ) ;
+    if( type !=='*' && type !=='void' )it.stack.type( type );
+    str.push( toString( it.current ) );
     if( it.next && it.next.value==='.' )
     {
         //没有返回值
@@ -702,8 +701,8 @@ function callToString(str, it, desc)
             it.seek();
             str.push( it.current.value );
             it.seek();
-            var info = getDescriptionByType(it,type)
-            str.push( checkReference( it, info.desc, info.uid, '', info.internal, info.inherit, info.self ) );
+            str.push( it.current.value );
+            checkPropery(str,it, getDescription(it) )
         }
     }
     return str.join('');
@@ -735,13 +734,8 @@ function checkReference(str, it, info)
     {
         if( it.next.type() === '(expression)' )
         {
-            if( it.current.value==='super' )
-            {
-                str.splice(0,1, info.type, '.call')
-            }
-            it.seek();
-            if ( info.type !=='Function' && (info.desc.id === 'function' || typeof info.desc.value === 'object') )error('"' + it.prev.value + '" is not function', 'reference', it.prev);
-            return callToString(str,it,info.desc);
+            var desc = getClassPropertyDesc( it.current.value , info );
+            callToString(str, it, desc );
 
         }else if( it.next.type() === '(property)' )
         {
@@ -756,18 +750,19 @@ function checkReference(str, it, info)
         str.push( it.current.value );
         checkPropery(str,it,info);
 
-    }else if( it.next.value==='=' && info.desc.id === 'const' )
+    }else if( it.next.value==='=' )
     {
-        error('"' + it.current.value + '" is constant', '', it.current );
+        var desc = getClassPropertyDesc( it.current.value , info );
+        if( desc && desc.id === 'const' )error('"' + it.current.value + '" is constant', '', it.current );
     }
     return str.join('');
 }
 
 function checkPropery(str,it,info)
 {
-    var desc = info.desc[ it.current.value ];
+    var desc = getClassPropertyDesc(it.current.value, info);
     if (!desc)error('"' + it.current.value + '" does not exits', 'reference', it.current );
-    if ( !info.isGlobal )
+    if ( !info.isglobal )
     {
         //包内访问权限
         var internal = info.internal && desc.privilege === 'internal';
@@ -777,7 +772,9 @@ function checkPropery(str,it,info)
 
         //判断访问权限
         if ( !info.self && !(internal || inherit || desc.privilege === 'public') )
-            error('"' + it.current.value + '" can not access', 'reference', it.current);
+        {
+            error('"' + it.current.value + '" inaccessible', 'reference', it.current);
+        }
     }
 
     //普通属性
@@ -789,10 +786,10 @@ function checkPropery(str,it,info)
         if (info.self && desc.privilege === 'private')str.splice(1,0,'["' + info.uid + '"]');
     }
     //访问器
-    else if (desc.id === 'function' && typeof desc.value === "object")
+    else if (desc.id === 'function' && typeof desc.value === "object" )
     {
         str.splice(0,1,info.type);
-        str.splice(1,1,'.prototype');
+        str.splice(1,0,'.prototype');
         if (it.next && it.next.value === '=')
         {
             if (!desc.value.set)error('"' + it.current.value + '" setter not exists', 'reference', it.current);
@@ -844,7 +841,7 @@ function getDescription( it )
                     type=getType( desc.type );
                     classname = desc.classname || type;
                 }
-                if( desc.type==='Class' ) prop = 'static';
+                if( type==='Class' ) prop = 'static';
 
             }else if( globals[ it.current.value ] )
             {
@@ -862,15 +859,37 @@ function getDescription( it )
     if( desc.id === 'object' )prop='static';
 
     return{
-        isGlobal:!!globals[ type ],
+        isglobal:!!globals[ type ],
         type:it.stack.type(),
         instance:instance,
         internal:self.packge === desc.package,
-        inherit:!!desc.extends,
+        inherit:self.extends===type,
         self:self.classname === desc.classname,
         uid:self.classname === desc.classname ? desc.id : '',
-        desc:desc[prop] || {},
+        prop:prop,
+        module:desc,
     };
+}
+
+
+/**
+ * 获取类中成员信息。
+ * 如果是继承的类，成员信息不存在时则会逐一向上查找，直到找到或者没有父级类为止。
+ * @param prop
+ * @param info
+ * @returns {*}
+ */
+function getClassPropertyDesc( prop,  info )
+{
+    if( info.module[ info.prop ][ prop ] ) return info.module[ info.prop ][ prop ];
+    if( prop === info.type )return {id:'class',type:info.type };
+    var obj=info.module;
+    while( obj && (obj.extends || obj.inherit )  )
+    {
+        obj = module( getModuleName(obj.package, obj.extends || obj.inherit ) );
+        if( obj && obj[ info.prop ][prop] )return obj[ info.prop ][prop];
+    }
+    return null;
 }
 
 
@@ -888,7 +907,6 @@ function toString( stack , uid )
 
     var str = [];
     var it = new Iteration( stack );
-    var scope=null,desc=null;
     var isstatement= stack.parent().keyword() === 'statement';
     while ( it.seek() )
     {
@@ -905,106 +923,16 @@ function toString( stack , uid )
             continue;
         }
 
-       /* else if( (!it.prev || it.prev.value !=='.') && !isstatement && ( it.current.id === '(identifier)' || it.current.value==='this' ||
-            it.current.value==='super' || it.current.type ==='(string)' || it.current.type ==='(regexp)') )
-        {*/
+        str.push(typeof it.current.value !== "undefined" ? it.current.value : it.current );
 
-               /* scope = stack.scope();
-                if (!desc)
-                {
+        //关键字的后面必须跟空格
+        if( it.current.id === '(keyword)' && it.next )str.push(' ');
 
-                    var prop = it.current.value;
-                    switch (it.current.type) {
-                        case '(string)' :
-                            prop = 'String';
-                            break;
-                        case '(regexp)' :
-                            prop = 'RegExp';
-                            break;
-                    }
-                    desc =  module( prop );
-
-                }
-                str.push(createExpression(it, desc, scope, uid));*/
-
-               // str.push( expression( it ) );
-
-              //  desc = null;
-
-        //}
-         /*else
-        {*/
-            str.push(typeof it.current.value !== "undefined" ? it.current.value : it.current );
-
-            //关键字的后面必须跟空格
-            if( it.current.id === '(keyword)' && it.next )str.push(' ');
-        //}
     }
     str = str.join('');
     return str;
 }
 
-/**
- * 继承描述信息
- * @param childClass
- * @param parentClass
- */
-function inheritDescribe(childClass, parentClass)
-{
-    var internal =  childClass.package === parentClass.package;
-    var category=['static','proto'];
-    for( var i in category )
-    {
-        var refObj = parentClass[ category[i] ];
-        for (var b in refObj )
-        {
-            var item = refObj[ b ];
-            var child = childClass[ category[i] ];
-
-            if( !child[b] )
-            {
-
-                //继承访问器
-                if( typeof item.value === 'object' )
-                {
-                    if( typeof child[b].value !== 'object' )child[b].value={};
-                    if( item.value.get && !child[b].value.get )
-                    {
-                        var obj = inheritParentMethods(item.value.get , parentClass.class,internal );
-                        if( obj )child[b].value.get = obj;
-                    }
-                    if( item.value.set && !child[b].value.set )
-                    {
-                        var obj = inheritParentMethods(item.value.set , parentClass.class,internal );
-                        if( obj )child[b].value.set = obj;
-                    }
-                }
-                //继承方法
-                else
-                {
-                    var obj = inheritParentMethods(item , parentClass.class, internal );
-                    if( obj )child[b] = obj;
-                }
-            }
-        }
-    }
-}
-
-/**
- * 继承父类方法
- * @param parentMethod
- * @param inheritName
- * @param internal
- * @returns {*}
- */
-function inheritParentMethods(parentMethod, inheritName, internal )
-{
-    if( parentMethod.privilege === 'public' || parentMethod.privilege === 'protected' || (internal && parentMethod.privilege === 'internal') )
-    {
-        return merge({'inherit': inheritName },parentMethod);
-    }
-    return null;
-}
 
 
 /**
@@ -1039,10 +967,6 @@ function makeModule( stack )
     {
         //终结的类不可以扩展
         if( stack.final() )error('parent class not is extends.');
-
-        //继承父类的成员
-        parent =  module( list.import[ list.extends ] );
-        inheritDescribe(list, parent );
     }
 
     for ( ; i< len ; i++ )
@@ -1299,29 +1223,18 @@ function toValue( describe, flag )
         if( typeof describe[p].value === "object" )
         {
             var val=[];
-            if ( describe[p].value.get )val.push('get:' + toInheritValue( describe[p].value.get,p+'.get' ) );
-            if ( describe[p].value.set )val.push('set:' + toInheritValue( describe[p].value.set,p+'.set' ) );
+            if ( describe[p].value.get )val.push('get:' +describe[p].value.get.value );
+            if ( describe[p].value.set )val.push('set:' +describe[p].value.set.value );
             code.push( p+':{'+val.join(',')+'}' );
 
         }else
         {
-            code.push( p+':'+ toInheritValue(describe[p],p) );
+            code.push( p+':'+ describe[p].value );
         }
     }
     return '{\n'+code.join(',\n')+'\n}';
 }
 
-/**
- * 返回需要继承父类成员的表现式
- * @param describe
- * @param prop
- * @returns {*}
- */
-function toInheritValue( describe , prop )
-{
-    if( describe.inherit )return describe.inherit+'.prototype.'+prop;
-    return describe.value;
-}
 
 /**
  * 格式化字节
