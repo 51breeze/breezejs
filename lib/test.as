@@ -56,8 +56,10 @@ package
           private function elem():Test
           {
 
-              new D().createName();
+              new D();
 
+              this.createName();
+ 
 
 
               Test.name;

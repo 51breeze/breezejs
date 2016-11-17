@@ -5,6 +5,7 @@ const PATH = require('path');
 const Ruler = require('./Ruler.js');
 const globals=require('./lib/Global.js');
 const config = {'suffix':'.as','main':'main','root':root,'cache':'off','cachePath':'./cache','debug':'on', 'browser':'enable','globals':globals };
+const modules={};
 
 /**
  * 全局模块
@@ -16,7 +17,7 @@ function module(name, module)
     var path = name.replace(/\s+/g,'').split('.');
     var classname = path.pop();
     var deep=0;
-    var obj=globals;
+    var obj=modules;
     var len =path.length;
     while(deep < len )
     {
@@ -29,7 +30,7 @@ function module(name, module)
         obj[ classname ] = module;
         return module;
     }
-    return obj[ classname ] || null;
+    return obj[ classname ] || globals[classname] || null;
 }
 
 
@@ -721,12 +722,9 @@ function expression( it )
         )
     )return false;
 
-    var type = getIdentifierType(it);
-    if( type )
-    {
-        if (it.current.value === 'super')return superToString([it.current.value], it, getDescriptionByType(it, type, '', 'this'));
-        return checkReference([it.current.value], it, getDescriptionByType(it, type))
-    }
+    if (it.current.value === 'super')return superToString([it.current.value], it, getDescription(it));
+    return checkReference([it.current.value], it, getDescription(it));
+
 }
 
 function checkReference(str, it, info)
@@ -739,7 +737,7 @@ function checkReference(str, it, info)
     {
         if( it.next.type() === '(expression)' )
         {
-            var desc = getClassPropertyDesc( it.current.value , info );
+            var desc = getClassPropertyDesc( it , info );
             callToString(str, it, desc );
 
         }else if( it.next.type() === '(property)' )
@@ -757,7 +755,7 @@ function checkReference(str, it, info)
 
     }else if( it.next.value==='=' )
     {
-        var desc = getClassPropertyDesc( it.current.value , info );
+        var desc = getClassPropertyDesc( it , info );
         if( desc && desc.id === 'const' )error('"' + it.current.value + '" is constant', '', it.current );
     }
     return str.join('');
@@ -765,22 +763,7 @@ function checkReference(str, it, info)
 
 function checkPropery(str,it,info)
 {
-    var desc = getClassPropertyDesc(it.current.value, info);
-    if (!desc)error('"' + it.current.value + '" does not exits', 'reference', it.current );
-    if ( !info.isglobal )
-    {
-        //包内访问权限
-        var internal = info.internal && desc.privilege === 'internal';
-
-        //子类访问权限
-        var inherit = info.inherit && desc.privilege === 'protected';
-
-        //判断访问权限
-        if ( !info.self && !(internal || inherit || desc.privilege === 'public') )
-        {
-            error('"' + it.current.value + '" inaccessible', 'reference', it.current);
-        }
-    }
+    var desc = getClassPropertyDesc(it, info);
 
     //普通属性
     if (desc.id === 'var' || desc.id === 'const')
@@ -876,15 +859,16 @@ function getDescription( it )
     }
 
     it.stack.type(type);
-    var desc = module( classname || type );
+    var desc = module( classname || type ) || globals[type];
     if( desc.id === 'function' )it.stack.type('Function');
     if( desc.id === 'object' )prop='static';
+
     return{
         isglobal:!!globals[ type ],
         type:it.stack.type(),
         instance:instance,
         internal:self.packge === desc.package,
-        inherit:self.extends===type,
+        inherit:self.extends,
         self:self.classname === desc.classname,
         uid:self.classname === desc.classname ? desc.id : '',
         prop:prop,
@@ -903,8 +887,6 @@ function getDescriptionByType( it , type , propname, instance )
     var self = module( it.stack.scope().define('this').classname );
     propname = propname || type;
     var prop = 'proto';
-
-    console.log( propname , type ,'888')
     if( it.stack.scope().define(propname) && !it.stack.scope().define(propname).classname )
     var object = it.stack.scope().define(propname) ? module( it.stack.scope().define(propname).classname ) : globals[ propname];
     if( type !=='*' && type!=='void' )it.stack.type(type);
@@ -932,17 +914,44 @@ function getDescriptionByType( it , type , propname, instance )
  * @param info
  * @returns {*}
  */
-function getClassPropertyDesc( prop,  info )
+function getClassPropertyDesc(it,  info )
 {
+    var prop = it.current.value;
     if( info.module[ info.prop ][ prop ] ) return info.module[ info.prop ][ prop ];
     if( prop === info.type )return {id:'class',type:info.type };
     var obj=info.module;
+    var child=obj;
+    var is=false;
+
     while( obj && (obj.extends || obj.inherit )  )
     {
-        obj = module( getModuleName(obj.package, obj.extends || obj.inherit ) );
-        if( obj && obj[ info.prop ][prop] )return obj[ info.prop ][prop];
+        if( obj.extends && !is ){
+            obj = module( obj.import[ obj.extends ] );
+        }else{
+            obj = globals[ obj.inherit ];
+            is=true;
+        }
+
+        if( obj && obj[ info.prop ][prop] )
+        {
+            var desc = obj[ info.prop ][prop];
+            if( !is )
+            {
+                //包内访问权限
+                var internal = child.package === obj.package && desc.privilege === 'internal';
+
+                //子类访问权限
+                var inherit = child.extends === obj.classname && desc.privilege === 'protected';
+
+                //判断访问权限
+                if (!(internal || inherit || desc.privilege === 'public')) {
+                    error('"' + it.current.value + '" inaccessible', 'reference', it.current);
+                }
+            }
+            return desc;
+        }
     }
-    return null;
+    error('"' + it.current.value + '" does not exits', 'reference', it.current );
 }
 
 
@@ -1170,9 +1179,9 @@ var syntaxDescribe=[];
  * @param file 模块名的全称。含包名 比如 com.Test。
  * @returns
  */
-function loadModuleDescription(file )
+function loadModuleDescription( file )
 {
-    var has = module(file);
+    var has = module(file) || globals[file];
     if( has )return has;
     module( file, {} );
     
@@ -1343,7 +1352,7 @@ function start()
         var str= '(function(){\n';
         for (var i in o.import )
         {
-            var obj = module( o.import[i] );
+            var obj = module( o.import[i] ) || globals[ o.import[i] ];
             if( typeof obj.id === "number" )
             {
                 str += 'var ' + i + '=' + getMethods('module', ['"' + o.import[i]+'"'])+';\n';
