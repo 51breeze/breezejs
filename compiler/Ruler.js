@@ -489,7 +489,7 @@ syntax['class']=function( event )
 
     var classname = this.scope().parent().name() ? this.scope().parent().name()+'.'+name : name;
     this.scope().define('this', {'type':'('+name+')','id':'class','classname':classname,scope:this.scope()} );
-    this.scope().define(name, {'type':'(Class)','id':'class','classname':classname,scope:this.scope()} );
+    this.scope().define(name, {'type':'('+name+')','id':'class','classname':classname,scope:this.scope()} );
 
     //类名
     this.scope().name( name );
@@ -1470,7 +1470,7 @@ syntax['(identifier)']=function( e )
                     }
                 }
                 type = desc.type;
-                if( !isthis && desc.id==='class' && this.prev.value !=='new')
+                if( !isthis && desc.id==='class' && this.prev.value !=='new' )
                 {
                     type='(Class)';
                 }

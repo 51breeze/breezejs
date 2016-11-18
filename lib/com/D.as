@@ -34,9 +34,9 @@ package com
               this.name = '9999';
          }
 
-         public function createName()
+         public function createName():*
          {
-             return 'the fun createname';
+             return this;
          }
 
         public function test()

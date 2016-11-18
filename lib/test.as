@@ -25,7 +25,7 @@ package
 
          static public var name:String = '3 sdfsdf 6666' ;
          static private var address:String = 'shu line' ;
-         public var name:String = '3' ;
+        // public var name:String = '3' ;
          public var jj:Array = [] ;
         // public const age:String = '3' ;
 
@@ -56,9 +56,11 @@ package
           private function elem():Test
           {
 
-              new D();
+              new D().createName().test();
 
               this.createName();
+
+              this.name;
  
 
 
