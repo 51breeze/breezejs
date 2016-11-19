@@ -34,15 +34,38 @@ package com
               this.name = '9999';
          }
 
-         public function createName():*
+         public function createName():D
          {
              return this;
          }
 
-        public function test()
+        protected function get address():String
+        {
+            return '66666';
+        }
+        protected function set address(add:String):void
+        {
+        }
+
+         public function test()
          {
              return 'the fun createname';
          }
+
+        private var _names:String='999';
+
+        public function set names(bbs:String):void
+        {
+            console.log('set names = ', bbs );
+            this._names=bbs;
+        }
+        public function get names():String
+        {
+            console.log('get names ' );
+            return this._names;
+        }
+        
+        
     }
 
 }

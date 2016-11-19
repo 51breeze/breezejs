@@ -391,7 +391,7 @@ syntax['import']=function (event)
     if( !checkSegmentation( filename, true ) )this.error('Invalid import');
 
     var p = s.parent();
-    var desc = {'type':name,'id':'class','classname':filename.join("") };
+    var desc = {'type':'('+name+')','id':'class','fullclassname':filename.join(""),'classname':name };
 
     //防止定义重复的类名
     if( p.define(name) && globalObject.indexOf(name)<0 )error('class name the "'+name+'" is already been defined')
@@ -411,16 +411,19 @@ syntax['import']=function (event)
 syntax['private,protected,internal,static,public,override,final']=function(event)
 {
     event.prevented=true;
-    var s = this.scope();
-    if( s.keyword() !=='package' && s.keyword() !=='class' )this.error();
+    var scope = this.scope();
+    if( scope.keyword() !=='package' && scope.keyword() !=='class' )this.error();
     var arr = [event.target.value];
     var self= this;
     var n;
+    var description={};
+    description[event.target.value]=event.target;
     this.loop(function(){
         if( 'private,protected,internal,static,public,override,final'.indexOf( this.next.value )<0 )return false;
         n = this.seek();
         if( arr.indexOf(n.value) >=0  )self.error();
         arr.push( n.value );
+        description[n.value]=n;
         return true;
     });
 
@@ -448,6 +451,9 @@ syntax['private,protected,internal,static,public,override,final']=function(event
     if( o && n.value !== 'function' )this.error('Invalid override.');
     if( o && this.scope().keyword() === 'class' && !this.scope().extends() )this.error('The "override" only can be used in subclasses.');
 
+    //如是静态类，那么整个类不能实例化
+    if( scope.keyword() ==='class' && scope.static() )s = scope.static();
+
     if( n.value==='class' || n.value === 'function' )
     {
         this.add( new Scope( n.value , '(block)' ) );
@@ -455,6 +461,7 @@ syntax['private,protected,internal,static,public,override,final']=function(event
         this.scope().qualifier( q );
         this.scope().override( o );
         this.scope().final( f );
+        this.scope().description=description;
         this.check();
 
     }else if( n.value==='var' || n.value==='const' )
@@ -464,6 +471,7 @@ syntax['private,protected,internal,static,public,override,final']=function(event
         this.scope().qualifier( q );
         this.scope().override( o );
         this.scope().final( f );
+        this.scope().description=description;
         this.check();
 
     }else
@@ -479,7 +487,7 @@ syntax['class']=function( event )
     if( this.scope().keyword() !=='class' )this.add( new Scope('class', '(block)' ) );
     if( this.scope().parent().keyword() !=='package' )this.error();
 
-    //获取类名
+    var scope = this.scope();
     var n = this.seek();
     if( !isPropertyName( n.value ) )this.error('Invalid class name');
     var e = new Event('checkClassName',{value:n.value});
@@ -487,13 +495,12 @@ syntax['class']=function( event )
     var name = e.value;
     if( this.scope().parent().define( name ) )this.error('class name the "'+name+'" is already been declared',this.current);
 
+    //设置类名
+    scope.name( name );
     var classname = this.scope().parent().name() ? this.scope().parent().name()+'.'+name : name;
-    this.scope().define('this', {'type':'('+name+')','id':'class','classname':classname,scope:this.scope()} );
-    this.scope().define(name, {'type':'('+name+')','id':'class','classname':classname,scope:this.scope()} );
-
-    //类名
-    this.scope().name( name );
-
+    this.scope().define('this', {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name,scope:this.scope()} );
+    this.scope().define(name, {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name,scope:this.scope()} );
+    
     //将类名加入被保护的属性名中
     //this.config('reserved').push( name );
 
@@ -503,10 +510,10 @@ syntax['class']=function( event )
     if( n.id==='(keyword)' && n.value==='extends' )
     {
         n = this.seek();
-        this.scope().extends( n.value );
-        var p =  this.scope().define( n.value );
+        var p =  scope.define( n.value );
         if( !p ) this.error('"'+n.value+'" not is defined');
-        this.scope().define('super', p );
+        scope.extends( n.value );
+        scope.define('super', p );
         this.seek();
     }
     if( this.current.id !=='{' )this.error('Missing token {');
@@ -638,11 +645,12 @@ syntax['function']= function(event){
     {
         this.seek();
         type = this.seek().value;
+        var currentType = this.current;
         if( !checkStatementType(type, ps.define(), this.config('globals') ) )this.error( type+' not is defined');
         if( type !=='void' )
         {
             s.addListener('(switch)', function (e) {
-                if (!this.isReturn)error('Must be return');
+                if (!this.isReturn)error('Must be return','', currentType);
             });
         }
     }
@@ -663,18 +671,29 @@ syntax['function']= function(event){
         var val = ps.define( prefix+name );
         if( val )
         {
-            var isacessor = s.accessor() !== (val.get || val.set) && s.accessor() && (val.get || val.set);
-            if( val.scope === ps && ps.construct && !isacessor )this.error('function "'+name+'" has already been declared');
+            if( val.scope === ps && ps.construct && ( !s.accessor() || s.accessor() === val.get || s.accessor() === val.set ) )
+            {
+                this.error('function "'+name+'" has already been declared');
+            }
+
+            //同一访问器的修饰符必须一致
+            if( s.accessor() && val.qualifier !== s.qualifier() )
+            {
+                this.error('The same accessor modifier must be consistent for "'+s.qualifier()+'"', s.description[ s.qualifier() ] );
+            }
+
+            //是一个构造函数
             if( val.id==='class' )
             {
                 ps.construct=true;
                 if(s.qualifier() !== 'public' )this.error('can only is public qualifier of constructor function');
             }
+
             if( s.accessor() )val[ s.accessor() ]=s.accessor();
 
         }else
         {
-            var obj = {type: '(' + type + ')', 'id':'function',scope: ps};
+            var obj = {type: '(' + type + ')', 'id':'function','static':s.static(),'qualifier':s.qualifier(),scope: ps};
             if( s.accessor() )obj[ s.accessor() ]=s.accessor();
             ps.define( prefix+name,  obj );
         }
@@ -901,11 +920,24 @@ syntax["debugger"]=function (e)
     this.end();
 }
 
+/*
+syntax["this"]=function (e)
+{
+    var end = this.scope().keyword() !== 'object' ;
+    if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(*)') );
+    var fun = getParentFunction( this.scope() );
+    if( fun.parent().keyword() ==='class' && fun.static() )this.error('this is not defined in static function');
+    this.add( this.current );
+    this.step();
+    if( end )this.end();
+    console.log( this.scope().keyword() , this.scope().close() )
+}
+*/
+
 syntax["super"]=function (e)
 {
     e.prevented=true;
-    this.add( new Stack('expression','(*)') );
-    var s = this.scope();
+    if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(*)') );
     var fun = getParentFunction( this.scope() );
     if( !fun || fun.parent().keyword() !=='class' || fun.static() )this.error();
     if( !fun.parent().extends() )this.error('No parent class inheritance');
@@ -1035,6 +1067,8 @@ syntax['(delimiter)']=function( e )
                 if( is=== true && e.target.value===',')self.error();
             });
         }
+
+
 
         this.add( s );
         this.add( this.current );
@@ -1341,7 +1375,7 @@ function statement()
 
     //不能重复声明属性
     if( val && val.scope === ps )this.error('Identifier "'+name+'" has already been declared');
-    ps.define(prefix+name, {'type':'('+type+')', id:id, scope:ps } );
+    ps.define(prefix+name, {'type':'('+type+')','static':prefix ? 'static' : '', id:id, scope:ps });
 
     //声明的属性后面只能是 '=','in' 或者 ','操作符
     if( isOperator(this.next.value) && !(this.next.value==='=' || this.next.value===',' || this.next.value==='in') )
@@ -2360,7 +2394,7 @@ Ruler.prototype.end=function( stack )
         this.seek();
         return this.end( stack );
 
-    }else if( stack.keyword()==='expression' || stack.keyword()==='ternary' )
+    }else if( stack.keyword()==='expression' /*|| stack.keyword()==='object'*/ || stack.keyword()==='ternary' )
     {
         if( this.next.value===')' || this.next.value===']' )
         {
