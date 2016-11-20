@@ -17,8 +17,6 @@
 
 package com
 {
-
-    import Test;
     import String;
     import Number;
 
@@ -26,7 +24,6 @@ package com
 
          public var name:String = '3' ;
          protected const age:String = '3' ;
-
 
          function D(jj)
           {
@@ -64,8 +61,6 @@ package com
             console.log('get names ' );
             return this._names;
         }
-        
-        
     }
 
 }

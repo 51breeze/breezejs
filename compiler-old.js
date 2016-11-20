@@ -920,7 +920,7 @@ var main='test';
 var content = make( main , fs );
 if( !global_error )
 {
-    var system = fs.readFileSync( './system.js' , 'utf-8');
+    var system = fs.readFileSync( './System.js' , 'utf-8');
     var app='\nreturn __g__.getInstance("'+main+'");\n';
     content = "(function(){\n" + system + content + app +'\n})()';
     fs.writeFileSync('./test-min.js', content );

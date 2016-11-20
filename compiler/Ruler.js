@@ -510,7 +510,7 @@ syntax['class']=function( event )
     if( n.id==='(keyword)' && n.value==='extends' )
     {
         n = this.seek();
-        var p =  scope.define( n.value );
+        var p =  scope.define( n.value ) || this.config('globals')[ n.value ];
         if( !p ) this.error('"'+n.value+'" not is defined');
         scope.extends( n.value );
         scope.define('super', p );
@@ -839,6 +839,7 @@ syntax['if,switch,while,for,catch'] = function(event)
         //是否需要结束符
         if( !(p instanceof Scope) || p.keyword() !=='do' )
         {
+            this.step();
             this.end();
         }
         //手动结束
@@ -858,14 +859,13 @@ syntax['if,switch,while,for,catch'] = function(event)
 syntax["return"]=function(event)
 {
     event.prevented=true;
-    if( isOperator(this.next.value) )this.error();
+    if( isOperator(this.next.value) && !isLeftOperator(this.next.value) )this.error();
     if( !(this.scope() instanceof Scope) )this.error();
     this.add( this.current );
     var current = this.current;
     var s = new Stack('expression','(*)');
     this.add( s );
     this.step();
-    this.end();
 
     var funScope = getParentFunction( s );
    // if( !funScope.returnValues )funScope.returnValues=[];
@@ -874,11 +874,10 @@ syntax["return"]=function(event)
 
     var type = funScope.type();
     if( type==='(void)' )this.error('Do not return');
-    if(type!=='(*)' && type !== s.type() && type!=='(Object)' )
+    if( type!=='(*)' && type !== s.type() && ( s.type() !== '(*)' || s.length()===0) )
     {
-        //console.log(s.type())
-        //this.error('Can only return '+type, current,'type' );
-    } 
+        this.error('Can only return '+type, current,'type' );
+    }
 }
 
 syntax["case,default"]=function(e)
@@ -920,19 +919,32 @@ syntax["debugger"]=function (e)
     this.end();
 }
 
-/*
+syntax["throw"]=function (e)
+{
+    e.prevented=true;
+    this.add( this.current );
+    this.add( new Stack('expression','(*)') );
+    this.step();
+    this.end();
+}
+
 syntax["this"]=function (e)
 {
-    var end = this.scope().keyword() !== 'object' ;
+    e.prevented=true;
     if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(*)') );
     var fun = getParentFunction( this.scope() );
     if( fun.parent().keyword() ==='class' && fun.static() )this.error('this is not defined in static function');
+    if( fun.parent().keyword() ==='class' )
+    {
+        this.scope().type(this.scope().scope().define('this').type);
+    }
     this.add( this.current );
-    this.step();
-    if( end )this.end();
-    console.log( this.scope().keyword() , this.scope().close() )
+    if( !isDelimiter( this.next.value ) )
+    {
+        this.step();
+    }
+    this.end();
 }
-*/
 
 syntax["super"]=function (e)
 {
@@ -942,7 +954,10 @@ syntax["super"]=function (e)
     if( !fun || fun.parent().keyword() !=='class' || fun.static() )this.error();
     if( !fun.parent().extends() )this.error('No parent class inheritance');
     this.add( this.current );
-    this.step();
+    if( !isDelimiter( this.next.value ) || balance[ this.next.value ] )
+    {
+        this.step();
+    }
     this.end();
 }
 
@@ -989,7 +1004,8 @@ syntax["new"]=function(e)
     var s = this.scope();
 
     //如果上一个是标识并且当前未换行
-    if( (this.prev.type==='(identifier)' || this.prev.id==='(keyword)') && this.prev.line===this.current.line )this.error();
+    if( (this.prev.type==='(identifier)' || this.prev.id==='(keyword)') &&
+        this.prev.value!=='throw' && this.prev.line===this.current.line )this.error();
     if( this.next.type!=='(identifier)' || this.next.id==='(keyword)')this.error();
     if( s.keyword()!=='expression')
     {
@@ -1008,12 +1024,14 @@ syntax["new"]=function(e)
 
 syntax['(seek)']=function( e )
 {
-    if( this.current.value===';' && !(this.scope() instanceof Scope) )
+   /* if( this.current.value===';' && !(this.scope() instanceof Scope) )
     {
         var p = this.scope().parent();
         while(p && !(p instanceof Scope) && p.keyword()!=='object' )p=p.parent();
         if(p && p.keyword()==='object')this.error();
-    }
+    }*/
+
+
     if( this.current.type==='(operator)' && this.current.value === this.next.value )this.error('',this.next);
     if( this.next.value===';' || this.current.value ===';' )return;
     //if( this.next.value!==';' && this.current.value !==';' && isIdentifier(this.current) && isIdentifier(this.next) )this.error('',this.next);
@@ -1033,9 +1051,9 @@ syntax['(delimiter)']=function( e )
         }
 
         var s = new Stack('object', id==='(' ? '(expression)' : id==='[' ? '(Array)' : '(Object)');
-        if( this.prev.value === '=' )
+        if( this.prev.value === '=' && s.type()==='(Array)' )
         {
-            this.scope().type( s.type() ==='(expression)' ? '(*)' : s.type() );
+            ps.type( s.type() );
         }
 
         var self= this;
@@ -1055,11 +1073,13 @@ syntax['(delimiter)']=function( e )
         }else if( s.type()==='(Array)' )
         {
             var is=false;
-            if( this.prev.type==='(identifier)' && this.prev.id!=='(keyword)' || this.prev.value==='this' )
+            if( this.prev.id==='(identifier)' || this.prev.value==='this' )
             {
                 is=true;
                 s.type('(property)');
+                ps.type('(*)');
             }
+
             s.addListener('(add)',function (e) {
                 if( e.target.value==='[' ||  e.target.value===']' )return;
                 //数组中的元素只能用','隔开
@@ -1067,8 +1087,6 @@ syntax['(delimiter)']=function( e )
                 if( is=== true && e.target.value===',')self.error();
             });
         }
-
-
 
         this.add( s );
         this.add( this.current );
@@ -1080,10 +1098,10 @@ syntax['(delimiter)']=function( e )
         });
 
         this.add( this.seek() );
-        if( this.current.value !== balance[id ] )this.error();
+        if( this.current.value !== balance[id] )this.error();
         s.switch();
 
-        if( s.type() !=='(expression)' && this.next.value==='.' )this.error('', this.next );
+        if( s.type() ==='(Object)' && this.next.value==='.' )this.error('', this.next );
 
         // 如果下一个是运算符或者是一个定界符
         if( isOperator(this.next.value) || balance[this.next.value] )
@@ -1122,7 +1140,7 @@ syntax['(operator)']=function( e )
         if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(Boolean)') );
         this.scope().type('(Boolean)');
         this.add(this.current);
-        if( !isIdentifier(this.next) || this.next.value===';' )this.error();
+        if( isBoolOperator(this.next) || this.next.value===';' )this.error();
         this.step();
         return;
     }
@@ -1137,6 +1155,7 @@ syntax['(operator)']=function( e )
 
         //点运算符后面只能是属性名
         if( !isPropertyName(this.next.value) ) this.error();
+        this.scope().type('(*)');
         this.step();
         return;
     }
@@ -1202,21 +1221,36 @@ syntax['(operator)']=function( e )
             if( this.scope().keyword() !== 'ternary' )this.error();
         }
 
+
         //三元运算表达式
+        var scope = this.scope();
         if( this.scope().keyword() ==='ternary' )
         {
+            // ? or :
             this.add(this.current);
+
             //添加表达式
             this.add(new Stack('expression', '(*)').addListener('(switch)', function () {
                 if (this.length() < 1)self.error('empty expression');
             }));
+
             //获取表达式
             this.step();
-            //如果当前是函数并且下一个是三元运算
-            if (this.next.value === ':' || this.next.value === '?')this.step();
 
-            //如果后括号不需要结束
-            if( this.next.value===')' )return;
+            //设置三元表达式返回的类型
+            scope.type( this.scope().type() );
+
+            //如果当前是函数并且下一个是三元运算
+            if (this.next.value === ':' || this.next.value === '?')
+            {
+                this.step();
+
+                //不确定的类型
+                if( scope.type() !== this.scope().type() )scope.type('(*)');
+            }
+
+            //未结束继续
+            if( scope.length()!==5 )return;
         }
     }
     //如果是数学运算符
@@ -1290,8 +1324,7 @@ syntax['(operator)']=function( e )
     {
         this.add( this.current );
         if( (this.prev.type !=='(identifier)' || this.prev.id==='(keyword)' ) && this.prev.value!==']' )this.error();
-        if( this.next.value===';' || !(this.next.value ==='-' || this.next.value==='+' || balance[ this.next.value ] ||
-            isIdentifier(this.next) || isLeftOperator(this.next.value)) )
+        if( !this.next || this.next.value===';' || isBoolOperator(this.next.value) )
         {
             this.error('Missing expression');
         }
@@ -1359,12 +1392,8 @@ function statement()
         this.scope().parent().param( type );
     }else
     {
-        if( id ==='var' || id==='const' || id==='let')
-        {
-              ps.type( type );
-        }
+        if( id ==='var' || id==='const' || id==='let')ps.type( type );
         ps = this.scope().scope();
-        var pid = this.scope().parent().keyword();
         prefix = this.scope().parent().static() ? 'static_' : '';
     }
 
@@ -1401,6 +1430,9 @@ function toType( o , scope )
             case 'NaN' :
             case 'Infinity' :
                 return '(Number)';
+                break;
+            case 'null' :
+                return '(Object)';
                 break;
             case 'true' :
             case 'false' :
@@ -1466,17 +1498,28 @@ syntax['(identifier)']=function( e )
             if( !type )
             {
                 var ps = this.scope().scope();
-                var isthis = this.current.value ==='this';
 
                 // 是否有声明
                 var desc = ps.define( this.current.value );
-                if (!desc)desc = ps.define('static_' + this.current.value );
+
+                //是否为静态的属性
+                if (!desc)
+                {
+                    desc = ps.define('static_' + this.current.value );
+                    if( desc && !desc.static )desc=null;
+                }
+
+                //是否为全局对象
                 if ( !desc )
                 {
-                    //是否为全局对象
                     var global = this.config('globals');
                     desc = global[ this.current.value ];
-                    if (!desc || this.next.value === '=')this.error(this.current.value + ' not is defined', this.current, 'reference');
+                    if (!desc || this.next.value === '='){
+
+                      // console.log( this.scope().parent().parent() )
+
+                        this.error(this.current.value + ' not is defined', this.current, 'reference');
+                    }
 
                 } else
                 {
@@ -1496,15 +1539,17 @@ syntax['(identifier)']=function( e )
                         //如果引用的类型不一致
                         this.scope().addListener('(switch)', function (e) {
                             if (desc.type !== '(*)') {
-                                if (this.type() !== desc.type)error('type is not consistent, can only be ' + desc.type, 'type', current);
+                                if ( this.type() !=='(*)' && this.type() !== desc.type && this.type() !=='(Object)')
+                                    error('type is not consistent, can only be ' + desc.type, 'type', current);
                             } else {
                                 desc.type = this.type();
                             }
                         });
                     }
                 }
+
                 type = desc.type;
-                if( !isthis && desc.id==='class' && this.prev.value !=='new' )
+                if( desc.id==='class' && this.current.value !=='this' && this.prev.value !=='new' )
                 {
                     type='(Class)';
                 }
@@ -1541,6 +1586,7 @@ function error(msg, type, obj )
 {
     if( obj )
     {
+        console.log( obj );
         console.log('error line:',obj.line, ' characters:', obj.cursor );
     }
     switch ( type )
@@ -1846,7 +1892,7 @@ Stack.prototype.add=function( val, index )
 {
     if( this.close() )
     {
-        error('stack is end');
+        error('stack is end','', val );
     }
     if( !val )error('Invalid val')
     var event = new Event('(add)', {target:val} );
@@ -2094,7 +2140,6 @@ Scope.prototype.accessor=function( accessor )
 Scope.prototype.extends=function( name )
 {
     if( typeof name === 'undefined' )return this.__extends__;
-    if( !this.parent().define(name) )error(name +' not is import');
     this.__extends__=name;
     return this;
 }
@@ -2383,6 +2428,11 @@ Ruler.prototype.end=function( stack )
 
     //块级必须用定界符结束(if,else,for,while)除外
     if( stack.close() || (stack instanceof Scope && !(id==='if' || id==='else' || id==='for' || id==='while' ) ) )return true;
+
+    //是定界符开始的并且紧跟着的是结束定界符
+    if( stack.keyword()==='object' && (this.next.value===')' || this.next.value===']'|| this.next.value==='}') ){
+        return true;
+    }
 
     if( this.current.value === ';')
     {

@@ -3,8 +3,8 @@ const root = process.cwd();
 const QS = require('querystring');
 const PATH = require('path');
 const Ruler = require('./Ruler.js');
-const globals=require('./lib/Global.js');
-const config = {'suffix':'.as','main':'main','root':root,'cache':'off','cachePath':'./cache','debug':'on', 'browser':'enable','globals':globals };
+const globals=require('./lib/Globals.js');
+const config = {'suffix':'.as','main':'Main','root':root,'cache':'off','cachePath':'./cache','debug':'on', 'browser':'enable','globals':globals };
 const modules={};
 
 /**
