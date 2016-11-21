@@ -393,9 +393,10 @@ syntax['import']=function (event)
     var p = s.parent();
     var desc = {'type':'('+name+')','id':'class','fullclassname':filename.join(""),'classname':name };
 
+
     //防止定义重复的类名
-    if( p.define(name) && globalObject.indexOf(name)<0 )error('class name the "'+name+'" is already been defined')
-    p.define( name , desc );
+    if(s.define(name) && globalObject.indexOf(name)<0 )error('class name the "'+name+'" is already been defined')
+    s.define( name , desc );
 
     //从父级中删除
     p.content().splice(index, p.length()-index);
@@ -498,8 +499,8 @@ syntax['class']=function( event )
     //设置类名
     scope.name( name );
     var classname = this.scope().parent().name() ? this.scope().parent().name()+'.'+name : name;
-    this.scope().define('this', {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name,scope:this.scope()} );
-    this.scope().define(name, {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name,scope:this.scope()} );
+    this.scope().define('this', {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name} );
+    this.scope().define(name, {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name} );
     
     //将类名加入被保护的属性名中
     //this.config('reserved').push( name );
@@ -583,6 +584,7 @@ syntax['function']= function(event){
     {
         this.scope().type('(Function)');
     }
+
     if( this.scope().keyword() !=='function' ) this.add( new Scope( event.type, '(*)' ) );
     this.add( this.current );
     var s = this.scope()
@@ -627,9 +629,14 @@ syntax['function']= function(event){
         this.scope().switch();
     }
 
-    //验证访问器的参数
+    var ps = s.scope();
+
+    //类成员属性必须定义在类作用域中
     if( s.parent().keyword() === 'class' )
     {
+        ps = s.parent().scope();
+
+        //验证访问器的参数
         if( s.accessor() === 'get' && ( param && param.length() > 0 ) )this.error('getter accessor cannot has parameter');
         if (s.accessor() === 'set' && ( !param || param.length() !== 1 ) )this.error('setter accessor be only one parameter');
     }
@@ -638,7 +645,7 @@ syntax['function']= function(event){
     if( this.current.id !==')' ) this.error('Missing token )');
 
     var type='*';
-    var ps = s.scope();
+
 
     //返回类型
     if( this.next.id===':' )
@@ -656,7 +663,7 @@ syntax['function']= function(event){
     }
 
     //构造函数不能有返回值
-    if( s.parent().keyword() ==='class' && s.parent().name()=== s.name() )
+    if( s.parent().keyword() ==='class' && s.parent().name() === s.name() )
     {
         type='void';
     }
@@ -665,13 +672,13 @@ syntax['function']= function(event){
     var prefix = s.static() ? 'static_' : '';
 
     //定义到作用域中
-    if( ps && name )
+    if( name )
     {
         //不能重复声明函数
         var val = ps.define( prefix+name );
         if( val )
         {
-            if( val.scope === ps && ps.construct && ( !s.accessor() || s.accessor() === val.get || s.accessor() === val.set ) )
+            if( ps.construct && ( !s.accessor() || s.accessor() === val.get || s.accessor() === val.set ) )
             {
                 this.error('function "'+name+'" has already been declared');
             }
@@ -693,7 +700,7 @@ syntax['function']= function(event){
 
         }else
         {
-            var obj = {type: '(' + type + ')', 'id':'function','static':s.static(),'qualifier':s.qualifier(),scope: ps};
+            var obj = {type: '(' + type + ')', 'id':'function','static':s.static(),'qualifier':s.qualifier() };
             if( s.accessor() )obj[ s.accessor() ]=s.accessor();
             ps.define( prefix+name,  obj );
         }
@@ -1359,7 +1366,9 @@ syntax['(operator)']=function( e )
     this.end();
 }
 
-
+/**
+ * 声明属性
+ */
 function statement()
 {
     var type = '*';
@@ -1376,6 +1385,8 @@ function statement()
         this.prev = prev;
     }
 
+
+
     //检查属性名是否可以声明
     if( !checkStatement(name, this.config('reserved') ) )
     {
@@ -1384,27 +1395,27 @@ function statement()
 
     var ps = this.scope().parent();
     var id = ps.keyword();
-    var prefix = '';
+    var prefix = ps.static() ? 'static_' : '';
 
     //如是函数声明的参数
     if( id==='function' )
     {
-        this.scope().parent().param( type );
-    }else
+        id='var';
+        ps.param( type );
+
+    }else if( id ==='var' || id==='const' || id==='let')
     {
-        if( id ==='var' || id==='const' || id==='let')ps.type( type );
-        ps = this.scope().scope();
-        prefix = this.scope().parent().static() ? 'static_' : '';
+        ps.type( type );
     }
 
     //检查声明的类型是否定义
-    if( !checkStatementType(type, ps.define() , this.config('globals') ) )this.error( type+' not is defined');
+    if( !checkStatementType(type, this.scope().define() , this.config('globals') ) )this.error( type+' not is defined');
 
-    var val = ps.define( prefix+name );
+    var val = this.scope().define( prefix+name );
 
     //不能重复声明属性
     if( val && val.scope === ps )this.error('Identifier "'+name+'" has already been declared');
-    ps.define(prefix+name, {'type':'('+type+')','static':prefix ? 'static' : '', id:id, scope:ps });
+    this.scope().define(prefix+name, {'type':'('+type+')','static':prefix ? 'static' : '', id:id });
 
     //声明的属性后面只能是 '=','in' 或者 ','操作符
     if( isOperator(this.next.value) && !(this.next.value==='=' || this.next.value===',' || this.next.value==='in') )
@@ -1773,10 +1784,11 @@ function Stack( keyword, type )
     this.__name__='';
     this.__close__  =false;
     this.__qualifier__='public';
-    this.__static__= '' ;
+    this.__static__   = '' ;
     this.__override__= '' ;
-    this.__final__= '' ;
-    this.__scope__= null ;
+    this.__final__   = '' ;
+    this.__scope__   = null ;
+    this.__define__  ={};
     Listener.call(this);
 
     this.addListener('(end)', function (e) {
@@ -1827,11 +1839,45 @@ Stack.prototype.constructor = Stack;
  */
 Stack.prototype.scope=function()
 {
-   if( !this.__scope__  && this.type() !== '(rootblock)' )
+   if( this.__scope__===null )
    {
-       this.__scope__ = getParentScope( this );
+       this.__scope__ = this;
+       if ( this.keyword() === 'function' || this.keyword() === 'class' || this.keyword() === 'package' )
+       {
+           var parent = this.parent();
+           if( parent )
+           {
+               while (parent && !(parent.keyword() === 'function' || parent.keyword() === 'class' || parent.keyword() === 'package') && parent.parent() )
+               {
+                   parent = parent.parent();
+               }
+               merge(this.__define__, parent.__define__);
+           }
+
+       }else if( this.parent() )
+       {
+           this.__scope__ =  this.parent().scope();
+       }
    };
    return this.__scope__;
+}
+
+
+/**
+ * 声明和引用属性
+ * @param prop 属性名称
+ * @param desc 属性描述
+ * @returns {*}
+ */
+Stack.prototype.define=function(prop , desc )
+{
+    if( typeof prop === 'undefined' )return this.scope().__define__;
+    if( typeof prop === 'string' &&  typeof desc === 'undefined' )
+    {
+        return this.scope().__define__[prop];
+    }
+    this.scope().__define__[prop]=desc;
+    return this;
 }
 
 /**
@@ -1917,14 +1963,6 @@ Stack.prototype.add=function( val, index )
             //指定的子级的父级对象的引用
             val.__parent__ = this;
             Stack.__current__ = val;
-
-            //如当前的子级是一个作用域则引用父级域中定义的属性
-            if( this.type() !== '(rootblock)' && val instanceof Scope )
-            {
-                var parentScope = getParentScope( val );
-                val.__scope__ = parentScope;
-                if( parentScope )merge( val.__define__, parentScope.__define__ );
-            }
         }
 
         index = index || this.length();
@@ -2075,31 +2113,12 @@ function Scope( keyword, type )
 {
     if( !(this instanceof Scope) )return new Scope(keyword, type)
     this.__param__=[];
-    this.__define__ ={};
     this.__accessor__= '' ;
     this.__extends__='';
     Stack.call(this,keyword,type);
 }
 Scope.prototype = new Stack();
 Scope.prototype.constructor=Scope;
-
-
-/**
- * 声明和引用属性
- * @param prop 属性名称
- * @param type 属性类型
- * @returns {*}
- */
-Scope.prototype.define=function(prop , type )
-{
-    if( typeof prop === 'undefined' )return this.__define__;
-    if( typeof prop === 'string' &&  typeof type === 'undefined' )
-    {
-        return this.__define__[prop];
-    }
-    this.__define__[prop]=type;
-    return this;
-}
 
 
 /**

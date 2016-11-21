@@ -8,11 +8,19 @@
 
 package lib
 {
+
+    import com.B;
+
     public class EventDispatcher extends Object
     {
 
         private var getProxyTarget:Function = null;
         private var storage:Function = null;
+        private var forEachCurrentItem;
+        private var length;
+
+        static var Listener:Class=B;
+        static var SpecialEvent:Class=B;
 
         /**
          * EventDispatcher Class
@@ -36,9 +44,10 @@ package lib
         {
             var target= this.getProxyTarget()
                 ,index=0;
-            var events = storage.call( target[ index ] );
+
             while( index < target.length )
             {
+                var events = storage.call( target[ index ] );
                 if( events && events[type] )
                 {
                     return true;
@@ -78,6 +87,7 @@ package lib
 
             while(  index < target.length )
             {
+
 
                 listener.dispatcher=this;
                 listener.currentTarget=target[index];

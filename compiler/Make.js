@@ -343,15 +343,14 @@ function callToString(str, it, desc)
         it.prev && (it.prev.id==='(identifier)' || it.prev.value==='super') )
     {
         if( !desc )error( '"'+it.prev.value+'" is not function', 'type', it.prev );
-        if( desc.id !=='function' && desc.id !=='class' && desc.type !=='Function' ){
+        if( !(desc.id ==='function' || desc.id ==='class' || desc.type ==='Function' || desc.type==='Class') )
+        {
             error( '"'+it.prev.value+'" is not function', 'type', it.prev );
         }
         var pareameter = checkParameter(it, desc);
         it.stack.type( desc.type );
-        var is=false;
         if( str.instance )
         {
-            is=true;
             pareameter.unshift(str.instance);
             str.prop.push('.call');
         }
@@ -359,10 +358,8 @@ function callToString(str, it, desc)
         str.prop.push('(');
         str.prop.push( pareameter.join(',') );
         str.prop.push(')');
-
-        str.instance = str.prop.join('');
-        str.prop = [ str.instance ];
-        if(!is)str.instance='';
+        str.prop = [ str.prop.join('') ];
+        str.instance='';
 
         if( it.next && it.next.value==='.' && desc.type !== '*' )
         {
@@ -429,7 +426,8 @@ function checkReference(it)
     }
 
     var type = getIdentifierType( it );
-    if( !type ){
+    if( !type )
+    {
         error('"'+it.current.value+'" is not defined.', '', it.current );
     }
 
@@ -448,8 +446,23 @@ function checkReference(it)
         error('"'+it.current.value+'" is not defined.','', it.current);
     }
 
-    if( isnew && desc.id !=='class' )error('"'+it.current.value+'" is not constructs.');
-    var prop =  type==='Class' || (it.current.value === type && !isnew) ? 'static' : 'proto';
+    var prop = 'proto';
+
+    //静态类
+    if( it.current.value === type || type==='Class' )
+    {
+        //必须要使用 new 来构建实例对象
+        if( !isnew && it.next instanceof Ruler.STACK && it.next.type() === '(expression)' )
+        {
+            error('Must use the "new" build instance');
+        }
+        if( !isnew || it.next.value==='.' )prop='static';
+
+    }else if( isnew )
+    {
+        error('"'+it.current.value+'" is not constructs.');
+    }
+
     var issuper=false;
 
     //调用超类
@@ -459,16 +472,6 @@ function checkReference(it)
         str.prop.splice(0,1, self.scope.extends() );
         str.instance='this';
         issuper=true;
-        //prop='constructor';
-    }
-    //其它的外部类
-    else if( it.current.id === '(identifier)' && desc.id ==='class' && desc.nonglobal && !isnew && prop!=='static' )
-    {
-       // str.prop.splice(0,1, type,'.prototype');
-        //str.instance = it.current.value;
-      //  console.log( str.instance , it.current.value )
-
-
     }
 
     //调用函数
@@ -511,7 +514,6 @@ function checkReference(it)
  */
 function checkPropery(str,it,object, name, privatize )
 {
-    if( !object )error('9999');
     var desc = getClassPropertyDesc(it, object, name);
 
     //普通属性
@@ -520,10 +522,13 @@ function checkPropery(str,it,object, name, privatize )
         if( it.next && it.next.value==='=' && desc.id === 'const' )error('"' + it.current.value + '" is constant', '', it.current );
 
         //引用对象的私有属性
-        if ( privatize && desc.privilege === 'private' )str.prop.splice(1,0,'["' + object.uid + '"]');
+        if ( privatize && desc.privilege === 'private' )
+        {
+             str.prop.splice(1,0,'["' + object.uid + '"]');
+             str.prop = [ str.prop.join('') ];
+             str.instance ='';
+        }
         it.stack.type( desc.type );
-        str.instance = str.prop.join('');
-        str.prop = [ str.instance ];
     }
     //函数
     else if (desc.id === 'function' )
@@ -581,7 +586,7 @@ function checkPropery(str,it,object, name, privatize )
     {
         var self = it.stack.scope().define( 'this' );
         desc = it.stack.scope().define( desc.type );
-        object = desc ? module( desc.classname ) : globals[ desc.type ];
+        object = desc ? module( desc.fullclassname ) : globals[ desc.type ];
         if( object )
         {
             var prop =  desc.type==='Class' || object.id==='object' ? 'static' : 'proto';
@@ -589,7 +594,7 @@ function checkPropery(str,it,object, name, privatize )
             str.prop.push( it.current.value );
             it.seek();
             str.prop.push( it.current.value );
-            checkPropery(str,it, object, prop, self.classname===object.classname );
+            checkPropery(str,it, object, prop, self.fullclassname===object.fullclassname );
         }
     }
 }
@@ -611,15 +616,17 @@ function getIdentifierType( it )
             return 'RegExp';
         default :
             var desc = it.stack.scope().define( it.current.value ) || it.stack.scope().define( 'static_'+it.current.value );
-            if( desc ){
+            if( desc )
+            {
                 var type = getType( desc.type );
-                if( (desc.id==='var' || desc.id==='const') && type==='*' )return true;
+                if( type==='*' && (desc.id==='var' || desc.id==='const' || desc.id==='let') )return true;
                 return type;
             }
             return globals[ it.current.value ] ? globals[ it.current.value ].type : null;
     }
     return null;
 }
+
 
 /**
  * 获取类中成员信息。
@@ -663,7 +670,6 @@ function getClassPropertyDesc(it, object, name )
             }
         }
     }
-   // console.log(  object )
     error('"' + it.current.value + '" does not exits', 'reference', it.current );
 }
 
@@ -716,15 +722,13 @@ function toString( stack )
             continue;
         }
 
-        //if( !isstatement || (it.prev && it.prev.value ==='=' ) )
-        //{
-            var val = expression(it, isstatement);
-            if( val )
-            {
-                str.push( val );
-                continue;
-            }
-       // }
+        var val = expression(it, isstatement);
+        if( val )
+        {
+            str.push( val );
+            if(  it.next && it.next.id === '(keyword)' )str.push(' ');
+            continue;
+        }
 
         str.push(typeof it.current.value !== "undefined" ? it.current.value : it.current );
 
@@ -893,7 +897,7 @@ function makeModule( stack )
  * @param stack
  * @returns {string}
  */
-function getPropertyDescription(stack )
+function getPropertyDescription( stack )
 {
     var data = stack.content();
     var i = 0;

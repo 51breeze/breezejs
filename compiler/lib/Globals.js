@@ -45,7 +45,13 @@ var objects = {
     'SyntaxError':{'id':'class', 'type':'SyntaxError'},
     'TypeError':{'id':'class', 'type':'TypeError'},
     'URIError':{'id':'class', 'type':'URIError'},
-    'Function':{'id':'class', 'type':'Function'},
+    'Function':{
+        'id':'class', 'type':'Function','inherit':'Object',
+        'proto':{
+            'call':{'id':'function','type':'*','param':['Object'] },
+            'apply':{'id':'function','type':'*','param':['Object','Array']},
+        }
+    },
     'Date':{'id':'class', 'type':'Date'},
     'Boolean':{
         'id':'class',
