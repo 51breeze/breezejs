@@ -64,7 +64,7 @@ package lib
          * @param priority
          * @returns {EventDispatcher}
          */
-        function addEventListener(type,callback,useCapture,priority,reference):EventDispatcher
+        function addEventListener(type,callback,useCapture,priority,reference):lib.EventDispatcher
         {
             var len=type.length;
 
@@ -87,8 +87,6 @@ package lib
 
             while(  index < target.length )
             {
-
-
                 listener.dispatcher=this;
                 listener.currentTarget=target[index];
                 listener.type=type;

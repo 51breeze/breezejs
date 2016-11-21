@@ -194,11 +194,9 @@ function createFunction( stack , uid )
                 if( is )
                 {
                     content.push( 'if( !(this instanceof '+stack.parent().name()+') )throw new SyntaxError("Please use the new operation to build instances.");\n' );
-                    if( stack.parent().extends() )
+                    if( stack.parent().extends() && stack.called !==true )
                     {
-                        var p = param.param.slice(0);
-                        p.unshift('this');
-                        content.push( stack.parent().extends()+'.call('+p.join(',')+');\n');
+                        content.push( stack.parent().extends()+'.call(this);\n');
                     }
                     content.push('####{props}####');
                 }
@@ -438,7 +436,7 @@ function checkReference(it)
         return it.current.value;
     }
 
-    var self = it.stack.scope().define( 'this' );
+    var self = module( it.stack.scope().define( 'this' ).fullclassname );
     var desc = it.stack.scope().define( type );
     desc = desc ? module( desc.fullclassname ) : globals[ type ];
     if( !desc )
@@ -468,8 +466,8 @@ function checkReference(it)
     //调用超类
     if( it.current.value ==='super' )
     {
-        if( !self.scope.extends() )error('No parent class inheritance');
-        str.prop.splice(0,1, self.scope.extends() );
+        if( !self.inherit )error('No parent class inheritance');
+        str.prop.splice(0,1,  module( self.inherit ).classname );
         str.instance='this';
         issuper=true;
     }
@@ -495,7 +493,7 @@ function checkReference(it)
         it.seek();
         str.prop.push( it.current.value );
         if( issuper )str.prop.splice(1,0,'.prototype');
-        checkPropery(str,it, desc, prop ,desc.classname === self.classname );
+        checkPropery(str,it, desc, prop ,desc.fullclassname === self.fullclassname );
 
     }else if( it.next && it.next.value==='=' )
     {
@@ -886,7 +884,7 @@ function makeModule( stack )
             }
         }
     }
-    props = 'this["'+list.uid+'"]={'+props.join(',')+'};\n';
+    props = props.length > 0 ? 'this["'+list.uid+'"]={'+props.join(',')+'};\n' : '';
     list.constructor.value=list.constructor.value.replace('####{props}####', props );
     return list;
 }
@@ -1071,6 +1069,7 @@ function toValue( describe, flag )
             code.push( p+':'+ describe[p].value );
         }
     }
+    if( code.length === 0 )return null;
     return '{\n'+code.join(',\n')+'\n}';
 }
 
@@ -1127,19 +1126,33 @@ function start()
 
         index++;
         var str= '(function(){\n';
+        var inherit;
         for (var i in o.import )
         {
             var obj = module( o.import[i] ) || globals[ o.import[i] ];
-            if( typeof obj.id === "number" )
+            if( typeof obj.uid === "number" )
             {
+                if(o.inherit===o.import[i] )inherit = i;
                 str += 'var ' + i + '=' + getMethods('module', ['"' + o.import[i]+'"'])+';\n';
             }
         }
 
         str+='var '+o.classname+'='+o.constructor.value+';\n';
-        var proto = o.extends ? o.extends+'.prototype' : null;
-        str+=o.classname+'.prototype=Object.create('+proto+','+toValue(o.proto)+');\n';
-        str+='merge('+o.classname+','+toValue(o.static, true )+');\n';
+        var proto = inherit ? inherit+'.prototype' : null;
+
+        var _proto = toValue(o.proto);
+        var _static = toValue(o.static, true);
+
+        if( _proto )
+        {
+            str += o.classname + '.prototype=Object.create(' + proto + ',' + _proto + ');\n';
+        }
+
+        if( _static )
+        {
+            str += 'merge(' + o.classname + ',' + _static + ');\n';
+        }
+
         str+=o.classname+'.prototype.constructor='+o.classname+';\n';
         str+= 'return '+o.classname+';\n';
         str+= '})()';

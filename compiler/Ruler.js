@@ -385,7 +385,7 @@ syntax['import']=function (event)
     this.end();
 
     //如果没有指定别名，默认使用类名
-    if( name=== null )name = filename[filename.length-1];
+    if( name=== null )name = filename.join("");
 
     //检查文件路径名是否有效
     if( !checkSegmentation( filename, true ) )this.error('Invalid import');
@@ -499,7 +499,7 @@ syntax['class']=function( event )
     //设置类名
     scope.name( name );
     var classname = this.scope().parent().name() ? this.scope().parent().name()+'.'+name : name;
-    this.scope().define('this', {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name} );
+    this.scope().define('this', {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name, rootScope:this.scope().parent().scope() });
     this.scope().define(name, {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name} );
     
     //将类名加入被保护的属性名中
@@ -510,10 +510,18 @@ syntax['class']=function( event )
     //是否有继承
     if( n.id==='(keyword)' && n.value==='extends' )
     {
-        n = this.seek();
-        var p =  scope.define( n.value ) || this.config('globals')[ n.value ];
+        var parentClass = '';
+        this.loop(function (){
+            var t = this.seek().value;
+            if( t !=='.' && !checkStatement( t ) )this.error('Invalid type');
+            parentClass+=t;
+            if( this.next.value==='{' || this.next.id ==='(keyword)' )return false;
+            return true;
+        });
+
+        var p =  scope.define( parentClass ) || this.config('globals')[ parentClass ];
         if( !p ) this.error('"'+n.value+'" not is defined');
-        scope.extends( n.value );
+        scope.extends( parentClass );
         scope.define('super', p );
         this.seek();
     }
@@ -646,12 +654,19 @@ syntax['function']= function(event){
 
     var type='*';
 
-
     //返回类型
     if( this.next.id===':' )
     {
         this.seek();
-        type = this.seek().value;
+        type='';
+        this.loop(function (){
+            var t = this.seek().value;
+            if( t !=='.' && !checkStatement( t ) )this.error('Invalid type');
+            type+=t;
+            if( this.next.value==='{' )return false;
+            return true;
+        });
+
         var currentType = this.current;
         if( !checkStatementType(type, ps.define(), this.config('globals') ) )this.error( type+' not is defined');
         if( type !=='void' )
@@ -961,6 +976,13 @@ syntax["super"]=function (e)
     if( !fun || fun.parent().keyword() !=='class' || fun.static() )this.error();
     if( !fun.parent().extends() )this.error('No parent class inheritance');
     this.add( this.current );
+
+    // 是不否有调用超类
+    if( fun.parent().name() === fun.name() && this.next.value==='(' )
+    {
+        fun.called=true;
+    }
+
     if( !isDelimiter( this.next.value ) || balance[ this.next.value ] )
     {
         this.step();
@@ -1380,12 +1402,17 @@ function statement()
         var current = this.current;
         var prev = this.prev;
         this.seek();
-        type = this.seek().value;
+        type='';
+        this.loop(function (){
+            var t = this.seek().value;
+            if( t !=='.' && !checkStatement( t ) )this.error('Invalid type');
+            type+=t;
+            if( this.next.value===',' || this.next.value==='=' || this.next.value===';' || this.next.id !=='(identifier)' )return false;
+            return true;
+        });
         this.current= current;
         this.prev = prev;
     }
-
-
 
     //检查属性名是否可以声明
     if( !checkStatement(name, this.config('reserved') ) )
