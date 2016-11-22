@@ -25,8 +25,9 @@ package com
          public var name:String = '3' ;
          protected const age:String = '3' ;
 
-         function D(jj)
+         function D(jj:String='123')
           {
+
               var cc:Number=66;
               this.name = '9999';
          }
