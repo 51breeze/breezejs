@@ -1047,9 +1047,28 @@ function loadModuleDescription( file )
         data.uid= id;
     }
 
-    for(var i in data.import )loadModuleDescription( data.import[i] );
+    for(var i in data.import )
+    {
+        if( data.import[i].charAt( data.import[i].length - 1 ) ==='*' )
+        {
+            getDirectoryFiles( data.import[i].substr(0,-2) );
+
+        }else
+        {
+            loadModuleDescription(data.import[i]);
+        }
+    }
     syntaxDescribe.push( data );
     module( file, data);
+}
+
+
+function getDirectoryFiles( path )
+{
+
+    var files = fs.readdirSync( path );
+    console.log( files );
+
 }
 
 /**

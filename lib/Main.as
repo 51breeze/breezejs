@@ -5,8 +5,7 @@
 package {
 
 
-import com.B;
-import com.D;
+import com.*;
 
 import lib.EventDispatcher;
 

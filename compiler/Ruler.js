@@ -2721,7 +2721,7 @@ Ruler.prototype.operator=function(s)
     {
         return describe('(operator)', s.charAt(0), s.charAt(0) );
 
-    }else if( s===':*=' || s===':*' )
+    }else if( s===':*=' || s===':*' || s==='.*' )
     {
         return describe('(operator)', s.charAt(0), s.charAt(0) );
     }
