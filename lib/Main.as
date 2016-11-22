@@ -1,27 +1,30 @@
+
 /**
- * Created by Administrator on 2016/11/21.
+ +------------------------------------------------------------------------------
+ * @package  : com.library.Cdisplay
+ +------------------------------------------------------------------------------
+ * @class    : 显示块类
+ +------------------------------------------------------------------------------
+ * @access   :
+ *
+ +------------------------------------------------------------------------------
+ * @author   : yejun <664371281@qq.com>
+ +------------------------------------------------------------------------------
  */
 
-package {
 
+//类
+package
+{
+    import com.*;
+    import lib.EventDispatcher;
 
-import com.*;
-
-import lib.EventDispatcher;
-
-class Main extends com.B {
-
-    var name:String='123';
-    var c:Class=B;
-
-    function Main(){
-
-        super('123');
-
-       // new this.c();
-
+    public class Main extends B {
+          function Main(jj)
+          {
+              super(jj);
+              console.log( B.classname );
+              console.log( this.names );
+          }
     }
-
-}
-
 }

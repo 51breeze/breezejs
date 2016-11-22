@@ -203,6 +203,11 @@ function checkStatementType( type , scope , globals )
     if( type==='*' || type==='void' )return true;
     if( globals && globals[type] && globals[type].id==='class' )return true;
     var val = scope.define( type , undefined, true );
+    if( !val )
+    {
+        var self = scope.define('this')
+        if( self && self.fullclassname === type )return self;
+    }
     return val && val.id==='class' ? val : null;
 }
 
@@ -346,6 +351,38 @@ syntax["package"]=function (event)
 };
 
 
+function importClass( classname, filename , scope )
+{
+    //如果没有指定别名，默认使用类名
+    if( classname=== null )
+    {
+        //取类名
+        classname = filename[ filename.length-1 ];
+
+        //如果类名已定义则取全名
+        if( scope.define(classname) )classname = filename.join('');
+    }
+
+    //检查文件路径名是否有效
+    if( !checkSegmentation( filename, true ) )this.error('Invalid import');
+
+    var desc = {'type':'('+classname+')','id':'class','fullclassname':filename.join(""),'classname':classname };
+
+    //防止定义重复的类名
+    if( scope.define(classname) )error('class name the "'+classname+'" is already been defined');
+
+    //将类描述信息定义到域中
+    scope.define( classname , desc );
+
+    //加入到被保护的属性名中
+    //this.config('reserved').push( name );
+
+    var current = Stack.current();
+    this.dispatcher( new Event('loadModule',{name:desc.fullclassname}) );
+    Stack.__current__=current;
+}
+
+
 /**
  * 引用模块
  * @param event
@@ -373,6 +410,15 @@ syntax['import']=function (event)
             return false;
         }
 
+        //目录下的所有文件
+        if( this.current.value==='*' && this.prev.value==='.' )
+        {
+            filename.pop();
+            this.dispatcher( new Event('fetchFiles',{path:filename.join(''),scope:s.scope(),callback:importClass}) );
+            filename=[];
+            return false;
+        }
+
         //是否到达结尾
         if( this.current.id === ';' || this.current.id==='(keyword)' || s.close() )return false;
 
@@ -385,35 +431,9 @@ syntax['import']=function (event)
     //关闭此语法
     this.end();
 
-    //如果没有指定别名，默认使用类名
-    if( name=== null )
-    {
-        //取类名
-        name = filename[filename.length-1];
-
-        //如果类名已定义则取全名
-        if( s.scope().define(name) )name = filename.join('');
-    }
-
-    //检查文件路径名是否有效
-    if( !checkSegmentation( filename, true ) )this.error('Invalid import');
-
-    var p = s.parent();
-    var desc = {'type':'('+name+')','id':'class','fullclassname':filename.join(""),'classname':name };
-
-    //防止定义重复的类名
-    if( s.scope().define(name) )error('class name the "'+name+'" is already been defined')
-    s.scope().define( name , desc );
-
     //从父级中删除
-    p.content().splice(index, p.length()-index);
-
-    var current = Stack.current();
-    this.dispatcher( new Event('loadModule',{name:desc.classname}) );
-    Stack.__current__=current;
-
-    //加入到被保护的属性名中
-    //this.config('reserved').push( name );
+    s.parent().content().splice(index, s.parent().length()-index);
+    if( filename.length > 0 )importClass.call(this, name , filename, s.scope() );
 };
 
 syntax['private,protected,internal,static,public,override,final']=function(event)
@@ -507,8 +527,8 @@ syntax['class']=function( event )
     scope.name( name );
     var classname = this.scope().parent().name() ? this.scope().parent().name()+'.'+name : name;
     this.scope().define('this', {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name} );
-    this.scope().define(name, {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name} );
-    
+    this.scope().define(name, {'type':'('+name+')','id':'class','fullclassname':classname ,'classname':name} );
+
     //将类名加入被保护的属性名中
     //this.config('reserved').push( name );
 
@@ -652,7 +672,6 @@ syntax['function']= function(event){
     if( this.current.id !==')' ) this.error('Missing token )');
 
     var type='*';
-
 
     //返回类型
     if( this.next.id===':' )
@@ -881,17 +900,26 @@ syntax["return"]=function(event)
     this.add( s );
     this.step();
 
-    var funScope = getParentFunction( s );
+    var scope = s.scope();
    // if( !funScope.returnValues )funScope.returnValues=[];
-    funScope.isReturn=true;
+    scope.isReturn=true;
    // funScope.returnValues.push( s );
 
-    var type = funScope.type();
+    var type = scope.type();
     if( type==='(void)' )this.error('Do not return');
-    if( type!=='(*)' && type !== s.type() && ( s.type() !== '(*)' || s.length()===0) )
+    if( type!=='(*)' && s.type() !== '(*)' && type !== s.type() )
     {
-        this.error('Can only return '+type, current,'type' );
+        var ret = false;
+        if( s.length()>0 )
+        {
+            var desc = scope.define( s.type().replace(/^\(|\)$/g,'') );
+            if( desc && '('+desc.fullclassname+')' === type ){
+                ret=true;
+            }
+        }
+        if( !ret )this.error('Can only return '+type, current,'type' );
     }
+    this.end();
 }
 
 syntax["case,default"]=function(e)

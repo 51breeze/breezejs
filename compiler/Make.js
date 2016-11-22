@@ -430,14 +430,6 @@ function checkReference(it)
         it.seek();
         str.prop.push(' ');
         str.prop.push( it.current.value );
-
-        if( it.next && it.next.value==='this')
-        {
-            it.seek();
-            str.prop.push( it.current.value );
-            it.seek();
-            str.prop.push( it.current.value );
-        }
         str.prop = [ str.prop.join('') ];
     }
 
@@ -1020,6 +1012,18 @@ function loadModuleDescription( file )
         {
             var name = file.split('.').pop();
             if( e.value !== name )R.error('the class "'+e.value+'" and the actual file name is not the same');
+
+        }).addListener('fetchFiles',function (e)
+        {
+            var files = getDirectoryFiles( e.path );
+            var self= this;
+            files.forEach(function (a) {
+                if(a==='.' || a==='..')return;
+                var filepath = e.path.split('.');
+                filepath.push('.');
+                filepath.push( PATH.basename(a, PATH.extname(a) ) );
+                e.callback.call(self, null, filepath, e.scope );
+            });
         })
 
         //解析代码语法
@@ -1049,26 +1053,18 @@ function loadModuleDescription( file )
 
     for(var i in data.import )
     {
-        if( data.import[i].charAt( data.import[i].length - 1 ) ==='*' )
-        {
-            getDirectoryFiles( data.import[i].substr(0,-2) );
-
-        }else
-        {
-            loadModuleDescription(data.import[i]);
-        }
+        loadModuleDescription(data.import[i]);
     }
     syntaxDescribe.push( data );
     module( file, data);
 }
-
+    
 
 function getDirectoryFiles( path )
 {
-
+    path = PATH.resolve(config.lib, path.replace('.',PATH.sep) )
     var files = fs.readdirSync( path );
-    console.log( files );
-
+    return files;
 }
 
 /**
