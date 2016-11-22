@@ -198,11 +198,12 @@ function checkStatement(s, include )
  * @param defined
  * @returns {boolean}
  */
-function checkStatementType( type , defined , globals )
+function checkStatementType( type , scope , globals )
 {
     if( type==='*' || type==='void' )return true;
-    if( globals && typeof globals[type] === "object" && globals[type].id==='class' )return true;
-    return defined && typeof defined[type] === "object" && defined[type].id==='class';
+    if( globals && globals[type] && globals[type].id==='class' )return true;
+    var val = scope.define( type , undefined, true );
+    return val && val.id==='class' ? val : null;
 }
 
 /**
@@ -385,7 +386,14 @@ syntax['import']=function (event)
     this.end();
 
     //如果没有指定别名，默认使用类名
-    if( name=== null )name = filename.join("");
+    if( name=== null )
+    {
+        //取类名
+        name = filename[filename.length-1];
+
+        //如果类名已定义则取全名
+        if( s.scope().define(name) )name = filename.join('');
+    }
 
     //检查文件路径名是否有效
     if( !checkSegmentation( filename, true ) )this.error('Invalid import');
@@ -393,10 +401,9 @@ syntax['import']=function (event)
     var p = s.parent();
     var desc = {'type':'('+name+')','id':'class','fullclassname':filename.join(""),'classname':name };
 
-
     //防止定义重复的类名
-    if(s.define(name) && globalObject.indexOf(name)<0 )error('class name the "'+name+'" is already been defined')
-    s.define( name , desc );
+    if( s.scope().define(name) )error('class name the "'+name+'" is already been defined')
+    s.scope().define( name , desc );
 
     //从父级中删除
     p.content().splice(index, p.length()-index);
@@ -494,12 +501,12 @@ syntax['class']=function( event )
     var e = new Event('checkClassName',{value:n.value});
     this.dispatcher( e );
     var name = e.value;
-    if( this.scope().parent().define( name ) )this.error('class name the "'+name+'" is already been declared',this.current);
+    if( scope.parent().scope().define( name ) )this.error('class name the "'+name+'" is already been declared',this.current);
 
     //设置类名
     scope.name( name );
     var classname = this.scope().parent().name() ? this.scope().parent().name()+'.'+name : name;
-    this.scope().define('this', {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name, rootScope:this.scope().parent().scope() });
+    this.scope().define('this', {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name} );
     this.scope().define(name, {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name} );
     
     //将类名加入被保护的属性名中
@@ -510,22 +517,14 @@ syntax['class']=function( event )
     //是否有继承
     if( n.id==='(keyword)' && n.value==='extends' )
     {
-        var parentClass = '';
-        this.loop(function (){
-            var t = this.seek().value;
-            if( t !=='.' && !checkStatement( t ) )this.error('Invalid type');
-            parentClass+=t;
-            if( this.next.value==='{' || this.next.id ==='(keyword)' )return false;
-            return true;
-        });
-
-        var p =  scope.define( parentClass ) || this.config('globals')[ parentClass ];
-        if( !p ) this.error('"'+n.value+'" not is defined');
-        scope.extends( parentClass );
+        var parent = getTypeName.call(this);
+        var p = checkStatementType(parent, scope.parent().scope(),  this.config('globals')  );
+        if( !p ) this.error('"'+parent+'" not is defined');
+        scope.extends( p.classname );
         scope.define('super', p );
         this.seek();
     }
-    if( this.current.id !=='{' )this.error('Missing token {');
+    if( this.current.id !== '{' )this.error('Missing token {');
     this.loop(function(){
         if( this.next.id === '}' ) return false;
         this.step();
@@ -654,21 +653,14 @@ syntax['function']= function(event){
 
     var type='*';
 
+
     //返回类型
     if( this.next.id===':' )
     {
         this.seek();
-        type='';
-        this.loop(function (){
-            var t = this.seek().value;
-            if( t !=='.' && !checkStatement( t ) )this.error('Invalid type');
-            type+=t;
-            if( this.next.value==='{' )return false;
-            return true;
-        });
-
+        type = getTypeName.call(this);
         var currentType = this.current;
-        if( !checkStatementType(type, ps.define(), this.config('globals') ) )this.error( type+' not is defined');
+        if( !checkStatementType(type, ps , this.config('globals') ) )this.error( type+' not is defined');
         if( type !=='void' )
         {
             s.addListener('(switch)', function (e) {
@@ -975,14 +967,14 @@ syntax["super"]=function (e)
     var fun = getParentFunction( this.scope() );
     if( !fun || fun.parent().keyword() !=='class' || fun.static() )this.error();
     if( !fun.parent().extends() )this.error('No parent class inheritance');
-    this.add( this.current );
 
-    // 是不否有调用超类
-    if( fun.parent().name() === fun.name() && this.next.value==='(' )
+    //构造函数中有调用超类
+    if( fun.parent().keyword() ==='class' && fun.name()===fun.parent().name() )
     {
         fun.called=true;
     }
 
+    this.add( this.current );
     if( !isDelimiter( this.next.value ) || balance[ this.next.value ] )
     {
         this.step();
@@ -1035,16 +1027,19 @@ syntax["new"]=function(e)
     //如果上一个是标识并且当前未换行
     if( (this.prev.type==='(identifier)' || this.prev.id==='(keyword)') &&
         this.prev.value!=='throw' && this.prev.line===this.current.line )this.error();
-    if( this.next.type!=='(identifier)' || this.next.id==='(keyword)')this.error();
+
     if( s.keyword()!=='expression')
     {
-        s = new Stack('expression', '('+this.next.value+')' );
+        var current =  this.current;
+        s = new Stack('expression', '(*)' );
+        s.addListener('(switch)',function(){
+
+            if( this.type() !=='(Class)' && this.type()!=='(*)' )
+            {
+                error('"'+current.value+'" is not class', 'type', current);
+            }
+        })
         this.add( s );
-    }
-    var ps =  this.scope().scope();
-    if( !checkStatementType(this.next.value, ps.define() , this.config('globals') ) )
-    {
-        this.error(this.next.value+' not define');
     }
     this.add( this.current );
     this.step();
@@ -1389,6 +1384,23 @@ syntax['(operator)']=function( e )
 }
 
 /**
+ * 获取类型名
+ * @returns {string}
+ */
+function getTypeName()
+{
+    var type=[];
+    this.loop(function(){
+         this.seek();
+         type.push(this.current.value);
+         if( !(this.next.value==='.' || this.next.id==='(identifier)') )return false;
+         return true;
+    });
+    if( !checkSegmentation(type, true) )this.error('Invalid type name');
+    return type.join('');
+}
+
+/**
  * 声明属性
  */
 function statement()
@@ -1402,17 +1414,11 @@ function statement()
         var current = this.current;
         var prev = this.prev;
         this.seek();
-        type='';
-        this.loop(function (){
-            var t = this.seek().value;
-            if( t !=='.' && !checkStatement( t ) )this.error('Invalid type');
-            type+=t;
-            if( this.next.value===',' || this.next.value==='=' || this.next.value===';' || this.next.id !=='(identifier)' )return false;
-            return true;
-        });
+        type= getTypeName.call(this);
         this.current= current;
         this.prev = prev;
     }
+
 
     //检查属性名是否可以声明
     if( !checkStatement(name, this.config('reserved') ) )
@@ -1436,13 +1442,15 @@ function statement()
     }
 
     //检查声明的类型是否定义
-    if( !checkStatementType(type, this.scope().define() , this.config('globals') ) )this.error( type+' not is defined');
+    if( !checkStatementType(type, ps.scope() , this.config('globals') ) )this.error( type+' not is defined');
 
     var val = this.scope().define( prefix+name );
 
+    var pscope = getParentScope( this.scope() );
+
     //不能重复声明属性
-    if( val && val.scope === ps )this.error('Identifier "'+name+'" has already been declared');
-    this.scope().define(prefix+name, {'type':'('+type+')','static':prefix ? 'static' : '', id:id });
+    if( val && val.scope === pscope )this.error('Identifier "'+name+'" has already been declared');
+    this.scope().define(prefix+name, {'type':'('+type+')','static':prefix ? 'static' : '', id:id ,scope:pscope } );
 
     //声明的属性后面只能是 '=','in' 或者 ','操作符
     if( isOperator(this.next.value) && !(this.next.value==='=' || this.next.value===',' || this.next.value==='in') )
@@ -1552,47 +1560,41 @@ syntax['(identifier)']=function( e )
                 {
                     var global = this.config('globals');
                     desc = global[ this.current.value ];
-                    if (!desc || this.next.value === '='){
+                }
+                if ( !desc )this.error(this.current.value + ' not is defined', this.current, 'reference');
 
-                      // console.log( this.scope().parent().parent() )
-
-                        this.error(this.current.value + ' not is defined', this.current, 'reference');
-                    }
-
-                } else
+                //如果对此表达式进行赋值则检查引用的类型是否与表达式的类型一致
+                if (this.next.value === '=')
                 {
-                    //如果对此表达式进行赋值则检查引用的类型是否与表达式的类型一致
-                    if (this.next.value === '=')
-                    {
-                        var current = this.current;
+                    var current = this.current;
 
-                        //如果修改常量
-                        if (desc.id === 'const' && id !== 'statement')
-                            this.error('constant can not be alter for "' + current.value + '"', current, 'syntax');
+                    //如果修改常量
+                    if (desc.id === 'const' && id !== 'statement')
+                        this.error('constant can not be alter for "' + current.value + '"', current, 'syntax');
 
-                        //类引用不能修改
-                        if (desc.id === 'class')
-                            this.error('class can not be alter for "' + current.value + '"', current, 'syntax');
+                    //类引用不能修改
+                    if (desc.id === 'class')
+                        this.error('class can not be alter for "' + current.value + '"', current, 'syntax');
 
-                        //如果引用的类型不一致
-                        this.scope().addListener('(switch)', function (e) {
-                            if (desc.type !== '(*)') {
-                                if ( this.type() !=='(*)' && this.type() !== desc.type && this.type() !=='(Object)')
-                                    error('type is not consistent, can only be ' + desc.type, 'type', current);
-                            } else {
-                                desc.type = this.type();
-                            }
-                        });
-                    }
+                    //如果引用的类型不一致
+                    this.scope().addListener('(switch)', function (e) {
+                        if (desc.type !== '(*)') {
+                            if ( this.type() !=='(*)' && this.type() !== desc.type && this.type() !=='(Object)')
+                                error('type is not consistent, can only be ' + desc.type, 'type', current);
+                        } else {
+                            desc.type = this.type();
+                        }
+                    });
                 }
 
                 type = desc.type;
-                if( desc.id==='class' && this.current.value !=='this' && this.prev.value !=='new' )
+                if( desc.id==='class' && this.current.value !=='this' )
                 {
                     type='(Class)';
                 }
-
-            }else if( type==='(Boolean)' &&  this.next.value==='.' )
+            }
+            //字面量获得类型后面不能有点运算符
+            else if( (type==='(Boolean)' || type==='(Number)' || type==='(Object)' ) &&  this.next.value==='.' )
             {
                 this.error('', this.next );
             }
@@ -1896,16 +1898,31 @@ Stack.prototype.scope=function()
  * @param desc 属性描述
  * @returns {*}
  */
-Stack.prototype.define=function(prop , desc )
+Stack.prototype.define=function(prop , desc , classname )
 {
     if( typeof prop === 'undefined' )return this.scope().__define__;
     if( typeof prop === 'string' &&  typeof desc === 'undefined' )
     {
-        return this.scope().__define__[prop];
+        var ret = this.scope().__define__[prop];
+        if( !ret && classname )
+        {
+            var scope = this.scope();
+            while ( scope.keyword() !== 'package' && scope.parent() )scope = scope.parent();
+            var data = scope.define();
+            for (var i in data )
+            {
+                if( data[i].id==='class' && data[i].fullclassname===prop )
+                {
+                    return data[i];
+                }
+            }
+        }
+        return ret ? ret : null;
     }
     this.scope().__define__[prop]=desc;
     return this;
 }
+
 
 /**
  * 关键字
@@ -2704,7 +2721,7 @@ Ruler.prototype.operator=function(s)
     {
         return describe('(operator)', s.charAt(0), s.charAt(0) );
 
-    }else if( s===':*=' || s===':*' )
+    }else if( s===':*=' || s===':*' || s==='.*' )
     {
         return describe('(operator)', s.charAt(0), s.charAt(0) );
     }
