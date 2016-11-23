@@ -202,13 +202,39 @@ function checkStatementType( type , scope , globals )
 {
     if( type==='*' || type==='void' )return true;
     if( globals && globals[type] && globals[type].id==='class' )return true;
-    var val = scope.defineGet('proto', type , true );
-    if( !val )
+    if( scope )
     {
-        var self = scope.defineGet('proto','this');
-        if( self && self.fullclassname === type )return self;
+        scope = rootScope( scope , 'class' );
+        if( scope )
+        {
+            scope=scope.scope();
+            var val = scope.define( type );
+            if( !val )
+            {
+                var def = scope.define();
+                for (var i in def)if (def[i].fullclassname === type)
+                {
+                    val= def[i];
+                    break;
+                }
+            }
+            return val && val.id==='class' ? val : null;
+        }
     }
-    return val && val.id==='class' ? val : null;
+    return null;
+
+}
+
+/**
+ * 获取根作用域
+ * @param scope
+ * @returns {null}
+ */
+function rootScope( scope , root )
+{
+    root = root || 'package';
+    while ( scope && scope.keyword() !== root && scope.parent() )scope = scope.parent();
+    return scope && scope.keyword() === root ? scope : null;
 }
 
 /**
@@ -360,7 +386,7 @@ function importClass( classname, filename , scope )
         classname = filename[ filename.length-1 ];
 
         //如果类名已定义则取全名
-        if( scope.defineGet(classname) )classname = filename.join('');
+        if( scope.define(classname) )classname = filename.join('');
     }
 
     //检查文件路径名是否有效
@@ -369,10 +395,10 @@ function importClass( classname, filename , scope )
     var desc = {'type':'('+classname+')','id':'class','fullclassname':filename.join(""),'classname':classname };
 
     //防止定义重复的类名
-    if( scope.defineGet('proto',classname) )error('class name the "'+classname+'" is already been defined');
+    if( scope.define(classname) )error('class name the "'+classname+'" is already been defined');
 
     //将类描述信息定义到域中
-    scope.defineSet('proto', classname , desc );
+    scope.define(classname , desc );
 
     //加入到被保护的属性名中
     //this.config('reserved').push( name );
@@ -484,7 +510,12 @@ syntax['private,protected,internal,static,public,override,final']=function(event
 
     if( n.value==='class' || n.value === 'function' )
     {
-        this.add(new Scope(n.value, '(block)'));
+        if( n.value==='class' )
+        {
+            this.add( new Class() );
+        }else {
+            this.add(new Scope(n.value, '(block)'));
+        }
         this.scope().static( s );
         this.scope().qualifier( q );
         this.scope().override( o );
@@ -512,7 +543,7 @@ syntax['private,protected,internal,static,public,override,final']=function(event
 syntax['class']=function( event )
 {
     event.prevented=true;
-    if( this.scope().keyword() !=='class' )this.add( new Scope('class', '(block)') );
+    if( this.scope().keyword() !=='class' )this.add( new Class() );
     if( this.scope().parent().keyword() !=='package' )this.error();
 
     var scope = this.scope();
@@ -528,17 +559,21 @@ syntax['class']=function( event )
     //设置类名
     scope.name( name );
 
-    //类名不能与导入的类名相同
-    if( scope.parent().scope().defineGet( name ) )this.error('class name the "'+name+'" is already been declared',this.current);
-
     //完整的类名
     var classname = this.scope().parent().name() ? this.scope().parent().name()+'.'+name : name;
 
+    //类名不能与导入的类名相同
+    var def = scope.parent().scope().define();
+    for (var i in def)if (def[i].fullclassname === classname)
+    {
+        this.error('class name the "'+name+'" is already been declared',this.current);
+    }
+
     //实例作用域
-    scope.scope().defineSet('proto','this', {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name} );
+    scope.scope().define('this', {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name} );
 
     //静态类作用域
-    scope.scope().defineSet('static',name, {'type':'('+name+')','id':'class','fullclassname':classname ,'classname':name} );
+    scope.scope().define(name, {'type':'('+name+')','id':'class','fullclassname':classname ,'classname':name} );
 
     //将类名加入被保护的属性名中
     //this.config('reserved').push( name );
@@ -557,7 +592,7 @@ syntax['class']=function( event )
         scope.extends( p.classname );
 
         //定义超类引用
-        scope.scope().defineSet('proto','super', p );
+        scope.scope().define('super', p );
         this.seek();
     }
 
@@ -733,13 +768,16 @@ syntax['function']= function(event){
     if( name )
     {
         //不能重复声明函数
-        var val = ps.defineGet( prefix, name );
+        var val = ps.define( name );
+        if( ps instanceof Class )val = ps.defineProps(prefix, name );
+
         if( val )
         {
-            if( !s.accessor() || s.accessor() === val.get || s.accessor() === val.set )
+            if( !val.constructor && (!s.accessor() || s.accessor() === val.get || s.accessor() === val.set) )
             {
                 this.error('function "'+name+'" has already been declared');
             }
+            if( is )val.constructor=true;
 
             //同一访问器的修饰符必须一致
             if( s.accessor() && val.qualifier !== s.qualifier() )
@@ -749,20 +787,14 @@ syntax['function']= function(event){
 
             if( s.accessor() )val[ s.accessor() ]=s.accessor();
 
-        }else
+        }else if( !is )
         {
             var obj = {type: '(' + type + ')', 'id':'function','qualifier':s.qualifier() };
-
-            if( is )
-            {
-                obj.type = '(' + name + ')';
-                obj.id = 'class';
-                obj.constructor = true;
-                obj.fullclassname = ps.defineGet('proto','this').fullclassname;
-            }
-
             if( s.accessor() )obj[ s.accessor() ]=s.accessor();
-            ps.defineSet( prefix, name, obj );
+            if( ps instanceof Class )
+                ps.defineProps(prefix, name , obj );
+            else
+                ps.define(name, obj);
         }
     }
 
@@ -946,7 +978,7 @@ syntax["return"]=function(event)
         var ret = false;
         if( s.length()>0 )
         {
-            var desc = scope.defineGet('proto',s.type().replace(/^\(|\)$/g,'') );
+            var desc = scope.define(s.type().replace(/^\(|\)$/g,'') );
             if( desc && '('+desc.fullclassname+')' === type ){
                 ret=true;
             }
@@ -1012,7 +1044,7 @@ syntax["this"]=function (e)
     if( fun.parent().keyword() ==='class' && fun.static() )this.error('this is not defined in static function');
     if( fun.parent().keyword() ==='class' )
     {
-        this.scope().type( this.scope().scope().defineGet('proto','this').type );
+        this.scope().type( this.scope().scope().define('this').type );
     }
     this.add( this.current );
     if( !isDelimiter( this.next.value ) )
@@ -1505,13 +1537,23 @@ function statement()
     //检查声明的类型是否定义
     if( !checkStatementType(type, ps.scope() , this.config('globals') ) )this.error( type+' not is defined');
 
-    var val = this.scope().scope().defineGet( prefix, name );
+    var desc = {'type':'('+type+')','id':id};
 
-    var pscope = getParentScope( this.scope() );
+    //类成员属性
+    if( ps.parent() instanceof Class )
+    {
+        if( ps.parent().defineProps(prefix, name) )this.error('Identifier "'+name+'" has already been declared');
+        ps.parent().defineProps(prefix, name, desc);
 
-    //不能重复声明属性
-    if( val && val.scope === pscope )this.error('Identifier "'+name+'" has already been declared');
-    this.scope().scope().defineSet(prefix, name, {'type':'('+type+')',id:id ,scope:pscope } );
+    }else
+    {
+        var val = ps.scope().define( name , desc);
+        if( val ){
+            var pscope = getParentScope( this.scope() );
+            if(val.scope === pscope)this.error('Identifier "'+name+'" has already been declared');
+        }
+        ps.scope().define( name , desc);
+    }
 
     //声明的属性后面只能是 '=','in' 或者 ','操作符
     if( isOperator(this.next.value) && !(this.next.value==='=' || this.next.value===',' || this.next.value==='in') )
@@ -1546,7 +1588,7 @@ function toType( o , scope )
                 return '(Boolean)';
                 break;
             case 'this' :
-                return scope.scope().defineGet('proto', 'this' ).type;
+                return scope.scope().define('this').type;
                 break;
         }
 
@@ -1605,10 +1647,7 @@ syntax['(identifier)']=function( e )
                 var ps = this.scope().scope();
 
                 //是否有声明
-                var desc = ps.defineGet('proto', this.current.value );
-
-                //是否为静态的属性
-                if (!desc)desc = ps.defineGet('static', this.current.value );
+                var desc = ps.define( this.current.value );
 
                 //是否为全局对象
                 if ( !desc )
@@ -1923,7 +1962,6 @@ Stack.prototype.constructor = Stack;
  */
 Stack.prototype.scope=function()
 {
-
    if( this.__scope__===null )
    {
        this.__scope__ = this;
@@ -1947,47 +1985,23 @@ Stack.prototype.scope=function()
    return this.__scope__;
 }
 
-
 /**
- * 设置已声明的引用描述
+ * 设置获取已声明的引用描述
  * @param prefix  proto | static
  * @param prop 属性名称
  * @param desc 属性描述
  * @returns {*}
  */
-Stack.prototype.defineSet=function(prefix, prop , desc )
+Stack.prototype.define=function( prop , desc )
 {
-    this.scope().__define__[prefix][prop]=desc;
-    return this;
-}
-
-/**
- * 获取已声明的引用描述
- * @param prefix  proto | static
- * @param prop 属性名称
- * @param classname 是否为类
- * @returns {*}
- */
-Stack.prototype.defineGet=function(prefix, prop , classname)
-{
-    if( typeof prefix === 'undefined' )return this.scope().__define__;
-    if( typeof prop === 'undefined' )return this.scope().__define__[prefix];
-    var ret = this.scope().__define__[prefix][prop];
-    if( !ret && classname )
+    if( typeof prop === "string" )
     {
-        var scope = this.scope();
-        ret = scope.defineGet('proto', 'this');
-        if(ret && ret.fullclassname === prop )return ret;
-        while ( scope.keyword() !== 'package' && scope.parent() )scope = scope.parent();
-        var data = scope.defineGet(prefix);
-        for (var i in data )
-        {
-            if( data[i].id==='class' && data[i].fullclassname===prop )return data[i];
-        }
+        if( typeof desc === 'undefined' )return this.scope().__define__[prop];
+        this.scope().__define__[prop]=desc;
+        return this;
     }
-    return ret ? ret : null;
+    return this.scope().__define__;
 }
-
 
 /**
  * 关键字
@@ -2072,18 +2086,13 @@ Stack.prototype.add=function( val, index )
             //指定的子级的父级对象的引用
             val.__parent__ = this;
             Stack.__current__ = val;
-
-
         }
-
         index = index || this.length();
         this.__content__.splice(index,0,val);
         return true;
     }
     return false;
 }
-
-
 
 /**
  * 父级
@@ -2247,8 +2256,6 @@ Scope.prototype.param=function( type )
     return this.__param__;
 }
 
-
-
 /**
  * 访问器类型
  * @param name get|set
@@ -2262,17 +2269,48 @@ Scope.prototype.accessor=function( accessor )
 }
 
 /**
+ * 代码块的作用域
+ * @param type
+ * @constructor
+ */
+function Class()
+{
+    if( !(this instanceof Scope) )return new Class();
+    Scope.call(this,'class','(block)');
+    this.__extends__='';
+    this.__defineProps__={'proto':{},'static':{}}
+}
+Class.prototype = new Scope();
+Class.prototype.constructor=Class;
+
+/**
+ * 定义成员属性
+ * @param name
+ * @param prop
+ * @param desc
+ * @returns {*}
+ */
+Class.prototype.defineProps=function(name, prop, desc)
+{
+    if( typeof desc === "undefined" )
+    {
+        return this.__defineProps__[name][prop];
+    }
+    this.__defineProps__[name][prop] = desc;
+    return this;
+};
+
+/**
  * 是否有继承
  * @param name
  * @returns {*}
  */
-Scope.prototype.extends=function( name )
+Class.prototype.extends=function( name )
 {
     if( typeof name === 'undefined' )return this.__extends__;
     this.__extends__=name;
     return this;
 }
-
 
 /**
  * 默认配置
