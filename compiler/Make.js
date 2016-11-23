@@ -129,7 +129,7 @@ function createDefaultParam( stack , uid )
     if( name )
     {
         var ps = stack.scope();
-        var desc = ps.define( name );
+        var desc = ps.defineGet('proto', name );
 
         if (value)
         {
@@ -376,9 +376,9 @@ function callToString(str, it, desc)
             //没有返回值
             if( desc.type === 'void' )error('"' + it.prev.value + '" function not return.', 'reference', it.prev);
             var prop = desc.type==='Class' ? 'static' : 'proto';
-            var self = it.stack.scope().define( 'this' );
+            var self = it.stack.scope().defineGet('proto', 'this' );
             var type = desc.type;
-            desc = it.stack.scope().define( type );
+            desc = it.stack.scope().defineGet(prop, type );
             desc = desc ? module( desc.fullclassname ) : globals[ type ];
             if( !desc )error('"'+ it.current.value+'" is not defined.');
             it.seek();
@@ -448,11 +448,21 @@ function checkReference(it)
         return it.current.value;
     }
 
-    var self = module( it.stack.scope().define( 'this' ).fullclassname );
-    var desc = it.stack.scope().define( type );
+    var self = module( it.stack.scope().defineGet('proto', 'this' ).fullclassname );
+    var desc = it.stack.scope().defineGet('proto', type );
+
+
+
+
     desc = desc ? module( desc.fullclassname ) : globals[ type ];
+
+
+
+
+
     if( !desc )
     {
+        console.log( it.stack.scope().defineGet('static', type ) )
         error('"'+it.current.value+'" is not defined.','', it.current);
     }
 
@@ -595,8 +605,8 @@ function checkPropery(str,it,object, name, privatize )
 
     }else if( it.next && it.next.value==='.' && desc.type !=='*' )
     {
-        var self = it.stack.scope().define( 'this' );
-        desc = it.stack.scope().define( desc.type );
+        var self = it.stack.scope().defineGet('proto', 'this' );
+        desc = it.stack.scope().defineGet('proto', desc.type );
         object = desc ? module( desc.fullclassname ) : globals[ desc.type ];
         if( object )
         {
@@ -626,7 +636,7 @@ function getIdentifierType( it )
         case '(regexp)' :
             return 'RegExp';
         default :
-            var desc = it.stack.scope().define( it.current.value ) || it.stack.scope().define( 'static_'+it.current.value );
+            var desc = it.stack.scope().defineGet('proto', it.current.value ) || it.stack.scope().defineGet( 'static', it.current.value );
             if( desc )
             {
                 var type = getType( desc.type );
@@ -659,7 +669,7 @@ function getClassPropertyDesc(it, object, name )
         //如果在本类中有定义
         if ( desc )
         {
-            var self = module( it.stack.scope().define('this').fullclassname );
+            var self = module( it.stack.scope().defineGet('proto','this').fullclassname );
 
             //非全局模块和外部类需要检查权限
             if( self.type !== object.type )checkPrivilege(it, desc, object, self );
@@ -918,7 +928,7 @@ function getPropertyDescription( stack )
 
     // 组合接口
     var list = {'static':{},'proto':{},'import':{},constructor:{}};
-    var define = stack.parent().scope().define();
+    var define = stack.parent().scope().defineGet('proto');
     for ( var j in define )list['import'][j]=define[j].fullclassname;
 
     for ( ; i< len ; i++ )
