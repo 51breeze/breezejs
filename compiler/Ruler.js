@@ -484,7 +484,7 @@ syntax['private,protected,internal,static,public,override,final']=function(event
 
     if( n.value==='class' || n.value === 'function' )
     {
-        this.add( new Scope( n.value , '(block)' ) );
+        this.add(new Scope(n.value, '(block)'));
         this.scope().static( s );
         this.scope().qualifier( q );
         this.scope().override( o );
@@ -512,22 +512,33 @@ syntax['private,protected,internal,static,public,override,final']=function(event
 syntax['class']=function( event )
 {
     event.prevented=true;
-    if( this.scope().keyword() !=='class' )this.add( new Scope('class', '(block)' ) );
+    if( this.scope().keyword() !=='class' )this.add( new Scope('class', '(block)') );
     if( this.scope().parent().keyword() !=='package' )this.error();
 
     var scope = this.scope();
     var n = this.seek();
-    if( !isPropertyName( n.value ) )this.error('Invalid class name');
+
+    //检查类名是否合法声明
+    if( !checkStatement(n.value) )this.error('Invalid class name');
+
     var e = new Event('checkClassName',{value:n.value});
     this.dispatcher( e );
     var name = e.value;
-    if( scope.parent().scope().define( name ) )this.error('class name the "'+name+'" is already been declared',this.current);
 
     //设置类名
     scope.name( name );
+
+    //类名不能与导入的类名相同
+    if( scope.parent().scope().define( name ) )this.error('class name the "'+name+'" is already been declared',this.current);
+
+    //完整的类名
     var classname = this.scope().parent().name() ? this.scope().parent().name()+'.'+name : name;
-    this.scope().define('this', {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name} );
-    this.scope().define(name, {'type':'('+name+')','id':'class','fullclassname':classname ,'classname':name} );
+
+    //实例作用域
+    scope.scope().define('this', {'type':'('+name+')','id':'class','fullclassname':classname,'classname':name} );
+
+    //静态类作用域
+    scope.scope().define(name, {'type':'('+name+')','id':'class','fullclassname':classname ,'classname':name} );
 
     //将类名加入被保护的属性名中
     //this.config('reserved').push( name );
@@ -537,19 +548,30 @@ syntax['class']=function( event )
     //是否有继承
     if( n.id==='(keyword)' && n.value==='extends' )
     {
+        //获取完整的类名
         var parent = getTypeName.call(this);
+
+        //是否有导入
         var p = checkStatementType(parent, scope.parent().scope(),  this.config('globals')  );
-        if( !p ) this.error('"'+parent+'" not is defined');
+        if( !p ) this.error('"'+parent+'" is not import');
         scope.extends( p.classname );
-        scope.define('super', p );
+
+        //定义超类引用
+        scope.scope().define('super', p );
         this.seek();
     }
+
+    //必须要{开始正文
     if( this.current.id !== '{' )this.error('Missing token {');
+
+    //获取正文
     this.loop(function(){
         if( this.next.id === '}' ) return false;
         this.step();
         return true;
     });
+
+    //必须要}结束正文
     this.seek();
     if( this.current.id !=='}' ) this.error('Missing token }');
 };
@@ -1939,10 +1961,7 @@ Stack.prototype.define=function(prop , desc , classname )
             var data = scope.define();
             for (var i in data )
             {
-                if( data[i].id==='class' && data[i].fullclassname===prop )
-                {
-                    return data[i];
-                }
+                if( data[i].id==='class' && data[i].fullclassname===prop )return data[i];
             }
         }
         return ret ? ret : null;
@@ -2222,7 +2241,6 @@ Scope.prototype.accessor=function( accessor )
     return this;
 }
 
-
 /**
  * 是否有继承
  * @param name
@@ -2235,6 +2253,61 @@ Scope.prototype.extends=function( name )
     return this;
 }
 
+
+
+
+/**
+ * 代码块的作用域
+ * @param type
+ * @constructor
+ */
+function Classes()
+{
+    if( !(this instanceof Scope) )return new Classes();
+    this.__extends__='';
+    Scope.call(this,'classes','(block)');
+    this.__proto__  = new Scope('class','(block)');
+    this.__proto__.__parent__=this;
+    this.__static__ = new Scope('class','(block)');
+    this.__static__.__parent__ = this;
+    this.__content__=[this.__proto__, this.__static__];
+}
+
+Classes.prototype = new Scope();
+Classes.prototype.constructor=Classes;
+Classes.prototype.proto=function(){ return this.__proto__ };
+Classes.prototype.static=function(){ return this.__static__};
+Classes.prototype.add=function( val, index )
+{
+    if( !(val instanceof Stack) )error('Invaild scope');
+    var id = val.keyword();
+    if( !(id==='var' || id==='const' || id=== 'function') )error('Invaild scope');
+    if( val.static() ){
+        this.static().add( val, index );
+    }else{
+        this.proto().add( val, index );
+    }
+    return this;
+}
+
+Classes.prototype.name=function( val )
+{
+    Stack.prototype.name.call(this,val);
+    this.proto().name( val );
+    this.static().name( val );
+}
+
+/**
+ * 是否有继承
+ * @param name
+ * @returns {*}
+ */
+Classes.prototype.extends=function( name )
+{
+    if( typeof name === 'undefined' )return this.__extends__;
+    this.__extends__=name;
+    return this;
+}
 
 /**
  * 默认配置

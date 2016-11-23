@@ -162,6 +162,7 @@ function createFunction( stack , uid )
     var len = children.length;
     var content=[];
     var param;
+    var is = stack.parent().keyword()==='class' && stack.parent().name() === stack.name();
 
     for(;i<len; i++)
     {
@@ -181,31 +182,32 @@ function createFunction( stack , uid )
         //获取函数的默认参数
         else
         {
-            if( !stack.static() && child.value==='}' && i+1 === len )
-            {
-                content.push( '\nreturn this;' );
-            }
             content.push( child.value );
             if( child.id==='(keyword)' && i<len )content.push(' ');
-
             if ( child.value === '{' )
             {
+                //运行时检查参数的类型是否正确
                 if( param )
                 {
-                    content.push(param.expre.join(''));
+                    content.push( param.expre.join('') );
                     param=null;
                 }
 
-                if( stack.parent().keyword()==='class' && stack.parent().name() === stack.name() )
+                //构造函数
+                if( is )
                 {
-                    content.push( 'if( !(this instanceof '+stack.parent().name()+') )throw new SyntaxError("Please use the new operation to build instances.");\n' );
+                    //运行时检查实例对象是否属于本类
+                    content.push( 'if( !(this instanceof '+stack.name()+') )throw new SyntaxError("Please use the new operation to build instances.");\n' );
+
+                    //如果没有调用超类，则调用超类的构造函数
                     if( stack.parent().extends() && !stack.called )
                     {
                         content.push( typeToIdentifier( stack.parent().extends() ) + '.call(this);\n');
                     }
+
+                    //类中的私有属性
                     content.push('####{props}####');
                 }
-
             }
         }
     }
