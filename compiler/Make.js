@@ -129,7 +129,7 @@ function createDefaultParam( stack , uid )
     if( name )
     {
         var ps = stack.scope();
-        var desc = ps.defineGet('proto', name );
+        var desc = ps.define( name );
 
         if (value)
         {
@@ -155,7 +155,7 @@ function createDefaultParam( stack , uid )
  * @param stack
  * @returns {string}
  */
-function createFunction( stack , uid )
+function createFunction( stack )
 {
     var children = stack.content();
     var i=0;
@@ -171,12 +171,12 @@ function createFunction( stack , uid )
         {
             if( child.keyword() === 'statement' )
             {
-                param = createDefaultParam( child , uid );
+                param = createDefaultParam( child );
                 content.push( param.param.join(',') );
 
             }else
             {
-                content.push( toString(child, uid) );
+                content.push( toString(child) );
             }
         }
         //获取函数的默认参数
@@ -202,7 +202,7 @@ function createFunction( stack , uid )
                     //如果没有调用超类，则调用超类的构造函数
                     if( stack.parent().extends() && !stack.called )
                     {
-                        content.push( typeToIdentifier( stack.parent().extends() ) + '.call(this);\n');
+                        content.push( stack.parent().extends() + '.call(this);\n');
                     }
 
                     //类中的私有属性
@@ -300,9 +300,8 @@ function Iteration( stack )
     this.prev=undefined;
     this.next=undefined;
     this.current=undefined;
-    this.length=this.data.length;
     this.seek=function(){
-        if( index >= this.length )return false;
+        if( index >= this.data.length )return false;
         this.prev = this.current;
         this.current = this.data[index];
         index++;
@@ -310,7 +309,7 @@ function Iteration( stack )
         {
             this.next =  new Ruler.STACK('expression','(*)');
             this.next.__content__ = this.data.splice(index,  this.data.length - index);
-            this.next.__parent__ = stack.parent();
+            this.next.__parent__  = stack.parent();
 
         }else
         {
@@ -428,15 +427,15 @@ function expression( it )
 
 /**
  * 根据类型获取类全名
- * @param objects
+ * @param map
  * @param type
  * @returns {*}
  */
-function getClassNameByType(objects, type)
+function getImportClassByType(imports, type )
 {
-    if( objects[type] )return objects[type].fullclassname;
-    if( globals[type] && (globals[type].id==='class' || globals[type].id==='object') )return type;
-    for(var i in objects )if(objects[i].fullclassname === type )return objects[i].fullclassname;
+    if( imports[type] )return imports[type];
+    if( globals[type] )return type;
+    for(var i in imports )if(imports[i] === type )return imports[i];
     return null;
 }
 
@@ -459,13 +458,31 @@ function checkReference(it)
     }
 
     //获取当前标识符引用的类型
-    var type = getIdentifierType( it );
+    var desc = getIdentifierType( it );
+    var type = getType(desc.type);
+     it.stack.type( desc.id==='object' ? 'Object' : type );
 
     //如果没有下一个则退出
-    if( !it.next || type===true )
+    if( !it.next || type==='*' )
     {
         if( it.current.value ==='super' )error('Unexpected super','', it.current );
         return it.current.value;
+    }
+
+    //操作变量
+    if( desc.id==='var' || desc.id==='const' || desc.id==='let' )
+    {
+         //对变量赋值操作
+         if( it.next && it.next.value === '=' )
+         {
+              if( desc.id==='const' )error('"' + it.current.value + '" is constant', '', it.current );
+              it.seek();
+              str.prop.push( it.current.value );
+              it.seek();
+              str.prop.push( toString(it.current) );
+              if( type !=='*' && it.current.type() !== type )error('Specify the type of mismatch','type', it.prev );
+              return str.prop.join('');
+         }
     }
 
     var self = module( it.stack.scope().define('this').fullclassname ) ;
@@ -496,12 +513,12 @@ function checkReference(it)
         issuper = true;
     }
 
-    var desc;
+    desc = self.classname === type || self.fullclassname === type ? self : module( getImportClassByType(self.import, type) );
+    if (!desc)error('"' + it.current.value + '" is not defined.', '', it.current);
+
+    //检查类成员属性
     while( it.next && type !== '*' )
     {
-        desc = self.classname === type || self.fullclassname === type ? self : module( getClassNameByType(self.import, type) );
-        if (!desc)error('"' + it.current.value + '" is not defined.', '', it.current);
-
         //调用函数
         if ( it.next instanceof Ruler.STACK )
         {
@@ -512,8 +529,8 @@ function checkReference(it)
                 {
                     error( '"'+it.prev.value+'" is not function', 'type', it.prev );
                 }
-                var pareameter = checkParameter(it, desc);
 
+                var pareameter = checkParameter(it, desc);
                 it.stack.type( desc.type );
                 if( str.instance )
                 {
@@ -545,7 +562,7 @@ function checkReference(it)
             it.seek();
             str.prop.push(it.current.value);
             if (issuper)str.prop.splice(1, 0, '.prototype');
-            checkPropery(str, it, desc, prop, desc.classname === self.classname );
+            desc = checkPropery(str, it, desc, prop, desc.classname === self.classname );
 
         }else
         {
@@ -570,8 +587,6 @@ function checkPropery(str,it,object, name, privatize )
     //普通属性
     if (desc.id === 'var' || desc.id === 'const')
     {
-        if( it.next && it.next.value==='=' && desc.id === 'const' )error('"' + it.current.value + '" is constant', '', it.current );
-
         //引用对象的私有属性
         if ( privatize && desc.privilege === 'private' )
         {
@@ -579,7 +594,21 @@ function checkPropery(str,it,object, name, privatize )
              str.prop = [ str.prop.join('') ];
              str.instance ='';
         }
+
         it.stack.type( desc.type );
+        if( it.next && it.next.value==='=' )
+        {
+            if( desc.id === 'const' )error('"' + it.current.value + '" is constant', '', it.current );
+            if( it.current instanceof Ruler.STACK )
+            {
+                str.prop.push( toString(it.current) );
+                if( it.current.type() !== desc.type && desc.type !=='*' )error('Specify the type of mismatch','type', it.prev );
+
+            }else
+            {
+                str.prop.push( it.current.value );
+            }
+        }
     }
     //函数
     else if (desc.id === 'function' )
@@ -604,14 +633,13 @@ function checkPropery(str,it,object, name, privatize )
             {
                 if (!desc.value.set)error('"' + it.current.value + '" setter not exists', 'reference', it.current);
                 it.seek();
-                it.seek();
-                if (!it.current)error('Missing expression', '', it.prev);
+                if ( !it.seek() )error('Missing expression', '', it.prev);
                 str.prop.push('.set'+call);
 
                 if( it.current instanceof Ruler.STACK )
                 {
                     param.push( toString(it.current) );
-                    if( it.current.type() !== desc.type )error('Specify the type of mismatch','type', it.prev );
+                    if( it.current.type() !== desc.type && desc.type !=='*' )error('Specify the type of mismatch','type', it.prev );
 
                 }else
                 {
@@ -636,6 +664,7 @@ function checkPropery(str,it,object, name, privatize )
             it.stack.type( 'Function' );
         }
     }
+    return desc;
 }
 
 /**
@@ -654,17 +683,8 @@ function getIdentifierType( it )
         case '(regexp)' :
             return 'RegExp';
         default :
-            var desc = it.stack.scope().define( it.current.value );
-            if( desc )
-            {
-                var type = getType( desc.type );
-                if( type==='*' && (desc.id==='var' || desc.id==='const' || desc.id==='let') )return true;
-                return type;
-
-            }else if( globals[ it.current.value ] )
-            {
-                return globals[ it.current.value ].type;
-            }
+            var desc = it.stack.scope().define( it.current.value ) || globals[ it.current.value ];
+            if( desc )return desc;
     }
     error('"'+it.current.value+'" is not defined.', '', it.current );
 }
@@ -890,20 +910,20 @@ function makeModule( stack )
                 //构造函数
                 if( item.name() === stack.name() && !isstatic )
                 {
-                    list.constructor.value = toString( item , list.id );
+                    list.constructor.value = toString( item );
                     continue;
                 }
                 //普通函数
                 else
                 {
-                    val.push(  toString( item, list.id ) );
+                    val.push(  toString( item ) );
                 }
             }
             //类中的成员属性
             else if( item.keyword() === 'var' || item.keyword() === 'const' )
             {
                 item.content().shift();
-                var ret = toString( item , list.id ).replace( new RegExp('^'+item.name()+'\\s*\\=?'), '' );
+                var ret = toString( item ).replace( new RegExp('^'+item.name()+'\\s*\\=?'), '' );
                 ret = ret ? ret : 'undefined';
 
                 //私有属性直接放到构造函数中
@@ -949,7 +969,7 @@ function getPropertyDescription( stack )
 
     // 组合接口
     var list = {'static':{},'proto':{},'import':{},constructor:{}};
-    var define = stack.parent().scope().defineGet('proto');
+    var define = stack.parent().scope().define();
     for ( var j in define )list['import'][j]=define[j].fullclassname;
 
     for ( ; i< len ; i++ )

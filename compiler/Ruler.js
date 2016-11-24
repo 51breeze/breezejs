@@ -587,8 +587,10 @@ syntax['class']=function( event )
         var parent = getTypeName.call(this);
 
         //是否有导入
-        var p = checkStatementType(parent, scope.parent().scope(),  this.config('globals')  );
-        if( !p ) this.error('"'+parent+'" is not import');
+        var p = checkStatementType(parent, scope.scope(),  this.config('globals')  );
+        if( !p ){
+            this.error('"'+parent+'" is not import');
+        }
         scope.extends( p.classname );
 
         //定义超类引用
@@ -1391,8 +1393,8 @@ syntax['(operator)']=function( e )
         this.step();
         return;
     }
-    //运算并赋值
-    else if( id==='+=' || id==='-=' || id==='*=' || id==='/=' || id==='%=')
+    //数学运算并赋值
+    else if( id==='+=' || id==='-=' || id==='*=' || id==='/=' || id==='%=' )
     {
         this.add( this.current );
         if( this.prev.type !=='(identifier)' || this.prev.id==='(keyword)' )this.error();
@@ -1522,10 +1524,12 @@ function statement()
         this.error(reserved.indexOf( name )>0 ? 'Reserved keyword not is statemented for '+name : 'Invalid statement for '+name);
     }
 
+    var desc = {'type':'('+type+')','id':id};
+
     //如是函数声明的参数
     if( id==='function' )
     {
-        id='var';
+        desc.id='var';
         ps.param( type );
 
     }else if( id ==='var' || id==='const' || id==='let')
@@ -1533,10 +1537,8 @@ function statement()
         ps.type( type );
     }
 
-    var desc = {'type':'('+type+')','id':id};
-
     //类成员属性
-    if( ps.parent() instanceof Class )
+    if( ps.parent() instanceof Class && id !=='function')
     {
         if( ps.parent().defineProps(prefix, name) )this.error('Identifier "'+name+'" has already been declared');
         ps.parent().defineProps(prefix, name, desc);
@@ -1632,9 +1634,12 @@ syntax['(identifier)']=function( e )
     //检查所有的引用属性是否为先声明再使用。对象中的属性不会检查
     if( this.prev.value !=='.' )
     {
+        //类中的成员先不检查
+        var is = this.scope().parent().parent().parent() instanceof Class;
+
         //Json 对象中的键名不检查
         var iskey = this.scope().parent().keyword()==='object' && this.scope().parent().type()==='(Object)' && this.next.value ===':';
-        if( !iskey )
+        if( !iskey && !is)
         {
             var type = toType( this.current, this.scope() );
             if( !type )
@@ -1650,7 +1655,10 @@ syntax['(identifier)']=function( e )
                     var global = this.config('globals');
                     desc = global[ this.current.value ];
                 }
-                if ( !desc )this.error(this.current.value + ' not is defined', this.current, 'reference');
+
+                if ( !desc ){
+                    this.error(this.current.value + ' not is defined', this.current, 'reference');
+                }
 
                 //如果对此表达式进行赋值则检查引用的类型是否与表达式的类型一致
                 if (this.next.value === '=')

@@ -47,7 +47,7 @@ package lib
 
             while( index < target.length )
             {
-                var events = storage.call( target[ index ] );
+                var events = this.storage.call( target[ index ] );
                 if( events && events[type] )
                 {
                     return true;

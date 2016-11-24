@@ -20,6 +20,8 @@ package
     import lib.EventDispatcher;
 
     public class Main extends B {
+
+          //var bb:String='123';
           function Main(jj)
           {
               super(jj);
