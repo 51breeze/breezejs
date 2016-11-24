@@ -306,7 +306,16 @@ function Iteration( stack )
         this.prev = this.current;
         this.current = this.data[index];
         index++;
-        this.next = this.data[index];
+        if( this.current.value==='=' )
+        {
+            this.next =  new Ruler.STACK('expression','(*)');
+            this.next.__content__ = this.data.splice(index,  this.data.length - index);
+            this.next.__parent__ = stack.parent();
+
+        }else
+        {
+            this.next = this.data[index];
+        }
         return true;
     };
 }
@@ -418,6 +427,20 @@ function expression( it )
 }
 
 /**
+ * 根据类型获取类全名
+ * @param objects
+ * @param type
+ * @returns {*}
+ */
+function getClassNameByType(objects, type)
+{
+    if( objects[type] )return objects[type].fullclassname;
+    if( globals[type] && (globals[type].id==='class' || globals[type].id==='object') )return type;
+    for(var i in objects )if(objects[i].fullclassname === type )return objects[i].fullclassname;
+    return null;
+}
+
+/**
  * 检查表达式的引用
  * @param it
  * @returns {*}
@@ -435,11 +458,8 @@ function checkReference(it)
         str.prop = [ str.prop.join('') ];
     }
 
+    //获取当前标识符引用的类型
     var type = getIdentifierType( it );
-    if( !type )
-    {
-        error('"'+it.current.value+'" is not defined.', '', it.current );
-    }
 
     //如果没有下一个则退出
     if( !it.next || type===true )
@@ -448,79 +468,89 @@ function checkReference(it)
         return it.current.value;
     }
 
-    var self = module( it.stack.scope().defineGet('proto', 'this' ).fullclassname );
-    var desc = it.stack.scope().defineGet('proto', type );
-
-
-
-
-    desc = desc ? module( desc.fullclassname ) : globals[ type ];
-
-
-
-
-
-    if( !desc )
-    {
-        console.log( it.stack.scope().defineGet('static', type ) )
-        error('"'+it.current.value+'" is not defined.','', it.current);
-    }
-
+    var self = module( it.stack.scope().define('this').fullclassname ) ;
     var prop = 'proto';
 
     //静态类
-    if( it.current.value === type || type==='Class' )
+    if ( it.current.value === type || type === 'Class' )
     {
         //必须要使用 new 来构建实例对象
-        if( !isnew && it.next instanceof Ruler.STACK && it.next.type() === '(expression)' )
+        if (!isnew && it.next instanceof Ruler.STACK && it.next.type() === '(expression)')
         {
             error('Must use the "new" build instance');
         }
-        if( !isnew || it.next.value==='.' )prop='static';
+        if (!isnew || it.next.value === '.')prop = 'static';
 
-    }else if( isnew )
+    }else if (isnew)
     {
-        error('"'+it.current.value+'" is not constructs.');
+        error('"' + it.current.value + '" is not constructs.');
     }
 
-    var issuper=false;
+    var issuper = false;
 
     //调用超类
-    if( it.current.value ==='super' )
+    if (it.current.value === 'super')
     {
-        var inherit = module( self.inherit );
-        if( !inherit )error('No parent class inheritance');
-        str.prop.splice(0,1, inherit.classname );
-        str.instance='this';
-        issuper=true;
+        str.prop.splice(0, 1, self.inherit);
+        str.instance = 'this';
+        issuper = true;
     }
 
-    //调用函数
-    if( it.next instanceof Ruler.STACK )
+    var desc;
+    while( it.next && type !== '*' )
     {
-        if( it.next.type() === '(expression)' )
+        desc = self.classname === type || self.fullclassname === type ? self : module( getClassNameByType(self.import, type) );
+        if (!desc)error('"' + it.current.value + '" is not defined.', '', it.current);
+
+        //调用函数
+        if ( it.next instanceof Ruler.STACK )
+        {
+            if ( it.next.type() === '(expression)' )
+            {
+                it.seek();
+                if( !(desc.id ==='function' || desc.id ==='class' || desc.type ==='Function' || desc.type==='Class') )
+                {
+                    error( '"'+it.prev.value+'" is not function', 'type', it.prev );
+                }
+                var pareameter = checkParameter(it, desc);
+
+                it.stack.type( desc.type );
+                if( str.instance )
+                {
+                    pareameter.unshift(str.instance);
+                    str.prop.push('.call');
+                }
+
+                str.prop.push('(');
+                str.prop.push( pareameter.join(',') );
+                str.prop.push(')');
+                str.prop = [ str.prop.join('') ];
+                str.instance='';
+                type = desc.type;
+                var is = it.next instanceof Ruler.STACK && ( it.next.type() === '(expression)' || it.next.type() === '(property)' );
+
+                //没有返回值
+                if( type === 'void' && it.next && ( it.next.value === '.' || is ) )error('"' + it.prev.value + '" function not return.', 'reference', it.prev);
+
+            }else if( it.next.type() === '(property)' )
+            {
+                it.seek();
+                str.prop.push( toString( it.current ) );
+            }
+
+        }else if ( it.next && it.next.value === '.' )
         {
             it.seek();
-            callToString(str, it,  desc );
+            str.prop.push(it.current.value);
+            it.seek();
+            str.prop.push(it.current.value);
+            if (issuper)str.prop.splice(1, 0, '.prototype');
+            checkPropery(str, it, desc, prop, desc.classname === self.classname );
 
-        }else if( it.next.type() === '(property)' )
+        }else
         {
-
+            break;
         }
-    }
-
-    if( it.next && it.next.value==='.' )
-    {
-        it.seek();
-        str.prop.push( it.current.value );
-        it.seek();
-        str.prop.push( it.current.value );
-        if( issuper )str.prop.splice(1,0,'.prototype');
-        checkPropery(str,it, desc, prop ,desc.classname === self.classname );
-
-    }else if( it.next && it.next.value==='=' )
-    {
-        if( desc[prop] && desc[prop].id === 'const' )error('"' + it.current.value + '" is constant', '', it.current );
     }
     return str.prop.join('');
 }
@@ -577,7 +607,16 @@ function checkPropery(str,it,object, name, privatize )
                 it.seek();
                 if (!it.current)error('Missing expression', '', it.prev);
                 str.prop.push('.set'+call);
-                param.push(it.current instanceof Ruler.STACK ? toString(it.current) : it.current.value);
+
+                if( it.current instanceof Ruler.STACK )
+                {
+                    param.push( toString(it.current) );
+                    if( it.current.type() !== desc.type )error('Specify the type of mismatch','type', it.prev );
+
+                }else
+                {
+                    param.push( it.current.value );
+                }
                 str.prop.push('(' + param.join(',') + ')');
                 it.stack.type('void');
 
@@ -595,27 +634,6 @@ function checkPropery(str,it,object, name, privatize )
         }else
         {
             it.stack.type( 'Function' );
-        }
-    }
-
-    if( it.next && it.next instanceof Ruler.STACK && it.next.type() === '(expression)'  )
-    {
-        it.seek();
-        callToString(str, it, desc );
-
-    }else if( it.next && it.next.value==='.' && desc.type !=='*' )
-    {
-        var self = it.stack.scope().defineGet('proto', 'this' );
-        desc = it.stack.scope().defineGet('proto', desc.type );
-        object = desc ? module( desc.fullclassname ) : globals[ desc.type ];
-        if( object )
-        {
-            var prop =  desc.type==='Class' || object.id==='object' ? 'static' : 'proto';
-            it.seek();
-            str.prop.push( it.current.value );
-            it.seek();
-            str.prop.push( it.current.value );
-            checkPropery(str,it, object, prop, self.fullclassname===object.fullclassname );
         }
     }
 }
@@ -636,16 +654,19 @@ function getIdentifierType( it )
         case '(regexp)' :
             return 'RegExp';
         default :
-            var desc = it.stack.scope().defineGet('proto', it.current.value ) || it.stack.scope().defineGet( 'static', it.current.value );
+            var desc = it.stack.scope().define( it.current.value );
             if( desc )
             {
                 var type = getType( desc.type );
                 if( type==='*' && (desc.id==='var' || desc.id==='const' || desc.id==='let') )return true;
                 return type;
+
+            }else if( globals[ it.current.value ] )
+            {
+                return globals[ it.current.value ].type;
             }
-            return globals[ it.current.value ] ? globals[ it.current.value ].type : null;
     }
-    return null;
+    error('"'+it.current.value+'" is not defined.', '', it.current );
 }
 
 
@@ -669,7 +690,7 @@ function getClassPropertyDesc(it, object, name )
         //如果在本类中有定义
         if ( desc )
         {
-            var self = module( it.stack.scope().defineGet('proto','this').fullclassname );
+            var self = module( it.stack.scope().define('this').fullclassname );
 
             //非全局模块和外部类需要检查权限
             if( self.type !== object.type )checkPrivilege(it, desc, object, self );

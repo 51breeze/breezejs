@@ -768,16 +768,13 @@ syntax['function']= function(event){
     if( name )
     {
         //不能重复声明函数
-        var val = ps.define( name );
-        if( ps instanceof Class )val = ps.defineProps(prefix, name );
-
+        var val = ps instanceof Class ? ps.defineProps(prefix, name) : ps.define( name );
         if( val )
         {
-            if( !val.constructor && (!s.accessor() || s.accessor() === val.get || s.accessor() === val.set) )
+            if( !s.accessor() || s.accessor() === val.get || s.accessor() === val.set )
             {
                 this.error('function "'+name+'" has already been declared');
             }
-            if( is )val.constructor=true;
 
             //同一访问器的修饰符必须一致
             if( s.accessor() && val.qualifier !== s.qualifier() )
@@ -787,7 +784,7 @@ syntax['function']= function(event){
 
             if( s.accessor() )val[ s.accessor() ]=s.accessor();
 
-        }else if( !is )
+        }else
         {
             var obj = {type: '(' + type + ')', 'id':'function','qualifier':s.qualifier() };
             if( s.accessor() )obj[ s.accessor() ]=s.accessor();
@@ -1501,6 +1498,9 @@ function statement()
 {
     var type = '*';
     var name = this.current.value;
+    var ps = this.scope().parent();
+    var id = ps.keyword();
+    var prefix = ps.static() ? 'static' : 'proto';
 
     //获取声明的类型
     if( this.next.id===':' )
@@ -1511,6 +1511,9 @@ function statement()
         type= getTypeName.call(this);
         this.current= current;
         this.prev = prev;
+
+        //检查声明的类型是否定义
+        if( !checkStatementType(type, ps.scope() , this.config('globals') ) )this.error( type+' not is defined');
     }
 
     //检查属性名是否可以声明
@@ -1518,10 +1521,6 @@ function statement()
     {
         this.error(reserved.indexOf( name )>0 ? 'Reserved keyword not is statemented for '+name : 'Invalid statement for '+name);
     }
-
-    var ps = this.scope().parent();
-    var id = ps.keyword();
-    var prefix = ps.static() ? 'static' : 'proto';
 
     //如是函数声明的参数
     if( id==='function' )
@@ -1534,9 +1533,6 @@ function statement()
         ps.type( type );
     }
 
-    //检查声明的类型是否定义
-    if( !checkStatementType(type, ps.scope() , this.config('globals') ) )this.error( type+' not is defined');
-
     var desc = {'type':'('+type+')','id':id};
 
     //类成员属性
@@ -1548,10 +1544,9 @@ function statement()
     }else
     {
         var val = ps.scope().define( name , desc);
-        if( val ){
-            var pscope = getParentScope( this.scope() );
-            if(val.scope === pscope)this.error('Identifier "'+name+'" has already been declared');
-        }
+        var pscope = getParentScope( this.scope() );
+        if( val && val.pid === pscope.keyword() )this.error('Identifier "'+name+'" has already been declared');
+        desc.pid = pscope.keyword();
         ps.scope().define( name , desc);
     }
 
