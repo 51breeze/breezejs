@@ -21,6 +21,9 @@ package
 
     public class Main extends B {
 
+        static public var name:String = '3999 yyy fsss 666' ;
+        public var name:String = '3' ;
+
           //var bb:String='123';
           function Main(jj)
           {
