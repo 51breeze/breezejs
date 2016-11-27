@@ -301,15 +301,19 @@ function Iteration( stack )
     this.next=undefined;
     this.current=undefined;
     this.seek=function(){
-        if( index >= this.data.length )return false;
+        if( index >= this.data.length ){
+            this.next = undefined;
+            return false;
+        }
         this.prev = this.current;
         this.current = this.data[index];
         index++;
         if( this.current.value==='=' )
         {
             this.next =  new Ruler.STACK('expression','(*)');
-            this.next.__content__ = this.data.splice(index,  this.data.length - index);
+            this.next.__content__ = this.data.splice(index,  this.data.length-index,  this.next );
             this.next.__parent__  = stack.parent();
+            if( getType(stack.type()) !=='*' )this.next.type(  stack.type() );
 
         }else
         {
@@ -413,6 +417,8 @@ function expression( it )
             it.current.value==='this'          ||
             it.current.value==='super'         ||
             it.current.value==='new'           ||
+            it.current.type ==='(boolean)'     ||
+            it.current.type ==='(number)'      ||
             it.current.type ==='(string)'      ||
             it.current.type ==='(regexp)'
         )
@@ -459,8 +465,28 @@ function checkReference(it)
 
     //获取当前标识符引用的类型
     var desc = getIdentifierType( it );
-    var type = getType(desc.type);
-     it.stack.type( desc.id==='object' ? 'Object' : type );
+    var type = desc ;
+    var id='';
+
+    //引用属性
+    if( typeof desc === "object" )
+    {
+        id = desc.id;
+        type = getType( desc.type );
+    }
+
+    //当前操作的类型
+    var t = it.current.value === type || id==='class' ? 'Class' : (id==='object' ? 'Object' : type);
+
+    //new 运算符只能应用于类
+    if( isnew && t !== 'Class'  )
+    {
+        error('"' + it.current.value + '" is not constructs.');
+    }
+
+    //实例类型
+    t = isnew || it.current.value==='this' || it.current.value === 'super' ? type : t;
+    it.stack.type( t );
 
     //如果没有下一个则退出
     if( !it.next || type==='*' )
@@ -469,43 +495,30 @@ function checkReference(it)
         return it.current.value;
     }
 
-    //操作变量
-    if( desc.id==='var' || desc.id==='const' || desc.id==='let' )
-    {
-         //对变量赋值操作
-         if( it.next && it.next.value === '=' )
-         {
-              if( desc.id==='const' )error('"' + it.current.value + '" is constant', '', it.current );
-              it.seek();
-              str.prop.push( it.current.value );
-              it.seek();
-              str.prop.push( toString(it.current) );
-              if( type !=='*' && it.current.type() !== type )error('Specify the type of mismatch','type', it.prev );
-              return str.prop.join('');
-         }
-    }
+    //原型链属性名
+    var prop = t === 'Class' || id === 'object' ? 'static' : 'proto';
 
+     //变量引用赋值操作
+     if( it.next.value === '=' )
+     {
+          if( (id==='const' || !id) && it.stack.parent().keyword() !=='statement' )error('"' + it.current.value + '" is constant', '', it.current );
+          it.seek();
+          str.prop.push( it.current.value );
+
+          it.seek();
+          str.prop.push( toString(it.current) );
+          if( type !=='*' && it.current.type() !== type )
+          {
+              error('Specify the type of mismatch','type', it.prev );
+          }
+          return str.prop.join('');
+     }
+
+    //类本身实例
     var self = module( it.stack.scope().define('this').fullclassname ) ;
-    var prop = 'proto';
-
-    //静态类
-    if ( it.current.value === type || type === 'Class' )
-    {
-        //必须要使用 new 来构建实例对象
-        if (!isnew && it.next instanceof Ruler.STACK && it.next.type() === '(expression)')
-        {
-            error('Must use the "new" build instance');
-        }
-        if (!isnew || it.next.value === '.')prop = 'static';
-
-    }else if (isnew)
-    {
-        error('"' + it.current.value + '" is not constructs.');
-    }
-
-    var issuper = false;
 
     //调用超类
+    var issuper = false;
     if (it.current.value === 'super')
     {
         str.prop.splice(0, 1, self.inherit);
@@ -513,12 +526,14 @@ function checkReference(it)
         issuper = true;
     }
 
-    desc = self.classname === type || self.fullclassname === type ? self : module( getImportClassByType(self.import, type) );
-    if (!desc)error('"' + it.current.value + '" is not defined.', '', it.current);
-
-    //检查类成员属性
-    while( it.next && type !== '*' )
+    //如果不是所有类型，检查类成员属性
+    while( it.next && type !== '*' && type !=='void')
     {
+
+        //是否对类本身实例的引用
+        desc = self.classname === type || self.fullclassname === type ? self : module( getImportClassByType(self.import, type) );
+        if (!desc)error('"' + it.current.value + '" is not defined.', '', it.current);
+
         //调用函数
         if ( it.next instanceof Ruler.STACK )
         {
@@ -563,6 +578,7 @@ function checkReference(it)
             str.prop.push(it.current.value);
             if (issuper)str.prop.splice(1, 0, '.prototype');
             desc = checkPropery(str, it, desc, prop, desc.classname === self.classname );
+            type = desc.type;
 
         }else
         {
@@ -682,6 +698,10 @@ function getIdentifierType( it )
             return 'String';
         case '(regexp)' :
             return 'RegExp';
+        case '(number)' :
+            return 'Number';
+        case '(boolean)' :
+            return 'Boolean';
         default :
             var desc = it.stack.scope().define( it.current.value ) || globals[ it.current.value ];
             if( desc )return desc;

@@ -211,13 +211,12 @@ function checkStatementType( type , scope , globals )
 
         }else
         {
-            val = scope.rootScope.define( type );
-            if ( !val )
+            val = scope.define( type );
+            if ( !val && scope.parent() )
             {
-                var def = scope.rootScope.define();
-
                 //这里判断是否使用命名定义的类型
-                for (var i in def)if (def[i].id === 'class' && def[i].fullclassname === type )
+                var def = scope.define();
+                for (var i in def)if (def[i].id === 'class' && def[i].fullclassname === type)
                 {
                     val = def[i];
                     break;
@@ -230,7 +229,7 @@ function checkStatementType( type , scope , globals )
     if( !val && globals )
     {
         val =globals[type];
-        if( val.id==='class' )return {id:'class','type':'('+val.type+')','classname':type, 'fullclassname': type };
+        if(val && val.id==='class' )return {id:'class','type':'('+val.type+')','classname':type, 'fullclassname': type };
     }
     return val && val.id==='class' ? val : null;
 }
@@ -736,7 +735,7 @@ syntax['function']= function(event){
         var currentType = this.current;
         if( !checkStatementType(type, stack.scope() , this.config('globals') ) )
         {
-            this.error( type+' not is defined');
+            this.error( type+' is not defined');
         }
         if( type !=='void' )
         {
@@ -749,7 +748,7 @@ syntax['function']= function(event){
     var is=false;
 
     //构造函数不能有返回值
-    if( stack.parent().keyword() ==='class' && stack.parent().name() === stack.name() )
+    if( stack.parent().keyword() ==='class' && stack.parent().name() === stack.name() && !stack.static() )
     {
         type='void';
 
@@ -766,13 +765,14 @@ syntax['function']= function(event){
     {
         //不能重复声明函数
         var val = stack.scope().define( name );
-        if( is && val && !val.construct )
+
+        if( is )
         {
             val.construct = true;
             val=null;
         }
 
-        if( val )
+        if( val && val.scope === stack.scope() )
         {
             if( !stack.accessor() || stack.accessor() === val.get || stack.accessor() === val.set )
             {
@@ -789,8 +789,9 @@ syntax['function']= function(event){
 
         }else
         {
-            var obj = {type: '(' + type + ')', 'id':'function','qualifier':stack.qualifier(), 'static': stack.static() };
+            var obj = {type: '(' + type + ')', 'id':'function','qualifier':stack.qualifier(), 'static': stack.static(), 'scope': stack.scope()};
             if( stack.accessor() )obj[ stack.accessor() ]=stack.accessor();
+            if( is )obj.id='class';
             stack.scope().define( name, obj );
         }
     }
@@ -1042,7 +1043,7 @@ syntax["this"]=function (e)
     if( fun.parent().keyword() ==='class' && fun.static() )this.error('this is not defined in static function');
     if( fun.parent().keyword() ==='class' )
     {
-        this.scope().type( this.scope().scope().define('this').type );
+        this.scope().type( this.scope().scope().define('this', true).type );
     }
     this.add( this.current );
     if( !isDelimiter( this.next.value ) )
@@ -1522,7 +1523,7 @@ function statement()
         this.error(reserved.indexOf( name )>0 ? 'Reserved keyword not is statemented for '+name : 'Invalid statement for '+name);
     }
 
-    var desc = {'type':'('+type+')','id':id, 'static': stack.parent().static() };
+    var desc = {'type':'('+type+')','id':id, 'static': stack.parent().static() , 'scope':stack.scope() };
 
     //如是函数声明的参数
     if( id==='function' )
@@ -1535,16 +1536,12 @@ function statement()
         stack.parent().type( type );
     }
 
-    if(  stack.scope().define( name ) ){
-
-       // console.log( stack.parent().parent().scope() === stack.scope() )
-
-        console.log( stack.scope().define() )
-
-        this.error('Identifier "'+name+'" has already been declared');
+    var val = stack.scope().define( name );
+    if( val && val.scope === stack.scope()  )
+    {
+         this.error('Identifier "'+name+'" has already been declared');
     }
-    stack.scope().define( name , desc);
-
+    stack.scope().define( name, desc);
 
     //声明的属性后面只能是 '=','in' 或者 ','操作符
     if( isOperator(this.next.value) && !(this.next.value==='=' || this.next.value===',' || this.next.value==='in') )
@@ -1647,8 +1644,9 @@ syntax['(identifier)']=function( e )
                     desc = global[ this.current.value ];
                 }
 
-                if ( !desc ){
-                    this.error(this.current.value + ' not is defined', this.current, 'reference');
+                if ( !desc )
+                {
+                    this.error(this.current.value + ' is not defined', this.current, 'reference');
                 }
 
                 //如果对此表达式进行赋值则检查引用的类型是否与表达式的类型一致
@@ -1674,9 +1672,8 @@ syntax['(identifier)']=function( e )
                         }
                     });
                 }
-
                 type = desc.type;
-                if( desc.id==='class' && this.current.value !=='this' )
+                if( desc.id==='class' && this.current.value !=='this' && this.prev.value !=='new' )
                 {
                     type='(Class)';
                 }
@@ -1931,10 +1928,7 @@ Stack.current=function()
 {
     if( Stack.__current__=== null )
     {
-        var scope = new Stack('rootblock','(rootblock)');
-        scope.__scope__=scope;
-        scope.__scope__.rootScope=scope;
-        Stack.__current__ = scope;
+        Stack.__current__ = new Stack('rootblock','(rootblock)');
     }
     return Stack.__current__;
 }
@@ -1951,7 +1945,6 @@ Stack.prototype = new Listener();
  */
 Stack.prototype.constructor = Stack;
 
-
 /**
  * 所在的作用域
  * @param keyword
@@ -1961,46 +1954,56 @@ Stack.prototype.scope=function()
 {
    if( this.__scope__===null )
    {
-       var name = this.static() ? 'static' : 'proto';
-       if ( this.keyword() === 'function' )
+       this.__scope__ = inheritScope(this);
+       if( this === this.__scope__ && this.keyword() !=='package' && this.parent() )
        {
-           var parent = this.parent().scope( name );
-           merge(this.__define__, parent.__define__);
-           this.rootScope = parent.rootScope;
-           this.__scope__ = this;
-
-       } else if( this.parent() instanceof Class )
-       {
-           this.__scope__ = this.parent().scope( name );
-
-       } else if( this.parent() )
-       {
-           this.__scope__ = this.parent().scope();
+            this.__scope__ = this.parent().scope( this.static() ? 'static' : 'proto' );
        }
    };
    return this.__scope__;
 }
 
+function inheritScope( stack )
+{
+    if( stack.keyword()==='function' || stack.keyword() === 'class' || stack.keyword() === 'package' )
+    {
+        var ps = stack.parent().scope( stack.static() ? 'static' : 'proto' );
+        var is = stack.parent() instanceof Class;
+        for (var i in ps.__define__ ){
+            if( !is || ps.__define__[i].id==='class' )stack.__define__[i] = ps.__define__[i];
+        }
+        return stack;
+
+    }else if( stack.parent() instanceof Class )
+    {
+        return stack.parent().scope( stack.static() ? 'static' : 'proto' );
+
+    }else if( stack.parent() )
+    {
+       return inheritScope( stack.parent() );
+    }
+    return stack;
+}
+
+
 /**
  * 设置获取已声明的引用描述
- * @param prefix  proto | static
  * @param prop 属性名称
- * @param desc 属性描述
+ * @param desc 属性描述  如果为true表示引用全局属性
  * @returns {*}
  */
-Stack.prototype.define=function( prop , desc )
+Stack.prototype.define=function( prop , desc)
 {
-
     if( typeof prop === "string" )
     {
-        if( typeof desc === 'undefined' )return this.__define__[prop];
+        if( typeof desc === 'undefined' || desc===true )
+        {
+            var p = this;
+            if( desc )while( p && !p.__define__[prop] && p.parent() )p= p.parent().scope( this.static() );
+            return p ? p.__define__[prop] || null : null;
+        }
         this.__define__[prop]=desc;
-
-       if( this.parent() instanceof Class )
-       {
-           console.log( this.keyword(), this.name() , prop )
-       }
-       return this;
+        return this;
     }
     return this.__define__;
 }
@@ -2295,23 +2298,18 @@ Class.prototype.scope=function( name )
 {
     if( this.__scope__===null )
     {
-        var ps = this.parent().scope();
         var p = new Scope('class','(protoScope)');
         var s = new Scope('class','(staticScope)');
-        p.__define__={};
-        s.__define__={};
-        merge(p.__define__, ps.__define__);
-        merge(s.__define__,ps.__define__);
         p.__parent__ = this.parent();
-        p.rootScope = ps.rootScope;
         s.__parent__ = this.parent();
-        s.rootScope = ps.rootScope;
-        this.__scope__={'proto':p,'static':s };
+        var ps = this.parent().scope();
+        merge(p.__define__, ps.__define__);
+        merge(s.__define__, ps.__define__);
+        this.__scope__={'proto':p,'static':s};
     };
     if( typeof name  === "undefined" )return this;
     return name === 'static' ? this.__scope__.static : this.__scope__.proto;
 }
-
 
 /**
  * 是否有继承
