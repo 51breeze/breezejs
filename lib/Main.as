@@ -29,23 +29,7 @@ package
           //var bb:String='123';
           function Main(jj)
           {
-
-              var b={};
-
-              var jjs = ();
-
-              var cc={
-
-                  name:'123',
-                  jjj:{},
-                  elems:{
-                      aa:'2222'
-
-                  }
-
-              };
-
-
+              var b,c='uuuu',d=6;
               var name=null;
               super(jj);
               console.log( B.classname );

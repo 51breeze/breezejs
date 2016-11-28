@@ -19,58 +19,14 @@ const reserved = [
 function isOperator( o )
 {
     switch (o) {
-        //case ';' :
+        case ';' :
         case '.' :
         case ',' :
         case ':' :
         case '?' :
-        case '=' :
-        case '&' :
-        case '|' :
-        case '<' :
-        case '>' :
-        case '-' :
-        case '+' :
-        case '*' :
-        case '/' :
-        case '%' :
-        case '!' :
-        case '^' :
-        case '~' :
-        case '==' :
-        case '!=' :
-        case '&&=' :
-        case '||=' :
-        case '<<=' :
-        case '>>=' :
-        case '&&' :
-        case '||' :
-        case '<=' :
-        case '>=' :
-        case '--' :
-        case '++' :
-        case '+=' :
-        case '-=' :
-        case '*=' :
-        case '/=' :
-        case '%=' :
-        case '^=' :
-        case '&=' :
-        case '|=' :
-        case '!!' :
-        case '<<' :
-        case '>>' :
-        case '>>>' :
-        case '===' :
-        case '!==' :
-        case '>>>=' :
-        case 'instanceof' :
-        case 'in' :
-        case 'new' :
-        case 'typeof' :
             return true;
     }
-    return false;
+    return isBoolOperator(o) || isLogicOperator(o) || isCombinationOperator(o) || isLeftOperator(o) || isMathAssignOperator(o);
 }
 
 /**
@@ -100,6 +56,26 @@ function isCombinationOperator( o )
     return false;
 }
 
+function isMathAssignOperator( o )
+{
+    switch (o) {
+        case '+=' :
+        case '-=' :
+        case '*=' :
+        case '/=' :
+        case '%=' :
+        case '^=' :
+        case '&=' :
+        case '|=' :
+        case '<<=' :
+        case '>>=' :
+        case '>>>=' :
+            return true;
+    }
+    return false;
+}
+
+
 /**
  * 前置运算符
  * @param o
@@ -121,6 +97,21 @@ function isLeftOperator(o)
 }
 
 /**
+ * 后置运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isRigthOperator(o)
+{
+    switch (o) {
+        case '--' :
+        case '++' :
+            return true;
+    }
+    return false;
+}
+
+/**
  * 布尔运算符
  * @param o
  * @returns {boolean}
@@ -135,10 +126,6 @@ function isBoolOperator(o)
         case '>=' :
         case '==' :
         case '!=' :
-        case '&&=' :
-        case '||=' :
-        case '&&' :
-        case '||' :
         case '!!' :
         case '===' :
         case '!==' :
@@ -178,8 +165,6 @@ function isLogicAssignOperator(o)
     }
     return false;
 }
-
-
 
 /**
  * 判断是否为一个标识符
@@ -689,7 +674,7 @@ syntax['var,let']=function (event)
     //var 只能出现在块级或者for中
     if( !(parent instanceof Scope) )
     {
-        while( parent && parent.keyword() !== 'for' )parent = parent.parent();
+        while( parent && parent.keyword() !== 'for' && !(parent instanceof Scope) )parent = parent.parent();
         if( !parent )this.error();
     }
     if( this.next.type!=='(identifier)' || this.next.id==='(keyword)' )this.error('Invalid identifier for '+this.next.value,  this.next );
@@ -706,6 +691,7 @@ syntax['var,let']=function (event)
         if( this.scope()===statement )this.scope().switch();
         //end var
         if( this.scope()===variable )this.scope().switch();
+
     }else
     {
         this.end();
@@ -947,7 +933,6 @@ syntax['if,switch,while,for,catch'] = function(event)
 
     var expre = new Stack('expression','(expression)');
     this.add( expre );
-
     if( event.type ==='for' )
     {
         var self= this;
@@ -1298,6 +1283,7 @@ syntax['(operator)']=function( e )
 {
     var id = this.current.value;
     e.prevented=true;
+    if( id===';' )return true;
 
     //逗号操作符
     if( id===',' )
@@ -1604,20 +1590,8 @@ function statement()
     }
 
     var val = stack.scope().define( name );
-    if( val && val.scope === stack.scope()  )
-    {
-        this.error('Identifier "'+name+'" has already been declared');
-
-    }else
-    {
-        stack.scope().define(name, desc);
-    }
-
-    //声明的属性后面只能是 '=','in' 或者 ','操作符
-    if( isOperator(this.next.value) && !(this.next.value==='=' || this.next.value===',' || this.next.value==='in') )
-        this.error('',this.next);
-
-    if( this.next.type ==='(identifier)' && this.next.value !==';' )this.error();
+    if( val && val.scope === stack.scope()  )this.error('Identifier "'+name+'" has already been declared');
+    stack.scope().define(name, desc);
 
     //常量必须指定默认值
     if( id==='const' && this.next.value !=='=' )this.error('Missing default value in const',this.next);
@@ -1672,19 +1646,10 @@ function toType( o , scope )
 syntax['(identifier)']=function( e )
 {
     e.prevented=true;
-    if( this.current.value===';')return;
-
     var id = this.scope().keyword();
 
     // 获取声明的类型
-    if( id ==='statement' )
-    {
-        var val = this.prev.value;
-        if( val ==='var' || val ==='const' || val ==='let' || val===',' || this.scope().length()<1 )
-        {
-            statement.call(this, e);
-        }
-    }
+    if( id ==='statement' )statement.call(this, e);
 
     //如果不是表达式
     if( this.scope().keyword() !=='expression' )
@@ -2808,7 +2773,7 @@ Ruler.prototype.keyword=function(s)
     {
         var index = reserved.indexOf( s[1] );
         var type = '(identifier)';
-        if( isOperator( s[1] )  )type='(operator)';
+        if( isBoolOperator( s[1] ) || isLeftOperator( s[1] )  )type='(operator)';
         return describe(type, s[1] , index >= 0 ? '(keyword)' : '(identifier)' );
     }
     return null;
@@ -2841,19 +2806,17 @@ Ruler.prototype.number=function(s)
  */
 Ruler.prototype.identifier=function(s)
 {
-    if( isDelimiter( s.charAt(0) ) )
-    {
-        return describe('(delimiter)', s.charAt(0) , s.charAt(0) );
-    }
-    switch( s.charAt(0) )
+    var v = s.charAt(0);
+    if( isDelimiter( v ) )return describe('(delimiter)', v , v );
+    switch( v )
     {
         case '`' :
         case '"' :
         case "'":
             var i=1;
-            while ( i<s.length && !(s.charAt(0) === s.charAt(i) && s.charAt(i-1) !=='\\') )i++;
-            if( s.charAt(0) !== s.charAt(i) )this.error('Missing identifier '+s.charAt(0) );
-            return describe(s.charAt(0)==='`' ? '(template)' : '(string)', s.substr(0,i+1), s.charAt(0) );
+            while ( i<s.length && !( v === s.charAt(i) && s.charAt(i-1) !=='\\') )i++;
+            if( v !== s.charAt(i) )this.error('Missing identifier '+v );
+            return describe( v==='`' ? '(template)' : '(string)', s.substr(0,i+1), v );
         case '/':
 
             // 正则表达式的前面不能是任务标识符
@@ -2872,7 +2835,7 @@ Ruler.prototype.identifier=function(s)
                 i++;
             }
             var j = s.substr(0,++i);
-            if( s.charAt(0) !== j.charAt(j.length-1) )this.error('Missing identifier end for '+s.charAt(0) );
+            if( v !== j.charAt(j.length-1) )this.error('Missing identifier end for '+v );
             var g='';
             while ( /[a-zA-Z]/.test( s.charAt( i ) ) )g+=s.charAt( i++ );
             if(j.length < 3)this.error('Invalid regexp expression');
@@ -2889,9 +2852,11 @@ Ruler.prototype.identifier=function(s)
  */
 Ruler.prototype.operator=function(s)
 {
-    if( s.charAt(0)===';' || s.charAt(0)==='.' || s.charAt(0)===',' || s.charAt(0)==='?' )
+    var v = s.charAt(0);
+    //这些只能单个出现
+    if( v===';' || v==='.' || v===',' || v==='?' )
     {
-        return describe('(operator)', s.charAt(0) , s.charAt(0) );
+        return describe('(operator)', v , v );
     }
 
     var index = 0;
@@ -2899,14 +2864,10 @@ Ruler.prototype.operator=function(s)
     if( index === 0 )return null;
     s = s.substr(0, index);
 
-    //等号后可以跟的其它前置运算符
-    if(s.length>1 && s.charAt(0)==='=' && ( s.charAt(1)==='!' || s.charAt(1)==='-' || s.charAt(1)==='+') )s=s.charAt(0);
-
     //声明的类型 var name:*=123;
     if( s==='*=' && this.next.id===':' )
     {
         return describe('(operator)', s.charAt(0), s.charAt(0) );
-
     }
     // .* import com.*
     else if( s===':*=' || s===':*' || s==='.*' )
@@ -2914,9 +2875,16 @@ Ruler.prototype.operator=function(s)
         return describe('(operator)', s.charAt(0), s.charAt(0) );
     }
 
+    //处理等号后面跟的其它前置运算符 - + ~ !
+    if( s.length>1 )
+    {
+        var l = s.lastIndexOf('=');
+        if( l > 0 )s=s.substr(0, l+1 );
+    }
+
     if( s )
     {
-        if( !isOperator(s) )this.error('Unexpected identifier '+s);
+        if( !isOperator(s) )this.error('Unexpected operator '+s);
         return describe('(operator)', s, s);
     }
     return null;
