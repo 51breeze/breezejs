@@ -74,6 +74,33 @@ function isOperator( o )
 }
 
 /**
+ * 是否为一个可以组合的运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isCombinationOperator( o )
+{
+    switch (o) {
+        case ':' :
+        case '=' :
+        case '&' :
+        case '|' :
+        case '<' :
+        case '>' :
+        case '-' :
+        case '+' :
+        case '*' :
+        case '/' :
+        case '%' :
+        case '!' :
+        case '^' :
+        case '~' :
+            return true;
+    }
+    return false;
+}
+
+/**
  * 前置运算符
  * @param o
  * @returns {boolean}
@@ -130,14 +157,29 @@ function isBoolOperator(o)
 function isLogicOperator(o)
 {
     switch (o) {
-        case '&&=' :
-        case '||=' :
         case '&&' :
         case '||' :
             return true;
     }
+    return isLogicAssignOperator(o);
+}
+
+/**
+ * 逻辑赋值运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isLogicAssignOperator(o)
+{
+    switch (o) {
+        case '&&=' :
+        case '||=' :
+            return true;
+    }
     return false;
 }
+
+
 
 /**
  * 判断是否为一个标识符
@@ -157,13 +199,37 @@ function isIdentifier( o )
  */
 function isDelimiter( s )
 {
+    return isLeftDelimiter(s) || isRightDelimiter(s);
+}
+
+/**
+ * 判断是否为一个左定界符
+ * @param s
+ * @returns {boolean}
+ */
+function isLeftDelimiter(s)
+{
     switch( s )
     {
         case '{' :
-        case '}' :
         case '(' :
-        case ')' :
         case '[' :
+            return true;
+    }
+    return false;
+}
+
+/**
+ * 判断是否为一个右定界符
+ * @param s
+ * @returns {boolean}
+ */
+function isRightDelimiter(s)
+{
+    switch( s )
+    {
+        case '}' :
+        case ')' :
         case ']' :
             return true;
     }
@@ -1118,20 +1184,18 @@ syntax["new"]=function(e)
     var s = this.scope();
 
     //如果上一个是标识并且当前未换行
-    if( (this.prev.type==='(identifier)' || this.prev.id==='(keyword)') &&
-        this.prev.value!=='throw' && this.prev.line===this.current.line )this.error();
+    if( this.prev.id==='(identifier)' && this.prev.line===this.current.line )this.error();
 
     if( s.keyword()!=='expression')
     {
         var current =  this.current;
         s = new Stack('expression', '(*)' );
         s.addListener('(switch)',function(){
-
             if( this.type() !=='(Class)' && this.type()!=='(*)' )
             {
                 error('"'+current.value+'" is not class', 'type', current);
             }
-        })
+        });
         this.add( s );
     }
     this.add( this.current );
@@ -1246,7 +1310,7 @@ syntax['(operator)']=function( e )
         //[1,] {key:1,} 允许
         if( !(this.next.value ===']' || this.next.value ==='}') )
         {
-            this.add(this.current);
+            this.add( this.current );
             this.step();
         }
         return;
@@ -1257,7 +1321,7 @@ syntax['(operator)']=function( e )
         if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(Boolean)') );
         this.scope().type('(Boolean)');
         this.add(this.current);
-        if( isBoolOperator(this.next) || this.next.value===';' )this.error();
+        if( isBoolOperator( this.next.value ) || this.next.value===';' )this.error();
         this.step();
         return;
     }
@@ -1441,8 +1505,11 @@ syntax['(operator)']=function( e )
     {
         this.add( this.current );
         if( (this.prev.type !=='(identifier)' || this.prev.id==='(keyword)' ) && this.prev.value!==']' )this.error();
-        if( !this.next || this.next.value===';' || isBoolOperator(this.next.value) )
+        if( !this.next || this.next.value===';' || isBoolOperator(this.next.value) || isLogicOperator(this.next.value) )
         {
+
+           // this.next.id !== '(identifier)' && !isLeftOperator(this.next.value)
+
             this.error('Missing expression');
         }
         this.step();
@@ -1539,9 +1606,12 @@ function statement()
     var val = stack.scope().define( name );
     if( val && val.scope === stack.scope()  )
     {
-         this.error('Identifier "'+name+'" has already been declared');
+        this.error('Identifier "'+name+'" has already been declared');
+
+    }else
+    {
+        stack.scope().define(name, desc);
     }
-    stack.scope().define( name, desc);
 
     //声明的属性后面只能是 '=','in' 或者 ','操作符
     if( isOperator(this.next.value) && !(this.next.value==='=' || this.next.value===',' || this.next.value==='in') )
@@ -2607,8 +2677,13 @@ Ruler.prototype.end=function( stack )
     //块级必须用定界符结束(if,else,for,while)除外
     if( stack.close() || (stack instanceof Scope && !(id==='if' || id==='else' || id==='for' || id==='while' ) ) )return true;
 
-    //是定界符开始的并且紧跟着的是结束定界符
-    if( stack.keyword()==='object' && (this.next.value===')' || this.next.value===']'|| this.next.value==='}') ){
+    //是定界符开始的并且紧跟着的是结束定界符(相当于是空的字面量对象)
+    if( stack.keyword()==='object' && (this.next.value===')' || this.next.value===']'|| this.next.value==='}') )
+    {
+       // if( this.next.value===')' ){
+           // console.log( stack.keyword() )
+           // this.error('Missing expression', this.next );
+       // }
         return true;
     }
 
@@ -2622,7 +2697,7 @@ Ruler.prototype.end=function( stack )
         this.seek();
         return this.end( stack );
 
-    }else if( stack.keyword()==='expression' /*|| stack.keyword()==='object'*/ || stack.keyword()==='ternary' )
+    }else if( stack.keyword()==='expression' || stack.keyword()==='ternary' )
     {
         if( this.next.value===')' || this.next.value===']' )
         {
@@ -2632,9 +2707,11 @@ Ruler.prototype.end=function( stack )
         // 如果父级是一个对象
         else if( this.next.value==='}' )
         {
+            //{name:{},elems:{}}
             var p = stack.parent();
-            while (p && p.keyword() !== 'object' && !(p instanceof Scope))p = p.parent();
-            if (p && p.keyword() === 'object'){
+            while ( p && p.keyword() !== 'object' && !(p instanceof Scope) )p = p.parent();
+            if (p && p.keyword() === 'object')
+            {
                 stack.switch();
                 return true;
             };
@@ -2764,11 +2841,7 @@ Ruler.prototype.number=function(s)
  */
 Ruler.prototype.identifier=function(s)
 {
-    if( s.charAt(0)===';' )
-    {
-        return describe('(identifier)', s.charAt(0) , s.charAt(0) );
-
-    }else if( isDelimiter(s.charAt(0)) )
+    if( isDelimiter( s.charAt(0) ) )
     {
         return describe('(delimiter)', s.charAt(0) , s.charAt(0) );
     }
@@ -2776,7 +2849,7 @@ Ruler.prototype.identifier=function(s)
     {
         case '`' :
         case '"' :
-        case '\'':
+        case "'":
             var i=1;
             while ( i<s.length && !(s.charAt(0) === s.charAt(i) && s.charAt(i-1) !=='\\') )i++;
             if( s.charAt(0) !== s.charAt(i) )this.error('Missing identifier '+s.charAt(0) );
@@ -2809,9 +2882,6 @@ Ruler.prototype.identifier=function(s)
     return null;
 }
 
-//@private
-var operator_reg = /[\.\:\?\!\|\&\+\-\*\/\>\<\%\~\=\^]/;
-
 /**
  * 获取运算符
  * @param s
@@ -2819,24 +2889,27 @@ var operator_reg = /[\.\:\?\!\|\&\+\-\*\/\>\<\%\~\=\^]/;
  */
 Ruler.prototype.operator=function(s)
 {
+    if( s.charAt(0)===';' || s.charAt(0)==='.' || s.charAt(0)===',' || s.charAt(0)==='?' )
+    {
+        return describe('(operator)', s.charAt(0) , s.charAt(0) );
+    }
+
     var index = 0;
-    while( operator_reg.test( s.charAt( index ) ) )index++;
-
-    //',' 不能组合
-    if( index===0 && s.charAt( index )===',' )index++;
+    while( isCombinationOperator( s.charAt( index ) ) )index++;
     if( index === 0 )return null;
-
     s = s.substr(0, index);
 
     //等号后可以跟的其它前置运算符
-    if(s.length>1 && s.charAt(0)==='=' && (s.charAt(1)==='!' || s.charAt(1)==='-' || s.charAt(1)==='+') )s=s.charAt(0);
+    if(s.length>1 && s.charAt(0)==='=' && ( s.charAt(1)==='!' || s.charAt(1)==='-' || s.charAt(1)==='+') )s=s.charAt(0);
 
     //声明的类型 var name:*=123;
     if( s==='*=' && this.next.id===':' )
     {
         return describe('(operator)', s.charAt(0), s.charAt(0) );
 
-    }else if( s===':*=' || s===':*' || s==='.*' )
+    }
+    // .* import com.*
+    else if( s===':*=' || s===':*' || s==='.*' )
     {
         return describe('(operator)', s.charAt(0), s.charAt(0) );
     }

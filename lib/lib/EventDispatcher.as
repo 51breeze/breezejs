@@ -117,6 +117,7 @@ package lib
                 removeEventListener.call(target[b],type,listener,this);
                 b++;
             }
+
             return true;
         };
 
