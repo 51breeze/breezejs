@@ -490,7 +490,7 @@ syntax['import']=function (event)
     // import 只能出现在 package 中
     if( this.scope().keyword() !=='package' )this.error('Unexpected import ', 'syntax');
     var index = this.scope().length();
-    this.add( new Stack('import', '(string)' ) );
+    this.add( new Stack('expression', '(string)' ) );
     var s = this.scope();
     var filename=[];
     var name=null;
@@ -692,6 +692,8 @@ syntax['var,let']=function (event)
     this.scope().name( this.next.value );
     var parent = this.scope().parent();
 
+    var s = this.scope();
+
     //var 只能出现在块级或者for中
     if( !(parent instanceof Scope) )
     {
@@ -716,6 +718,7 @@ syntax['var,let']=function (event)
     }else
     {
         this.end();
+        console.log( s.close() );
     }
 };
 
@@ -1210,55 +1213,27 @@ syntax["new"]=function(e)
     this.end();
 }
 
-syntax['(seek)']=function( e )
-{
-   /* if( this.current.value===';' && !(this.scope() instanceof Scope) )
-    {
-        var p = this.scope().parent();
-        while(p && !(p instanceof Scope) && p.keyword()!=='object' )p=p.parent();
-        if(p && p.keyword()==='object')this.error();
-    }*/
 
-
-    if( this.current.type==='(operator)' && this.current.value === this.next.value )this.error('',this.next);
-    if( this.next.value===';' || this.current.value ===';' )return;
-    //if( this.next.value!==';' && this.current.value !==';' && isIdentifier(this.current) && isIdentifier(this.next) )this.error('',this.next);
-}
-
-var jsontag={',':':',':':','}
 syntax['(delimiter)']=function( e )
 {
     var id = this.current.value;
     if( balance[id] )
     {
-        e.prevented=true;
-        var ps = this.scope();
-        if( ps.keyword() !=='expression' )
-        {
-            this.add( new Stack('expression', '(*)') );
-        }
+       e.prevented=true;
 
-        var s = new Stack('object', id==='(' ? '(expression)' : id==='[' ? '(Array)' : '(Object)');
-        if( this.prev.value === '=' && s.type()==='(Array)' )
-        {
-            ps.type( s.type() );
-        }
+       var s;
+       if( this.prev.value === ':' && this.scope().keyword() !== 'ternary' )
+       {
+           s = new Scope('structure', '(block)');
+
+       }else
+       {
+           s = new Stack('object', id === '(' ? '(expression)' : id === '[' ? '(Array)' : '(Json)');
+           if( this.prev.value === '=' && s.type() === '(Array)' )this.scope().type( s.type() );
+       }
 
         var self= this;
-        if( s.type()==='(Object)' )
-        {
-            s.addListener('(add)',function (e) {
-                if( e.target.value==='{' ||  e.target.value==='}' )return;
-                if( !(e.target instanceof Stack)  )
-                {
-                    var id = e.target.value;
-                    var p = this.previous(-2);
-                    if( ( p && jsontag[id]===p.value ) || ( id ===':' && this.length()<3 ) )return ;
-                    self.error();
-                }
-            });
-
-        }else if( s.type()==='(Array)' )
+        if( s.type()==='(Array)' )
         {
             var is=false;
             if( this.prev.id==='(identifier)' || this.prev.value==='this' )
@@ -1278,26 +1253,58 @@ syntax['(delimiter)']=function( e )
 
         this.add( s );
         this.add( this.current );
-        this.loop(function () {
-            var nid = this.next.value;
-            if( nid===')' || nid==='}' || nid===']' ) return false;
-            this.step();
-            return true;
-        });
 
-        this.add( this.seek() );
-        if( this.current.value !== balance[id] )this.error();
+        //json object
+        if( s.type()==='(Json)' )
+        {
+            if( this.next.value !== '}' )
+            {
+                var fn = function (e) {
+                    if (this.current.value === ';')this.error();
+                    if (this.current.value === ',') {
+                        this.scope().switch();
+                        if (this.next.value !== '}')this.add(this.current);
+                    }
+                }
+                this.addListener('(operator)', fn, 100);
+                this.loop(function () {
+                    this.add( this.seek() );
+                    if (this.current.type !== '(identifier)')this.error();
+                    this.add(this.seek());
+                    if (this.current.value !== ':' || this.next.value === ',' || this.next.value === '}' )this.error();
+                    this.step();
+                    if ( this.next.value === '}' )return false;
+                    if ( this.current.value !== ',' )this.error();
+                    return true;
+                });
+                this.removeListener('(operator)', fn);
+
+            }
+            this.add( this.seek() );
+
+        }else
+        {
+            this.loop(function () {
+                this.step();
+                if ( this.current.value===balance[id] ) return false;
+                return true;
+            });
+        }
+
+        this.add( this.current );
+        if( this.current.value !== balance[id] )this.error('Missing token '+balance[id] );
         s.switch();
-
-        if( s.type() ==='(Object)' && this.next.value==='.' )this.error('', this.next );
+        if( s.keyword()==='structure' )return true;
 
         // 如果下一个是运算符或者是一个定界符
-        if( isOperator(this.next.value) || balance[this.next.value] )
+        if( s.type() !=='(Json)' && (this.next.type==='(operator)' || this.next.value==='(' || this.next.value==='[') )
         {
             this.step();
-            return;
+
+        }else
+        {
+            this.end();
         }
-        this.end();
     }
 }
 
@@ -1307,7 +1314,7 @@ syntax['(operator)']=function( e )
     var id = this.current.value;
 
     //运算符后面不能跟操作符(自增减运算符除外)
-    if( this.next.type==='(operator)' && !isIncreaseAndDecreaseOperator(id) )
+    if( id===this.next.value || ( this.next.type==='(operator)' && !isLeftAndRightOperator(id) ) )
         this.error('Unexpected token '+this.next.value, this.next);
 
     //空操作符
@@ -1327,37 +1334,41 @@ syntax['(operator)']=function( e )
         return this.step();
     }
 
-    var right = this.prev.id === '(identifier)' && isLeftAndRightOperator(id);
-
-    //除了前前置运算符外其它操作符都必须在表达式之后
-    if( isLeftOperator( id ) && !right )
+    //运算符只能出现在表达式中
+    if( this.scope().keyword() !=='expression' )
     {
-        // +-正负一元运算符, 也可以是数学加减运算符
-        if( this.scope().keyword() ==='expression' )this.error('Missing expression');
-
-    }else
-    {
-        if( this.scope().keyword() !=='expression' )this.error('Missing expression');
-
-        //结束当前的表达式
-        this.scope().switch();
+        this.add( new Stack('expression','(*)') ) ;
     }
 
     //顺序操作符
     if( id===',' )
     {
+        this.scope().switch();
+
         //(1,) 不允许
-        if( this.next.value===')' )this.error('Unexpected token ,',this.current);
+        if( this.next.value === ')' )this.error('Unexpected token ,',this.current);
 
         //[1,] {key:1,} 允许
         if( !isRightDelimiter( this.next.value ) )
         {
             this.add( this.current );
         }
+
+        var parent = this.scope().parent().keyword();
+        if( parent.keyword()==='object' && ( parent.type() ==='(Json)' || parent.type() ==='(Array)' ) )
+        {
+            return true;
+        }
+
+    }else if( id===':' )
+    {
+        this.scope().switch();
+        this.add( this.current );
     }
     //条件判断三元运算符
     else if( id==='?' )
     {
+        this.scope().switch();
         var self = this;
         var ternary = new Stack('ternary', '(*)');
 
@@ -1367,6 +1378,7 @@ syntax['(operator)']=function( e )
         ternary.content().push( expre );
 
         this.add( ternary );
+
         ternary.addListener('(add)',function(){
             if( this.length()>5 )self.error('Not end expression');
         }).addListener('(switch)',function(){
@@ -1375,16 +1387,19 @@ syntax['(operator)']=function( e )
                 self.error('Missing token :');
             }
         });
+
         this.add( this.current );
 
         //添加表达式
         this.add(new Stack('expression', '(*)').addListener('(switch)', function () {
             if (this.length() < 1)self.error('empty expression');
         }));
+
     }
+    //其它运算符
     else
     {
-         this.add( this.current );
+        this.add( this.current );
 
         //自增加运算符只能是一个对数字的引用
         if( isIncreaseAndDecreaseOperator(id) && this.prev.id !== '(identifier)' && this.next.id !=='(identifier)' )
@@ -1394,19 +1409,24 @@ syntax['(operator)']=function( e )
     }
 
     //后置自增减运算符
-    if( right && this.next.type==='(operator)' )
+    if( this.prev.id === '(identifier)' && isLeftAndRightOperator(id) )
     {
-        //后置自增减运算符后面不允许出现的运算符
-        var next = this.next.value;
-        if ( next === '.' || isKeywordOperator(this.next.value) || isLeftOperator(next) || isMathAssignOperator(next))
-            this.error('Unexpected operator ' + this.next.value, this.next);
-        this.end();
+        //后置自增减运算符后面允许出现部分运算符
+        if( this.next.type==='(operator)' )
+        {
+            var next = this.next.value;
+
+            //后置自增减运算符后面不允许出现的运算符
+            if (next === '.' || isKeywordOperator(this.next.value) || isLeftOperator(next) || isMathAssignOperator(next))
+                this.error('Unexpected operator ' + this.next.value, this.next);
+        }
+        //必须结束当前表达式
+        else
+        {
+            return this.end();
+        }
     }
-    //步进下一个表达式
-    else
-    {
-        this.step();
-    }
+    this.step();
 }
 
 /**
@@ -1540,71 +1560,74 @@ syntax['(identifier)']=function( e )
     //检查所有的引用属性是否为先声明再使用。对象中的属性不会检查
     if( this.prev.value !=='.' )
     {
-        //Json 对象中的键名不检查
-        var iskey = this.scope().parent().keyword()==='object' && this.scope().parent().type()==='(Object)' && this.next.value ===':';
-        if( !iskey )
+        var type = toType( this.current, this.scope() );
+        if( !type )
         {
-            var type = toType( this.current, this.scope() );
-            if( !type )
+            var ps = this.scope().scope();
+
+            //是否有声明
+            var desc = ps.define( this.current.value );
+
+            //是否为全局对象
+            if ( !desc )
             {
-                var ps = this.scope().scope();
-
-                //是否有声明
-                var desc = ps.define( this.current.value );
-
-                //是否为全局对象
-                if ( !desc )
-                {
-                    var global = this.config('globals');
-                    desc = global[ this.current.value ];
-                }
-
-                if ( !desc )
-                {
-                    this.error(this.current.value + ' is not defined', this.current, 'reference');
-                }
-
-                //如果对此表达式进行赋值则检查引用的类型是否与表达式的类型一致
-                if (this.next.value === '=')
-                {
-                    var current = this.current;
-
-                    //如果修改常量
-                    if (desc.id === 'const' && id !== 'statement')
-                        this.error('constant can not be alter for "' + current.value + '"', current, 'syntax');
-
-                    //类引用不能修改
-                    if (desc.id === 'class')
-                        this.error('class can not be alter for "' + current.value + '"', current, 'syntax');
-
-                    //如果引用的类型不一致
-                    this.scope().addListener('(switch)', function (e) {
-                        if (desc.type !== '(*)') {
-                            if ( this.type() !=='(*)' && this.type() !== desc.type && this.type() !=='(Object)')
-                                error('type is not consistent, can only be ' + desc.type, 'type', current);
-                        } else {
-                            desc.type = this.type();
-                        }
-                    });
-                }
-                type = desc.type;
-                if( desc.id==='class' && this.current.value !=='this' && this.prev.value !=='new' )
-                {
-                    type='(Class)';
-                }
+                var global = this.config('globals');
+                desc = global[ this.current.value ];
             }
-            //字面量获得类型后面不能有点运算符
-            else if( (type==='(Boolean)' || type==='(Number)' || type==='(Object)' ) &&  this.next.value==='.' )
+
+            if ( !desc )
             {
-                this.error('', this.next);
+                this.error(this.current.value + ' is not defined', this.current, 'reference');
             }
-            //设置当前表达式返回的类型
-            this.scope().type( type );
+
+            //如果对此表达式进行赋值则检查引用的类型是否与表达式的类型一致
+            if (this.next.value === '=')
+            {
+                var current = this.current;
+
+                //如果修改常量
+                if (desc.id === 'const' && id !== 'statement')
+                    this.error('constant can not be alter for "' + current.value + '"', current, 'syntax');
+
+                //类引用不能修改
+                if (desc.id === 'class')
+                    this.error('class can not be alter for "' + current.value + '"', current, 'syntax');
+
+                //如果引用的类型不一致
+                this.scope().addListener('(switch)', function (e) {
+                    if (desc.type !== '(*)') {
+                        if ( this.type() !=='(*)' && this.type() !== desc.type && this.type() !=='(Object)')
+                            error('type is not consistent, can only be ' + desc.type, 'type', current);
+                    } else {
+                        desc.type = this.type();
+                    }
+                });
+            }
+            type = desc.type;
+            if( desc.id==='class' && this.current.value !=='this' && this.prev.value !=='new' )
+            {
+                type='(Class)';
+            }
         }
+        //字面量获得类型后面不能有点运算符
+        else if( (type==='(Boolean)' || type==='(Number)' || type==='(Object)' ) &&  this.next.value==='.' )
+        {
+            this.error('', this.next);
+        }
+
+        //设置当前表达式返回的类型
+        this.scope().type( type );
     }
 
     this.add( this.current );
-    this.end();
+    if( this.next.type === '(operator)' || this.next.value==='(' || this.next.value==='[' )
+    {
+        this.step();
+
+    }else
+    {
+        this.end();
+    }
 }
 
 syntax['(string),(number),(regexp)']=syntax['(identifier)'];
@@ -2506,24 +2529,22 @@ Ruler.prototype.scope=function()
  */
 Ruler.prototype.end=function( stack )
 {
-
     stack = stack || Stack.current();
     var id = stack.keyword();
-
-    //块级必须用定界符结束(if,else,for,while)除外
-    if( stack.close() || (stack instanceof Scope && !(id==='if' || id==='else' || id==='for' || id==='while' ) ) )return true;
-
+    if( stack.close() )return true;
 
     //如果当前是一个空操作符或者是一个右定界符则结束
-    if( this.current.value === ';' || isRightDelimiter( this.current.value ) )
+    if( this.current.value === ';' )
     {
-        stack.switch();
+        if( !(stack instanceof Scope) || id==='if' || id==='else' || id==='for' || id==='while' ){
+            stack.switch();
+        }
         return true;
     }
-    //如果当前是操作符或者是一个左开始定界符则不结束当前表达式
-    else if( this.current.type==='(operator)' || isLeftDelimiter(this.current.value) )
+    //如果下一个是一个右定界符
+    else if( !(stack instanceof Scope) || isRightDelimiter( this.next.value ) )
     {
-        this.step();
+        stack.switch();
         return true;
     }
     this.error('Syntax not end');
