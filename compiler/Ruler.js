@@ -59,6 +59,7 @@ function isCombinationOperator( o )
 function isMathAssignOperator( o )
 {
     switch (o) {
+        case '=' :
         case '+=' :
         case '-=' :
         case '*=' :
@@ -85,15 +86,15 @@ function isLeftOperator(o)
 {
     switch (o) {
         case '~' :
-        case '--' :
-        case '++' :
+        case '-' :
+        case '+' :
         case '!' :
         case '!!' :
         case 'new' :
         case 'typeof' :
             return true;
     }
-    return false;
+    return isIncreaseAndDecreaseOperator(o);
 }
 
 /**
@@ -101,11 +102,28 @@ function isLeftOperator(o)
  * @param o
  * @returns {boolean}
  */
-function isRigthOperator(o)
+function isIncreaseAndDecreaseOperator(o)
 {
     switch (o) {
         case '--' :
         case '++' :
+            return true;
+    }
+    return false;
+}
+
+/**
+ * 一元或者自增减运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isLeftAndRightOperator(o)
+{
+    switch (o) {
+        case '--' :
+        case '++' :
+        case '-' :
+        case '+' :
             return true;
     }
     return false;
@@ -121,14 +139,29 @@ function isBoolOperator(o)
     switch (o) {
         case '<' :
         case '>' :
-        case '!' :
         case '<=' :
         case '>=' :
         case '==' :
         case '!=' :
-        case '!!' :
         case '===' :
         case '!==' :
+        case 'instanceof' :
+        case 'in' :
+            return true;
+    }
+    return false;
+}
+
+/**
+ * 关系运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isKeywordOperator(o)
+{
+    switch (o) {
+        case 'new' :
+        case 'typeof' :
         case 'instanceof' :
         case 'in' :
             return true;
@@ -146,25 +179,13 @@ function isLogicOperator(o)
     switch (o) {
         case '&&' :
         case '||' :
-            return true;
-    }
-    return isLogicAssignOperator(o);
-}
-
-/**
- * 逻辑赋值运算符
- * @param o
- * @returns {boolean}
- */
-function isLogicAssignOperator(o)
-{
-    switch (o) {
-        case '&&=' :
-        case '||=' :
+        case '!!' :
+        case '!' :
             return true;
     }
     return false;
 }
+
 
 /**
  * 判断是否为一个标识符
@@ -1042,11 +1063,15 @@ syntax["case,default"]=function(e)
 {
     e.prevented=true;
     if( this.scope().keyword() !=='switch' )this.error();
+
+    //判断是否有结束或者换行
     if( !(this.prev.value===';' || this.prev.value==='}' || this.prev.line !== this.current.line ) )this.error();
+
+    //case 需要表达式
     if( this.next.value===':' && e.type==='case' ) this.error('Missing expression');
+
+    //default 不需要表达式
     if( this.next.value!==':' && e.type==='default' ) this.error();
-    var s =  new Stack('expression','(*)');
-    this.add( s );
     this.add( this.current );
     this.step();
 }
@@ -1107,7 +1132,7 @@ syntax["this"]=function (e)
 syntax["super"]=function (e)
 {
     e.prevented=true;
-    if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(*)') );
+    if( this.scope().keyword() !== 'expression' )this.add( new Stack('expression','(*)') );
     var fun = getParentFunction( this.scope() );
     if( !fun || fun.parent().keyword() !=='class' || fun.static() )this.error();
     if( !fun.parent().extends() )this.error('No parent class inheritance');
@@ -1119,10 +1144,7 @@ syntax["super"]=function (e)
     }
 
     this.add( this.current );
-    if( !isDelimiter( this.next.value ) || balance[ this.next.value ] )
-    {
-        this.step();
-    }
+    this.step();
     this.end();
 }
 
@@ -1281,252 +1303,110 @@ syntax['(delimiter)']=function( e )
 
 syntax['(operator)']=function( e )
 {
-    var id = this.current.value;
     e.prevented=true;
-    if( id===';' )return true;
+    var id = this.current.value;
 
-    //逗号操作符
+    //运算符后面不能跟操作符(自增减运算符除外)
+    if( this.next.type==='(operator)' && !isIncreaseAndDecreaseOperator(id) )
+        this.error('Unexpected token '+this.next.value, this.next);
+
+    //空操作符
+    if( id===';' )
+    {
+        //赋值运算符后不能是空操作符
+        if( isMathAssignOperator( this.prev.value ) )this.error('Missing expression', this.next);
+        this.add( this.current );
+        return this.end();
+    }
+    //点运算符
+    else if( id==='.' )
+    {
+        //数字后面不能有点运算符 点运算符后面只能是属性名
+        if( this.prev.type==='(number)' || this.next.type !=='(identifier)' )this.error();
+        this.add( this.current );
+        return this.step();
+    }
+
+    var right = this.prev.id === '(identifier)' && isLeftAndRightOperator(id);
+
+    //除了前前置运算符外其它操作符都必须在表达式之后
+    if( isLeftOperator( id ) && !right )
+    {
+        // +-正负一元运算符, 也可以是数学加减运算符
+        if( this.scope().keyword() ==='expression' )this.error('Missing expression');
+
+    }else
+    {
+        if( this.scope().keyword() !=='expression' )this.error('Missing expression');
+
+        //结束当前的表达式
+        this.scope().switch();
+    }
+
+    //顺序操作符
     if( id===',' )
     {
-        if( this.scope().keyword()==='expression' )this.scope().switch();
-
         //(1,) 不允许
-        if( this.next.value===')' )this.error(null,this.next);
+        if( this.next.value===')' )this.error('Unexpected token ,',this.current);
 
         //[1,] {key:1,} 允许
-        if( !(this.next.value ===']' || this.next.value ==='}') )
+        if( !isRightDelimiter( this.next.value ) )
         {
             this.add( this.current );
-            this.step();
         }
-        return;
     }
-
-    if( id==='!' || id==='!!' )
+    //条件判断三元运算符
+    else if( id==='?' )
     {
-        if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(Boolean)') );
-        this.scope().type('(Boolean)');
-        this.add(this.current);
-        if( isBoolOperator( this.next.value ) || this.next.value===';' )this.error();
-        this.step();
-        return;
-    }
-
-    //如果是点运算符
-    if( id==='.' )
-    {
-        this.add( this.current );
-
-        //数字后面不能有点运算符
-        if( this.prev.type==='(number)' ) this.error();
-
-        //点运算符后面只能是属性名
-        if( !isPropertyName(this.next.value) ) this.error();
-        this.scope().type('(*)');
-        this.step();
-        return;
-    }
-    //三元运算符
-    else if( id==='?' || id===':' )
-    {
-        //结束当前的表达式
-        if( this.scope().keyword()==='expression' )this.scope().switch();
-
-        //json object
-        if( id===':' && this.scope().type()==='(Object)')
-        {
-            this.add( this.current );
-            if( !(this.prev.type === '(string)' || isPropertyName(this.prev.value) ) )this.error('Invalid property name', this.prev );
-            this.step();
-            return;
-        }
-        //switch case condition :
-        else if( id===':' && this.scope().keyword()==='switch' )
-        {
-            this.add( this.current );
-            if( this.next.value==='{' )
-            {
-                this.seek();
-                this.loop(function () {
-                    if( this.next.value==='}')return false;
-                    this.step();
-                    return true;
-                });
-                this.seek();
-                if( this.current.value !=='}' )this.error('Missing token }');
-
-            }else{
-                this.loop(function () {
-                    if( this.next.value==='case' || this.next.value==='default' || this.next.value==='}' )return false;
-                    this.step();
-                    return true;
-                });
-            }
-            return;
-        }
-
         var self = this;
-        if( id==='?' )
-        {
-            var s = new Stack('ternary', '(*)');
-            var a = this.scope().content().pop();
-            a.__parent__ = s;
-            s.content().push( a );
-            this.add(s);
-            s.addListener('(add)',function(){
-                if( this.length()>5 )self.error('Not end expression');
-            }).addListener('(switch)',function(){
-                var p = this.previous(-2);
-                if( !p || p.id !==':' ){
-                    self.error('Missing token :');
-                }
-            });
+        var ternary = new Stack('ternary', '(*)');
 
-        }else if( id===':' && this.scope().keyword()==='ternary' )
-        {
-            if( this.scope().length()===5 )this.scope().switch();
-            if( this.scope().keyword() !== 'ternary' )this.error();
-        }
+        //pop last expression
+        var expre = this.scope().content().pop();
+        expre.__parent__ = ternary;
+        ternary.content().push( expre );
 
-
-        //三元运算表达式
-        var scope = this.scope();
-        if( this.scope().keyword() ==='ternary' )
-        {
-            // ? or :
-            this.add(this.current);
-
-            //添加表达式
-            this.add(new Stack('expression', '(*)').addListener('(switch)', function () {
-                if (this.length() < 1)self.error('empty expression');
-            }));
-
-            //获取表达式
-            this.step();
-
-            //设置三元表达式返回的类型
-            scope.type( this.scope().type() );
-
-            //如果当前是函数并且下一个是三元运算
-            if (this.next.value === ':' || this.next.value === '?')
-            {
-                this.step();
-
-                //不确定的类型
-                if( scope.type() !== this.scope().type() )scope.type('(*)');
+        this.add( ternary );
+        ternary.addListener('(add)',function(){
+            if( this.length()>5 )self.error('Not end expression');
+        }).addListener('(switch)',function(){
+            var p = this.previous(-2);
+            if( !p || p.id !==':' ){
+                self.error('Missing token :');
             }
+        });
+        this.add( this.current );
 
-            //未结束继续
-            if( scope.length()!==5 )return;
+        //添加表达式
+        this.add(new Stack('expression', '(*)').addListener('(switch)', function () {
+            if (this.length() < 1)self.error('empty expression');
+        }));
+    }
+    else
+    {
+         this.add( this.current );
+
+        //自增加运算符只能是一个对数字的引用
+        if( isIncreaseAndDecreaseOperator(id) && this.prev.id !== '(identifier)' && this.next.id !=='(identifier)' )
+        {
+            this.error('Unexpected token '+this.current.value, this.current);
         }
     }
-    //如果是数学运算符
-    else if( id==='-' || id==='+' || id==='*' || id==='/' || id==='%' )
+
+    //后置自增减运算符
+    if( right && this.next.type==='(operator)' )
     {
-        if( this.next.type === '(delimiter)' )this.error();
-        if( (id==='-' || id==='+') && this.scope().keyword() !== 'expression' )this.add(new Stack('expression', '(Number)'));
-        this.add( this.current );
-        this.scope().type('(Number)');
-        if( id !=='+' )
-        {
-            //左边是引用或者数字
-            if (!(this.prev.type === '(number)' || this.prev.type === '(identifier)' && this.prev.id !== '(keyword)'))this.error();
-
-            //右边是引用或者数字
-            if (!(this.next.type === '(number)' || this.next.type === '(identifier)' && this.next.id !== '(keyword)'))this.error();
-
-        }else if( this.next.type ==='(string)' || this.next.value==='typeof' )
-        {
-            this.scope().type('(String)');
-        }
-
+        //后置自增减运算符后面不允许出现的运算符
+        var next = this.next.value;
+        if ( next === '.' || isKeywordOperator(this.next.value) || isLeftOperator(next) || isMathAssignOperator(next))
+            this.error('Unexpected operator ' + this.next.value, this.next);
+        this.end();
+    }
+    //步进下一个表达式
+    else
+    {
         this.step();
-        return;
     }
-    //数学运算并赋值
-    else if( id==='+=' || id==='-=' || id==='*=' || id==='/=' || id==='%=' )
-    {
-        this.add( this.current );
-        if( this.prev.type !=='(identifier)' || this.prev.id==='(keyword)' )this.error();
-        this.scope().type('(Number)');
-
-        //下一个必须是数字或者引用的数字(+=)除外
-        if( id !=='+=' )
-        {
-            var v = this.next.value;
-            var is =  v==='!' || v==='!!' || v==='-' || v==='+' || v==='~';
-            if( !is && !(this.next.type==='(number)' || this.next.type==='(identifier)' && this.next.id!=='(keyword)') )
-                this.error();
-        }
-        this.step();
-        return;
-    }
-    //自增减运算
-    else if( id==='++' || id==='--' )
-    {
-        //自增减运算只能是引用
-        if( this.prev.type==='(number)')this.error();
-        if( this.next.type==='(number)')this.error('',this.next);
-        var left= this.prev.type==='(identifier)' && this.prev.id !=='(keyword)' && this.prev.value !==';';
-        var right= this.next.type==='(identifier)' && this.next.id !=='(keyword)' && this.next.value !==';';
-        if( !left )
-        {
-            var p = this.scope().previous();
-            left = p instanceof Stack && p.type()==='(property)';
-        }
-        if( left && right )this.error();
-        if( !left && !right )this.error();
-
-        if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(Number)') );
-        this.add( this.current );
-        this.scope().type('(Number)');
-        if( left && this.next.value ===',' || !left && right )
-        {
-            this.step();
-            return;
-        }
-    }
-    //赋值
-    else if( id==='=' )
-    {
-        this.add( this.current );
-        if( (this.prev.type !=='(identifier)' || this.prev.id==='(keyword)' ) && this.prev.value!==']' )this.error();
-        if( !this.next || this.next.value===';' || isBoolOperator(this.next.value) || isLogicOperator(this.next.value) )
-        {
-
-           // this.next.id !== '(identifier)' && !isLeftOperator(this.next.value)
-
-            this.error('Missing expression');
-        }
-        this.step();
-        return;
-    }
-    //反转操作数的比特位
-    else if( id==='~' )
-    {
-        if( this.scope().keyword()!=='expression' )this.add( new Stack('expression','(Number)') );
-        this.scope().type('(Number)');
-        this.add( this.current );
-        this.step();
-        return;
-
-    } else
-    {
-        var v = this.next.value;
-        var is = v==='-' ||  v==='+' || isLeftOperator(v);
-        this.add( this.current );
-        this.scope().type('(Number)');
-        if( isBoolOperator(this.current.value) )
-        {
-           this.scope().type('(Boolean)');
-        }
-        if( is || balance[ v ] || isIdentifier( this.next ) )
-        {
-            this.step();
-            return;
-        }
-    }
-    this.end();
 }
 
 /**
@@ -1716,22 +1596,14 @@ syntax['(identifier)']=function( e )
             //字面量获得类型后面不能有点运算符
             else if( (type==='(Boolean)' || type==='(Number)' || type==='(Object)' ) &&  this.next.value==='.' )
             {
-                this.error('', this.next );
+                this.error('', this.next);
             }
             //设置当前表达式返回的类型
-            this.scope().type(type);
+            this.scope().type( type );
         }
     }
 
     this.add( this.current );
-    if( this.next.type === '(operator)' || this.next.value==='(' || this.next.value==='[' )
-    {
-        var left = this.prev.value;
-        var right = this.next.value;
-        if( isLeftOperator(left) && isLeftOperator(right) )this.error('',this.next);
-        this.step();
-        return;
-    }
     this.end();
 }
 
@@ -2333,14 +2205,13 @@ Class.prototype.scope=function( name )
 {
     if( this.__scope__===null )
     {
-        var p = new Scope('class','(protoScope)');
-        var s = new Scope('class','(staticScope)');
-        p.__parent__ = this.parent();
+        var s = new Scope('class','(block)');
+        s.static('static');
         s.__parent__ = this.parent();
         var ps = this.parent().scope();
-        merge(p.__define__, ps.__define__);
+        merge(this.__define__, ps.__define__);
         merge(s.__define__, ps.__define__);
-        this.__scope__={'proto':p,'static':s};
+        this.__scope__={'proto':this,'static':s};
     };
     if( typeof name  === "undefined" )return this;
     return name === 'static' ? this.__scope__.static : this.__scope__.proto;
@@ -2611,11 +2482,11 @@ Ruler.prototype.seek=function( flag )
     //是否可以结束表达式
     else if( this.current.id===';' )
     {
-        if( this.current.id===';' )
+        /*if( this.current.id===';' )
         {
             this.scope().dispatcher( new Event('(end)',  {target:this.current, ruler:this} ) );
             this.add( this.current );
-        }
+        }*/
     }
     return this.current;
 }
@@ -2635,54 +2506,27 @@ Ruler.prototype.scope=function()
  */
 Ruler.prototype.end=function( stack )
 {
-    stack = stack || Stack.current();
 
+    stack = stack || Stack.current();
     var id = stack.keyword();
 
     //块级必须用定界符结束(if,else,for,while)除外
     if( stack.close() || (stack instanceof Scope && !(id==='if' || id==='else' || id==='for' || id==='while' ) ) )return true;
 
-    //是定界符开始的并且紧跟着的是结束定界符(相当于是空的字面量对象)
-    if( stack.keyword()==='object' && (this.next.value===')' || this.next.value===']'|| this.next.value==='}') )
-    {
-       // if( this.next.value===')' ){
-           // console.log( stack.keyword() )
-           // this.error('Missing expression', this.next );
-       // }
-        return true;
-    }
 
-    if( this.current.value === ';')
+    //如果当前是一个空操作符或者是一个右定界符则结束
+    if( this.current.value === ';' || isRightDelimiter( this.current.value ) )
     {
         stack.switch();
         return true;
-
-    }else if( this.next.value===';' )
-    {
-        this.seek();
-        return this.end( stack );
-
-    }else if( stack.keyword()==='expression' || stack.keyword()==='ternary' )
-    {
-        if( this.next.value===')' || this.next.value===']' )
-        {
-            stack.switch();
-            return true;
-        }
-        // 如果父级是一个对象
-        else if( this.next.value==='}' )
-        {
-            //{name:{},elems:{}}
-            var p = stack.parent();
-            while ( p && p.keyword() !== 'object' && !(p instanceof Scope) )p = p.parent();
-            if (p && p.keyword() === 'object')
-            {
-                stack.switch();
-                return true;
-            };
-        }
     }
-    this.error('syntax not end');
+    //如果当前是操作符或者是一个左开始定界符则不结束当前表达式
+    else if( this.current.type==='(operator)' || isLeftDelimiter(this.current.value) )
+    {
+        this.step();
+        return true;
+    }
+    this.error('Syntax not end');
 }
 
 
