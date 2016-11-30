@@ -1256,7 +1256,7 @@ syntax['(delimiter)']=function( e )
     if( balance[id] )
     {
        var s;
-       if( this.prev.value === ':' && this.scope().keyword() !== 'ternary' )
+       if( this.prev.value === ':' && this.scope().keyword() !== 'ternary' && this.scope().keyword() !=='object' )
        {
            s = new Scope('structure', '(block)');
 
@@ -1296,23 +1296,28 @@ syntax['(delimiter)']=function( e )
                     if (this.current.value === ';')this.error();
                     if (this.current.value === ',') {
                         this.scope().switch();
-                        if (this.next.value !== '}')this.add(this.current);
+                       // console.log( this.scope().content()[2].content()[3].content() )
+                        if (this.next.value !== '}')this.add( this.current );
+                        e.prevented=true;
+                        e.stopPropagation=true;
                     }
                 }
                 this.addListener('(operator)', fn, 100);
                 this.loop(function () {
+                    this.seek()
+                    if( this.current.value === '}' )return false;
+                    this.add( this.current );
+                    if( this.current.type !=='(identifier)' && this.current.type !== '(string)' )this.error();
                     this.add( this.seek() );
-                    if (this.current.type !== '(identifier)')this.error();
-                    this.add(this.seek());
-                    if (this.current.value !== ':' || this.next.value === ',' || this.next.value === '}' )this.error();
+                    if ( this.current.value !== ':' )this.error();
                     this.step();
-                    if ( this.next.value === '}' )return false;
-                    if ( this.current.value !== ',' )this.error();
+                    if( this.current.value !== ',' && this.next.value !== '}' )this.error();
                     return true;
                 });
                 this.removeListener('(operator)', fn);
+            }else{
+                this.seek();
             }
-            this.add( this.seek() );
 
         }else
         {
@@ -1320,14 +1325,28 @@ syntax['(delimiter)']=function( e )
             this.seek();
         }
 
+
+
+
         this.add( this.current );
         if( this.current.value !== balance[id] )this.error('Missing token '+balance[id] );
         s.switch();
 
+
+        if( s.type() === '(Json)')
+        {
+           // console.log( this.scope().content() )
+
+            console.log( s.type(),'==========', this.current.line )
+
+        }
+
         if( s.keyword()==='structure' )return true;
 
+        var json = s.type() ==='(Json)' && ( this.next.value===',' || this.next.value===':' );
+
         // 如果下一个是运算符或者是一个定界符
-        if( s.type() !=='(Json)' && (this.next.type==='(operator)' || this.next.value==='(' || this.next.value==='[') )
+        if( json || ( s.type() !=='(Json)' && (this.next.type==='(operator)' || this.next.value==='(' || this.next.value==='[') ) )
         {
             this.step();
 
@@ -1340,7 +1359,10 @@ syntax['(delimiter)']=function( e )
             }
 
             //如果右边不是一个结束定界符
-            if( !isRightDelimiter(this.next.value) )this.end();
+            if( !isRightDelimiter(this.next.value) ){
+                console.log( s.type() )
+                this.end();
+            }
         }
     }
 }
@@ -2599,6 +2621,7 @@ Ruler.prototype.end=function( stack )
     stack = stack || Stack.current();
     var id = stack.keyword();
     if( stack.close() )return true;
+    if( this.next.value===';')this.seek();
 
     //如果当前是一个空操作符或者是一个右定界符则结束
     if( this.current.value === ';' )
