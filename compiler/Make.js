@@ -491,7 +491,9 @@ function checkReference(it)
     //如果没有下一个则退出
     if( !it.next || type==='*' )
     {
-        if( it.current.value ==='super' )error('Unexpected super','', it.current );
+        if( it.current.value ==='super' ){
+            error('Unexpected super','', it.current );
+        }
         return it.current.value;
     }
 

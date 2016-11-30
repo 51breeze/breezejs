@@ -97,6 +97,7 @@ package lib
                 }
                 index++;
             }
+
             return this;
         }
 
