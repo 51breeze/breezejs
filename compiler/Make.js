@@ -510,7 +510,6 @@ function checkReference(it)
     //如果不是所有类型，检查类成员属性
     while( it.next && type !== '*' && type !=='void')
     {
-
         //是否对类本身实例的引用
         desc = self.classname === type || self.fullclassname === type ? self : module( getImportClassByType(self.import, type) );
         if (!desc)error('"' + it.current.value + '" is not defined.', '', it.current);
@@ -593,18 +592,9 @@ function checkPropery(str,it,object, name, privatize )
         }
 
         it.stack.type( desc.type );
-        if( it.next && it.next.value==='=' )
+        if( it.next && it.next.value==='=' && desc.id === 'const' )
         {
-            if( desc.id === 'const' )error('"' + it.current.value + '" is constant', '', it.current );
-            if( it.current instanceof Ruler.STACK )
-            {
-                str.prop.push( toString(it.current) );
-                if( it.current.type() !== desc.type && desc.type !=='*' )error('Specify the type of mismatch','type', it.prev );
-
-            }else
-            {
-                str.prop.push( it.current.value );
-            }
+           error('"' + it.current.value + '" is constant', '', it.current );
         }
     }
     //函数
@@ -720,11 +710,12 @@ function getClassPropertyDesc(it, object, name )
 
         var parent = object;
         var child;
+
         //在继承的类中查找, 静态属性及方法不继承
         if (name === 'proto') while (parent && parent.inherit )
         {
             child = parent;
-            parent = module(parent.inherit);
+            parent = module( getModuleFullname(parent, parent.inherit ) );
             if ( parent && parent.proto[prop] )
             {
                 desc = parent.proto[prop];
@@ -752,7 +743,7 @@ function checkPrivilege(it, desc, inobject, currobject )
         var internal = inobject.package === currobject.package && desc.privilege === 'internal';
 
         //子类访问权限
-        var inherit = inobject.fullclassname ===  currobject.inherit && desc.privilege === 'protected';
+        var inherit = inobject.fullclassname === currobject.import[ currobject.inherit ] && desc.privilege === 'protected';
 
         //判断访问权限
         if ( !(internal || inherit || desc.privilege === 'public') )
@@ -845,6 +836,18 @@ function chackOverride( item, parent , internal )
     }
 }
 
+/**
+ * 获取模块的全名
+ * @param module
+ * @param classname
+ * @returns {*}
+ */
+function getModuleFullname( module , classname )
+{
+    if( module.classname === classname )return module.fullclassname;
+    if( module.import[ classname ] )return module.import[ classname ];
+    return classname;
+}
 
 
 /**
@@ -903,7 +906,8 @@ function makeModule( stack )
                     parent = list;
                     while( parent.inherit )
                     {
-                        parent = module( parent.inherit );
+                        parent = module( getModuleFullname(parent, parent.inherit ) );
+                        if( !parent )error('Not found parent class. ' );
                         chackOverride(item, parent ,  list.package === parent.package );
                     }
                 }
@@ -1001,7 +1005,7 @@ function getPropertyDescription( stack )
         }
     }
 
-    list['inherit'] = stack.extends() ? list['import'][ stack.extends() ] || stack.extends() : null;
+    list['inherit'] = stack.extends() ? stack.extends() : null;
     list['package']=stack.parent().name();
     list['type']=stack.name();
     list['nonglobal']=true;

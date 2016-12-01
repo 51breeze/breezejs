@@ -1261,12 +1261,9 @@ syntax['(delimiter)']=function( e )
        {
            s = new Scope('structure', '(block)');
            this.add( s );
-
        }else
        {
            s = new Stack('object', id === '(' ? '(expression)' : id === '[' ? '(Array)' : '(Json)');
-           if( this.prev.value === '=' && s.type() === '(Array)' )this.scope().type( s.type() );
-
            var self= this;
            if( s.type()==='(Array)' )
            {

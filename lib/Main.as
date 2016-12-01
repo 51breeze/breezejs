@@ -26,32 +26,21 @@ package
         static public var name:Number = 5 ;
 
 
-
           //var bb:String='123';
-          function Main(jj) {
+          function Main(jj)
+          {
 
-              var ii = {
-                  name: {},
-                  '1': this.names,
-
+              var ii={
+                  name:{},
+                  age:1
               };
 
-              [{},{
 
-                  name:[{}
-
-                   ,[{name:{},age:30}]
-                      , this.names,
-
-                  ],
-
-
-              }];
 
               var b,c='uuuu',d=6;
               var name=null;
               super(jj);
-              console.log( B.classname,{name:{}} );
+              console.log( B.classname );
               console.log( this.names );
           }
     }

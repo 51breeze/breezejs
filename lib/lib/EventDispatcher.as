@@ -31,6 +31,7 @@ package lib
          */
         public function EventDispatcher( target )
         {
+            this['getProxyTarget' || this.length ];
             this.getProxyTarget = target ?
                 function () {
                     return target.length > 0 ? target : [this];
