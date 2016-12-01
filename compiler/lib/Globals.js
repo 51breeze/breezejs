@@ -2,6 +2,7 @@ var objects = {
     'Class':{'id':'class', 'type':'Class', 'inherit':'Object'},
     'Number':{'id':'class', 'type':'Number', 'inherit':'Object'},
     'String':{'id':'class', 'type':'String', 'inherit':'Object'},
+    'Json':{'id':'object', 'type':'Json','inherit':'Object'},
     'Object':{
         'id':'class',
         'type':'Object',

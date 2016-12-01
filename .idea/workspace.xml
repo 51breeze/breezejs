@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/lib/main.as" />
+    <list id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="" />
+    <list default="true" id="18e6e159-e815-4edb-b007-a0795730b21e" name="New changelist" comment="1.1">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Make.js" afterPath="$PROJECT_DIR$/compiler/Make.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Ruler.js" afterPath="$PROJECT_DIR$/compiler/Ruler.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/lib/Globals.js" afterPath="$PROJECT_DIR$/compiler/lib/Globals.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Main.as" afterPath="$PROJECT_DIR$/lib/Main.as" />
     </list>
-    <list id="18e6e159-e815-4edb-b007-a0795730b21e" name="New changelist" comment="" />
     <ignored path="breezejs.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path=".idea/dataSources.local.xml" />
@@ -34,11 +36,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Ruler.js" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
+      <file leaf-file-name="Make.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/compiler/Make.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1506">
-              <caret line="1339" column="65" selection-start-line="1339" selection-start-column="65" selection-end-line="1339" selection-end-column="65" />
+            <state vertical-scroll-proportion="0.7799767">
+              <caret line="495" column="6" selection-start-line="495" selection-start-column="6" selection-end-line="495" selection-end-column="6" />
               <folding />
             </state>
           </provider>
@@ -47,8 +49,28 @@
       <file leaf-file-name="EcmaScript.js" pinned="false" current-in-tab="false">
         <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="887" column="0" selection-start-line="887" selection-start-column="0" selection-end-line="887" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="154" column="0" selection-start-line="154" selection-start-column="0" selection-end-line="154" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="testjs.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/testjs.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="37" column="0" selection-start-line="37" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Ruler.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="362" column="0" selection-start-line="362" selection-start-column="0" selection-end-line="382" selection-end-column="1" />
               <folding />
             </state>
           </provider>
@@ -57,54 +79,9 @@
       <file leaf-file-name="Main-min.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="213" column="3" selection-start-line="213" selection-start-column="3" selection-end-line="213" selection-end-column="3" />
-              <folding>
-                <marker date="1480512159741" expanded="true" signature="16:63" ph="/*...*/" />
-                <marker date="1480512159741" expanded="true" signature="96:696" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="217:689" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="464:655" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="584:641" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="756:1966" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="862:1964" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="1482:1611" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="1656:1785" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="2020:2323" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="2124:2321" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="2389:2715" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="2560:2642" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="2735:2938" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="2826:2901" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="2967:3535" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="3096:3245" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="3184:3238" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="3285:3533" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="3338:3427" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="3554:3979" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="3653:3958" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="3733:3952" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="3826:3886" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="3890:3942" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="4009:4915" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="4030:4324" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="4357:4874" ph="{&quot;name&quot;: '3'...}" />
-                <marker date="1480512159741" expanded="true" signature="4424:4561" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="4617:4872" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="4716:4871" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="4947:5729" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="4991:5200" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="5244:5580" ph="{&quot;name&quot;: '3'...}" />
-                <marker date="1480512159741" expanded="true" signature="5368:5578" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="5591:5688" ph="{&quot;name&quot;: '3999 yyy fsss 666'...}" />
-                <marker date="1480512159741" expanded="true" signature="5775:8117" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="5837:5982" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="7745:7979" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="8004:8034" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="8148:8611" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="8246:8477" ph="{...}" />
-                <marker date="1480512159741" expanded="true" signature="8524:8537" ph="{&quot;names&quot;: '3'...}" />
-                <marker date="1480512159741" expanded="true" signature="8551:8561" ph="{&quot;name&quot;: 5...}" />
-              </folding>
+            <state vertical-scroll-proportion="0.0">
+              <caret line="184" column="14" selection-start-line="184" selection-start-column="14" selection-end-line="184" selection-end-column="14" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -112,10 +89,20 @@
       <file leaf-file-name="B.as" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/com/B.as">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="42" column="0" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Main.as" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/Main.as">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="46" column="0" selection-start-line="46" selection-start-column="0" selection-end-line="46" selection-end-column="0" />
               <folding>
-                <element signature="e#553#567#0" expanded="true" />
+                <element signature="e#548#561#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -124,123 +111,11 @@
       <file leaf-file-name="EventDispatcher.as" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/lib/EventDispatcher.as">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="16" column="50" selection-start-line="16" selection-start-column="43" selection-end-line="16" selection-end-column="50" />
               <folding>
-                <marker date="1480506295599" expanded="true" signature="0:188" ph="/*...*/" />
-                <marker date="1480506295599" expanded="true" signature="532:743" ph="/** EventDispatcher Class ...*/" />
-                <marker date="1480506295599" expanded="true" signature="802:1136" ph="{...}" />
-                <marker date="1480506295599" expanded="true" signature="875:958" ph="{...}" />
-                <marker date="1480506295599" expanded="true" signature="988:1125" ph="{...}" />
-                <marker date="1480506295599" expanded="true" signature="1195:1582" ph="{...}" />
-                <marker date="1480506295599" expanded="true" signature="1325:1546" ph="{...}" />
-                <marker date="1480506295599" expanded="true" signature="1455:1507" ph="{...}" />
-                <marker date="1480506295599" expanded="true" signature="1593:1740" ph="/** 添加侦听器 ...*/" />
-                <marker date="1480506295599" expanded="true" signature="1848:2904" ph="{...}" />
-                <marker date="1480506295599" expanded="true" signature="1957:2109" ph="{...}" />
-                <marker date="1480506295599" expanded="true" signature="2166:2237" ph="{...}" />
-                <marker date="1480506295599" expanded="true" signature="2496:2868" ph="{...}" />
-                <marker date="1480506295599" expanded="true" signature="2809:2829" ph="{...}" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="D.as" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/lib/com/D.as">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="38" column="0" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="0" />
-              <folding>
-                <element signature="e#553#567#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Make.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler/Make.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="724" column="5" selection-start-line="724" selection-start-column="5" selection-end-line="724" selection-end-column="5" />
-              <folding>
-                <marker date="1480506295594" expanded="true" signature="365:412" ph="/** 全局模块 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="443:883" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="618:715" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="757:822" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="886:949" ph="/** 返回文件的路径 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="989:1128" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="1130:1192" ph="/** 去掉两边的空白 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="1214:1313" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="1315:1346" ph="/** 合并对象 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="1364:1822" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="1463:1801" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="1535:1795" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="1656:1729" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="1733:1785" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="1824:1886" ph="/** 获取模块全名 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="1916:1947" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="1949:2025" ph="/** 创建默认参数 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="2069:3423" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="2236:2835" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="2317:2483" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="2527:2829" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="2681:2819" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="2856:3405" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="2956:3070" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="3098:3367" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="3195:3357" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="3426:3478" ph="/** 生成函数 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="3512:5167" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="3746:5136" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="3832:4111" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="3896:4020" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="4037:4101" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="4153:5130" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="4315:5120" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="4394:4503" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="4569:5106" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="4897:5004" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="5204:5240" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="5243:5298" ph="/** 创建属性的描述 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="5334:5781" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="5502:5547" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="5579:5630" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="5705:5762" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="5783:5829" ph="/** 抛出错误信息 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="5862:6300" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="5882:5963" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="5988:6298" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="6302:6353" ph="/** 获取类型 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="6379:6499" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="6502:6547" ph="/** 迭代器 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="6576:7436" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="6783:7433" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="6824:6896" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="7036:7340" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="7353:7406" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="7482:7547" ph="/** 检查参数类型 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="7583:8089" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="7726:7866" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="7909:8064" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="7994:8058" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="8091:8175" ph="/** 调用函数并验证参数 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="8213:9930" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="8382:9910" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="8587:8675" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="8798:8891" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="9138:9883" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="9932:9977" ph="/** 解析表达式 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="10004:10641" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="10577:10606" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="10643:10708" ph="/** 根据类型获取类全名 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="10755:10925" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="10927:10975" ph="/** 检查表达式的引用 ...*/" />
-                <marker date="1480506295594" expanded="true" signature="11004:15172" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="11120:11279" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="11428:11494" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="11670:11741" ph="{...}" />
-                <marker date="1480506295594" expanded="true" signature="11920:12068" ph="{...}" />
+                <element signature="n#!!doc" expanded="true" />
+                <marker date="1480500915634" expanded="true" signature="2497:2868" placeholder="{...}" />
               </folding>
             </state>
           </provider>
@@ -249,30 +124,21 @@
       <file leaf-file-name="Globals.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/lib/Globals.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="12" column="23" selection-start-line="12" selection-start-column="23" selection-end-line="12" selection-end-column="23" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="7" column="24" selection-start-line="7" selection-start-column="24" selection-end-line="7" selection-end-column="24" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="System.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler/System.js">
+      <file leaf-file-name="D.as" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/com/D.as">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="81" column="15" selection-start-line="81" selection-start-column="15" selection-end-line="81" selection-end-column="15" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="main.as" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/lib/main.as">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="620">
-              <caret line="35" column="16" selection-start-line="35" selection-start-column="16" selection-end-line="35" selection-end-column="16" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="36" column="25" selection-start-line="36" selection-start-column="25" selection-end-line="36" selection-end-column="25" />
               <folding>
-                <element signature="e#548#561#0" expanded="true" />
+                <element signature="e#553#567#0" expanded="true" />
+                <marker date="1479803064579" expanded="true" signature="1496:1505" placeholder="{...}" />
               </folding>
             </state>
           </provider>
@@ -303,7 +169,6 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/system.js" />
-        <option value="$PROJECT_DIR$/test-min2.js" />
         <option value="$PROJECT_DIR$/test-min.js" />
         <option value="$PROJECT_DIR$/compiler2.js" />
         <option value="$PROJECT_DIR$/compliler3.js" />
@@ -319,46 +184,51 @@
         <option value="$PROJECT_DIR$/compiler12.js" />
         <option value="$PROJECT_DIR$/compiler13.js" />
         <option value="$USER_HOME$/.PhpStorm2016.1/phpstorm.exe.vmoptions" />
-        <option value="$PROJECT_DIR$/compiler.js" />
-        <option value="$PROJECT_DIR$/compiler/Objects.js" />
         <option value="$PROJECT_DIR$/test.as" />
-        <option value="$PROJECT_DIR$/lib/cache/test.json" />
+        <option value="$PROJECT_DIR$/compiler/cache/test.json" />
+        <option value="$PROJECT_DIR$/compiler/cache/test.js" />
+        <option value="$PROJECT_DIR$/compiler/cache/com_B.js" />
+        <option value="$PROJECT_DIR$/com/B.as" />
+        <option value="$PROJECT_DIR$/compiler.js" />
+        <option value="$PROJECT_DIR$/test-min2.js" />
         <option value="$PROJECT_DIR$/lib/test-min.js" />
-        <option value="$PROJECT_DIR$/lib/Test.as" />
+        <option value="$PROJECT_DIR$/lib/cache/test.json" />
+        <option value="$PROJECT_DIR$/compiler/Objects.js" />
+        <option value="$PROJECT_DIR$/compiler/lib/GlobalObjects.js" />
+        <option value="$PROJECT_DIR$/compiler/lib/Window.js" />
         <option value="$PROJECT_DIR$/compiler/lib/Functions.js" />
-        <option value="$PROJECT_DIR$/lib/Test.as-min.js" />
-        <option value="$PROJECT_DIR$/testjs.js" />
         <option value="$PROJECT_DIR$/compiler/system.js" />
+        <option value="$PROJECT_DIR$/lib/Test.as-min.js" />
+        <option value="$PROJECT_DIR$/lib/cache/testjson" />
         <option value="$PROJECT_DIR$/compiler/lib/Global.js" />
         <option value="$PROJECT_DIR$/lib/Test-min.js" />
         <option value="$PROJECT_DIR$/lib/test.as" />
+        <option value="$PROJECT_DIR$/testjs.js" />
+        <option value="$PROJECT_DIR$/lib/Main.js" />
         <option value="$PROJECT_DIR$/lib/com/D.as" />
-        <option value="$PROJECT_DIR$/lib/lib/EventDispatcher.js" />
-        <option value="$PROJECT_DIR$/lib/Main.as" />
-        <option value="$PROJECT_DIR$/lib/lib/EventDispatcher.as" />
         <option value="$PROJECT_DIR$/lib/com/B.as" />
-        <option value="$PROJECT_DIR$/compiler/Make.js" />
-        <option value="$PROJECT_DIR$/lib/Main-min.js" />
-        <option value="$PROJECT_DIR$/lib/main.as" />
+        <option value="$PROJECT_DIR$/lib/lib/EventDispatcher.as" />
+        <option value="$PROJECT_DIR$/compiler/lib/Globals.js" />
         <option value="$PROJECT_DIR$/compiler/Ruler.js" />
+        <option value="$PROJECT_DIR$/lib/Main-min.js" />
+        <option value="$PROJECT_DIR$/lib/Main.as" />
+        <option value="$PROJECT_DIR$/compiler/Make.js" />
       </list>
     </option>
   </component>
-  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
-  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolGruntFileManager" detection-done="true" />
+  <component name="JsBuildToolPackageJson" detection-done="true" />
   <component name="JsGulpfileManager">
     <detection-done>true</detection-done>
-    <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="PhpServers">
     <servers />
   </component>
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
   <component name="ProjectFrameBounds">
-    <option name="x" value="-8" />
-    <option name="y" value="-8" />
-    <option name="width" value="1936" />
-    <option name="height" value="1056" />
+    <option name="x" value="-7" />
+    <option name="width" value="1378" />
+    <option name="height" value="1047" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -410,7 +280,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -426,7 +295,7 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
           <PATH>
@@ -436,11 +305,11 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="lib" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
           <PATH>
@@ -450,15 +319,15 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="lib" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="lib" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
           <PATH>
@@ -468,15 +337,15 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="lib" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="com" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
           <PATH>
@@ -486,34 +355,53 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="compiler" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="compiler" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="lib" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cache" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="compiler" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="compiler" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="lib" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -527,38 +415,24 @@
     <property name="js-jscs-nodeInterpreter" value="D:\nodejs\node.exe" />
     <property name="LayoutCode.rearrangeEntriesJavaScript" value="false" />
     <property name="options.searchVisible" value="true" />
-    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.General" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Font" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="ToolWindowCommand Line Tools Console.ShowToolbar" value="false" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth0" value="238" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth1" value="268" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth2" value="267" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder2" value="2" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth3" value="1060" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder3" value="3" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth0" value="255" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder0" value="0" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth1" value="262" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder1" value="1" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth2" value="262" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder2" value="2" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="1054" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
   </component>
   <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="E:\nodejs\breezejs\components" />
-      <recent name="E:\nodejs\breezejs" />
-      <recent name="E:\workspace\breezejs\css" />
-    </key>
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="E:\webroot\breezejs\lib\lib" />
-      <recent name="E:\webroot\breezejs\lib\com" />
+      <recent name="E:\nodejs\breezejs\compiler\lib" />
+      <recent name="E:\nodejs\breezejs\lib" />
+      <recent name="E:\nodejs\breezejs\compiler" />
       <recent name="E:\webroot\breezejs" />
       <recent name="E:\nodejs\breezejs" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\nodejs\breezejs\compiler" />
+      <recent name="E:\nodejs\breezejs\lib" />
+      <recent name="E:\nodejs\breezejs" />
       <recent name="E:\nodejs\breezejs\components" />
+      <recent name="E:\workspace\breezejs\css" />
     </key>
   </component>
   <component name="RestoreUpdateTree" date="Moments ago" ActionInfo="_Update">
@@ -576,10 +450,8 @@
           <option name="myCanBeAbsent" value="false" />
           <option name="myId" value="UPDATED" />
           <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/workspace.xml</PATH>
-          <PATH vcs="Git" revision="">$PROJECT_DIR$/compiler/Make.js</PATH>
           <PATH vcs="Git" revision="">$PROJECT_DIR$/compiler/Ruler.js</PATH>
           <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/Main.as</PATH>
-          <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/lib/EventDispatcher.as</PATH>
         </FILE-GROUP>
         <FILE-GROUP>
           <option name="myUpdateName" value="Created" />
@@ -694,7 +566,6 @@
       <method />
     </configuration>
     <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
-      <node-interpreter>project</node-interpreter>
       <node-options />
       <gulpfile />
       <tasks />
@@ -705,14 +576,11 @@
     <configuration default="true" type="js.build_tools.npm" factoryName="npm">
       <command value="run-script" />
       <scripts />
-      <node-interpreter value="project" />
       <envs />
       <method />
     </configuration>
   </component>
-  <component name="ShelveChangesManager" show_recycled="false">
-    <option name="remove_strategy" value="false" />
-  </component>
+  <component name="ShelveChangesManager" show_recycled="false" />
   <component name="SvnConfiguration" myUseAcceleration="nothing">
     <configuration useDefault="false" />
   </component>
@@ -722,7 +590,6 @@
       <changelist id="18e6e159-e815-4edb-b007-a0795730b21e" name="New changelist" comment="" />
       <created>1441265503149</created>
       <option name="number" value="Default" />
-      <option name="presentableId" value="Default" />
       <updated>1441265503149</updated>
       <workItem from="1470484575432" duration="10794000" />
       <workItem from="1470533520337" duration="21127000" />
@@ -772,394 +639,307 @@
       <workItem from="1476443762376" duration="11703000" />
       <workItem from="1476490934127" duration="50538000" />
       <workItem from="1476576668799" duration="316000" />
-      <workItem from="1476577035954" duration="45622000" />
-      <workItem from="1476965771574" duration="5319000" />
-      <workItem from="1477027431018" duration="21982000" />
-      <workItem from="1477108787295" duration="33826000" />
-      <workItem from="1477183873250" duration="16379000" />
-      <workItem from="1477569350430" duration="7017000" />
-      <workItem from="1477654066386" duration="6636000" />
-      <workItem from="1477707001246" duration="16345000" />
-      <workItem from="1477745261266" duration="10765000" />
-      <workItem from="1477787130006" duration="15015000" />
-      <workItem from="1478087672353" duration="10748000" />
-      <workItem from="1478173224767" duration="7179000" />
-      <workItem from="1478260210964" duration="12142000" />
-      <workItem from="1478314904091" duration="38553000" />
-      <workItem from="1478523078053" duration="9926000" />
-      <workItem from="1478778009538" duration="4847000" />
-      <workItem from="1478863944829" duration="7725000" />
-      <workItem from="1478931731675" duration="17440000" />
-      <workItem from="1479007235657" duration="26242000" />
-      <workItem from="1479210820882" duration="12781000" />
-      <workItem from="1479297492501" duration="7994000" />
-      <workItem from="1479382838824" duration="5770000" />
-      <workItem from="1479470639771" duration="12122000" />
-      <workItem from="1479525369462" duration="32326000" />
-      <workItem from="1479607147057" duration="23296000" />
-      <workItem from="1479729175408" duration="6262000" />
-      <workItem from="1479816312937" duration="7335000" />
-      <workItem from="1479901687156" duration="8380000" />
-      <workItem from="1479988052995" duration="7012000" />
-      <workItem from="1480073611912" duration="10020000" />
-      <workItem from="1480136733709" duration="18242000" />
-      <workItem from="1480161079130" duration="11850000" />
-      <workItem from="1480219788182" duration="20219000" />
-      <workItem from="1480242324277" duration="670000" />
-      <workItem from="1480252731351" duration="8129000" />
-      <workItem from="1480334848170" duration="69000" />
-      <workItem from="1480335644664" duration="7877000" />
-      <workItem from="1480419665883" duration="9489000" />
-      <workItem from="1480506232725" duration="6533000" />
-    </task>
-    <task id="LOCAL-00151" summary="Default">
-      <created>1472743041319</created>
-      <option name="number" value="00151" />
-      <option name="presentableId" value="LOCAL-00151" />
-      <option name="project" value="LOCAL" />
-      <updated>1472743041319</updated>
-    </task>
-    <task id="LOCAL-00152" summary="Default">
-      <created>1472827642400</created>
-      <option name="number" value="00152" />
-      <option name="presentableId" value="LOCAL-00152" />
-      <option name="project" value="LOCAL" />
-      <updated>1472827642400</updated>
+      <workItem from="1476577035954" duration="45042000" />
     </task>
     <task id="LOCAL-00153" summary="Default">
       <created>1472917578420</created>
       <option name="number" value="00153" />
-      <option name="presentableId" value="LOCAL-00153" />
       <option name="project" value="LOCAL" />
       <updated>1472917578436</updated>
     </task>
     <task id="LOCAL-00154" summary="Default">
       <created>1472997343952</created>
       <option name="number" value="00154" />
-      <option name="presentableId" value="LOCAL-00154" />
       <option name="project" value="LOCAL" />
       <updated>1472997343952</updated>
     </task>
     <task id="LOCAL-00155" summary="Default">
       <created>1473173189574</created>
       <option name="number" value="00155" />
-      <option name="presentableId" value="LOCAL-00155" />
       <option name="project" value="LOCAL" />
       <updated>1473173189575</updated>
     </task>
     <task id="LOCAL-00156" summary="Default">
       <created>1473523337650</created>
       <option name="number" value="00156" />
-      <option name="presentableId" value="LOCAL-00156" />
       <option name="project" value="LOCAL" />
       <updated>1473523337650</updated>
     </task>
     <task id="LOCAL-00157" summary="Default">
       <created>1473604052677</created>
       <option name="number" value="00157" />
-      <option name="presentableId" value="LOCAL-00157" />
       <option name="project" value="LOCAL" />
       <updated>1473604052719</updated>
     </task>
     <task id="LOCAL-00158" summary="Default">
       <created>1473694100353</created>
       <option name="number" value="00158" />
-      <option name="presentableId" value="LOCAL-00158" />
       <option name="project" value="LOCAL" />
       <updated>1473694100353</updated>
     </task>
     <task id="LOCAL-00159" summary="Default">
       <created>1474124337806</created>
       <option name="number" value="00159" />
-      <option name="presentableId" value="LOCAL-00159" />
       <option name="project" value="LOCAL" />
       <updated>1474124337806</updated>
     </task>
     <task id="LOCAL-00160" summary="Default">
       <created>1474124380710</created>
       <option name="number" value="00160" />
-      <option name="presentableId" value="LOCAL-00160" />
       <option name="project" value="LOCAL" />
       <updated>1474124380710</updated>
     </task>
     <task id="LOCAL-00161" summary="Default">
       <created>1474211398801</created>
       <option name="number" value="00161" />
-      <option name="presentableId" value="LOCAL-00161" />
       <option name="project" value="LOCAL" />
       <updated>1474211398801</updated>
     </task>
     <task id="LOCAL-00162" summary="Default">
       <created>1474641685636</created>
       <option name="number" value="00162" />
-      <option name="presentableId" value="LOCAL-00162" />
       <option name="project" value="LOCAL" />
       <updated>1474641685637</updated>
     </task>
     <task id="LOCAL-00163" summary="Default">
       <created>1474792381047</created>
       <option name="number" value="00163" />
-      <option name="presentableId" value="LOCAL-00163" />
       <option name="project" value="LOCAL" />
       <updated>1474792381047</updated>
     </task>
     <task id="LOCAL-00164" summary="Default">
       <created>1474813811474</created>
       <option name="number" value="00164" />
-      <option name="presentableId" value="LOCAL-00164" />
       <option name="project" value="LOCAL" />
       <updated>1474813811474</updated>
     </task>
     <task id="LOCAL-00165" summary="Default">
       <created>1476331705090</created>
       <option name="number" value="00165" />
-      <option name="presentableId" value="LOCAL-00165" />
       <option name="project" value="LOCAL" />
       <updated>1476331705090</updated>
     </task>
     <task id="LOCAL-00166" summary="Default">
       <created>1476367402452</created>
       <option name="number" value="00166" />
-      <option name="presentableId" value="LOCAL-00166" />
       <option name="project" value="LOCAL" />
       <updated>1476367402452</updated>
     </task>
     <task id="LOCAL-00167" summary="Default">
       <created>1476455781692</created>
       <option name="number" value="00167" />
-      <option name="presentableId" value="LOCAL-00167" />
       <option name="project" value="LOCAL" />
       <updated>1476455781692</updated>
     </task>
     <task id="LOCAL-00168" summary="Default">
       <created>1476544467825</created>
       <option name="number" value="00168" />
-      <option name="presentableId" value="LOCAL-00168" />
       <option name="project" value="LOCAL" />
       <updated>1476544467841</updated>
     </task>
     <task id="LOCAL-00169" summary="tester">
       <created>1476607190640</created>
       <option name="number" value="00169" />
-      <option name="presentableId" value="LOCAL-00169" />
       <option name="project" value="LOCAL" />
       <updated>1476607190640</updated>
     </task>
     <task id="LOCAL-00170" summary="tester">
       <created>1476627756747</created>
       <option name="number" value="00170" />
-      <option name="presentableId" value="LOCAL-00170" />
       <option name="project" value="LOCAL" />
       <updated>1476627756747</updated>
     </task>
     <task id="LOCAL-00171" summary="tester">
-      <created>1476627929258</created>
+      <created>1476699693798</created>
       <option name="number" value="00171" />
-      <option name="presentableId" value="LOCAL-00171" />
       <option name="project" value="LOCAL" />
-      <updated>1476627929258</updated>
+      <updated>1476699693799</updated>
     </task>
     <task id="LOCAL-00172" summary="tester">
-      <created>1477062504446</created>
+      <created>1476785234971</created>
       <option name="number" value="00172" />
-      <option name="presentableId" value="LOCAL-00172" />
       <option name="project" value="LOCAL" />
-      <updated>1477062504446</updated>
+      <updated>1476785234971</updated>
     </task>
     <task id="LOCAL-00173" summary="tester">
-      <created>1477224882205</created>
+      <created>1476872847141</created>
       <option name="number" value="00173" />
-      <option name="presentableId" value="LOCAL-00173" />
       <option name="project" value="LOCAL" />
-      <updated>1477224882236</updated>
+      <updated>1476872847141</updated>
     </task>
     <task id="LOCAL-00174" summary="tester">
-      <created>1477576297125</created>
+      <created>1476960948646</created>
       <option name="number" value="00174" />
-      <option name="presentableId" value="LOCAL-00174" />
       <option name="project" value="LOCAL" />
-      <updated>1477576297125</updated>
+      <updated>1476960948646</updated>
     </task>
     <task id="LOCAL-00175" summary="tester">
-      <created>1477756066246</created>
+      <created>1477305490964</created>
       <option name="number" value="00175" />
-      <option name="presentableId" value="LOCAL-00175" />
       <option name="project" value="LOCAL" />
-      <updated>1477756066246</updated>
+      <updated>1477305490964</updated>
     </task>
     <task id="LOCAL-00176" summary="tester">
-      <created>1477756261344</created>
+      <created>1477391111151</created>
       <option name="number" value="00176" />
-      <option name="presentableId" value="LOCAL-00176" />
       <option name="project" value="LOCAL" />
-      <updated>1477756261344</updated>
+      <updated>1477391111151</updated>
     </task>
     <task id="LOCAL-00177" summary="tester">
-      <created>1477808319356</created>
+      <created>1477477209903</created>
       <option name="number" value="00177" />
-      <option name="presentableId" value="LOCAL-00177" />
       <option name="project" value="LOCAL" />
-      <updated>1477808319370</updated>
+      <updated>1477477209903</updated>
     </task>
     <task id="LOCAL-00178" summary="tester">
-      <created>1478098168565</created>
+      <created>1477563897441</created>
       <option name="number" value="00178" />
-      <option name="presentableId" value="LOCAL-00178" />
       <option name="project" value="LOCAL" />
-      <updated>1478098168565</updated>
+      <updated>1477563897441</updated>
     </task>
     <task id="LOCAL-00179" summary="tester">
-      <created>1478182073483</created>
+      <created>1477649169299</created>
       <option name="number" value="00179" />
-      <option name="presentableId" value="LOCAL-00179" />
       <option name="project" value="LOCAL" />
-      <updated>1478182073484</updated>
+      <updated>1477649169299</updated>
     </task>
     <task id="LOCAL-00180" summary="tester">
-      <created>1478182082651</created>
+      <created>1477886514000</created>
       <option name="number" value="00180" />
-      <option name="presentableId" value="LOCAL-00180" />
       <option name="project" value="LOCAL" />
-      <updated>1478182082651</updated>
+      <updated>1477886514001</updated>
     </task>
     <task id="LOCAL-00181" summary="tester">
-      <created>1478361138245</created>
+      <created>1477995361311</created>
       <option name="number" value="00181" />
-      <option name="presentableId" value="LOCAL-00181" />
       <option name="project" value="LOCAL" />
-      <updated>1478361138260</updated>
+      <updated>1477995361311</updated>
     </task>
     <task id="LOCAL-00182" summary="tester">
-      <created>1478533066830</created>
+      <created>1478082280737</created>
       <option name="number" value="00182" />
-      <option name="presentableId" value="LOCAL-00182" />
       <option name="project" value="LOCAL" />
-      <updated>1478533066831</updated>
+      <updated>1478082280737</updated>
     </task>
     <task id="LOCAL-00183" summary="tester">
-      <created>1478958520476</created>
+      <created>1478168313078</created>
       <option name="number" value="00183" />
-      <option name="presentableId" value="LOCAL-00183" />
       <option name="project" value="LOCAL" />
-      <updated>1478958520476</updated>
+      <updated>1478168313078</updated>
     </task>
     <task id="LOCAL-00184" summary="tester">
-      <created>1479042593829</created>
+      <created>1478254680740</created>
       <option name="number" value="00184" />
-      <option name="presentableId" value="LOCAL-00184" />
       <option name="project" value="LOCAL" />
-      <updated>1479042593868</updated>
+      <updated>1478254680741</updated>
     </task>
     <task id="LOCAL-00185" summary="tester">
-      <created>1479223662973</created>
+      <created>1478516670777</created>
       <option name="number" value="00185" />
-      <option name="presentableId" value="LOCAL-00185" />
       <option name="project" value="LOCAL" />
-      <updated>1479223662973</updated>
+      <updated>1478516670777</updated>
     </task>
     <task id="LOCAL-00186" summary="tester">
-      <created>1479305539326</created>
+      <created>1478600779935</created>
       <option name="number" value="00186" />
-      <option name="presentableId" value="LOCAL-00186" />
       <option name="project" value="LOCAL" />
-      <updated>1479305539342</updated>
+      <updated>1478600779935</updated>
     </task>
     <task id="LOCAL-00187" summary="tester">
-      <created>1479390125076</created>
+      <created>1478686139916</created>
       <option name="number" value="00187" />
-      <option name="presentableId" value="LOCAL-00187" />
       <option name="project" value="LOCAL" />
-      <updated>1479390125077</updated>
+      <updated>1478686139916</updated>
     </task>
     <task id="LOCAL-00188" summary="tester">
-      <created>1479482764508</created>
+      <created>1478773599251</created>
       <option name="number" value="00188" />
-      <option name="presentableId" value="LOCAL-00188" />
       <option name="project" value="LOCAL" />
-      <updated>1479482764508</updated>
+      <updated>1478773599251</updated>
     </task>
     <task id="LOCAL-00189" summary="tester">
-      <created>1479568431328</created>
+      <created>1479204516059</created>
       <option name="number" value="00189" />
-      <option name="presentableId" value="LOCAL-00189" />
       <option name="project" value="LOCAL" />
-      <updated>1479568431364</updated>
+      <updated>1479204516059</updated>
     </task>
     <task id="LOCAL-00190" summary="tester">
-      <created>1479637301921</created>
+      <created>1479291818856</created>
       <option name="number" value="00190" />
-      <option name="presentableId" value="LOCAL-00190" />
       <option name="project" value="LOCAL" />
-      <updated>1479637301921</updated>
+      <updated>1479291818856</updated>
     </task>
     <task id="LOCAL-00191" summary="tester">
-      <created>1479737283168</created>
+      <created>1479463822390</created>
       <option name="number" value="00191" />
-      <option name="presentableId" value="LOCAL-00191" />
       <option name="project" value="LOCAL" />
-      <updated>1479737283172</updated>
+      <updated>1479463822390</updated>
     </task>
     <task id="LOCAL-00192" summary="tester">
-      <created>1479737301840</created>
+      <created>1479724008101</created>
       <option name="number" value="00192" />
-      <option name="presentableId" value="LOCAL-00192" />
       <option name="project" value="LOCAL" />
-      <updated>1479737301840</updated>
+      <updated>1479724008101</updated>
     </task>
-    <task id="LOCAL-00193" summary="tester">
-      <created>1479823454764</created>
+    <task id="LOCAL-00193" summary="New changelist">
+      <created>1479808385105</created>
       <option name="number" value="00193" />
-      <option name="presentableId" value="LOCAL-00193" />
       <option name="project" value="LOCAL" />
-      <updated>1479823454765</updated>
+      <updated>1479808385105</updated>
     </task>
-    <task id="LOCAL-00194" summary="tester">
-      <created>1479909941017</created>
+    <task id="LOCAL-00194" summary="New changelist">
+      <created>1479809644692</created>
       <option name="number" value="00194" />
-      <option name="presentableId" value="LOCAL-00194" />
       <option name="project" value="LOCAL" />
-      <updated>1479909941020</updated>
+      <updated>1479809644692</updated>
     </task>
-    <task id="LOCAL-00195" summary="tester">
-      <created>1479997144615</created>
+    <task id="LOCAL-00195" summary="New changelist">
+      <created>1479880179521</created>
       <option name="number" value="00195" />
-      <option name="presentableId" value="LOCAL-00195" />
       <option name="project" value="LOCAL" />
-      <updated>1479997144615</updated>
+      <updated>1479880179521</updated>
     </task>
-    <task id="LOCAL-00196" summary="tester">
-      <created>1480083780589</created>
+    <task id="LOCAL-00196" summary="New changelist">
+      <created>1479895798190</created>
       <option name="number" value="00196" />
-      <option name="presentableId" value="LOCAL-00196" />
       <option name="project" value="LOCAL" />
-      <updated>1480083780651</updated>
+      <updated>1479895798190</updated>
     </task>
-    <task id="LOCAL-00197" summary="tester">
-      <created>1480260685881</created>
+    <task id="LOCAL-00197" summary="New changelist">
+      <created>1479983925214</created>
       <option name="number" value="00197" />
-      <option name="presentableId" value="LOCAL-00197" />
       <option name="project" value="LOCAL" />
-      <updated>1480260685881</updated>
+      <updated>1479983925214</updated>
     </task>
-    <task id="LOCAL-00198" summary="tester">
-      <created>1480343522630</created>
+    <task id="LOCAL-00198" summary="New changelist">
+      <created>1480068617648</created>
       <option name="number" value="00198" />
-      <option name="presentableId" value="LOCAL-00198" />
       <option name="project" value="LOCAL" />
-      <updated>1480343522631</updated>
+      <updated>1480068617648</updated>
     </task>
-    <task id="LOCAL-00199" summary="1.1">
-      <created>1480429224489</created>
+    <task id="LOCAL-00199" summary="New changelist">
+      <created>1480329711813</created>
       <option name="number" value="00199" />
-      <option name="presentableId" value="LOCAL-00199" />
       <option name="project" value="LOCAL" />
-      <updated>1480429224489</updated>
+      <updated>1480329711813</updated>
     </task>
-    <option name="localTasksCounter" value="200" />
+    <task id="LOCAL-00200" summary="1.1">
+      <created>1480415395661</created>
+      <option name="number" value="00200" />
+      <option name="project" value="LOCAL" />
+      <updated>1480415395661</updated>
+    </task>
+    <task id="LOCAL-00201" summary="1.1">
+      <created>1480501763241</created>
+      <option name="number" value="00201" />
+      <option name="project" value="LOCAL" />
+      <updated>1480501763241</updated>
+    </task>
+    <option name="localTasksCounter" value="202" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1309520000" />
+    <option name="totallyTimeSpent" value="824478000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1171,16 +951,16 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <frame x="-7" y="0" width="1378" height="1047" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.14392324" sideWeight="0.49360147" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.010781671" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.13353565" sideWeight="0.49360147" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.011034483" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="false" weight="0.3189189" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3295129" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4164859" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.41137123" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.6767896" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" x="959" y="196" width="822" height="624" />
+      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="WINDOWED" visible="true" show_stripe_button="true" weight="1.0" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" x="1272" y="0" width="655" height="1047" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.20630373" sideWeight="0.50639856" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -1199,7 +979,7 @@
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="消息" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32729805" sideWeight="0.5" order="18" side_tool="false" content_ui="tabs" />
       <window_info id="运行" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="17" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.49595687" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.08" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="找到" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.7938719" sideWeight="0.5" order="19" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -1228,6 +1008,7 @@
     <MESSAGE value="架构调整" />
     <MESSAGE value="Default" />
     <MESSAGE value="tester" />
+    <MESSAGE value="New changelist" />
     <MESSAGE value="1.1" />
     <option name="LAST_COMMIT_MESSAGE" value="1.1" />
   </component>
@@ -1238,381 +1019,390 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/compiler/system.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="28" column="26" selection-start-line="28" selection-start-column="26" selection-end-line="28" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="729" column="1" selection-start-line="729" selection-start-column="1" selection-end-line="729" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/Template.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Grep.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/events/ModalityEvent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/events/PopupEvent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/Modality.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/Popup.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Dictionary.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/events/SelectionEvent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/events/DataSourceEvent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/DataRender.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DataSource.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/SkinComponent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/Selection.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/SkinGroup.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/SkinObject.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
+        <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/php/lib/php.jar!/com/jetbrains/php/lang/psi/stubs/data/standard_1.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
+        <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/php/lib/php.jar!/com/jetbrains/php/lang/psi/stubs/data/pcre.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
+        <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Utils.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
+        <state vertical-scroll-proportion="0.0">
           <caret line="358" column="19" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/system.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="56" column="0" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler3.js" />
-    <entry file="file://$PROJECT_DIR$/test-min.js" />
-    <entry file="file://$PROJECT_DIR$/compiler4.js" />
-    <entry file="file://$PROJECT_DIR$/compiler7.js" />
-    <entry file="file://$PROJECT_DIR$/compiler8.js" />
-    <entry file="file://$PROJECT_DIR$/compiler9.js" />
-    <entry file="file://$PROJECT_DIR$/compiler5.js" />
-    <entry file="file://$PROJECT_DIR$/compiler6.js" />
-    <entry file="file://$PROJECT_DIR$/compiler2.js" />
-    <entry file="file://$PROJECT_DIR$/require.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="579" column="28" selection-start-line="579" selection-start-column="28" selection-end-line="579" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler10.js" />
-    <entry file="file://$USER_HOME$/.PhpStorm2016.1/phpstorm.exe.vmoptions">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="290">
-          <caret line="10" column="29" selection-start-line="10" selection-start-column="29" selection-end-line="10" selection-end-column="29" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler12.js" />
-    <entry file="file://$PROJECT_DIR$/compiler.php" />
-    <entry file="file://$PROJECT_DIR$/compiler.js" />
-    <entry file="file://$PROJECT_DIR$/compiler-old.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="445">
-          <caret line="917" column="0" selection-start-line="917" selection-start-column="0" selection-end-line="917" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DHTML.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="27231">
-          <caret line="939" column="0" selection-start-line="939" selection-start-column="0" selection-end-line="939" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test.as" />
-    <entry file="file://$PROJECT_DIR$/compiler/cache/com_b.json" />
-    <entry file="file://$PROJECT_DIR$/compiler/cache/test.json" />
-    <entry file="file://$PROJECT_DIR$/lib/cache/test.json" />
-    <entry file="file://$PROJECT_DIR$/lib/cache/com_b.json" />
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DOMEvents.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3219">
-          <caret line="111" column="31" selection-start-line="111" selection-start-column="16" selection-end-line="111" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test-min2.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4669">
-          <caret line="161" column="4" selection-start-line="161" selection-start-column="4" selection-end-line="161" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/cache/com_bjson">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/cache/testjson">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="30" selection-start-line="0" selection-start-column="30" selection-end-line="0" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/Test.as-min.js" />
-    <entry file="file://$PROJECT_DIR$/testjs.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="29">
-          <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/Test-min.js" />
-    <entry file="file://$PROJECT_DIR$/Breeze.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-56295">
-          <caret line="449" column="87" selection-start-line="449" selection-start-column="87" selection-end-line="449" selection-end-column="87" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2752">
-          <caret line="362" column="8" selection-start-line="362" selection-start-column="8" selection-end-line="362" selection-end-column="8" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="362" column="12" selection-start-line="362" selection-start-column="12" selection-end-line="362" selection-end-column="12" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/lib/Functions.js" />
-    <entry file="file://$PROJECT_DIR$/compiler/Objects.js" />
-    <entry file="file://$PROJECT_DIR$/compiler/lib/Browser.js">
+    <entry file="file://$PROJECT_DIR$/require.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="232">
-          <caret line="8" column="19" selection-start-line="8" selection-start-column="19" selection-end-line="8" selection-end-column="19" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="579" column="28" selection-start-line="579" selection-start-column="28" selection-end-line="579" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/typescriptCompiler/external/lib.es6.d.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="6566" column="10" selection-start-line="6566" selection-start-column="10" selection-end-line="6566" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Breeze.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="2133" column="5" selection-start-line="2108" selection-start-column="11" selection-end-line="2133" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler-old.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="797" column="15" selection-start-line="797" selection-start-column="9" selection-end-line="797" selection-end-column="15" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/require-min.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.85714287">
+          <caret line="1" column="14" selection-start-line="1" selection-start-column="14" selection-end-line="1" selection-end-column="14" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Element.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="9164">
-          <caret line="322" column="4" selection-start-line="322" selection-start-column="4" selection-end-line="322" selection-end-column="4" />
+        <state vertical-scroll-proportion="-0.24884793">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/A.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript5.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="131" column="0" selection-start-line="131" selection-start-column="0" selection-end-line="131" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="127" column="35" selection-start-line="127" selection-start-column="30" selection-end-line="127" selection-end-column="35" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/System.js">
+    <entry file="file://$PROJECT_DIR$/test-min2.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="81" column="15" selection-start-line="81" selection-start-column="15" selection-end-line="81" selection-end-column="15" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="9" column="32" selection-start-line="9" selection-start-column="32" selection-end-line="9" selection-end-column="32" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/jquery-3.0.0.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3329493">
+          <caret line="3440" column="18" selection-start-line="3440" selection-start-column="18" selection-end-line="3440" selection-end-column="18" />
+          <folding>
+            <marker date="1467188261425" expanded="true" signature="26502:26507" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/system.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="84" column="22" selection-start-line="84" selection-start-column="22" selection-end-line="84" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DHTML.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="961" column="3" selection-start-line="923" selection-start-column="0" selection-end-line="961" selection-end-column="3" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DOMCore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="329" column="0" selection-start-line="329" selection-start-column="0" selection-end-line="329" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/cache/testjson">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="79" selection-start-line="0" selection-start-column="79" selection-end-line="0" selection-end-column="79" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/system.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="5" column="33" selection-start-line="5" selection-start-column="33" selection-end-line="5" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/lib/Browser.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="124" column="0" selection-start-line="124" selection-start-column="0" selection-end-line="124" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/testjs.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="37" column="0" selection-start-line="37" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test-min.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Desktop/away3d-core-fp11-4.1.6/away3d-core-fp11-4.1.6/src/away3d/core/managers/RTTBufferManager.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.7955801">
+          <caret line="24" column="47" selection-start-line="24" selection-start-column="47" selection-end-line="24" selection-end-column="47" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/com/D.as">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="38" column="0" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="36" column="25" selection-start-line="36" selection-start-column="25" selection-end-line="36" selection-end-column="25" />
           <folding>
             <element signature="e#553#567#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/lib/Globals.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="12" column="23" selection-start-line="12" selection-start-column="23" selection-end-line="12" selection-end-column="23" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/Make.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="724" column="5" selection-start-line="724" selection-start-column="5" selection-end-line="724" selection-end-column="5" />
-          <folding>
-            <marker date="1480506295594" expanded="true" signature="365:412" ph="/** 全局模块 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="443:883" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="618:715" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="757:822" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="886:949" ph="/** 返回文件的路径 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="989:1128" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="1130:1192" ph="/** 去掉两边的空白 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="1214:1313" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="1315:1346" ph="/** 合并对象 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="1364:1822" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="1463:1801" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="1535:1795" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="1656:1729" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="1733:1785" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="1824:1886" ph="/** 获取模块全名 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="1916:1947" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="1949:2025" ph="/** 创建默认参数 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="2069:3423" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="2236:2835" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="2317:2483" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="2527:2829" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="2681:2819" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="2856:3405" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="2956:3070" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="3098:3367" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="3195:3357" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="3426:3478" ph="/** 生成函数 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="3512:5167" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="3746:5136" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="3832:4111" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="3896:4020" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="4037:4101" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="4153:5130" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="4315:5120" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="4394:4503" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="4569:5106" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="4897:5004" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="5204:5240" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="5243:5298" ph="/** 创建属性的描述 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="5334:5781" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="5502:5547" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="5579:5630" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="5705:5762" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="5783:5829" ph="/** 抛出错误信息 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="5862:6300" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="5882:5963" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="5988:6298" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="6302:6353" ph="/** 获取类型 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="6379:6499" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="6502:6547" ph="/** 迭代器 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="6576:7436" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="6783:7433" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="6824:6896" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="7036:7340" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="7353:7406" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="7482:7547" ph="/** 检查参数类型 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="7583:8089" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="7726:7866" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="7909:8064" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="7994:8058" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="8091:8175" ph="/** 调用函数并验证参数 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="8213:9930" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="8382:9910" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="8587:8675" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="8798:8891" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="9138:9883" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="9932:9977" ph="/** 解析表达式 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="10004:10641" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="10577:10606" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="10643:10708" ph="/** 根据类型获取类全名 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="10755:10925" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="10927:10975" ph="/** 检查表达式的引用 ...*/" />
-            <marker date="1480506295594" expanded="true" signature="11004:15172" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="11120:11279" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="11428:11494" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="11670:11741" ph="{...}" />
-            <marker date="1480506295594" expanded="true" signature="11920:12068" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/com/B.as">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="42" column="0" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
-          <folding>
-            <element signature="e#553#567#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/lib/EventDispatcher.as">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
-          <folding>
-            <marker date="1480506295599" expanded="true" signature="0:188" ph="/*...*/" />
-            <marker date="1480506295599" expanded="true" signature="532:743" ph="/** EventDispatcher Class ...*/" />
-            <marker date="1480506295599" expanded="true" signature="802:1136" ph="{...}" />
-            <marker date="1480506295599" expanded="true" signature="875:958" ph="{...}" />
-            <marker date="1480506295599" expanded="true" signature="988:1125" ph="{...}" />
-            <marker date="1480506295599" expanded="true" signature="1195:1582" ph="{...}" />
-            <marker date="1480506295599" expanded="true" signature="1325:1546" ph="{...}" />
-            <marker date="1480506295599" expanded="true" signature="1455:1507" ph="{...}" />
-            <marker date="1480506295599" expanded="true" signature="1593:1740" ph="/** 添加侦听器 ...*/" />
-            <marker date="1480506295599" expanded="true" signature="1848:2904" ph="{...}" />
-            <marker date="1480506295599" expanded="true" signature="1957:2109" ph="{...}" />
-            <marker date="1480506295599" expanded="true" signature="2166:2237" ph="{...}" />
-            <marker date="1480506295599" expanded="true" signature="2496:2868" ph="{...}" />
-            <marker date="1480506295599" expanded="true" signature="2809:2829" ph="{...}" />
+            <marker date="1479803064579" expanded="true" signature="1496:1505" placeholder="{...}" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="887" column="0" selection-start-line="887" selection-start-column="0" selection-end-line="887" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="154" column="0" selection-start-line="154" selection-start-column="0" selection-end-line="154" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/com/B.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/lib/Globals.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="7" column="24" selection-start-line="7" selection-start-column="24" selection-end-line="7" selection-end-column="24" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="213" column="3" selection-start-line="213" selection-start-column="3" selection-end-line="213" selection-end-column="3" />
-          <folding>
-            <marker date="1480512159741" expanded="true" signature="16:63" ph="/*...*/" />
-            <marker date="1480512159741" expanded="true" signature="96:696" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="217:689" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="464:655" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="584:641" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="756:1966" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="862:1964" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="1482:1611" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="1656:1785" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="2020:2323" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="2124:2321" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="2389:2715" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="2560:2642" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="2735:2938" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="2826:2901" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="2967:3535" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="3096:3245" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="3184:3238" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="3285:3533" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="3338:3427" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="3554:3979" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="3653:3958" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="3733:3952" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="3826:3886" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="3890:3942" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="4009:4915" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="4030:4324" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="4357:4874" ph="{&quot;name&quot;: '3'...}" />
-            <marker date="1480512159741" expanded="true" signature="4424:4561" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="4617:4872" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="4716:4871" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="4947:5729" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="4991:5200" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="5244:5580" ph="{&quot;name&quot;: '3'...}" />
-            <marker date="1480512159741" expanded="true" signature="5368:5578" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="5591:5688" ph="{&quot;name&quot;: '3999 yyy fsss 666'...}" />
-            <marker date="1480512159741" expanded="true" signature="5775:8117" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="5837:5982" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="7745:7979" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="8004:8034" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="8148:8611" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="8246:8477" ph="{...}" />
-            <marker date="1480512159741" expanded="true" signature="8524:8537" ph="{&quot;names&quot;: '3'...}" />
-            <marker date="1480512159741" expanded="true" signature="8551:8561" ph="{&quot;name&quot;: 5...}" />
-          </folding>
+        <state vertical-scroll-proportion="0.0">
+          <caret line="184" column="14" selection-start-line="184" selection-start-column="14" selection-end-line="184" selection-end-column="14" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/main.as">
+    <entry file="file://$PROJECT_DIR$/lib/Main.as">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="620">
-          <caret line="35" column="16" selection-start-line="35" selection-start-column="16" selection-end-line="35" selection-end-column="16" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="46" column="0" selection-start-line="46" selection-start-column="0" selection-end-line="46" selection-end-column="0" />
           <folding>
             <element signature="e#548#561#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/lib/lib/EventDispatcher.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="16" column="50" selection-start-line="16" selection-start-column="43" selection-end-line="16" selection-end-column="50" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+            <marker date="1480500915634" expanded="true" signature="2497:2868" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1506">
-          <caret line="1339" column="65" selection-start-line="1339" selection-start-column="65" selection-end-line="1339" selection-end-column="65" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="362" column="0" selection-start-line="362" selection-start-column="0" selection-end-line="382" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/Make.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.7799767">
+          <caret line="495" column="6" selection-start-line="495" selection-start-column="6" selection-end-line="495" selection-end-column="6" />
           <folding />
         </state>
       </provider>

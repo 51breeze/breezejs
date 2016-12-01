@@ -313,7 +313,6 @@ function Iteration( stack )
             this.next =  new Ruler.STACK('expression','(*)');
             this.next.__content__ = this.data.splice(index,  this.data.length-index,  this.next );
             this.next.__parent__  = stack.parent();
-            if( getType(stack.type()) !=='*' )this.next.type(  stack.type() );
 
         }else
         {
@@ -352,57 +351,29 @@ function checkParameter(it, desc )
     return pareameter;
 }
 
+
 /**
- * 调用函数并验证参数
- * @param str
- * @param it
- * @param desc
+ * 判断是否为一个恒定的值
+ * @param val
  * @returns {boolean}
  */
-function callToString(str, it, desc)
+function getConstantType(val)
 {
-    if( it.current instanceof Ruler.STACK && it.current.type() === '(expression)' &&
-        it.prev && (it.prev.id==='(identifier)' || it.prev.value==='super') )
+    switch ( val )
     {
-        if( !desc )error( '"'+it.prev.value+'" is not function', 'type', it.prev );
-        if( !(desc.id ==='function' || desc.id ==='class' || desc.type ==='Function' || desc.type==='Class') )
-        {
-            error( '"'+it.prev.value+'" is not function', 'type', it.prev );
-        }
-        var pareameter = checkParameter(it, desc);
-        it.stack.type( desc.type );
-        if( str.instance )
-        {
-            pareameter.unshift(str.instance);
-            str.prop.push('.call');
-        }
-
-        str.prop.push('(');
-        str.prop.push( pareameter.join(',') );
-        str.prop.push(')');
-        str.prop = [ str.prop.join('') ];
-        str.instance='';
-
-        if( it.next && it.next.value==='.' && desc.type !== '*' )
-        {
-            //没有返回值
-            if( desc.type === 'void' )error('"' + it.prev.value + '" function not return.', 'reference', it.prev);
-            var prop = desc.type==='Class' ? 'static' : 'proto';
-            var self = it.stack.scope().defineGet('proto', 'this' );
-            var type = desc.type;
-            desc = it.stack.scope().defineGet(prop, type );
-            desc = desc ? module( desc.fullclassname ) : globals[ type ];
-            if( !desc )error('"'+ it.current.value+'" is not defined.');
-            it.seek();
-            str.prop.push( it.current.value );
-            it.seek();
-            str.prop.push( it.current.value );
-            checkPropery(str, it, desc, prop , desc.classname === self.classname );
-        }
-        return true;
+        case 'null' :
+        case 'undefined' :
+            return 'Object';
+        case 'true' :
+        case 'false' :
+            return 'Boolean';
+        case 'NaN' :
+        case 'Infinity' :
+            return 'Number';
     }
     return false;
 }
+
 
 /**
  * 解析表达式
@@ -411,8 +382,17 @@ function callToString(str, it, desc)
  */
 function expression( it )
 {
-    if( ( it.prev && it.prev.value === '.')    ||
-        !(
+    if( it.prev && it.prev.value === '.' )return false;
+    var type = getConstantType(it.current.value);
+    if( !type && it.current.type ==='(number)' )type='Number';
+
+    if( type )
+    {
+        it.stack.type( type );
+        return it.current.value;
+    }
+
+    if(!(
             it.current.id   === '(identifier)' ||
             it.current.value==='this'          ||
             it.current.value==='super'         ||
@@ -424,7 +404,7 @@ function expression( it )
         )
     )return false;
 
-    if( it.stack.parent().type() === '(Object)' || it.stack.type() === '(Object)' )
+    if( it.stack.parent().type() === '(Json)' || it.stack.type() === '(Json)' )
     {
         return false;
     }
@@ -489,7 +469,7 @@ function checkReference(it)
     it.stack.type( t );
 
     //如果没有下一个则退出
-    if( !it.next || type==='*' )
+    if( !it.next || type==='*' || type==='Json' )
     {
         if( it.current.value ==='super' ){
             error('Unexpected super','', it.current );
@@ -506,10 +486,9 @@ function checkReference(it)
           if( (id==='const' || !id) && it.stack.parent().keyword() !=='statement' )error('"' + it.current.value + '" is constant', '', it.current );
           it.seek();
           str.prop.push( it.current.value );
-
           it.seek();
           str.prop.push( toString(it.current) );
-          if( type !=='*' && it.current.type() !== type )
+          if( type !=='*' && type !=='Object' && it.current.type() !== type && it.current.type() !=='Object' )
           {
               error('Specify the type of mismatch','type', it.prev );
           }
