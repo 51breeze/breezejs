@@ -46,7 +46,7 @@ package lib
             var target= this.getProxyTarget()
                 ,index=0;
 
-            while( index < target.length )
+            while( index < target )
             {
                 var events = this.storage.call( target[ index ] );
                 if( events && events[type] )
@@ -134,9 +134,10 @@ package lib
             var dispatchEvent;
             if( !(event instanceof BreezeEvent) )
                 throw new Error('invalid event.');
-            var target = this.getProxyTarget();
+            var target = this['getProxyTarget'];
             var i=0;
             var element;
+            target();
             while( i < target.length && !event.propagationStopped )
             {
                 element =  target[i] ;

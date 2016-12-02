@@ -445,13 +445,15 @@ function getImportClassByType(imports, type )
 function checkReference(it)
 {
     var isnew=false;
-    var str = {prop:[it.current.value], instance:'', before:'', after:'' };
+    var str = {prop:[it.current.value], instance:'', refname:[it.current.value]};
     if( it.current.value==='new' )
     {
         isnew=true;
         it.seek();
-        str.prop.push(' ');
+        str.prop.pop();
+        str.refname.pop();
         str.prop.push( it.current.value );
+        str.refname.push( it.current.value );
         str.prop = [ str.prop.join('') ];
     }
 
@@ -490,13 +492,15 @@ function checkReference(it)
           str.prop.push( it.current.value );
           it.seek();
           str.prop.push( toString(it.current) );
-          checkSpecifyType(it, desc, it.current )
-          if( it.current.before )str.before+= it.current.before;
+          checkSpecifyType(it, desc, it.current );
+
+          // 如果没有指定类型则引用表达式的类型
+          if( desc.type === '*' && it.next && it.next.value==='new')desc.type = it.current.type();
           return str.prop.join('');
      }
 
     //如果没有下一个则退出
-    if( !it.next || type==='*' || type==='Json' )
+    if( !it.next || type==='Json' )
     {
         if( it.current.value ==='super' )
         {
@@ -521,14 +525,30 @@ function checkReference(it)
     }
 
     //如果不是所有类型，检查类成员属性
-    while( it.next && type !== '*' && type !=='void')
+    while( it.next )
     {
-        //是否对类本身实例的引用
-        desc = self.classname === type || self.fullclassname === type ? self : module( getImportClassByType(self.import, type) );
-        if (!desc)error('"' + it.current.value + '" is not defined.', '', it.current);
+        //如果不是已定义的类或者不是一个全局对象，则检查属性值是否可调用
+        if( id =='var' && type==='Function' && it.stack.before )
+        {
+            var msg = str.refname.join('') + ' is not function\\n';
+            msg += self.filename + ':' + it.current.line + ':' + it.current.cursor;
+            it.stack.before.push('if(typeof ' + str.prop.join('') + ' !== "function" )throw new TypeError("' + msg + '");');
+        }
+
+        if( type ==='*' )break;
+
+
+        //如果有指定类型则获取引用类型描述
+        if( id !=='function')
+        {
+            desc = self.classname === type || self.fullclassname === type ? self : module(getImportClassByType(self.import, type));
+            if (!desc)error('"' + it.current.value + '" is not defined.', '', it.current);
+        }
 
         if ( it.next instanceof Ruler.STACK )
         {
+            if( type ==='void' )error('"'+ it.current.value + '" does not exists.', 'reference', it.current);
+
             //调用函数
             if ( it.next.type() === '(expression)' )
             {
@@ -538,19 +558,14 @@ function checkReference(it)
                 }
 
                 it.seek();
-                if( !(desc.id ==='function' || desc.id ==='class' || desc.type ==='Function' || desc.type==='Class') )
+                if( !(id ==='function' || id ==='class' || desc.type ==='Function' || desc.type==='Class') )
                 {
                     error( '"'+it.prev.value+'" is not function', 'type', it.prev );
                 }
 
-                var ref = str.prop.join('');
-                var msg ='this.'+it.prev.value+' is not function\\n';
-                    msg += self.filename.replace(/\\/g,'/') +':'+it.prev.line+':'+it.prev.cursor;
-                    it.stack.before.push('if( !(typeof '+ref+' === "function") )throw new TypeError("'+msg+'");');
-
+                //获取参数
                 var pareameter = checkParameter(it, desc);
                 it.stack.type( desc.type );
-
                 if( str.instance )
                 {
                     pareameter.unshift(str.instance);
@@ -560,32 +575,44 @@ function checkReference(it)
                 str.prop.push('(');
                 str.prop.push( pareameter.join(',') );
                 str.prop.push(')');
+
                 str.prop = [ str.prop.join('') ];
                 str.instance='';
                 type = desc.type;
-                var is = it.next instanceof Ruler.STACK && ( it.next.type() === '(expression)' || it.next.type() === '(property)' );
-
-                //没有返回值
-                if( type === 'void' && it.next && ( it.next.value === '.' || is ) )error('"' + it.prev.value + '" function not return.', 'reference', it.prev);
-
             }
             //动态属性
             else if( it.next.type() === '(property)' )
             {
                 it.seek();
-                str.prop.push( toString( it.current ) );
+                var prefix = str.prop.join('');
+                var refname = prefix+'['+self.uid+'][__$$$__]';
+                it.current.content().shift();
+                it.current.content().pop();
+                if( it.stack.before )
+                {
+                    it.stack.before.push('var __$$$__ = ' + toString(it.current) + ';');
+                    it.stack.before.push('__$$$__ = ' + refname + ' ? ' + refname + ' : ' + prefix + '[__$$$__];');
+                }
+                str.prop = ['__$$$__'];
+                str.instance ='';
+                type='*';
+                id='function';
             }
         }
         //类成员属性
         else if ( it.next && it.next.value === '.' )
         {
+            if( type ==='void' )error('"'+ it.current.value + '" does not exists.', 'reference', it.current);
             it.seek();
             str.prop.push(it.current.value);
+            str.refname.push(it.current.value);
             it.seek();
             str.prop.push(it.current.value);
+            str.refname.push(it.current.value);
             if (issuper)str.prop.splice(1, 0, '.prototype');
             desc = checkPropery(str, it, desc, prop, desc.classname === self.classname );
-            type = desc.type;
+            type = desc.id==='function' ? 'Function' : desc.type;
+            id = desc.id;
 
         }else
         {
@@ -593,6 +620,7 @@ function checkReference(it)
         }
     }
 
+    if( isnew )str.prop.unshift('new ');
     return str.prop.join('');
 }
 
@@ -623,6 +651,7 @@ function checkSpecifyType(it,desc,stack)
 function checkPropery(str,it,object, name, privatize )
 {
     var desc = getClassPropertyDesc(it, object, name);
+    desc.privatize= privatize;
 
     //普通属性
     if (desc.id === 'var' || desc.id === 'const')
@@ -898,7 +927,7 @@ function chackOverride( item, parent , internal )
 function getModuleFullname( module , classname )
 {
     if( module.classname === classname )return module.fullclassname;
-    if( module.import[ classname ] )return module.import[ classname ];
+    if( module.import && module.import[ classname ] )return module.import[ classname ];
     return classname;
 }
 
@@ -1160,7 +1189,7 @@ function loadModuleDescription( file )
         data = getPropertyDescription( scope );
         data.cachefile = cachefile;
         data.uid= id;
-        data.filename = sourcefile;
+        data.filename = sourcefile.replace(/\\/g,'\\\\');
     }
 
     for(var i in data.import )

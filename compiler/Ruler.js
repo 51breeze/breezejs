@@ -1058,7 +1058,9 @@ syntax['if,switch,while,for,catch'] = function(event)
 
     }else
     {
+        this.add( describe('(delimiter)','{','{') );
         this.step();
+        this.add( describe('(delimiter)','}','}') );
     }
 }
 
@@ -1138,10 +1140,11 @@ syntax["debugger"]=function (e)
 syntax["throw"]=function (e)
 {
     e.prevented=true;
-    this.add( this.current );
+    if( this.next.value !=='new' )this.error('Missing new operator');
+    if( !(this.scope() instanceof Scope) )this.error('Unexpected identifier throw');
     this.add( new Stack('expression','(*)') );
+    this.add( this.current );
     this.step();
-    this.end();
 }
 
 syntax["this"]=function (e)
@@ -1228,22 +1231,11 @@ syntax["delete"]=function(e)
 syntax["new"]=function(e)
 {
     e.prevented=true;
-    var s = this.scope();
-
     //如果上一个是标识并且当前未换行
     if( this.prev.id==='(identifier)' && this.prev.line===this.current.line )this.error();
-
-    if( s.keyword()!=='expression')
+    if( this.scope().keyword()!=='expression')
     {
-        var current =  this.current;
-        s = new Stack('expression', '(*)' );
-        s.addListener('(switch)',function(){
-            if( this.type() !=='(Class)' && this.type()!=='(*)' )
-            {
-                error('"'+current.value+'" is not class', 'type', current);
-            }
-        });
-        this.add( s );
+        this.add( new Stack('expression', '(*)' ) );
     }
     this.add( this.current );
     this.step();
@@ -1349,12 +1341,7 @@ syntax['(delimiter)']=function( e )
             {
                 this.error('Unexpected identifiler '+ this.next.value, this.next);
             }
-
-            //如果不是嵌套父级中的对象则需要结束
-            if( this.scope().parent().keyword() !=='object' )
-            {
-                this.end();
-            }
+            this.end();
         }
     }
 }
@@ -2632,9 +2619,8 @@ Ruler.prototype.end=function( stack )
     }
     //如果下一个是一个右定界符 ] ) }
     //并且当前表达式不在域块级中
-    else if( (id ==='expression' || id==='ternary') && isRightDelimiter( this.next.value ) )
+    else if( (id ==='expression' || id==='ternary' || stack.parent().keyword()==='object' ) && isRightDelimiter( this.next.value ) )
     {
-        // && ( !(stack.parent() instanceof Scope) || stack.parent().keyword()==='if')
         stack.switch();
         return true;
     }
