@@ -300,29 +300,41 @@ function Iteration( stack )
     this.prev=undefined;
     this.next=undefined;
     this.current=undefined;
+    this.returnValues=[];
     this.seek=function(){
-        if( index >= this.data.length ){
+
+        if( index >= this.data.length )
+        {
             this.next = undefined;
             return false;
         }
+
         this.prev = this.current;
         this.current = this.data[index];
         index++;
-        if( this.current.value==='=' )
+        this.next = this.data[index];
+
+        if( this.current.value==='=' && !(this.next instanceof Ruler.STACK) )
         {
             this.next =  new Ruler.STACK('expression','(*)');
             this.next.__content__ = this.data.splice(index,  this.data.length-index,  this.next );
             this.next.__parent__  = stack.parent();
-
-        }else
-        {
-            this.next = this.data[index];
         }
         return true;
     };
 }
 Iteration.prototype.constructor=Iteration;
 
+/**
+ * 给表表达式添加返回值
+ * @param stack
+ * @param value
+ */
+Iteration.prototype.values=function( value )
+{
+    if( typeof value !== "undefined" )this.returnValues.push( value );
+    return this.returnValues;
+}
 
 /**
  * 检查参数类型
@@ -389,20 +401,20 @@ function expression( it )
     if( type )
     {
         it.stack.type( type );
+        it.values( it.current.value );
         return it.current.value;
     }
 
     if(!(
-            it.current.id   === '(identifier)' ||
-            it.current.value==='this'          ||
-            it.current.value==='super'         ||
-            it.current.value==='new'           ||
-            it.current.type ==='(boolean)'     ||
-            it.current.type ==='(number)'      ||
-            it.current.type ==='(string)'      ||
-            it.current.type ==='(regexp)'
-        )
-    )return false;
+        it.current.id   === '(identifier)' ||
+        it.current.value==='this'          ||
+        it.current.value==='super'         ||
+        it.current.value==='new'           ||
+        it.current.type ==='(boolean)'     ||
+        it.current.type ==='(number)'      ||
+        it.current.type ==='(string)'      ||
+        it.current.type ==='(regexp)'
+    ))return false;
 
     if( it.stack.parent().type() === '(Json)' || it.stack.type() === '(Json)' )
     {
@@ -433,7 +445,7 @@ function getImportClassByType(imports, type )
 function checkReference(it)
 {
     var isnew=false;
-    var str = {prop:[it.current.value], instance:''};
+    var str = {prop:[it.current.value], instance:'', before:'', after:'' };
     if( it.current.value==='new' )
     {
         isnew=true;
@@ -452,7 +464,9 @@ function checkReference(it)
     if( typeof desc === "object" )
     {
         id = desc.id;
-        type = getType( desc.type );
+
+        //本类类型
+        type = id==='class' && desc.scope && it.current.value === desc.scope.name() ? desc.scope.name() : desc.type;
     }
 
     //当前操作的类型
@@ -465,13 +479,27 @@ function checkReference(it)
     }
 
     //实例类型
-    t = isnew || it.current.value==='this' || it.current.value === 'super' ? type : t;
+    t = it.current.value==='this' || it.current.value === 'super' ? type : t;
     it.stack.type( t );
+
+     //变量引用赋值操作
+     if( it.next && it.next.value === '=' )
+     {
+          if( (id==='const' || !id) && it.stack.parent().keyword() !=='statement' )error('"' + it.current.value + '" is constant', '', it.current );
+          it.seek();
+          str.prop.push( it.current.value );
+          it.seek();
+          str.prop.push( toString(it.current) );
+          checkSpecifyType(it, desc, it.current )
+          if( it.current.before )str.before+= it.current.before;
+          return str.prop.join('');
+     }
 
     //如果没有下一个则退出
     if( !it.next || type==='*' || type==='Json' )
     {
-        if( it.current.value ==='super' ){
+        if( it.current.value ==='super' )
+        {
             error('Unexpected super','', it.current );
         }
         return it.current.value;
@@ -479,21 +507,6 @@ function checkReference(it)
 
     //原型链属性名
     var prop = t === 'Class' || id === 'object' ? 'static' : 'proto';
-
-     //变量引用赋值操作
-     if( it.next.value === '=' )
-     {
-          if( (id==='const' || !id) && it.stack.parent().keyword() !=='statement' )error('"' + it.current.value + '" is constant', '', it.current );
-          it.seek();
-          str.prop.push( it.current.value );
-          it.seek();
-          str.prop.push( toString(it.current) );
-          if( type !=='*' && type !=='Object' && it.current.type() !== type && it.current.type() !=='Object' )
-          {
-              error('Specify the type of mismatch','type', it.prev );
-          }
-          return str.prop.join('');
-     }
 
     //类本身实例
     var self = module( it.stack.scope().define('this').fullclassname ) ;
@@ -514,19 +527,30 @@ function checkReference(it)
         desc = self.classname === type || self.fullclassname === type ? self : module( getImportClassByType(self.import, type) );
         if (!desc)error('"' + it.current.value + '" is not defined.', '', it.current);
 
-        //调用函数
         if ( it.next instanceof Ruler.STACK )
         {
+            //调用函数
             if ( it.next.type() === '(expression)' )
             {
+                if( isnew && it.stack.type() !=='Class' )
+                {
+                    error('is not constructor','type', it.prev );
+                }
+
                 it.seek();
                 if( !(desc.id ==='function' || desc.id ==='class' || desc.type ==='Function' || desc.type==='Class') )
                 {
                     error( '"'+it.prev.value+'" is not function', 'type', it.prev );
                 }
 
+                var ref = str.prop.join('');
+                var msg ='this.'+it.prev.value+' is not function\\n';
+                    msg += self.filename.replace(/\\/g,'/') +':'+it.prev.line+':'+it.prev.cursor;
+                    it.stack.before.push('if( !(typeof '+ref+' === "function") )throw new TypeError("'+msg+'");');
+
                 var pareameter = checkParameter(it, desc);
                 it.stack.type( desc.type );
+
                 if( str.instance )
                 {
                     pareameter.unshift(str.instance);
@@ -544,13 +568,16 @@ function checkReference(it)
                 //没有返回值
                 if( type === 'void' && it.next && ( it.next.value === '.' || is ) )error('"' + it.prev.value + '" function not return.', 'reference', it.prev);
 
-            }else if( it.next.type() === '(property)' )
+            }
+            //动态属性
+            else if( it.next.type() === '(property)' )
             {
                 it.seek();
                 str.prop.push( toString( it.current ) );
             }
-
-        }else if ( it.next && it.next.value === '.' )
+        }
+        //类成员属性
+        else if ( it.next && it.next.value === '.' )
         {
             it.seek();
             str.prop.push(it.current.value);
@@ -565,7 +592,24 @@ function checkReference(it)
             break;
         }
     }
+
     return str.prop.join('');
+}
+
+
+/**
+ * 验证指定的类型与当前表达式返回的类型是否一致
+ * @param it
+ * @param stack
+ * @param desc
+ * @returns {boolean}
+ */
+function checkSpecifyType(it,desc,stack)
+{
+    if( desc.type==='*' || desc.type==='Object' || stack.type()==='Object' )return true;
+    if( stack.type() !== desc.type ){
+        error('Specify the type of mismatch','type', it.prev );
+    }
 }
 
 /**
@@ -592,9 +636,9 @@ function checkPropery(str,it,object, name, privatize )
         }
 
         it.stack.type( desc.type );
-        if( it.next && it.next.value==='=' && desc.id === 'const' )
+        if( it.next && it.next.value==='=' )
         {
-           error('"' + it.current.value + '" is constant', '', it.current );
+            if( desc.id === 'const' )error('"' + it.current.value + '" is constant', '', it.current );
         }
     }
     //函数
@@ -623,15 +667,8 @@ function checkPropery(str,it,object, name, privatize )
                 if ( !it.seek() )error('Missing expression', '', it.prev);
                 str.prop.push('.set'+call);
 
-                if( it.current instanceof Ruler.STACK )
-                {
-                    param.push( toString(it.current) );
-                    if( it.current.type() !== desc.type && desc.type !=='*' )error('Specify the type of mismatch','type', it.prev );
-
-                }else
-                {
-                    param.push( it.current.value );
-                }
+                param.push( toString(it.current) );
+                checkSpecifyType(it, desc, it.current )
                 str.prop.push('(' + param.join(',') + ')');
                 it.stack.type('void');
 
@@ -648,7 +685,7 @@ function checkPropery(str,it,object, name, privatize )
 
         }else
         {
-            it.stack.type( 'Function' );
+            it.stack.type('Function');
         }
     }
     return desc;
@@ -666,16 +703,21 @@ function getIdentifierType( it )
     switch ( it.current.type )
     {
         case '(string)' :
+            it.values( it.current.value.substr(1,-2) );
             return 'String';
         case '(regexp)' :
             return 'RegExp';
         case '(number)' :
+            it.values( it.current.value );
             return 'Number';
         case '(boolean)' :
             return 'Boolean';
         default :
             var desc = it.stack.scope().define( it.current.value ) || globals[ it.current.value ];
-            if( desc )return desc;
+            if( desc ){
+                desc.type = getType( desc.type );
+                return desc;
+            }
     }
     error('"'+it.current.value+'" is not defined.', '', it.current );
 }
@@ -767,7 +809,17 @@ function toString( stack )
 
     var str = [];
     var it = new Iteration( stack );
-    var isstatement= stack.parent().keyword() === 'statement';
+    var isBefore=false;
+    if( stack.parent() instanceof Ruler.SCOPE )
+    {
+        stack.before=[];
+        isBefore=true;
+
+    }else if( stack.parent().before )
+    {
+        stack.before = stack.parent().before;
+    }
+
     while ( it.seek() )
     {
         if( it.current instanceof Ruler.STACK )
@@ -776,20 +828,21 @@ function toString( stack )
             continue;
         }
 
-        var val = expression(it, isstatement);
+        var val = expression( it );
         if( val )
         {
             str.push( val );
-            if(  it.next && it.next.id === '(keyword)' )str.push(' ');
+            if( it.next && it.next.id === '(keyword)' )str.push(' ');
             continue;
         }
 
-        str.push(typeof it.current.value !== "undefined" ? it.current.value : it.current );
+        str.push( typeof it.current.value !== "undefined" ? it.current.value : it.current );
 
         //关键字的后面必须跟空格
         if( it.current.id === '(keyword)' && it.next )str.push(' ');
-
     }
+
+    if( isBefore )str.unshift( stack.before.join('') )
     str = str.join('');
     return str;
 }
@@ -1107,6 +1160,7 @@ function loadModuleDescription( file )
         data = getPropertyDescription( scope );
         data.cachefile = cachefile;
         data.uid= id;
+        data.filename = sourcefile;
     }
 
     for(var i in data.import )
