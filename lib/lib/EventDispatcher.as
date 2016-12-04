@@ -135,6 +135,7 @@ package lib
             if( !(event instanceof BreezeEvent) )
                 throw new Error('invalid event.');
             var target = this['getProxyTarget'];
+            var targets = this['getProxyTargets'](998);
             var i=0;
             var element;
             target();

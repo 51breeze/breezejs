@@ -704,7 +704,7 @@ syntax['class']=function( event )
         stack.extends( p.classname );
 
         //定义超类引用
-        stack.scope('proto').define('super', p );
+        stack.scope('proto').define('super', {'type':'('+stack.name()+')','id':'class','fullclassname':p.fullclassname ,'classname':p.classname} );
         this.seek();
     }
 
@@ -875,13 +875,6 @@ syntax['function']= function(event){
     {
         //不能重复声明函数
         var val = stack.scope().define( name );
-
-        if( is )
-        {
-            val.construct = true;
-            val=null;
-        }
-
         if( val && val.scope === stack.scope() )
         {
             if( !stack.accessor() || stack.accessor() === val.get || stack.accessor() === val.set )
@@ -894,15 +887,23 @@ syntax['function']= function(event){
             {
                 this.error('The same accessor modifier must be consistent for "'+stack.qualifier()+'"', stack.description[ stack.qualifier() ] );
             }
-
             if( stack.accessor() )val[ stack.accessor() ]=stack.accessor();
-
+        }
+        else if( is )
+        {
+           if( stack.parent().construct() )this.error('function "'+name+'" has already been declared', name_stack );
+           stack.parent().construct( stack );
         }else
         {
-            var obj = {type: '(' + type + ')', 'id':'function','qualifier':stack.qualifier(), 'static': stack.static(), 'scope': stack.scope()};
-            if( stack.accessor() )obj[ stack.accessor() ]=stack.accessor();
-            if( is )obj.id='class';
-            stack.scope().define( name, obj );
+            var obj = {
+                type: '(' + type + ')',
+                'id': 'function',
+                'qualifier': stack.qualifier(),
+                'static': stack.static(),
+                'scope': stack.scope()
+            };
+            if (stack.accessor())obj[stack.accessor()] = stack.accessor();
+            stack.scope().define(name, obj);
         }
     }
 
@@ -2280,6 +2281,7 @@ function Class()
     Scope.call(this,'class','(block)');
     this.__extends__='';
     this.__scope__=null;
+    this.__construct__=null;
 }
 Class.prototype = new Scope();
 Class.prototype.constructor=Class;
@@ -2315,6 +2317,13 @@ Class.prototype.extends=function( name )
 {
     if( typeof name === 'undefined' )return this.__extends__;
     this.__extends__=name;
+    return this;
+}
+
+Class.prototype.construct=function( stack )
+{
+    if( typeof name === 'undefined' )return this.__construct__;
+    this.__construct__=stack;
     return this;
 }
 
