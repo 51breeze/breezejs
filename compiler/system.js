@@ -7,7 +7,7 @@
         var fn = function(){}
         var has = Object.prototype.hasOwnProperty;
         return function (proto,props) {
-            if( typeof proto != 'object' )throw TypeError('Object prototype may only be an Object or null');
+            if( typeof proto !== 'object' )throw TypeError('Object prototype may only be an Object or null');
             fn.prototype = proto;
             var obj = new fn();
             fn.prototype = null;
