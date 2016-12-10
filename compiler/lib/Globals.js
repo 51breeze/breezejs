@@ -1,7 +1,12 @@
 var objects = {
     'Class':{'id':'class', 'type':'Class', 'inherit':'Object'},
     'Number':{'id':'class', 'type':'Number', 'inherit':'Object'},
-    'String':{'id':'class', 'type':'String', 'inherit':'Object'},
+    'String':{
+        'id':'class', 'type':'String', 'inherit':'Object',
+        'proto': {
+          'replace':{ 'id':'function','qualifier':'public', 'type':'String' }
+        }
+    },
     'Json':{'id':'object', 'type':'Json','inherit':'Object'},
     'Object':{
         'id':'class',
@@ -28,14 +33,14 @@ var objects = {
             'values': {'type': 'Object', 'id': 'function', param: []}
         },
         'proto':{
-            constructor:{'type': 'Function', 'id': 'var'},
-            hasOwnProperty: {'type': 'Boolean', 'id': 'function', param: []},
-            isPrototypeOf: {'type': 'Boolean', 'id': 'function', param: []},
-            propertyIsEnumerable: {'type': 'Boolean', 'id': 'function', param: []},
-            toSource: {'type': 'String', 'id': 'function', param: []},
-            toLocaleString: {'type': 'String', 'id': 'function', param: []},
-            toString: {'type': 'String', 'id': 'function', param: []},
-            valueOf: {'type': 'String', 'id': 'function', param: []},
+            'constructor':{'type': 'Function', 'id': 'var'},
+            'hasOwnProperty': {'type': 'Boolean', 'id': 'function', param: []},
+            'isPrototypeOf': {'type': 'Boolean', 'id': 'function', param: []},
+            'propertyIsEnumerable': {'type': 'Boolean', 'id': 'function', param: []},
+            'toSource': {'type': 'String', 'id': 'function', param: []},
+            'toLocaleString': {'type': 'String', 'id': 'function', param: []},
+            'toString': {'type': 'String', 'id': 'function', param: []},
+            'valueOf': {'type': 'String', 'id': 'function', param: []},
        }
     },
     'RegExp':{'id':'class', 'type':'RegExp'},

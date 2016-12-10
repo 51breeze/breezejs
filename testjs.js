@@ -1,43 +1,42 @@
+const globals = require('./compiler/lib/Globals.js');
 (function(){
 
+    function Class(){}
+    Class.prototype.constructor = Class;
 
-    var inherit = (function() {
+    var has = Object.prototype.hasOwnProperty;
+    function hasOwnProperty(thisArg, prop ) {
+        return Object.prototype.hasOwnProperty.call(thisArg, prop );
+    }
 
-        var fn = function(){}
-        var has = Object.prototype.hasOwnProperty;
-        return function (proto,props)
+    function inherit(proto,props)
+    {
+        if( typeof proto !== 'object' )throw TypeError('Object prototype may only be an Object or null');
+        Class.prototype = proto;
+        var classObj = new Class();
+
+        if ( props )
         {
-            if( typeof proto !== 'object' )throw TypeError('Object prototype may only be an Object or null');
-            fn.prototype = proto;
-            var obj = new fn();
-            fn.prototype = null;
-            if ( props )
+            props = Object( props );
+            for (var p in props)if( has.call(props, p) )
             {
-                props = Object( props );
-                for (var p in props)if( has.call(props, p) )
-                {
-                    obj[p] = props[p];
-                }
+                classObj[p] = props[p];
             }
-            return obj;
-        };
+        }
+        return classObj;
+    };
 
-    })();
 
     var packages={};
-    function require(name, value)
+    function module(name, value)
     {
-        var path = name.replace(/\s+/g,'').split('.');
-        var deep=0;
-        var obj=packages;
-        var last = path.pop();
-        var len =path.length;
-        while(deep < len )
+        if(typeof name !=='string' )return null;
+        if( value && typeof value === "object" )
         {
-            obj = obj[ path[deep] ] || (obj[ path[deep] ]={});
-            deep++;
+            packages[name]= value;
+            return value;
         }
-        return typeof value !== "undefined" ? obj[last]=value : obj[last];
+        return packages[name] || globals[name];
     }
 
     /**
@@ -45,9 +44,9 @@
      * @param name
      * @returns {Object}
      */
-    function getDefinitionByName(name)
+    function getDefinitionByName( name )
     {
-        var value = require( name );
+        var value = module( name );
         if( !value )return null;
         return value.constructor;
     }
@@ -59,7 +58,14 @@
      */
     function getQualifiedClassName( value )
     {
-       return value.classname;
+        for (var i in packages)
+        {
+            if( value instanceof packages[i].constructor )
+            {
+                return packages[i].filename;
+            }
+        }
+        return null;
     }
 
     /**
@@ -69,7 +75,13 @@
      */
     function getQualifiedSuperclassName(value)
     {
-        return value.inherit;
+        var filename = getQualifiedClassName( value )
+        if( filename )
+        {
+            var inherit = module( filename );
+            if( inherit )return inherit.classname;
+        }
+        return null;
     }
 
     /**
@@ -77,13 +89,18 @@
      * @param description
      * @param value
      */
-    function checkValueType(description,value)
+    function checkValueType(description,value, propname )
     {
         if( description.type !== '*' )
         {
             var type = typeof value;
-            if( description.type.toLowerCase() !== type && !(value instanceof description.type) )
-                throw new TypeError('error type');
+            if( description.type.toLowerCase() !== type )
+            {
+                if( typeof description.type !=='object' || !( description.type instanceof value ) )
+                {
+                    throwError('type', '"'+propname+'" type error. '+ description.type );
+                }
+            }
         }
     }
 
@@ -110,45 +127,94 @@
     }
 
     /**
-     * 获取成员的引用
+     * 获取成员的描述信息
      * @param thisArg
      * @param propNames
      * @param classModule
      * @returns {*}
      */
-    function getPropertyDesc(thisArg, propNames, classModule)
+    function getPropertyDescription(thisArg, propName, classModule, propname )
     {
-        var i = 0;
-        var desc = thisArg;
-        while ( i < propNames.length )
+        if( !thisArg )throwError('reference', '"'+propname+( thisArg===null ? '" is null' : '" is not defined') );
+        var desc = thisArg[ propName ];
+        if( !desc )throwError('reference', '"'+propname+'" is not defined' );
+
+        //不是public限定符则检查是否可访问
+        if( desc.qualifier !== 'public' )
         {
-            desc = desc[ propNames[i] ];
-            if( !desc )return desc;
-
-            if( desc.qualifier === 'private' && !(thisArg instanceof classModule.constructor) )
+            //不是本类中的成员调用（本类中的所有成员可以相互调用）
+            if( !(thisArg instanceof classModule.constructor) )
             {
-                throwError('reference', '"' + propNames.join('.') + '" inaccessible.');
-            }
-
-            if( desc.id==='var' || desc.id==='const' )
-            {
-                var value = desc.qualifier === 'private' ? thisArg[ classModule.uid ][ propNames[i] ] : thisArg[ propNames[i] ];
-                if( !value )return value;
-                if( desc.type && desc.type !=='*' )
+                var is= false;
+                if( desc.qualifier !== 'private' )
                 {
-                    var type = classModule.import( desc.type );
-                    if( !type )throwError('type', '"'+desc.type+'" is not defined');
-                    if( value )
+                    var classname = desc.qualifier === 'protected' ? classModule.inherit : getQualifiedClassName( thisArg );
+                    var classObj =  module( classModule.import( classname ) );
+                    if( classObj && ( desc.qualifier === 'protected' || classObj.package === classModule.package) )
                     {
-                        thisArg=value;
-                        classModule=type;
+                        is = thisArg instanceof classObj.constructor;
                     }
                 }
-                desc = value;
+                if( !is )throwError('reference', '"' + propname + '" inaccessible.');
             }
         }
         return desc;
     }
+
+    function getReferenceValueByPropName(propName, thisArg, classModule, propname )
+    {
+        if(thisArg)
+        {
+            if (thisArg instanceof Class)
+            {
+                var desc = getPropertyDescription(thisArg, propName, classModule, propname);
+                //如果引用的属性是一个存储器
+                if (desc.id === 'function' && typeof desc.value === "object") {
+                    if (typeof desc.value.get !== 'function')throw new TypeError('Accessor getter does not exist');
+                    thisArg = desc.value.get.call(thisArg);
+                } else if (desc.id === 'var' || desc.id === 'const') {
+                    thisArg = desc.qualifier === 'private' ? thisArg[classModule.uid][propName] : thisArg[propName];
+                } else {
+                    thisArg = desc.value;
+                }
+            } else {
+                thisArg = thisArg[propName];
+            }
+        }
+        if( !thisArg )throwError('reference', '"'+propname+( thisArg===null ? '" is null' : '" is not defined') );
+        return thisArg;
+    }
+
+
+  /*  if( !thisArg )
+    {
+        throwError('reference', '"' + propNames.join('.') + ( thisArg===null ? '" of null' : '" is not defined') );
+    }
+
+    if( thisArg instanceof Class )
+    {
+        desc = getPropertyDescription(thisArg, propNames[i], classModule);
+        if( desc )
+        {
+            thisArg =  desc.value;
+
+            //如果引用的属性是一个存储器
+            if( desc.id === 'function' && typeof desc.value === "object" )
+            {
+                if( typeof desc.value.get !== 'function' )throw new TypeError('Accessor getter does not exist');
+                thisArg = desc.value.get.call(thisArg);
+
+            }else if ( desc.id === 'var' || desc.id === 'const' )
+            {
+                thisArg = desc.qualifier === 'private' ? thisArg[ classModule.uid ][ propNames[i] ] : thisArg[ propNames[i] ];
+            }
+        }
+
+    }else
+    {
+        thisArg = thisArg[ propNames[i] ];
+    }*/
+
 
     /**
      * 生成一个调用函数的方法
@@ -157,123 +223,199 @@
      */
     function makeCall( classModule )
     {
-        return function(thisArg, propNames, args , flag )
+        return function( thisArg, propNames, args , flag )
         {
-            var desc = getPropertyDesc(thisArg, propNames, classModule );
+            var desc;
+            var value;
+            var propname = propNames.join('.');
+            var lastProp = propNames.pop();
 
-            if( !thisArg[method] )throwError('reference','is not defined');
-            if( thisArg[method].id !== 'function' )throwError('type','is not function');
-
-            var type = typeof thisArg[method].value;
-            if( type ==='object' )
+            for( var i = 0; i < propNames.length && thisArg ; i++ )
             {
-                if( args.length===0 )
-                {
-                    if( typeof thisArg[method].value.get !== 'function' )throw new TypeError('is not function');
-                    return thisArg[method].value.get.call(thisArg);
+                thisArg = getReferenceValueByPropName( propNames[i], thisArg, classModule, propname );
+            }
 
-                }else
+            //本地类属性引用
+            if( thisArg instanceof Class )
+            {
+                desc = getPropertyDescription(thisArg, lastProp, classModule);
+                value = desc.value;
+            }
+            //全局类属性引用
+            else {
+                value=thisArg[ lastProp ];
+            }
+
+            //调用方法
+            if( flag )
+            {
+                if( typeof value !=='function' )throwError('type','"'+propname.join('.')+'" is not function');
+                return value.apply(thisArg, args );
+            }
+
+            //是否需要设置值
+            var isset = typeof args === "undefined" || args instanceof Array && args.length===0  ? false :  true ;
+
+            //如是是对全局类的属性操作
+            if( !desc )
+            {
+                if( !isset )return value;
+                if( !hasOwnProperty(thisArg, lastProp) )throwError('reference','"'+propname.join('.')+'" property does not exist');
+                thisArg[ lastProp ] = args[0];
+                if( thisArg[ lastProp ] !== args[0] )throwError('reference','"'+propname.join('.')+'" property cannot be set');
+                return undefined;
+            }
+
+            //是否为一个访问器
+            var isaccessor = desc.id === 'function' && typeof value === 'object';
+            if (isaccessor)
+            {
+                value = isset ? value.set : value.get;
+                if (typeof value !== 'function')throw new throwError('reference', '"' + propname + '" Accessor ' + (isset ? 'setter' : 'getter') + ' does not exist');
+            }
+            //对属性的引用
+            else if (desc.id === 'var' || desc.id==='const')
+            {
+                value = thisArg[classModule.uid];
+            }
+
+            //对属性引用进行赋值操作
+            if (isset)
+            {
+                if( desc.id !=='var' && !isaccessor )
                 {
-                    if( typeof thisArg[method].value.set !== 'function' )throw new TypeError('is not function');
-                    if( args.length > 1 )throw new TypeError('invalid param');
-                    checkValueType( thisArg[method] , args[0] );
-                    return thisArg[method].value.set.call(thisArg, args[0] );
+                    throwError('type', '"' + propname + ( desc.id === 'const' ? '" cannot be alter of constant' : '" cannot modify the class function' ) );
                 }
 
-            }else if( type !=='function' )
-            {
-                throw new TypeError('is not function');
+                var v = args instanceof Array ? args[0] : args;
+
+                //检查属性的类型是否匹配
+                checkValueType( desc, v, propname );
+
+                //对属性引用进行赋值操作
+                isaccessor ? value.call(thisArg, v ) : (value[lastProp] =v );
+                return undefined;
             }
-            return thisArg[method].value.apply(thisArg, args );
+
+            //获取属性引用的值
+            return isaccessor ? value.call(thisArg) : value[lastProp];
         }
     }
 
 
-    require('A',[], function(){
+    module('com.A', (function(){
 
-        var module={
+        var A=function(){
+
+            this.name='this is a';
+            this[5698777]={
+                '_address':'5林  要55   5 5 '
+            };
+
+        };
+        var description={
+            'constructor':A,
             'uid':5698777,
             'inherit':'',
             'implements':'',
             'classname':'A',
             'filename':'com.A',
+            'package':'com',
+            'import':function( type ){
+                return globals[type];
+            }
         };
 
-        var __call=makeCall( module );
-        var A=function(){
-            __call(this,'address');
-        }
+        var __call=makeCall( description );
+        A.prototype = inherit(null, {
+            '_address':{'id':'const','qualifier':'private','value':'5林  要55   5 5 '},
+            address:{
+                'id':'function',
+                'qualifier':'protected',
+                'value':function (){
 
-        module.constructor = A;
-        A.prototype.constructor = A;
-        A.prototype.address={
-            'id':'function',
-            'qualifier':'public',
-            'value':function (){
-                console.log( 'the is A address')
+                    console.log( 'the is A address')
+                    console.log( __call(this, ['_address'] ) );
+                }
             }
-        }
-        return module;
-    });
+        })
+        A.prototype.constructor = A;
+        return description;
+
+    }()));
+
+    module('com.B', (function(){
+
+        var A = module('com.A').constructor;
+        var B=function(){
+
+            this['123456']={
+                'gen':'305666',
+                'age':'30',
+            };
+
+            var ret =   __call( this ,['name'], [], true );
+            //console.log( ret )
+
+        };
 
 
-
-    var B = (function(){
-
-        var module={
+        var description={
+            'constructor':B,
             'uid':123456,
             'inherit':'A',
             'implements':'Iapi',
             'classname':'B',
             'filename':'com.B',
-            'import':function( type ){}
+            'package':'com',
+            'import':function( type ){
+                if( typeof type  !=='string' )return null;
+                var map={'A':'com.A'};
+                if( map[type] )return map[type];
+                for(var i in map )if( map[i] === type )return map[i];
+                return globals[type];
+            }
         };
 
-        var __call=makeCallFun( module );
+        var __call=makeCall( description );
+        B.prototype=inherit(A.prototype, {
+            age:{'id':'var','qualifier':'protected','value':'30',type:'String'},
+            gen:{'id':'var','qualifier':'private','value':'305666',type:'String'},
+            name:{
+                'id':'function',
+                'qualifier':'public',
+                'value':function (){
+
+                      console.log( 'this is name funciton')
+                       console.log(  __call(this, ['age'] ) )
+
+                        //  var aa = new A();
+                       //  __call(aa, ['address'],[], true)
 
 
-
-
-        var B=function(){
-
-            __call(module,this,'name');
-            __call(module,this,'address');
-        }
-
-        module.constructor = B;
-
-        var non = function(){};
-        non.prototype = A.constructor.prototype;
-        B.prototype=new non();
+                }
+            },
+        });
         B.prototype.constructor = B;
-        B.prototype.age={'id':'var','qualifier':'private','value':'30',type:'String'};
-        B.prototype.gen={'id':'var','qualifier':'protected','value':'5666',type:'String'};
-        B.prototype.name={
-            'id':'function',
-            'modifier':'public',
-            'value':function (){
 
-                console.log( 'the is A name')
-                console.log( this instanceof A )
-                console.log( __call )
-                __call(module,this,'address');
-                __call(this,['gend','replace'],['5','-']);
-                __call(__call(this,['gend','replace'],['5','-']) ,['replace'],['6','+']);
+        var b = new B() ;
 
-            }
-        }
-        return module;
+        __call(b, ['age'], "40" )
+        __call(b, ['age'], "50" )
 
-    })();
+       var bb =  new B() ;
 
+        __call(bb, ['age'], "80" )
 
+       console.log( __call(b, ['age'] ) ,'=====')
+       console.log( __call(bb, ['age'] ) ,'=====')
 
-    new B.constructor();
+        return description;
 
+    })());
 
-
-
+   // var B = module('com.B').constructor;
+   // var b = new B() ;
 
 })()
-
 
