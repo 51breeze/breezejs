@@ -161,6 +161,14 @@ const globals = require('./compiler/lib/Globals.js');
         return desc;
     }
 
+    /**
+     * 获取引用的值
+     * @param propName
+     * @param thisArg
+     * @param classModule
+     * @param propname
+     * @returns {*}
+     */
     function getReferenceValueByPropName(propName, thisArg, classModule, propname )
     {
         if(thisArg)
@@ -184,37 +192,6 @@ const globals = require('./compiler/lib/Globals.js');
         if( !thisArg )throwError('reference', '"'+propname+( thisArg===null ? '" is null' : '" is not defined') );
         return thisArg;
     }
-
-
-  /*  if( !thisArg )
-    {
-        throwError('reference', '"' + propNames.join('.') + ( thisArg===null ? '" of null' : '" is not defined') );
-    }
-
-    if( thisArg instanceof Class )
-    {
-        desc = getPropertyDescription(thisArg, propNames[i], classModule);
-        if( desc )
-        {
-            thisArg =  desc.value;
-
-            //如果引用的属性是一个存储器
-            if( desc.id === 'function' && typeof desc.value === "object" )
-            {
-                if( typeof desc.value.get !== 'function' )throw new TypeError('Accessor getter does not exist');
-                thisArg = desc.value.get.call(thisArg);
-
-            }else if ( desc.id === 'var' || desc.id === 'const' )
-            {
-                thisArg = desc.qualifier === 'private' ? thisArg[ classModule.uid ][ propNames[i] ] : thisArg[ propNames[i] ];
-            }
-        }
-
-    }else
-    {
-        thisArg = thisArg[ propNames[i] ];
-    }*/
-
 
     /**
      * 生成一个调用函数的方法
