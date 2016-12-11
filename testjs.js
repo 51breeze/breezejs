@@ -1,88 +1,26 @@
-const globals = require('./compiler/lib/Globals.js');
 (function(){
 
-    function Class(){}
-    Class.prototype.constructor = Class;
-
-    var has = Object.prototype.hasOwnProperty;
-    function hasOwnProperty(thisArg, prop ) {
-        return Object.prototype.hasOwnProperty.call(thisArg, prop );
-    }
+    const System = require('./compiler/lib/System.js');
+    const Class = System.Class;
+    const Object = System.Object;
+    const module = System.registerClassModule;
+    const getDefinitionByName = System.getDefinitionByName;
+    const getQualifiedClassName = System.getQualifiedClassName;
+    const getQualifiedSuperclassName = System.getQualifiedSuperclassName;
 
     function inherit(proto,props)
     {
-        if( typeof proto !== 'object' )throw TypeError('Object prototype may only be an Object or null');
-        Class.prototype = proto;
+        //if(proto)Class.prototype = proto;
         var classObj = new Class();
-
         if ( props )
         {
-            props = Object( props );
-            for (var p in props)if( has.call(props, p) )
+            for (var p in props)if( Object.prototype.hasOwnProperty.call(props, p) )
             {
                 classObj[p] = props[p];
             }
         }
         return classObj;
     };
-
-
-    var packages={};
-    function module(name, value)
-    {
-        if(typeof name !=='string' )return null;
-        if( value && typeof value === "object" )
-        {
-            packages[name]= value;
-            return value;
-        }
-        return packages[name] || globals[name];
-    }
-
-    /**
-     * 根据指定的类名获取类的对象
-     * @param name
-     * @returns {Object}
-     */
-    function getDefinitionByName( name )
-    {
-        var value = module( name );
-        if( !value )return null;
-        return value.constructor;
-    }
-
-    /**
-     * 获取指定实例对象的类名
-     * @param value
-     * @returns {string}
-     */
-    function getQualifiedClassName( value )
-    {
-        for (var i in packages)
-        {
-            if( value instanceof packages[i].constructor )
-            {
-                return packages[i].filename;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 获取指定实例对象的超类名称
-     * @param value
-     * @returns {string}
-     */
-    function getQualifiedSuperclassName(value)
-    {
-        var filename = getQualifiedClassName( value )
-        if( filename )
-        {
-            var inherit = module( filename );
-            if( inherit )return inherit.classname;
-        }
-        return null;
-    }
 
     /**
      * 检查值的类型是否和声明时的类型一致
@@ -283,13 +221,12 @@ const globals = require('./compiler/lib/Globals.js');
     module('com.A', (function(){
 
         var A=function(){
-
             this.name='this is a';
             this[5698777]={
                 '_address':'5林  要55   5 5 '
             };
-
         };
+
         var description={
             'constructor':A,
             'uid':5698777,
@@ -317,13 +254,13 @@ const globals = require('./compiler/lib/Globals.js');
             }
         })
         A.prototype.constructor = A;
-        return description;
+        return A;
 
     }()));
 
     module('com.B', (function(){
 
-        var A = module('com.A').constructor;
+        var A = getDefinitionByName('com.A');
         var B=function(){
 
             this['123456']={
@@ -363,7 +300,7 @@ const globals = require('./compiler/lib/Globals.js');
                 'qualifier':'public',
                 'value':function (){
 
-                      console.log( 'this is name funciton')
+                       console.log( 'this is name funciton')
                        console.log(  __call(this, ['age'] ) )
 
                         //  var aa = new A();
@@ -387,12 +324,15 @@ const globals = require('./compiler/lib/Globals.js');
        console.log( __call(b, ['age'] ) ,'=====')
        console.log( __call(bb, ['age'] ) ,'=====')
 
-        return description;
+        return B;
 
     })());
 
    // var B = module('com.B').constructor;
    // var b = new B() ;
+
+
+
 
 })()
 
