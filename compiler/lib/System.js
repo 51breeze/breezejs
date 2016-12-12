@@ -16,7 +16,7 @@ module.exports = (function (_Object, _String, _Array)
         {
             return new Object( value );
         }
-        if( value )
+        if( value && this.constructor === Object )
         {
            this.merge(value);
         }
@@ -28,16 +28,66 @@ module.exports = (function (_Object, _String, _Array)
         return _Object.isPrototypeOf.call(this, theClass);
     }
 
-    Object.prototype.getPrototypeOf = function( obj )
-    {
-        return _Object.getPrototypeOf( obj );
-    }
-
+    /**
+     * 表示对象是否已经定义了指定的属性。如果目标对象具有与 name 参数指定的字符串匹配的属性，则此方法返回 true；否则返回 false。
+     * @param prop 对象的属性。
+     * @returns {Boolean}
+     */
     Object.prototype.hasOwnProperty = function( prop )
     {
+        if( this instanceof Class )
+        {
+            var desc = this.constructor.prototype[ name ];
+            if( !desc || typeof desc.value === "function" )return false;
+            return true;
+        }
         return _Object.hasOwnProperty.call(this,prop)
     }
 
+    /**
+     * 表示指定的属性是否存在、是否可枚举。
+     * 如果为 true，则该属性存在并且可以在 for..in 循环中枚举。该属性必须存在于目标对象上，
+     * 原因是：该方法不检查目标对象的原型链。您创建的属性是可枚举的，但是内置属性通常是不可枚举的。
+     * @param name
+     * @returns {Boolean}
+     */
+    Object.prototype.propertyIsEnumerable = function( name )
+    {
+        if( this instanceof Class )
+        {
+           var desc = this.constructor.prototype[ name ];
+           if( !desc || typeof desc.value === "function" )return false;
+           return !!desc.enumerable;
+        }
+        return _Object.propertyIsEnumerable.call(this,name);
+    }
+
+    /**
+     * 设置循环操作动态属性的可用性。
+     * 该属性必须存在于目标对象上，原因是：该方法不检查目标对象的原型链。
+     * @param name 对象的属性
+     * @param isEnum  (default = true)
+     * 如果设置为 false，则动态属性不会显示在 for..in 循环中，且方法 propertyIsEnumerable() 返回 false。
+     */
+    Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
+    {
+        if( this instanceof Class )
+        {
+           var proto = this.constructor.prototype;
+           if( typeof proto[name] === 'object' && typeof proto[name].enumerable !== "undefined" )
+           {
+               proto[name].enumerable = isEnum !== false;
+           }
+        }else
+        {
+            _Object.defineProperty(this, name,{enumerable:isEnum !== false });
+        }
+    }
+
+    /**
+     * 返回指定对象的原始值
+     * @returns {String}
+     */
     Object.prototype.valueOf=function()
     {
         if( this instanceof Class )
@@ -53,58 +103,13 @@ module.exports = (function (_Object, _String, _Array)
         }
     }
 
+    /**
+     * 返回指定对象的字符串表示形式。
+     * @returns {String}
+     */
     Object.prototype.toString=function()
     {
         return this.valueOf();
-    }
-
-    Object.prototype.defineProperty=function (prop, desc)
-    {
-        if( typeof _Object.defineProperty === 'function' )
-        {
-            _Object.defineProperty(this, prop, desc);
-            return this;
-        }
-
-        if( typeof prop !== 'string' )throw TypeError('Invalid prop name');
-        if( typeof desc !== 'object' || !desc )throw TypeError('Property description must be an object:'+desc );
-
-        var d = {};
-        if( this.hasOwnProperty.call(desc,"enumerable") )d.enumerable = !!desc.enumerable;
-        if (this.hasOwnProperty.call(desc, "configurable"))d.configurable = !!desc.configurable;
-        if (this.hasOwnProperty.call(desc, "value"))d.value = desc.value;
-        if (this.hasOwnProperty.call(desc, "writable"))d.writable = !!desc.writable;
-        if (this.hasOwnProperty.call(desc, "get") )
-        {
-            if ( typeof desc.get !== "function" )throw new TypeError("bad getter");
-            d.get = desc.get;
-        }
-        if( this.hasOwnProperty.call(desc, "set") )
-        {
-            if ( typeof desc.set !== "function" )throw new TypeError("bad setter");
-            d.set = desc.set;
-        }
-        if ( ("get" in d || "set" in d) && ("value" in d || "writable" in d) )throw new TypeError("identity-confused descriptor");
-        this[prop]=d;
-        return this;
-    }
-
-    Object.prototype.defineProperties = function(props)
-    {
-        if( typeof _Object.defineProperties === 'function' )
-        {
-            _Object.defineProperties(this, props );
-            return this;
-        }
-        if ( typeof obj !== "object" || !obj )throw new TypeError("Invalid object");
-        for( var p in props )
-        {
-            if( this.hasOwnProperty.call(props, p) )
-            {
-                this.defineProperty(p, props[p] );
-            }
-        }
-        return this;
     }
 
     /**
@@ -280,7 +285,9 @@ module.exports = (function (_Object, _String, _Array)
      */
     function isObject(val , flag )
     {
-        return val && typeof val === "object" ? !!( val.constructor === Object || ( flag && isArray(val) ) ) : false;
+        var result = val && typeof val === "object" ? val.constructor === Object || val.constructor===_Object : false;
+        if( !result && flag && isArray(val) )return true;
+        return result;
     };
     s.isObject=isObject;
 

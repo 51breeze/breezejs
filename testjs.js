@@ -8,6 +8,23 @@
     const getQualifiedClassName = System.getQualifiedClassName;
     const getQualifiedSuperclassName = System.getQualifiedSuperclassName;
 
+
+
+
+    var obj=new Object({name:"6666"});
+
+
+
+    console.log( System.isObject(obj) , obj )
+
+
+
+    process.exit();
+
+
+
+
+
     function inherit(proto,props)
     {
         //if(proto)Class.prototype = proto;
