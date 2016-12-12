@@ -204,16 +204,7 @@ module.exports = (function (_Object, _String, _Array)
            throw new Error('Invalid class name');
         }
 
-        var is=false;
-        if( typeof classModule === 'function' )
-        {
-            is = Object.prototype.getPrototypeOf(classModule.prototype).constructor === Class ;
-        }else
-        {
-            is = Object.prototype.isPrototypeOf.call(classModule, Class );
-        }
-
-        if( !is )
+        if( !(classModule instanceof Class) )
         {
             throw new Error('Invalid class module');
         }

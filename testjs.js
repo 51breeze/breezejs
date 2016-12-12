@@ -9,22 +9,6 @@
     const getQualifiedSuperclassName = System.getQualifiedSuperclassName;
 
 
-
-
-    var obj=new Object({name:"6666"});
-
-
-
-    console.log( System.isObject(obj) , obj )
-
-
-
-    process.exit();
-
-
-
-
-
     function inherit(proto,props)
     {
         //if(proto)Class.prototype = proto;
@@ -237,14 +221,11 @@
 
     module('com.A', (function(){
 
-        var A=function(){
-            this.name='this is a';
-            this[5698777]={
-                '_address':'5林  要55   5 5 '
-            };
+        var __call;
+        function A(){
+            __call(this, {'_address':'5林要5555'});
         };
-
-        var description={
+        var description = new Class({
             'constructor':A,
             'uid':5698777,
             'inherit':'',
@@ -252,43 +233,38 @@
             'classname':'A',
             'filename':'com.A',
             'package':'com',
-            'import':function( type ){
-                return globals[type];
-            }
-        };
-
-        var __call=makeCall( description );
-        A.prototype = inherit(null, {
-            '_address':{'id':'const','qualifier':'private','value':'5林  要55   5 5 '},
-            address:{
-                'id':'function',
+        },{
+            '_address':{'writable':false,'qualifier':'private','value':'5林要5555','enumerable':false},
+            'address':{
                 'qualifier':'protected',
-                'value':function (){
-
+                'value':function(){
                     console.log( 'the is A address')
                     console.log( __call(this, ['_address'] ) );
                 }
             }
-        })
-        A.prototype.constructor = A;
-        return A;
+        },{});
+        __call=makeCall( description );
+        return description;
 
     }()));
 
     module('com.B', (function(){
 
         var A = getDefinitionByName('com.A');
-        var B=function(){
+        function B(){
 
             this['123456']={
                 'gen':'305666',
                 'age':'30',
             };
-
+            
             var ret =   __call( this ,['name'], [], true );
             //console.log( ret )
 
         };
+
+        
+        B.prototype = new Class();
 
 
         var description={
@@ -300,6 +276,7 @@
             'filename':'com.B',
             'package':'com',
             'import':function( type ){
+                
                 if( typeof type  !=='string' )return null;
                 var map={'A':'com.A'};
                 if( map[type] )return map[type];
@@ -309,6 +286,7 @@
         };
 
         var __call=makeCall( description );
+        
         B.prototype=inherit(A.prototype, {
             age:{'id':'var','qualifier':'protected','value':'30',type:'String'},
             gen:{'id':'var','qualifier':'private','value':'305666',type:'String'},
@@ -347,6 +325,13 @@
 
    // var B = module('com.B').constructor;
    // var b = new B() ;
+
+    var b=123;
+
+   var f = new Function('','console.log(b)');
+
+
+    f();
 
 
 
