@@ -3,25 +3,10 @@
     const System = require('./compiler/lib/System.js');
     const Class = System.Class;
     const Object = System.Object;
-    const module = System.registerClassModule;
     const getDefinitionByName = System.getDefinitionByName;
+    const getDefinitionDescriptorByName = System.getDefinitionDescriptorByName;
     const getQualifiedClassName = System.getQualifiedClassName;
     const getQualifiedSuperclassName = System.getQualifiedSuperclassName;
-
-
-    function inherit(proto,props)
-    {
-        //if(proto)Class.prototype = proto;
-        var classObj = new Class();
-        if ( props )
-        {
-            for (var p in props)if( Object.prototype.hasOwnProperty.call(props, p) )
-            {
-                classObj[p] = props[p];
-            }
-        }
-        return classObj;
-    };
 
     /**
      * 检查值的类型是否和声明时的类型一致
@@ -82,7 +67,7 @@
         if( desc.qualifier !== 'public' )
         {
             //不是本类中的成员调用（本类中的所有成员可以相互调用）
-            if( !(thisArg instanceof classModule.constructor) )
+            if( !(thisArg instanceof classModule) )
             {
                 var is= false;
                 if( desc.qualifier !== 'private' )
@@ -219,19 +204,20 @@
     }
 
 
-    module('com.A', (function(){
+   +(function(){
 
         var __call;
         function A(){
             __call(this, {'_address':'5林要5555'});
         };
-        var description = new Class({
+        __call=makeCall(Class({
             'constructor':A,
-            'uid':5698777,
+            'token':5698777,
             'inherit':'',
             'implements':'',
             'classname':'A',
             'filename':'com.A',
+            'import':{},
             'package':'com',
         },{
             '_address':{'writable':false,'qualifier':'private','value':'5林要5555','enumerable':false},
@@ -242,99 +228,49 @@
                     console.log( __call(this, ['_address'] ) );
                 }
             }
-        },{});
-        __call=makeCall( description );
-        return description;
+        }));
 
-    }()));
+    })();
 
-    module('com.B', (function(){
+    +(function(){
 
         var A = getDefinitionByName('com.A');
+        var __call;
         function B(){
 
             this['123456']={
                 'gen':'305666',
                 'age':'30',
             };
-            
-            var ret =   __call( this ,['name'], [], true );
+            var ret = __call( this ,['name'], [], true );
             //console.log( ret )
-
         };
 
-        
-        B.prototype = new Class();
-
-
-        var description={
+        __call=makeCall(Class({
             'constructor':B,
-            'uid':123456,
+            'token':123456,
             'inherit':'A',
             'implements':'Iapi',
             'classname':'B',
             'filename':'com.B',
             'package':'com',
-            'import':function( type ){
-                
-                if( typeof type  !=='string' )return null;
-                var map={'A':'com.A'};
-                if( map[type] )return map[type];
-                for(var i in map )if( map[i] === type )return map[i];
-                return globals[type];
-            }
-        };
-
-        var __call=makeCall( description );
-        
-        B.prototype=inherit(A.prototype, {
+            'import':{'A':'com.A'}
+        },{
             age:{'id':'var','qualifier':'protected','value':'30',type:'String'},
             gen:{'id':'var','qualifier':'private','value':'305666',type:'String'},
             name:{
-                'id':'function',
                 'qualifier':'public',
                 'value':function (){
-
-                       console.log( 'this is name funciton')
-                       console.log(  __call(this, ['age'] ) )
-
-                        //  var aa = new A();
-                       //  __call(aa, ['address'],[], true)
-
-
+                    console.log( 'this is name funciton')
+                    console.log(  __call(this, ['age'] ) )
                 }
             },
-        });
-        B.prototype.constructor = B;
+        }));
 
-        var b = new B() ;
+        new B();
 
-        __call(b, ['age'], "40" )
-        __call(b, ['age'], "50" )
-
-       var bb =  new B() ;
-
-        __call(bb, ['age'], "80" )
-
-       console.log( __call(b, ['age'] ) ,'=====')
-       console.log( __call(bb, ['age'] ) ,'=====')
-
-        return B;
-
-    })());
-
-   // var B = module('com.B').constructor;
-   // var b = new B() ;
-
-    var b=123;
-
-   var f = new Function('','console.log(b)');
+    })();
 
 
-    f();
-
-
-
-
-})()
+})();
 

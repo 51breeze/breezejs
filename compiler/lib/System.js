@@ -179,105 +179,143 @@ module.exports = (function (_Object, _String, _Array)
         return target;
     }
 
+    /**
+     * 循环对象中的每一个属性，只有纯对象或者是一个数组才会执行。
+     * @param callback 一个回调函数。
+     * 参数中的第一个为属性值，第二个为属性名。
+     * 如果返回 false 则退出循环
+     * @returns {Object}
+     */
+    Object.prototype.forEach=function( callback )
+    {
+          if( isObject(this) )
+          {
+              for(var i in this)if( callback.call(this, this[i], i ) === false )return this;
+          }
+          return this;
+    }
+
     Object.prototype.constructor = Object;
     s.Object = Object;
 
+
     /**
-     * 类对象
+     * 类对象构造器
+     * @param classname
+     * @param constructor
+     * @param descriptor
+     * @param prototype
+     * @param properties
+     * @returns {Class}
      * @constructor
      */
-    function Class(){}
+    function Class(descriptor,prototype,properties)
+    {
+
+        if( !(this instanceof Class) )return new Class(descriptor,prototype,properties);
+        if( typeof descriptor.constructor !=='function' )throw new TypeError('Invalid constructor.');
+
+        descriptor.constructor.prototype = this;
+
+        //实例属性
+        Object.prototype.forEach.call(prototype || {},function(item, prop){
+            descriptor.constructor.prototype[ prop ] = item;
+        });
+
+        //静态属性
+        Object.prototype.forEach.call(properties || {},function(item, prop){
+            descriptor.constructor[ prop ] = item;
+        });
+
+        //构造函数
+        descriptor.constructor.prototype.constructor = descriptor.constructor;
+
+        //将类定义到包中
+        packages[ descriptor.filename ] = descriptor;
+        return descriptor;
+    }
     Class.prototype = new Object();
     Class.prototype.constructor = Class;
     s.Class = Class;
 
-    /**
-     * 注册类模块
-     * @param classname
-     * @param classModule
-     * @returns {*}
-     */
-    s.registerClassModule=function( classname, classModule )
-    {
-        if( typeof classname !== 'string' )
-        {
-           throw new Error('Invalid class name');
-        }
-
-        if( !(classModule instanceof Class) )
-        {
-            throw new Error('Invalid class module');
-        }
-        packages[ classname ] = classModule;
-        return classModule;
-    }
 
     /**
      * 根据指定的类名获取类的对象
      * @param name
      * @returns {Object}
      */
-    s.getDefinitionByName = function( name )
+    function getDefinitionByName( name )
     {
-        if( packages[ name ] )return packages[ name ].constructor;
-        for ( var i in packages )if( i=== name )return packages[i].constructor;
-        if( globals[name] )return globals[name].constructor;
-        return null;
+        var obj = getDefinitionDescriptorByName(name);
+        return obj.constructor;
     }
+    s.getDefinitionByName =getDefinitionByName;
+
+    /**
+     * 根据指定的类名获取类的对象
+     * @param name
+     * @returns {Object}
+     */
+    function getDefinitionDescriptorByName( name )
+    {
+        if( packages[ name ] )return packages[ name];
+        for ( var i in packages )if( i=== name )return packages[i];
+        if( globals[name] )return globals[name];
+        throw new TypeError( '"'+name+'" is not define');
+    }
+    s.getDefinitionDescriptorByName =getDefinitionDescriptorByName;
+
 
     /**
      * 获取指定实例对象的类名
      * @param value
      * @returns {string}
      */
-     s.getQualifiedClassName=function( value )
+     function getQualifiedClassName( value )
      {
-         var val=null;
-         if( value instanceof s.Class )val = value.__classname__;
-         if( !val && value && value.prototype && value.prototype.constructor )
+         var refModule = value instanceof Class ? packages : globals;
+         for( var classname in refModule )
          {
-             for (var i in globals)
+             if( value.constructor === refModule[ classname ].constructor )
              {
-                 if ( value.prototype.constructor === globals[i].constructor )
-                 {
-                     var str = Object.prototype.toString().call(value)
-                     var end = str.indexOf('(');
-                     return str.substr(9, end);
-                 }
+                 return classname;
              }
          }
-         return null;
+         throw new TypeError('Instance type does exits');
     }
+    s.getQualifiedClassName=getQualifiedClassName;
 
     /**
      * 获取指定实例对象的超类名称
      * @param value
      * @returns {string}
      */
-    s.getQualifiedSuperclassName=function(value)
+    function getQualifiedSuperclassName(value)
     {
-        var filename = getQualifiedClassName( value )
-        if (filename)
+        var classname = getQualifiedClassName( value )
+        if (classname)
         {
-            var classModule = s.getDefinitionByName( filename );
-            if ( classModule )
+            var descriptor = getDefinitionDescriptorByName( classname );
+            if ( descriptor && descriptor.inherit )
             {
-                return typeof classModule.inherit === "string" ? getDefinitionByName( classModule.inherit ) : classModule.inherit;
+                if( descriptor.import[ descriptor.inherit ] )return descriptor.import[ descriptor.inherit ];
+                return globals[ descriptor.inherit ] || null;
             }
         }
         return null;
     }
+    s.getQualifiedSuperclassName=getQualifiedSuperclassName;
 
     /**
      * 判断是否为一个可遍历的对象
      * @param val
-     * @param flag true 表示包括数组， 否则只能是一个纯对象
+     * @param flag 默认为 false。如为true表示一个纯对象
      * @returns {boolean}
      */
     function isObject(val , flag )
     {
-        var result = val && typeof val === "object" ? val.constructor === Object || val.constructor===_Object : false;
-        if( !result && flag && isArray(val) )return true;
+        var result = val ? val.constructor === Object || val.constructor===_Object : false;
+        if( !result && flag !== true && isArray(val) )return true;
         return result;
     };
     s.isObject=isObject;
