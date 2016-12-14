@@ -29,19 +29,14 @@ module.exports = (function (_Object, _String, _Array)
     }
 
     /**
-     * 表示对象是否已经定义了指定的属性。如果目标对象具有与 name 参数指定的字符串匹配的属性，则此方法返回 true；否则返回 false。
+     * 表示对象是否已经定义了指定的属性。
+     * 如果目标对象具有与 name 参数指定的字符串匹配的属性，则此方法返回 true；否则返回 false。
      * @param prop 对象的属性。
      * @returns {Boolean}
      */
-    Object.prototype.hasOwnProperty = function( prop )
+    Object.prototype.hasOwnProperty = function( name )
     {
-        if( this instanceof Class )
-        {
-            var desc = this.constructor.prototype[ name ];
-            if( !desc || typeof desc.value === "function" )return false;
-            return true;
-        }
-        return _Object.hasOwnProperty.call(this,prop)
+        return _Object.hasOwnProperty.call(this,name)
     }
 
     /**
@@ -267,21 +262,22 @@ module.exports = (function (_Object, _String, _Array)
 
 
     /**
-     * 获取指定实例对象的类名
-     * @param value
+     * 返回对象的完全限定类名
+     * @param value 需要完全限定类名称的对象。
+     * 可以将任何类型、对象实例、原始类型和类对象
      * @returns {string}
      */
      function getQualifiedClassName( value )
      {
-         var refModule = value instanceof Class ? packages : globals;
+         var refModule = value.prototype instanceof Class || value instanceof Class ? packages : globals;
          for( var classname in refModule )
          {
-             if( value.constructor === refModule[ classname ].constructor )
+             if( value === refModule[ classname ].constructor || value.constructor === refModule[ classname ].constructor )
              {
                  return classname;
              }
          }
-         throw new TypeError('Instance type does exits');
+         throw new TypeError('type does exits');
     }
     s.getQualifiedClassName=getQualifiedClassName;
 
@@ -314,7 +310,7 @@ module.exports = (function (_Object, _String, _Array)
      */
     function isObject(val , flag )
     {
-        var result = val ? val.constructor === Object || val.constructor===_Object : false;
+        var result = val ? (val.constructor === Object || val.constructor===_Object) : false;
         if( !result && flag !== true && isArray(val) )return true;
         return result;
     };

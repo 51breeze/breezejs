@@ -13,19 +13,30 @@
      * @param description
      * @param value
      */
-    function checkValueType(description,value, propname )
+    function checkValueType(description,value )
     {
         if( description.type !== '*' )
         {
             var type = typeof value;
-            if( description.type.toLowerCase() !== type )
+            var result = false;
+            switch ( type )
             {
-                if( typeof description.type !=='object' || !( description.type instanceof value ) )
-                {
-                    throwError('type', '"'+propname+'" type error. '+ description.type );
-                }
+                case 'string' :
+                    result =  description.type === String || description.type === Object;
+                    break;
+                case 'number' :
+                    result =  description.type === Number || description.type === Object;
+                    break;
+                case 'boolean':
+                    result =  description.type === Boolean;
+                    break;
+                default :
+                    result = description.type === Object ? true : (description.type === Class ? value instanceof Function : value instanceof description.type);
+                    break;
             }
+            return result;
         }
+        return true;
     }
 
     /**
@@ -61,19 +72,37 @@
     {
         if( !thisArg )throwError('reference', '"'+propname+( thisArg===null ? '" is null' : '" is not defined') );
         var desc = thisArg[ propName ];
+
+        //如在目标对象上没有定义则引用扩展的类, 直到没有定义的扩展类为止。
+        if( !desc && classModule.inherit )
+        {
+            var extendModule = classModule;
+            while ( extendModule.inherit )
+            {
+                extendModule =  getDefinitionDescriptorByName( extendModule.import[ extendModule.inherit ] );
+                if( extendModule.constructor.prototype[ propName ] )
+                {
+                    desc= extendModule.constructor.prototype[ propName ];
+                    break;
+                }
+            }
+            console.log('======')
+        }
+
+        console.log( thisArg )
         if( !desc )throwError('reference', '"'+propname+'" is not defined' );
 
         //不是public限定符则检查是否可访问
         if( desc.qualifier !== 'public' )
         {
             //不是本类中的成员调用（本类中的所有成员可以相互调用）
-            if( !(thisArg instanceof classModule) )
+            if( !(thisArg instanceof classModule.constructor) )
             {
                 var is= false;
                 if( desc.qualifier !== 'private' )
                 {
                     var classname = desc.qualifier === 'protected' ? classModule.inherit : getQualifiedClassName( thisArg );
-                    var classObj =  module( classModule.import( classname ) );
+                    var classObj =  getDefinitionByName( classModule.import[classname] );
                     if( classObj && ( desc.qualifier === 'protected' || classObj.package === classModule.package) )
                     {
                         is = thisArg instanceof classObj.constructor;
@@ -131,19 +160,21 @@
             var propname = propNames.join('.');
             var lastProp = propNames.pop();
 
+            //获取实例引用
             for( var i = 0; i < propNames.length && thisArg ; i++ )
             {
                 thisArg = getReferenceValueByPropName( propNames[i], thisArg, classModule, propname );
             }
 
-            //本地类属性引用
+            //本地类属性引用描述说明
             if( thisArg instanceof Class )
             {
-                desc = getPropertyDescription(thisArg, lastProp, classModule);
+                desc = getPropertyDescription(thisArg, lastProp, classModule, propname);
                 value = desc.value;
             }
             //全局类属性引用
-            else {
+            else
+            {
                 value=thisArg[ lastProp ];
             }
 
@@ -155,15 +186,20 @@
             }
 
             //是否需要设置值
-            var isset = typeof args === "undefined" || args instanceof Array && args.length===0  ? false :  true ;
+            var isset = typeof args !== "undefined";
 
             //如是是对全局类的属性操作
             if( !desc )
             {
                 if( !isset )return value;
-                if( !hasOwnProperty(thisArg, lastProp) )throwError('reference','"'+propname.join('.')+'" property does not exist');
-                thisArg[ lastProp ] = args[0];
-                if( thisArg[ lastProp ] !== args[0] )throwError('reference','"'+propname.join('.')+'" property cannot be set');
+                if( !Object.prototype.hasOwnProperty.call(thisArg,lastProp) )throwError('reference','"'+propname.join('.')+'" property does not exist');
+                try{
+                    thisArg[ lastProp ] = args;
+                    if( thisArg[ lastProp ] !== args )throwError('Cannot be set');
+                }catch (e)
+                {
+                    throwError('reference','"'+propname.join('.')+'" property cannot be set');
+                }
                 return undefined;
             }
 
@@ -177,7 +213,7 @@
             //对属性的引用
             else if (desc.id === 'var' || desc.id==='const')
             {
-                value = thisArg[classModule.uid];
+                value = thisArg[ classModule.token ];
             }
 
             //对属性引用进行赋值操作
@@ -188,13 +224,14 @@
                     throwError('type', '"' + propname + ( desc.id === 'const' ? '" cannot be alter of constant' : '" cannot modify the class function' ) );
                 }
 
-                var v = args instanceof Array ? args[0] : args;
-
                 //检查属性的类型是否匹配
-                checkValueType( desc, v, propname );
+                if( !checkValueType( desc, args) )
+                {
+                    throwError('type', '"'+propname+'" can only be a ('+ getQualifiedClassName(desc.type)+')' );
+                }
 
                 //对属性引用进行赋值操作
-                isaccessor ? value.call(thisArg, v ) : (value[lastProp] =v );
+                isaccessor ? value.call(thisArg, args ) : ( value[lastProp]=args );
                 return undefined;
             }
 
@@ -208,7 +245,7 @@
 
         var __call;
         function A(){
-            __call(this, {'_address':'5林要5555'});
+            this['5698777']={'_address':'5林要5555'}
         };
         __call=makeCall(Class({
             'constructor':A,
@@ -220,7 +257,7 @@
             'import':{},
             'package':'com',
         },{
-            '_address':{'writable':false,'qualifier':'private','value':'5林要5555','enumerable':false},
+            '_address':{'id':'var','qualifier':'private','value':'5林要5555','type':String},
             'address':{
                 'qualifier':'protected',
                 'value':function(){
@@ -256,18 +293,22 @@
             'package':'com',
             'import':{'A':'com.A'}
         },{
-            age:{'id':'var','qualifier':'protected','value':'30',type:'String'},
-            gen:{'id':'var','qualifier':'private','value':'305666',type:'String'},
+            age:{'id':'var','qualifier':'protected','value':'30','type':Number},
+            gen:{'id':'var','qualifier':'private','value':'305666','type':String},
             name:{
                 'qualifier':'public',
                 'value':function (){
                     console.log( 'this is name funciton')
+                    console.log(  __call(this, ['age'], 50 ) )
                     console.log(  __call(this, ['age'] ) )
+                    console.log(  __call(this, ['address'],[], true ) )
                 }
             },
         }));
 
-        new B();
+        var b =  new B();
+
+
 
     })();
 
