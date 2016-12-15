@@ -76,20 +76,18 @@
         //如在目标对象上没有定义则引用扩展的类, 直到没有定义的扩展类为止。
         if( !desc && classModule.inherit )
         {
-            var extendModule = classModule;
-            while ( extendModule.inherit )
+            var extendModule = classModule.inherit;
+            while ( extendModule )
             {
-                extendModule =  getDefinitionDescriptorByName( extendModule.import[ extendModule.inherit ] );
-                if( extendModule.constructor.prototype[ propName ] )
+                if( extendModule.prototype[ propName ] )
                 {
-                    desc= extendModule.constructor.prototype[ propName ];
+                    desc= extendModule.prototype[ propName ];
                     break;
                 }
+                extendModule = extendModule.inherit;
             }
-            console.log('======')
         }
 
-        console.log( thisArg )
         if( !desc )throwError('reference', '"'+propname+'" is not defined' );
 
         //不是public限定符则检查是否可访问
@@ -99,14 +97,14 @@
             if( !(thisArg instanceof classModule.constructor) )
             {
                 var is= false;
-                if( desc.qualifier !== 'private' )
+                if( desc.qualifier === 'internal' )
                 {
-                    var classname = desc.qualifier === 'protected' ? classModule.inherit : getQualifiedClassName( thisArg );
-                    var classObj =  getDefinitionByName( classModule.import[classname] );
-                    if( classObj && ( desc.qualifier === 'protected' || classObj.package === classModule.package) )
-                    {
-                        is = thisArg instanceof classObj.constructor;
-                    }
+                    var classObj = getDefinitionDescriptorByName( getQualifiedClassName( thisArg ) );
+                    is = classObj.package === classModule.package;
+
+                }else if( desc.qualifier === 'protected' && classModule.inherit )
+                {
+                    is = thisArg instanceof classModule.inherit;
                 }
                 if( !is )throwError('reference', '"' + propname + '" inaccessible.');
             }
@@ -247,25 +245,34 @@
         function A(){
             this['5698777']={'_address':'5林要5555'}
         };
-        __call=makeCall(Class({
-            'constructor':A,
-            'token':5698777,
-            'inherit':'',
-            'implements':'',
-            'classname':'A',
-            'filename':'com.A',
-            'import':{},
-            'package':'com',
-        },{
-            '_address':{'id':'var','qualifier':'private','value':'5林要5555','type':String},
-            'address':{
-                'qualifier':'protected',
-                'value':function(){
-                    console.log( 'the is A address')
-                    console.log( __call(this, ['_address'] ) );
-                }
-            }
-        }));
+
+       var descriptor = Class({
+           'constructor':A,
+           'token':5698777,
+           'inherit':null,
+           'implements':null,
+           'classname':'A',
+           'package':'com',
+           'final':false,
+           'dynamic':false,
+           'static':false,
+           'import':{},
+           'descriptor':{
+               'proto': {
+                   '_address': {'id': 'var', 'qualifier': 'private', 'value': '5林要5555', 'type': String},
+                   'address': {
+                       'qualifier': 'protected',
+                       'value': function () {
+                           console.log('the is A address')
+                           console.log(__call(this,descriptor,['_address']));
+                       }
+                   }
+               },
+               'static':{
+               }
+           }
+       });
+        __call=makeCall(descriptor);
 
     })();
 
@@ -286,12 +293,15 @@
         __call=makeCall(Class({
             'constructor':B,
             'token':123456,
-            'inherit':'A',
+            'inherit':A,
             'implements':'Iapi',
             'classname':'B',
             'filename':'com.B',
             'package':'com',
-            'import':{'A':'com.A'}
+            'final':false,
+            'dynamic':false,
+            'static':false,
+            'import':{'A':A}
         },{
             age:{'id':'var','qualifier':'protected','value':'30','type':Number},
             gen:{'id':'var','qualifier':'private','value':'305666','type':String},
@@ -307,6 +317,8 @@
         }));
 
         var b =  new B();
+
+
 
 
 

@@ -196,43 +196,27 @@ module.exports = (function (_Object, _String, _Array)
 
     /**
      * 类对象构造器
-     * @param classname
-     * @param constructor
      * @param descriptor
-     * @param prototype
-     * @param properties
      * @returns {Class}
      * @constructor
      */
-    function Class(descriptor,prototype,properties)
+    function Class(descriptor)
     {
-
-        if( !(this instanceof Class) )return new Class(descriptor,prototype,properties);
+        if( !(this instanceof Class) )return new Class(descriptor);
         if( typeof descriptor.constructor !=='function' )throw new TypeError('Invalid constructor.');
-
         descriptor.constructor.prototype = this;
-
-        //实例属性
-        Object.prototype.forEach.call(prototype || {},function(item, prop){
-            descriptor.constructor.prototype[ prop ] = item;
-        });
-
-        //静态属性
-        Object.prototype.forEach.call(properties || {},function(item, prop){
-            descriptor.constructor[ prop ] = item;
-        });
 
         //构造函数
         descriptor.constructor.prototype.constructor = descriptor.constructor;
 
         //将类定义到包中
-        packages[ descriptor.filename ] = descriptor;
+        packages[ descriptor.package + descriptor.classname ] = descriptor;
         return descriptor;
     }
+
     Class.prototype = new Object();
     Class.prototype.constructor = Class;
     s.Class = Class;
-
 
     /**
      * 根据指定的类名获取类的对象
