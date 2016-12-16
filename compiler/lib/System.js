@@ -85,9 +85,9 @@ module.exports = (function (_Object, _String, _Array)
      */
     Object.prototype.valueOf=function()
     {
-        if( this instanceof Class )
+        if( this instanceof Class || this.prototype instanceof Class)
         {
-            var str = this.constructor.toString();
+            var str = (this.prototype instanceof Class ? this : this.constructor).toString();
             var end = str.indexOf('(');
             str = str.substr(9, end-9 );
             return '[class ' + str + ']';
@@ -163,7 +163,7 @@ module.exports = (function (_Object, _String, _Array)
                         {
                             clone = src && isObject(src) ? src : {};
                         }
-                        target[ name ] = this.merge( deep, clone, copy );
+                        target[ name ] = Object.prototype.merge.call(this, deep, clone, copy );
                     } else if ( typeof copy !== "undefined" )
                     {
                         target[ name ] = copy;
@@ -193,6 +193,10 @@ module.exports = (function (_Object, _String, _Array)
     Object.prototype.constructor = Object;
     s.Object = Object;
 
+    /**
+     * @constructor
+     */
+    function Adhesive(){}
 
     /**
      * 类对象构造器
@@ -200,18 +204,20 @@ module.exports = (function (_Object, _String, _Array)
      * @returns {Class}
      * @constructor
      */
-    function Class(descriptor)
+    function Class( descriptor, prototype, properties )
     {
-        if( !(this instanceof Class) )return new Class(descriptor);
+        if( !(this instanceof Class) )return new Class(descriptor,prototype, properties );
         if( typeof descriptor.constructor !=='function' )throw new TypeError('Invalid constructor.');
         descriptor.constructor.prototype = this;
+        Object.prototype.merge(this, descriptor);
+        Object.prototype.merge(descriptor.constructor.prototype, prototype);
+        Object.prototype.merge(descriptor.constructor, properties);
 
         //构造函数
         descriptor.constructor.prototype.constructor = descriptor.constructor;
 
         //将类定义到包中
-        packages[ descriptor.package + descriptor.classname ] = descriptor;
-        return descriptor;
+        packages[ descriptor.package ?  descriptor.package +'.'+ descriptor.classname : descriptor.classname ] = this;
     }
 
     Class.prototype = new Object();

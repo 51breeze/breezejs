@@ -74,9 +74,9 @@
         var desc = thisArg[ propName ];
 
         //如在目标对象上没有定义则引用扩展的类, 直到没有定义的扩展类为止。
-        if( !desc && classModule.inherit )
+        if( !desc && classModule.extends )
         {
-            var extendModule = classModule.inherit;
+            var extendModule = classModule.extends;
             while ( extendModule )
             {
                 if( extendModule.prototype[ propName ] )
@@ -84,7 +84,7 @@
                     desc= extendModule.prototype[ propName ];
                     break;
                 }
-                extendModule = extendModule.inherit;
+                extendModule = extendModule.extends;
             }
         }
 
@@ -102,9 +102,9 @@
                     var classObj = getDefinitionDescriptorByName( getQualifiedClassName( thisArg ) );
                     is = classObj.package === classModule.package;
 
-                }else if( desc.qualifier === 'protected' && classModule.inherit )
+                }else if( desc.qualifier === 'protected' && classModule.extends )
                 {
-                    is = thisArg instanceof classModule.inherit;
+                    is = thisArg instanceof classModule.extends;
                 }
                 if( !is )throwError('reference', '"' + propname + '" inaccessible.');
             }
@@ -243,13 +243,13 @@
 
         var __call;
         function A(){
-            this['5698777']={'_address':'5林要5555'}
+            this['5698777']={'_address':'5林要5555'};
         };
 
        var descriptor = Class({
            'constructor':A,
            'token':5698777,
-           'inherit':null,
+           'extends':null,
            'implements':null,
            'classname':'A',
            'package':'com',
@@ -257,18 +257,13 @@
            'dynamic':false,
            'static':false,
            'import':{},
-           'descriptor':{
-               'proto': {
-                   '_address': {'id': 'var', 'qualifier': 'private', 'value': '5林要5555', 'type': String},
-                   'address': {
-                       'qualifier': 'protected',
-                       'value': function () {
-                           console.log('the is A address')
-                           console.log(__call(this,descriptor,['_address']));
-                       }
-                   }
-               },
-               'static':{
+       },{
+           '_address': {'id': 'var', 'qualifier': 'private', 'value': '5林要5555', 'type': String},
+           'address': {
+               'qualifier': 'protected',
+               'value': function () {
+                   console.log('the is A address')
+                  // console.log( __call(this,['_address']) );
                }
            }
        });
@@ -279,6 +274,7 @@
     +(function(){
 
         var A = getDefinitionByName('com.A');
+        var descriptor;
         var __call;
         function B(){
 
@@ -290,10 +286,10 @@
             //console.log( ret )
         };
 
-        __call=makeCall(Class({
+        descriptor = Class({
             'constructor':B,
             'token':123456,
-            'inherit':A,
+            'extends':A,
             'implements':'Iapi',
             'classname':'B',
             'filename':'com.B',
@@ -301,28 +297,29 @@
             'final':false,
             'dynamic':false,
             'static':false,
-            'import':{'A':A}
+            'import':{'A':A},
         },{
             age:{'id':'var','qualifier':'protected','value':'30','type':Number},
             gen:{'id':'var','qualifier':'private','value':'305666','type':String},
             name:{
                 'qualifier':'public',
                 'value':function (){
-                    console.log( 'this is name funciton')
+                    console.log( 'this is name funciton' )
                     console.log(  __call(this, ['age'], 50 ) )
                     console.log(  __call(this, ['age'] ) )
                     console.log(  __call(this, ['address'],[], true ) )
                 }
             },
-        }));
+        })
 
+        __call=makeCall(descriptor);
         var b =  new B();
 
-
-
+        console.log(b.constructor )
 
 
     })();
+
 
 
 })();
