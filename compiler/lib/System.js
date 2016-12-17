@@ -4,6 +4,17 @@ module.exports = (function (_Object, _String, _Array)
     const packages={};
     const s={};
 
+    function getPrototypeOf(obj)
+    {
+        if( typeof _Object.getPrototypeOf === "function" )
+        {
+            return _Object.getPrototypeOf(obj);
+        }else
+        {
+            return obj.__proto__ || obj.constructor.prototype;
+        }
+    }
+
     /**
      * 对象类
      * @param value
@@ -16,9 +27,11 @@ module.exports = (function (_Object, _String, _Array)
         {
             return new Object( value );
         }
-        if( value && this.constructor === Object )
+        if( value )
         {
-           this.merge(value);
+            var proto = getPrototypeOf(value);
+            if ( proto && proto.constructor === Object )return value;
+            if ( this.constructor === Object && isObject(value,true) )this.merge(true,value);
         }
     }
 
@@ -48,9 +61,10 @@ module.exports = (function (_Object, _String, _Array)
      */
     Object.prototype.propertyIsEnumerable = function( name )
     {
-        if( this instanceof Class )
+        var proto = getPrototypeOf(this);
+        if( proto.constructor !== Object )
         {
-           var desc = this.constructor.prototype[ name ];
+           var desc = proto.constructor.prototype[ name ];
            if( !desc || typeof desc.value === "function" )return false;
            return !!desc.enumerable;
         }
@@ -66,13 +80,15 @@ module.exports = (function (_Object, _String, _Array)
      */
     Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
     {
-        if( this instanceof Class )
+        var proto = getPrototypeOf(this);
+        if( proto.constructor !== Object )
         {
-           var proto = this.constructor.prototype;
+           var proto = proto.constructor.prototype;
            if( typeof proto[name] === 'object' && typeof proto[name].enumerable !== "undefined" )
            {
                proto[name].enumerable = isEnum !== false;
            }
+
         }else
         {
             _Object.defineProperty(this, name,{enumerable:isEnum !== false });
@@ -85,9 +101,10 @@ module.exports = (function (_Object, _String, _Array)
      */
     Object.prototype.valueOf=function()
     {
-        if( this instanceof Class || this.prototype instanceof Class)
+        var proto = getPrototypeOf(this);
+        if( proto.constructor !== Object )
         {
-            var str = (this.prototype instanceof Class ? this : this.constructor).toString();
+            var str = proto.constructor.toString();
             var end = str.indexOf('(');
             str = str.substr(9, end-9 );
             return '[class ' + str + ']';
@@ -122,19 +139,16 @@ module.exports = (function (_Object, _String, _Array)
             i = 1,
             length = arguments.length,
             deep = false;
-
         if ( typeof target === "boolean" )
         {
             deep = target;
             target = arguments[1] || {};
             i++;
         }
-
         if ( length === i )
         {
             target = this;
             --i;
-
         }else if ( typeof target !== "object" &&  typeof target !== "function" )
         {
             target = {};
@@ -148,17 +162,13 @@ module.exports = (function (_Object, _String, _Array)
                 {
                     src = target[ name ];
                     copy = options[ name ];
-                    if ( target === copy )
-                    {
-                        continue;
-                    }
+                    if ( target === copy )continue;
                     if ( deep && copy && ( isObject(copy) || ( copyIsArray = isArray(copy) ) ) )
                     {
                         if ( copyIsArray )
                         {
                             copyIsArray = false;
                             clone = src && isArray(src) ? src : [];
-
                         } else
                         {
                             clone = src && isObject(src) ? src : {};
@@ -193,10 +203,12 @@ module.exports = (function (_Object, _String, _Array)
     Object.prototype.constructor = Object;
     s.Object = Object;
 
+
     /**
+     * 一个空构造函数
      * @constructor
      */
-    function Adhesive(){}
+    function Nop(){}
 
     /**
      * 类对象构造器
@@ -204,25 +216,52 @@ module.exports = (function (_Object, _String, _Array)
      * @returns {Class}
      * @constructor
      */
-    function Class( descriptor, prototype, properties )
-    {
-        if( !(this instanceof Class) )return new Class(descriptor,prototype, properties );
-        if( typeof descriptor.constructor !=='function' )throw new TypeError('Invalid constructor.');
-        descriptor.constructor.prototype = this;
-        Object.prototype.merge(this, descriptor);
-        Object.prototype.merge(descriptor.constructor.prototype, prototype);
-        Object.prototype.merge(descriptor.constructor, properties);
-
-        //构造函数
-        descriptor.constructor.prototype.constructor = descriptor.constructor;
-
-        //将类定义到包中
-        packages[ descriptor.package ?  descriptor.package +'.'+ descriptor.classname : descriptor.classname ] = this;
-    }
-
-    Class.prototype = new Object();
+    function Class() {}
     Class.prototype.constructor = Class;
     s.Class = Class;
+
+    /**
+     * 构建一个类对象
+     * @param descriptor
+     * @param prototype
+     * @param properties
+     */
+    function makeClass(descriptor, prototype, properties )
+    {
+        var constructor = descriptor.constructor;
+        if( typeof constructor !== "function" )throw new TypeError('Invalid constructor.');
+        var proto;
+        if( descriptor.extends )
+        {
+            Class.prototype = descriptor.extends.prototype;
+            proto = new Class();
+
+        }else
+        {
+            Class.prototype = new Object();
+            proto = new Class();
+        }
+
+        //每一个类都继承对象
+        constructor.prototype = proto;
+
+        //类构造函数的引用
+        constructor.prototype.constructor = constructor;
+
+        //定义类的实例属性
+        constructor.prototype.properties = prototype;
+
+        //定义类的静态属性
+        constructor.properties = properties;
+
+        //定义类的描述说明
+        constructor.descriptor=descriptor;
+
+        //将类定义到包中
+        packages[ descriptor.package ?  descriptor.package +'.'+ descriptor.classname : descriptor.classname ] = constructor;
+        return constructor;
+    }
+    s.makeClass = makeClass;
 
     /**
      * 根据指定的类名获取类的对象
@@ -231,24 +270,12 @@ module.exports = (function (_Object, _String, _Array)
      */
     function getDefinitionByName( name )
     {
-        var obj = getDefinitionDescriptorByName(name);
-        return obj.constructor;
-    }
-    s.getDefinitionByName =getDefinitionByName;
-
-    /**
-     * 根据指定的类名获取类的对象
-     * @param name
-     * @returns {Object}
-     */
-    function getDefinitionDescriptorByName( name )
-    {
         if( packages[ name ] )return packages[ name];
         for ( var i in packages )if( i=== name )return packages[i];
         if( globals[name] )return globals[name];
         throw new TypeError( '"'+name+'" is not define');
     }
-    s.getDefinitionDescriptorByName =getDefinitionDescriptorByName;
+    s.getDefinitionByName =getDefinitionByName;
 
 
     /**
@@ -259,10 +286,19 @@ module.exports = (function (_Object, _String, _Array)
      */
      function getQualifiedClassName( value )
      {
-         var refModule = value.prototype instanceof Class || value instanceof Class ? packages : globals;
-         for( var classname in refModule )
+         switch ( typeof value )
          {
-             if( value === refModule[ classname ].constructor || value.constructor === refModule[ classname ].constructor )
+             case 'boolean': return 'Boolean';
+             case 'number' : return 'Number' ;
+             case 'string' : return 'String' ;
+             case 'regexp' : return 'RegExp' ;
+         }
+
+         if( isObject(value,true) )return 'Object';
+         if( isArray(value) )return 'Array';
+         for( var classname in packages )
+         {
+             if( value.constructor === packages[ classname ] )
              {
                  return classname;
              }
@@ -281,11 +317,12 @@ module.exports = (function (_Object, _String, _Array)
         var classname = getQualifiedClassName( value )
         if (classname)
         {
-            var descriptor = getDefinitionDescriptorByName( classname );
-            if ( descriptor && descriptor.inherit )
+            var classModule = getDefinitionByName( classname );
+            var parentModule = classModule.descriptor.extends;
+            if ( parentModule )
             {
-                if( descriptor.import[ descriptor.inherit ] )return descriptor.import[ descriptor.inherit ];
-                return globals[ descriptor.inherit ] || null;
+                var classname = parentModule.descriptor.classname;
+                return parentModule.descriptor.package ? parentModule.descriptor.package +'.'+ classname : classname;
             }
         }
         return null;
@@ -300,7 +337,8 @@ module.exports = (function (_Object, _String, _Array)
      */
     function isObject(val , flag )
     {
-        var result = val ? (val.constructor === Object || val.constructor===_Object) : false;
+        var proto = getPrototypeOf(val);
+        var result = val ? (proto.constructor === Object || proto.constructor===_Object) : false;
         if( !result && flag !== true && isArray(val) )return true;
         return result;
     };
