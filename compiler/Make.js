@@ -543,7 +543,7 @@ function getScopeclass( scope )
  */
 function checkReference(it, classmodule, desc, isnew , isglobal) {
 
-    var str = {prop: [it.current.value], instance: '', refname: [it.current.value]};
+    var str = {prop: [it.current.value], instance: '', refname: [it.current.value], 'properties':[it.current.value], 'values':[], called:false };
 
     //如果没有下一个则退出
     if( !it.next )
@@ -626,6 +626,7 @@ function checkReference(it, classmodule, desc, isnew , isglobal) {
             if ( it.next.type() === '(expression)' )
             {
                 iscall=true;
+                str.called = true;
                 var elem = it.prev || it.current;
                 if( isnew && !( desc.type ==='Class' || desc.id==='class' ) )
                 {
@@ -661,6 +662,8 @@ function checkReference(it, classmodule, desc, isnew , isglobal) {
                     it.stack.type( desc.type  );
                 }
 
+                str.values = pareameter.slice();
+
                 if( str.instance )
                 {
                     pareameter.unshift(str.instance);
@@ -669,7 +672,6 @@ function checkReference(it, classmodule, desc, isnew , isglobal) {
                 str.prop.push('(');
                 str.prop.push( pareameter.join(',') );
                 str.prop.push(')');
-
                 str.prop = [ str.prop.join('') ];
                 str.instance='';
                 type = it.stack.type();
@@ -678,17 +680,9 @@ function checkReference(it, classmodule, desc, isnew , isglobal) {
             else if( it.next.type() === '(property)' )
             {
                 it.seek();
-
-               /* var prefix = str.prop.join('');
-                var refname = prefix+'['+classmodule.uid+'][__$$$__]';
-                it.current.content().shift();
-                it.current.content().pop();
-                it.attach('before', 'var __$$$__ = ' + toString(it.current,classmodule) + ';' );
-                it.attach('before', '__$$$__ = ' + refname + ' ? ' + refname + ' : ' + prefix + '[__$$$__];' );
-                str.prop = ['__$$$__'];
-                checkReference.push( str.prop.join('') );*/
-
-                str.prop.push( toString(it.current, classmodule) )
+                var _prop =  toString(it.current, classmodule);
+                str.properties.push( _prop.slice(1,-1) );
+                str.prop.push( _prop )
                 str.instance ='';
                 it.stack.type('*');
                 checked = true;
@@ -703,6 +697,7 @@ function checkReference(it, classmodule, desc, isnew , isglobal) {
             it.seek();
             str.prop.push(it.current.value);
             str.refname.push(it.current.value);
+            str.properties.push( '"'+it.current.value+'"' );
             if (issuper)str.prop.splice(1, 0, '.prototype');
             var is= desc.classname === classmodule.classname;
             desc = checkPropery(str, it, desc, prop, is ,classmodule );
@@ -714,6 +709,36 @@ function checkReference(it, classmodule, desc, isnew , isglobal) {
             break;
         }
     }
+
+    //'__call('+str.prop.shift()+','++')'
+
+    //借助 __call 调用
+
+    if( str.properties.length > 1 )
+    {
+        if (str.properties[0] === 'super') {
+            str.properties[0] = 'this';
+        }
+        var p = [str.properties.shift()];
+            p.push(str.properties.length > 1 ? '[' + str.properties.join(',') + ']' : str.properties[0] || 'undefined');
+            if( str.called || str.values.length > 0 )p.push(str.values.length > 1 ? '[' + str.values.join(',') + ']' : str.values[0] || 'undefined');
+            if( str.called )p.push(str.called);
+        return '__call(' + p.join(',') + ')';
+
+    }else
+    {
+        if( str.called )
+        {
+            str.properties.push('(')
+            if(  str.values.length > 0 )
+            {
+                str.properties.push( str.values.join(',') );
+            }
+            str.properties.push(')')
+        }
+        return str.properties.join('');
+    }
+
     return str.prop.join('');
 }
 
@@ -767,7 +792,16 @@ function checkPropery(str, it, object, name, privatize, classmodule )
         it.stack.type( desc.type );
         if( it.next && it.next.value==='=' )
         {
+            var old = it.current.value;
+
             if( desc.id === 'const' )error('"' + it.current.value + '" is constant', '', it.current );
+            it.seek();
+            if ( !it.seek() )error('Missing expression', '', it.prev);
+
+            var _val = toString(it.current, classmodule);
+            str.values.push( _val );
+           // checkSpecifyType(it, desc, it.current, classmodule )
+            it.stack.type('void');
         }
     }
     //函数
@@ -796,7 +830,9 @@ function checkPropery(str, it, object, name, privatize, classmodule )
                 if ( !it.seek() )error('Missing expression', '', it.prev);
                 str.prop.push('.set'+call);
 
-                param.push( toString(it.current, classmodule) );
+                var _val = toString(it.current, classmodule);
+                str.values.push( _val );
+                param.push( _val );
                 checkSpecifyType(it, desc, it.current, classmodule )
                 str.prop.push('(' + param.join(',') + ')');
                 it.stack.type('void');
@@ -1089,7 +1125,7 @@ function makeModule( stack )
                 ret = ret ? ret : 'undefined';
 
                 //私有属性直接放到构造函数中
-                if( !item.static() && item.qualifier()==='private' )
+                if( !item.static() /*&& item.qualifier()==='private'*/ )
                 {
                     props.push('"'+item.name()+'":'+ ret );
                 }
@@ -1106,7 +1142,7 @@ function makeModule( stack )
             //成员的原始代码
             else
             {
-                desc.value=val.join('');
+                desc.value=val.join(''); 
             }
         }
     }
@@ -1168,6 +1204,10 @@ function getPropertyDescription( stack )
     list['nonglobal']=true;
     list['fullclassname']=getModuleName(list.package, stack.name());
     list['classname']=stack.name();
+    list['implements']=stack.implements();
+    list['isDynamic']=stack.dynamic();
+    list['isStatic']=stack.static();
+    list['isFinal']=stack.final();
     list['id']='class';
     return list;
 }
@@ -1301,24 +1341,42 @@ function getMethods(name,param)
  * @param flag
  * @returns {string}
  */
-function toValue( describe, flag )
+function toValue( describe )
 {
     var code=[];
+    var properties=[];
+
     for( var p in describe )
     {
-        if( describe[p].inherit )continue;
-        if( (describe[p].id==='var' || describe[p].id==='const') && describe[p].privilege === 'private' && !flag )continue;
+       // if( describe[p].inherit )continue;
+        if( (describe[p].id==='var' || describe[p].id==='const') )
+        {
+            //properties.push('"'+p+'":'+describe[p].value);
+        };
+
+        var item = [];
+        item.push( '"id":"'+ describe[p].id+'"' );
+        item.push( '"qualifier":"'+ describe[p].privilege+'"' );
+
+        if( describe[p].type==='*' || describe[p].type==='void' )
+        {
+            item.push( '"type":"'+ describe[p].type+'"' );
+        }else{
+            item.push( '"type":'+ describe[p].type );
+        }
+
         if( typeof describe[p].value === "object" )
         {
             var val=[];
             if ( describe[p].value.get )val.push('get:' +describe[p].value.get.value );
             if ( describe[p].value.set )val.push('set:' +describe[p].value.set.value );
-            code.push( p+':{'+val.join(',')+'}' );
+            item.push( '"value":{'+val.join(',')+'}' );
 
         }else
         {
-            code.push( p+':'+ describe[p].value );
+            item.push( '"value":'+ describe[p].value );
         }
+        code.push('"'+p+'":{'+item.join(',')+'}');
     }
     if( code.length===0 )return '';
     return '{\n'+code.join(',\n')+'\n}';
@@ -1373,54 +1431,91 @@ function start()
 
     var code=[];
     var index = 0;
+    var defined={};
     syntaxDescribe.forEach(function(o){
 
         index++;
+        var full = getModuleName(o.package, o.classname );
+        defined[ full ]=true;
         var str= '(function(){\n';
         for (var i in o.import )
         {
             var obj = module( o.import[i] ) || globals[ o.import[i] ];
             if( typeof obj.uid === "number" )
             {
-                str += 'var ' + i + '=' + getMethods('module', ['"' + o.import[i]+'"'])+';\n';
+                str += 'var ' + i + '=' + getMethods('System.define', ['"' + o.import[i]+'"'])+';\n';
+                if( defined[ o.import[i] ] !== true )
+                {
+                    var fn = 'function(module){'+i+'=module;}';
+                    str+='System.task.add("'+o.import[i]+'",'+fn+');\n';
+                }
             }
         }
 
-        str+='var '+o.classname+'='+o.constructor.value+';\n';
-        var proto = o.inherit ? o.inherit+'.prototype' : null;
-
+        var classname = o.classname;
         var _proto = toValue(o.proto);
-        var _static = toValue(o.static, true);
+        var _static = toValue(o.static);
+        var descriptor = [];
+        descriptor.push('"constructor":'+classname+'');
+        descriptor.push('"token":"'+o.uid+'"');
+        descriptor.push('"extends":'+o.inherit);
+        descriptor.push('"classname":"'+classname+'"');
+        descriptor.push('"package":"'+o.package+'"');
+        descriptor.push('"implements":['+o.implements.join(',')+']');
+        descriptor.push('"final":'+!!o.isFinal);
+        descriptor.push('"dynamic":'+!!o.isDynamic);
+        descriptor.push('"static":'+!!o.isStatic);
+        descriptor = '{'+descriptor.join(',')+'}';
+        if( !_proto )_proto='{}';
+        if( !_static )_static='{}';
 
-        if( _proto )
+        str+='var '+classname+'='+o.constructor.value+';\n';
+        str+='var __call=makeCall('+classname+');\n';
+
+        if( o.inherit )
         {
-            str += o.classname + '.prototype=Object.create(' + proto + ',' +_proto+ ');\n';
-        }
-
-        if(_static)
+            str += 'Class.prototype ='+o.inherit+'.prototype;\n';
+            str += classname+'.prototype =new Class();\n';
+        }else
         {
-            str += 'merge(' + o.classname + ',' + _static + ');\n';
+            str += classname+'.prototype =new Class();\n';
         }
-
-        str+=o.classname+'.prototype.constructor='+o.classname+';\n';
-        str+= 'return '+o.classname+';\n';
+        str += classname+'.prototype.constructor ='+classname+';\n';
+        str += classname+'.prototype.properties ='+_proto+';\n';
+        str += classname+'.properties ='+_static+';\n';
+        str += classname+'.descriptor ='+descriptor+';\n';
+        str += 'return '+classname+';\n';
         str+= '})()';
-
-        code.push( getMethods('module', ['"'+getModuleName(o.package,o.classname)+'"', str ] ) );
+        str = 'System.define("'+ full +'",'+str+')';
+        code.push( str );
     });
 
     var mainfile = pathfile( config.main , config.suffix, config.lib );
     var filename = PATH.resolve(PATH.dirname( mainfile ),PATH.basename(mainfile,config.suffix)+'-min.js' );
-    var system = fs.readFileSync( PATH.resolve(config.make, 'System.js') , 'utf-8');
+    var system = fs.readFileSync( PATH.resolve(config.make, './lib/System.js') , 'utf-8');
+    var utils = fs.readFileSync( PATH.resolve(config.make, './lib/Utils.js') , 'utf-8');
 
     fs.writeFileSync(  filename,[
         '(function(){\n',
-        system,
+        'var System = (function(_Object,_String,_Array){\n',
+        'var globals={};\n',
+         system,
+        '})(Object,String,Array);\n',
+        '\n',
+        '(function(Object, Class){\n',
+        utils,
+        '\n',
         code.join(';\n'),
         ';\n',
-        'var main='+getMethods('module', ['"'+config.main+'"'] ),
-        ';\nnew main();\n',
+        'System.task.execute();\n',
+        'delete System.define;\n',
+        'delete System.task;\n',
+        'var main='+getMethods('System.getDefinitionByName', ['"'+config.main+'"'] ),
+        ';\n',
+        'new main();\n',
+        '})(System.Object, System.Class );\n',
         '})();'].join('') );
+
     console.log('Making done.' );
 }
 

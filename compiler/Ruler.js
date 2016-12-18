@@ -1402,9 +1402,29 @@ syntax['(operator)']=function( e )
         this.scope().switch();
         var self = this;
         var ternary = new Stack('ternary', '(*)');
+        
+       /* var expres = this.scope().previous(-1);
+        expres = expres.content();
+        var index = expres.length;
+        while (index > 0 )
+        {
+            var obj = expres[--index];
+            if( obj instanceof Stack )break;
+            if( obj.value==='=' )break;
+        }*/
 
         //pop last expression
-        var expre = this.scope().content().pop();
+        var expre;
+        //if( index===0 )
+       // {
+            expre = this.scope().content().pop();
+        //}else
+       // {
+           /* expre = new Stack('expression', '(*)');
+            index++;
+            expre.__content__ = expres.splice(index, expres.length - index );
+            expre.__close__=true;*/
+        //}
         expre.__parent__ = ternary;
         ternary.content().push( expre );
 
@@ -1431,8 +1451,16 @@ syntax['(operator)']=function( e )
         this.add(new Stack('expression', '(*)').addListener('(switch)', function () {
             if (this.length() < 1)self.error('empty expression');
         }));
-
         return this.step();
+
+    }else if( id === '=' )
+    {
+        //this.scope().switch();
+       /* var warp = new Stack('expression','(*)')
+        var item = this.scope().content();
+        warp.__content__ = item.splice(0, item.length );
+        warp.__close__=true;
+        item.push( warp );*/
     }
 
     //运算符只能出现在表达式中
@@ -1444,6 +1472,12 @@ syntax['(operator)']=function( e )
 
     //其它运算符
     this.add( this.current );
+
+    //赋值运算符需要开启一个新的表达式
+    if( id === '=' )
+    {
+        this.add( new Stack('expression','(*)') ) ;
+    }
 
     //自增加运算符只能是一个对数字的引用
     if( isIncreaseAndDecreaseOperator(id) && this.prev.id !== '(identifier)' && this.next.id !=='(identifier)' )
@@ -1598,7 +1632,7 @@ syntax['(identifier)']=function( e )
     var id = this.scope().keyword();
 
     // 获取声明的类型
-    if( id ==='statement' )statement.call(this, e);
+    if( id ==='statement' || this.scope().parent().keyword() === 'statement'  )statement.call(this, e);
 
     if( id==='class' || id==='package' )this.error();
 
@@ -1894,8 +1928,10 @@ function Stack( keyword, type )
     this.__static__   = '' ;
     this.__override__= '' ;
     this.__final__   = '' ;
+    this.__dynamic__ = '';
     this.__scope__   = null ;
     this.__define__  ={};
+
     Listener.call(this);
 
     this.addListener('(end)', function (e) {
@@ -2198,6 +2234,18 @@ Stack.prototype.final=function( val )
     return this;
 }
 
+/**
+ * 设置不可改变
+ * @param qualifier
+ * @returns {*}
+ */
+Stack.prototype.dynamic=function( val )
+{
+    if( typeof val === 'undefined' )return this.__dynamic__;
+    this.__dynamic__=val;
+    return this;
+}
+
 
 /**
  * 设置可修改
@@ -2281,11 +2329,11 @@ function Class()
     Scope.call(this,'class','(block)');
     this.__extends__='';
     this.__scope__=null;
+    this.__implements__=[];
     this.__construct__=null;
 }
 Class.prototype = new Scope();
 Class.prototype.constructor=Class;
-
 
 /**
  * 所在的作用域
@@ -2317,6 +2365,18 @@ Class.prototype.extends=function( name )
 {
     if( typeof name === 'undefined' )return this.__extends__;
     this.__extends__=name;
+    return this;
+}
+
+/**
+ * 实现的接口
+ * @param val
+ * @returns {*}
+ */
+Stack.prototype.implements=function( val )
+{
+    if( typeof val === 'undefined' )return this.__implements__;
+    this.__implements__=val;
     return this;
 }
 
