@@ -302,24 +302,15 @@ function Iteration( stack )
     this.current=undefined;
     stack.returnValues=[];
     this.seek=function(){
-
         if( index >= this.data.length )
         {
             this.next = undefined;
             return false;
         }
-
         this.prev = this.current;
         this.current = this.data[index];
         index++;
         this.next = this.data[index];
-
-        if( this.current.value==='=' && !(this.next instanceof Ruler.STACK) )
-        {
-            this.next =  new Ruler.STACK('expression','(*)');
-            this.next.__content__ = this.data.splice(index,  this.data.length-index,  this.next );
-            this.next.__parent__  = stack.parent();
-        }
         return true;
     };
 }
@@ -399,6 +390,11 @@ function getConstantType(val)
     return false;
 }
 
+function parseExpression()
+{
+
+}
+
 
 /**
  * 解析表达式
@@ -409,6 +405,22 @@ function expression(it, classmodule )
 {
     var type;
     var str='';
+
+
+    /*if( it.current instanceof Ruler.STACK )
+    {
+        if( !it.next )
+        {
+            return toString( it.current, classmodule );
+        }
+        var setter = it.next && it.next.value === '=';
+        parseExpression( it.current, classmodule, setter );
+        str = toString( it.current , classmodule );
+        type = it.current.type();
+        return str;
+    }
+    //===============================*/
+
 
     if( it.current instanceof Ruler.STACK )
     {
@@ -491,7 +503,7 @@ function expression(it, classmodule )
     if( isnew )
     {
         str='new '+str;
-        if( it.stack.type() !== 'Class' && !getImportClassByType(classmodule, it.stack.type() ) )
+        if( it.stack.type() !=='*' && it.stack.type() !== 'Class' && !getImportClassByType(classmodule, it.stack.type() ) )
         {
             error('is not constructor','type', isnew );
         }
@@ -628,7 +640,7 @@ function checkReference(it, classmodule, desc, isnew , isglobal) {
                 iscall=true;
                 str.called = true;
                 var elem = it.prev || it.current;
-                if( isnew && !( desc.type ==='Class' || desc.id==='class' ) )
+                if( isnew && !( desc.type ==='Class' || desc.id==='class' || desc.type==='*' ) )
                 {
                     error('is not constructor','type', elem );
                 }
@@ -714,7 +726,7 @@ function checkReference(it, classmodule, desc, isnew , isglobal) {
 
     //借助 __call 调用
 
-    if( str.properties.length > 1 )
+    /*if( str.properties.length > 1 )
     {
         if (str.properties[0] === 'super') {
             str.properties[0] = 'this';
@@ -737,7 +749,7 @@ function checkReference(it, classmodule, desc, isnew , isglobal) {
             str.properties.push(')')
         }
         return str.properties.join('');
-    }
+    }*/
 
     return str.prop.join('');
 }
@@ -921,7 +933,6 @@ function getClassPropertyDesc(it, object, name , classmodule )
             }
         }
     }
-    console.log(object, name )
     error('"' + it.current.value + '" does not exits', 'reference', it.current );
 }
 
@@ -974,14 +985,6 @@ function toString( stack, module )
         {
             str.push( expression(it, module) );
         }
-    }
-
-    if( stack.parent() instanceof Ruler.SCOPE )
-    {
-        var before = it.attach('before');
-        var after = it.attach('after');
-        if(before.length>0)str.unshift( before.join('') )
-        if(after.length>0)str.unshift( after.join('') )
     }
     str = str.join('');
     return str;

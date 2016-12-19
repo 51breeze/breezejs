@@ -22,13 +22,26 @@ package
     public class Main extends B {
 
        // static public var name:String = '3999 yyy fsss 666' ;
-        public var names:String = '3' ;
-        static public var name:Number = 5 ;
+       // public var names:String = '3' ;
+       // static public var name:Number = 5 ;
+
+        private var getProxyTarget:Function = null;
+        private var forEachCurrentItem;
+        private var length;
 
 
           //var bb:String='123';
-          function Main(jj)
+          function Main(jj, target )
           {
+
+              this['getProxyTarget' || this.length ];
+              this.getProxyTarget = target ?
+                  function () {
+                      return target.length > 0 ? target : [this];
+                  }:
+                  function () {
+                      return this.forEachCurrentItem ? [this.forEachCurrentItem] : ( this.length > 0 ? this : [this] );
+                  };
 
               var ii={
                   name:{},

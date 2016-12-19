@@ -573,7 +573,7 @@ syntax['import']=function (event)
     if( filename.length > 0 )importClass.call(this, name , filename, s.scope() );
 };
 
-syntax['private,protected,internal,static,public,override,final']=function(event)
+syntax['private,protected,internal,static,public,override,final,dynamic']=function(event)
 {
     event.prevented=true;
     var scope = this.scope();
@@ -584,7 +584,7 @@ syntax['private,protected,internal,static,public,override,final']=function(event
     var description={};
     description[event.target.value]=event.target;
     this.loop(function(){
-        if( 'private,protected,internal,static,public,override,final'.indexOf( this.next.value )<0 )return false;
+        if( 'private,protected,internal,static,public,override,final,dynamic'.indexOf( this.next.value )<0 )return false;
         n = this.seek();
         if( arr.indexOf(n.value) >=0  )self.error();
         arr.push( n.value );
@@ -596,12 +596,14 @@ syntax['private,protected,internal,static,public,override,final']=function(event
     var s ='';
     var o = '';
     var f = '';
+    var d = '';
     for (var i =0; i<arr.length; i++)
     {
         switch (arr[i])
         {
             case 'static'  :s='static'  ;break;
             case 'override':o='override';break;
+            case 'dynamic':d='dynamic';break;
             case 'final'   :
                 f='final';
                 if( arr.indexOf('override')>=0 )this.error();
@@ -613,7 +615,9 @@ syntax['private,protected,internal,static,public,override,final']=function(event
     n = this.seek();
 
     // override 只能出现在函数的修饰符中
-    if( o && n.value !== 'function' )this.error('Invalid override.');
+    if( o && n.value !== 'function' )this.error('Unexpected keyword override.');
+    if( d && n.value !== 'class' )this.error('Unexpected keyword dynamic.');
+
     if( o && this.scope().keyword() === 'class' && !this.scope().extends() )this.error('The "override" only can be used in subclasses.');
 
     //如是静态类，那么整个类不能实例化
@@ -625,12 +629,13 @@ syntax['private,protected,internal,static,public,override,final']=function(event
         {
             this.add( new Class() );
         }else {
-            this.add(new Scope(n.value, '(block)'));
+            this.add( new Scope(n.value, '(block)') );
         }
         this.scope().static( s );
         this.scope().qualifier( q );
         this.scope().override( o );
         this.scope().final( f );
+        this.scope().dynamic( d );
         this.scope().description=description;
         this.check();
 
@@ -821,6 +826,7 @@ syntax['function']= function(event){
         this.add( param );
         this.step();
         this.scope().switch();
+        if( this.scope().keyword() === 'statement' )this.scope().switch();
     }
 
     //类成员属性必须定义在类作用域中
@@ -1196,8 +1202,9 @@ syntax["super"]=function (e)
 syntax["in"]=function(e)
 {
     e.prevented=true;
+    this.scope().switch();
     this.add( this.current );
-    var p = this.scope().parent().parent();
+    var p = this.scope().parent();
     this.scope().type('(Boolean)');
     if( p.keyword()==='var' || p.keyword()==='left' )this.scope().type('(String)');
     if( !(this.next.type ==='(identifier)' && this.next.id !=='(keyword)' || this.next.value==='this') )this.error('',this.next);
@@ -1373,8 +1380,9 @@ syntax['(operator)']=function( e )
         this.add( this.current );
         return this.step();
     }
+
     //顺序操作符
-    else if( id===',' )
+    if( id===',' )
     {
         this.scope().switch();
 
@@ -1400,34 +1408,13 @@ syntax['(operator)']=function( e )
     else if( id==='?' )
     {
         this.scope().switch();
+        var expre = this.scope().content().pop();
         var self = this;
         var ternary = new Stack('ternary', '(*)');
-        
-       /* var expres = this.scope().previous(-1);
-        expres = expres.content();
-        var index = expres.length;
-        while (index > 0 )
-        {
-            var obj = expres[--index];
-            if( obj instanceof Stack )break;
-            if( obj.value==='=' )break;
-        }*/
 
         //pop last expression
-        var expre;
-        //if( index===0 )
-       // {
-            expre = this.scope().content().pop();
-        //}else
-       // {
-           /* expre = new Stack('expression', '(*)');
-            index++;
-            expre.__content__ = expres.splice(index, expres.length - index );
-            expre.__close__=true;*/
-        //}
         expre.__parent__ = ternary;
         ternary.content().push( expre );
-
         this.add( ternary );
 
         ternary.addListener('(add)',function(){
@@ -1452,15 +1439,6 @@ syntax['(operator)']=function( e )
             if (this.length() < 1)self.error('empty expression');
         }));
         return this.step();
-
-    }else if( id === '=' )
-    {
-        //this.scope().switch();
-       /* var warp = new Stack('expression','(*)')
-        var item = this.scope().content();
-        warp.__content__ = item.splice(0, item.length );
-        warp.__close__=true;
-        item.push( warp );*/
     }
 
     //运算符只能出现在表达式中
@@ -1468,15 +1446,21 @@ syntax['(operator)']=function( e )
     {
         if( !isLeftOperator(id) )this.error('Unexpected token '+id);
         this.add( new Stack('expression','(*)') ) ;
-    }
+        this.add( this.current );
 
-    //其它运算符
-    this.add( this.current );
+    }else{
 
-    //赋值运算符需要开启一个新的表达式
-    if( id === '=' )
-    {
-        this.add( new Stack('expression','(*)') ) ;
+        this.scope().switch();
+        if( this.scope().keyword() !== 'expression' && this.scope().keyword() !== 'ternary' )
+        {
+            var p = this.scope().content().pop();
+            var s = new Stack('expression', '(*)' );
+            s.content().push( p );
+            p.__parent__ = s;
+            this.add( s );
+        }
+        this.add( this.current );
+        this.add( new Stack('expression','(*)') );
     }
 
     //自增加运算符只能是一个对数字的引用
@@ -1556,6 +1540,7 @@ function statement()
     //检查属性名是否可以声明
     if( !checkStatement(name, this.config('reserved') ) )
     {
+        console.log( this.scope() )
         this.error(reserved.indexOf( name )>0 ? 'Reserved keyword not is statemented for '+name : 'Invalid statement for '+name);
     }
 
@@ -1630,10 +1615,6 @@ syntax['(identifier)']=function( e )
 {
     e.prevented=true;
     var id = this.scope().keyword();
-
-    // 获取声明的类型
-    if( id ==='statement' || this.scope().parent().keyword() === 'statement'  )statement.call(this, e);
-
     if( id==='class' || id==='package' )this.error();
 
     //如果不是表达式
@@ -1641,6 +1622,10 @@ syntax['(identifier)']=function( e )
     {
         this.add( new Stack('expression','(*)') );
     }
+
+    // 获取声明的类型
+    if( this.scope().parent().keyword() === 'statement' && this.prev.value !=='=' )statement.call(this, e);
+
 
     //检查所有的引用属性是否为先声明再使用。对象中的属性不会检查
     if( this.prev.value !=='.' )
