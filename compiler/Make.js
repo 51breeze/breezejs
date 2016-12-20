@@ -390,9 +390,40 @@ function getConstantType(val)
     return false;
 }
 
-function parseExpression()
+function parseExpression( stack, classmodule)
 {
+    var values=[];
+    var it = new Iteration( stack );
+    while ( it.seek() )
+    {
+        if( it.current instanceof Ruler.STACK )
+        {
+            if( it.current.keyword()==='object')
+            {
+                if( it.current.type() ==='(Json)' )
+                {
+                    values.push( toString(it.current, classmodule) );
 
+                }else if( it.current.type() ==='(property)' )
+                {
+                    it.current;
+                    values.push( toString(it.current, classmodule) );
+
+                }else
+                {
+                    values.push( toString(it.current, classmodule) );
+                }
+
+            }else
+            {
+                values.push( expression(it.current, classmodule) );
+            }
+
+        }else
+        {
+            values.push( it.current.value );
+        }
+    }
 }
 
 
@@ -401,25 +432,55 @@ function parseExpression()
  * @param it
  * @returns {*}
  */
-function expression(it, classmodule )
+function expression( stack, classmodule )
 {
     var type;
     var str='';
+    var values=[];
+    var it = new Iteration( stack );
 
-
-    /*if( it.current instanceof Ruler.STACK )
+    while ( it.seek() )
     {
-        if( !it.next )
+        if( it.current instanceof Ruler.STACK )
         {
-            return toString( it.current, classmodule );
+            if( it.current.keyword()==='object' )
+            {
+                if( it.current.type() ==='(property)' )
+                {
+                    values.push( expression(it.current, classmodule) );
+
+                }else if( it.current.type() ==='(expression)' )
+                {
+                    values.push( expression(it.current, classmodule) );
+                }else
+                {
+                    values.push( toString(it.current, classmodule) );
+                }
+
+            }else if( it.current.keyword()==='expression' )
+            {
+                values.push( expression(it.current, classmodule) );
+            }else
+            {
+                values.push( toString(it.current, classmodule) );
+            }
+
+        }else
+        {
+            values.push( it.current );
         }
-        var setter = it.next && it.next.value === '=';
-        parseExpression( it.current, classmodule, setter );
-        str = toString( it.current , classmodule );
-        type = it.current.type();
-        return str;
     }
-    //===============================*/
+
+
+
+
+    console.log( values );
+   // process.exit()
+
+    return values;
+
+
+    //===============================
 
 
     if( it.current instanceof Ruler.STACK )
@@ -977,13 +1038,20 @@ function toString( stack, module )
     var it = new Iteration( stack );
     while ( it.seek() )
     {
-        if( it.current instanceof Ruler.SCOPE )
+        if( it.current instanceof Ruler.STACK )
         {
-            str.push( toString( it.current, module ) );
+            if( it.current.keyword() === 'expression' )
+            {
+                str.push( expression(it.current, module) );
+
+            }else
+            {
+                str.push( toString(it.current, module) );
+            }
 
         }else
         {
-            str.push( expression(it, module) );
+            str.push( it.current.value );
         }
     }
     str = str.join('');
@@ -1302,6 +1370,9 @@ function loadModuleDescription( file )
             console.log('error');
             process.exit();
         }
+
+        //console.log( scope.content()[6].content()[6] );
+        //process.exit();
 
         needMakeModules.push( scope );
         data = getPropertyDescription( scope );

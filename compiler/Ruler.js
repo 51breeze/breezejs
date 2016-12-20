@@ -1261,6 +1261,7 @@ syntax['(delimiter)']=function( e )
        {
            s = new Scope('structure', '(block)');
            this.add( s );
+
        }else
        {
            s = new Stack('object', id === '(' ? '(expression)' : id === '[' ? '(Array)' : '(Json)');
@@ -1360,7 +1361,7 @@ syntax['(operator)']=function( e )
     var id = this.current.value;
 
     //运算符后面不能跟操作符(自增减运算符除外)
-    if( id===this.next.value || ( this.next.type==='(operator)' && this.next.value !==';' && !isLeftOperator(this.next.value) ) )
+    if( id===this.next.value || ( this.next.type==='(operator)' && this.next.value !==';' && !isLeftOperator(this.next.value) && !isIncreaseAndDecreaseOperator(id) ) )
     {
         this.error('Unexpected token ' + this.next.value, this.next);
     }
@@ -1450,21 +1451,27 @@ syntax['(operator)']=function( e )
 
     }else{
 
-        this.scope().switch();
-        if( this.scope().keyword() !== 'expression' && this.scope().keyword() !== 'ternary' )
+        if( !isIncreaseAndDecreaseOperator(id) )
         {
-            var p = this.scope().content().pop();
-            var s = new Stack('expression', '(*)' );
-            s.content().push( p );
-            p.__parent__ = s;
-            this.add( s );
+            this.scope().switch();
+            if (this.scope().keyword() !== 'expression' && this.scope().keyword() !== 'ternary') {
+                var p = this.scope().content().pop();
+                var s = new Stack('expression', '(*)');
+                s.content().push(p);
+                p.__parent__ = s;
+                this.add(s);
+            }
+            this.add(this.current);
+            this.add(new Stack('expression', '(*)'));
+
+        }else
+        {
+            this.add(this.current);
         }
-        this.add( this.current );
-        this.add( new Stack('expression','(*)') );
     }
 
     //自增加运算符只能是一个对数字的引用
-    if( isIncreaseAndDecreaseOperator(id) && this.prev.id !== '(identifier)' && this.next.id !=='(identifier)' )
+    if( isIncreaseAndDecreaseOperator(id) && this.prev.type !== '(identifier)' && this.next.type !=='(identifier)' )
     {
         this.error('Unexpected token '+this.current.value, this.current);
     }
