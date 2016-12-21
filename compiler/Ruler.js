@@ -91,6 +91,7 @@ function isLeftOperator(o)
         case '!' :
         case '!!' :
         case 'new' :
+        case 'delete' :
         case 'typeof' :
             return true;
     }
@@ -204,6 +205,7 @@ function isKeywordOperator(o)
     switch (o) {
         case 'new' :
         case 'typeof' :
+        case 'delete' :
         case 'instanceof' :
         case 'in' :
             return true;
@@ -1624,15 +1626,14 @@ syntax['(identifier)']=function( e )
     var id = this.scope().keyword();
     if( id==='class' || id==='package' )this.error();
 
+    // 获取声明的类型
+    if( this.scope().keyword() === 'statement' && this.prev.value !=='=' )statement.call(this, e);
+
     //如果不是表达式
     if( this.scope().keyword() !=='expression' )
     {
         this.add( new Stack('expression','(*)') );
     }
-
-    // 获取声明的类型
-    if( this.scope().parent().keyword() === 'statement' && this.prev.value !=='=' )statement.call(this, e);
-
 
     //检查所有的引用属性是否为先声明再使用。对象中的属性不会检查
     if( this.prev.value !=='.' )

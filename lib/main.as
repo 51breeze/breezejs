@@ -25,21 +25,21 @@ package
        // public var names:String = '3' ;
        // static public var name:Number = 5 ;
 
-        private var getProxyTarget:Function = null;
-        private var forEachCurrentItem;
-        private var length;
+       // private var getProxyTarget:Function = null;
+      //  private var forEachCurrentItem;
+       private var length;
 
 
           //var bb:String='123';
           function Main(jj , target)
           {
 
-             this.length();
+             this.length=6666;
 
              // __call(  __call( __call(this,['length']),[], true ),[], true )
 
-              this['getProxyTarget' || this.length ];
-              this.getProxyTarget = target ?
+             // this['getProxyTarget' || this.length ];
+              /*this.getProxyTarget = target ?
                   function () {
                       return target.length > 0 ? target : [this];
                   }:
@@ -61,7 +61,7 @@ package
               var name=null;
              // super(jj);
              // console.log( B.classname );
-              console.log( this.names );
+              console.log( this.names );*/
           }
     }
 }

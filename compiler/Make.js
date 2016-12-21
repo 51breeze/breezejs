@@ -387,43 +387,251 @@ function getConstantType(val)
         case 'Infinity' :
             return 'Number';
     }
+    return null;
+}
+
+
+/**
+ * 前置运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isLeftOperator(o)
+{
+    switch (o) {
+        case '~' :
+        case '-' :
+        case '+' :
+        case '!' :
+        case '!!' :
+        case '--' :
+        case '++' :
+        case 'new' :
+        case 'delete' :
+        case 'typeof' :
+            return true;
+    }
     return false;
 }
 
-function parseExpression( stack, classmodule)
+
+
+/**
+ * 是否为一个可以组合的运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isCombinationOperator( o )
 {
-    var values=[];
-    var it = new Iteration( stack );
-    while ( it.seek() )
+    switch (o) {
+        case ':' :
+        case '=' :
+        case '&' :
+        case '|' :
+        case '<' :
+        case '>' :
+        case '-' :
+        case '+' :
+        case '*' :
+        case '/' :
+        case '%' :
+        case '!' :
+        case '^' :
+        case '~' :
+            return true;
+    }
+    return false;
+}
+
+function isMathAssignOperator( o )
+{
+    switch (o) {
+        case '=' :
+        case '+=' :
+        case '-=' :
+        case '*=' :
+        case '/=' :
+        case '%=' :
+        case '^=' :
+        case '&=' :
+        case '|=' :
+        case '<<=' :
+        case '>>=' :
+        case '>>>=' :
+            return true;
+    }
+    return false;
+}
+
+
+/**
+ * 前置运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isLeftOperator(o)
+{
+    switch (o) {
+        case '~' :
+        case '-' :
+        case '+' :
+        case '!' :
+        case '!!' :
+        case 'new' :
+        case 'delete' :
+        case 'typeof' :
+            return true;
+    }
+    return isIncreaseAndDecreaseOperator(o);
+}
+
+/**
+ * 后置运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isIncreaseAndDecreaseOperator(o)
+{
+    switch (o) {
+        case '--' :
+        case '++' :
+            return true;
+    }
+    return false;
+}
+
+
+
+/**
+ * 布尔运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isBoolOperator(o)
+{
+    switch (o) {
+        case '-' :
+        case '+' :
+        case '*' :
+        case '/' :
+        case '%' :
+        case '^' :
+        case '<' :
+        case '>' :
+        case '<=' :
+        case '>=' :
+        case '==' :
+        case '!=' :
+        case '===' :
+        case '!==' :
+        case '&&' :
+        case '||' :
+        case 'instanceof' :
+        case 'in' :
+            return true;
+    }
+    return false;
+}
+
+
+function getDescriptions(it, classmodule)
+{
+    var descriptor={operator:'',value:[],type:'*',thisArg:null,id:null,called:false};
+    if( isLeftOperator( it.current.value ) )
     {
+        descriptor.operator=it.current.value;
+        it.seek();
+    }
+
+    var type = getConstantType( it.current.value );
+    if( type )
+    {
+        it.stack.type( type );
+        descriptor.type = type;
+        descriptor.value = [it.current.value];
+        return descriptor;
+    }
+
+    var desc;
+    if( it.current.id === '(identifier)' || it.current.value === 'this' || it.current.value === 'super' )
+    {
+       desc = it.stack.scope().define( it.current.value );
+       if( desc )
+       {
+           desc.type = getType( desc.type );
+       }else
+       {
+           desc = globals[ it.current.value ];
+       }
+       if( desc )type = desc.type;
+
+    }else
+    {
+        type =  getIdentifierType( it );
+        desc = globals[ type ];
+    }
+
+    descriptor.value.push( it.current.value );
+    descriptor.thisArg = it.current.value;
+
+    do
+    {
+        if( type !=='*' && desc && desc.id==='class' )
+        {
+            var fullname = classmodule.type !== type ? getImportClassByType(classmodule, type) : classmodule.fullclassname;
+            desc = fullname ? module(fullname) : null;
+        }
+
+        if( !desc )
+        {
+            error('"' + it.current.value + '" is not defined.', '', it.current);
+        }
+
+        it.stack.type( type );
+        descriptor.type = type;
+        descriptor.id = desc.id;
+
+        var isstatic = it.current.value === type;
         if( it.current instanceof Ruler.STACK )
         {
-            if( it.current.keyword()==='object')
+            if( it.current.type()==='(property)' )
             {
-                if( it.current.type() ==='(Json)' )
-                {
-                    values.push( toString(it.current, classmodule) );
-
-                }else if( it.current.type() ==='(property)' )
-                {
-                    it.current;
-                    values.push( toString(it.current, classmodule) );
-
-                }else
-                {
-                    values.push( toString(it.current, classmodule) );
-                }
+                descriptor.value.push( toString(it.current,classmodule) );
+                type = '*';
 
             }else
             {
-                values.push( expression(it.current, classmodule) );
+                descriptor.param=toString(it.current,classmodule);
+                descriptor.called = true;
+                if( it.next && it.next.value==='.')
+                {
+                    if (type === 'void') {
+                        error('"' + it.prev.value + '" not return value', 'reference', it.prev);
+                    }
+                    descriptor = {operator:'',value:[],type:'*',thisArg:descriptor}
+                }
             }
-
-        }else
-        {
-            values.push( it.current.value );
         }
-    }
+
+        if( it.seek() )
+        {
+            if (it.current.value === '.')it.seek();
+            descriptor.value.push( it.current.value );
+
+            if( type !=='*' )
+            {
+                var name = isstatic ? 'static' : 'proto';
+                desc = getClassPropertyDesc(it, desc, name, classmodule);
+                type = desc.type;
+                descriptor.id = desc.id;
+                descriptor.type = type;
+            }
+        }
+
+    }while ( it.next );
+
+    return descriptor;
+
 }
 
 
@@ -432,53 +640,55 @@ function parseExpression( stack, classmodule)
  * @param it
  * @returns {*}
  */
-function expression( stack, classmodule )
+function expression( stack, classmodule, flag )
 {
-    var type;
-    var str='';
-    var values=[];
     var it = new Iteration( stack );
-
+    var prop;
+    var value;
+    var item={prop:null,value:null, operator:''}
+    var express = [];
     while ( it.seek() )
     {
         if( it.current instanceof Ruler.STACK )
         {
-            if( it.current.keyword()==='object' )
-            {
-                if( it.current.type() ==='(property)' )
-                {
-                    values.push( expression(it.current, classmodule) );
-
-                }else if( it.current.type() ==='(expression)' )
-                {
-                    values.push( expression(it.current, classmodule) );
-                }else
-                {
-                    values.push( toString(it.current, classmodule) );
-                }
-
-            }else if( it.current.keyword()==='expression' )
-            {
-                values.push( expression(it.current, classmodule) );
-            }else
-            {
-                values.push( toString(it.current, classmodule) );
-            }
+            item.prop = expression( it.current, classmodule, true )
 
         }else
         {
-            values.push( it.current );
+            item.prop = getDescriptions(it,classmodule);
+        }
+
+        if( it.next )
+        {
+            it.seek();
+            item.prop.operator=it.current.value;
+            if ( isMathAssignOperator( it.current.value ) )
+            {
+                if( item.prop.id === 'const' )error('"' + item.prop.value.join('.') + '" is constant', '', it.current);
+                if( item.prop.id !== 'var' )error('"' + item.prop.value.join('.') + '" is not variable', '', it.current);
+                if( !it.next )error('Missing expression', '', it.current);
+                it.seek();
+                value =  it.current instanceof Ruler.STACK ? expression( it.current, classmodule, true ) : getDescriptions(it,classmodule);
+            }else
+            {
+                express.push( item );
+                item={prop:null,value:null, operator:''}
+            }
         }
     }
 
 
 
+    if( flag === true )return prop;
+    console.log( prop , value )
 
-    console.log( values );
    // process.exit()
 
-    return values;
+    return prop;
 
+
+    var type;
+    var str='';
 
     //===============================
 
@@ -1033,21 +1243,22 @@ function toString( stack, module )
     if( stack.keyword() === 'function' )
     {
         return createFunction( stack , module );
+
+    } else if( stack.keyword() === 'expression' )
+    {
+        var val =  expression( stack , module );
+        //console.log( val );
+        ///process.exit();
+        return val
     }
+
     var str = [];
     var it = new Iteration( stack );
     while ( it.seek() )
     {
         if( it.current instanceof Ruler.STACK )
         {
-            if( it.current.keyword() === 'expression' )
-            {
-                str.push( expression(it.current, module) );
-
-            }else
-            {
-                str.push( toString(it.current, module) );
-            }
+            str.push( toString(it.current, module) );
 
         }else
         {
