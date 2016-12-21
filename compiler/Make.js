@@ -536,20 +536,22 @@ function isBoolOperator(o)
 
 function getDescriptions(it, classmodule)
 {
-    var descriptor={operator:'',value:[],type:'*',thisArg:null,id:null,called:false};
+    var descriptor={operator:'',property:[],type:'*',param:null,thisArg:null,id:null,called:false};
     if( isLeftOperator( it.current.value ) )
     {
         descriptor.operator=it.current.value;
         it.seek();
     }
 
+    descriptor.property.push( it.current.value );
+    descriptor.thisArg = it.current.value;
+
     var type = getConstantType( it.current.value );
     if( type )
     {
         it.stack.type( type );
         descriptor.type = type;
-        descriptor.value = [it.current.value];
-        return descriptor;
+        return descriptor
     }
 
     var desc;
@@ -559,6 +561,7 @@ function getDescriptions(it, classmodule)
        if( desc )
        {
            desc.type = getType( desc.type );
+
        }else
        {
            desc = globals[ it.current.value ];
@@ -571,10 +574,7 @@ function getDescriptions(it, classmodule)
         desc = globals[ type ];
     }
 
-    descriptor.value.push( it.current.value );
-    descriptor.thisArg = it.current.value;
-
-    do
+    while ( it.seek() && isCheck( it ) )
     {
         if( type !=='*' && desc && desc.id==='class' )
         {
@@ -587,16 +587,12 @@ function getDescriptions(it, classmodule)
             error('"' + it.current.value + '" is not defined.', '', it.current);
         }
 
-        it.stack.type( type );
-        descriptor.type = type;
-        descriptor.id = desc.id;
-
         var isstatic = it.current.value === type;
         if( it.current instanceof Ruler.STACK )
         {
             if( it.current.type()==='(property)' )
             {
-                descriptor.value.push( toString(it.current,classmodule) );
+                descriptor.property.push( toString(it.current,classmodule) );
                 type = '*';
 
             }else
@@ -605,33 +601,36 @@ function getDescriptions(it, classmodule)
                 descriptor.called = true;
                 if( it.next && it.next.value==='.')
                 {
-                    if (type === 'void') {
-                        error('"' + it.prev.value + '" not return value', 'reference', it.prev);
-                    }
-                    descriptor = {operator:'',value:[],type:'*',thisArg:descriptor}
+                    if (type === 'void')error('"' + it.prev.value + '" not return value', 'reference', it.prev);
+                    descriptor = {operator:'',property:[],type:'*',param:null,thisArg:descriptor};
                 }
             }
-        }
 
-        if( it.seek() )
+        }else
         {
             if (it.current.value === '.')it.seek();
-            descriptor.value.push( it.current.value );
-
-            if( type !=='*' )
+            descriptor.property.push(it.current.value);
+            if (type !== '*')
             {
                 var name = isstatic ? 'static' : 'proto';
                 desc = getClassPropertyDesc(it, desc, name, classmodule);
-                type = desc.type;
-                descriptor.id = desc.id;
-                descriptor.type = type;
             }
         }
-
-    }while ( it.next );
-
+        type = desc.type;
+        it.stack.type(type);
+        descriptor.id = desc.id;
+        descriptor.type = type;
+    }
     return descriptor;
+}
 
+function isCheck( it )
+{
+    if( it.current instanceof Ruler.STACK )
+    {
+        return it.current.type()==='(property)' || it.current.type()==='(expression)';
+    }
+    return it.current.type==='(identifier)' || it.current.value==='.';
 }
 
 
@@ -643,48 +642,61 @@ function getDescriptions(it, classmodule)
 function expression( stack, classmodule, flag )
 {
     var it = new Iteration( stack );
-    var prop;
-    var value;
-    var item={prop:null,value:null, operator:''}
+    var desc;
     var express = [];
     while ( it.seek() )
     {
         if( it.current instanceof Ruler.STACK )
         {
-            item.prop = expression( it.current, classmodule, true )
+            desc = expression( it.current, classmodule, true )
 
         }else
         {
-            item.prop = getDescriptions(it,classmodule);
+            desc = getDescriptions(it,classmodule);
         }
 
         if( it.next )
         {
             it.seek();
-            item.prop.operator=it.current.value;
             if ( isMathAssignOperator( it.current.value ) )
             {
-                if( item.prop.id === 'const' )error('"' + item.prop.value.join('.') + '" is constant', '', it.current);
-                if( item.prop.id !== 'var' )error('"' + item.prop.value.join('.') + '" is not variable', '', it.current);
+                if( desc.id === 'const' )error('"' + desc.property.join('.') + '" is constant', '', it.current);
+                if( desc.id !== 'var' )error('"' + desc.property.join('.') + '" is not variable', '', it.current);
                 if( !it.next )error('Missing expression', '', it.current);
                 it.seek();
-                value =  it.current instanceof Ruler.STACK ? expression( it.current, classmodule, true ) : getDescriptions(it,classmodule);
+                var value = it.current instanceof Ruler.STACK ? expression( it.current, classmodule, true ) : getDescriptions(it,classmodule);
+                var thisArg = desc.property.shift();
+                var prop=[thisArg,'["'+desc.property.join('","')+'"]', value.property.join('') ];
+                express.push('__call('+prop.join(',')+')' );
+
             }else
             {
-                express.push( item );
-                item={prop:null,value:null, operator:''}
+                var thisArg = desc.property.shift();
+                var prop=[thisArg,'["'+desc.property.join('","')+'"]'];
+                if( desc.called )
+                {
+                    prop.push( desc.param );
+                    prop.push( 'true' );
+                }
+                express.push('__call('+prop.join(',')+')' );
             }
+        }
+
+        if( it.next )
+        {
+            it.seek();
+            express.push( it.current.value );
         }
     }
 
-
-
-    if( flag === true )return prop;
-    console.log( prop , value )
+    if( flag === true )return desc;
+  //  console.log( prop , value )
 
    // process.exit()
 
-    return prop;
+    console.log( express.join('') )
+
+    return express.join('');
 
 
     var type;
@@ -1244,11 +1256,9 @@ function toString( stack, module )
     {
         return createFunction( stack , module );
 
-    } else if( stack.keyword() === 'expression' )
+    } else if( stack.keyword() === 'expression' && stack.parent().keyword() !== 'statement' )
     {
         var val =  expression( stack , module );
-        //console.log( val );
-        ///process.exit();
         return val
     }
 
@@ -1424,7 +1434,7 @@ function makeModule( stack )
             //成员的原始代码
             else
             {
-                desc.value=val.join(''); 
+                desc.value=val.join('');
             }
         }
     }
