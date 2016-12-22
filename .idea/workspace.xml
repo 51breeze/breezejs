@@ -5,6 +5,8 @@
     <list default="true" id="18e6e159-e815-4edb-b007-a0795730b21e" name="New changelist" comment="1.1">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Make.js" afterPath="$PROJECT_DIR$/compiler/Make.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Ruler.js" afterPath="$PROJECT_DIR$/compiler/Ruler.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/lib/EventDispatcher.as" afterPath="$PROJECT_DIR$/lib/lib/EventDispatcher.as" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/main.as" afterPath="$PROJECT_DIR$/lib/main.as" />
     </list>
     <ignored path="breezejs.iws" />
@@ -37,8 +39,18 @@
       <file leaf-file-name="Make.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/compiler/Make.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="390">
-              <caret line="659" column="22" selection-start-line="659" selection-start-column="22" selection-end-line="659" selection-end-column="22" />
+            <state relative-caret-position="-1573">
+              <caret line="656" column="0" selection-start-line="656" selection-start-column="0" selection-end-line="656" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="EcmaScript.js" pinned="false" current-in-tab="false">
+        <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="297">
+              <caret line="829" column="0" selection-start-line="829" selection-start-column="0" selection-end-line="829" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -47,7 +59,7 @@
       <file leaf-file-name="testjs.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/testjs.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="118">
+            <state relative-caret-position="1922">
               <caret line="62" column="16" selection-start-line="62" selection-start-column="16" selection-end-line="62" selection-end-column="16" />
               <folding />
             </state>
@@ -77,113 +89,29 @@
       <file leaf-file-name="Ruler.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="50282">
-              <caret line="1622" column="1" selection-start-line="1622" selection-start-column="1" selection-end-line="1622" selection-end-column="1" />
-              <folding>
-                <marker date="1482322705565" expanded="true" signature="517:575" ph="/** 判断是否为一个有效的运算符 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="877:935" ph="/** 是否为一个可以组合的运算符 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="1659:1709" ph="/** 前置运算符 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="1737:1887" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="1754:1887" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="42666:45453" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="42741:44745" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="42828:44485" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="43010:43131" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="43170:43280" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="43380:44289" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="43892:44273" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="43939:44175" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="44181:44255" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="44428:44475" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="44630:44680" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="44838:44991" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="45093:45122" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="45131:45451" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="45335:45425" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="45517:45563" ph="/** 抛出错误信息 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="46065:46111" ph="/** 事件对象 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="46511:46543" ph="/** 事件侦听器 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="46648:46691" ph="/** 指定构造函数为事件侦听器 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="46736:46818" ph="/** 调度事件 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="47287:47397" ph="/** 添加事件侦听器 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="47926:48031" ph="/** 是否存在指定类型的侦听器 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="48517:48624" ph="/** 删除指定类型的侦听器 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="49159:49259" ph="/** 语法描述 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="49371:49416" ph="/** 代码堆 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="50287:50327" ph="/** 返回当前的作用域 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="50502:50538" ph="/** 继承侦听器 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="50574:50616" ph="/** 设置构造函数为代码块的作用域 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="50655:50706" ph="/** 所在的作用域 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="51726:51822" ph="/** 设置获取已声明的引用描述 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="52274:52322" ph="/** 关键字 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="52392:52440" ph="/** 作用域的名称 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="52607:52653" ph="/** 设置类型 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="52814:52852" ph="/** 是否已关闭 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="52918:52983" ph="/** 添加代码语法 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="53027:54155" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="53056:53103" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="53373:54135" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="53418:53852" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="53666:53740" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="53951:54022" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="54157:54189" ph="/** 父级 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="54257:54304" ph="/** 内容代码 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="54375:54451" ph="/** 返回上一个在作用域中的语法 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="54789:54827" ph="/** 代码语法个数 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="54903:54961" ph="/** 切换到父级堆叠容器 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="55492:55549" ph="/** 设置对外接口的限定附 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="55723:55776" ph="/** 设置不可改变 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="55920:55973" ph="/** 设置不可改变 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="56124:56176" ph="/** 设置可修改 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="56329:56397" ph="/** 标记是动态还是静态模块 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="56565:56614" ph="/** 代码块的作用域 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="56896:56945" ph="/** 添加参数的类型 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="57125:57191" ph="/** 访问器类型 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="57359:57408" ph="/** 代码块的作用域 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="57698:57749" ph="/** 所在的作用域 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="58260:58307" ph="/** 是否有继承 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="58460:58506" ph="/** 实现的接口 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="58825:58852" ph="/** 默认配置 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="58922:58972" ph="/**  语法分析器 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="59469:59505" ph="/** 继承侦听器 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="59541:59581" ph="/** 指定构造函数为语法分析器 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="59620:59702" ph="/** 调度事件 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="59861:59906" ph="/** 配置选项 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="60203:60246" ph="/** 是否完成语法分析过程 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="60310:60346" ph="/** 将代码移动到下一行 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="61359:61405" ph="/** 抛出错误消息 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="61453:61585" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="61587:61660" ph="/** 平衡器 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="62543:62576" ph="/** 获取语法描述 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="62615:64480" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="62654:62783" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="62792:63592" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="62849:63157" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="63171:63586" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="63264:63342" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="63671:63891" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="64151:64194" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="64252:64453" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="64262:64447" ph="/*...*/" />
-                <marker date="1482322705565" expanded="true" signature="64482:64521" ph="/** 返回当前的作用域 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="64791:64828" ph="/** 指定结束点 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="64867:65571" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="65088:65300" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="65166:65239" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="65305:65345" ph="//..." />
-                <marker date="1482322705565" expanded="true" signature="65483:65535" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="65574:65623" ph="/** 步进 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="65867:65894" ph="/** 验证语法 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="65931:66159" ph="{...}" />
-                <marker date="1482322705565" expanded="true" signature="66161:66196" ph="/** 开始分析 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="66316:66371" ph="/** 循环执行 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="66492:66566" ph="/** 添加语法到当前的作用域 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="66828:66872" ph="/** 获取关键词 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="67238:67263" ph="/** @type {RegExp} ...*/" />
-                <marker date="1482322705565" expanded="true" signature="67327:67372" ph="/** 获取数字类型 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="67604:67650" ph="/** 获取语法定界符 ...*/" />
-                <marker date="1482322705565" expanded="true" signature="69101:69145" ph="/** 获取运算符 ...*/" />
-              </folding>
+            <state relative-caret-position="429">
+              <caret line="1434" column="38" selection-start-line="1434" selection-start-column="38" selection-end-line="1434" selection-end-column="38" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="EventDispatcher.as" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/lib/EventDispatcher.as">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="552">
+              <caret line="147" column="20" selection-start-line="147" selection-start-column="20" selection-end-line="147" selection-end-column="20" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Globals.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/lib/Globals.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="297">
+              <caret line="121" column="12" selection-start-line="121" selection-start-column="12" selection-end-line="121" selection-end-column="12" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -203,8 +131,8 @@
       <file leaf-file-name="main.as" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/main.as">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="616">
-              <caret line="36" column="24" selection-start-line="36" selection-start-column="24" selection-end-line="36" selection-end-column="24" />
+            <state relative-caret-position="492">
+              <caret line="32" column="36" selection-start-line="32" selection-start-column="36" selection-end-line="32" selection-end-column="39" />
               <folding />
             </state>
           </provider>
@@ -271,7 +199,6 @@
         <option value="$PROJECT_DIR$/lib/Main.js" />
         <option value="$PROJECT_DIR$/lib/com/D.as" />
         <option value="$PROJECT_DIR$/lib/com/B.as" />
-        <option value="$PROJECT_DIR$/lib/lib/EventDispatcher.as" />
         <option value="$PROJECT_DIR$/compiler/lib/Globals.js" />
         <option value="$PROJECT_DIR$/lib/Main.as" />
         <option value="$PROJECT_DIR$/compiler/system.js" />
@@ -280,10 +207,11 @@
         <option value="$PROJECT_DIR$/compiler/Utils.js" />
         <option value="$PROJECT_DIR$/compiler/lib/System.js" />
         <option value="$PROJECT_DIR$/compiler/lib/Utils.js" />
-        <option value="$PROJECT_DIR$/compiler/Ruler.js" />
         <option value="$PROJECT_DIR$/lib/Main-min.js" />
-        <option value="$PROJECT_DIR$/compiler/Make.js" />
+        <option value="$PROJECT_DIR$/compiler/Ruler.js" />
+        <option value="$PROJECT_DIR$/lib/lib/EventDispatcher.as" />
         <option value="$PROJECT_DIR$/lib/main.as" />
+        <option value="$PROJECT_DIR$/compiler/Make.js" />
       </list>
     </option>
   </component>
@@ -353,7 +281,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -456,6 +383,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scratches" />
       <pane id="Scope" />
     </panes>
   </component>
@@ -504,7 +432,6 @@
           <option name="mySupportsDeletion" value="false" />
           <option name="myCanBeAbsent" value="false" />
           <option name="myId" value="UPDATED" />
-          <PATH vcs="Git" revision="">$PROJECT_DIR$/.idea/workspace.xml</PATH>
           <PATH vcs="Git" revision="">$PROJECT_DIR$/compiler/Make.js</PATH>
           <PATH vcs="Git" revision="">$PROJECT_DIR$/compiler/Ruler.js</PATH>
           <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/main.as</PATH>
@@ -705,14 +632,8 @@
       <workItem from="1481949370843" duration="39120000" />
       <workItem from="1482033746327" duration="36990000" />
       <workItem from="1482233323908" duration="3963000" />
-      <workItem from="1482321838184" duration="6753000" />
-    </task>
-    <task id="LOCAL-00162" summary="Default">
-      <created>1474641685636</created>
-      <option name="number" value="00162" />
-      <option name="presentableId" value="LOCAL-00162" />
-      <option name="project" value="LOCAL" />
-      <updated>1474641685637</updated>
+      <workItem from="1482321838184" duration="6854000" />
+      <workItem from="1482406931926" duration="15460000" />
     </task>
     <task id="LOCAL-00163" summary="Default">
       <created>1474792381047</created>
@@ -1050,11 +971,18 @@
       <option name="project" value="LOCAL" />
       <updated>1482073630409</updated>
     </task>
-    <option name="localTasksCounter" value="211" />
+    <task id="LOCAL-00211" summary="1.1">
+      <created>1482328700876</created>
+      <option name="number" value="00211" />
+      <option name="presentableId" value="LOCAL-00211" />
+      <option name="project" value="LOCAL" />
+      <updated>1482328700876</updated>
+    </task>
+    <option name="localTasksCounter" value="212" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="921551000" />
+    <option name="totallyTimeSpent" value="937112000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1069,7 +997,7 @@
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.14498934" sideWeight="0.49360147" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.14658849" sideWeight="0.49360147" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.011034483" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="false" weight="0.3189189" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3295129" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -1375,14 +1303,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/lib/Globals.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="31">
-          <caret line="1" column="4" selection-start-line="1" selection-start-column="4" selection-end-line="1" selection-end-column="4" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/compiler/__system.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="775">
@@ -1414,131 +1334,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4216">
-          <caret line="136" column="0" selection-start-line="136" selection-start-column="0" selection-end-line="136" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/com/B.as">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1147">
           <caret line="40" column="23" selection-start-line="40" selection-start-column="19" selection-end-line="40" selection-end-column="23" />
           <folding>
             <element signature="e#553#567#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="50282">
-          <caret line="1622" column="1" selection-start-line="1622" selection-start-column="1" selection-end-line="1622" selection-end-column="1" />
-          <folding>
-            <marker date="1482322705565" expanded="true" signature="517:575" ph="/** 判断是否为一个有效的运算符 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="877:935" ph="/** 是否为一个可以组合的运算符 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="1659:1709" ph="/** 前置运算符 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="1737:1887" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="1754:1887" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="42666:45453" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="42741:44745" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="42828:44485" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="43010:43131" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="43170:43280" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="43380:44289" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="43892:44273" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="43939:44175" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="44181:44255" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="44428:44475" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="44630:44680" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="44838:44991" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="45093:45122" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="45131:45451" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="45335:45425" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="45517:45563" ph="/** 抛出错误信息 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="46065:46111" ph="/** 事件对象 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="46511:46543" ph="/** 事件侦听器 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="46648:46691" ph="/** 指定构造函数为事件侦听器 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="46736:46818" ph="/** 调度事件 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="47287:47397" ph="/** 添加事件侦听器 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="47926:48031" ph="/** 是否存在指定类型的侦听器 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="48517:48624" ph="/** 删除指定类型的侦听器 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="49159:49259" ph="/** 语法描述 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="49371:49416" ph="/** 代码堆 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="50287:50327" ph="/** 返回当前的作用域 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="50502:50538" ph="/** 继承侦听器 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="50574:50616" ph="/** 设置构造函数为代码块的作用域 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="50655:50706" ph="/** 所在的作用域 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="51726:51822" ph="/** 设置获取已声明的引用描述 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="52274:52322" ph="/** 关键字 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="52392:52440" ph="/** 作用域的名称 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="52607:52653" ph="/** 设置类型 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="52814:52852" ph="/** 是否已关闭 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="52918:52983" ph="/** 添加代码语法 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="53027:54155" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="53056:53103" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="53373:54135" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="53418:53852" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="53666:53740" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="53951:54022" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="54157:54189" ph="/** 父级 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="54257:54304" ph="/** 内容代码 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="54375:54451" ph="/** 返回上一个在作用域中的语法 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="54789:54827" ph="/** 代码语法个数 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="54903:54961" ph="/** 切换到父级堆叠容器 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="55492:55549" ph="/** 设置对外接口的限定附 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="55723:55776" ph="/** 设置不可改变 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="55920:55973" ph="/** 设置不可改变 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="56124:56176" ph="/** 设置可修改 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="56329:56397" ph="/** 标记是动态还是静态模块 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="56565:56614" ph="/** 代码块的作用域 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="56896:56945" ph="/** 添加参数的类型 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="57125:57191" ph="/** 访问器类型 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="57359:57408" ph="/** 代码块的作用域 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="57698:57749" ph="/** 所在的作用域 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="58260:58307" ph="/** 是否有继承 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="58460:58506" ph="/** 实现的接口 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="58825:58852" ph="/** 默认配置 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="58922:58972" ph="/**  语法分析器 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="59469:59505" ph="/** 继承侦听器 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="59541:59581" ph="/** 指定构造函数为语法分析器 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="59620:59702" ph="/** 调度事件 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="59861:59906" ph="/** 配置选项 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="60203:60246" ph="/** 是否完成语法分析过程 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="60310:60346" ph="/** 将代码移动到下一行 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="61359:61405" ph="/** 抛出错误消息 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="61453:61585" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="61587:61660" ph="/** 平衡器 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="62543:62576" ph="/** 获取语法描述 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="62615:64480" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="62654:62783" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="62792:63592" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="62849:63157" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="63171:63586" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="63264:63342" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="63671:63891" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="64151:64194" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="64252:64453" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="64262:64447" ph="/*...*/" />
-            <marker date="1482322705565" expanded="true" signature="64482:64521" ph="/** 返回当前的作用域 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="64791:64828" ph="/** 指定结束点 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="64867:65571" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="65088:65300" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="65166:65239" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="65305:65345" ph="//..." />
-            <marker date="1482322705565" expanded="true" signature="65483:65535" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="65574:65623" ph="/** 步进 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="65867:65894" ph="/** 验证语法 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="65931:66159" ph="{...}" />
-            <marker date="1482322705565" expanded="true" signature="66161:66196" ph="/** 开始分析 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="66316:66371" ph="/** 循环执行 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="66492:66566" ph="/** 添加语法到当前的作用域 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="66828:66872" ph="/** 获取关键词 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="67238:67263" ph="/** @type {RegExp} ...*/" />
-            <marker date="1482322705565" expanded="true" signature="67327:67372" ph="/** 获取数字类型 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="67604:67650" ph="/** 获取语法定界符 ...*/" />
-            <marker date="1482322705565" expanded="true" signature="69101:69145" ph="/** 获取运算符 ...*/" />
           </folding>
         </state>
       </provider>
@@ -1551,33 +1352,58 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/lib/EventDispatcher.as">
+    <entry file="file://$PROJECT_DIR$/testjs.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="93">
-          <caret line="24" column="11" selection-start-line="24" selection-start-column="11" selection-end-line="24" selection-end-column="11" />
+        <state relative-caret-position="1922">
+          <caret line="62" column="16" selection-start-line="62" selection-start-column="16" selection-end-line="62" selection-end-column="16" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/testjs.js">
+    <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="118">
-          <caret line="62" column="16" selection-start-line="62" selection-start-column="16" selection-end-line="62" selection-end-column="16" />
+        <state relative-caret-position="429">
+          <caret line="1434" column="38" selection-start-line="1434" selection-start-column="38" selection-end-line="1434" selection-end-column="38" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/main.as">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="616">
-          <caret line="36" column="24" selection-start-line="36" selection-start-column="24" selection-end-line="36" selection-end-column="24" />
+        <state relative-caret-position="492">
+          <caret line="32" column="36" selection-start-line="32" selection-start-column="36" selection-end-line="32" selection-end-column="39" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/lib/Globals.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="297">
+          <caret line="121" column="12" selection-start-line="121" selection-start-column="12" selection-end-line="121" selection-end-column="12" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="297">
+          <caret line="829" column="0" selection-start-line="829" selection-start-column="0" selection-end-line="829" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/lib/EventDispatcher.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="552">
+          <caret line="147" column="20" selection-start-line="147" selection-start-column="20" selection-end-line="147" selection-end-column="20" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/compiler/Make.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="390">
-          <caret line="659" column="22" selection-start-line="659" selection-start-column="22" selection-end-line="659" selection-end-column="22" />
+        <state relative-caret-position="-1573">
+          <caret line="656" column="0" selection-start-line="656" selection-start-column="0" selection-end-line="656" selection-end-column="0" />
           <folding />
         </state>
       </provider>

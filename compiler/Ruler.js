@@ -1141,6 +1141,7 @@ syntax["break,continue"]=function(e)
 syntax["debugger"]=function (e)
 {
     if( !(this.prev.value===';' || this.prev.value==='}' || this.prev.line !== this.current.line ) )this.error();
+    if( !(this.scope() instanceof Scope) )this.error('Unexpected identifier debugger');
     this.add( new Stack('expression','(*)') );
     this.add( this.current );
     this.end();
@@ -1217,10 +1218,7 @@ syntax["typeof"]=function(e)
 {
     e.prevented=true;
     if( isOperator(this.next.value) )this.error();
-    if( this.scope().keyword()!=='expression')
-    {
-        this.add( new Stack('expression', '(String)' ) );
-    }
+    if( this.scope().keyword()!=='expression')this.add( new Stack('expression', '(String)' ) );
     this.scope().type('(String)');
     if( isBoolOperator(this.prev.value) ) this.scope().type('(Boolean)');
     this.add( this.current );
@@ -1232,8 +1230,7 @@ syntax["delete"]=function(e)
     e.prevented=true;
     if( this.next.type !==' (identifier)' || this.next.id==='(keyword)' )this.error();
     if( !(this.scope() instanceof Scope) )this.error('Delete operator can only appear in the block scope');
-    this.add( new Stack('expression', '(boolean)' ) );
-    if( typeof objects[ this.next.value ] !== "undefined" )this.error('Invalid operator the "delete" on the global object', this.next );
+    if( this.scope().keyword()!=='expression')this.add( new Stack('expression', '(*)' ) );
     this.add( this.current );
     this.step();
 }
@@ -1243,10 +1240,7 @@ syntax["new"]=function(e)
     e.prevented=true;
     //如果上一个是标识并且当前未换行
     if( this.prev.id==='(identifier)' && this.prev.line===this.current.line )this.error();
-    if( this.scope().keyword()!=='expression')
-    {
-        this.add( new Stack('expression', '(*)' ) );
-    }
+    if( this.scope().keyword()!=='expression')this.add( new Stack('expression', '(*)' ) );
     this.add( this.current );
     this.step();
 }
@@ -1283,11 +1277,6 @@ syntax['(delimiter)']=function( e )
                    if( !(e.target instanceof Stack) && e.target.value !==',' )self.error();
                    if( is=== true && e.target.value===',')self.error();
                });
-           }
-
-           if( this.scope().keyword() !== 'expression' )
-           {
-               this.add( new Stack('expression','(*)') );
            }
            this.add( s );
        }
@@ -1415,25 +1404,34 @@ syntax['(operator)']=function( e )
     //条件判断三元运算符
     else if( id==='?' )
     {
-        this.scope().switch();
-        var expre = this.scope().content().pop();
-        var self = this;
+       // this.scope().switch();
+        var content = this.scope().content();
+        var index = 0;
+        if( content.length > 1 ){
+            var len = content.length;
+            while( len > 0 )
+            {
+                if( isMathAssignOperator( content[ --len ].value ) )
+                {
+                    index=len+1;
+                    break;
+                }
+            }
+        }
+
         var ternary = new Stack('ternary', '(*)');
-
-        //pop last expression
-        expre.__parent__ = ternary;
-        ternary.content().push( expre );
+        var express = new Stack('expression', '(*)');
+        var self = this;
+        express.__content__ = content.splice(index, content.length - index );
+        express.__parent__ = ternary;
+        express.__close__ = true;
+        ternary.content().push( express );
         this.add( ternary );
-
         ternary.addListener('(add)',function(){
-
             if( this.length()>5 ){
-
                 self.error('Not end expression');
             }
-
         }).addListener('(switch)',function(){
-
             var p = this.previous(-2);
             if( !p || p.id !==':' ){
                 self.error('Missing token :');
@@ -1441,7 +1439,6 @@ syntax['(operator)']=function( e )
         });
 
         this.add( this.current );
-
         //添加表达式
         this.add(new Stack('expression', '(*)').addListener('(switch)', function () {
             if (this.length() < 1)self.error('empty expression');
@@ -1450,32 +1447,12 @@ syntax['(operator)']=function( e )
     }
 
     //运算符只能出现在表达式中
-    if( this.scope().keyword() !=='expression' && this.scope().keyword() !=='ternary' )
+    if( this.scope().keyword() !=='expression' )
     {
         if( !isLeftOperator(id) )this.error('Unexpected token '+id);
         this.add( new Stack('expression','(*)') ) ;
-        this.add( this.current );
-
-    }else{
-
-        if( !isIncreaseAndDecreaseOperator(id) )
-        {
-            this.scope().switch();
-            if (this.scope().keyword() !== 'expression' && this.scope().keyword() !== 'ternary') {
-                var p = this.scope().content().pop();
-                var s = new Stack('expression', '(*)');
-                s.content().push(p);
-                p.__parent__ = s;
-                this.add(s);
-            }
-            this.add(this.current);
-            this.add(new Stack('expression', '(*)'));
-
-        }else
-        {
-            this.add(this.current);
-        }
     }
+    this.add(this.current);
 
     //自增加运算符只能是一个对数字的引用
     if( isIncreaseAndDecreaseOperator(id) && this.prev.type !== '(identifier)' && this.next.type !=='(identifier)' )
@@ -1632,7 +1609,7 @@ syntax['(identifier)']=function( e )
     if( id==='class' || id==='package' )this.error();
 
     // 获取声明的类型
-    if( (this.scope().keyword() === 'statement' || this.scope().parent().keyword() === 'statement') && this.prev.value !=='=' )statement.call(this, e);
+    if( this.scope().keyword() === 'statement' )statement.call(this, e);
 
     //如果不是表达式
     if( this.scope().keyword() !=='expression' )
@@ -2163,7 +2140,7 @@ Stack.prototype.previous=function ( step )
     var r = c[ i ];
     if( typeof step === "function"  )
     {
-        while ( step.call(this, r ) && ( r=this.previous( --index ) ) );
+        while ( step.call(this, r, i ) && ( r=this.previous( --index ) ) );
     }
     return r;
 }

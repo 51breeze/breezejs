@@ -32,7 +32,7 @@ package lib
         public function EventDispatcher( target )
         {
             this['getProxyTarget' || this.length ];
-            this.getProxyTarget = target ?
+            this.getProxyTarget = target && 1 ?
                 function () {
                     return target.length > 0 ? target : [this];
                 }:

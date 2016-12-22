@@ -30,7 +30,8 @@ package
           function Main(jj)
           {
 
-              this.names=123;
+              this['getProxyTarget' || this.names ];
+
 
               var ii={
                   name:{},
@@ -40,8 +41,6 @@ package
               var bb:Function=null;
 
               bb();
-
-
 
 
               var b,c='uuuu',d=6;
