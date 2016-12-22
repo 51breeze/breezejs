@@ -1313,6 +1313,11 @@ syntax['(delimiter)']=function( e )
                 this.add( this.current );
                 if( this.current.type !=='(identifier)' && this.current.type !== '(string)' )
                     this.error('Invalid key name for "'+this.current.value+'"');
+                if( this.current.type !== '(string)' )
+                {
+                    this.current.type ='(string)';
+                    this.current.value = '"' + this.current.value + '"';
+                }
                 this.add( this.seek() );
                 if ( this.current.value !== ':' )this.error('Missing token :');
                 this.step();
@@ -1627,7 +1632,7 @@ syntax['(identifier)']=function( e )
     if( id==='class' || id==='package' )this.error();
 
     // 获取声明的类型
-    if( this.scope().keyword() === 'statement' && this.prev.value !=='=' )statement.call(this, e);
+    if( (this.scope().keyword() === 'statement' || this.scope().parent().keyword() === 'statement') && this.prev.value !=='=' )statement.call(this, e);
 
     //如果不是表达式
     if( this.scope().keyword() !=='expression' )
