@@ -571,12 +571,19 @@ function getDescriptions(it, classmodule)
 
         descriptor.thisArg = it.current.value;
 
+        //获取字面量类型
+        type = getIdentifierType(it.current.type);
+        if( type )
+        {
+            desc = globals[type];
+        }
         //声明的引用
-        if (it.current.id === '(identifier)' || it.current.value === 'this' || it.current.value === 'super')
+        else if (it.current.id === '(identifier)' || it.current.value === 'this' || it.current.value === 'super')
         {
             desc = it.stack.scope().define(it.current.value);
             if (desc)
             {
+                descriptor.id = desc.id;
                 desc.type = getType(desc.type);
                 if( desc.type !=='*' )desc = module( getImportClassByType(classmodule, desc.type) );
 
@@ -584,12 +591,6 @@ function getDescriptions(it, classmodule)
             {
                 desc = globals[it.current.value];
             }
-
-        } else
-        {
-            //获取字面量类型
-            type = getIdentifierType(it.current.type);
-            desc = globals[type];
         }
 
         if (!desc)
@@ -598,7 +599,6 @@ function getDescriptions(it, classmodule)
         }
         type = desc.type;
         descriptor.type = type;
-        descriptor.id = desc.id;
         isstatic = it.current.value === type || type==='Class';
     }
 
@@ -614,6 +614,7 @@ function getDescriptions(it, classmodule)
                 it.current.content().shift();
                 descriptor.property.push( toString(it.current,classmodule) );
                 type = '*';
+                descriptor.type = type
 
             }else
             {
@@ -714,44 +715,41 @@ function expression( stack, classmodule, flag )
     var express = [];
     while ( it.seek() )
     {
-
-        console.log( it.current.value ,'======++++======' )
-
         desc = getDescriptions(it,classmodule);
-
-
-
         if (it.next && isMathAssignOperator(it.next.value))
         {
             it.seek();
-            if (desc.id === 'const')error('"' + desc.property.join('.') + '" is constant', '', it.current);
-            if (desc.id !== 'var')error('"' + desc.property.join('.') + '" is not variable', '', it.current);
+            if (desc.id === 'const' ){
+                if( stack.parent().keyword() !=='statement' )error('"' + desc.property.join('.') + '" is constant', '', it.current);
+            }else if (desc.id !== 'var'){
+                error('"' + desc.property.join('.') + '" is not variable', '', it.current);
+            }
             if (!it.next)error('Missing expression', '', it.current);
+
+            desc.param = [];
+
             it.seek();
-            desc.param =  parse( getDescriptions(it, classmodule) );
-
-
-
+            var value = getDescriptions(it, classmodule);
+            desc.param.push( parse( value ) );
+            it.stack.type( desc.type );
+            while( it.next && isBoolOperator( it.next.value ) )
+            {
+                it.seek();
+                desc.param.push(it.current.value);
+                it.seek();
+                desc.param.push( parse( getDescriptions(it, classmodule) ) );
+            }
+            desc.param = desc.param.join(' ');
         }
         express.push( parse(desc) );
     }
 
     if( flag === true )return desc;
-  //  console.log( prop , value )
-
-   // process.exit()
-
-    console.log( express.join('') )
-
     return express.join('');
-
-
     var type;
     var str='';
 
     //===============================
-
-
     if( it.current instanceof Ruler.STACK )
     {
         str = toString( it.current , classmodule );
@@ -1301,7 +1299,7 @@ function toString( stack, module )
     {
         return createFunction( stack , module );
 
-    } else if( stack.keyword() === 'expression' && stack.parent().keyword() !== 'statement' )
+    } else if( stack.keyword() === 'expression' )
     {
         return expression( stack , module );
     }
@@ -1313,12 +1311,10 @@ function toString( stack, module )
         if( it.current instanceof Ruler.STACK )
         {
             str.push( toString(it.current, module) );
-
         }else
         {
-            str.push( it.current.value );
-
-            console.log( it.current.value,'##################')
+            str.push(it.current.value);
+            if (it.current.id === '(keyword)')str.push(' ');
         }
     }
     str = str.join('');
