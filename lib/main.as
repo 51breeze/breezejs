@@ -30,9 +30,6 @@ package
           function Main(jj)
           {
 
-              this['getProxyTarget' || this.names ];
-
-
               var ii={
                   name:{},
                   age:1

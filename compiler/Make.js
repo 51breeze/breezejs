@@ -536,20 +536,19 @@ function isBoolOperator(o)
 
 function getDescriptions(it, classmodule)
 {
-    var descriptor={operator:'',property:[],type:'*',param:null,thisArg:null,id:null,called:false};
+    var descriptor={property:[],type:'*',param:null,thisArg:null,id:null,called:false,left:'', right:''};
     var isstatic= false;
     var type;
     var desc;
 
-    if (isIncreaseAndDecreaseOperator(it.current.value))
+    if ( isIncreaseAndDecreaseOperator(it.current.value) || it.current.value==='-' || it.current.value==='+' || it.current.value==='~'  )
     {
-        descriptor.property.push( '"'+it.current.value+'"' );
+        descriptor.left =  it.current.value ;
         it.seek();
     }
 
     if( it.current instanceof Ruler.STACK )
     {
-        if( it.current.type()==='(property)' )error('Unexpected property', '', it.current.content()[0] );
         var express = toString(it.current, classmodule);
         if( it.current.type() !== '(expression)' )return express;
         descriptor.thisArg=express;
@@ -559,14 +558,9 @@ function getDescriptions(it, classmodule)
     {
         if( !isCheck( it.current ) )
         {
-            if( descriptor.operator )error( '"'+it.current.value+'" Missing expresson', '', it.current );
-            //console.log( it.current.value ,'=====')
             if( it.current.id==='(keyword)')return ' '+it.current.value+' ';
             return it.current.value;
         }
-
-        descriptor.property.push(it.current.value);
-        descriptor.thisArg = it.current.value;
 
         type = getConstantType(it.current.value);
         if (type) {
@@ -574,6 +568,8 @@ function getDescriptions(it, classmodule)
             descriptor.type = type;
             return it.current.value;
         }
+
+        descriptor.thisArg = it.current.value;
 
         //声明的引用
         if (it.current.id === '(identifier)' || it.current.value === 'this' || it.current.value === 'super')
@@ -601,16 +597,14 @@ function getDescriptions(it, classmodule)
             error('"' + it.current.value + '" is not defined.', '', it.current);
         }
         type = desc.type;
-        it.stack.type(type);
         descriptor.type = type;
         descriptor.id = desc.id;
         isstatic = it.current.value === type || type==='Class';
     }
 
-    var has = false;
+    it.stack.type(type);
     while ( isCheck( it.next ) )
     {
-        has=true;
         it.seek();
         if( it.current instanceof Ruler.STACK )
         {
@@ -630,15 +624,22 @@ function getDescriptions(it, classmodule)
                 if( it.next && it.next.value==='.')
                 {
                     if (type === 'void')error('"' + it.prev.value + '" not return value', 'reference', it.prev);
-                    descriptor = {operator:'',property:[],type:'*',param:null,thisArg:  parse( descriptor ) };
+                    descriptor = {property:[],type:'*',param:null,id:null,thisArg:parse( descriptor ) };
                 }
             }
 
         }else
         {
-            if( it.current.value === '.' )it.seek();
-            descriptor.property.push( '"'+ it.current.value+'"' );
-            if ( type !== '*' )
+            if( it.current.value === '.' )
+            {
+                it.seek();
+                descriptor.property.push( '"'+ it.current.value+'"' );
+            }else
+            {
+                descriptor.right = it.current.value;
+            }
+
+            if ( type !== '*' && it.current.type==='(identifier)' )
             {
                 desc = getClassPropertyDesc(it, desc, isstatic ? 'static' : 'proto', classmodule);
                 type = desc.type;
@@ -651,8 +652,9 @@ function getDescriptions(it, classmodule)
                 }
             }
         }
+        it.stack.type(type);
     }
-    return has ? descriptor : descriptor;
+    return descriptor;
 }
 
 
@@ -663,44 +665,41 @@ function isCheck( stack )
     {
         return stack.type()==='(property)' || stack.type()==='(expression)';
     }
-    return stack.id === '(identifier)' ||
-           stack.value === 'this'      ||
+    return  stack.id === '(identifier)' ||
+            stack.value === 'this'      ||
             stack.value === 'super'     ||
             stack.value==='.'           ||
             stack.type==='(string)'     ||
             stack.type==='(regexp)'     ||
-            stack.type==='(number)'     ||
-           isIncreaseAndDecreaseOperator(stack.value);
+            isIncreaseAndDecreaseOperator(stack.value);
 }
 
 
 function parse(desc)
 {
-   var left='';
-   if( !desc )return '';
-   if( typeof desc === "string"  )return desc;
-
-   if( isLeftOperator( desc.property[0] ) )
-   {
-       left= desc.property.shift()+' ';
-   }
-
-    if ( desc.property.length > 1 && desc.id !=='class' )
+    if( typeof desc === "string"  )return desc;
+    if ( desc.property.length > 0 || desc.called )
     {
+        if(desc.left)desc.property.unshift( desc.left );
+        if(desc.right)desc.property.push( desc.right );
         var prop = [desc.thisArg, '[' + desc.property.join(',') + ']'];
         if (desc.called) {
             prop.push(desc.param);
             prop.push('true');
-        } else if (desc.param) {
+        } else if (desc.param)
+        {
             prop.push(desc.param);
         }
-        return left+'__call(' + prop.join(',') + ')';
+        return '__call(' + prop.join(',') + ')';
 
-    } else
+    }else
     {
-        return left+desc.property.join(',');
+        if( ( desc.id==='var' || desc.id==='const') && desc.param )
+        {
+            return desc.thisArg+'='+desc.param;
+        }
+        return desc.left+desc.thisArg+desc.right;
     }
-
 }
 
 /**
@@ -715,7 +714,13 @@ function expression( stack, classmodule, flag )
     var express = [];
     while ( it.seek() )
     {
+
+        console.log( it.current.value ,'======++++======' )
+
         desc = getDescriptions(it,classmodule);
+
+
+
         if (it.next && isMathAssignOperator(it.next.value))
         {
             it.seek();
@@ -724,6 +729,9 @@ function expression( stack, classmodule, flag )
             if (!it.next)error('Missing expression', '', it.current);
             it.seek();
             desc.param =  parse( getDescriptions(it, classmodule) );
+
+
+
         }
         express.push( parse(desc) );
     }
@@ -1309,6 +1317,8 @@ function toString( stack, module )
         }else
         {
             str.push( it.current.value );
+
+            console.log( it.current.value,'##################')
         }
     }
     str = str.join('');
