@@ -711,7 +711,7 @@ syntax['class']=function( event )
         stack.extends( p.classname );
 
         //定义超类引用
-        stack.scope('proto').define('super', {'type':'('+stack.name()+')','id':'class','fullclassname':p.fullclassname ,'classname':p.classname} );
+        stack.scope('proto').define('super', {'type':'('+p.classname+')','id':'class','fullclassname':p.fullclassname ,'classname':p.classname} );
         this.seek();
     }
 
