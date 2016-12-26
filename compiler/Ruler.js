@@ -1152,7 +1152,6 @@ syntax["throw"]=function (e)
     e.prevented=true;
     if( this.next.value !=='new' )this.error('Missing new operator');
     if( !(this.scope() instanceof Scope) )this.error('Unexpected identifier throw');
-    this.add( new Stack('expression','(*)') );
     this.add( this.current );
     this.step();
 }
@@ -1328,14 +1327,16 @@ syntax['(delimiter)']=function( e )
         this.seek();
         this.add( this.current );
         if( this.current.value !== balance[id] )this.error('Missing token '+balance[id] );
+
+        if( s !== this.scope() )
+        console.log(  this.scope().content()[0].content() )
+
         s.switch();
 
         if( s.keyword()==='structure' )return true;
 
-        var json = this.scope().parent().type() ==='(Json)' && ( this.next.value===',' || this.next.value===':' );
-
         // 如果下一个是运算符或者是一个定界符
-        if( json || ( this.scope().parent().type() !=='(Json)' && (this.next.type==='(operator)' || this.next.value==='(' || this.next.value==='[') ) )
+        if(  this.scope().type() ==='(Json)' && this.next.value===',' )
         {
             this.step();
 
@@ -1346,6 +1347,9 @@ syntax['(delimiter)']=function( e )
             {
                 this.error('Unexpected identifiler '+ this.next.value, this.next);
             }
+
+            //console.log(s.content() )
+
             this.end();
         }
     }
@@ -2663,7 +2667,7 @@ Ruler.prototype.end=function( stack )
     }
     //如果下一个是一个右定界符 ] ) }
     //并且当前表达式不在域块级中
-    else if( (id ==='expression' || id==='ternary' || stack.parent().keyword()==='object' ) && isRightDelimiter( this.next.value ) )
+    else if( (id ==='expression' || id==='ternary' ) && isRightDelimiter( this.next.value ) )
     {
         stack.switch();
         return true;

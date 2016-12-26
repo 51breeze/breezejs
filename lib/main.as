@@ -16,14 +16,14 @@
 //类
 package
 {
-    import com.B;
-    import lib.EventDispatcher;
+   /* import com.B;
+    import lib.EventDispatcher;*/
 
-    public class Main extends B {
+    public class Main /*extends B*/ {
 
        // static public var name:String = '3999 yyy fsss 666' ;
-        public var names:String = '3' ;
-        static public var name:Number = 5 ;
+       /* public var names:String = '3' ;
+        static public var name:Number = 5 ;*/
 
 
           //var bb:String='123';
@@ -35,16 +35,16 @@ package
                   age:1
               };
 
-              var bb:Function=null;
+           /*   var bb:Function=null;
 
               bb();
 
 
               var b,c='uuuu',d=6;
-              var name=null;
-              super(jj);
+              var name=null;*/
+              /*super(jj);
               console.log( B.classname );
-              console.log( this.names );
+              console.log( this.names );*/
           }
     }
 }
