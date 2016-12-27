@@ -815,6 +815,8 @@ function getDescriptorOfExpression(it, classmodule)
         } else if( it.next.type === '(identifier)' )
         {
             it.seek();
+            property.name.push( it.current.value );
+
             if ( desc && desc.type !=='*' )
             {
                 var prevDesc = desc;
@@ -848,9 +850,22 @@ function getDescriptorOfExpression(it, classmodule)
                 }
 
                 //获取/设置类模块的属性 （所有属性的值是通过对象的uid进行存储）
-                if( prevDesc.id==='class' && (desc.id==='var' || desc.id==='const') && !globals[ prevDesc.type ])
+                if( !isstatic && prevDesc.id==='class' && (desc.id==='var' || desc.id==='const') && !globals[ prevDesc.type ] )
                 {
                     property.uid = prevDesc.uid;
+                    if( it.next && (it.next.value==='.' || type==='Function') )
+                    {
+                        var before = property.before;
+                        property.before = '';
+                        property = {
+                            name: [],
+                            descriptor: null,
+                            thisArg: parse(property),
+                            expression: false,
+                            before: before,
+                            after: ''
+                        };
+                    }
                 }
 
                 //获取指定类型的模块
@@ -869,7 +884,6 @@ function getDescriptorOfExpression(it, classmodule)
             {
                 property.descriptor = desc;
             }
-            property.name.push( it.current.value );
 
         }else
         {
@@ -921,67 +935,88 @@ function parse( desc , value ,operator, returnValue )
     }
 
     var prefix = '__call';
-    if( desc.name.length===0 )return desc.thisArg;
-    var thisvrg = desc.thisArg || desc.name[0];
-    var obj = desc.name.unshift();
-    var props = [];
-
-    if (desc.before === 'new' || desc.before === 'delete' || desc.before === 'typeof')
-    {
-        prefix = '__' + desc.before;
-        desc.before = '';
+    if( desc.name.length===0 ){
+        if (desc.before === 'new' || desc.before === 'delete' || desc.before === 'typeof')desc.before+=' ';
+        return desc.before+desc.thisArg+desc.after;
     }
+    var thisvrg = desc.thisArg || desc.name[0];
+    var props = desc.name;
 
     if ( !desc.descriptor )
     {
-        if (desc.before)desc.name.unshift( desc.before );
-        if (desc.after)desc.name.push( desc.after );
-
-        for (var b in desc.name )
+        if (desc.before === 'new' || desc.before === 'delete' || desc.before === 'typeof')
         {
-            if ( desc.name[b] instanceof Array ) {
-                props.push( desc.name[b][0] );
-            } else {
-                props.push('"' + desc.name[b] + '"');
-            }
+            prefix = '__' + desc.before;
+            desc.before = '';
         }
 
-        props.push( obj );
+        props = props.map(function (item, index) {
+            if (index===0 || item instanceof Array )return item;
+            return '"' + item + '"';
+        });
+
+        var logicBool = '';
+        if( desc.before==='!' || desc.before==='!!' )
+        {
+            logicBool = desc.before;
+            desc.before='';
+        }
+
+        if (desc.before)props.unshift( desc.before);
+        if (desc.after)props.push( desc.after );
+
         props=[ '[' + props.join(',') + ']' ];
         props.unshift( thisvrg );
+
         if ( desc.expression )
         {
             props.push( desc.param ? '['+desc.param+']' : 'null' );
             props.push('true');
         }
+        if( logicBool )express.push( logicBool );
         express.push( prefix + '(' + props.join(',') + ')');
 
     } else
     {
+        if( desc.uid )
+        {
+            props.unshift( props.shift()+'["'+desc.uid +'"]' );
+        }
 
-        obj += (desc.uid ? '["'+desc.uid+'"]' :'');
-        props = desc.name.slice();
-        props.unshift( obj );
-        express=[ props.join('.') ];
+        var isnew = desc.before==='new';
+        if (desc.before === 'new' || desc.before === 'delete' || desc.before === 'typeof')
+        {
+            desc.before+=' ';
+        }
 
-        if (desc.before)express.unshift(desc.before);
-        if (desc.after)express.push(desc.after);
-
-        if( desc.expression )
+        if( desc.expression || desc.accessor )
         {
             var param=[];
-            if( typeof desc.descriptor.value !== "undefined" )
+            if( !isnew && typeof desc.descriptor.value !== "undefined" )
             {
-                express.push('value');
-                express.push('call');
                 param.push( thisvrg );
+                props.push('value');
+                if( desc.accessor )
+                {
+                    if( value ){
+                        props.push('set');
+                        param.push( value );
+                    }else
+                    {
+                        props.push('get');
+                    }
+                }
+                props.push('call');
             }
-            express=[ express.join('.') ];
+            express=[ props.join('.') ];
             if( desc.param )param.push( desc.param );
+            if (desc.before)express.unshift(desc.before);
             express.push('(' + param.join(',') + ')');
+            if (desc.after)express.push(desc.after);
 
         }else
         {
+            express=[ props.join('.') ];
             if (operator) {
                 express.push(operator);
                 express.push(value);

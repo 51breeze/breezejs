@@ -29,33 +29,24 @@ package
         public var forEachCurrentItem;
         public var length;
 
-
           //var bb:String='123';
           function Main(jj, target )
           {
-              this.getProxyTarget = jj && 1 ?
-                  function () {
-                      return target.length > 0 ? target : [this];
-                  }:
-                  function () {
-                      return this.forEachCurrentItem ? [this.forEachCurrentItem] : ( this.length > 0 ? this : [this] );
-                  };
+              this.dd = 123;
+              this.dd;
 
-              var ii={
-                  name:{},
-                  age:1
-              };
-
-              var bb:Function=null;
-
-              bb();
-
-
-              var b,c='uuuu',d=6;
-              var name=null;
-             // super(jj);
-             /* console.log( B.classname );
-              console.log( this.names );*/
           }
+
+          public function get dd()
+          {
+              return this.length;
+          }
+
+          public function set dd( val )
+          {
+              this.length= val;
+          }
+
+
     }
 }

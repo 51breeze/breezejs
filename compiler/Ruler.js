@@ -843,12 +843,14 @@ syntax['function']= function(event){
     if( this.current.id !==')' ) this.error('Missing token )');
 
     var type='*';
+    var hasType=false;
 
     //返回类型
     if( this.next.id===':' )
     {
         this.seek();
         type = getTypeName.call(this);
+        hasType = true;
         var currentType = this.current;
         if( !checkStatementType(type, stack.scope() , this.config('globals') ) )
         {
@@ -874,6 +876,12 @@ syntax['function']= function(event){
 
         //构造函数的修饰符必须为公有的
         if( stack.qualifier() !== 'public' )this.error('can only is public qualifier of constructor function');
+    }
+
+    if( stack.accessor() === 'set' )
+    {
+        if( type !=='void' && hasType )this.error('setter cannot has return');
+        type= 'void';
     }
 
     stack.type('('+type+')');
