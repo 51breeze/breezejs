@@ -1288,7 +1288,7 @@ syntax['(delimiter)']=function( e )
             var fn = function (e) {
                 if (this.current.value === ';')this.error();
                 if (this.current.value === ',') {
-                    this.scope().switch();
+                    //this.scope().switch();
                     if (this.next.value !== '}')this.add( this.current );
                     e.prevented=true;
                     e.stopPropagation=true;
@@ -1324,19 +1324,22 @@ syntax['(delimiter)']=function( e )
             });
         }
 
+        if( this.scope().keyword() ==='expression' && isRightDelimiter(this.next.value) )
+        {
+            this.scope().switch();
+        }
+
         this.seek();
         this.add( this.current );
         if( this.current.value !== balance[id] )this.error('Missing token '+balance[id] );
-
-        if( s !== this.scope() )
-        console.log(  this.scope().content()[0].content() )
-
         s.switch();
 
         if( s.keyword()==='structure' )return true;
 
+        //console.log( this.scope().keyword() )
+
         // 如果下一个是运算符或者是一个定界符
-        if(  this.scope().type() ==='(Json)' && this.next.value===',' )
+        if( (this.scope().keyword() ==='object' || this.scope().keyword() ==='expression') && ( this.next.type==='(operator)' || isLeftDelimiter(this.next.value) ) )
         {
             this.step();
 
@@ -1347,9 +1350,6 @@ syntax['(delimiter)']=function( e )
             {
                 this.error('Unexpected identifiler '+ this.next.value, this.next);
             }
-
-            //console.log(s.content() )
-
             this.end();
         }
     }
@@ -1401,7 +1401,10 @@ syntax['(operator)']=function( e )
     }else if( id===':' )
     {
         this.scope().switch();
-        if( this.scope().keyword()==='ternary' && this.scope().length()===5 )this.scope().switch();
+        if( this.scope().keyword()==='ternary' && this.scope().length()===5 )
+        {
+            this.scope().switch();
+        }
         this.add( this.current );
         return this.step();
     }
@@ -1415,7 +1418,8 @@ syntax['(operator)']=function( e )
             var len = content.length;
             while( len > 0 )
             {
-                if( isMathAssignOperator( content[ --len ].value ) )
+                --len;
+                if( isMathAssignOperator( content[ len ].value ) )
                 {
                     index=len+1;
                     break;
@@ -1535,7 +1539,6 @@ function statement()
     //检查属性名是否可以声明
     if( !checkStatement(name, this.config('reserved') ) )
     {
-        console.log( this.scope() )
         this.error(reserved.indexOf( name )>0 ? 'Reserved keyword not is statemented for '+name : 'Invalid statement for '+name);
     }
 

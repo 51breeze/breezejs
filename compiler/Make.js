@@ -704,7 +704,7 @@ function getDescriptorOfExpression(it, classmodule)
 {
     var type;
     var desc;
-    var property = {name:[],descriptor:null,thisArg:null,expression:false,before:'',after:''};
+    var property = {name:[],descriptor:null,thisArg:'',expression:false,before:'',after:''};
 
     //是否有前置运算符
     if( isLeftOperator(it.current.value) )
@@ -768,25 +768,39 @@ function getDescriptorOfExpression(it, classmodule)
         if ( it.next instanceof Ruler.STACK )
         {
             it.seek();
+
+            var first = it.current.content()[0];
+            var last  = it.current.previous(-1);
+            if( first.value === '[' || first.value === '('  )
+            {
+                it.current.content().shift();
+            }
+            if( last.value === ']' || last.value === ')'  )
+            {
+                it.current.content().pop();
+            }
+
             var value = toString(it.current, classmodule);
-            property.name.push( value );
             if( it.current.type() === '(property)' )
             {
                 desc = null;
+                property.name.push( [value] );
                 property.descriptor = desc;
 
             }else if( it.current.type() === '(expression)' )
             {
                 property.expression = true;
+                property.param = value;
                 if( desc && desc.id === 'function')
                 {
                     if( typeof desc.value === "object" ) error('"' + it.prev.value + '" is not function', 'type', it.prev);
-                    property.push('value');
                 }
                 if( it.next )
                 {
                     if (type === 'void')error('"' + it.prev.value + '" no return value', 'reference', it.prev);
-                    property = {name:[],descriptor:null,thisArg:property};
+                    var before = property.before;
+                    property.before = '';
+                    property = {name:[],descriptor:null,thisArg:parse(property),expression:false,before:before,after:''};
                 }
 
             }else
@@ -836,7 +850,7 @@ function getDescriptorOfExpression(it, classmodule)
                 //获取/设置类模块的属性 （所有属性的值是通过对象的uid进行存储）
                 if( prevDesc.id==='class' && (desc.id==='var' || desc.id==='const') && !globals[ prevDesc.type ])
                 {
-                    property.name.join( prevDesc.uid );
+                    property.uid = prevDesc.uid;
                 }
 
                 //获取指定类型的模块
@@ -888,69 +902,90 @@ function parse( desc , value ,operator, returnValue )
     var express=[];
     if( desc instanceof Array )
     {
-        for (var i in desc )
+        for (var i in desc )if( desc[i] )
         {
             express.push( parse( desc[i] , value ,operator, returnValue ) );
         }
-        return express.join('')
+        return express.join('');
     }
 
     if ( typeof desc === "string")
     {
         express.push(desc);
-        if (operator) {
+        if (operator)
+        {
             express.push(operator);
             express.push(value);
         }
+        return express.join('');
+    }
 
-    }else
+    var prefix = '__call';
+    if( desc.name.length===0 )return desc.thisArg;
+    var thisvrg = desc.thisArg || desc.name[0];
+    var obj = desc.name.unshift();
+    var props = [];
+
+    if (desc.before === 'new' || desc.before === 'delete' || desc.before === 'typeof')
     {
-        var prefix = '__call';
+        prefix = '__' + desc.before;
+        desc.before = '';
+    }
 
-        if( !desc )
+    if ( !desc.descriptor )
+    {
+        if (desc.before)desc.name.unshift( desc.before );
+        if (desc.after)desc.name.push( desc.after );
+
+        for (var b in desc.name )
         {
-            return '';
+            if ( desc.name[b] instanceof Array ) {
+                props.push( desc.name[b][0] );
+            } else {
+                props.push('"' + desc.name[b] + '"');
+            }
         }
 
-        var thisvrg = desc.thisArg || desc.name[0];
-        if (!desc.descriptor) {
-            if (desc.before === 'new' || desc.before === 'delete' || desc.before === 'typeof') {
-                prefix = '__' + desc.before;
-                desc.before = '';
-            }
-            if (desc.before)desc.name.unshift(desc.before);
-            if (desc.after)desc.name.push(desc.after);
-
-            var prop = [thisvrg];
-            var obj = [desc.name.unshift()];
-            var call = '';
-            if (desc.called) {
-                call = desc.name.pop();
-                call = '[' + call.slice(1, -2) + ']';
-            }
-
-            for (var b in desc.name)
-            {
-                if (desc.name[b].charAt(0) === '[') {
-                    obj.push(desc.name[b]);
-                } else {
-                    obj.push('"' + desc.name[b] + '"');
-                }
-            }
-
-            prop.push('[' + obj.join(',') + ']')
-            if (call)prop.push('true');
-            express.push(prefix + '(' + prop.join(',') + ')');
-
-        } else
+        props.push( obj );
+        props=[ '[' + props.join(',') + ']' ];
+        props.unshift( thisvrg );
+        if ( desc.expression )
         {
-            if (typeof desc.name[1] === "number") {
-                desc.name[1] = '["' + desc.name[1] + '"]';
-                desc.name.unshift(desc.name.splice(0, 2).join(''));
+            props.push( desc.param ? '['+desc.param+']' : 'null' );
+            props.push('true');
+        }
+        express.push( prefix + '(' + props.join(',') + ')');
+
+    } else
+    {
+
+        obj += (desc.uid ? '["'+desc.uid+'"]' :'');
+        props = desc.name.slice();
+        props.unshift( obj );
+        express=[ props.join('.') ];
+
+        if (desc.before)express.unshift(desc.before);
+        if (desc.after)express.push(desc.after);
+
+        if( desc.expression )
+        {
+            var param=[];
+            if( typeof desc.descriptor.value !== "undefined" )
+            {
+                express.push('value');
+                express.push('call');
+                param.push( thisvrg );
             }
-            express.push(desc.name.join('.'))
-            if (desc.before)express.unshift(desc.before);
-            if (desc.after)express.push(desc.after);
+            express=[ express.join('.') ];
+            if( desc.param )param.push( desc.param );
+            express.push('(' + param.join(',') + ')');
+
+        }else
+        {
+            if (operator) {
+                express.push(operator);
+                express.push(value);
+            }
         }
     }
     return express.join('');
@@ -968,7 +1003,12 @@ function bunch(it, classmodule)
     while( it.next && isLeftAndRightOperator(it.next.value) )
     {
         it.seek();
-        express.push( it.current.value );
+        if( it.current.id==='(keyword)' )
+        {
+            express.push( ' '+it.current.value+' ' );
+        }else{
+            express.push( it.current.value );
+        }
         if ( !it.next )error('Missing expression', '', it.current);
         it.seek();
         express.push( getDescriptorOfExpression(it, classmodule) );
@@ -983,18 +1023,12 @@ function bunch(it, classmodule)
  */
 function expression( stack, classmodule )
 {
+    if( stack.content().length===0 )return '';
     var it = new Iteration( stack );
     var express = [];
+
     while ( it.seek() )
     {
-
-        if( it.current.value === ':')
-        {
-            //console.log( stack.keyword(), stack.content() )
-            //process.exit();
-        }
-
-        //获取属性的引用
         express.push( bunch(it, classmodule) );
         if( it.next && isMathAssignOperator(it.next.value) )
         {
@@ -1008,14 +1042,21 @@ function expression( stack, classmodule )
 
     var value = parse( express.pop() );
     var str=[];
-    var operator;
-    var returnValue=true;
-    while( express.length > 0 )
+    if( express.length === 0 )
     {
-        operator = express.pop();
-        value    = parse( express.pop() , value , operator, returnValue );
-        returnValue = true;
-        str.push( value );
+        str.push(value);
+
+    }else
+    {
+        var operator;
+        var returnValue = true;
+        while (express.length > 0)
+        {
+            operator = express.pop();
+            value = parse(express.pop(), value, operator, returnValue);
+            returnValue = true;
+            str.push(value);
+        }
     }
     return str.join('');
 }
