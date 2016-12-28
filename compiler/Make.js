@@ -704,7 +704,7 @@ function getDescriptorOfExpression(it, classmodule)
 {
     var type;
     var desc;
-    var property = {name:[],descriptor:null,thisArg:'',expression:false,before:'',after:''};
+    var property = {name:[],descriptor:null,thisArg:'',expression:false,before:'',after:'',"super":""};
 
     //是否有前置运算符
     if( isLeftOperator(it.current.value) )
@@ -749,7 +749,13 @@ function getDescriptorOfExpression(it, classmodule)
             }
 
             if (!desc)error('"' + it.current.value + '" is not defined.', '', it.current);
-            property.name.push(it.current.value);
+            if( it.current.value==='super' )
+            {
+                property.super = desc.type;
+            }else
+            {
+                property.name.push( it.current.value );
+            }
             property.descriptor = desc;
             type = desc.type;
             it.stack.type(type);
@@ -791,16 +797,17 @@ function getDescriptorOfExpression(it, classmodule)
             {
                 property.expression = true;
                 property.param = value;
-                if( desc && desc.id === 'function')
+                if( desc && (desc.id !== 'function' || typeof desc.value === "object" ) )
                 {
-                    if( typeof desc.value === "object" ) error('"' + it.prev.value + '" is not function', 'type', it.prev);
+                    error('"' + it.prev.value + '" is not function', 'type', it.prev);
                 }
-                if( it.next )
+
+                if( it.next && (it.next.value==='.' || (it.next instanceof Ruler.STACK && (it.next.type() === '(property)' || it.next.type() === '(expression)' ))))
                 {
                     if (type === 'void')error('"' + it.prev.value + '" no return value', 'reference', it.prev);
                     var before = property.before;
                     property.before = '';
-                    property = {name:[],descriptor:null,thisArg:parse(property),expression:false,before:before,after:''};
+                    property = {name:[],descriptor:null,thisArg:parse(property),expression:false,before:before,after:'',"super":""};
                 }
 
             }else
@@ -863,7 +870,8 @@ function getDescriptorOfExpression(it, classmodule)
                             thisArg: parse(property),
                             expression: false,
                             before: before,
-                            after: ''
+                            after: '',
+                            "super":""
                         };
                     }
                 }
@@ -942,7 +950,16 @@ function parse( desc , value ,operator, returnValue )
     var thisvrg = desc.thisArg || desc.name[0];
     var props = desc.name;
 
-    if ( !desc.descriptor )
+    if( desc.super )
+    {
+        thisvrg = 'this';
+        props.unshift( desc.super );
+        prefix='__super';
+
+        console.log( desc.super )
+    }
+
+    if ( !desc.descriptor || desc.super )
     {
         if (desc.before === 'new' || desc.before === 'delete' || desc.before === 'typeof')
         {

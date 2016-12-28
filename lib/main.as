@@ -21,32 +21,30 @@ package
 
     public class Main extends B {
 
-      //  static public var name:String = '3999 yyy fsss 666' ;
+       // static public var name:String = '3999 yyy fsss 666' ;
         public var names:String = '3' ;
         static public var name:Number = 5 ;
 
-        public var getProxyTarget:String = '3' ;
-        public var forEachCurrentItem;
-        public var length;
 
           //var bb:String='123';
-          function Main(jj, target )
+          function Main(jj)
           {
-              this.dd = 123;
-              this.dd;
 
+              var ii={
+                  name:{},
+                  age:1
+              };
+
+              var bb:Function=null;
+
+              bb();
+
+
+              var b,c='uuuu',d=6;
+              var name=null;
+              super(jj);
+              console.log( B.classname );
+              console.log( this.names );
           }
-
-          public function get dd()
-          {
-              return this.length;
-          }
-
-          public function set dd( val )
-          {
-              this.length= val;
-          }
-
-
     }
 }
