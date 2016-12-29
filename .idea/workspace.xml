@@ -4,8 +4,6 @@
     <list id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="" />
     <list default="true" id="18e6e159-e815-4edb-b007-a0795730b21e" name="New changelist" comment="1.1">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Make.js" afterPath="$PROJECT_DIR$/compiler/Make.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Main.as" afterPath="$PROJECT_DIR$/lib/Main.as" />
     </list>
     <ignored path="breezejs.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -34,21 +32,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Make.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Make.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/compiler/Make.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
+            <state vertical-scroll-proportion="0.5264977">
               <caret line="793" column="25" selection-start-line="793" selection-start-column="25" selection-end-line="793" selection-end-column="25" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Main-min.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Main-min.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.58064514">
-              <caret line="708" column="26" selection-start-line="708" selection-start-column="26" selection-end-line="708" selection-end-column="26" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="697" column="53" selection-start-line="697" selection-start-column="53" selection-end-line="697" selection-end-column="53" />
               <folding />
             </state>
           </provider>
@@ -210,9 +208,9 @@
         <option value="$PROJECT_DIR$/lib/com/B.as" />
         <option value="$PROJECT_DIR$/lib/lib/EventDispatcher.as" />
         <option value="$PROJECT_DIR$/compiler/Ruler.js" />
-        <option value="$PROJECT_DIR$/lib/Main-min.js" />
         <option value="$PROJECT_DIR$/lib/main.as" />
         <option value="$PROJECT_DIR$/compiler/Make.js" />
+        <option value="$PROJECT_DIR$/lib/Main-min.js" />
       </list>
     </option>
   </component>
@@ -483,12 +481,6 @@
       <workItem from="1482406931926" duration="15460000" />
       <workItem from="1482635126990" duration="37670000" />
       <workItem from="1482839820550" duration="8149000" />
-    </task>
-    <task id="LOCAL-00166" summary="Default">
-      <created>1476367402452</created>
-      <option name="number" value="00166" />
-      <option name="project" value="LOCAL" />
-      <updated>1476367402452</updated>
     </task>
     <task id="LOCAL-00167" summary="Default">
       <created>1476455781692</created>
@@ -778,7 +770,13 @@
       <option name="project" value="LOCAL" />
       <updated>1482920907688</updated>
     </task>
-    <option name="localTasksCounter" value="215" />
+    <task id="LOCAL-00215" summary="1.1">
+      <created>1483006973149</created>
+      <option name="number" value="00215" />
+      <option name="project" value="LOCAL" />
+      <updated>1483006973149</updated>
+    </task>
+    <option name="localTasksCounter" value="216" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -799,11 +797,12 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15438034" sideWeight="0.49360147" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.011034483" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32993197" sideWeight="0.5" order="16" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="false" weight="0.3189189" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3295129" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.40914157" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.8104794" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" x="855" y="120" width="886" height="727" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.8104794" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" x="855" y="120" width="886" height="727" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.20630373" sideWeight="0.50639856" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -815,7 +814,6 @@
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.0144605115" sideWeight="0.5" order="14" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32993197" sideWeight="0.5" order="16" side_tool="false" content_ui="tabs" />
       <window_info id="调试" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="15" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Command Line Tools Console" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.31940702" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -1208,18 +1206,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/Make.js">
+    <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="793" column="25" selection-start-line="793" selection-start-column="25" selection-end-line="793" selection-end-column="25" />
+          <caret line="697" column="53" selection-start-line="697" selection-start-column="53" selection-end-line="697" selection-end-column="53" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
+    <entry file="file://$PROJECT_DIR$/compiler/Make.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.58064514">
-          <caret line="708" column="26" selection-start-line="708" selection-start-column="26" selection-end-line="708" selection-end-column="26" />
+        <state vertical-scroll-proportion="0.5264977">
+          <caret line="793" column="25" selection-start-line="793" selection-start-column="25" selection-end-line="793" selection-end-column="25" />
           <folding />
         </state>
       </provider>
