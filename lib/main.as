@@ -45,6 +45,15 @@ package
               super(jj);
               console.log( B.classname );
               console.log( this.names );
+
+              this.dd;
+
+          }
+
+          public function get dd()
+          {
+              return '444';
           }
     }
+
 }

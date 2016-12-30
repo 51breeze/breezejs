@@ -729,6 +729,81 @@ function getDescriptorOfExpression(it, classmodule)
     return property;
 }
 
+function checkRunning( desc , value , operator )
+{
+    var method  ='';
+    var thisvrg = desc.thisArg || desc.name[0];
+    var props   = desc.name;
+    var express=[];
+
+    //关键字运算符
+    if( desc.before === 'new' || desc.before === 'delete' || desc.before === 'typeof' )
+    {
+        method = 'System.' + desc.before;
+        desc.before='';
+    }
+
+    //调用超类属性或者方法
+    if( desc.super )
+    {
+        thisvrg = 'this';
+        props.unshift( desc.super );
+        method='System.super';
+    }
+
+    //没有属性直接组合后返回
+    if( props.length===0 )
+    {
+        if( method )return method+'('+ desc.thisArg +')';
+        return desc.before+desc.thisArg+desc.after;
+    }
+
+    props = props.map(function (item, index) {
+        if (index===0 || item instanceof Array )return item;
+        return '"' + item + '"';
+    });
+
+    //逻辑取反运算符，可以放到最外面
+    var logicBool = '';
+    if( desc.before==='!' || desc.before==='!!' )
+    {
+        logicBool = desc.before;
+        desc.before='';
+    }
+
+    //前置运算符
+    if (desc.before)props.unshift( desc.before );
+
+    //后置运算符
+    if (desc.after)props.push( desc.after );
+
+    //对象引用的属性
+    props= props.length===1 ? [] : [ '[' + props.join(',') + ']' ];
+
+    //引用对象
+    if( !method || method==='System.super' || method==='System.typeof' )props.unshift( thisvrg );
+
+    //调用函数
+    if ( desc.expression )
+    {
+        if( desc.param ) {
+            if(props.length===1) props.push('null');
+            props.push('['+desc.param+']');
+        }
+        if( !method )method = 'System.call';
+
+    }else if( value )
+    {
+        props.push( value );
+        props.push( operator );
+    }
+
+    if( !method )method = 'System.prop';
+    if( logicBool )express.push( logicBool );
+    express.push( method + '(' + props.join(',') + ')');
+    return express.join('');
+}
+
 /**
  * 解析一个表达式
  * @param desc
@@ -757,141 +832,85 @@ function parse( desc , value ,operator, returnValue )
         return express.join('');
     }
 
-    var method  ='';
+    var check=!desc.descriptor || desc.super || (desc.expression && desc.descriptor.id !=='function' && desc.descriptor.id !=='class');
+
+    if( !check )
+    {
+        check = desc.before === 'new' || desc.before === 'delete' || desc.before === 'typeof';
+    }
+
+    if( check )
+    {
+        return checkRunning( desc , value ,operator, returnValue );
+    }
+
     var thisvrg = desc.thisArg || desc.name[0];
     var props   = desc.name;
+    var isnew = desc.before==='new';
 
     //关键字运算符
     if( desc.before === 'new' || desc.before === 'delete' || desc.before === 'typeof' )
     {
-        method = '__$' + desc.before;
-        desc.before='';
-    }
-
-    //调用超类属性或者方法
-    if( desc.super )
-    {
-        thisvrg = 'this';
-        props.unshift( desc.super );
-        method='__$super';
+        desc.before+=' ';
     }
 
     //没有属性直接组合后返回
-    if( props.length===0 )
+    if( props.length===0 )return desc.before+desc.thisArg+desc.after;
+
+    //引用变量
+    if( desc.uid )props.unshift( props.shift()+'["'+desc.uid +'"]' );
+
+    //调用函数
+    if( desc.expression || desc.accessor )
     {
-        if( method )return method+'('+ desc.thisArg +')';
-        return desc.before+desc.thisArg+desc.after;
-    }
+        var param=[];
 
-    //这里是在运行时检查引用的属性或者调用方法
-    if ( !desc.descriptor || desc.super || (desc.expression && desc.descriptor.id !=='function') )
-    {
-        props = props.map(function (item, index) {
-            if (index===0 || item instanceof Array )return item;
-            return '"' + item + '"';
-        });
-
-        //逻辑取反运算符，可以放到最外面
-        var logicBool = '';
-        if( desc.before==='!' || desc.before==='!!' )
+        //非全局类中的属性必须要指定引用的对象
+        if( !isnew && desc.descriptor && typeof desc.descriptor.value !== "undefined" )
         {
-            logicBool = desc.before;
-            desc.before='';
-        }
-
-        //前置运算符
-        if (desc.before)props.unshift( desc.before );
-
-        //后置运算符
-        if (desc.after)props.push( desc.after );
-
-        //对象引用的属性
-        props=[ '[' + props.join(',') + ']' ];
-
-        //引用对象
-        if( !method || method==='__$super' || method==='__$typeof' )props.unshift( thisvrg );
-
-        //调用函数
-        if ( desc.expression )
-        {
-            if( desc.param ) props.push('['+desc.param+']');
-            if( !method )method = '__$call';
-
-        }else if( value )
-        {
-             props.push( value );
-             props.push( operator );
-        }
-
-        if( !method )method = '__$prop';
-        if( logicBool )express.push( logicBool );
-        express.push( method + '(' + props.join(',') + ')');
-
-    }
-    //这里是直接引用
-    else
-    {
-        if( desc.uid )props.unshift( props.shift()+'["'+desc.uid +'"]' );
-
-        var isnew = desc.before==='new';
-        if (desc.before === 'new' || desc.before === 'delete' || desc.before === 'typeof')
-        {
-            desc.before+=' ';
-        }
-
-        //调用函数
-        if( desc.expression || desc.accessor )
-        {
-            var param=[];
-
-            //非全局类中的属性必须要指定引用的对象
-            if( !isnew && typeof desc.descriptor.value !== "undefined" )
+            props.push('value');
+            param.push( thisvrg );
+            if( desc.accessor )
             {
-                props.push('value');
-                param.push( thisvrg );
-                if( desc.accessor )
+                if( operator )
                 {
-                    if( operator )
-                    {
-                        props.push('set');
-                        param.push( value );
-                        param.push( operator );
+                    props.push('set');
+                    param.push( value );
+                    param.push( operator );
 
-                    }else
+                }else
+                {
+                    props.push('get');
+                    if( isIncreaseAndDecreaseOperator( desc.before ) )
                     {
-                        props.push('get');
-                        if( isIncreaseAndDecreaseOperator( desc.before ) )
-                        {
-                            param.push( '"'+desc.before+'"' );
-                            param.push( '"left"' );
+                        param.push( '"'+desc.before+'"' );
+                        param.push( '"left"' );
 
-                        }else if( isIncreaseAndDecreaseOperator( desc.after ) )
-                        {
-                            param.push( '"'+desc.after+'"' );
-                            param.push( '"right"' );
-                        }
+                    }else if( isIncreaseAndDecreaseOperator( desc.after ) )
+                    {
+                        param.push( '"'+desc.after+'"' );
+                        param.push( '"right"' );
                     }
                 }
-                props.push('call');
             }
-            express=[ props.join('.') ];
-            if( desc.param )param.push( desc.param );
-            if (desc.before)express.unshift(desc.before);
-            express.push('(' + param.join(',') + ')');
-            if (desc.after)express.push(desc.after);
+            props.push('call');
+        }
+        express=[ props.join('.') ];
+        if( desc.before )express.unshift( desc.before );
+        if( desc.param )param.push( desc.param );
+        express.push('(' + param.join(',') + ')');
 
+    }else
+    {
+        express=[ props.join('.') ];
+        if ( operator )
+        {
+            express.push(operator);
+            express.push(value);
         }else
         {
-            express=[ props.join('.') ];
-            if (operator)
-            {
-                express.push(operator);
-                express.push(value);
-            }else
-            {
-                if (desc.before)express.unshift(desc.before);
-                if (desc.after)express.push(desc.after);
-            }
+            if (desc.before)express.unshift(desc.before);
+            if (desc.after)express.push(desc.after);
         }
     }
     return express.join('');
@@ -1525,7 +1544,7 @@ function toValue( describe )
         }
         code.push('"'+p+'":{'+item.join(',')+'}');
     }
-    if( code.length===0 )return '';
+    if( code.length===0 )return '{}';
     return '{\n'+code.join(',\n')+'\n}';
 }
 
@@ -1582,59 +1601,36 @@ function start()
     syntaxDescribe.forEach(function(o){
 
         index++;
-        var full = getModuleName(o.package, o.classname );
-        defined[ full ]=true;
         var str= '(function(){\n';
+        var include=[];
         for (var i in o.import )
         {
-            var obj = module( o.import[i] ) || globals[ o.import[i] ];
-            if( typeof obj.uid === "number" )
+            var obj = module( o.import[i] );
+            if( obj )
             {
-                str += 'var ' + i + '=' + getMethods('System.define', ['"' + o.import[i]+'"'])+';\n';
-                if( defined[ o.import[i] ] !== true )
-                {
-                    var fn = 'function(module){'+i+'=module;}';
-                    str+='System.task.add("'+o.import[i]+'",'+fn+');\n';
-                }
+                str += 'var ' +i+';\n';
+                include.push(i+'=getDefinitionByName("'+o.import[i]+'");\n');
             }
         }
 
-        var classname = o.classname;
-        var _proto = toValue(o.proto);
-        var _static = toValue(o.static);
+        var callback = 'function(){'+include.join('')+'}';
         var descriptor = [];
-        descriptor.push('"constructor":'+classname+'');
+        descriptor.push('"factory":'+o.constructor.value);
         descriptor.push('"token":"'+o.uid+'"');
         descriptor.push('"extends":'+o.inherit);
-        descriptor.push('"classname":"'+classname+'"');
+        descriptor.push('"classname":"'+o.classname+'"');
         descriptor.push('"package":"'+o.package+'"');
         descriptor.push('"implements":['+o.implements.join(',')+']');
         descriptor.push('"final":'+!!o.isFinal);
         descriptor.push('"dynamic":'+!!o.isDynamic);
-        descriptor.push('"static":'+!!o.isStatic);
+        descriptor.push('"static":'+toValue(o.static));
+        descriptor.push('"proto":'+toValue(o.proto));
         descriptor = '{'+descriptor.join(',')+'}';
-        if( !_proto )_proto='{}';
-        if( !_static )_static='{}';
 
-        str+='var '+classname+'='+o.constructor.value+';\n';
-        str+='var __call=makeCall('+classname+');\n';
-
-        if( o.inherit )
-        {
-            str += 'Class.prototype ='+o.inherit+'.prototype;\n';
-            str += classname+'.prototype =new Class();\n';
-        }else
-        {
-            str += classname+'.prototype =new Class();\n';
-        }
-        str += classname+'.prototype.constructor ='+classname+';\n';
-        str += classname+'.prototype.properties ='+_proto+';\n';
-        str += classname+'.properties ='+_static+';\n';
-        str += classname+'.descriptor ='+descriptor+';\n';
-        str += 'return '+classname+';\n';
+        str+= 'var '+o.classname+'= new Class('+descriptor+','+callback+');\n';
         str+= '})()';
-        str = 'System.define("'+ full +'",'+str+')';
         code.push( str );
+
     });
 
     var mainfile = pathfile( config.main , config.suffix, config.lib );

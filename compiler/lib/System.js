@@ -206,9 +206,117 @@ s.Object = Object;
  * @returns {Class}
  * @constructor
  */
-function Class() {}
-Class.prototype.constructor = Class;
+function Class( descriptor )
+{
+    this.merge( descriptor );
+    if( typeof descriptor.factory === "function" )
+    {
+        descriptor.factory.prototype = new Object();
+        descriptor.factory.prototype.constructor = descriptor.factory;
+    }
+    packages[ descriptor.package ? descriptor.package+'.'+descriptor.classname : descriptor.classname ] = this;
+}
+Class.prototype                  = new Object();
+Class.prototype.constructor      = Class;
+Class.prototype.factory          = null;
+Class.prototype.extends          = null;
+Class.prototype.static           = null;
+Class.prototype.proto            = null;
+Class.prototype.token            = '';
+Class.prototype.classname        = '';
+Class.prototype.package          = '';
+Class.prototype.implements       = [];
+Class.prototype.final            = false;
+Class.prototype.dynamic          = false;
 s.Class = Class;
+
+/**
+ * 返回对象的字符串表示形式
+ * @param object
+ * @returns {*}
+ */
+s.typeof=function( object )
+{
+    if( object instanceof Class )return 'class';
+    return typeof object;
+}
+
+/**
+ * 检查实例对象是否属于指定的类型(不会检查接口类型)
+ * @param object
+ * @param theClass
+ * @returns {boolean}
+ */
+s.instanceof=function(object, theClass)
+{
+    if( typeof object !== "object" || !theClass )return false;
+    if( theClass instanceof Class )
+    {
+        while( object && object.factory )
+        {
+            if( object.factory === theClass )return true;
+            object=object.factory.extends;
+        }
+        return false;
+    }
+    if( typeof theClass !== "function" )return false;
+    return object instanceof theClass;
+}
+
+/**
+ * 检查实例对象是否属于指定的类型(检查接口类型)
+ * @param object
+ * @param theClass
+ * @returns {boolean}
+ */
+s.is=function(object, theClass)
+{
+    if( typeof object !== "object" || !theClass )return false;
+    if( theClass instanceof Class )
+    {
+        while( object && object.constructor )
+        {
+            if( object.constructor === theClass )return true;
+            if( object.implements && object.implements.length > 0 )
+            {
+                for (var b in object.implements)
+                {
+                    if( object.implements[b]===theClass ) return true;
+                }
+            }
+            object=object.constructor.extends;
+        }
+        return false;
+    }
+    if( typeof theClass !== "function" )return false;
+    return object instanceof theClass;
+}
+
+
+/**
+ * 为指定的类创建一个新的实例对象
+ * @param fn
+ * @param param
+ * @returns {nop}
+ */
+function nop(fn, param ) {fn.apply(this, param); return this;}
+s.new=function( theClass , param)
+{
+    var fn = theClass instanceof Class ? theClass.factory : theClass;
+    var obj;
+    if( typeof fn !== "function" )throw new TypeError('is not constructor');
+    if( !(param instanceof Array) )
+    {
+        obj = new fn( param );
+    }else
+    {
+        nop.prototype = fn.prototype;
+        obj = new nop(fn, param);
+        nop.prototype = null;
+    }
+    obj.constructor = theClass;
+    return obj;
+}
 
 /**
  * 根据指定的类名获取类的对象
@@ -391,6 +499,8 @@ function isEmpty(val , flag )
     return false;
 };
 s.isEmpty=isEmpty;
+
+
 s.define=function( name, module )
 {
     if( typeof module=== "undefined" )return packages[name];
