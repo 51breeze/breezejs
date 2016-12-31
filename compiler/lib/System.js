@@ -1,4 +1,6 @@
+(function(_Object,_String,_Array){
 var s={};
+var globals;
 var packages={};
 function getPrototypeOf(obj)
 {
@@ -19,21 +21,29 @@ function getPrototypeOf(obj)
  */
 function Object( value )
 {
-    if( !(this instanceof Object) )
-    {
-        return new Object( value );
-    }
     if( value )
     {
         var proto = getPrototypeOf(value);
         if ( proto && proto.constructor === Object )return value;
-        if ( this.constructor === Object && isObject(value,true) )this.merge(true,value);
     }
+    if( !(this instanceof Object) )return new Object( value );
+    if ( value && this.constructor === Object && isObject(value,true) )this.merge(true,value);
 }
 
 Object.prototype = new _Object();
-Object.prototype.isPrototypeOf = function( theClass )
+Object.prototype.constructor=Object;
+
+/**
+ * 指示 Object 类的实例是否在指定为参数的对象的原型链中
+ * @param theClass
+ * @returns {*|{type, id, param}}
+ */
+ Object.prototype.isPrototypeOf = function( theClass )
 {
+    if( theClass instanceof Object )
+    {
+       return s.instanceof( theClass, this.constructor );
+    }
     return _Object.isPrototypeOf.call(this, theClass);
 }
 
@@ -45,7 +55,13 @@ Object.prototype.isPrototypeOf = function( theClass )
  */
 Object.prototype.hasOwnProperty = function( name )
 {
-    return _Object.hasOwnProperty.call(this,name)
+    var obj = this.constructor instanceof Class ? this.constructor : this;
+    if( obj instanceof Class )
+    {
+        var desc = obj === this ? obj.static[name] : obj.proto[name];
+        return desc && desc.id !== "function";
+    }
+    return _Object.hasOwnProperty.call(obj,name)
 }
 
 /**
@@ -57,14 +73,14 @@ Object.prototype.hasOwnProperty = function( name )
  */
 Object.prototype.propertyIsEnumerable = function( name )
 {
-    var proto = getPrototypeOf(this);
-    if( proto.constructor !== Object )
+    var obj = this.constructor instanceof Class ? this.constructor : this;
+    if( obj instanceof Class )
     {
-       var desc = proto.constructor.prototype[ name ];
-       if( !desc || typeof desc.value === "function" )return false;
+       var desc = obj === this ? obj.static[name] : obj.proto[ name ];
+       if( !desc || desc.id === "function" )return false;
        return !!desc.enumerable;
     }
-    return _Object.propertyIsEnumerable.call(this,name);
+    return _Object.propertyIsEnumerable.call(obj,name);
 }
 
 /**
@@ -76,18 +92,18 @@ Object.prototype.propertyIsEnumerable = function( name )
  */
 Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
 {
-    var proto = getPrototypeOf(this);
-    if( proto.constructor !== Object )
+    var obj = this.constructor instanceof Class ? this.constructor : this;
+    if( obj instanceof Class )
     {
-       var proto = proto.constructor.prototype;
-       if( typeof proto[name] === 'object' && typeof proto[name].enumerable !== "undefined" )
+       var desc = obj === this ? obj.static[name] : obj.proto[ name ];
+       if( desc && typeof desc.enumerable !== "undefined" )
        {
-           proto[name].enumerable = isEnum !== false;
+           desc.enumerable = isEnum !== false;
        }
 
     }else
     {
-        _Object.defineProperty(this, name,{enumerable:isEnum !== false });
+        _Object.defineProperty(obj, name, {enumerable:isEnum !== false } );
     }
 }
 
@@ -202,23 +218,12 @@ s.Object = Object;
 
 /**
  * 类对象构造器
- * @param descriptor
  * @returns {Class}
  * @constructor
  */
-function Class( descriptor )
-{
-    this.merge( descriptor );
-    if( typeof descriptor.factory === "function" )
-    {
-        descriptor.factory.prototype = new Object();
-        descriptor.factory.prototype.constructor = descriptor.factory;
-    }
-    packages[ descriptor.package ? descriptor.package+'.'+descriptor.classname : descriptor.classname ] = this;
-}
+function Class(){}
 Class.prototype                  = new Object();
 Class.prototype.constructor      = Class;
-Class.prototype.factory          = null;
 Class.prototype.extends          = null;
 Class.prototype.static           = null;
 Class.prototype.proto            = null;
@@ -243,53 +248,51 @@ s.typeof=function( object )
 
 /**
  * 检查实例对象是否属于指定的类型(不会检查接口类型)
- * @param object
+ * @param instanceObj
  * @param theClass
  * @returns {boolean}
  */
-s.instanceof=function(object, theClass)
+s.instanceof=function(instanceObj, theClass)
 {
-    if( typeof object !== "object" || !theClass )return false;
-    if( theClass instanceof Class )
+    if( typeof instanceObj !== "object" || !theClass )return false;
+    if( theClass instanceof Class)
     {
-        while( object && object.factory )
+        while( instanceObj && instanceObj.constructor instanceof Class  )
         {
-            if( object.factory === theClass )return true;
-            object=object.factory.extends;
+            if( instanceObj.constructor === theClass )return true;
+            instanceObj=instanceObj.constructor.extends;
         }
-        return false;
     }
     if( typeof theClass !== "function" )return false;
-    return object instanceof theClass;
+    return instanceObj instanceof theClass;
 }
 
 /**
  * 检查实例对象是否属于指定的类型(检查接口类型)
- * @param object
+ * @param instanceObj
  * @param theClass
  * @returns {boolean}
  */
-s.is=function(object, theClass)
+s.is=function(instanceObj, theClass)
 {
-    if( typeof object !== "object" || !theClass )return false;
+    if( typeof instanceObj !== "object" || !theClass )return false;
     if( theClass instanceof Class )
     {
-        while( object && object.constructor )
+        while( instanceObj && instanceObj.constructor instanceof Class )
         {
-            if( object.constructor === theClass )return true;
-            if( object.implements && object.implements.length > 0 )
+            if( instanceObj.constructor === theClass )return true;
+            if( instanceObj.constructor.implements && instanceObj.constructor.implements.length > 0 )
             {
-                for (var b in object.implements)
+                for (var b in instanceObj.constructor.implements)
                 {
-                    if( object.implements[b]===theClass ) return true;
+                    if( instanceObj.constructor.implements[b] === theClass ) return true;
                 }
             }
-            object=object.constructor.extends;
+            instanceObj=instanceObj.constructor.extends;
         }
-        return false;
     }
     if( typeof theClass !== "function" )return false;
-    return object instanceof theClass;
+    return instanceObj instanceof theClass;
 }
 
 
@@ -299,22 +302,23 @@ s.is=function(object, theClass)
  * @param param
  * @returns {nop}
  */
-function nop(fn, param ) {fn.apply(this, param); return this;}
-s.new=function( theClass , param)
+function nop(){}
+s.new=function( theClass )
 {
-    var fn = theClass instanceof Class ? theClass.factory : theClass;
     var obj;
-    if( typeof fn !== "function" )throw new TypeError('is not constructor');
-    if( !(param instanceof Array) )
+    var constructor = theClass instanceof Class ? theClass.constructor : theClass;
+    if( typeof constructor !== "function" )throw new TypeError('is not constructor');
+    if( arguments.length < 2 )
     {
-        obj = new fn( param );
+        obj = new constructor( arguments[1] );
     }else
     {
-        nop.prototype = fn.prototype;
-        obj = new nop(fn, param);
-        nop.prototype = null;
+        obj = constructor.apply( new nop() , Array.prototype.slice.call(arguments, 1) );
     }
-    obj.constructor = theClass;
+    if( constructor !== theClass )
+    {
+        obj.constructor = theClass;
+    }
     return obj;
 }
 
@@ -499,23 +503,20 @@ function isEmpty(val , flag )
     return false;
 };
 s.isEmpty=isEmpty;
-
-
-s.define=function( name, module )
+s.define=function( name , descriptor )
 {
-    if( typeof module=== "undefined" )return packages[name];
-    packages[name] = module;
-}
-
-s.task = {
-    queues:{},
-    add:function (name, callback) {
-        s.task.queues[name] = callback;
-    },
-    execute:function () {
-        for(var i in s.task.queues )
+    if( typeof globals[ name ] === "function" )return globals[ name ];
+    var classModule = packages[ name ] instanceof Class ? packages[ name ] : ( packages[ name ] = new Class() );
+    if( typeof descriptor === "object" )
+    {
+        classModule.merge( descriptor );
+        if( typeof descriptor.constructor === "function" )
         {
-            s.task.queues[ i ]( packages[i] );
+            descriptor.constructor.prototype = new Object();
+            descriptor.constructor.prototype.constructor = classModule;
         }
     }
+    return classModule;
 }
+return s;
+})(Object,String,Array);

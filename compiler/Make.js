@@ -1404,7 +1404,6 @@ function loadModuleDescription( file )
     var data;
     var packagename = file.split('.').slice(0,-1).join('.');
 
-
     //缓存文件的路径
     var cachefile = pathfile( file.replace(/\./g,'_').toLowerCase(), 'json', config.cachePath );
     if( config.cache && fs.existsSync(cachefile) )
@@ -1597,25 +1596,16 @@ function start()
 
     var code=[];
     var index = 0;
-    var defined={};
     syntaxDescribe.forEach(function(o){
 
         index++;
         var str= '(function(){\n';
-        var include=[];
         for (var i in o.import )
         {
-            var obj = module( o.import[i] );
-            if( obj )
-            {
-                str += 'var ' +i+';\n';
-                include.push(i+'=getDefinitionByName("'+o.import[i]+'");\n');
-            }
+           str += 'var '+i+'=System.define("'+o.import[i]+'");\n';
         }
-
-        var callback = 'function(){'+include.join('')+'}';
         var descriptor = [];
-        descriptor.push('"factory":'+o.constructor.value);
+        descriptor.push('"constructor":'+o.constructor.value);
         descriptor.push('"token":"'+o.uid+'"');
         descriptor.push('"extends":'+o.inherit);
         descriptor.push('"classname":"'+o.classname+'"');
@@ -1626,8 +1616,7 @@ function start()
         descriptor.push('"static":'+toValue(o.static));
         descriptor.push('"proto":'+toValue(o.proto));
         descriptor = '{'+descriptor.join(',')+'}';
-
-        str+= 'var '+o.classname+'= new Class('+descriptor+','+callback+');\n';
+        str+= 'var '+o.classname+' = System.define("'+o.classname+'",'+descriptor+');\n';
         str+= '})()';
         code.push( str );
 
@@ -1650,9 +1639,7 @@ function start()
         '\n',
         code.join(';\n'),
         ';\n',
-        'System.task.execute();\n',
         'delete System.define;\n',
-        'delete System.task;\n',
         'var main='+getMethods('System.getDefinitionByName', ['"'+config.main+'"'] ),
         ';\n',
         'new main();\n',
