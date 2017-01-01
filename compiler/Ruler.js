@@ -843,14 +843,12 @@ syntax['function']= function(event){
     if( this.current.id !==')' ) this.error('Missing token )');
 
     var type='*';
-    var hasType=false;
 
     //返回类型
     if( this.next.id===':' )
     {
         this.seek();
         type = getTypeName.call(this);
-        hasType = true;
         var currentType = this.current;
         if( !checkStatementType(type, stack.scope() , this.config('globals') ) )
         {
@@ -877,13 +875,6 @@ syntax['function']= function(event){
         //构造函数的修饰符必须为公有的
         if( stack.qualifier() !== 'public' )this.error('can only is public qualifier of constructor function');
     }
-
-    if( stack.accessor() === 'set' )
-    {
-        if( type !=='void' && hasType )this.error('setter cannot has return');
-        type= 'void';
-    }
-
     stack.type('('+type+')');
 
     //定义到作用域中
@@ -1092,6 +1083,11 @@ syntax["return"]=function(event)
 
     if( isLeftDelimiter(this.next.value) || isIdentifier( this.next ) || isLeftOperator(this.next.value) )
     {
+        if( fn.accessor() === 'set' )
+        {
+            this.error('setter cannot has return');
+        }
+
         if( !fn )this.error('Unexpected identifier return');
         if( fn.type()==='(void)' )this.error('Do not return');
         this.step();
@@ -2602,7 +2598,7 @@ Ruler.prototype.seek=function( flag )
                 s = s.slice(1);
             }
             if (!s)return this.seek();
-            o = this.number(s) || this.keyword(s) || this.identifier(s) || this.operator(s) ;
+            o = this.operator(s) || this.number(s) || this.keyword(s) || this.identifier(s);
             if (!o)this.error('Unexpected Illegal ' + s);
             this.cursor += o.value.length;
         }

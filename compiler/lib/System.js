@@ -36,15 +36,16 @@ Object.prototype.constructor=Object;
 /**
  * 指示 Object 类的实例是否在指定为参数的对象的原型链中
  * @param theClass
- * @returns {*|{type, id, param}}
+ * @returns {Boolean}
  */
  Object.prototype.isPrototypeOf = function( theClass )
 {
-    if( theClass instanceof Object )
+    var obj = this.constructor instanceof Class ? this.constructor : this;
+    if( obj instanceof Class )
     {
-       return s.instanceof( theClass, this.constructor );
+       return s.instanceof( theClass,  obj );
     }
-    return _Object.isPrototypeOf.call(this, theClass);
+    return _Object.isPrototypeOf.call(obj, theClass );
 }
 
 /**
@@ -113,18 +114,12 @@ Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
  */
 Object.prototype.valueOf=function()
 {
-    var proto = getPrototypeOf(this);
-    if( proto.constructor !== Object )
+    var obj = this.constructor instanceof Class ? this.constructor : this;
+    if( obj instanceof Class )
     {
-        var str = proto.constructor.toString();
-        var end = str.indexOf('(');
-        str = str.substr(9, end-9 );
-        return '[class ' + str + ']';
-
-    }else
-    {
-        return _Object.prototype.valueOf.call( this );
+        return obj === this ? '[class Class]' : '[class '+ obj.classname+']';
     }
+    return _Object.prototype.valueOf.call( this );
 }
 
 /**
@@ -133,7 +128,12 @@ Object.prototype.valueOf=function()
  */
 Object.prototype.toString=function()
 {
-    return this.valueOf();
+    var obj = this.constructor instanceof Class ? this.constructor : this;
+    if( obj instanceof Class )
+    {
+        return obj === this ? '[class Class]' : '[class '+ obj.classname+']';
+    }
+    return  _Object.prototype.toString.call( this );
 }
 
 /**
@@ -223,7 +223,7 @@ s.Object = Object;
  */
 function Class(){}
 Class.prototype                  = new Object();
-Class.prototype.constructor      = Class;
+Class.prototype.constructor      = null;
 Class.prototype.extends          = null;
 Class.prototype.static           = null;
 Class.prototype.proto            = null;
@@ -255,7 +255,7 @@ s.typeof=function( object )
 s.instanceof=function(instanceObj, theClass)
 {
     if( typeof instanceObj !== "object" || !theClass )return false;
-    if( theClass instanceof Class)
+    if( theClass instanceof Class )
     {
         while( instanceObj && instanceObj.constructor instanceof Class  )
         {
@@ -302,7 +302,6 @@ s.is=function(instanceObj, theClass)
  * @param param
  * @returns {nop}
  */
-function nop(){}
 s.new=function( theClass )
 {
     var obj;
@@ -313,7 +312,7 @@ s.new=function( theClass )
         obj = new constructor( arguments[1] );
     }else
     {
-        obj = constructor.apply( new nop() , Array.prototype.slice.call(arguments, 1) );
+        obj = constructor.apply( new Object() , Array.prototype.slice.call(arguments, 1) );
     }
     if( constructor !== theClass )
     {
@@ -376,11 +375,11 @@ function getQualifiedSuperclassName(value)
     if (classname)
     {
         var classModule = getDefinitionByName( classname );
-        var parentModule = classModule.descriptor.extends;
+        var parentModule = classModule.extends;
         if ( parentModule )
         {
-            var classname = parentModule.descriptor.classname;
-            return parentModule.descriptor.package ? parentModule.descriptor.package +'.'+ classname : classname;
+            var classname = parentModule.classname;
+            return parentModule.package ? parentModule.package +'.'+ classname : classname;
         }
     }
     return null;
@@ -509,11 +508,14 @@ s.define=function( name , descriptor )
     var classModule = packages[ name ] instanceof Class ? packages[ name ] : ( packages[ name ] = new Class() );
     if( typeof descriptor === "object" )
     {
+        if( !descriptor.extends )descriptor.extends=Object;
         classModule.merge( descriptor );
         if( typeof descriptor.constructor === "function" )
         {
-            descriptor.constructor.prototype = new Object();
-            descriptor.constructor.prototype.constructor = classModule;
+            descriptor.constructor.prototype= new Object();
+
+            //开放原型继承
+            classModule.prototype = descriptor.constructor.prototype;
         }
     }
     return classModule;

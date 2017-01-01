@@ -39,12 +39,14 @@ package
 
               bb();
 
+            ii.name.age =  this.names && bb ;
+
 
               var b,c='uuuu',d=6;
               var name=null;
-              super(jj);
+              super.cre(jj);
               console.log( B.classname );
-              console.log( this.names );
+              console['log']( this.names );
           }
     }
 }

@@ -518,7 +518,7 @@ function getDescriptorOfExpression(it, classmodule)
 {
     var type;
     var desc;
-    var property = {name:[],descriptor:null,thisArg:'',expression:false,before:'',after:'',"super":""};
+    var property = {name:[],descriptor:null,thisArg:'',expression:false,before:'',after:'',"super":null,runningCheck:false};
 
     //是否有前置运算符
     if( isLeftOperator(it.current.value) )
@@ -526,7 +526,6 @@ function getDescriptorOfExpression(it, classmodule)
         property.before =  it.current.value;
         it.seek();
     }
-
 
     //是否为一个表达式或者对象
     if( it.current instanceof Ruler.STACK  )
@@ -589,7 +588,6 @@ function getDescriptorOfExpression(it, classmodule)
         if ( it.next instanceof Ruler.STACK )
         {
             it.seek();
-
             var first = it.current.content()[0];
             var last  = it.current.previous(-1);
             if( first.value === '[' || first.value === '('  )
@@ -607,11 +605,17 @@ function getDescriptorOfExpression(it, classmodule)
                 desc = null;
                 property.name.push( [value] );
                 property.descriptor = desc;
+                property.runningCheck=true;
 
             }else if( it.current.type() === '(expression)' )
             {
                 property.expression = true;
                 property.param = value;
+                if( !desc || desc.id !== 'function' )
+                {
+                    property.runningCheck=true;
+                }
+
                 if( desc && desc.id === 'function' && typeof desc.value === "object" )
                 {
                     error('"' + it.prev.value + '" is not function', 'type', it.prev);
@@ -622,7 +626,7 @@ function getDescriptorOfExpression(it, classmodule)
                     if (type === 'void')error('"' + it.prev.value + '" no return value', 'reference', it.prev);
                     var before = property.before;
                     property.before = '';
-                    property = {name:[],descriptor:null,thisArg:parse(property),expression:false,before:before,after:'',"super":""};
+                    property = {name:[],descriptor:null,thisArg:parse(property),expression:false,before:before,after:'',"super":null,runningCheck:false};
                 }
 
             }else
@@ -686,7 +690,8 @@ function getDescriptorOfExpression(it, classmodule)
                             expression: false,
                             before: before,
                             after: '',
-                            "super":""
+                            "super":null,
+                            runningCheck:false
                         };
                     }
                 }
@@ -698,14 +703,16 @@ function getDescriptorOfExpression(it, classmodule)
                     isstatic = type === 'Class' ? true : false;
                     desc = module( getImportClassByType(classmodule, type) );
 
-                }else
+                }else if( it.next && it.next.value==='.' )
                 {
                     desc=null;
+                    property.runningCheck=true;
                 }
 
             }else
             {
                 property.descriptor = desc;
+                if( !desc )property.runningCheck=true;
             }
 
         }else
@@ -748,14 +755,13 @@ function checkRunning( desc , value , operator )
     {
         thisvrg = 'this';
         props.unshift( desc.super );
-        method='System.super';
     }
 
     //没有属性直接组合后返回
     if( props.length===0 )
     {
-        if( method )return method+'('+ desc.thisArg +')';
-        return desc.before+desc.thisArg+desc.after;
+        if( method )return method+'('+ thisvrg +')';
+        return desc.before+thisvrg+desc.after;
     }
 
     props = props.map(function (item, index) {
@@ -771,34 +777,35 @@ function checkRunning( desc , value , operator )
         desc.before='';
     }
 
+    //如果引用对象和属性对象不完全相同就删除
+    if( thisvrg === props[0]  )props.shift();
+
+    //对象引用的属性
+    if( props.length > 0 )
+    {
+        props = props.length === 1 ? [props[0]] : ['[' + props.join(',') + ']'];
+    }
+    props.unshift( thisvrg );
+
     //前置运算符
     if (desc.before)props.unshift( desc.before );
 
     //后置运算符
     if (desc.after)props.push( desc.after );
 
-    //对象引用的属性
-    props= props.length===1 ? [] : [ '[' + props.join(',') + ']' ];
-
-    //引用对象
-    if( !method || method==='System.super' || method==='System.typeof' )props.unshift( thisvrg );
-
     //调用函数
     if ( desc.expression )
     {
-        if( desc.param ) {
-            if(props.length===1) props.push('null');
-            props.push('['+desc.param+']');
-        }
-        if( !method )method = 'System.call';
+        if( desc.param )props.push('['+desc.param+']');
+        if( !method )method = '__call__';
 
     }else if( value )
     {
         props.push( value );
-        props.push( operator );
+        if( operator !=='=' )props.push( '"'+operator+'"' );
     }
 
-    if( !method )method = 'System.prop';
+    if( !method )method = '__prop__';
     if( logicBool )express.push( logicBool );
     express.push( method + '(' + props.join(',') + ')');
     return express.join('');
@@ -832,12 +839,17 @@ function parse( desc , value ,operator, returnValue )
         return express.join('');
     }
 
-    var check=!desc.descriptor || desc.super || (desc.expression && desc.descriptor.id !=='function' && desc.descriptor.id !=='class');
-
+    var check = !desc.descriptor || desc.super || ( desc.expression && desc.descriptor.id !=='function' && desc.descriptor.id !=='class');
     if( !check )
     {
         check = desc.before === 'new' || desc.before === 'delete' || desc.before === 'typeof';
     }
+    if( !check && ( desc.expression && ( !desc.descriptor || desc.descriptor.id !=='function' ) ) )
+    {
+        check=true;
+    }
+
+    if( desc.name.length > 1 )check = true;
 
     if( check )
     {
@@ -925,18 +937,22 @@ function parse( desc , value ,operator, returnValue )
 function bunch(it, classmodule)
 {
     var express = [ getDescriptorOfExpression(it, classmodule) ];
+    var operator;
     while( it.next && isLeftAndRightOperator(it.next.value) )
     {
         it.seek();
-        if( it.current.id==='(keyword)' )
-        {
-            express.push( ' '+it.current.value+' ' );
-        }else{
-            express.push( it.current.value );
-        }
+        operator = it.current.value;
         if ( !it.next )error('Missing expression', '', it.current);
         it.seek();
-        express.push( getDescriptorOfExpression(it, classmodule) );
+        if( operator === 'instanceof'  )
+        {
+            express.push('System.instanceof('+parse( express.pop() )+','+ parse( getDescriptorOfExpression(it, classmodule) )+')');
+
+        }else
+        {
+            express.push( operator );
+            express.push( getDescriptorOfExpression(it, classmodule) );
+        }
     }
     return express;
 }
@@ -1600,10 +1616,18 @@ function start()
 
         index++;
         var str= '(function(){\n';
-        for (var i in o.import )
+        for (var i in o.import )if( i !== o.inherit )
         {
            str += 'var '+i+'=System.define("'+o.import[i]+'");\n';
         }
+        if( o.inherit )
+        {
+            str += 'var ' + o.inherit + '=System.getDefinitionByName("' + getImportClassByType(o, o.inherit ) + '");\n';
+        }
+        str+= 'var '+o.classname+' = System.define("'+o.classname+'");\n';
+        str+= 'var __call__= System.makeCall('+o.classname+');\n';
+        str+= 'var __prop__= System.makeCall('+o.classname+');\n';
+
         var descriptor = [];
         descriptor.push('"constructor":'+o.constructor.value);
         descriptor.push('"token":"'+o.uid+'"');
@@ -1616,7 +1640,7 @@ function start()
         descriptor.push('"static":'+toValue(o.static));
         descriptor.push('"proto":'+toValue(o.proto));
         descriptor = '{'+descriptor.join(',')+'}';
-        str+= 'var '+o.classname+' = System.define("'+o.classname+'",'+descriptor+');\n';
+        str+= 'System.define("'+o.classname+'",'+descriptor+');\n';
         str+= '})()';
         code.push( str );
 
@@ -1629,10 +1653,7 @@ function start()
 
     fs.writeFileSync(  filename,[
         '(function(){\n',
-        'var System = (function(_Object,_String,_Array){\n',
-        'var globals={};\n',
-         system,
-        '})(Object,String,Array);\n',
+        'var System = '+system,
         '\n',
         '(function(Object, Class){\n',
         utils,
@@ -1709,5 +1730,4 @@ if( !config.main )
     console.log('main file can not is empty');
     process.exit();
 }
-
 start();
