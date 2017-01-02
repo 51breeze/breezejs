@@ -25,27 +25,9 @@ package
         public var names:String = '3' ;
         static public var name:Number = 5 ;
 
-
           //var bb:String='123';
           function Main(jj)
           {
-
-              var ii={
-                  name:{},
-                  age:1
-              };
-
-              var bb:Function=null;
-
-              bb();
-
-            ii.name.age =  this.names && bb ;
-
-
-              var b,c='uuuu',d=6;
-              var name=null;
-              super.cre(jj);
-              console.log( B.classname );
               console['log']( this.names );
           }
     }

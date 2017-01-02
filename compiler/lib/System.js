@@ -1,6 +1,6 @@
 (function(_Object,_String,_Array){
 var s={};
-var globals;
+var globals={};
 var packages={};
 function getPrototypeOf(obj)
 {
@@ -235,6 +235,14 @@ Class.prototype.final            = false;
 Class.prototype.dynamic          = false;
 s.Class = Class;
 
+globals.Object = Object;
+globals.Class = Class;
+globals.String = String;
+globals.Array = Array;
+globals.Number = Number;
+globals.RegExp = RegExp;
+globals.Boolean = Boolean;
+
 /**
  * 返回对象的字符串表示形式
  * @param object
@@ -302,17 +310,19 @@ s.is=function(instanceObj, theClass)
  * @param param
  * @returns {nop}
  */
+function Nop(){}
 s.new=function( theClass )
 {
     var obj;
     var constructor = theClass instanceof Class ? theClass.constructor : theClass;
     if( typeof constructor !== "function" )throw new TypeError('is not constructor');
-    if( arguments.length < 2 )
+    if( arguments.length <= 2 )
     {
         obj = new constructor( arguments[1] );
     }else
     {
-        obj = constructor.apply( new Object() , Array.prototype.slice.call(arguments, 1) );
+        Nop.prototype = constructor.prototype;
+        obj = constructor.apply( new Nop() , Array.prototype.slice.call(arguments, 1) );
     }
     if( constructor !== theClass )
     {
@@ -508,12 +518,21 @@ s.define=function( name , descriptor )
     var classModule = packages[ name ] instanceof Class ? packages[ name ] : ( packages[ name ] = new Class() );
     if( typeof descriptor === "object" )
     {
-        if( !descriptor.extends )descriptor.extends=Object;
+        //classModule.__descriptor__ = descriptor;
         classModule.merge( descriptor );
+
         if( typeof descriptor.constructor === "function" )
         {
-            descriptor.constructor.prototype= new Object();
-
+            /*if( descriptor.extends instanceof Class )
+            {
+                Nop.prototype=descriptor.extends.constructor.prototype;
+                descriptor.constructor.prototype= new Nop();
+            }else
+            {*/
+                descriptor.constructor.prototype= new Object();
+            //}
+            //Object.prototype.merge(descriptor.constructor.prototype, descriptor.proto);
+            descriptor.constructor.prototype.constructor = classModule;
             //开放原型继承
             classModule.prototype = descriptor.constructor.prototype;
         }

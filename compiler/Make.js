@@ -197,12 +197,12 @@ function createFunction( stack,module )
                 if( is )
                 {
                     //运行时检查实例对象是否属于本类
-                    content.push( 'if( !(this instanceof '+stack.name()+') )throw new SyntaxError("Please use the new operation to build instances.");\n' );
+                   // content.push( 'if( !(this instanceof '+stack.name()+') )throw new SyntaxError("Please use the new operation to build instances.");\n' );
 
                     //如果没有调用超类，则调用超类的构造函数
                     if( stack.parent().extends() && !stack.called )
                     {
-                        content.push( stack.parent().extends() + '.call(this);\n');
+                        content.push( stack.parent().extends() + '.constructor.call(this);\n');
                     }
 
                     //类中的私有属性
@@ -518,12 +518,13 @@ function getDescriptorOfExpression(it, classmodule)
 {
     var type;
     var desc;
-    var property = {name:[],descriptor:null,thisArg:'',expression:false,before:'',after:'',"super":null,runningCheck:false};
+    var property = {name:[],descriptor:null,thisArg:'',expression:false,before:'',after:'',"super":null,runningCheck:false, lastStack:null };
 
     //是否有前置运算符
     if( isLeftOperator(it.current.value) )
     {
         property.before =  it.current.value;
+        property.lastStack = it.current;
         it.seek();
     }
 
@@ -571,6 +572,7 @@ function getDescriptorOfExpression(it, classmodule)
                 property.name.push( it.current.value );
             }
             property.descriptor = desc;
+            property.lastStack = it.current;
             type = desc.type;
             it.stack.type(type);
 
@@ -599,6 +601,12 @@ function getDescriptorOfExpression(it, classmodule)
                 it.current.content().pop();
             }
 
+            property.lastStack = it.current.content().length > 0 ? it.current.previous() : last;
+            if( property.lastStack instanceof Ruler.STACK )
+            {
+                property.lastStack = property.lastStack.previous();
+            }
+
             var value = toString(it.current, classmodule);
             if( it.current.type() === '(property)' )
             {
@@ -616,9 +624,14 @@ function getDescriptorOfExpression(it, classmodule)
                     property.runningCheck=true;
                 }
 
+                if( !(it.prev instanceof Ruler.STACK) )
+                {
+                    property.lastStack = it.prev;
+                }
+
                 if( desc && desc.id === 'function' && typeof desc.value === "object" )
                 {
-                    error('"' + it.prev.value + '" is not function', 'type', it.prev);
+                    error('"' + property.lastStack.value + '" is not function', 'type', property.lastStack );
                 }
 
                 if( it.next && (it.next.value==='.' || (it.next instanceof Ruler.STACK && (it.next.type() === '(property)' || it.next.type() === '(expression)' ))))
@@ -626,7 +639,7 @@ function getDescriptorOfExpression(it, classmodule)
                     if (type === 'void')error('"' + it.prev.value + '" no return value', 'reference', it.prev);
                     var before = property.before;
                     property.before = '';
-                    property = {name:[],descriptor:null,thisArg:parse(property),expression:false,before:before,after:'',"super":null,runningCheck:false};
+                    property = {name:[],descriptor:null,thisArg:parse(property),expression:false,before:before,after:'',"super":null,runningCheck:false,lastStack:property.lastStack};
                 }
 
             }else
@@ -642,7 +655,7 @@ function getDescriptorOfExpression(it, classmodule)
         {
             it.seek();
             property.name.push( it.current.value );
-
+            property.lastStack = it.current;
             if ( desc && desc.type !=='*' )
             {
                 var prevDesc = desc;
@@ -691,7 +704,8 @@ function getDescriptorOfExpression(it, classmodule)
                             before: before,
                             after: '',
                             "super":null,
-                            runningCheck:false
+                            runningCheck:false,
+                            lastStack:property.lastStack
                         };
                     }
                 }
@@ -726,6 +740,7 @@ function getDescriptorOfExpression(it, classmodule)
     {
         it.seek();
         property.after = it.current.value;
+        property.lastStack = it.current;
     }
 
     //前后增减运算符只能是一个引用
@@ -780,12 +795,7 @@ function checkRunning( desc , value , operator )
     //如果引用对象和属性对象不完全相同就删除
     if( thisvrg === props[0]  )props.shift();
 
-    //对象引用的属性
-    if( props.length > 0 )
-    {
-        props = props.length === 1 ? [props[0]] : ['[' + props.join(',') + ']'];
-    }
-    props.unshift( thisvrg );
+    if( operator && operator !=='=' )props.push( '"'+operator+'"' );
 
     //前置运算符
     if (desc.before)props.unshift( desc.before );
@@ -793,16 +803,28 @@ function checkRunning( desc , value , operator )
     //后置运算符
     if (desc.after)props.push( desc.after );
 
+    //对象引用的属性
+    if( props.length > 0 )
+    {
+        props = props.length === 1 ? [ props[0] ] : ['[' + props.join(',') + ']'];
+    }
+    props.unshift( thisvrg );
+
     //调用函数
     if ( desc.expression )
     {
         if( desc.param )props.push('['+desc.param+']');
         if( !method )method = '__call__';
 
-    }else if( value )
+    }else
     {
+        if(!value)value='undefined';
         props.push( value );
-        if( operator !=='=' )props.push( '"'+operator+'"' );
+    }
+
+    if( desc.lastStack )
+    {
+        props.push( '"'+desc.lastStack.line+':'+desc.lastStack.cursor+'"' );
     }
 
     if( !method )method = '__prop__';
@@ -1522,7 +1544,7 @@ function getMethods(name,param)
  * @param flag
  * @returns {string}
  */
-function toValue( describe )
+function toValue( describe, uid )
 {
     var code=[];
     var properties=[];
@@ -1530,12 +1552,12 @@ function toValue( describe )
     for( var p in describe )
     {
        // if( describe[p].inherit )continue;
-        if( (describe[p].id==='var' || describe[p].id==='const') )
+        var item = [];
+        if( uid && (describe[p].id==='var' || describe[p].id==='const') )
         {
-            //properties.push('"'+p+'":'+describe[p].value);
+            item.push('"token":'+uid );
         };
 
-        var item = [];
         item.push( '"id":"'+ describe[p].id+'"' );
         item.push( '"qualifier":"'+ describe[p].privilege+'"' );
 
@@ -1543,7 +1565,13 @@ function toValue( describe )
         {
             item.push( '"type":"'+ describe[p].type+'"' );
         }else{
-            item.push( '"type":'+ describe[p].type );
+
+            if( describe[p].type.indexOf('.') > 0  )
+            {
+                item.push( '"type":System.define("'+ describe[p].type+'")' );
+            }else {
+                item.push('"type":' + describe[p].type);
+            }
         }
 
         if( typeof describe[p].value === "object" )
@@ -1615,7 +1643,7 @@ function start()
     syntaxDescribe.forEach(function(o){
 
         index++;
-        var str= '(function(){\n';
+        var str= '(function(call){\n';
         for (var i in o.import )if( i !== o.inherit )
         {
            str += 'var '+i+'=System.define("'+o.import[i]+'");\n';
@@ -1624,10 +1652,11 @@ function start()
         {
             str += 'var ' + o.inherit + '=System.getDefinitionByName("' + getImportClassByType(o, o.inherit ) + '");\n';
         }
-        str+= 'var '+o.classname+' = System.define("'+o.classname+'");\n';
-        str+= 'var __call__= System.makeCall('+o.classname+');\n';
-        str+= 'var __prop__= System.makeCall('+o.classname+');\n';
 
+        var full = getModuleName(o.package, o.classname );
+        str+= 'var '+o.classname+' = System.define("'+full+'");\n';
+        str+= 'var __prop__= (function(){ return function(a,b,c,d){ try{return call('+o.classname+', a, b, c, false);}catch(e){throwError("reference",d,e,'+o.classname+');}}})();\n';
+        str+= 'var __call__= (function(){ return function(a,b,c,d){ try{return call('+o.classname+', a, b, c, true);}catch(e){throwError("reference",d,e,'+o.classname+');}}})();\n';
         var descriptor = [];
         descriptor.push('"constructor":'+o.constructor.value);
         descriptor.push('"token":"'+o.uid+'"');
@@ -1637,11 +1666,12 @@ function start()
         descriptor.push('"implements":['+o.implements.join(',')+']');
         descriptor.push('"final":'+!!o.isFinal);
         descriptor.push('"dynamic":'+!!o.isDynamic);
-        descriptor.push('"static":'+toValue(o.static));
-        descriptor.push('"proto":'+toValue(o.proto));
+        descriptor.push('"filename":"'+o.filename+'"');
+        descriptor.push('"static":'+toValue(o.static ));
+        descriptor.push('"proto":'+toValue(o.proto, o.uid ));
         descriptor = '{'+descriptor.join(',')+'}';
-        str+= 'System.define("'+o.classname+'",'+descriptor+');\n';
-        str+= '})()';
+        str+= 'System.define("'+full+'",'+descriptor+');\n';
+        str+= '})(__call__)';
         code.push( str );
 
     });
@@ -1663,7 +1693,7 @@ function start()
         'delete System.define;\n',
         'var main='+getMethods('System.getDefinitionByName', ['"'+config.main+'"'] ),
         ';\n',
-        'new main();\n',
+        'System.new(main);\n',
         '})(System.Object, System.Class );\n',
         '})();'].join('') );
 
