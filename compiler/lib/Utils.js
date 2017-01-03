@@ -196,7 +196,7 @@ function __call__( classModule, thisArg, properties, args, iscall)
             //获取实例引用
             while (i < properties.length && refObj )
             {
-                refObj = thisArg = makeCall( classModule, refObj, properties[i++], undefined , false);
+                refObj = thisArg = __call__( classModule, refObj, properties[i++], undefined , false);
                 if( !refObj )throwError('reference', '"'+strName+( refObj===null ? '" property of null' : '" is not defined') );
             }
         }

@@ -22,19 +22,11 @@ package com
 
     public class D {
 
-         public var name:String = '3' ;
-         protected const age:String = '3' ;
-
          function D(jj:String='123')
           {
 
               var cc:Number=66;
-              this.name = '9999';
-         }
 
-         public function createName():D
-         {
-             return this;
          }
 
         protected function get address():String
@@ -50,18 +42,6 @@ package com
              return 'the fun createname';
          }
 
-        private var _names:String='999';
-
-        public function set names(bbs:String):void
-        {
-            console.log('set names = ', bbs );
-            this._names=bbs;
-        }
-        public function get names():String
-        {
-            console.log('get names ' );
-            return this._names;
-        }
     }
 
 }

@@ -1289,7 +1289,7 @@ function makeModule( stack )
             //是静态成员还是动态成功
             var ref =  item.static() || isstatic ? classModule.static : classModule.proto;
 
-            //如果有继承检查扩展的方法属性，方法是否存在冲突
+            //如果有继承检查扩展的方法属性
             var info;
             if( classModule.inherit && item.qualifier() !== 'private' )
             {
@@ -1313,12 +1313,12 @@ function makeModule( stack )
                 //父类中必须存在才能覆盖
                 if( item.override() && !info )
                 {
-                    error('Must cover function of the parent. for "'+item.name()+'"','', item.content()[0] );
+                    error('Must cover function of the parent. for "'+item.name()+'"','', getStack(item) );
                 }
                 //扩展父类中方法必须指定override关键字
                 else if( !item.override() && info )
                 {
-                    error('Missing override for "'+item.name()+'"','', item.content()[0] );
+                    error('Missing override for "'+item.name()+'"','', getStack(item) );
                 }
 
                 //去掉名称
@@ -1342,7 +1342,7 @@ function makeModule( stack )
                 //属性不能指定override关键字
                 if( item.override() )
                 {
-                    error('the override only cover function of the parent','', item.content()[0] );
+                    error('the override only cover function of the parent','', getStack(item) );
                 }
 
                 item.content().shift();
@@ -1365,7 +1365,7 @@ function makeModule( stack )
             //此属性或者方法与父中的成员不兼容的
             if( info && info.qualifier !== item.qualifier() )
             {
-                error('Incompatible override for "'+item.name()+'"','', item.content()[0] );
+                error('Incompatible override for "'+item.name()+'"','', getStack(item) );
             }
 
             var desc =  ref[ item.name() ];
@@ -1385,6 +1385,15 @@ function makeModule( stack )
     props = props.length > 0 ? 'this["'+classModule.uid+'"]={'+props.join(',')+'};\n' : '';
     classModule.constructor.value=classModule.constructor.value.replace('####{props}####', props );
     return classModule;
+}
+
+function getStack( stack )
+{
+    if( stack instanceof Ruler.STACK )
+    {
+        return getStack( stack.previous() )
+    }
+    return stack;
 }
 
     
