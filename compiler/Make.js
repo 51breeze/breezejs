@@ -1223,9 +1223,9 @@ function chackOverride( item, parent , internal )
     else if( item.override() )
     {
         if( item.accessor() ){
-            error('the "'+item.name()+'" '+item.accessor()+'ter does exists in super class','', item.content()[0] );
+            error('the "'+item.name()+'" '+item.accessor()+'ter does exists in parent class','', item.content()[0] );
         }else{
-            error('the "'+item.name()+'" method does exists in super class','', item.content()[0] );
+            error('the "'+item.name()+'" method does exists in parent class','', item.content()[0] );
         }
     }
 }
@@ -1289,22 +1289,40 @@ function makeModule( stack )
             //是静态成员还是动态成功
             var ref =  item.static() || isstatic ? classModule.static : classModule.proto;
 
+            //如果有继承检查扩展的方法属性，方法是否存在冲突
+            var info;
+            if( classModule.inherit && item.qualifier() !== 'private' )
+            {
+                parent = classModule;
+                while ( parent.inherit )
+                {
+                    parent = module( getModuleFullname(parent, parent.inherit) );
+                    if (!parent)error('Not found parent class. ');
+                    var desc = !item.static() ? parent['proto'] : parent['static'];
+                    if( desc[ item.name() ] && desc[ item.name() ].qualifier !== 'private' )
+                    {
+                        info = desc[ item.name() ];
+                        break;
+                    }
+                }
+            }
+
             //类中的成员方法
             if( item.keyword() === 'function' )
             {
-                item.content().splice(1,1);
-
-                //如果有继承，检查扩展的方法
-                if( classModule.inherit )
+                //父类中必须存在才能覆盖
+                if( item.override() && !info )
                 {
-                    parent = classModule;
-                    while( parent.inherit )
-                    {
-                        parent = module( getModuleFullname(parent, parent.inherit ) );
-                        if( !parent )error('Not found parent class. ' );
-                        chackOverride(item, parent ,  classModule.package === parent.package );
-                    }
+                    error('Must cover function of the parent. for "'+item.name()+'"','', item.content()[0] );
                 }
+                //扩展父类中方法必须指定override关键字
+                else if( !item.override() && info )
+                {
+                    error('Missing override for "'+item.name()+'"','', item.content()[0] );
+                }
+
+                //去掉名称
+                item.content().splice(1,1);
 
                 //构造函数
                 if( item.name() === stack.name() && !isstatic )
@@ -1321,9 +1339,20 @@ function makeModule( stack )
             //类中的成员属性
             else if( item.keyword() === 'var' || item.keyword() === 'const' )
             {
+                //属性不能指定override关键字
+                if( item.override() )
+                {
+                    error('the override only cover function of the parent','', item.content()[0] );
+                }
+
                 item.content().shift();
-                var ret = toString( item, classModule ).replace( new RegExp('^'+item.name()+'\\s*\\=?'), '' );
-                ret = ret ? ret : 'null';
+                var express = item.content()[0].content()[0];
+                var ret = 'null';
+                if( express.content().length > 1 )
+                {
+                    express.content().splice(0,2);
+                    ret = expression( express , classModule );
+                }
 
                 //私有属性直接放到构造函数中
                 if( !item.static() /*&& item.qualifier()==='private'*/ )
@@ -1331,6 +1360,12 @@ function makeModule( stack )
                     props.push('"'+item.name()+'":'+ ret );
                 }
                 val.push( ret );
+            }
+
+            //此属性或者方法与父中的成员不兼容的
+            if( info && info.qualifier !== item.qualifier() )
+            {
+                error('Incompatible override for "'+item.name()+'"','', item.content()[0] );
             }
 
             var desc =  ref[ item.name() ];
@@ -1760,4 +1795,5 @@ if( !config.main )
     console.log('main file can not is empty');
     process.exit();
 }
+
 start();

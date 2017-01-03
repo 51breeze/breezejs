@@ -25,10 +25,26 @@ package
         public var names:String = '3' ;
         static public var name:Number = 5 ;
 
+
           //var bb:String='123';
           function Main(jj)
           {
-              console['log']( this.names );
+
+              var ii={
+                  name:{},
+                  age:1
+              };
+
+              var bb:Function=null;
+
+              bb();
+
+
+              var b,c='uuuu',d=6;
+              var name=null;
+              super(jj);
+              console.log( B.classname );
+              console.log( this.names );
           }
     }
 }
