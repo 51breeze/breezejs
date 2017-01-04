@@ -692,7 +692,7 @@ function getDescriptorOfExpression(it, classmodule)
                 if( !isstatic && prevDesc.id==='class' && (desc.id==='var' || desc.id==='const') && !globals[ prevDesc.type ] )
                 {
                     property.uid = prevDesc.uid;
-                    if( it.next && (it.next.value==='.' || type==='Function') )
+                    /*if( it.next && (it.next.value==='.' || type==='Function') )
                     {
                         var before = property.before;
                         property.before = '';
@@ -707,7 +707,7 @@ function getDescriptorOfExpression(it, classmodule)
                             runningCheck:false,
                             lastStack:property.lastStack
                         };
-                    }
+                    }*/
                 }
 
                 //获取指定类型的模块
@@ -780,7 +780,7 @@ function checkRunning( desc , value , operator )
     }
 
     props = props.map(function (item, index) {
-        if (index===0 || item instanceof Array )return item;
+        if ( !desc.thisArg && (index===0 || item instanceof Array) )return item;
         return '"' + item + '"';
     });
 
@@ -816,9 +816,8 @@ function checkRunning( desc , value , operator )
         if( desc.param )props.push('['+desc.param+']');
         if( !method )method = '__call__';
 
-    }else
+    }else if( value )
     {
-        if(!value)value='undefined';
         props.push( value );
     }
 
@@ -871,7 +870,7 @@ function parse( desc , value ,operator, returnValue )
         check=true;
     }
 
-    if( desc.name.length > 1 )check = true;
+    if( desc.name.length > 1 || (desc.name.length===1 && desc.thisArg) )check = true;
 
     if( check )
     {
@@ -1687,7 +1686,7 @@ function start()
     syntaxDescribe.forEach(function(o){
 
         index++;
-        var str= '(function(call){\n';
+        var str= '(function(make){\n';
         for (var i in o.import )if( i !== o.inherit )
         {
            str += 'var '+i+'=System.define("'+o.import[i]+'");\n';
@@ -1699,8 +1698,8 @@ function start()
 
         var full = getModuleName(o.package, o.classname );
         str+= 'var '+o.classname+' = System.define("'+full+'");\n';
-        str+= 'var __prop__= (function(){ return function(a,b,c,d){ try{return call('+o.classname+',b,c,d,false);}catch(e){throwError("reference",a,e,'+o.classname+');}}})();\n';
-        str+= 'var __call__= (function(){ return function(a,b,c,d){ try{return call('+o.classname+',b,c,d,true);}catch(e){throwError("reference",a,e,'+o.classname+');}}})();\n';
+        str+= 'var __prop__= make('+o.classname+',false);\n';
+        str+= 'var __call__=make('+o.classname+',true);\n';
         var descriptor = [];
         descriptor.push('"constructor":'+o.constructor.value);
         descriptor.push('"token":"'+o.uid+'"');
@@ -1715,7 +1714,7 @@ function start()
         descriptor.push('"proto":'+toValue(o.proto, o.uid ));
         descriptor = '{'+descriptor.join(',')+'}';
         str+= 'System.define("'+full+'",'+descriptor+');\n';
-        str+= '})(__call__)';
+        str+= '})(make)';
         code.push( str );
 
     });

@@ -17,12 +17,19 @@
 package
 {
     import com.B;
-    import lib.EventDispatcher;
+
+   import lib.EventDispatcher;
 
     public class Main extends B {
 
 
         static private var name:Number = 5 ;
+
+        private var name:String='665888';
+
+        private var storage:Function = function () {
+            
+        };
 
           //var bb:String='123';
           function Main()
@@ -32,14 +39,16 @@ package
                   age:1
               };
 
-              this.names= '666';
+
+              var e = new EventDispatcher();
+
+              console.log( e.hasEventListener('jjj') );
 
               var b,c='uuuu',d=6;
               var name=null;
 
-             // console.log( B.classname );
-            //  console.log( this.names );
-             // console.log( Main.name );
+             console.log( B.classname );
+              console.log( Main.name );
           }
     }
 }

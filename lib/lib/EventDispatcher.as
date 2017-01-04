@@ -46,6 +46,8 @@ package lib
             var target= this.getProxyTarget()
                 ,index=0;
 
+
+
             while( index < target )
             {
                 var events = this.storage.call( target[ index ] );
@@ -55,6 +57,8 @@ package lib
                 }
                 index++;
             }
+            console.log( type,   this.storage.call( target[ index ] )  );
+
             return false;
         };
 

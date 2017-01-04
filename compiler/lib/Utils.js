@@ -164,14 +164,13 @@ function __call__( classModule, thisArg, properties, args, iscall)
             while( i < properties.length && refObj )
             {
                 refObj = thisArg = __call__( classModule, refObj, properties[i++], undefined , false);
-                if( !refObj )throwError('reference', '"'+strName+( refObj===null ? '" property of null' : '" is not defined') );
             }
         }
     }
-
+    if( !refObj && (isset || iscall || lastProp) )throwError('reference', '"'+strName+( refObj===null ? '" property of null' : '" is not defined') );
     var writable=false;
     var privatize;
-    if( lastProp && refObj )
+    if( lastProp )
     {
         var isStatic = refObj instanceof Class;
         var referenceModule = isStatic ? refObj : refObj.constructor;
@@ -181,7 +180,7 @@ function __call__( classModule, thisArg, properties, args, iscall)
             desc = isStatic ? referenceModule.static[lastProp] : referenceModule.proto[lastProp];
 
             //如果本类中没有定义则在在扩展的类中依次向上查找。
-            if ( !desc && referenceModule.extends )
+            if ( (!desc || (desc.qualifier === 'private' && referenceModule !== classModule) ) && referenceModule.extends )
             {
                 var parentModule = referenceModule.extends;
                 var description;
@@ -225,8 +224,6 @@ function __call__( classModule, thisArg, properties, args, iscall)
         }
     }
 
-
-
     //调用方法
     if ( iscall )
     {
@@ -235,15 +232,12 @@ function __call__( classModule, thisArg, properties, args, iscall)
         return value.apply(thisArg, args);
     }
 
-
-
     if( isset )
     {
         if( operator )args = mathOperator( getValue( thisArg, refObj, desc, lastProp ,privatize, strName  ), operator, args);
         return setValue( thisArg, refObj, desc, lastProp ,privatize, args, strName, writable );
     }
     var val = getValue( thisArg, refObj, desc, lastProp ,privatize, strName );
-
     if( left || operator )
     {
         val = left ? mathOperator( left, val) :  mathOperator( null, val, operator );
@@ -301,8 +295,7 @@ function getValue(thisArg, refObj, desc, prop, privatize, strName)
     //如是是对全局类的属性操作
     if ( !desc )
     {
-        if ( !Object.prototype.hasOwnProperty.call(refObj, prop) )throwError('reference', '"' + strName + '" property does not exist');
-        value =  refObj[prop];
+        return refObj[prop];
 
     }else
     {
@@ -310,7 +303,6 @@ function getValue(thisArg, refObj, desc, prop, privatize, strName)
         {
             if (typeof desc.value.get !== 'function')throw new throwError('reference', '"' + strName + '" Accessor getter does not exist');
             value = desc.value.get.call(thisArg);
-
         }else
         {
             if( privatize )desc=refObj[ privatize ];
@@ -320,4 +312,20 @@ function getValue(thisArg, refObj, desc, prop, privatize, strName)
     return value;
 }
 
-
+/**
+ * 构建一个访问器
+ * @param classModule
+ * @param flag
+ * @returns {Function}
+ */
+function make(classModule, flag )
+{
+    return function (info, thisArg, properties ,value)
+    {
+        try{
+            return __call__(classModule, thisArg, properties, value, flag);
+        }catch(error){
+            throwError("reference",info ,error, classModule );
+        }
+    }
+}

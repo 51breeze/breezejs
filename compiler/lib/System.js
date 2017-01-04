@@ -319,16 +319,23 @@ s.is=function(instanceObj, theClass)
 function Nop(){}
 s.new=function( theClass )
 {
+    var index = 1;
+    if( typeof theClass === "string" )
+    {
+        index++;
+        theClass = arguments[1];
+    }
+
     var obj;
     var constructor = theClass instanceof Class ? theClass.constructor : theClass;
     if( typeof constructor !== "function" )throw new TypeError('is not constructor');
     if( arguments.length <= 2 )
     {
-        obj = new constructor( arguments[1] );
+        obj = new constructor( arguments[index] );
     }else
     {
         Nop.prototype = constructor.prototype;
-        obj = constructor.apply( new Nop() , Array.prototype.slice.call(arguments, 1) );
+        obj = constructor.apply( new Nop() , Array.prototype.slice.call(arguments, index) );
     }
     if( constructor !== theClass )
     {
