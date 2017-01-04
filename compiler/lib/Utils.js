@@ -57,59 +57,27 @@ function throwError(type, msg, error, classModule )
     }
 }
 
-/**
- * 获取成员的描述信息
- * @param thisArg
- * @param propNames
- * @param classModule
- * @returns {*}
- */
-function getPropertyDescription(thisArg, propName, isStatic, classModule, propname )
+//检查是否可访问
+function checkPrivilege(descriptor,referenceModule, classModule  )
 {
-    var referenceModule = isStatic ? thisArg : thisArg.constructor;
-    var desc = isStatic ? referenceModule.static[propName] : referenceModule.proto[propName];
-
-    //如果本类中没有定义则在在扩展的类中依次向上查找。
-    if( !desc && referenceModule.extends )
-    {
-        var  parentModule = referenceModule.extends;
-        while ( parentModule )
-        {
-            var description =  isStatic ? parentModule.static : parentModule.proto;
-
-            //继承的属性，私有的路过.
-            if( description[propName] && description[propName].qualifier !== 'private' )
-            {
-                desc = description[propName];
-                referenceModule= parentModule;
-                break;
-            }
-            parentModule = parentModule.extends;
-        }
-    }
-
-    //如果没有在原型中定义
-    if( !desc && typeof thisArg[propName] === "undefined" )throwError('reference', '"'+propname+'" is not defined' );
-
-    //不是public限定符则检查是否可访问
-    if( desc && desc.qualifier && desc.qualifier !== 'public' )
+    if( descriptor && descriptor.qualifier && descriptor.qualifier !== 'public' )
     {
         //不是本类中的成员调用（本类中的所有成员可以相互调用）
         if( referenceModule !== classModule )
         {
             var is= false;
-            if( desc.qualifier === 'internal' )
+            if( descriptor.qualifier === 'internal' )
             {
                 is = referenceModule.package === classModule.package;
 
-            }else if( desc.qualifier === 'protected' )
+            }else if( descriptor.qualifier === 'protected' )
             {
-                is = thisArg instanceof referenceModule;
+                is = referenceModule.isPrototypeOf( classModule );
             }
-            if( !is )throwError('reference', '"' + propname + '" inaccessible.');
+            return is;
         }
     }
-    return desc;
+    return true;
 }
 
 function isMathAssignOperator( o )
@@ -166,7 +134,7 @@ function mathOperator( a, o, b)
 function __call__( classModule, thisArg, properties, args, iscall)
 {
     var desc;
-    var strName = properties;
+    var strName = properties ? properties : thisArg;
     var lastProp = properties;
     var refObj = thisArg;
     var value = refObj;
@@ -176,25 +144,24 @@ function __call__( classModule, thisArg, properties, args, iscall)
 
     if( properties && typeof properties !== "string" )
     {
-        if( isMathAssignOperator( properties[0] ) )left = properties.shift();
-        if( typeof properties[0] === "object" )refObj = value = properties.shift();
+        if( properties[0]==='--' || properties[0]==='++' )left = properties.shift();
+        if( properties[0] instanceof Class )refObj = value = properties.shift();
         strName = properties.join('.');
         lastProp = properties.pop();
 
         //有指定运算符
-        if( isset && isMathAssignOperator( lastProp )  )
+        if( isMathAssignOperator( lastProp )  )
         {
             operator = lastProp;
-            if( operator==='=')operator='';
+            if(operator==='=')operator='';
             lastProp = properties.pop();
         }
 
         if( properties.length > 0 )
         {
             var i = 0;
-
             //获取实例引用
-            while (i < properties.length && refObj )
+            while( i < properties.length && refObj )
             {
                 refObj = thisArg = __call__( classModule, refObj, properties[i++], undefined , false);
                 if( !refObj )throwError('reference', '"'+strName+( refObj===null ? '" property of null' : '" is not defined') );
@@ -204,40 +171,79 @@ function __call__( classModule, thisArg, properties, args, iscall)
 
     var writable=false;
     var privatize;
-    value = refObj;
     if( lastProp && refObj )
     {
-        value = refObj[ lastProp ];
         var isStatic = refObj instanceof Class;
-
-        //如果是类对象
-        if( isStatic || refObj instanceof Object )
+        var referenceModule = isStatic ? refObj : refObj.constructor;
+        if( referenceModule instanceof Class )
         {
-            desc=getPropertyDescription(refObj, lastProp , isStatic, classModule, strName );
-            if( desc && desc.id === 'var' || desc.id === 'const' )
+            isStatic = isStatic && thisArg === refObj;
+            desc = isStatic ? referenceModule.static[lastProp] : referenceModule.proto[lastProp];
+
+            //如果本类中没有定义则在在扩展的类中依次向上查找。
+            if ( !desc && referenceModule.extends )
+            {
+                var parentModule = referenceModule.extends;
+                var description;
+                while (parentModule)
+                {
+                    description = isStatic ? parentModule.static : parentModule.proto;
+
+                    //继承的属性，私有的路过.
+                    if( description[lastProp] && ( description[lastProp].qualifier !== 'private' || parentModule===classModule ) )
+                    {
+                        desc = description[lastProp];
+                        referenceModule = parentModule;
+                        break;
+                    }
+                    parentModule = parentModule.extends;
+                }
+            }
+
+            //如果没有在原型中定义
+            if ( !desc )throwError('reference', '"' + strName + '" is not defined');
+
+            //是否有访问的权限
+            if( !checkPrivilege( desc, referenceModule, classModule) )throwError('reference', '"' + strName + '" inaccessible.');
+            value = desc.value;
+
+            if( desc.id === 'var' || desc.id === 'const' )
             {
                 writable = desc.id === 'var';
                 if( isStatic )lastProp='value';
-                if( !isStatic )privatize = desc.token;
+                if( !isStatic )privatize = referenceModule.token;
             }
+
+            if( desc.id==='function' && typeof desc.value === "object" )
+            {
+                writable= typeof desc.value.set === "function";
+            }
+
+        }else
+        {
+            value = refObj[ lastProp ];
         }
     }
+
+
 
     //调用方法
     if ( iscall )
     {
-        if( desc )value= desc.value;
         if( value instanceof Class )value = value.constructor;
-        if (typeof value !== 'function')throwError('reference', '"' + strName + '" is not function');
+        if ( typeof value !== 'function' )throwError('reference', '"' + strName + '" is not function');
         return value.apply(thisArg, args);
     }
+
+
 
     if( isset )
     {
         if( operator )args = mathOperator( getValue( thisArg, refObj, desc, lastProp ,privatize, strName  ), operator, args);
         return setValue( thisArg, refObj, desc, lastProp ,privatize, args, strName, writable );
     }
-    var val = getValue( thisArg, refObj, desc, lastProp ,privatize, strName  );
+    var val = getValue( thisArg, refObj, desc, lastProp ,privatize, strName );
+
     if( left || operator )
     {
         val = left ? mathOperator( left, val) :  mathOperator( null, val, operator );
@@ -266,17 +272,21 @@ function setValue(thisArg, refObj, desc, prop, privatize, value, strName, writab
         //检查属性的类型是否匹配
         if ( !checkValueType(desc, value) )
         {
-            throwError('type', '"' + strName + '" can only be a (' + getQualifiedClassName(desc.type) + ')');
+            throwError('type', '"' + strName + '" type can only be a (' + System.getQualifiedClassName(desc.type) + ')');
         }
 
-        if( typeof desc.id==='function')
+        if( desc.id==='function' )
         {
-            if (typeof desc.value.set !== 'function')throw new throwError('reference', '"' + strName + '" Accessor setter does not exist');
+            if (typeof desc.value.set !== 'function')throwError('reference', '"' + strName + '" Accessor setter does not exist');
             desc.value.set.call(thisArg, value);
 
         }else
         {
-            if( privatize )desc=refObj[ privatize ];
+            if( privatize )
+            {
+                desc=refObj[ privatize ];
+                if( !desc )throwError('reference', 'Cannot be set of undefined');
+            }
             desc[prop] = value;
         }
     }
@@ -296,7 +306,7 @@ function getValue(thisArg, refObj, desc, prop, privatize, strName)
 
     }else
     {
-        if( typeof desc.id==='function')
+        if( desc.id==='function')
         {
             if (typeof desc.value.get !== 'function')throw new throwError('reference', '"' + strName + '" Accessor getter does not exist');
             value = desc.value.get.call(thisArg);

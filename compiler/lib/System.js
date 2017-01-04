@@ -40,10 +40,16 @@ Object.prototype.constructor=Object;
  */
  Object.prototype.isPrototypeOf = function( theClass )
 {
-    var obj = this.constructor instanceof Class ? this.constructor : this;
+    var obj = this instanceof Class ? this : this.constructor;
     if( obj instanceof Class )
     {
-       return s.instanceof( theClass,  obj );
+        theClass = theClass instanceof Class ? theClass : theClass.constructor;
+        while ( theClass instanceof Class )
+        {
+            if( obj=== theClass )return true;
+            theClass = theClass.extends;
+        }
+        return false
     }
     return _Object.isPrototypeOf.call(obj, theClass );
 }
@@ -359,6 +365,14 @@ s.getDefinitionByName =getDefinitionByName;
          case 'number' : return 'Number' ;
          case 'string' : return 'String' ;
          case 'regexp' : return 'RegExp' ;
+         case 'function' :
+             if( value === String )return 'String';
+             if( value === Boolean )return 'Boolean';
+             if( value === Number )return 'Number';
+             if( value === RegExp )return 'RegExp';
+             if( value === Array )return 'Array';
+             if( value === Class )return 'Class';
+             if( value === Object || value === _Object )return 'Object';
      }
 
      if( isObject(value,true) )return 'Object';

@@ -806,7 +806,7 @@ function checkRunning( desc , value , operator )
     //对象引用的属性
     if( props.length > 0 )
     {
-        props = props.length === 1 ? [ props[0] ] : ['[' + props.join(',') + ']'];
+        props = props.length === 1 && !desc.super ? [ props[0] ] : ['[' + props.join(',') + ']'];
     }
     props.unshift( thisvrg );
 
@@ -824,7 +824,7 @@ function checkRunning( desc , value , operator )
 
     if( desc.lastStack )
     {
-        props.push( '"'+desc.lastStack.line+':'+desc.lastStack.cursor+'"' );
+        props.unshift( '"'+desc.lastStack.line+':'+desc.lastStack.cursor+'"' );
     }
 
     if( !method )method = '__prop__';
@@ -1699,8 +1699,8 @@ function start()
 
         var full = getModuleName(o.package, o.classname );
         str+= 'var '+o.classname+' = System.define("'+full+'");\n';
-        str+= 'var __prop__= (function(){ return function(a,b,c,d){ try{return call('+o.classname+', a, b, c, false);}catch(e){throwError("reference",d,e,'+o.classname+');}}})();\n';
-        str+= 'var __call__= (function(){ return function(a,b,c,d){ try{return call('+o.classname+', a, b, c, true);}catch(e){throwError("reference",d,e,'+o.classname+');}}})();\n';
+        str+= 'var __prop__= (function(){ return function(a,b,c,d){ try{return call('+o.classname+',b,c,d,false);}catch(e){throwError("reference",a,e,'+o.classname+');}}})();\n';
+        str+= 'var __call__= (function(){ return function(a,b,c,d){ try{return call('+o.classname+',b,c,d,true);}catch(e){throwError("reference",a,e,'+o.classname+');}}})();\n';
         var descriptor = [];
         descriptor.push('"constructor":'+o.constructor.value);
         descriptor.push('"token":"'+o.uid+'"');
