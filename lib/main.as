@@ -27,6 +27,8 @@ package
 
         private var name:String='665888';
 
+        private var age:Number = 35;
+
         private var storage:Function = function () {
             
         };
@@ -38,6 +40,14 @@ package
                   name:{},
                   age:1
               };
+
+              this.age+= 6;
+
+
+              console.log( this.name+'666' ,'========');
+              console.log( this.age );
+
+
 
 
               var e = new EventDispatcher();

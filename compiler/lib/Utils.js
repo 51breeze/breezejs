@@ -108,7 +108,6 @@ function mathOperator( a, o, b)
     if( a==='++' )return ++o;
     if( b==='--')return o--;
     if( b==='++' )return o++;
-
     switch (o)
     {
         case '+=' : return a+=b;
@@ -142,43 +141,53 @@ function __call__( classModule, thisArg, properties, args, iscall)
     var operator;
     var left;
 
+    //一组引用对象的属性或者是运算符（必须在属性的前面或者后面）
     if( properties && typeof properties !== "string" )
     {
+        //前自增减运算符
         if( properties[0]==='--' || properties[0]==='++' )left = properties.shift();
+        //指定的引用对象模块
         if( properties[0] instanceof Class )refObj = value = properties.shift();
+        //属性名字符串的表示
         strName = properties.join('.');
+        //需要操作的属性名
         lastProp = properties.pop();
-
-        //有指定运算符
+        //指定的赋值运算符
         if( isMathAssignOperator( lastProp )  )
         {
             operator = lastProp;
+            isset=true;
             if(operator==='=')operator='';
             lastProp = properties.pop();
         }
-
+        //如果有链式操作则获取引用
         if( properties.length > 0 )
         {
             var i = 0;
             //获取实例引用
             while( i < properties.length && refObj )
             {
-                refObj = thisArg = __call__( classModule, refObj, properties[i++], undefined , false);
+                refObj = thisArg = __call__( classModule, thisArg, properties[i++], undefined , false);
             }
         }
     }
+
+    //引用对象不能是空
     if( !refObj && (isset || iscall || lastProp) )throwError('reference', '"'+strName+( refObj===null ? '" property of null' : '" is not defined') );
-    var writable=false;
-    var privatize;
+    //属性对象是否可写
+    var writable=true;
+    //对属性引用的操作
     if( lastProp )
     {
+        //是否对静态模块的引用
         var isStatic = refObj instanceof Class;
         var referenceModule = isStatic ? refObj : refObj.constructor;
+        //是否为引用本地类的模块
         if( referenceModule instanceof Class )
         {
             isStatic = isStatic && thisArg === refObj;
+            //模块描述符
             desc = isStatic ? referenceModule.static[lastProp] : referenceModule.proto[lastProp];
-
             //如果本类中没有定义则在在扩展的类中依次向上查找。
             if ( (!desc || (desc.qualifier === 'private' && referenceModule !== classModule) ) && referenceModule.extends )
             {
@@ -187,7 +196,6 @@ function __call__( classModule, thisArg, properties, args, iscall)
                 while (parentModule)
                 {
                     description = isStatic ? parentModule.static : parentModule.proto;
-
                     //继承的属性，私有的路过.
                     if( description[lastProp] && ( description[lastProp].qualifier !== 'private' || parentModule===classModule ) )
                     {
@@ -198,30 +206,40 @@ function __call__( classModule, thisArg, properties, args, iscall)
                     parentModule = parentModule.extends;
                 }
             }
-
-            //如果没有在原型中定义
+            //如果没有在类中定义
             if ( !desc )throwError('reference', '"' + strName + '" is not defined');
-
             //是否有访问的权限
             if( !checkPrivilege( desc, referenceModule, classModule) )throwError('reference', '"' + strName + '" inaccessible.');
-            value = desc.value;
-
-            if( desc.id === 'var' || desc.id === 'const' )
+            //如果是一个实例属性
+            if( !isStatic && ( desc.id === 'var' || desc.id === 'const' ) )
             {
                 writable = desc.id === 'var';
-                if( isStatic )lastProp='value';
-                if( !isStatic )privatize = referenceModule.token;
+                refObj = refObj[ referenceModule.token ];
             }
-
-            if( desc.id==='function' && typeof desc.value === "object" )
+            //引用描述符的原始值
+            else
             {
-                writable= typeof desc.value.set === "function";
+                lastProp='value';
+                refObj = desc;
             }
-
-        }else
-        {
-            value = refObj[ lastProp ];
         }
+    }
+
+    //设置属性值
+    if( isset )
+    {
+        if( !writable )throwError('type', '"' + strName +'" cannot be alter of constant');
+        if( operator )args = mathOperator( getValue( thisArg, refObj, desc, lastProp ,strName  ), operator, args);
+        return setValue( thisArg, refObj, desc, lastProp ,args, strName, writable );
+    }
+
+    //获取原始值
+    if( desc && (desc.id==='var' || desc.id==='const' || typeof desc.value === "object" ) )
+    {
+        value = getValue( thisArg, refObj, desc, lastProp ,strName );
+    }else
+    {
+        value = refObj[lastProp];
     }
 
     //调用方法
@@ -231,85 +249,61 @@ function __call__( classModule, thisArg, properties, args, iscall)
         if ( typeof value !== 'function' )throwError('reference', '"' + strName + '" is not function');
         return value.apply(thisArg, args);
     }
-
-    if( isset )
-    {
-        if( operator )args = mathOperator( getValue( thisArg, refObj, desc, lastProp ,privatize, strName  ), operator, args);
-        return setValue( thisArg, refObj, desc, lastProp ,privatize, args, strName, writable );
-    }
-    var val = getValue( thisArg, refObj, desc, lastProp ,privatize, strName );
+    //待返回的值
+    var val= value;
+    //如果有指定运算符
     if( left || operator )
     {
-        val = left ? mathOperator( left, val) :  mathOperator( null, val, operator );
-        setValue( thisArg, refObj, desc, lastProp ,privatize, val, strName, writable );
+        //前置运算(先返回运算后的结果再赋值)
+        if(left)
+        {
+            val = value = mathOperator( left, value)
+        }
+        //后置运算(先赋值后再返回运算后的结果)
+        else
+        {
+            value=mathOperator( null, value, operator );
+        }
+        //将运算后的结果保存
+        setValue( thisArg, refObj, desc, lastProp , value, strName, writable );
     }
     return val;
 }
 
-function setValue(thisArg, refObj, desc, prop, privatize, value, strName, writable)
+function setValue(thisArg, refObj, desc, prop, value, strName)
 {
-    if( !prop )return value;
-    if ( !desc )
+    if ( desc )
     {
-        if ( !Object.prototype.hasOwnProperty.call(refObj, prop) )throwError('reference', '"' + strName + '" property does not exist');
-        try {
-            refObj[prop] = value;
-            if (refObj[prop] !== value)throwError('Cannot be set');
-        } catch (e) {
-            throwError('reference', '"' + strName + '" property cannot be set');
-        }
-
-    }else
-    {
-        if( !writable )throwError('type', '"' + strName +'" cannot be alter of constant');
-
         //检查属性的类型是否匹配
-        if ( !checkValueType(desc, value) )
-        {
-            throwError('type', '"' + strName + '" type can only be a (' + System.getQualifiedClassName(desc.type) + ')');
-        }
-
+        if ( !checkValueType(desc, value) )throwError('type', '"' + strName + '" type can only be a (' + System.getQualifiedClassName(desc.type) + ')');
         if( desc.id==='function' )
         {
             if (typeof desc.value.set !== 'function')throwError('reference', '"' + strName + '" Accessor setter does not exist');
             desc.value.set.call(thisArg, value);
-
-        }else
-        {
-            if( privatize )
-            {
-                desc=refObj[ privatize ];
-                if( !desc )throwError('reference', 'Cannot be set of undefined');
-            }
-            desc[prop] = value;
+            return value;
         }
     }
+
+    if ( !Object.prototype.hasOwnProperty.call(refObj, prop) )throwError('reference', '"' + strName + '" property does not exist');
+    try {
+        refObj[ prop ] = value;
+    } catch (e) {
+        throwError('reference', '"' + strName + '" property cannot be set');
+    }
+    if( refObj[prop] !== value )throwError('reference', '"' + strName + '" property cannot be set');
     return value;
 }
 
-function getValue(thisArg, refObj, desc, prop, privatize, strName)
+function getValue(thisArg, refObj, desc, prop, strName)
 {
-    if( !prop )return refObj;
-    var value;
-
     //如是是对全局类的属性操作
-    if ( !desc )
+    if ( desc && desc.id ==='function' )
     {
-        return refObj[prop];
-
-    }else
-    {
-        if( desc.id==='function')
-        {
-            if (typeof desc.value.get !== 'function')throw new throwError('reference', '"' + strName + '" Accessor getter does not exist');
-            value = desc.value.get.call(thisArg);
-        }else
-        {
-            if( privatize )desc=refObj[ privatize ];
-            value = desc[prop];
-        }
+        if (typeof desc.value.get !== 'function')throw new throwError('reference', '"' + strName + '" Accessor getter does not exist');
+        return desc.value.get.call(thisArg);
     }
-    return value;
+    if( !prop )return refObj;
+    return refObj[prop];
 }
 
 /**

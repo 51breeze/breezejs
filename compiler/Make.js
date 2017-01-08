@@ -798,10 +798,10 @@ function checkRunning( desc , value , operator )
     if( operator && operator !=='=' )props.push( '"'+operator+'"' );
 
     //前置运算符
-    if (desc.before)props.unshift( desc.before );
+    if (desc.before)props.unshift( '"'+desc.before+'"' );
 
     //后置运算符
-    if (desc.after)props.push( desc.after );
+    if (desc.after)props.push( '"'+desc.after+'"' );
 
     //对象引用的属性
     if( props.length > 0 )
@@ -1686,7 +1686,7 @@ function start()
     syntaxDescribe.forEach(function(o){
 
         index++;
-        var str= '(function(make){\n';
+        var str= '(function(){\n';
         for (var i in o.import )if( i !== o.inherit )
         {
            str += 'var '+i+'=System.define("'+o.import[i]+'");\n';
@@ -1697,9 +1697,9 @@ function start()
         }
 
         var full = getModuleName(o.package, o.classname );
-        str+= 'var '+o.classname+' = System.define("'+full+'");\n';
-        str+= 'var __prop__= make('+o.classname+',false);\n';
-        str+= 'var __call__=make('+o.classname+',true);\n';
+        str+= 'var '+o.classname+';\n';
+        str+= 'var __prop__;\n';
+        str+= 'var __call__;\n';
         var descriptor = [];
         descriptor.push('"constructor":'+o.constructor.value);
         descriptor.push('"token":"'+o.uid+'"');
@@ -1713,8 +1713,10 @@ function start()
         descriptor.push('"static":'+toValue(o.static ));
         descriptor.push('"proto":'+toValue(o.proto, o.uid ));
         descriptor = '{'+descriptor.join(',')+'}';
-        str+= 'System.define("'+full+'",'+descriptor+');\n';
-        str+= '})(make)';
+        str+= o.classname+'=System.define("'+full+'",'+descriptor+');\n';
+        str+= '__prop__='+o.classname+'.prop;\n';
+        str+= '__call__='+o.classname+'.call;\n';
+        str+= '})()';
         code.push( str );
 
     });
@@ -1722,15 +1724,12 @@ function start()
     var mainfile = pathfile( config.main , config.suffix, config.lib );
     var filename = PATH.resolve(PATH.dirname( mainfile ),PATH.basename(mainfile,config.suffix)+'-min.js' );
     var system = fs.readFileSync( PATH.resolve(config.make, './lib/System.js') , 'utf-8');
-    var utils = fs.readFileSync( PATH.resolve(config.make, './lib/Utils.js') , 'utf-8');
 
     fs.writeFileSync(  filename,[
         '(function(){\n',
         'var System = '+system,
         '\n',
         '(function(Object, Class){\n',
-        utils,
-        '\n',
         code.join(';\n'),
         ';\n',
         'delete System.define;\n',
