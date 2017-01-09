@@ -591,6 +591,7 @@ function getDescriptorOfExpression(it, classmodule)
         if ( it.next instanceof Ruler.STACK )
         {
             it.seek();
+            property.lastStack =  getStack( it.current );
             var first = it.current.content()[0];
             var last  = it.current.previous(-1);
             if( first.value === '[' || first.value === '('  )
@@ -601,13 +602,6 @@ function getDescriptorOfExpression(it, classmodule)
             {
                 it.current.content().pop();
             }
-
-            property.lastStack = it.current.content().length > 0 ? it.current.previous() : last;
-            if( property.lastStack instanceof Ruler.STACK )
-            {
-                property.lastStack = property.lastStack.previous();
-            }
-
             var value = toString(it.current, classmodule);
             if( it.current.type() === '(property)' )
             {
@@ -627,7 +621,7 @@ function getDescriptorOfExpression(it, classmodule)
 
                 if( !(it.prev instanceof Ruler.STACK) )
                 {
-                    property.lastStack = it.prev;
+                    property.lastStack =  getStack( it.prev );
                 }
 
                 if( desc && desc.id === 'function' && typeof desc.value === "object" )
@@ -777,9 +771,10 @@ function checkRunning( desc , value , operator )
         desc.before='';
     }
 
-    //如果引用对象和属性对象不完全相同就删除
+    //如果引用对象和属性对象完全相同就删除
     if( thisvrg === props[0]  )props.shift();
 
+    //运算并赋值
     if( operator && operator !=='=' )props.push( '"'+operator+'"' );
 
     //前置运算符
@@ -862,7 +857,19 @@ function parse( desc , value ,operator, returnValue )
     {
         return checkRunning( desc , value ,operator, returnValue );
     }
+    return getReferenceOf(desc , value , operator);
+}
 
+/**
+ * 获取描述符的引用
+ * @param desc
+ * @param value
+ * @param operator
+ * @returns {string}
+ */
+function getReferenceOf(desc , value , operator)
+{
+    var express=[];
     var thisvrg = desc.thisArg || desc.name[0];
     var props   = desc.name;
     var isnew = desc.before==='new';
@@ -893,24 +900,24 @@ function parse( desc , value ,operator, returnValue )
             {
                 if( operator )
                 {
+                    param.push( operator !== '=' ? [[props.slice(0).concat('get','call').join('.'), '(', thisvrg, ')'].join(''), operator.slice(0, -1), value ].join('') : value );
                     props.push('set');
-                    param.push( value );
-                    param.push( operator );
 
                 }else
                 {
-                    props.push('get');
-                    if( isIncreaseAndDecreaseOperator( desc.before ) )
+                    //自增减运算
+                    if( isIncreaseAndDecreaseOperator( desc.before ) || isIncreaseAndDecreaseOperator( desc.after ) )
                     {
+                        var o = desc.before ||  desc.after;
+                        param.push( [ [props.slice(0).concat('get','call').join('.'), '(', thisvrg, ')'].join(''),  o.charAt(0) , 1 ].join('') );
+                        if( desc.after )param.push(  o==='--' ? '+1':'-1');
                         desc.before='';
-                        param.push( '"'+desc.before+'"' );
-                        param.push( '"left"' );
-
-                    }else if( isIncreaseAndDecreaseOperator( desc.after ) )
-                    {
                         desc.after='';
-                        param.push( '"'+desc.after+'"' );
-                        param.push( '"right"' );
+                        props.push('set');
+
+                    }else
+                    {
+                        props.push('get');
                     }
                 }
             }
@@ -980,7 +987,6 @@ function expression( stack, classmodule )
     if( stack.content().length===0 )return '';
     var it = new Iteration( stack );
     var express = [];
-
     while ( it.seek() )
     {
         express.push( bunch(it, classmodule) );
@@ -1104,14 +1110,14 @@ function getClassPropertyDesc(it, object, name , classmodule )
         var parent = object;
         var child;
 
-        //在继承的类中查找, 静态属性及方法不继承
-        if (name === 'proto') while (parent && parent.inherit )
+        //在继承的类中查找
+        while (parent && parent.inherit )
         {
             child = parent;
             parent = module( getModuleFullname(parent, parent.inherit ) );
-            if ( parent && parent.proto[prop] )
+            if ( parent && parent[name][prop] )
             {
-                desc = parent.proto[prop];
+                desc = parent[name][prop];
                 checkPrivilege(it, desc, parent, child );
                 return desc;
             }
@@ -1548,7 +1554,7 @@ function toValue( describe, uid )
         var item = [];
         if( uid && (describe[p].id==='var' || describe[p].id==='const') )
         {
-            item.push('"token":'+uid );
+            //item.push('"token":'+uid );
         };
 
         item.push( '"id":"'+ describe[p].id+'"' );

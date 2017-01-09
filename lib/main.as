@@ -17,49 +17,38 @@
 package
 {
     import com.B;
-   import lib.EventDispatcher;
+    import lib.EventDispatcher;
 
     public class Main extends B {
 
+       // static public var name:String = '3999 yyy fsss 666' ;
+        public var names:String = '3' ;
+        static public var name:Number = 5 ;
 
-        static private var name:Number = 5 ;
-
-        private var name:String='665888';
-
-        private var age:Number = 35;
-
-        private var storage:Function = function () {
-            
-        };
-
-        private var dispatcher:EventDispatcher;
 
           //var bb:String='123';
-          function Main()
+          function Main(jj)
           {
+
               var ii={
                   name:{},
                   age:1
               };
 
-              this.age+= 6;
+              ii.cc = 666;
 
-              this.dispatcher = new EventDispatcher();
+              var bb:Function=function () {
+                  console.log('=====9999=====')
+              };
 
+              bb();
 
-              console.log( this.name+'666' ,'========');
-              console.log( this.age );
-
-              console.log( this is B , '====is B ====');
-
-
-              console.log(  this.dispatcher.hasEventListener('jjj') );
 
               var b,c='uuuu',d=6;
               var name=null;
-
-             console.log( B.classname );
-              console.log( Main.name );
+              super(jj);
+              console.log( Main.classname );
+              console.log( this.names );
           }
     }
 }

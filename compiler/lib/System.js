@@ -848,7 +848,7 @@ var __call=(function () {
         if( desc && (desc.id==='var' || desc.id==='const' || typeof desc.value === "object" ) )
         {
             value = getValue( thisArg, refObj, desc, lastProp ,strName );
-        }else
+        }else if( lastProp )
         {
             value = refObj[lastProp];
         }
