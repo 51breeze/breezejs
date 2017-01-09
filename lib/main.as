@@ -17,7 +17,6 @@
 package
 {
     import com.B;
-
    import lib.EventDispatcher;
 
     public class Main extends B {
@@ -33,6 +32,8 @@ package
             
         };
 
+        private var dispatcher:EventDispatcher;
+
           //var bb:String='123';
           function Main()
           {
@@ -43,16 +44,16 @@ package
 
               this.age+= 6;
 
+              this.dispatcher = new EventDispatcher();
+
 
               console.log( this.name+'666' ,'========');
               console.log( this.age );
 
+              console.log( this is B , '====is B ====');
 
 
-
-              var e = new EventDispatcher();
-
-              console.log( e.hasEventListener('jjj') );
+              console.log(  this.dispatcher.hasEventListener('jjj') );
 
               var b,c='uuuu',d=6;
               var name=null;

@@ -486,6 +486,7 @@ function isLeftAndRightOperator(o)
         case '&&' :
         case '||' :
         case 'instanceof' :
+        case 'is' :
         case 'in' :
             return true;
     }
@@ -692,22 +693,6 @@ function getDescriptorOfExpression(it, classmodule)
                 if( !isstatic && prevDesc.id==='class' && (desc.id==='var' || desc.id==='const') && !globals[ prevDesc.type ] )
                 {
                     property.uid = prevDesc.uid;
-                    /*if( it.next && (it.next.value==='.' || type==='Function') )
-                    {
-                        var before = property.before;
-                        property.before = '';
-                        property = {
-                            name: [],
-                            descriptor: null,
-                            thisArg: parse(property),
-                            expression: false,
-                            before: before,
-                            after: '',
-                            "super":null,
-                            runningCheck:false,
-                            lastStack:property.lastStack
-                        };
-                    }*/
                 }
 
                 //获取指定类型的模块
@@ -872,7 +857,8 @@ function parse( desc , value ,operator, returnValue )
 
     if( desc.name.length > 1 || (desc.name.length===1 && desc.thisArg) )check = true;
 
-    if( check )
+    //运行时检查
+    if( check || desc.runningCheck )
     {
         return checkRunning( desc , value ,operator, returnValue );
     }
@@ -916,11 +902,13 @@ function parse( desc , value ,operator, returnValue )
                     props.push('get');
                     if( isIncreaseAndDecreaseOperator( desc.before ) )
                     {
+                        desc.before='';
                         param.push( '"'+desc.before+'"' );
                         param.push( '"left"' );
 
                     }else if( isIncreaseAndDecreaseOperator( desc.after ) )
                     {
+                        desc.after='';
                         param.push( '"'+desc.after+'"' );
                         param.push( '"right"' );
                     }
@@ -932,15 +920,20 @@ function parse( desc , value ,operator, returnValue )
         if( desc.before )express.unshift( desc.before );
         if( desc.param )param.push( desc.param );
         express.push('(' + param.join(',') + ')');
-
-    }else
+    }
+    //引用属性
+    else
     {
         express=[ props.join('.') ];
+
+        //赋值运算符
         if ( operator )
         {
             express.push(operator);
             express.push(value);
-        }else
+        }
+        //操作运算符
+        else
         {
             if (desc.before)express.unshift(desc.before);
             if (desc.after)express.push(desc.after);
@@ -965,10 +958,9 @@ function bunch(it, classmodule)
         operator = it.current.value;
         if ( !it.next )error('Missing expression', '', it.current);
         it.seek();
-        if( operator === 'instanceof'  )
+        if( operator === 'instanceof' || operator === 'is' )
         {
-            express.push('System.instanceof('+parse( express.pop() )+','+ parse( getDescriptorOfExpression(it, classmodule) )+')');
-
+            express.push('System.'+operator+'('+parse( express.pop() )+','+ parse( getDescriptorOfExpression(it, classmodule) )+')');
         }else
         {
             express.push( operator );
@@ -1185,48 +1177,6 @@ function toString( stack, module )
     }
     str = str.join('');
     return str;
-}
-
-/**
- * 检查子类中对父类方法的扩展
- * @param item
- * @param parent
- * @param internal
- * @param protect
- */
-function chackOverride( item, parent , internal )
-{
-    var info = !item.static() ? parent['proto'] : parent['static'];
-    info = info[ item.name() ];
-    internal = info ? internal && info.privilege==='internal' : false;
-
-    //有权限访问的方法都必须检查是否正确扩展
-    if( info && (info.privilege ==='public' || info.privilege ==='protected' || internal ) )
-    {
-        //终结的方法子类中不可扩展
-        if( info.final )error('the "'+item.name()+'" method not is extends. in parent class');
-
-        //覆盖的方法必须与父类的方法相匹配
-        if( typeof info.value ==='object' || item.accessor() )
-        {
-            if( !( typeof info.value === 'object' && item.accessor() ) )error('the "' + item.name() + '" method not matched', '', item.content()[0]);
-            info = info.value[item.accessor()];
-            if( !info && item.override() )
-                error('the "'+item.name()+'" '+item.accessor()+'ter does exists in super class','', item.content()[0] );
-        }
-
-        //子类中必须使用 override 关键字才能扩展父中的方法
-        if( !item.override() && info )error('Missing override','', item.content()[0] );
-    }
-    //覆盖的方法必须在父类中已定义
-    else if( item.override() )
-    {
-        if( item.accessor() ){
-            error('the "'+item.name()+'" '+item.accessor()+'ter does exists in parent class','', item.content()[0] );
-        }else{
-            error('the "'+item.name()+'" method does exists in parent class','', item.content()[0] );
-        }
-    }
 }
 
 /**

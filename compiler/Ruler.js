@@ -3,9 +3,9 @@
  * @type {string[]}
  */
 const reserved = [
-    'static','public','private','protected','internal','package','override','final',
+    'static','public','private','protected','internal','package','override','final','System','system',
     'extends','import','class','var','let','function','new','typeof','const','interface','implements',
-    'instanceof','if','else','do','while','for','in','of','switch','case','super',
+    'is','instanceof','if','else','do','while','for','in','of','switch','case','super',
     'break','default','try','catch','throw','Infinity','this','debugger',
     'finally','return','null','false','true','NaN','undefined','delete',
     /*'export',*/
@@ -189,6 +189,7 @@ function isBoolOperator(o)
         case '===' :
         case '!==' :
         case 'instanceof' :
+        case 'is' :
         case 'in' :
             return true;
     }
@@ -207,6 +208,7 @@ function isKeywordOperator(o)
         case 'typeof' :
         case 'delete' :
         case 'instanceof' :
+        case 'is' :
         case 'in' :
             return true;
     }
@@ -284,17 +286,6 @@ function isRightDelimiter(s)
             return true;
     }
     return false;
-}
-
-
-/**
- * 判断是为一个数字类型
- * @param s
- * @returns {boolean}
- */
-function isNumber(s)
-{
-    return /^(0x[0-9a-fA-F]+|o[0-7]+|[\-\+]?[\d\.]+)/.test(s);
 }
 
 /**
@@ -684,7 +675,7 @@ syntax['class']=function( event )
     var def = stack.parent().scope().define();
     for (var i in def)if( def[i].fullclassname === classname )
     {
-        this.error('class name the "'+name+'" is already been declared',this.current);
+        this.error('"'+name+'" is already been declared',this.current);
     }
 
     //实例作用域

@@ -273,10 +273,11 @@ s.instanceof=function(instanceObj, theClass)
     if( theClass instanceof Class )
     {
         if( instanceObj instanceof Class  )return true;
-        while( instanceObj && instanceObj.constructor instanceof Class  )
+        instanceObj = instanceObj.constructor;
+        while( instanceObj )
         {
-            if( instanceObj.constructor === theClass )return true;
-            instanceObj=instanceObj.constructor.extends;
+            if( instanceObj === theClass )return true;
+            instanceObj=instanceObj.extends;
         }
     }
     if( typeof theClass !== "function" )return false;
@@ -294,17 +295,18 @@ s.is=function(instanceObj, theClass)
     if( theClass instanceof Class )
     {
         if( instanceObj instanceof Class  )return true;
-        while( instanceObj && instanceObj.constructor instanceof Class )
+        instanceObj = instanceObj.constructor;
+        while( instanceObj )
         {
-            if( instanceObj.constructor === theClass )return true;
-            if( instanceObj.constructor.implements && instanceObj.constructor.implements.length > 0 )
+            if( instanceObj === theClass )return true;
+            if( instanceObj.implements && instanceObj.implements.length > 0 )
             {
-                for (var b in instanceObj.constructor.implements)
+                for (var b in instanceObj.implements)
                 {
-                    if( instanceObj.constructor.implements[b] === theClass ) return true;
+                    if( instanceObj.implements[b] === theClass ) return true;
                 }
             }
-            instanceObj=instanceObj.constructor.extends;
+            instanceObj=instanceObj.extends;
         }
     }
     if( typeof theClass !== "function" )return false;
