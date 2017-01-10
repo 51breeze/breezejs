@@ -21,16 +21,16 @@ function module(name, module)
     var len =path.length;
     while(deep < len )
     {
-        name = path[deep];
+        name = path[deep].toLowerCase();
         obj = obj[ name ] || (obj[ name ]={});
         deep++;
     }
     if( typeof module === 'object' )
     {
-        obj[ classname ] = module;
+        obj[ classname.toLowerCase() ] = module;
         return module;
     }
-    return obj[ classname ] || globals[classname] || null;
+    return obj[ classname.toLowerCase() ] || globals[classname] || null;
 }
 
 
@@ -1206,6 +1206,13 @@ function getModuleFullname( module , classname )
  */
 function makeModule( stack )
 {
+    if( stack.keyword() ==='interface' )
+    {
+        var fullname = getModuleName( stack.parent().name(), stack.name() );
+        var classModule = module( fullname );
+        return classModule;
+    }
+
     if( stack.keyword() !=='class' )
     {
         throw new Error('Invalid stack');
@@ -1220,8 +1227,14 @@ function makeModule( stack )
     var isstatic = stack.static();
 
     // 组合接口
-    var classModule = module( getModuleName( stack.parent().name(), stack.name() ) );
-    classModule.constructor.value= isstatic ? 'function(){}' : 'function(){ if( !(this instanceof '+stack.name()+') )throw new SyntaxError("Please use the new operation to build instances."); return this;}';
+    var fullname = getModuleName( stack.parent().name(), stack.name() );
+    var classModule = module( fullname );
+    if( !classModule )
+    {
+        error('"'+fullname+'" does exists');
+    }
+
+    if( !isstatic )classModule.constructor.value='function(){return this;}';
 
     //父类
     var parent = null;
@@ -1229,9 +1242,30 @@ function makeModule( stack )
     //继承父类
     if( classModule.inherit )
     {
+        parent = module( getImportClassByType( classModule, classModule.inherit ) );
+
         //终结的类不可以扩展
-        if( stack.final() )error('parent class not is extends.');
-        parent = module(  classModule.inherit );
+        if( parent.isFinal )error('parent class not is extends.');
+    }
+
+    //需要实现的接口
+    if( classModule.implements.length > 0 )
+    {
+        for( var i in classModule.implements )
+        {
+            var interfaceModule= module( getImportClassByType( classModule, classModule.implements[i] ) );
+            for( var name in interfaceModule.proto )
+            {
+                if( !classModule.proto[ name ] || classModule.proto[ name ].id !=='function' )
+                {
+                    error('Not implementation of the "'+name+'" interface')
+                }
+                if( classModule.proto[ name ].type !== interfaceModule.proto[ name ].type )
+                {
+                    error('"'+name+'" do not match the return type of the interface')
+                }
+            }
+        }
     }
 
     for ( ; i< len ; i++ )
@@ -1251,7 +1285,7 @@ function makeModule( stack )
                 parent = classModule;
                 while ( parent.inherit )
                 {
-                    parent = module( getModuleFullname(parent, parent.inherit) );
+                    parent = module( getImportClassByType(parent,  parent.inherit ) );
                     if (!parent)error('Not found parent class. ');
                     var desc = !item.static() ? parent['proto'] : parent['static'];
                     if( desc[ item.name() ] && desc[ item.name() ].qualifier !== 'private' )
@@ -1288,7 +1322,7 @@ function makeModule( stack )
                 //普通函数
                 else
                 {
-                    val.push(  toString( item , classModule ) );
+                    val.push( toString( item , classModule ) );
                 }
             }
             //类中的成员属性
@@ -1310,7 +1344,7 @@ function makeModule( stack )
                 }
 
                 //私有属性直接放到构造函数中
-                if( !item.static() /*&& item.qualifier()==='private'*/ )
+                if( !item.static() )
                 {
                     props.push('"'+item.name()+'":'+ ret );
                 }
@@ -1337,8 +1371,12 @@ function makeModule( stack )
             }
         }
     }
-    props = props.length > 0 ? 'this["'+classModule.uid+'"]={'+props.join(',')+'};\n' : '';
-    classModule.constructor.value=classModule.constructor.value.replace('####{props}####', props );
+
+    if( classModule.id !=='interface' && !isstatic )
+    {
+        props = props.length > 0 ? 'this["'+classModule.uid+'"]={'+props.join(',')+'};\n' : '';
+        classModule.constructor.value = classModule.constructor.value.replace('####{props}####', props);
+    }
     return classModule;
 }
 
@@ -1379,8 +1417,8 @@ function getPropertyDescription( stack )
             var desc = createDescription(item);
 
             //跳过构造函数
-            if( item.keyword() === 'function' && item.name() === stack.name() && !isstatic ){
-
+            if( item.keyword() === 'function' && item.name() === stack.name() && !isstatic )
+            {
                 list.constructor=desc;
                 continue;
             }
@@ -1404,11 +1442,24 @@ function getPropertyDescription( stack )
     list['nonglobal']=true;
     list['fullclassname']=getModuleName(list.package, stack.name());
     list['classname']=stack.name();
-    list['implements']=stack.implements();
-    list['isDynamic']=stack.dynamic();
-    list['isStatic']=stack.static();
-    list['isFinal']=stack.final();
-    list['id']='class';
+
+    if( stack.keyword()==='interface' )
+    {
+        list['implements'] = [];
+        list['isDynamic'] = false;
+        list['isStatic'] = false;
+        list['isFinal'] = false;
+        list['id'] = 'interface';
+
+    }else
+    {
+        list['implements'] = stack.implements();
+        list['isDynamic'] = stack.dynamic();
+        list['isStatic'] = stack.static();
+        list['isFinal'] = stack.final();
+        list['isAbstract'] = stack.abstract();
+        list['id'] = 'class';
+    }
     return list;
 }
 
@@ -1426,7 +1477,7 @@ function loadModuleDescription( file )
     var has = module(file) || globals[file];
     if( has )return has;
     module( file, {} );
-    
+
     //获取源文件的路径
     var sourcefile = pathfile(file, config.suffix, config.lib );
 
@@ -1439,7 +1490,6 @@ function loadModuleDescription( file )
     //是否需要重新编译
     var isupdate = false;
     var data;
-    var packagename = file.split('.').slice(0,-1).join('.');
 
     //缓存文件的路径
     var cachefile = pathfile( file.replace(/\./g,'_').toLowerCase(), 'json', config.cachePath );
@@ -1456,29 +1506,6 @@ function loadModuleDescription( file )
         console.log('Checking file', sourcefile,'...' );
         var content = fs.readFileSync( sourcefile , 'utf-8');
         var R= new Ruler( content, config );
-        R.addListener('checkPackageName',function (e) {
-
-            if( e.value !== packagename ){
-               R.error('the package "'+e.value+'" and the actual path is not the same')
-            }
-
-        }).addListener('checkClassName',function (e)
-        {
-            var name = file.split('.').pop();
-            if( e.value !== name )R.error('the class "'+e.value+'" and the actual file name is not the same');
-
-        }).addListener('fetchFiles',function (e)
-        {
-            var files = getDirectoryFiles( e.path );
-            var self= this;
-            files.forEach(function (a) {
-                if(a==='.' || a==='..')return;
-                var filepath = e.path.split('.');
-                filepath.push('.');
-                filepath.push( PATH.basename(a, PATH.extname(a) ) );
-                e.callback.call(self, null, filepath, e.scope );
-            });
-        })
 
         //解析代码语法
         try{
@@ -1494,35 +1521,35 @@ function loadModuleDescription( file )
 
         if( !(scope.content()[0] instanceof Ruler.SCOPE )  )
         {
-            console.log('error');
+            console.log('fatal error in "'+sourcefile+'"');
             process.exit();
         }
 
         scope = scope.content()[0].content()[0];
         if( !(scope instanceof Ruler.SCOPE) || !( scope.keyword() === 'class' || scope.keyword() === 'interface') )
         {
-            console.log('error');
+            console.log('fatal error in "'+sourcefile+'"');
             process.exit();
         }
-
-        //console.log( scope.content()[6].content()[6] );
-        //process.exit();
 
         needMakeModules.push( scope );
         data = getPropertyDescription( scope );
         data.cachefile = cachefile;
         data.uid= id;
         data.filename = sourcefile.replace(/\\/g,'\\\\');
+        if( data.inherit )
+        {
+            loadModuleDescription( getImportClassByType(data, data.inherit) );
+        }
     }
 
     for(var i in data.import )
     {
-        loadModuleDescription(data.import[i]);
+        loadModuleDescription(data.import[i] );
     }
     syntaxDescribe.push( data );
-    module( file, data);
+    module( data.fullclassname, data);
 }
-    
 
 function getDirectoryFiles( path )
 {
@@ -1586,7 +1613,7 @@ function toValue( describe, uid )
             if ( describe[p].value.set )val.push('set:' +describe[p].value.set.value );
             item.push( '"value":{'+val.join(',')+'}' );
 
-        }else
+        }else if( describe[p].value )
         {
             item.push( '"value":'+ describe[p].value );
         }
@@ -1648,39 +1675,49 @@ function start()
     syntaxDescribe.forEach(function(o){
 
         index++;
-        var str= '(function(){\n';
-        for (var i in o.import )if( i !== o.inherit )
+        var str='';
+        if( o.id==='interface' )
         {
-           str += 'var '+i+'=System.define("'+o.import[i]+'");\n';
-        }
-        if( o.inherit )
-        {
-            str += 'var ' + o.inherit + '=System.getDefinitionByName("' + getImportClassByType(o, o.inherit ) + '");\n';
-        }
+            var descriptor = [];
+            descriptor.push('"token":"'+o.uid+'"');
+            descriptor.push('"extends":'+o.inherit);
+            descriptor.push('"classname":"'+o.classname+'"');
+            descriptor.push('"package":"'+o.package+'"');
+            descriptor.push('"filename":"'+o.filename+'"');
+            descriptor.push('"proto":'+toValue(o.proto, o.uid ));
+            descriptor = '{'+descriptor.join(',')+'}';
+            str='System.define("'+o.fullclassname+'",'+descriptor+',true);\n';
 
-        var full = getModuleName(o.package, o.classname );
-        str+= 'var '+o.classname+';\n';
-        str+= 'var __prop__;\n';
-        str+= 'var __call__;\n';
-        var descriptor = [];
-        descriptor.push('"constructor":'+o.constructor.value);
-        descriptor.push('"token":"'+o.uid+'"');
-        descriptor.push('"extends":'+o.inherit);
-        descriptor.push('"classname":"'+o.classname+'"');
-        descriptor.push('"package":"'+o.package+'"');
-        descriptor.push('"implements":['+o.implements.join(',')+']');
-        descriptor.push('"final":'+!!o.isFinal);
-        descriptor.push('"dynamic":'+!!o.isDynamic);
-        descriptor.push('"filename":"'+o.filename+'"');
-        descriptor.push('"static":'+toValue(o.static ));
-        descriptor.push('"proto":'+toValue(o.proto, o.uid ));
-        descriptor = '{'+descriptor.join(',')+'}';
-        str+= o.classname+'=System.define("'+full+'",'+descriptor+');\n';
-        str+= '__prop__='+o.classname+'.prop;\n';
-        str+= '__call__='+o.classname+'.call;\n';
-        str+= '})()';
+        }else
+        {
+            str = '(function(){\n';
+            for (var i in o.import)
+            {
+                var importClass = module( getImportClassByType(o, i ) )
+                str += 'var ' + i + '=System.define("' + importClass.fullclassname + '");\n';
+            }
+            str += 'var ' + o.classname + ';\n';
+            str += 'var __prop__;\n';
+            str += 'var __call__;\n';
+            var descriptor = [];
+            descriptor.push('"constructor":' + o.constructor.value);
+            descriptor.push('"token":"' + o.uid + '"');
+            descriptor.push('"extends":' + o.inherit);
+            descriptor.push('"classname":"' + o.classname + '"');
+            descriptor.push('"package":"' + o.package + '"');
+            descriptor.push('"implements":[' + o.implements.join(',') + ']');
+            descriptor.push('"final":' + !!o.isFinal);
+            descriptor.push('"dynamic":' + !!o.isDynamic);
+            descriptor.push('"filename":"' + o.filename + '"');
+            descriptor.push('"static":' + toValue(o.static));
+            descriptor.push('"proto":' + toValue(o.proto, o.uid));
+            descriptor = '{' + descriptor.join(',') + '}';
+            str += o.classname + '=System.define("' + o.fullclassname + '",' + descriptor + ');\n';
+            str += '__prop__=' + o.classname + '.prop;\n';
+            str += '__call__=' + o.classname + '.call;\n';
+            str += '})();\n';
+        }
         code.push( str );
-
     });
 
     var mainfile = pathfile( config.main , config.suffix, config.lib );
@@ -1692,15 +1729,13 @@ function start()
         'var System = '+system,
         '\n',
         '(function(Object, Class){\n',
-        code.join(';\n'),
-        ';\n',
+        code.join(''),
         'delete System.define;\n',
         'var main='+getMethods('System.getDefinitionByName', ['"'+config.main+'"'] ),
         ';\n',
         'System.new(main);\n',
         '})(System.Object, System.Class );\n',
         '})();'].join('') );
-
     console.log('Making done.' );
 }
 
