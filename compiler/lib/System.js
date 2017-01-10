@@ -217,10 +217,8 @@ Object.prototype.forEach=function( callback )
       }
       return this;
 }
-
 Object.prototype.constructor = Object;
 s.Object = Object;
-
 
 /**
  * 类对象构造器
@@ -243,8 +241,23 @@ Class.prototype.call             = null;
 Class.prototype.prop             = null;
 s.Class = Class;
 
+/**
+ * 接口构造函数
+ * @constructor
+ */
+function Interface(){}
+Interface.prototype              = new Object();
+Interface.prototype.constructor  = null;
+Interface.prototype.extends      = null;
+Interface.prototype.proto        = null;
+Interface.prototype.classname    = '';
+Interface.prototype.package      = '';
+Interface.prototype.token        = '';
+s.Interface = Interface;
+
 globals.Object = Object;
 globals.Class = Class;
+globals.Interface = Interface;
 globals.String = String;
 globals.Array = Array;
 globals.Number = Number;
@@ -904,19 +917,27 @@ function make(classModule, flag )
     }
 }
 
-s.define=function( name , descriptor )
+s.define=function( name , descriptor , isInterface)
 {
     if( typeof globals[ name ] === "function" )return globals[ name ];
     var classModule;
-    if( packages[ name ] instanceof Class )
+    if( packages[ name ] instanceof Class  || packages[ name ] instanceof Interface )
     {
         classModule = packages[ name ];
+
     }else
     {
-        classModule = packages[ name ] = new Class();
-        classModule.call=make(classModule, true);
-        classModule.prop=make(classModule, false);
+        if( isInterface )
+        {
+            classModule = packages[ name ] = new Interface();
+        }else
+        {
+            classModule = packages[name] = new Class();
+            classModule.call = make(classModule, true);
+            classModule.prop = make(classModule, false);
+        }
     }
+
     if( typeof descriptor === "object" )
     {
         classModule.merge( descriptor );

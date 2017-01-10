@@ -16,15 +16,12 @@
 //类
 package
 {
-    import com.B;
-<<<<<<< HEAD
-    import lib.EventDispatcher;
-=======
-   import lib.EventDispatcher;
-   import lib.Iprosess;
->>>>>>> origin/master
 
-    public class Main extends B {
+   import lib.EventDispatcher;
+   import com.B;
+   import lib.Iprosess;
+
+    public class Main extends B implements Iprosess {
 
        // static public var name:String = '3999 yyy fsss 666' ;
         public var names:String = '3' ;
@@ -54,6 +51,10 @@ package
               super(jj);
               console.log( Main.classname );
               console.log( this.names );
+          }
+
+          function database():Number{
+              return 20;
           }
     }
 }

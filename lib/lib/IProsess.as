@@ -2,7 +2,7 @@ package lib{
 
    interface IProsess{
 
-       function age():Number;
+       function database():String;
 
    }
 }
