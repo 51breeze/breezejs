@@ -4,7 +4,7 @@
  */
 const reserved = [
     'static','public','private','protected','internal','package','override','final','System','system',
-    'extends','import','class','var','let','function','new','typeof','const','interface','implements',
+    'extends','import','class','var','let','function','new','typeof','const','interface','abstract','implements',
     'is','instanceof','if','else','do','while','for','in','of','switch','case','super',
     'break','default','try','catch','throw','Infinity','this','debugger',
     'finally','return','null','false','true','NaN','undefined','delete',
@@ -442,15 +442,11 @@ function getParentFunction( stack )
     return null;
 }
 
-
 // 对称符
 var balance={'{':'}','(':')','[':']'};
 
-
 //语法验证
 var syntax={};
-
-
 syntax["package"]=function (event)
 {
     event.prevented=true;
@@ -566,7 +562,7 @@ syntax['import']=function (event)
     if( filename.length > 0 )importClass.call(this, name , filename, s.scope() );
 };
 
-syntax['private,protected,internal,static,public,override,final,dynamic']=function(event)
+syntax['private,protected,internal,static,public,override,final,dynamic,abstract']=function(event)
 {
     event.prevented=true;
     var scope = this.scope();
@@ -577,7 +573,7 @@ syntax['private,protected,internal,static,public,override,final,dynamic']=functi
     var description={};
     description[event.target.value]=event.target;
     this.loop(function(){
-        if( 'private,protected,internal,static,public,override,final,dynamic'.indexOf( this.next.value )<0 )return false;
+        if( 'private,protected,internal,static,public,override,final,dynamic,abstract'.indexOf( this.next.value )<0 )return false;
         n = this.seek();
         if( arr.indexOf(n.value) >=0  )self.error();
         arr.push( n.value );
@@ -590,6 +586,7 @@ syntax['private,protected,internal,static,public,override,final,dynamic']=functi
     var o = '';
     var f = '';
     var d = '';
+    var a = '';
     for (var i =0; i<arr.length; i++)
     {
         switch (arr[i])
@@ -597,6 +594,7 @@ syntax['private,protected,internal,static,public,override,final,dynamic']=functi
             case 'static'  :s='static'  ;break;
             case 'override':o='override';break;
             case 'dynamic':d='dynamic';break;
+            case 'abstract':a='abstract';break;
             case 'final'   :
                 f='final';
                 if( arr.indexOf('override')>=0 )this.error();
@@ -615,13 +613,16 @@ syntax['private,protected,internal,static,public,override,final,dynamic']=functi
 
     //如是静态类，那么整个类不能实例化
     if( scope.keyword() ==='class' && scope.static() )s = scope.static();
-
     if( n.value==='class' || n.value === 'function' )
     {
         if( n.value==='class' )
         {
             this.add( new Class() );
-        }else {
+            this.scope().abstract( a );
+
+        }else
+        {
+            if(a)this.error('The abstract can only appear in the class attribute');
             this.add( new Scope(n.value, '(block)') );
         }
         this.scope().static( s );
@@ -688,22 +689,94 @@ syntax['class']=function( event )
     //将类名加入被保护的属性名中
     //this.config('reserved').push( name );
 
-    n = this.seek();
+    do{
+        n = this.seek();
+        //是否有继承或者实现接口
+        if( n.id==='(keyword)' )
+        {
+            //扩展父类
+            if( n.value==='extends'  )
+            {
+                var className = getTypeName.call(this);
+                var p = checkStatementType(className, stack.parent().scope(), this.config('globals'));
+                if (!p)this.error('"' + className + '" is not import');
+                stack.extends( p.classname );
+                stack.scope('proto').define('super', {
+                    'type': '(' + p.classname + ')',
+                    'id': 'class',
+                    'fullclassname': p.fullclassname,
+                    'classname': p.classname
+                });
+            }
+            //实现接口
+            else if( n.value==='implements'  )
+            {
+                var interfaces=[];
+                do {
+                    var interfaceName = getTypeName.call(this);
+                    if (!checkStatementType(interfaceName, stack.parent().scope()))this.error('"' + interfaceName + '" is not import');
+                    interfaces.push( interfaceName );
+                }while ( this.next.value===',' );
+                stack.implements( interfaces );
+            }
+        }
+    }while ( n.id === '(keyword)' );
 
-    //是否有继承
+    //必须要{开始正文
+    if( this.current.id !== '{' )this.error('Missing token {');
+
+    //获取正文
+    this.loop(function(){
+        if( this.next.id === '}' ) return false;
+        this.step();
+        return true;
+    });
+
+    //必须要}结束正文
+    this.seek();
+    if( this.current.id !=='}' ) this.error('Missing token }');
+};
+
+syntax['interface']=function( event )
+{
+    event.prevented=true;
+    if( this.scope().keyword() !=='interface' )this.add( new Interface() );
+    if( this.scope().parent().keyword() !=='package' )this.error();
+
+    var stack = this.scope();
+    var n = this.seek();
+    var name = n.value;
+
+    //检查接口名是否合法声明
+    if( !checkStatement(name) )this.error('Invalid interface name');
+
+    //设置接口名
+    stack.name( name );
+
+    //完整的类名
+    var classname = this.scope().parent().name() ? this.scope().parent().name()+'.'+name : name;
+
+    //类名不能与导入的类名相同
+    var def = stack.parent().scope().define();
+    for (var i in def)if( def[i].fullclassname === classname )
+    {
+        this.error('"'+name+'" is already been declared',this.current);
+    }
+
+    //实例作用域
+    stack.scope().define(name, {'type':'('+name+')','id':'interface','fullclassname':classname ,'classname':name} );
+
+    //将类名加入被保护的属性名中
+    //this.config('reserved').push( name );
+    n = this.seek();
+    //是否有继承接口
     if( n.id==='(keyword)' && n.value==='extends' )
     {
-        //获取完整的类名
-        var parent = getTypeName.call(this);
-
-        //是否有导入
-        var p = checkStatementType(parent, stack.parent().scope(),  this.config('globals')  );
-        if( !p )this.error('"'+parent+'" is not import');
+        //扩展父类
+        var className = getTypeName.call(this);
+        var p = checkStatementType(className, stack.parent().scope() );
+        if (!p)this.error('"' + className + '" is not import');
         stack.extends( p.classname );
-
-        //定义超类引用
-        stack.scope('proto').define('super', {'type':'('+p.classname+')','id':'class','fullclassname':p.fullclassname ,'classname':p.classname} );
-        this.seek();
     }
 
     //必须要{开始正文
@@ -780,14 +853,13 @@ syntax['function']= function(event){
     var stack = this.scope()
     var n = this.seek();
     var name='';
-    if( stack.parent().keyword() === 'class' && (n.value === 'get' || n.value === 'set') && this.next.id !== '(' )
+    var isClassOrInterface = stack.parent().keyword() ==='class' || stack.parent().keyword() ==='interface';
+    if( isClassOrInterface && (n.value === 'get' || n.value === 'set') && this.next.id !== '(' )
     {
         stack.accessor(n.value);
         n = this.seek();
     }
-
     var name_stack= n;
-
     if( n.id !== '(' )
     {
         name = n.value;
@@ -803,10 +875,10 @@ syntax['function']= function(event){
         this.error('Missing function name');
     }
     // 方法中的函数只能是匿名
-    else if( stack.parent().keyword() !== 'class' && stack.name() )
+    /*else if( isClassOrInterface && stack.name() )
     {
         this.error('Can only be an anonymous function');
-    }
+    }*/
 
     this.add( this.current );
     if( n.id !== '(' )this.error('Missing token (');
@@ -845,8 +917,7 @@ syntax['function']= function(event){
         {
             this.error( type+' is not defined');
         }
-
-        if( type !=='void' )
+        if( type !=='void' && stack.parent().keyword() !=='interface' )
         {
             stack.addListener('(switch)', function (e) {
                 if( !this.isReturn )error('Must be return','', currentType);
@@ -855,16 +926,16 @@ syntax['function']= function(event){
     }
 
     var is=false;
-
     //构造函数不能有返回值
-    if( stack.parent().keyword() ==='class' && stack.parent().name() === stack.name() && !stack.static() )
+    if( isClassOrInterface && stack.parent().name() === stack.name() && !stack.static() )
     {
         type='void';
-
         is=true;
-
+        //抽象类不能定义构造函数
+        if( stack.parent().abstract() )this.error('the abstract class cannot define constructor');
+        if( stack.parent().keyword() ==='interface' )this.error('the interface cannot define constructor');
         //构造函数的修饰符必须为公有的
-        if( stack.qualifier() !== 'public' )this.error('can only is public qualifier of constructor function');
+        if( stack.qualifier() !== 'public' )this.error('can only is public qualifier of constructor');
     }
     stack.type('('+type+')');
 
@@ -903,6 +974,13 @@ syntax['function']= function(event){
             if (stack.accessor())obj[stack.accessor()] = stack.accessor();
             stack.scope().define(name, obj);
         }
+    }
+
+    //接口中没有函数体
+    if( stack.parent().keyword() ==='interface' )
+    {
+        this.seek();
+        return this.end();
     }
 
     this.add( this.seek() );
@@ -2198,7 +2276,6 @@ Stack.prototype.qualifier=function(qualifier )
     return this;
 }
 
-
 /**
  * 设置不可改变
  * @param qualifier
@@ -2296,7 +2373,7 @@ Scope.prototype.accessor=function( accessor )
 }
 
 /**
- * 代码块的作用域
+ * 类模块作用域
  * @param type
  * @constructor
  */
@@ -2307,6 +2384,7 @@ function Class()
     this.__extends__='';
     this.__scope__=null;
     this.__implements__=[];
+    this.__abstract__  ='';
     this.__construct__=null;
 }
 Class.prototype = new Scope();
@@ -2350,10 +2428,22 @@ Class.prototype.extends=function( name )
  * @param val
  * @returns {*}
  */
-Stack.prototype.implements=function( val )
+Class.prototype.implements=function( val )
 {
     if( typeof val === 'undefined' )return this.__implements__;
     this.__implements__=val;
+    return this;
+}
+
+/**
+ * 是否标识为抽象类
+ * @param qualifier
+ * @returns {*}
+ */
+Class.prototype.abstract=function( abstract )
+{
+    if( typeof abstract === 'undefined' )return this.__abstract__;
+    this.__abstract__=abstract;
     return this;
 }
 
@@ -2362,6 +2452,49 @@ Class.prototype.construct=function( stack )
     if( typeof name === 'undefined' )return this.__construct__;
     this.__construct__=stack;
     return this;
+}
+
+
+/**
+ * 接口模块
+ * @returns {Interface}
+ * @constructor
+ */
+function Interface()
+{
+    if( !(this instanceof Scope) )return new Interface();
+    Scope.call(this,'interface','(block)');
+    this.__extends__='';
+    this.__scope__=null;
+}
+Interface.prototype = new Scope();
+Interface.prototype.constructor=Interface;
+
+/**
+ * 是否有继承接口
+ * @param name
+ * @returns {*}
+ */
+Interface.prototype.extends=function( name )
+{
+    if( typeof name === 'undefined' )return this.__extends__;
+    this.__extends__=name;
+    return this;
+}
+
+/**
+ * 所在的作用域
+ * @param keyword
+ * @returns {*}
+ */
+Interface.prototype.scope=function()
+{
+    if( this.__scope__===null )
+    {
+        merge(this.__define__, this.parent().scope().__define__);
+        this.__scope__=this;
+    };
+    return this.__scope__;
 }
 
 /**
@@ -2655,6 +2788,12 @@ Ruler.prototype.end=function( stack )
     //如果当前是一个空操作符或者是一个右定界符则结束
     if( this.current.value === ';' )
     {
+        if( stack.keyword()==='function' && stack.parent().keyword() === 'interface' )
+        {
+            stack.switch();
+            return true;
+        }
+
         while ( isEndSyntax( stack.keyword() ) && !stack.close()  )
         {
             stack.switch();

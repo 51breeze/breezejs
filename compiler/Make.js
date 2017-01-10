@@ -1492,8 +1492,14 @@ function loadModuleDescription( file )
             process.exit();
         }
 
+        if( !(scope.content()[0] instanceof Ruler.SCOPE )  )
+        {
+            console.log('error');
+            process.exit();
+        }
+
         scope = scope.content()[0].content()[0];
-        if( typeof scope.keyword !=='function' || scope.keyword() !== 'class' )
+        if( !(scope instanceof Ruler.SCOPE) || !( scope.keyword() === 'class' || scope.keyword() === 'interface') )
         {
             console.log('error');
             process.exit();
