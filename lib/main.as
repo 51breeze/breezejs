@@ -18,6 +18,7 @@ package
 {
     import com.B;
    import lib.EventDispatcher;
+   import lib.Iprosess;
 
     public class Main extends B {
 
