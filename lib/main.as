@@ -21,7 +21,7 @@ package
    import com.B;
    import lib.Iprosess;
 
-    public class Main extends B {
+    public class Main extends B implements Iprosess {
 
        // static public var name:String = '3999 yyy fsss 666' ;
         public var names:String = '3' ;
@@ -58,5 +58,10 @@ package
         override protected function cre(){
               return this.bb;
           }
+
+        function database():String{
+            return '';
+        }
+
     }
 }

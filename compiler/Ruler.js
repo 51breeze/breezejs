@@ -788,6 +788,7 @@ syntax['interface']=function( event )
         var p = checkStatementType(className, stack.parent().scope() );
         if (!p)this.error('"' + className + '" is not import');
         stack.extends( p.classname );
+        n = this.seek();
     }
 
     //必须要{开始正文

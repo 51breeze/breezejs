@@ -54,6 +54,10 @@ package com
             console.log( 'call cre');
         }
 
+        function connect():String{
+            return '';
+        }
+
 
 
     }
