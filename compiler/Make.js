@@ -1198,6 +1198,58 @@ function getModuleFullname( module , classname )
     return classname;
 }
 
+/**
+ * 执行模块的原型链，直到回调函数返回值或者已到达最上层为止
+ * @param classModule
+ * @param callback
+ * @returns {*}
+ */
+function doPrototype(classModule, callback)
+{
+    do{
+        var val = callback( classModule );
+        if( val )return val;
+        if( classModule.inherit )
+        {
+            classModule = module( getImportClassByType(classModule, classModule.inherit) );
+        }else
+        {
+           return null;
+        }
+    } while ( classModule );
+}
+
+/**
+ * 检查模块的接口是否实现
+ * @param classModule
+ */
+function checkInterface(classModule)
+{
+    if( classModule.implements.length === 0 )return;
+    var interfaceDesc = [];
+    for( var i in classModule.implements )
+    {
+        doPrototype( module( getImportClassByType( classModule, classModule.implements[i] ) ) ,function (module) {
+            interfaceDesc.push( module.proto );
+        });
+    }
+    var desc;
+    var obj;
+    for( var i in interfaceDesc )
+    {
+        desc = interfaceDesc[i];
+        for( var name in desc )
+        {
+            obj=doPrototype(classModule,function (module) {
+                if( module.proto[name] && module.proto[name].id === 'function')return module.proto[name];
+            });
+            if ( !obj )error('Not implementation of the "' + name + '" interface')
+            if ( obj.type !== desc[name].type )error('"' + name + '" do not match the return type of the interface')
+        }
+    }
+}
+
+
 
 /**
  * 生成模块信息
@@ -1247,27 +1299,8 @@ function makeModule( stack )
         //终结的类不可以扩展
         if( parent.isFinal )error('parent class not is extends.');
     }
-
     //需要实现的接口
-    if( classModule.implements.length > 0 )
-    {
-        for( var i in classModule.implements )
-        {
-            var interfaceModule= module( getImportClassByType( classModule, classModule.implements[i] ) );
-            for( var name in interfaceModule.proto )
-            {
-                if( !classModule.proto[ name ] || classModule.proto[ name ].id !=='function' )
-                {
-                    error('Not implementation of the "'+name+'" interface')
-                }
-                if( classModule.proto[ name ].type !== interfaceModule.proto[ name ].type )
-                {
-                    error('"'+name+'" do not match the return type of the interface')
-                }
-            }
-        }
-    }
-
+    checkInterface(classModule);
     for ( ; i< len ; i++ )
     {
         item = data[i];
@@ -1282,18 +1315,13 @@ function makeModule( stack )
             var info;
             if( classModule.inherit && item.qualifier() !== 'private' )
             {
-                parent = classModule;
-                while ( parent.inherit )
-                {
-                    parent = module( getImportClassByType(parent,  parent.inherit ) );
-                    if (!parent)error('Not found parent class. ');
-                    var desc = !item.static() ? parent['proto'] : parent['static'];
+                info=doPrototype( module( getImportClassByType(classModule,  classModule.inherit ) ),function (module) {
+                    var desc = !item.static() ? module['proto'] : module['static'];
                     if( desc[ item.name() ] && desc[ item.name() ].qualifier !== 'private' )
                     {
-                        info = desc[ item.name() ];
-                        break;
+                        return desc[ item.name() ];
                     }
-                }
+                });
             }
 
             //类中的成员方法
@@ -1331,7 +1359,7 @@ function makeModule( stack )
                 //属性不能指定override关键字
                 if( item.override() )
                 {
-                    error('the override only cover function of the parent','', getStack(item) );
+                    error('can only override method of the parent','', getStack(item) );
                 }
 
                 item.content().shift();
@@ -1352,9 +1380,9 @@ function makeModule( stack )
             }
 
             //此属性或者方法与父中的成员不兼容的
-            if( info && info.qualifier !== item.qualifier() )
+            if( info && info.privilege !== item.qualifier() )
             {
-                error('Incompatible override for "'+item.name()+'"','', getStack(item) );
+                error('Incompatible override for "'+item.name()+'"','', getStack(item, true ) );
             }
 
             var desc =  ref[ item.name() ];
@@ -1380,11 +1408,11 @@ function makeModule( stack )
     return classModule;
 }
 
-function getStack( stack )
+function getStack( stack , flag )
 {
     if( stack instanceof Ruler.STACK )
     {
-        return getStack( stack.previous() )
+        return getStack( flag ? stack.content()[0] : stack.previous(), flag )
     }
     return stack;
 }
