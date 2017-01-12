@@ -3,9 +3,18 @@
   <component name="ChangeListManager">
     <list id="f4c41bd0-c1bf-4cbb-b57b-7782f87fb46a" name="Default" comment="" />
     <list default="true" id="18e6e159-e815-4edb-b007-a0795730b21e" name="New changelist" comment="1.1">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/lib/Main-min.js" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/__system.js" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Make.js" afterPath="$PROJECT_DIR$/compiler/Make.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Ruler.js" afterPath="$PROJECT_DIR$/compiler/Ruler.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/lib/System.js" afterPath="$PROJECT_DIR$/compiler/lib/System.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Main-min.js" afterPath="$PROJECT_DIR$/lib/Main-min.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Main.as" afterPath="$PROJECT_DIR$/lib/Main.as" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/com_bjson" afterPath="$PROJECT_DIR$/lib/cache/com_bjson" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/com_djson" afterPath="$PROJECT_DIR$/lib/cache/com_djson" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/lib_eventdispatcherjson" afterPath="$PROJECT_DIR$/lib/cache/lib_eventdispatcherjson" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/mainjson" afterPath="$PROJECT_DIR$/lib/cache/mainjson" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/com/B.as" afterPath="$PROJECT_DIR$/lib/com/B.as" />
     </list>
     <ignored path="breezejs.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -38,18 +47,43 @@
         <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="989" column="106" selection-start-line="989" selection-start-column="100" selection-end-line="989" selection-end-column="106" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="EventDispatcher.as" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/lib/lib/EventDispatcher.as">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="58" column="10" selection-start-line="58" selection-start-column="10" selection-end-line="58" selection-end-column="10" />
-              <folding />
+              <caret line="1056" column="19" selection-start-line="1056" selection-start-column="19" selection-end-line="1056" selection-end-column="19" />
+              <folding>
+                <marker date="1484212374642" expanded="true" signature="324:386" placeholder="/** 对象类 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="784:866" placeholder="/** 指示 Object 类的实例是否在指定为参数的对象的原型链中 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="1340:1468" placeholder="/** 表示对象是否已经定义了指定的属性。 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="1809:1978" placeholder="/** 表示指定的属性是否存在、是否可枚举。 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="2377:2571" placeholder="/** 设置循环操作动态属性的可用性。 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="3052:3094" placeholder="/** 返回指定对象的原始值 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="3383:3430" placeholder="/** 返回指定对象的字符串表示形式。 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="3722:3891" placeholder="/** 合并其它参数到指定的 target 对象中 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="5364:5496" placeholder="/** 循环对象中的每一个属性，只有纯对象或者是一个数组才会执行。 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="5757:5810" placeholder="/** 类对象构造器 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="6383:6416" placeholder="/** 接口构造函数 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="6960:7016" placeholder="/** 返回对象的字符串表示形式 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="7125:7224" placeholder="/** 检查实例对象是否属于指定的类型(不会检查接口类型) ...*/" />
+                <marker date="1484212374642" expanded="true" signature="7270:7276" placeholder="{...}" />
+                <marker date="1484212374642" expanded="true" signature="8665:8684" placeholder="{...}" />
+                <marker date="1484212374642" expanded="true" signature="8665:8698" placeholder="{...}" />
+                <marker date="1484212374642" expanded="true" signature="8665:8753" placeholder="{...}" />
+                <marker date="1484212374642" expanded="true" signature="8665:8759" placeholder="{...}" />
+                <marker date="1484212374642" expanded="true" signature="8665:8859" placeholder="{...}" />
+                <marker date="1484212374642" expanded="true" signature="8862:8935" placeholder="/** 为指定的类创建一个新的实例对象 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="9638:9698" placeholder="/** 根据指定的类名获取类的对象 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="9998:10096" placeholder="/** 返回对象的完全限定类名 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="11165:11226" placeholder="/** 获取指定实例对象的超类名称 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="11731:11830" placeholder="/** 判断是否为一个可遍历的对象 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="12102:12197" placeholder="/** 检查所有传入的值定义 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="12369:12423" placeholder="/** 判断是否为数组 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="12509:12563" placeholder="/** 判断是否为函数 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="12659:12715" placeholder="/** 判断是否为布尔类型 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="12807:12862" placeholder="/** 判断是否为字符串 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="12950:13010" placeholder="/** 判断是否为一个标量 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="13157:13213" placeholder="/** 判断是否为数字类型 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="13301:13388" placeholder="/** 判断是否为一个空值 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="13716:13762" placeholder="/** 抛出错误信息 ...*/" />
+                <marker date="1484212374642" expanded="true" signature="24443:24521" placeholder="/** 构建一个访问器 ...*/" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -58,8 +92,10 @@
         <entry file="file://$PROJECT_DIR$/lib/lib/IProsess.as">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="7" column="1" selection-start-line="7" selection-start-column="1" selection-end-line="7" selection-end-column="1" />
-              <folding />
+              <caret line="8" column="1" selection-start-line="8" selection-start-column="1" selection-end-line="8" selection-end-column="1" />
+              <folding>
+                <marker date="1484203642754" expanded="true" signature="113:120" placeholder="{...}" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -68,20 +104,40 @@
         <entry file="file://$PROJECT_DIR$/compiler/lib/System.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="280" column="9" selection-start-line="280" selection-start-column="9" selection-end-line="280" selection-end-column="9" />
+              <caret line="961" column="9" selection-start-line="961" selection-start-column="9" selection-end-line="961" selection-end-column="9" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Ruler.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="EcmaScript.js" pinned="false" current-in-tab="false">
+        <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="950" column="14" selection-start-line="950" selection-start-column="14" selection-end-line="950" selection-end-column="14" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Ruler.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.39976135">
-              <caret line="915" column="64" selection-start-line="915" selection-start-column="64" selection-end-line="915" selection-end-column="64" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="665" column="45" selection-start-line="665" selection-start-column="45" selection-end-line="665" selection-end-column="45" />
               <folding>
-                <marker date="1484043571157" expanded="true" signature="20135:22114" placeholder="{...}" />
+                <marker date="1484210688142" expanded="true" signature="20863:22842" placeholder="{...}" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="EcmaScript5.js" pinned="false" current-in-tab="false">
+        <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript5.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="125" column="0" selection-start-line="125" selection-start-column="0" selection-end-line="125" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -90,9 +146,11 @@
         <entry file="file://$PROJECT_DIR$/lib/main.as">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="23" column="0" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
+              <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
               <folding>
-                <element signature="e#548#561#0" expanded="true" />
+                <marker date="1484203668747" expanded="true" signature="1:527" placeholder="/**+------------------------------------------------------------------------------ ...*/" />
+                <marker date="1484203668747" expanded="true" signature="542:1538" placeholder="{...}" />
+                <marker date="1484203668747" expanded="true" signature="1530:1536" placeholder="{...}" />
               </folding>
             </state>
           </provider>
@@ -102,17 +160,29 @@
         <entry file="file://$PROJECT_DIR$/lib/com/B.as">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="12" />
+              <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
+              <folding>
+                <element signature="e#553#567#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Make.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/compiler/Make.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.80624187">
+              <caret line="151" column="0" selection-start-line="151" selection-start-column="0" selection-end-line="151" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Make.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler/Make.js">
+      <file leaf-file-name="Globals.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/lib/Globals.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="1485" column="27" selection-start-line="1485" selection-start-column="27" selection-end-line="1485" selection-end-column="27" />
+              <caret line="1" column="4" selection-start-line="1" selection-start-column="4" selection-end-line="1" selection-end-column="4" />
               <folding />
             </state>
           </provider>
@@ -183,16 +253,16 @@
         <option value="$PROJECT_DIR$/compiler/Utils.js" />
         <option value="$PROJECT_DIR$/index.html" />
         <option value="$PROJECT_DIR$/lib/com/D.as" />
-        <option value="$PROJECT_DIR$/lib/com/B.as" />
         <option value="$PROJECT_DIR$/compiler/lib/Utils.js" />
         <option value="$PROJECT_DIR$/lib/lib/EventDispatcher.as" />
-        <option value="$PROJECT_DIR$/compiler/lib/System.js" />
-        <option value="$PROJECT_DIR$/lib/Main-min.js" />
         <option value="$PROJECT_DIR$/lib/lib/IProsess.js" />
         <option value="$PROJECT_DIR$/lib/lib/IProsess.as" />
         <option value="$PROJECT_DIR$/lib/main.as" />
-        <option value="$PROJECT_DIR$/compiler/Make.js" />
         <option value="$PROJECT_DIR$/compiler/Ruler.js" />
+        <option value="$PROJECT_DIR$/lib/Main-min.js" />
+        <option value="$PROJECT_DIR$/lib/com/B.as" />
+        <option value="$PROJECT_DIR$/compiler/lib/System.js" />
+        <option value="$PROJECT_DIR$/compiler/Make.js" />
       </list>
     </option>
   </component>
@@ -208,7 +278,7 @@
   <component name="ProjectFrameBounds">
     <option name="x" value="-8" />
     <option name="y" value="-8" />
-    <option name="width" value="1932" />
+    <option name="width" value="1924" />
     <option name="height" value="1056" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
@@ -321,6 +391,24 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="lib" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="com" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="compiler" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -395,6 +483,129 @@
       <recent name="E:\nodejs\breezejs" />
       <recent name="E:\nodejs\breezejs\components" />
     </key>
+  </component>
+  <component name="RestoreUpdateTree" date="Moments ago" ActionInfo="_Update">
+    <UpdatedFiles>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Updated from server" />
+        <option name="myStatusName" value="Changed on server" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="CHANGED_ON_SERVER" />
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Updated" />
+          <option name="myStatusName" value="Changed" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="UPDATED" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/compiler/Make.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/compiler/Ruler.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/compiler/lib/System.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/Main-min.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/com/B.as</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/lib/IProsess.as</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/main.as</PATH>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Created" />
+          <option name="myStatusName" value="Created" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="CREATED" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/Main-min999.js</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/cache/com_bjson</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/cache/com_djson</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/cache/lib_eventdispatcherjson</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/cache/mainjson</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/cache/testjson</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/lib/lib/IProt.as</PATH>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Deleted" />
+          <option name="myStatusName" value="Deleted" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="true" />
+          <option name="myId" value="REMOVED_FROM_REPOSITORY" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Restored" />
+          <option name="myStatusName" value="Will be restored" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="RESTORED" />
+        </FILE-GROUP>
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Modified" />
+        <option name="myStatusName" value="Modified" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MODIFIED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Skipped" />
+        <option name="myStatusName" value="Skipped" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SKIPPED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with conflicts" />
+        <option name="myStatusName" value="Will be merged with conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_CONFLICTS" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with tree conflicts" />
+        <option name="myStatusName" value="Merged with tree conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_TREE_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with property conflicts" />
+        <option name="myStatusName" value="Will be merged with property conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_PROPERTY_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged" />
+        <option name="myStatusName" value="Will be merged" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Not in repository" />
+        <option name="myStatusName" value="Not in repository" />
+        <option name="mySupportsDeletion" value="true" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="UNKNOWN" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally added" />
+        <option name="myStatusName" value="Locally added" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_ADDED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally removed" />
+        <option name="myStatusName" value="Locally removed" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_REMOVED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Switched" />
+        <option name="myStatusName" value="Switched" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SWITCHED" />
+      </FILE-GROUP>
+    </UpdatedFiles>
   </component>
   <component name="RunManager">
     <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug">
@@ -815,15 +1026,14 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1932" height="1056" extended-state="0" />
+    <frame x="-8" y="-8" width="1924" height="1056" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.17254274" sideWeight="0.49360147" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21298283" sideWeight="0.49360147" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.011034483" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32993197" sideWeight="0.5" order="16" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="false" weight="0.3189189" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3295129" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.40914157" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.07692308" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.52619845" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" x="1039" y="253" width="739" height="472" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.20630373" sideWeight="0.50639856" order="2" side_tool="true" content_ui="tabs" />
@@ -837,6 +1047,7 @@
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.0144605115" sideWeight="0.5" order="14" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32993197" sideWeight="0.5" order="16" side_tool="false" content_ui="tabs" />
       <window_info id="调试" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="15" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Command Line Tools Console" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.31940702" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -888,7 +1099,9 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="36" column="0" selection-start-line="36" selection-start-column="0" selection-end-line="36" selection-end-column="0" />
           <folding>
-            <element signature="e#548#561#0" expanded="true" />
+            <marker date="1484203668747" expanded="true" signature="1:527" placeholder="/**+------------------------------------------------------------------------------ ...*/" />
+            <marker date="1484203668747" expanded="true" signature="542:1538" placeholder="{...}" />
+            <marker date="1484203668747" expanded="true" signature="1530:1536" placeholder="{...}" />
           </folding>
         </state>
       </provider>
@@ -1068,13 +1281,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript5.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="127" column="35" selection-start-line="127" selection-start-column="30" selection-end-line="127" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test-min2.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1120,21 +1326,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/lib/Globals.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="1" column="4" selection-start-line="1" selection-start-column="4" selection-end-line="1" selection-end-column="4" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/__system.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="25" column="0" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/testjs.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1157,41 +1348,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.516129">
-          <caret line="151" column="21" selection-start-line="151" selection-start-column="21" selection-end-line="151" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/compiler/lib/Utils.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.032258064">
           <caret line="82" column="34" selection-start-line="82" selection-start-column="34" selection-end-line="82" selection-end-column="34" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/lib/System.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="280" column="9" selection-start-line="280" selection-start-column="9" selection-end-line="280" selection-end-column="9" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="989" column="106" selection-start-line="989" selection-start-column="100" selection-end-line="989" selection-end-column="106" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/com/B.as">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="12" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1206,36 +1366,125 @@
     <entry file="file://$PROJECT_DIR$/lib/lib/IProsess.as">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="7" column="1" selection-start-line="7" selection-start-column="1" selection-end-line="7" selection-end-column="1" />
-          <folding />
+          <caret line="8" column="1" selection-start-line="8" selection-start-column="1" selection-end-line="8" selection-end-column="1" />
+          <folding>
+            <marker date="1484203642754" expanded="true" signature="113:120" placeholder="{...}" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/main.as">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="23" column="0" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
+          <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
           <folding>
-            <element signature="e#548#561#0" expanded="true" />
+            <marker date="1484203668747" expanded="true" signature="1:527" placeholder="/**+------------------------------------------------------------------------------ ...*/" />
+            <marker date="1484203668747" expanded="true" signature="542:1538" placeholder="{...}" />
+            <marker date="1484203668747" expanded="true" signature="1530:1536" placeholder="{...}" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/Make.js">
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript5.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="1485" column="27" selection-start-line="1485" selection-start-column="27" selection-end-line="1485" selection-end-column="27" />
+          <caret line="125" column="0" selection-start-line="125" selection-start-column="0" selection-end-line="125" selection-end-column="0" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/lib/Globals.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1" column="4" selection-start-line="1" selection-start-column="4" selection-end-line="1" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/com/B.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
+          <folding>
+            <element signature="e#553#567#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1056" column="19" selection-start-line="1056" selection-start-column="19" selection-end-line="1056" selection-end-column="19" />
+          <folding>
+            <marker date="1484212374642" expanded="true" signature="324:386" placeholder="/** 对象类 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="784:866" placeholder="/** 指示 Object 类的实例是否在指定为参数的对象的原型链中 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="1340:1468" placeholder="/** 表示对象是否已经定义了指定的属性。 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="1809:1978" placeholder="/** 表示指定的属性是否存在、是否可枚举。 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="2377:2571" placeholder="/** 设置循环操作动态属性的可用性。 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="3052:3094" placeholder="/** 返回指定对象的原始值 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="3383:3430" placeholder="/** 返回指定对象的字符串表示形式。 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="3722:3891" placeholder="/** 合并其它参数到指定的 target 对象中 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="5364:5496" placeholder="/** 循环对象中的每一个属性，只有纯对象或者是一个数组才会执行。 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="5757:5810" placeholder="/** 类对象构造器 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="6383:6416" placeholder="/** 接口构造函数 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="6960:7016" placeholder="/** 返回对象的字符串表示形式 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="7125:7224" placeholder="/** 检查实例对象是否属于指定的类型(不会检查接口类型) ...*/" />
+            <marker date="1484212374642" expanded="true" signature="7270:7276" placeholder="{...}" />
+            <marker date="1484212374642" expanded="true" signature="8665:8684" placeholder="{...}" />
+            <marker date="1484212374642" expanded="true" signature="8665:8698" placeholder="{...}" />
+            <marker date="1484212374642" expanded="true" signature="8665:8753" placeholder="{...}" />
+            <marker date="1484212374642" expanded="true" signature="8665:8759" placeholder="{...}" />
+            <marker date="1484212374642" expanded="true" signature="8665:8859" placeholder="{...}" />
+            <marker date="1484212374642" expanded="true" signature="8862:8935" placeholder="/** 为指定的类创建一个新的实例对象 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="9638:9698" placeholder="/** 根据指定的类名获取类的对象 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="9998:10096" placeholder="/** 返回对象的完全限定类名 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="11165:11226" placeholder="/** 获取指定实例对象的超类名称 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="11731:11830" placeholder="/** 判断是否为一个可遍历的对象 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="12102:12197" placeholder="/** 检查所有传入的值定义 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="12369:12423" placeholder="/** 判断是否为数组 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="12509:12563" placeholder="/** 判断是否为函数 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="12659:12715" placeholder="/** 判断是否为布尔类型 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="12807:12862" placeholder="/** 判断是否为字符串 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="12950:13010" placeholder="/** 判断是否为一个标量 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="13157:13213" placeholder="/** 判断是否为数字类型 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="13301:13388" placeholder="/** 判断是否为一个空值 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="13716:13762" placeholder="/** 抛出错误信息 ...*/" />
+            <marker date="1484212374642" expanded="true" signature="24443:24521" placeholder="/** 构建一个访问器 ...*/" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.39976135">
-          <caret line="915" column="64" selection-start-line="915" selection-start-column="64" selection-end-line="915" selection-end-column="64" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="665" column="45" selection-start-line="665" selection-start-column="45" selection-end-line="665" selection-end-column="45" />
           <folding>
-            <marker date="1484043571157" expanded="true" signature="20135:22114" placeholder="{...}" />
+            <marker date="1484210688142" expanded="true" signature="20863:22842" placeholder="{...}" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="950" column="14" selection-start-line="950" selection-start-column="14" selection-end-line="950" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/lib/System.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="961" column="9" selection-start-line="961" selection-start-column="9" selection-end-line="961" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/Make.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.80624187">
+          <caret line="151" column="0" selection-start-line="151" selection-start-column="0" selection-end-line="151" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>

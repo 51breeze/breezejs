@@ -100,7 +100,7 @@ function getModuleName(a, b)
 function createDefaultParam( stack , module)
 {
     var data = stack.content();
-    var obj = {'param':[],'expre':[]};
+    var obj = {'param':[],'expre':[],'paramType':[]};
     var name;
     var type='*';
     var value;
@@ -113,6 +113,7 @@ function createDefaultParam( stack , module)
             var o = createDefaultParam( item, module );
             obj.param = obj.param.concat( o.param );
             obj.expre = obj.expre.concat( o.expre );
+            obj.paramType = obj.paramType.concat( o.paramType );
 
         }else if( item && item.value!==',' )
         {
@@ -130,15 +131,13 @@ function createDefaultParam( stack , module)
     {
         var ps = stack.scope();
         var desc = ps.define( name );
-
         if (value)
         {
             obj.expre.push(name + '=typeof ' + name + '=== "undefined" ?' + value + ':' + name+';\n');
         }
-
         if (desc)
         {
-            type = desc.type.replace(/^\(|\)$/g,'');
+            type = getType( desc.type );
             if( type !=='*' )
             {
                 obj.expre.push('if( typeof ' + name + ' !== "' +type.toLowerCase() + '" )throw new TypeError("Specify the type of mismatch");\n');
@@ -146,6 +145,7 @@ function createDefaultParam( stack , module)
         }
         obj.param.push( name );
     }
+    obj.paramType.push({type:type,defaultValue:value ? value : 'undefined' });
     return obj;
 }
 
@@ -1048,13 +1048,13 @@ function checkSpecifyType(it,desc,stack, module )
     if( desc.type==='*' || desc.type==='Object' || stack.type()==='Object' )return true;
     if( desc.type==='Class' )
     {
-        //转换类的类型
+        //转换类的类型(将类型转换成对应的类名)
         var type = getImportClassByType( module, stack.type() );
         if( type )desc.type=stack.type();
     }
     if( stack.type() !== desc.type )
     {
-        error('Specify the type of mismatch','type', it.prev );
+        error('Specify the type of mismatch','type', getStack(it.prev, true) );
     }
 }
 
@@ -1671,6 +1671,7 @@ function showMem()
     console.log('Process: heapTotal '+format(mem.heapTotal) + ' heapUsed ' + format(mem.heapUsed) + ' rss ' + format(mem.rss));
 }
 
+
 /**
  * 开始生成代码片段
  */
@@ -1703,48 +1704,41 @@ function start()
     syntaxDescribe.forEach(function(o){
 
         index++;
-        var str='';
-        if( o.id==='interface' )
+        var str = '(function(){\n';
+        for (var i in o.import)
         {
-            var descriptor = [];
-            descriptor.push('"token":"'+o.uid+'"');
-            descriptor.push('"extends":'+o.inherit);
-            descriptor.push('"classname":"'+o.classname+'"');
-            descriptor.push('"package":"'+o.package+'"');
-            descriptor.push('"filename":"'+o.filename+'"');
-            descriptor.push('"proto":'+toValue(o.proto, o.uid ));
-            descriptor = '{'+descriptor.join(',')+'}';
-            str='System.define("'+o.fullclassname+'",'+descriptor+',true);\n';
-
-        }else
-        {
-            str = '(function(){\n';
-            for (var i in o.import)
+            if( !globals[i]  )
             {
-                var importClass = module( getImportClassByType(o, i ) )
-                str += 'var ' + i + '=System.define("' + importClass.fullclassname + '");\n';
+                str += 'var ' + i + '=System.define("' + module( getImportClassByType(o, i ) ).fullclassname + '");\n';
             }
-            str += 'var ' + o.classname + ';\n';
+        }
+
+        var descriptor = [];
+        str += 'var ' + o.classname + ';\n';
+        if(  o.id!=='interface' )
+        {
             str += 'var __prop__;\n';
             str += 'var __call__;\n';
-            var descriptor = [];
             descriptor.push('"constructor":' + o.constructor.value);
-            descriptor.push('"token":"' + o.uid + '"');
-            descriptor.push('"extends":' + o.inherit);
-            descriptor.push('"classname":"' + o.classname + '"');
-            descriptor.push('"package":"' + o.package + '"');
             descriptor.push('"implements":[' + o.implements.join(',') + ']');
             descriptor.push('"final":' + !!o.isFinal);
             descriptor.push('"dynamic":' + !!o.isDynamic);
             descriptor.push('"filename":"' + o.filename + '"');
             descriptor.push('"static":' + toValue(o.static));
-            descriptor.push('"proto":' + toValue(o.proto, o.uid));
-            descriptor = '{' + descriptor.join(',') + '}';
-            str += o.classname + '=System.define("' + o.fullclassname + '",' + descriptor + ');\n';
+        }
+        descriptor.push('"token":"' + o.uid + '"');
+        descriptor.push('"extends":' + o.inherit);
+        descriptor.push('"classname":"' + o.classname + '"');
+        descriptor.push('"package":"' + o.package + '"');
+        descriptor.push('"proto":' + toValue(o.proto, o.uid));
+        descriptor = '{' + descriptor.join(',') + '}';
+        str += o.classname + '=System.define("' + o.fullclassname + '",' + descriptor + ');\n';
+        if(  o.id!=='interface' )
+        {
             str += '__prop__=' + o.classname + '.prop;\n';
             str += '__call__=' + o.classname + '.call;\n';
-            str += '})();\n';
         }
+        str += '})();\n';
         code.push( str );
     });
 

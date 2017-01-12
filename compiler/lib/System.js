@@ -217,6 +217,7 @@ Object.prototype.forEach=function( callback )
       }
       return this;
 }
+
 Object.prototype.constructor = Object;
 s.Object = Object;
 
@@ -283,9 +284,11 @@ s.typeof=function( object )
  */
 s.instanceof=function(instanceObj, theClass)
 {
-    if( theClass instanceof Class )
+    var isclass = theClass instanceof Class;
+    var isInterface = theClass instanceof Interface;
+    if( isclass || isInterface )
     {
-        if( instanceObj instanceof Class  )return true;
+        if( instanceObj instanceof Class )return isclass;
         instanceObj = instanceObj.constructor;
         while( instanceObj )
         {
@@ -305,9 +308,11 @@ s.instanceof=function(instanceObj, theClass)
  */
 s.is=function(instanceObj, theClass)
 {
-    if( theClass instanceof Class )
+    var isclass = theClass instanceof Class;
+    var isInterface = theClass instanceof Interface;
+    if( isclass || isInterface )
     {
-        if( instanceObj instanceof Class  )return true;
+        if( instanceObj instanceof Class )return isclass;
         instanceObj = instanceObj.constructor;
         while( instanceObj )
         {
@@ -316,7 +321,10 @@ s.is=function(instanceObj, theClass)
             {
                 for (var b in instanceObj.implements)
                 {
-                    if( instanceObj.implements[b] === theClass ) return true;
+                    var interfaceModule = instanceObj.implements[b];
+                    do{
+                        if( interfaceModule === theClass ) return true;
+                    } while ( interfaceModule && (interfaceModule = interfaceModule.extends));
                 }
             }
             instanceObj=instanceObj.extends;
@@ -342,10 +350,9 @@ s.new=function( theClass )
         index++;
         theClass = arguments[1];
     }
-
     var obj;
     var constructor = theClass instanceof Class ? theClass.constructor : theClass;
-    if( typeof constructor !== "function" )throw new TypeError('is not constructor');
+    if( typeof constructor !== "function" )throwError('is not constructor');
     if( arguments.length <= 2 )
     {
         obj = new constructor( arguments[index] );
@@ -574,6 +581,7 @@ function throwError(type, msg )
             throw new Error( msg );
     }
 }
+s.throwError = throwError();
 
 //引用属性或者方法
 var __call=(function () {

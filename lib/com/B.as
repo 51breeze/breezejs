@@ -19,8 +19,8 @@ package com
 {
     import String;
     import Number;
-    import com.D;
-    import lib.EventDispatcher;
+    import com.*;
+    import lib.*;
 
     public class B extends D {
         

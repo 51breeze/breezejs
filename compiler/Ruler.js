@@ -11,6 +11,21 @@ const reserved = [
     /*'export',*/
 ];
 
+const fs = require('fs');
+const PATH = require('path');
+function getDirectoryFiles( path )
+{
+    var files = fs.readdirSync( path );
+    return files.filter(function(a){
+        return !(a==='.' || a==='..');
+    });
+}
+
+function getPath( dir, path )
+{
+    return PATH.resolve( dir, (path || '').replace('.',PATH.sep) );
+}
+
 /**
  * 判断是否为一个有效的运算符
  * @param o
@@ -464,9 +479,7 @@ syntax["package"]=function (event)
 
     if( this.current.id !=='{' ) this.error('Missing token {');
     if( !checkSegmentation( name ) )this.error('Invalid package name');
-    var e = new Event('checkPackageName',{value:name.join('')});
-    this.dispatcher( e )
-    this.scope().name( e.value );
+    this.scope().name( name.join('') );
     this.loop(function(){
         if( this.next.id === '}') return false;
         this.step();
@@ -502,10 +515,6 @@ function importClass( classname, filename , scope )
 
     //加入到被保护的属性名中
     //this.config('reserved').push( name );
-
-    var current = Stack.current();
-    this.dispatcher( new Event('loadModule',{name:desc.fullclassname}) );
-    Stack.__current__=current;
 }
 
 
@@ -540,7 +549,10 @@ syntax['import']=function (event)
         if( this.current.value==='*' && this.prev.value==='.' )
         {
             filename.pop();
-            this.dispatcher( new Event('fetchFiles',{path:filename.join(''),scope:s.scope(),callback:importClass}) );
+            var files = getDirectoryFiles( getPath( this.config('lib'), filename.join('') ) );
+            files.forEach(function (a) {
+                importClass(null,filename.concat('.',PATH.basename(a, PATH.extname(a) ) ),  s.scope() );
+            })
             filename=[];
             return false;
         }
@@ -673,11 +685,8 @@ syntax['class']=function( event )
     //检查类名是否合法声明
     if( !checkStatement(n.value) )this.error('Invalid class name');
 
-    var e = new Event('checkClassName',{value:n.value});
-    this.dispatcher( e );
-    var name = e.value;
-
     //设置类名
+    var name = n.value;
     stack.name( name );
 
     //完整的类名
@@ -685,9 +694,14 @@ syntax['class']=function( event )
 
     //类名不能与导入的类名相同
     var def = stack.parent().scope().define();
-    for (var i in def)if( def[i].fullclassname === classname )
+    for (var i in def)if( name=== def[i].classname )
     {
-        this.error('"'+name+'" is already been declared',this.current);
+        if( def[i].fullclassname !== classname ) {
+            this.error('"' + name + '" is already been declared', this.current);
+        }else
+        {
+            delete def[i];
+        }
     }
 
     //实例作用域
