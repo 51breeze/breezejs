@@ -1,40 +1,67 @@
 
-package com{
+/**
+ +------------------------------------------------------------------------------
+ * @package  : com.library.Cdisplay
+ +------------------------------------------------------------------------------
+ * @class    : 显示块类
+ +------------------------------------------------------------------------------
+ * @access   :
+ *
+ +------------------------------------------------------------------------------
+ * @author   : yejun <664371281@qq.com>
+ +------------------------------------------------------------------------------
+ */
 
-    class B {
 
-        private static var N=' static var N 123';
-        public var six='man';
+//类
 
-        static public const uuu='man';
-        static public var classname='man 9999';
+package com
+{
+    import String;
+    import Number;
+    import com.D;
+    import lib.EventDispatcher;
 
-        public function B()
+    public class B extends D {
+        
+         public var dispatcher:EventDispatcher = null ;
+         protected const age:String = '3' ;
+         static private var address:String = 'shu line 6666' ;
+
+        static protected function get classname():String
         {
-            console.log(' this is B');
-        }
-        private var __names__='123';
-
-        public function get names():String{
-
-             console.log(' =====get names======== ', this.__names__ );
-             return this.__names__;
+            return '==the B classname=';
         }
 
-        public function set names(val:String){
+         function B(jj)
+         {
+              var cc:Number=66;
+         } 
 
-             this.__names__ = val;
-        }
 
-        public function test()
-        {
-             return '333';
-        }
+
+        protected function createName()
+         {
+             return 'the fun createname';
+         }
+
+        private var name:String='666 66fff';
 
         protected function cre()
         {
-            return '333';
+
+            console.log(  this.name );
+            console.log( 'call cre');
         }
 
+        function connect():String{
+            return '';
+        }
+
+
+
     }
+
 }
+
+

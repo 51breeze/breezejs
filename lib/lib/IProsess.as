@@ -1,8 +1,9 @@
 package lib{
 
-   interface IProsess{
+   import lib.IProt;
+   public interface IProsess extends IProt{
 
-       function age():Number;
+       function database():String;
 
    }
 }

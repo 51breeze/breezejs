@@ -613,18 +613,29 @@ syntax['private,protected,internal,static,public,override,final,dynamic,abstract
 
     //如是静态类，那么整个类不能实例化
     if( scope.keyword() ==='class' && scope.static() )s = scope.static();
-    if( n.value==='class' || n.value === 'function' )
+    if( n.value==='class' || n.value === 'function' || n.value === 'interface'  )
     {
-        if( n.value==='class' )
+        if( n.value === 'interface' )
+        {
+            this.add( new Interface() );
+        }
+        else if( n.value==='class' )
         {
             this.add( new Class() );
             this.scope().abstract( a );
-
         }else
         {
             if(a)this.error('The abstract can only appear in the class attribute');
             this.add( new Scope(n.value, '(block)') );
         }
+
+        if( scope.keyword() === 'interface' || n.value === 'interface' )
+        {
+            var str = s || o || f || d;
+            if( str )this.error('"'+str+'" cannot appear in the interface' );
+            if( q !== 'public' )this.error('can only is "public" qualifier in the interface' );
+        }
+
         this.scope().static( s );
         this.scope().qualifier( q );
         this.scope().override( o );
@@ -777,6 +788,7 @@ syntax['interface']=function( event )
         var p = checkStatementType(className, stack.parent().scope() );
         if (!p)this.error('"' + className + '" is not import');
         stack.extends( p.classname );
+        n = this.seek();
     }
 
     //必须要{开始正文
