@@ -47,14 +47,14 @@ package com
 
         private var name:String='666 66fff';
 
-        protected function cre()
+        protected function cre(str:Object)
         {
 
             console.log(  this.name );
             console.log( 'call cre');
         }
 
-        function connect():String{
+        function connect(str:Object):String{
             return '';
         }
 

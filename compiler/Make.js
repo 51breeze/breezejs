@@ -100,7 +100,7 @@ function getModuleName(a, b)
 function createDefaultParam( stack , module)
 {
     var data = stack.content();
-    var obj = {'param':[],'expre':[],'paramType':[]};
+    var obj = {'param':[],'expre':[], 'type':[]};
     var name;
     var type='*';
     var value;
@@ -108,12 +108,11 @@ function createDefaultParam( stack , module)
     for ( var j=0; j< data.length ; j++ )
     {
         var item = data[j];
-        if( item instanceof  Ruler.STACK )
+        if( item instanceof Ruler.STACK )
         {
             var o = createDefaultParam( item, module );
             obj.param = obj.param.concat( o.param );
             obj.expre = obj.expre.concat( o.expre );
-            obj.paramType = obj.paramType.concat( o.paramType );
 
         }else if( item && item.value!==',' )
         {
@@ -133,29 +132,28 @@ function createDefaultParam( stack , module)
         var desc = ps.define( name );
         if (value)
         {
-            obj.expre.push(name + '=typeof ' + name + '=== "undefined" ?' + value + ':' + name+';\n');
+            obj.expre.push(name + '=System.typeof(' + name + ') === "undefined" ?' + value + ':' + name+';\n');
         }
         if (desc)
         {
-            type = getType( desc.type );
+            type = desc.type = getType( desc.type );
             if( type !=='*' )
             {
-                obj.expre.push('if( typeof ' + name + ' !== "' +type.toLowerCase() + '" )throw new TypeError("Specify the type of mismatch");\n');
+                obj.expre.push('if(!System.is('+name+','+type+'))throw new TypeError("type of mismatch");\n');
             }
         }
         obj.param.push( name );
+        obj.type.push( type );
     }
-    obj.paramType.push({type:type,defaultValue:value ? value : 'undefined' });
     return obj;
 }
-
 
 /**
  * 生成函数
  * @param stack
  * @returns {string}
  */
-function createFunction( stack,module )
+function createFunction(stack, moduleObject )
 {
     var children = stack.content();
     var i=0;
@@ -163,7 +161,6 @@ function createFunction( stack,module )
     var content=[];
     var param;
     var is = stack.parent().keyword()==='class' && stack.parent().name() === stack.name();
-
     for(;i<len; i++)
     {
         var child = children[i];
@@ -171,12 +168,21 @@ function createFunction( stack,module )
         {
             if( child.keyword() === 'statement' )
             {
-                param = createDefaultParam( child, module );
+                param = createDefaultParam( child, moduleObject );
                 content.push( param.param.join(',') );
+                if( stack.parent().keyword()==='class' || stack.parent().keyword()==='interface' )
+                {
+                    if ( stack.static() ) {
+                        moduleObject.static[stack.name()].paramType = param.type;
+                    } else {
+                        is ? moduleObject.constructor.paramType = param.type :
+                        moduleObject.proto[stack.name()].paramType = param.type;
+                    }
+                }
 
             }else
             {
-                content.push( toString(child,module) );
+                content.push( toString(child,moduleObject) );
             }
         }
         //获取函数的默认参数
@@ -226,7 +232,7 @@ function typeToIdentifier( type )
  * @param stack
  * @returns {string}
  */
-function createDescription(stack )
+function createDescription( stack )
 {
     var desc = {};
     desc['id'] =stack.keyword();
@@ -240,9 +246,9 @@ function createDescription(stack )
     {
         desc['override'] =stack.override();
     }
-    if( stack.keyword() === 'function' &&  stack.param().length > 0 )
+    if( stack.keyword() === 'function' )
     {
-        desc['param'] =stack.param().join('","');
+        desc['param'] = stack.param();
     }
     return desc;
 }
@@ -1162,7 +1168,6 @@ function toString( stack, module )
     if( stack.keyword() === 'function' )
     {
         return createFunction( stack , module );
-
     } else if( stack.keyword() === 'expression' )
     {
         return expression( stack , module );
@@ -1243,13 +1248,22 @@ function checkInterface(classModule)
             obj=doPrototype(classModule,function (module) {
                 if( module.proto[name] && module.proto[name].id === 'function')return module.proto[name];
             });
-            if ( !obj )error('Not implementation of the "' + name + '" interface')
-            if ( obj.type !== desc[name].type )error('"' + name + '" do not match the return type of the interface')
+            if( !obj )error('Not implementation of the "' + name + '" method interface')
+            if( obj.type !== desc[name].type )error('the "' + name + '" interface of mismatch the return type')
+            if( desc[name].param.length !== obj.param.length )error('Not implementation of the "' + name + '" method parameter')
+            if( desc[name].param.length > 0 )
+            {
+                for(var b in desc[name].param )
+                {
+                    if( desc[name].param[b] !== obj.param[b] )
+                    {
+                        error('the "'+name+'" method of mismatch parameter type','type');
+                    }
+                }
+            }
         }
     }
 }
-
-
 
 /**
  * 生成模块信息
@@ -1258,17 +1272,21 @@ function checkInterface(classModule)
  */
 function makeModule( stack )
 {
-    if( stack.keyword() ==='interface' )
+    var fullname = getModuleName( stack.parent().name(), stack.name() );
+    var classModule = module( fullname );
+    if( !classModule )error('"'+fullname+'" does exists');
+
+    //继承父类
+    if( classModule.inherit )
     {
-        var fullname = getModuleName( stack.parent().name(), stack.name() );
-        var classModule = module( fullname );
-        return classModule;
+        var parent = module( getImportClassByType( classModule, classModule.inherit ) );
+        //终结的类不可以扩展
+        if( parent.isFinal )error('parent class is not extends.');
     }
 
-    if( stack.keyword() !=='class' )
+    if( stack.keyword() ==='interface' )
     {
-        throw new Error('Invalid stack');
-        process.exit();
+        return classModule;
     }
 
     var data = stack.content();
@@ -1277,30 +1295,11 @@ function makeModule( stack )
     var props = [];
     var len = data.length;
     var isstatic = stack.static();
-
-    // 组合接口
-    var fullname = getModuleName( stack.parent().name(), stack.name() );
-    var classModule = module( fullname );
-    if( !classModule )
-    {
-        error('"'+fullname+'" does exists');
-    }
-
     if( !isstatic )classModule.constructor.value='function(){return this;}';
 
-    //父类
-    var parent = null;
-
-    //继承父类
-    if( classModule.inherit )
-    {
-        parent = module( getImportClassByType( classModule, classModule.inherit ) );
-
-        //终结的类不可以扩展
-        if( parent.isFinal )error('parent class not is extends.');
-    }
     //需要实现的接口
     checkInterface(classModule);
+
     for ( ; i< len ; i++ )
     {
         item = data[i];
@@ -1336,6 +1335,17 @@ function makeModule( stack )
                 else if( !item.override() && info )
                 {
                     error('Missing override for "'+item.name()+'"','', getStack(item) );
+                }
+
+                //扩展父类的方法必须保持参数和参数类型的一致
+                if( item.override() )
+                {
+                    var param = item.param();
+                    if( info.param.length !== param.length )error('the override parameters of inconformity for "'+item.name()+'"','', getStack(item) );
+                    for(var b in info.param )
+                    {
+                        if( info.param[b] !==param[b] )error('the override parameter types of inconformity for "'+item.name()+'"','type');
+                    }
                 }
 
                 //去掉名称
@@ -1432,7 +1442,7 @@ function getPropertyDescription( stack )
     var isstatic = stack.static();
 
     // 组合接口
-    var list = {'static':{},'proto':{},'import':{},constructor:{}};
+    var list = {'static':{},'proto':{},'import':{},'constructor':{}};
     var define = stack.parent().scope().define();
     for ( var j in define )list['import'][j]=define[j].fullclassname;
 
@@ -1442,24 +1452,28 @@ function getPropertyDescription( stack )
         if( item instanceof Ruler.STACK )
         {
             var ref =  item.static() || isstatic ? list.static : list.proto;
-            var desc = createDescription(item);
 
             //跳过构造函数
             if( item.keyword() === 'function' && item.name() === stack.name() && !isstatic )
             {
-                list.constructor=desc;
+                list.constructor= createDescription(item);
                 continue;
             }
 
             //访问器
             if( item instanceof Ruler.SCOPE && item.accessor() )
             {
-                ref =  ref[ item.name() ] || (ref[ item.name() ]={id:'function',type:desc.type,privilege:desc.privilege,value:{}});
-                ref.value[ item.accessor() ] = desc;
+                var refObj = ref[ item.name() ];
+                if( !refObj )
+                {
+                    ref[ item.name() ] = refObj = createDescription(item);
+                    refObj.value={};
+                }
+                refObj.value[ item.accessor() ] = createDescription(item);
 
             }else
             {
-                ref[ item.name() ] = desc;
+                ref[ item.name() ] =  createDescription(item);
             }
         }
     }
@@ -1559,16 +1573,11 @@ function loadModuleDescription( file )
             console.log('fatal error in "'+sourcefile+'"');
             process.exit();
         }
-
         needMakeModules.push( scope );
         data = getPropertyDescription( scope );
         data.cachefile = cachefile;
         data.uid= id;
         data.filename = sourcefile.replace(/\\/g,'\\\\');
-        if( data.inherit )
-        {
-            loadModuleDescription( getImportClassByType(data, data.inherit) );
-        }
     }
 
     for(var i in data.import )

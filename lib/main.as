@@ -55,11 +55,11 @@ package
 
           private var bb:String=null;
 
-        override protected function cre(){
+        override protected function cre(name:Object){
               return this.bb;
           }
 
-        function database():String{
+        function database(name:String='mysql',type:Number):String{
             return '';
         }
 

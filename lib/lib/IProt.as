@@ -2,7 +2,7 @@ package lib{
 
    interface IProt{
 
-       function connect():String;
+       function connect(str:Object):String;
 
    }
 }

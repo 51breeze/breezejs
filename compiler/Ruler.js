@@ -2378,7 +2378,7 @@ Scope.prototype.constructor=Scope;
  */
 Scope.prototype.param=function( type )
 {
-    if( typeof name !== 'undefined' )
+    if( typeof type !== 'undefined' )
     {
         this.__param__.push( type );
         return this;
