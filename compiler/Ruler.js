@@ -820,13 +820,15 @@ syntax['interface']=function( event )
     if( this.current.id !=='}' ) this.error('Missing token }');
 };
 
-
 syntax['var,let']=function (event)
 {
     event.prevented=true;
     if(this.scope().keyword() !== event.type )this.add( new Stack( event.type, '(*)' ) );
+    if( event.type ==='let'){
+        this.scope().__keyword__ = 'var';
+        this.current.value='var';
+    }
     this.add( this.current );
-
     this.scope().name( this.next.value );
     var parent = this.scope().parent();
 
@@ -930,7 +932,6 @@ syntax['function']= function(event){
 
     this.add( this.seek() );
     if( this.current.id !==')' ) this.error('Missing token )');
-
     var type='*';
 
     //返回类型
@@ -1621,6 +1622,16 @@ function statement()
     var stack = this.scope();
     var id = stack.parent().keyword();
 
+    //剩余参数
+    if( name === '...' )
+    {
+        if( id !=='function' )this.error();
+        stack.parent().param( name );
+        this.seek();
+        name = this.current.value;
+        if( this.next.value !==')' )this.error('Rest parameter is not last');
+    }
+
     //获取声明的类型
     if( this.next.id===':' )
     {
@@ -1638,7 +1649,7 @@ function statement()
     //检查属性名是否可以声明
     if( !checkStatement(name, this.config('reserved') ) )
     {
-        this.error(reserved.indexOf( name )>0 ? 'Reserved keyword not is statemented for '+name : 'Invalid statement for '+name);
+        this.error(reserved.indexOf( name )>0 ? 'Reserved keyword is not statemented for '+name : 'Invalid statement for '+name);
     }
 
     var desc = {'type':'('+type+')','id':id, 'static': stack.parent().static() , 'scope':stack.scope() };
@@ -1647,20 +1658,28 @@ function statement()
     if( id==='function' )
     {
         desc.id='var';
-        stack.parent().param( type );
+        stack.parent().param( name );
 
     }else if( id ==='var' || id==='const' || id==='let')
     {
         stack.parent().type( type );
     }
 
+    //不能重复声明变量
     var val = stack.scope().define( name );
     if( val && val.scope === stack.scope()  )this.error('Identifier "'+name+'" has already been declared');
+
+    //将声明的变量定义到作用域中
     stack.scope().define(name, desc);
 
     //常量必须指定默认值
     if( id==='const' && this.next.value !=='=' )this.error('Missing default value in const',this.next);
-    this.add( new Stack('expression', '('+type+')' ) );
+    this.add(new Stack('expression', '(*)'));
+    //引用赋值
+    if( this.next.value === '=' ){
+        if( stack.parent().parent().keyword() === 'interface' )this.error('Can not assign default value',this.next);
+        desc.value=this.scope();
+    }
 }
 
 /**
@@ -3009,7 +3028,17 @@ Ruler.prototype.operator=function(s)
     //这些只能单个出现
     if( v===';' || v==='.' || v===',' || v==='?' )
     {
-        return describe('(operator)', v , v );
+        var type = '(operator)';
+        if( v==='.' )
+        {
+            //rest
+            if( s.charAt(1)==='.' && s.charAt(2)==='.' && /[a-zA-Z]/.test( s.charAt(3) ) )
+            {
+                type = '(identifier)';
+                v = s.substr(0, 3);
+            }
+        }
+        return describe(type, v , v );
     }
 
     var index = 0;

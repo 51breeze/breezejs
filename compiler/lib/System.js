@@ -1,4 +1,4 @@
-(function(_Object,_String,_Array){
+(function(_Object,_String,_Array,_Error){
 var s={};
 var globals={};
 var packages={};
@@ -222,6 +222,56 @@ Object.prototype.constructor = Object;
 s.Object = Object;
 
 /**
+ * 错误消息构造函数
+ * @param message
+ * @param line
+ * @param filename
+ * @constructor
+ */
+function Error( message , line, filename )
+{
+    this.message = message;
+    this.line=line;
+    this.filename = filename;
+    this.type='Error';
+}
+Error.prototype = new Object();
+Error.prototype.constructor=Error;
+Error.prototype.line=null;
+Error.prototype.type='Error';
+Error.prototype.message=null;
+Error.prototype.filename=null;
+Error.prototype.toString=function ()
+{
+    return this.message;
+}
+s.Error = Error;
+
+function ReferenceError( message , line, filename )
+{
+    Error.call(this, message , line, filename);
+    this.type='ReferenceError';
+}
+ReferenceError.prototype = new Error();
+ReferenceError.prototype.constructor=ReferenceError;
+
+function TypeError( message , line, filename )
+{
+    Error.call(this, message , line, filename);
+    this.type='TypeError';
+}
+TypeError.prototype = new Error();
+TypeError.prototype.constructor=TypeError;
+
+function SyntaxError( message , line, filename )
+{
+    Error.call(this, message , line, filename);
+    this.type='SyntaxError';
+}
+SyntaxError.prototype = new Error();
+SyntaxError.prototype.constructor=SyntaxError;
+
+/**
  * 类对象构造器
  * @returns {Class}
  * @constructor
@@ -297,7 +347,16 @@ s.instanceof=function(instanceObj, theClass)
         }
     }
     if( typeof theClass !== "function" )return false;
-    return instanceObj instanceof theClass;
+    if( instanceObj instanceof theClass )return true;
+    var type = s.typeof( instanceObj );
+    switch ( type )
+    {
+        case 'string' : return theClass === String;
+        case 'boolean' : return theClass === Boolean;
+        case 'number' : return theClass === Number;
+        case 'class' : return theClass === Class;
+    }
+    return false;
 }
 
 /**
@@ -330,8 +389,7 @@ s.is=function(instanceObj, theClass)
             instanceObj=instanceObj.extends;
         }
     }
-    if( typeof theClass !== "function" )return false;
-    return instanceObj instanceof theClass;
+    return s.instanceof( instanceObj, theClass);
 }
 
 
@@ -560,28 +618,6 @@ function isEmpty(val , flag )
 };
 s.isEmpty=isEmpty;
 
-/**
- * 抛出错误信息
- * @param type
- * @param msg
- */
-function throwError(type, msg )
-{
-    switch ( type ){
-        case 'type' :
-            throw new TypeError( msg );
-            break;
-        case 'reference':
-            throw new ReferenceError( msg );
-            break;
-        case 'syntax':
-            throw new SyntaxError( msg );
-            break;
-        default :
-            throw new Error( msg );
-    }
-}
-s.throwError = throwError();
 
 //引用属性或者方法
 var __call=(function () {
@@ -719,9 +755,8 @@ var __call=(function () {
                 desc.value.set.call(thisArg, value);
                 return value;
             }
+            if ( !Object.prototype.hasOwnProperty.call(refObj, prop) )throwError('reference', '"' + strName + '" property does not exist');
         }
-
-        if ( !Object.prototype.hasOwnProperty.call(refObj, prop) )throwError('reference', '"' + strName + '" property does not exist');
         try {
             refObj[ prop ] = value;
         } catch (e) {
@@ -810,6 +845,7 @@ var __call=(function () {
             //是否对静态模块的引用
             var isStatic = refObj instanceof Class;
             var referenceModule = isStatic ? refObj : refObj.constructor;
+
             //是否为引用本地类的模块
             if( referenceModule instanceof Class )
             {
@@ -835,7 +871,9 @@ var __call=(function () {
                     }
                 }
                 //如果没有在类中定义
-                if ( !desc )throwError('reference', '"' + strName + '" is not defined');
+                if ( !desc ){
+                    throwError('reference', '"' + strName + '" is not defined');
+                }
                 //是否有访问的权限
                 if( !checkPrivilege( desc, referenceModule, classModule) )throwError('reference', '"' + strName + '" inaccessible.');
                 //如果是一个实例属性
@@ -906,6 +944,29 @@ var __call=(function () {
 })();
 
 /**
+ * 抛出错误信息
+ * @param type
+ * @param msg
+ */
+function throwError(type, msg , line, filename)
+{
+    switch ( type ){
+        case 'type' :
+            throw new TypeError( msg,line, filename );
+            break;
+        case 'reference':
+            throw new ReferenceError( msg ,line, filename);
+            break;
+        case 'syntax':
+            throw new SyntaxError( msg ,line, filename );
+            break;
+        default :
+            throw new Error( msg , line, filename );
+    }
+}
+s.throwError = throwError;
+
+/**
  * 构建一个访问器
  * @param classModule
  * @param flag
@@ -918,9 +979,9 @@ function make(classModule, flag )
         try{
             return __call(classModule, thisArg, properties, value, flag);
         }catch(error){
-            var msg = classModule.filename+':'+info+'\n'
-            msg += error.message+'\n';
-            throwError("reference", msg );
+            var msg = classModule.filename + ':' + info + '\n';
+            msg += error.filename ? error.message : error.type +' '+ error.message;
+            throwError("reference", msg, info, classModule.filename );
         }
     }
 }
@@ -938,6 +999,7 @@ s.define=function( name , descriptor , isInterface)
         if( isInterface )
         {
             classModule = packages[ name ] = new Interface();
+            descriptor.constructor = null;
         }else
         {
             classModule = packages[name] = new Class();
@@ -949,7 +1011,7 @@ s.define=function( name , descriptor , isInterface)
     if( typeof descriptor === "object" )
     {
         classModule.merge( descriptor );
-        if( typeof descriptor.constructor === "function" )
+        if( !isInterface && typeof descriptor.constructor === "function" )
         {
             descriptor.constructor.prototype= new Object();
             descriptor.constructor.prototype.constructor = classModule;
@@ -960,4 +1022,4 @@ s.define=function( name , descriptor , isInterface)
     return classModule;
 }
 return s;
-})(Object,String,Array);
+})(Object,String,Array,Error);

@@ -35,6 +35,7 @@ package com
 
          function B(jj)
          {
+              super(jj);
               var cc:Number=66;
          } 
 
@@ -47,7 +48,7 @@ package com
 
         private var name:String='666 66fff';
 
-        protected function cre(str:Object)
+        protected function cre(str:String)
         {
 
             console.log(  this.name );
