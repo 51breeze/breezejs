@@ -16,46 +16,40 @@
 //类
 package
 {
-
    import lib.EventDispatcher;
    import com.B;
-   import lib.Iprosess;
+   import lib.IProsess;
 
-    public class Main extends B implements Iprosess {
 
-       // static public var name:String = '3999 yyy fsss 666' ;
+    public class Main extends B implements IProsess {
+
+        static public var name:String = '3999 yyy fsss 666' ;
         public var names:String = '3' ;
-        static public var name:String = '5' ;
+      //  static public var name:String = '5' ;
 
 
           //var bb:String='123';
           function Main(jj)
           {
+              var i = 50;
+              for(let i=0; i<5; i++)
+              {
+                  var b=i;
+                  console.log( i );
+              }
+              console.log(i, b );
+              this.tests(1,2,3,4,5,6);
 
-              var ii={
-                  name:{},
-                  age:1
-              };
+              console.log( this is IProsess,'==========' );
 
-              ii.cc = 666;
-
-              var bb:Function=function () {
-                //  console.log('=====9999=====')
-              };
-
-              bb();
-
-
-              var b,c='uuuu',d=6;
-              var name=null;
-              super('666');
-            console.log( Main.classname );
-           console.log( this.names );
-
-              this.cre( Main.name );
           }
 
-          private var bb:String=null;
+        function tests(a, ...avg)
+        {
+            console.log(a, avg );
+        }
+
+        private var bb:String=null;
 
         override protected function cre(str:String){
               return this.bb;
@@ -64,14 +58,5 @@ package
         function database(name:String,type:Number):String{
             return '';
         }
-
-        function tests(b:String,c,d,...avg)
-        {
-
-            let ii=33;
-
-
-        }
-
     }
 }

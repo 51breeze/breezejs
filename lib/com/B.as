@@ -37,6 +37,7 @@ package com
          {
               super(jj);
               var cc:Number=66;
+             console.log('===the is B====', this is String);
          } 
 
 

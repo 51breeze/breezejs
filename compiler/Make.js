@@ -349,20 +349,27 @@ Iteration.prototype.values=function( value )
  */
 function checkParameter(it, desc, property )
 {
-    var  parameters = it.current.content()
-    if(desc.param &&  desc.param.length > 0 && desc.param[0] !=='...' )
+    var content = it.current.content();
+    var parameters = []
+    for( var b in content )
     {
-        if( parameters.length < desc.param.length ) error('Missing parameter', 'syntax', property.lastStack );
-        var param = property.isglobal ? desc.param : desc.paramType;
-        for(var i in param)
+        if( content[b] instanceof Ruler.STACK ) {
+            parameters.push( content[b] );
+        }
+    }
+    var param = property.isglobal ? desc.param : desc.paramType;
+    if( param  && param.length > 0 )
+    {
+        if( parameters.length < param.length ) error('Missing parameter', 'syntax', property.lastStack );
+        for(var i in desc.param )
         {
-            if( desc.param[i]==='...' ){
+            if( desc.param[i]==='...' )
+            {
                 property.runningCheck=true;
                 return true;
             }
-            if( !(parameters[i] instanceof Ruler.STACK) )error('Unexpected identifier', 'syntax', property.lastStack );
             var type = getType( parameters[i].type() );
-            if( !type || type === '*' ){
+            if( param[i] === '*' || type==='*' ){
                 property.runningCheck=true;
                 continue;
             }
@@ -1621,6 +1628,7 @@ function loadModuleDescription( file )
             console.log('fatal error in "'+sourcefile+'"');
             process.exit();
         }
+        //console.log( scope.content()[0] )
         needMakeModules.push( scope );
         data = getPropertyDescription( scope );
         data.cachefile = cachefile;
