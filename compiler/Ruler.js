@@ -829,7 +829,7 @@ syntax['var,let']=function (event)
     //用闭包来模拟let块变量声明
     if( event.type ==='let' && block.keyword() !=='function' )
     {
-        if( block.blockScope !== true )
+        if( block.__$fixBlockScope !== true )
         {
             block.addListener('(switch)', function () {
                 if (this.keyword() === 'function')return;
@@ -838,7 +838,7 @@ syntax['var,let']=function (event)
                 content.splice(index, 0, describe('(code)', '(function(){\n', 'code'));
                 content.push(describe('(code)', '\n}());\n', 'code'));
             });
-            block.blockScope = true;
+            block.__$fixBlockScope = true;
         }
         this.current.value='var';
         this.add( this.current );
@@ -1699,7 +1699,8 @@ function statement()
     var block = stack.parent();
     while( block && !(block instanceof Scope) )block = block.parent();
 
-    var desc = {'type':'('+type+')','id':id, 'static': stack.parent().static() , 'scope':stack.scope(), 'block':block };
+    var scope = id==='let' ? stack.blockScope() : stack.scope();
+    var desc = {'type':'('+type+')','id':id, 'static': stack.parent().static() , 'scope':scope};
 
     //如是函数声明的参数
     if( id==='function' )
@@ -1713,11 +1714,10 @@ function statement()
     }
 
     //不能重复声明变量
-    var val = stack.scope().define( name );
-    if( val && ( ( (id==='var' || id==='const') && val.scope === desc.scope ) || (val.block === desc.block) ) )this.error('Identifier "'+name+'" has already been declared');
-
+    var val = scope.define( name );
+    if( val && val.scope === scope )this.error('Identifier "'+name+'" has already been declared');
     //将声明的变量定义到作用域中
-    stack.scope().define(name, desc);
+    scope.define(name, desc);
 
     //常量必须指定默认值
     if( id==='const' && this.next.value !=='=' )this.error('Missing default value in const',this.next);
@@ -1798,14 +1798,27 @@ syntax['(identifier)']=function( e )
         var type = toType( this.current, this.scope() );
         if( !type )
         {
-            var ps = this.scope().scope();
+            var ps = this.scope().blockScope();
 
             //是否有声明
             var desc = ps.define( this.current.value );
+            if( desc && desc.id ==='let')
+            {
+                var block = this.scope();
+                while ( block && !(block instanceof Ruler.SCOPE) )block=block.parent();
+                if( block.keyword() ==='function' )
+                {
+                    console.log(this.current);
+                }
+            }
 
             //是否为全局对象
             if ( !desc )
             {
+
+                //console.log( this.scope().scope().define() )
+               // process.exit()
+
                 var global = this.config('globals');
                 desc = global[ this.current.value ];
             }
@@ -2080,6 +2093,7 @@ function Stack( keyword, type )
     this.__final__   = '' ;
     this.__dynamic__ = '';
     this.__scope__   = null ;
+    this.__blockScope__   = null ;
     this.__define__  ={};
 
     Listener.call(this);
@@ -2125,7 +2139,7 @@ Stack.prototype = new Listener();
 Stack.prototype.constructor = Stack;
 
 /**
- * 所在的作用域
+ * 所在的函数作用域
  * @param keyword
  * @returns {*}
  */
@@ -2133,13 +2147,46 @@ Stack.prototype.scope=function()
 {
    if( this.__scope__===null )
    {
+     /*  var block = this;
+       while ( block && !(block instanceof Scope) )block=block.parent();
+       this.__scope__ = block || this;
+       if( this.parent() instanceof Class )
+       {
+           this.__scope__ = this.parent().scope( this.static() ? 'static' : 'proto' );
+       }
+   */
+
        this.__scope__ = inheritScope(this);
        if( this === this.__scope__ && this.keyword() !=='package' && this.parent() )
        {
             this.__scope__ = this.parent().scope( this.static() ? 'static' : 'proto' );
        }
+
    };
    return this.__scope__;
+}
+
+
+/**
+ * 所在的块级作用域
+ * @param keyword
+ * @returns {*}
+ */
+Stack.prototype.blockScope=function()
+{
+    if( this.__blockScope__===null )
+    {
+        var block = this;
+        while ( block && !(block instanceof Scope) && block.parent() )block=block.parent();
+        this.__blockScope__ = block;
+        var id = block.keyword();
+        var define = id ==='function' || id==='class' || id==='package' ? this.scope().__define__ : block.parent().blockScope().__define__;
+        for ( var i in define )
+        {
+            block.__define__[i] = define[i];
+        }
+    };
+    return this.__blockScope__;
 }
 
 function inheritScope( stack )

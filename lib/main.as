@@ -32,12 +32,22 @@ package
           function Main(jj)
           {
               var i = 50;
-              for(let i=0; i<5; i++)
+              var items=[];
+              for(let i=i; i<5; i++)
               {
                   var b=i;
-                  console.log( i );
+
+                  let hh=i;
+                  console.log( hh , jj );
+                  items.push( function(){ return i;} );
+
+                  if( true )
+                  {
+                       console.log( jj );
+                  }
+
               }
-              console.log(i, b );
+              console.log(i, b);
               this.tests(1,2,3,4,5,6);
 
               console.log( this is IProsess,'==========' );
