@@ -33,33 +33,48 @@ package
           {
               var i = 50;
               var items=[];
-              for(let i=i; i<5; i++)
+              var j=i;
+              for(let i=j; i<60; i++)
               {
                   var b=i;
 
                   let hh=i;
-                  console.log( hh , jj );
-                  items.push( function(){ return i;} );
 
-                  if( true )
+                  console.log( hh ,i );
+                  items.push( function(){ return i+'---'+hh;} );
+
+                  if( false )
                   {
+                      let hh;
                        console.log( jj );
                   }
 
               }
-              console.log(i, b);
+              console.log(i, b  );
               this.tests(1,2,3,4,5,6);
-
+              for( var c in items )
+              {
+                  console.log( items[c](), '====88888' );
+              }
               console.log( this is IProsess,'==========' );
 
           }
 
-        function tests(a, ...avg)
+        function tests(a ,...avg)
         {
-            console.log(a, avg );
+            var tests;
+            if( true ){
+
+                var i=9;
+                if( a )
+                {
+                }
+
+            }
+            console.log(a, avg  , i );
         }
 
-        private var bb:String=null;
+        //private var bb:String=null;
 
         override protected function cre(str:String){
               return this.bb;

@@ -1019,6 +1019,9 @@ function bunch(it, classmodule)
             express.push('System.'+operator+'('+parse( express.pop() )+','+ parse( getDescriptorOfExpression(it, classmodule) )+')');
         }else
         {
+            if( operator ==='in' ){
+                express.push(' ');
+            }
             express.push( operator );
             express.push( getDescriptorOfExpression(it, classmodule) );
         }
@@ -1235,6 +1238,10 @@ function toString( stack, module )
             str.push( toString(it.current, module) );
         }else
         {
+            if (it.current.id === '(keyword)' && (it.current.value==='in' || it.current.value==='is' || it.current.value==='instanceof' ) )
+            {
+                str.push(' ');
+            }
             str.push(it.current.value);
             if (it.current.id === '(keyword)')str.push(' ');
         }

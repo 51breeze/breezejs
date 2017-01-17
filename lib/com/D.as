@@ -22,6 +22,8 @@ package com
 
     public class D {
 
+         protected var bb=123;
+
          function D(jj:String='123')
           {
 

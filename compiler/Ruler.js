@@ -823,36 +823,35 @@ syntax['var,let']=function (event)
     if(this.scope().keyword() !== event.type )this.add( new Stack( event.type, '(*)' ) );
     var variable = this.scope();
     var statement = new Stack('statement' , '(expression)');
-    var block = this.scope();
-    while( block && !(block instanceof Scope) )block = block.parent();
+    var scope = variable.scope();
 
     //用闭包来模拟let块变量声明
-    if( event.type ==='let' && block.keyword() !=='function' )
+    if( event.type ==='let' )
     {
-        if( block.__$fixBlockScope !== true )
+        if( scope.keyword() !=='function' && scope.__$fixBlockScope !== true )
         {
-            block.addListener('(switch)', function () {
-                if (this.keyword() === 'function')return;
-                var content = this.scope().content();
+            scope.addListener('(switch)', function () {
+                var content = this.parent().content();
                 var index = content.indexOf(this);
                 content.splice(index, 0, describe('(code)', '(function(){\n', 'code'));
                 content.push(describe('(code)', '\n}());\n', 'code'));
             });
-            block.__$fixBlockScope = true;
+            scope.__$fixBlockScope = true;
         }
         this.current.value='var';
         this.add( this.current );
     }
     //将块域中的var变量提到函数中
-    else if( event.type ==='var' && !(block.keyword() ==='function' || block.keyword() ==='class') )
+    else if( event.type ==='var' && !(scope.keyword() ==='function' || scope.keyword() ==='class') )
     {
-        var funScope = block;
-        var self = this;
+        var isfor = scope.keyword()==='for';
+        var funScope = scope;
         while( funScope.parent() && funScope.parent().keyword() !=='function' )funScope = funScope.parent();
-        block = funScope;
+        scope = funScope;
         funScope = funScope.parent();
-        var index = funScope.content().indexOf( block );
+        var index = funScope.content().indexOf( scope );
         var items=[index, 0, this.current ];
+        var self = this;
         variable.addListener('(switch)',function () {
             var content = statement.content();
             for ( var i in content )
@@ -860,7 +859,7 @@ syntax['var,let']=function (event)
                items.push( content[i] instanceof Stack ? content[i].content()[0] : content[i] );
             }
             var len = content.length;
-            while ( len > 0 )
+            while ( len > 0 && !isfor )
             {
                 var item = content[--len];
                 //删除没有赋值的变量名
@@ -936,6 +935,8 @@ syntax['function']= function(event){
     var n = this.seek();
     var name='';
     var isClassOrInterface = stack.parent().keyword() ==='class' || stack.parent().keyword() ==='interface';
+    var scope = isClassOrInterface ? stack.scope().parentScope : stack.scope();
+
     if( isClassOrInterface && (n.value === 'get' || n.value === 'set') && this.next.id !== '(' )
     {
         stack.accessor(n.value);
@@ -1024,8 +1025,8 @@ syntax['function']= function(event){
     if( name )
     {
         //不能重复声明函数
-        var val = stack.scope().define( name );
-        if( val && val.scope === stack.scope() )
+        var val = scope.define( name );
+        if( val && val.scope === scope )
         {
             if( !stack.accessor() || stack.accessor() === val.get || stack.accessor() === val.set )
             {
@@ -1050,10 +1051,10 @@ syntax['function']= function(event){
                 'id': 'function',
                 'qualifier': stack.qualifier(),
                 'static': stack.static(),
-                'scope': stack.scope()
+                'scope': scope
             };
             if (stack.accessor())obj[stack.accessor()] = stack.accessor();
-            stack.scope().define(name, obj);
+            scope.define(name, obj);
         }
     }
 
@@ -1307,7 +1308,7 @@ syntax["this"]=function (e)
     if( fun.parent().keyword() ==='class' && fun.static() )this.error('this is not defined in static function');
     if( fun.parent().keyword() ==='class' )
     {
-        this.scope().type( this.scope().scope().define('this', true).type );
+        this.scope().type( this.scope().scope().define('this').type );
     }
     this.add( this.current );
     if( this.next.type==='(operator)' || this.next.value==='[' )
@@ -1699,7 +1700,7 @@ function statement()
     var block = stack.parent();
     while( block && !(block instanceof Scope) )block = block.parent();
 
-    var scope = id==='let' ? stack.blockScope() : stack.scope();
+    var scope =  stack.getScopeOf( id==='let' );
     var desc = {'type':'('+type+')','id':id, 'static': stack.parent().static() , 'scope':scope};
 
     //如是函数声明的参数
@@ -1798,27 +1799,35 @@ syntax['(identifier)']=function( e )
         var type = toType( this.current, this.scope() );
         if( !type )
         {
-            var ps = this.scope().blockScope();
+            var ps = this.scope().scope();
 
             //是否有声明
             var desc = ps.define( this.current.value );
-            if( desc && desc.id ==='let')
+
+            //如果是声明的块级变量并且在函数中引用
+            if( desc && desc.id ==='let' && ps.keyword() ==='function')
             {
-                var block = this.scope();
-                while ( block && !(block instanceof Ruler.SCOPE) )block=block.parent();
-                if( block.keyword() ==='function' )
+                if( ps.__$fixBlockScope !== true  )
                 {
-                    console.log(this.current);
+                    ps.__$fixBlockScope=true;
+                    ps.__$referenceBlockVariable=[];
+                    var self = this;
+                    ps.addListener('(switch)', function (e) {
+                        var content = this.parent().content();
+                        var index = content.indexOf(this);
+                        var id = self.next.value;
+                        var end = id === ':' || id === ',' || id === ')' || id === ']' || id === '}' || id === '?' || id === ';' ? '' : ';\n';
+                        var name = ps.__$referenceBlockVariable.join(',');
+                        content.splice(index, 0, describe('(code)', '(function('+name+'){ return ', 'code'));
+                        content.push(describe('(code)', '}('+name+'))' + end, 'code'));
+                    });
                 }
+                ps.__$referenceBlockVariable.push( this.current.value );
             }
 
             //是否为全局对象
             if ( !desc )
             {
-
-                //console.log( this.scope().scope().define() )
-               // process.exit()
-
                 var global = this.config('globals');
                 desc = global[ this.current.value ];
             }
@@ -2147,68 +2156,13 @@ Stack.prototype.scope=function()
 {
    if( this.__scope__===null )
    {
-     /*  var block = this;
-       while ( block && !(block instanceof Scope) )block=block.parent();
-       this.__scope__ = block || this;
-       if( this.parent() instanceof Class )
-       {
-           this.__scope__ = this.parent().scope( this.static() ? 'static' : 'proto' );
-       }
-   */
-
-       this.__scope__ = inheritScope(this);
-       if( this === this.__scope__ && this.keyword() !=='package' && this.parent() )
-       {
-            this.__scope__ = this.parent().scope( this.static() ? 'static' : 'proto' );
-       }
-
+       var block= this;
+       while( !(block instanceof Scope) && block.parent() )block = block.parent();
+       if( block instanceof Class )block = block.scope( this.static() );
+       block.parentScope = block.parent() ? block.parent().scope( this.static() ) : null;
+       this.__scope__= block;
    };
    return this.__scope__;
-}
-
-
-/**
- * 所在的块级作用域
- * @param keyword
- * @returns {*}
- */
-Stack.prototype.blockScope=function()
-{
-    if( this.__blockScope__===null )
-    {
-        var block = this;
-        while ( block && !(block instanceof Scope) && block.parent() )block=block.parent();
-        this.__blockScope__ = block;
-        var id = block.keyword();
-        var define = id ==='function' || id==='class' || id==='package' ? this.scope().__define__ : block.parent().blockScope().__define__;
-        for ( var i in define )
-        {
-            block.__define__[i] = define[i];
-        }
-    };
-    return this.__blockScope__;
-}
-
-function inheritScope( stack )
-{
-    if( stack.keyword()==='function' || stack.keyword() === 'class' || stack.keyword() === 'package' )
-    {
-        var ps = stack.parent().scope( stack.static() ? 'static' : 'proto' );
-        var is = stack.parent() instanceof Class;
-        for (var i in ps.__define__ ){
-            if( !is || ps.__define__[i].id==='class' )stack.__define__[i] = ps.__define__[i];
-        }
-        return stack;
-
-    }else if( stack.parent() instanceof Class )
-    {
-        return stack.parent().scope( stack.static() ? 'static' : 'proto' );
-
-    }else if( stack.parent() )
-    {
-       return inheritScope( stack.parent() );
-    }
-    return stack;
 }
 
 
@@ -2222,16 +2176,38 @@ Stack.prototype.define=function( prop , desc)
 {
     if( typeof prop === "string" )
     {
-        if( typeof desc === 'undefined' || desc===true )
+        var scope = this;
+        if( !desc )
         {
-            var p = this;
-            if( desc )while( p && !p.__define__[prop] && p.parent() )p= p.parent().scope( this.static() );
-            return p ? p.__define__[prop] || null : null;
+            if( scope.__define__[prop] )return scope.__define__[prop];
+            while( scope && scope.parentScope )
+            {
+                scope = scope.parentScope;
+                if( scope.keyword() ==='class' )
+                {
+                    if( scope.__define__[prop] && scope.__define__[prop].id==='class' )return scope.__define__[prop];
+                    scope = scope.parentScope;
+                }
+                if( scope.__define__[prop] )return scope.__define__[prop];
+            }
+            return null ;
         }
-        this.__define__[prop]=desc;
+        this.__define__[prop] = desc;
         return this;
     }
     return this.__define__;
+}
+
+Stack.prototype.getScopeOf=function( isBlock )
+{
+    var scope=this.scope();
+    if( isBlock )return scope;
+    while ( scope &&
+    !(scope.keyword() ==='function' ||
+    scope.keyword()==='class'       ||
+    scope.keyword()==='package'     ||
+    scope.keyword()==='rooblock') )scope = scope.parent().scope();
+    return scope;
 }
 
 /**
@@ -2545,6 +2521,8 @@ Class.prototype.scope=function( name )
         s.static('static');
         s.__parent__ = this.parent();
         var ps = this.parent().scope();
+        s.parentScope = ps;
+        this.parentScope = ps;
         merge(this.__define__, ps.__define__);
         merge(s.__define__, ps.__define__);
         this.__scope__={'proto':this,'static':s};
