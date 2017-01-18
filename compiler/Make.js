@@ -1099,28 +1099,6 @@ function getImportClassByType(classmodule, type )
 
 
 /**
- * 验证指定的类型与当前表达式返回的类型是否一致
- * @param it
- * @param stack
- * @param desc
- * @returns {boolean}
- */
-function checkSpecifyType(it,desc,stack, module )
-{
-    if( desc.type==='*' || desc.type==='Object' || stack.type()==='Object' )return true;
-    if( desc.type==='Class' )
-    {
-        //转换类的类型(将类型转换成对应的类名)
-        var type = getImportClassByType( module, stack.type() );
-        if( type )desc.type=stack.type();
-    }
-    if( stack.type() !== desc.type )
-    {
-        error('Specify the type of mismatch','type', getStack(it.prev, true) );
-    }
-}
-
-/**
  * 获取标识符定义的类型
  * @param it
  * @returns {*}
@@ -1224,6 +1202,7 @@ function toString( stack, module )
     if( stack.keyword() === 'function' )
     {
         return createFunction( stack , module );
+        
     } else if( stack.keyword() === 'expression' )
     {
         return expression( stack , module );

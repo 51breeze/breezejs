@@ -47,6 +47,8 @@ package
                   {
                       let hh;
                        console.log( jj );
+
+                      items.push( function(){ return function(){ return i+'---'+hh;} } );
                   }
 
               }
