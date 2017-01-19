@@ -466,7 +466,8 @@ syntax["package"]=function (event)
 {
     event.prevented=true;
     if( this.scope().keyword() !=='rootblock' )this.error();
-    this.add( new Scope('package', '(block)' ) );
+    var s =  new Scope('package', '(block)' );
+    this.add( s );
     var self = this;
     var name = [];
     this.loop(function(){
@@ -487,6 +488,7 @@ syntax["package"]=function (event)
     });
     this.seek();
     if( this.current.id !=='}' ) this.error('Missing token }');
+    if( this.scope() !== s )this.error('Syntax is not end');
     this.scope().switch();
 };
 
@@ -632,6 +634,7 @@ syntax['private,protected,internal,static,public,override,final,dynamic,abstract
         {
             this.add( new Class() );
             this.scope().abstract( a );
+
         }else
         {
             if(a)this.error('The abstract can only appear in the class attribute');
@@ -756,6 +759,7 @@ syntax['class']=function( event )
     //必须要}结束正文
     this.seek();
     if( this.current.id !=='}' ) this.error('Missing token }');
+    if( this.scope() !== stack )this.error('Syntax is not end');
     this.scope().switch();
 };
 
@@ -814,6 +818,7 @@ syntax['interface']=function( event )
     //必须要}结束正文
     this.seek();
     if( this.current.id !=='}' ) this.error('Missing token }');
+    if( this.scope() !== stack )this.error('Syntax is not end');
     this.scope().switch();
 };
 
@@ -825,7 +830,7 @@ syntax['var,let']=function (event)
     var statement = new Stack('statement' , '(expression)');
     var scope = variable.scope();
 
-    //用闭包来模拟let块变量声明
+   /* //用闭包来模拟let块变量声明
     if( event.type ==='let' )
     {
         if( scope.keyword() !=='function' && scope.__$fixBlockScope !== true )
@@ -882,7 +887,9 @@ syntax['var,let']=function (event)
     }else
     {
         this.add( this.current );
-    }
+    }*/
+
+    this.add( this.current );
 
     this.scope().name( this.next.value );
     var parent = this.scope().parent();
@@ -924,24 +931,28 @@ syntax['const']=function (event)
 syntax['function']= function(event){
 
     event.prevented=true;
+    if( this.scope().keyword() !=='function' || this.scope().parent().keyword() !=='class' )
+    {
+        this.add( new Scope( event.type, '(*)' ) );
+    }
+
     if( this.prev.value === '=' && this.scope().keyword() === 'expression')
     {
         this.scope().type('(Function)');
     }
 
-    if( this.scope().keyword() !=='function' ) this.add( new Scope( event.type, '(*)' ) );
     this.add( this.current );
-    var stack = this.scope()
+    var stack = this.scope();
     var n = this.seek();
     var name='';
     var isClassOrInterface = stack.parent().keyword() ==='class' || stack.parent().keyword() ==='interface';
     var scope = isClassOrInterface ? stack.scope().parentScope : stack.scope();
-
     if( isClassOrInterface && (n.value === 'get' || n.value === 'set') && this.next.id !== '(' )
     {
         stack.accessor(n.value);
         n = this.seek();
     }
+
     var name_stack= n;
     if( n.id !== '(' )
     {
@@ -1072,8 +1083,10 @@ syntax['function']= function(event){
         this.step();
         return true;
     });
+
     this.add( this.seek() );
     if( this.current.id !=='}' ) this.error('Missing token }');
+    if( this.scope() !== stack )this.error('Syntax is not end');
     this.scope().switch();
 };
 
@@ -1083,8 +1096,9 @@ syntax['else']= function(event)
     var p = this.scope().previous();
     if( !(p instanceof Scope) || p.keyword() !=='if' )this.error();
     event.prevented=true;
+    var s = new Scope('else', '(block)' );
+    this.add( s );
     this.add( this.current );
-
     if( this.next.value==='if' )
     {
         this.step();
@@ -1099,7 +1113,9 @@ syntax['else']= function(event)
         })
         this.add( this.seek() );
         if( this.current.id !=='}' )this.error('Missing token }');
+        if( s !== this.scope() )this.error('Syntax is not end');
         this.scope().switch();
+
     }else
     {
         this.step();
@@ -1109,8 +1125,8 @@ syntax['else']= function(event)
 syntax['do,try,finally'] = function(event)
 {
     event.prevented = true;
-    this.add( new Scope( event.type, '(block)' ) );
-    if( this.scope().keyword() !== event.type )this.error();
+    var s = new Scope( event.type, '(block)' );
+    this.add( s );
     this.add( this.current );
     if( event.type==='finally' )
     {
@@ -1118,7 +1134,7 @@ syntax['do,try,finally'] = function(event)
         if( !(p instanceof Stack) || !(p.keyword() === 'catch' || p.keyword()==='try') ) this.error('Missing try "'+event.type+'"');
     }
 
-    this.add(this.seek());
+    this.add( this.seek() );
     if( this.current.id !== '{' ) this.error('Missing token {');
     this.loop(function(){
         if( this.next.id==='}' )return false;
@@ -1126,7 +1142,8 @@ syntax['do,try,finally'] = function(event)
         return true;
     });
     this.add( this.seek() );
-    if( this.current.id !== '}' ) this.error('Missing token }');
+    if( this.current.id !== '}' )this.error('Missing token }');
+    if( s !== this.scope() )this.error('Syntax is not end');
     this.scope().switch();
     if( event.type==='do' && this.next.value !== 'while' )this.error('Missing condition "while"');
 }
@@ -1134,8 +1151,8 @@ syntax['do,try,finally'] = function(event)
 syntax['if,switch,while,for,catch'] = function(event)
 {
     event.prevented = true;
-    this.add( new Scope( event.type, '(block)' ) );
-    var s = this.scope();
+    var s =  new Scope( event.type, '(block)' );
+    this.add(s);
     if( event.type==='catch' )
     {
         var p = this.scope().parent().previous(-2);
@@ -1187,7 +1204,7 @@ syntax['if,switch,while,for,catch'] = function(event)
         });
         this.add( this.seek() );
         if( this.current.id !== '}' )this.error('Missing token }');
-        if( this.scope().keyword() !== event.type )this.error();
+        if( this.scope()!==s )this.error();
         this.scope().switch();
         return true;
     }
@@ -1197,7 +1214,7 @@ syntax['if,switch,while,for,catch'] = function(event)
         var p = this.scope().parent().previous(-2);
         if( !(p instanceof Scope) || p.keyword() !=='do' )
         {
-            if( isRightDelimiter(this.next.value) )this.error('Missing expression')
+            if( isRightDelimiter(this.next.value) )this.error('Missing expression');
             this.step();
         }else
         {
@@ -1206,9 +1223,7 @@ syntax['if,switch,while,for,catch'] = function(event)
 
     }else
     {
-        this.add( describe('(delimiter)','{','{') );
         this.step();
-        this.add( describe('(delimiter)','}','}') );
     }
 }
 
@@ -1221,7 +1236,7 @@ syntax["return"]=function(event)
     var fn = getParentFunction( this.scope() );
     fn.isReturn=false;
 
-    if( isLeftDelimiter(this.next.value) || isIdentifier( this.next ) || isLeftOperator(this.next.value) )
+    if( isLeftDelimiter(this.next.value) || isIdentifier( this.next ) || isLeftOperator(this.next.value) || this.next.value==='function' )
     {
         if( fn.accessor() === 'set' )
         {
@@ -1494,6 +1509,12 @@ syntax['(delimiter)']=function( e )
             if( this.current.line === this.next.line && this.next.id==='(identifier)' && (id==='expression' || id==='condition' || id==='object') )
             {
                 this.error('Unexpected identifiler '+ this.next.value, this.next);
+            }
+
+            if( this.current.value===')' && this.current.line===35 ) {
+
+              // console.log( this.scope().content() )
+                //console.log( s.content() )
             }
             this.end();
         }
@@ -1805,7 +1826,7 @@ syntax['(identifier)']=function( e )
             var desc = ps.define( this.current.value );
 
             //如果是声明的块级变量并且在函数中引用
-            if( desc && desc.id ==='let' && ps.keyword() ==='function')
+            /*if( desc && desc.id ==='let' && ps.keyword() ==='function')
             {
                 if( ps.__$fixBlockScope !== true  )
                 {
@@ -1823,7 +1844,7 @@ syntax['(identifier)']=function( e )
                     });
                 }
                 ps.__$referenceBlockVariable.push( this.current.value );
-            }
+            }*/
 
             //是否为全局对象
             if ( !desc )

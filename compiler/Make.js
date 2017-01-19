@@ -532,6 +532,23 @@ function isLeftAndRightOperator(o)
     return false;
 }
 
+/**
+ * @param it
+ */
+function createBlockScope(it)
+{
+    var block = it.stack.scope();
+    var id = block.keyword();
+    if( id ==='for' || id==='do' || id==='while' )
+    {
+        if( !block.appendBefore )
+        {
+            block.appendBefore=['(function(){'];
+            block.appendAfter=['}());\n'];
+        }
+    }
+}
+
 
 /**
  * 是否为一个可引用的属性
@@ -601,6 +618,7 @@ function getDescriptorOfExpression(it, classmodule)
                 desc = it.stack.scope().define(it.current.value);
                 if (desc) {
                     desc.type = getType(desc.type);
+                    if( desc.id==='let')createBlockScope(it);
                     if (desc.type !== '*')desc = module(getImportClassByType(classmodule, desc.type));
                 } else {
                     desc = globals[it.current.value];
@@ -731,7 +749,7 @@ function getDescriptorOfExpression(it, classmodule)
                     {
                         if( it.stack.parent().keyword() !=='statement' )error('"' + property.name.join('.') + '" is constant', '', it.current);
 
-                    }else if ( desc.id !== 'var' )
+                    }else if ( desc.id !== 'var' && desc.id !== 'let' )
                     {
                         error('"' + property.name.join('.') + '" is not variable', '', it.current);
                     }
@@ -1192,39 +1210,50 @@ function checkPrivilege(it, desc, inobject, currobject )
     }
 }
 
-
 /**
  * 转换语法
  * @returns {String}
  */
 function toString( stack, module )
 {
+    var str = [];
     if( stack.keyword() === 'function' )
     {
-        return createFunction( stack , module );
+        str.push( createFunction( stack , module ) );
         
     } else if( stack.keyword() === 'expression' )
     {
-        return expression( stack , module );
-    }
+        str.push( expression( stack , module ) );
 
-    var str = [];
-    var it = new Iteration( stack );
-    while ( it.seek() )
+    }else
     {
-        if( it.current instanceof Ruler.STACK )
+        var it = new Iteration(stack);
+        var bodyStart=false;
+        var bodyEnd=false;
+        var isBlock = stack instanceof Ruler.SCOPE;
+        while (it.seek())
         {
-            str.push( toString(it.current, module) );
-        }else
-        {
-            if (it.current.id === '(keyword)' && (it.current.value==='in' || it.current.value==='is' || it.current.value==='instanceof' ) )
+            if (it.current instanceof Ruler.STACK)
             {
-                str.push(' ');
+                str.push(toString(it.current, module));
+
+            } else
+            {
+                if (it.current.id === '(keyword)' && (it.current.value === 'in' || it.current.value === 'is' || it.current.value === 'instanceof' ))
+                {
+                    str.push(' ');
+                }
+                if (it.current.value === 'let') {
+                    str.push('var');
+                } else {
+                    str.push(it.current.value);
+                }
+                if (it.current.id === '(keyword)')str.push(' ');
             }
-            str.push(it.current.value);
-            if (it.current.id === '(keyword)')str.push(' ');
         }
     }
+    if( stack.appendBefore instanceof Array && stack.appendBefore.length > 0 )str.unshift( stack.appendBefore.splice(0,stack.appendBefore.length).join('') );
+    if( stack.appendAfter instanceof Array && stack.appendAfter.length > 0 )str.push( stack.appendAfter.splice(0,stack.appendAfter.length).join('') );
     str = str.join('');
     return str;
 }
