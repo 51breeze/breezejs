@@ -34,11 +34,24 @@ package
               var i = 50;
               var items=[];
               var j=i;
+
+              var target=1
+                  ,index=0;
+
+              for( var c in items )
+              {
+                  console.log( items[c](), '====88888' );
+              }
+              
+              
               for(let i=j; i<60; i++)
               {
                   var b=i;
 
                   let hh=i;
+                  var uu=123, yyyy,hhhh=6899;
+
+                  yyyy=8888888888;
 
                   console.log( hh ,i );
                   items.push( function(){ return i+'---'+hh;} );
@@ -48,16 +61,13 @@ package
                       let hh;
                        console.log( jj );
 
-                      items.push( function(){ return function(){ return i+'---'+hh;} } );
+                      items.push(  function(){ return i+'---'+hh;} );
                   }
 
               }
               console.log(i, b  );
               this.tests(1,2,3,4,5,6);
-              for( var c in items )
-              {
-                  console.log( items[c](), '====88888' );
-              }
+             
               console.log( this is IProsess,'==========' );
 
           }

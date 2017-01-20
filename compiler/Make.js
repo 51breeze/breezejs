@@ -161,6 +161,7 @@ function createFunction(stack, moduleObject )
     var content=[];
     var param;
     var is = stack.parent().keyword()==='class' && stack.parent().name() === stack.name();
+    stack.appendBodyBefore=[];
     for(;i<len; i++)
     {
         var child = children[i];
@@ -170,48 +171,46 @@ function createFunction(stack, moduleObject )
             {
                 param = createDefaultParam( child, moduleObject );
                 content.push( param.param.join(',') );
-
             }else
             {
                 content.push( toString(child,moduleObject) );
             }
-        }
-        //获取函数的默认参数
-        else
+        } else
         {
             content.push( child.value );
-            if( child.id==='(keyword)' && i<len )content.push(' ');
-            if ( child.value === '{' )
-            {
-                //运行时检查参数的类型是否正确
-                if( param )
-                {
-                    var argument = stack.param();
-                    var rest = argument.indexOf('...');
-                    if( rest>=0 ){
-                        content.push( argument.pop()+'=Array.prototype.slice.call(arguments, '+rest+');\n' );
-                    }
-                    content.push( param.expre.join('') );
-                    param=null;
-                }
-
-                //构造函数
-                if( is )
-                {
-                    //运行时检查实例对象是否属于本类
-                   // content.push( 'if( !(this instanceof '+stack.name()+') )throw new SyntaxError("Please use the new operation to build instances.");\n' );
-
-                    //如果没有调用超类，则调用超类的构造函数
-                    if( moduleObject.inherit && !stack.called )
-                    {
-                        content.push( moduleObject.inherit+'.constructor.call(this);\n' );
-                    }
-
-                    //类中的私有属性
-                    content.push('####{props}####');
-                }
-            }
+            if( child.id==='(keyword)' && i>0 )content.push(' ');
         }
+    }
+    //构造函数
+    if( is )
+    {
+        //运行时检查实例对象是否属于本类
+        // content.push( 'if( !(this instanceof '+stack.name()+') )throw new SyntaxError("Please use the new operation to build instances.");\n' );
+        //如果没有调用超类，则调用超类的构造函数
+        stack.appendBodyBefore.unshift('####{props}####');
+        if( moduleObject.inherit && !stack.called )stack.appendBodyBefore.unshift( moduleObject.inherit+'.constructor.call(this);\n' );
+    }
+
+    //运行时检查参数的类型是否正确
+    if( param )
+    {
+        var argument = stack.param();
+        var rest = argument.indexOf('...');
+        stack.appendBodyBefore.unshift( param.expre.join('') );
+        if( rest>=0 )stack.appendBodyBefore.unshift( argument.slice(-1)+'=Array.prototype.slice.call(arguments, '+rest+');\n' );
+    }
+
+    var startIndex =  content[1]==='(' ? 5 : 6;
+    var endIndex = content[content.length-1]==='}' ? content.length-2 : content.length-1;
+    if( stack.appendBodyBefore instanceof Array && stack.appendBodyBefore.length > 0 )
+    {
+        content.splice(startIndex, 0 , stack.appendBodyBefore.join('') );
+        delete stack.appendBodyBefore;
+    }
+    if( stack.appendBodyAfter instanceof Array && stack.appendBodyAfter.length > 0 )
+    {
+        content.splice( endIndex, 0, stack.appendBodyAfter.join('') );
+        delete stack.appendBodyAfter;
     }
     return content.join('');
 }
@@ -546,6 +545,16 @@ function createBlockScope(it)
             block.appendBefore=['(function(){'];
             block.appendAfter=['}());\n'];
         }
+
+    }else if( id==='function' )
+    {
+        while( block.parent() && block.parent().keyword()==='function' )block = block.parent();
+        var index = block.parent().content().indexOf( block );
+        var nextid = index>0 && block.parent().content().length >index ? block.parent().content()[ index+1 ].value : '';
+        var endIdentifier = nextid === ':' || nextid === ',' || nextid === ')' || nextid === ']' || nextid === '}' || nextid === '?' || nextid === ';' ? '' : ';\n';
+        endIdentifier='';
+        block.appendBefore=['(function(){ return ' ];
+        block.appendAfter=['}())'+endIdentifier];
     }
 }
 
@@ -1227,23 +1236,50 @@ function toString( stack, module )
 
     }else
     {
+        //将var变量提到函数作用域中
+        if( stack.keyword() ==='var' && stack.scope().keyword() !== 'function' )
+        {
+            var funScope = stack.scope().getScopeOf();
+            var infor = stack.scope().keyword()==='for' && stack.content().length ===4 && stack.content()[2].value==='in';
+            var shift = stack.content().shift();
+            if( shift.value !=='var' )stack.content().unshift(shift);
+            if( !(funScope.appendBodyBefore instanceof Array) )funScope.appendBodyBefore=[];
+            var items=[];
+            var content = stack.content()[0];
+            if( content.keyword() === 'statement' )
+            {
+                content=content.content();
+                var len = content.length;
+                while (len > 0) {
+                    var item = content[--len];
+                    if (item instanceof Ruler.STACK) {
+                        items.push(item.content()[0].value);
+                        //删除没有赋值的变量
+                        if (item.content().length === 1 && !infor) {
+                            content.splice(len, 1);
+                            if (len > 0)content.splice(--len, 1);
+                        }
+                    }
+                }
+                funScope.appendBodyBefore.push('var ' + items.join(',') + ';\n');
+                if (content.length < 1)return '';
+            }
+        }
+
         var it = new Iteration(stack);
-        var bodyStart=false;
-        var bodyEnd=false;
-        var isBlock = stack instanceof Ruler.SCOPE;
         while (it.seek())
         {
             if (it.current instanceof Ruler.STACK)
             {
                 str.push(toString(it.current, module));
-
             } else
             {
                 if (it.current.id === '(keyword)' && (it.current.value === 'in' || it.current.value === 'is' || it.current.value === 'instanceof' ))
                 {
                     str.push(' ');
                 }
-                if (it.current.value === 'let') {
+                if (it.current.value === 'let')
+                {
                     str.push('var');
                 } else {
                     str.push(it.current.value);
@@ -1251,9 +1287,34 @@ function toString( stack, module )
                 if (it.current.id === '(keyword)')str.push(' ');
             }
         }
+        if( stack instanceof Ruler.SCOPE )
+        {
+            var startIndex = str[4]===')' && str[5]==='{' ? 6 : 5;
+            var endIndex = str[str.length-1]==='}' ? str.length-2 : str.length-1;
+            if( stack.appendBodyBefore instanceof Array && stack.appendBodyBefore.length > 0 )
+            {
+                str.splice( startIndex, 0, stack.appendBodyBefore.join('') );
+                delete stack.appendBodyBefore;
+            }
+            if( stack.appendBodyAfter instanceof Array && stack.appendBodyAfter.length > 0 )
+            {
+                str.splice(endIndex,0, stack.appendBodyAfter.join('') );
+                delete stack.appendBodyAfter;
+            }
+        }
     }
-    if( stack.appendBefore instanceof Array && stack.appendBefore.length > 0 )str.unshift( stack.appendBefore.splice(0,stack.appendBefore.length).join('') );
-    if( stack.appendAfter instanceof Array && stack.appendAfter.length > 0 )str.push( stack.appendAfter.splice(0,stack.appendAfter.length).join('') );
+
+    if( stack.appendBefore instanceof Array && stack.appendBefore.length > 0 )
+    {
+        str.unshift( stack.appendBefore.join('') );
+        delete stack.appendBefore;
+    }
+
+    if( stack.appendAfter instanceof Array && stack.appendAfter.length > 0 )
+    {
+        str.push( stack.appendAfter.join('') );
+        delete stack.appendAfter;
+    }
     str = str.join('');
     return str;
 }
