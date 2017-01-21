@@ -162,6 +162,7 @@ function createFunction(stack, moduleObject )
     var param;
     var is = stack.parent().keyword()==='class' && stack.parent().name() === stack.name();
     stack.appendBodyBefore=[];
+    stack.dispatcher({type:'(parseStart)',content:content});
     for(;i<len; i++)
     {
         var child = children[i];
@@ -181,6 +182,7 @@ function createFunction(stack, moduleObject )
             if( child.id==='(keyword)' && i>0 )content.push(' ');
         }
     }
+    stack.dispatcher({type:'(parseDone)',content:content});
     //构造函数
     if( is )
     {
@@ -293,8 +295,8 @@ function error(msg, type, obj )
  */
 function getType( type )
 {
-   if(type==='*' || type==='void')return type;
-   return typeof type=== "string" ? type.replace(/^\(|\)$/g,'') : '';
+    if(type==='*' || type==='void')return type;
+    return typeof type=== "string" ? type.replace(/^\(|\)$/g,'') : '';
 }
 
 
@@ -538,7 +540,7 @@ function createBlockScope(it)
 {
     var block = it.stack.scope();
     var id = block.keyword();
-    if( id ==='for' || id==='do' || id==='while' )
+    if( id ==='for' || id==='do' || id==='switch' || id==='while' )
     {
         if( !block.appendBefore )
         {
@@ -549,12 +551,20 @@ function createBlockScope(it)
     }else if( id==='function' )
     {
         while( block.parent() && block.parent().keyword()==='function' )block = block.parent();
-        var index = block.parent().content().indexOf( block );
-        var nextid = index>0 && block.parent().content().length >index ? block.parent().content()[ index+1 ].value : '';
-        var endIdentifier = nextid === ':' || nextid === ',' || nextid === ')' || nextid === ']' || nextid === '}' || nextid === '?' || nextid === ';' ? '' : ';\n';
-        endIdentifier='';
+        var type = block.parent().type();
+        var id = block.parent().keyword();
+        var isObj = id==='object' && (type=== '(expression)' || type === '(Array)' || type === '(Json)' || type==='(property)');
+        var endIdentifier = id === 'ternary' || isObj ? '' : ';\n';
         block.appendBefore=['(function(){ return ' ];
         block.appendAfter=['}())'+endIdentifier];
+
+    }else if( id==='if' || id==='else' || id==='try' || id==='catch' || id==='finally' )
+    {
+        if( !block.appendBefore )
+        {
+            block.appendBodyBefore=['(function(){'];
+            block.appendBodyAfter=['}());\n'];
+        }
     }
 }
 
@@ -567,10 +577,10 @@ function createBlockScope(it)
 function isReference( stack )
 {
     return  stack.id === '(identifier)' ||
-            stack.value === 'this'      ||
-            stack.value === 'super'     ||
-            stack.type==='(string)'     ||
-            stack.type==='(regexp)'
+        stack.value === 'this'      ||
+        stack.value === 'super'     ||
+        stack.type==='(string)'     ||
+        stack.type==='(regexp)'
 }
 
 
@@ -627,7 +637,16 @@ function getDescriptorOfExpression(it, classmodule)
                 desc = it.stack.scope().define(it.current.value);
                 if (desc) {
                     desc.type = getType(desc.type);
-                    if( desc.id==='let')createBlockScope(it);
+                    if( desc.id==='let' )
+                    {
+                        var blockScope = it.stack.scope();
+                        while( blockScope && blockScope.keyword()==='function' )blockScope = blockScope.parent().scope();
+                        if( blockScope.hasListener('(blockScope)') )
+                        {
+                            blockScope.dispatcher({"type":"(blockScope)","name":it.current.value, "stack":it.stack, "current":it.current,'scope':desc.scope });
+                        }
+                        //createBlockScope(it);
+                    }
                     if (desc.type !== '*')desc = module(getImportClassByType(classmodule, desc.type));
                 } else {
                     desc = globals[it.current.value];
@@ -1219,6 +1238,57 @@ function checkPrivilege(it, desc, inobject, currobject )
     }
 }
 
+function makeBlockScope( stack )
+{
+    if( stack instanceof Ruler.SCOPE && !stack.hasListener('(blockScope)') )
+    {
+        var blockScopeItems=[];
+        var hasBlockScope=false;
+        stack.addListener('(blockScope)',function (e)
+        {
+            hasBlockScope=true;
+            if( blockScopeItems.indexOf(e.name) < 0 && this !== e.scope )
+            {
+                blockScopeItems.push( e.name );
+            }
+        });
+        stack.addListener('(parseDone)',function (e)
+        {
+            if( hasBlockScope )
+            {
+                if( stack.keyword()==='do' )
+                {
+                    e.content.unshift('(function(){');
+                    var index = this.parent().content().indexOf(this);
+                    if( this.parent().content().length > index && this.parent().content()[ index ].keyword()==='while' )
+                    {
+                        this.parent().content()[ index ].addListener('(parseDone)',function (e) {
+                            e.content.push('}).call(this);\n');
+                            e.prevented=true;
+                            e.stopPropagation=true;
+                        },100);
+
+                    }else
+                    {
+                        e.content.push('}).call(this);\n');
+                    }
+                }
+                else if( stack.keyword()==='for' || stack.keyword()==='while' )
+                {
+                    e.content.unshift('(function(){');
+                    e.content.push('}).call(this);\n');
+
+                }else
+                {
+                    var startIndex = e.content[4]===')' && e.content[5]==='{' ? 6 : 5;
+                    e.content.splice( startIndex, 0, '(function('+ blockScopeItems.join(',')+'){' );
+                    e.content.splice( e.content.length-1,0, '}).call('+['this'].concat(blockScopeItems).join(',')+');' );
+                }
+            }
+        });
+    }
+}
+
 /**
  * 转换语法
  * @returns {String}
@@ -1229,7 +1299,7 @@ function toString( stack, module )
     if( stack.keyword() === 'function' )
     {
         str.push( createFunction( stack , module ) );
-        
+
     } else if( stack.keyword() === 'expression' )
     {
         str.push( expression( stack , module ) );
@@ -1267,6 +1337,8 @@ function toString( stack, module )
         }
 
         var it = new Iteration(stack);
+        makeBlockScope(stack);
+        stack.dispatcher({type:'(parseStart)',content:str});
         while (it.seek())
         {
             if (it.current instanceof Ruler.STACK)
@@ -1274,7 +1346,7 @@ function toString( stack, module )
                 str.push(toString(it.current, module));
             } else
             {
-                if (it.current.id === '(keyword)' && (it.current.value === 'in' || it.current.value === 'is' || it.current.value === 'instanceof' ))
+                if ( it.current.id === '(keyword)' && (it.current.value === 'in' || it.current.value === 'is' || it.current.value === 'instanceof' ))
                 {
                     str.push(' ');
                 }
@@ -1284,24 +1356,10 @@ function toString( stack, module )
                 } else {
                     str.push(it.current.value);
                 }
-                if (it.current.id === '(keyword)')str.push(' ');
+                if ( it.current.id === '(keyword)' && !(it.next.value ==='(' || it.next.value ==='[') )str.push(' ');
             }
         }
-        if( stack instanceof Ruler.SCOPE )
-        {
-            var startIndex = str[4]===')' && str[5]==='{' ? 6 : 5;
-            var endIndex = str[str.length-1]==='}' ? str.length-2 : str.length-1;
-            if( stack.appendBodyBefore instanceof Array && stack.appendBodyBefore.length > 0 )
-            {
-                str.splice( startIndex, 0, stack.appendBodyBefore.join('') );
-                delete stack.appendBodyBefore;
-            }
-            if( stack.appendBodyAfter instanceof Array && stack.appendBodyAfter.length > 0 )
-            {
-                str.splice(endIndex,0, stack.appendBodyAfter.join('') );
-                delete stack.appendBodyAfter;
-            }
-        }
+        stack.dispatcher({type:'(parseDone)',content:str});
     }
 
     if( stack.appendBefore instanceof Array && stack.appendBefore.length > 0 )
@@ -1348,7 +1406,7 @@ function doPrototype(classModule, callback)
             classModule = module( getImportClassByType(classModule, classModule.inherit) );
         }else
         {
-           return null;
+            return null;
         }
     } while ( classModule );
 }
@@ -1558,7 +1616,7 @@ function getStack( stack , flag )
     return stack;
 }
 
-    
+
 /**
  * 获取类的成员信息
  * @param stack
@@ -1752,7 +1810,7 @@ function toValue( describe, uid )
 
     for( var p in describe )
     {
-       // if( describe[p].inherit )continue;
+        // if( describe[p].inherit )continue;
         var item = [];
         if( uid && (describe[p].id==='var' || describe[p].id==='const') )
         {
@@ -1940,26 +1998,26 @@ if( !fs.existsSync(config.cachePath) )fs.mkdirSync( config.cachePath );
 //如果指定的配置文件
 if( config.config )
 {
-   config.config = PATH.resolve( config.config );
+    config.config = PATH.resolve( config.config );
 
     //检查配置文件是否存在
-   if( !fs.existsSync( config.config ) )
-   {
-       console.log('not found config file');
-       process.exit();
-   }
+    if( !fs.existsSync( config.config ) )
+    {
+        console.log('not found config file');
+        process.exit();
+    }
 
-   var suffix =  PATH.extname( config.config );
-   var data={};
-   if( suffix === 'json' )
-   {
-       var json = fs.readFileSync( config.config , 'utf-8');
-       data =  JSON.parse( json );
-   }else
-   {
-      data =  require( config.config );
-   }
-   merge(config,data);
+    var suffix =  PATH.extname( config.config );
+    var data={};
+    if( suffix === 'json' )
+    {
+        var json = fs.readFileSync( config.config , 'utf-8');
+        data =  JSON.parse( json );
+    }else
+    {
+        data =  require( config.config );
+    }
+    merge(config,data);
 }
 
 //必须指主文件

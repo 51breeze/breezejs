@@ -54,14 +54,16 @@ package
                   yyyy=8888888888;
 
                   console.log( hh ,i );
-                  items.push( function(){ return i+'---'+hh;} );
+                  //items.push( function(){ return i+'---'+hh;} );
 
                   if( false )
                   {
-                      let hh;
-                       console.log( jj );
 
-                      items.push(  function(){ return i+'---'+hh;} );
+
+                        let hh;
+                         console.log( jj );
+                         items.push(  function(){ return i+'---'+hh;} );
+
                   }
 
               }
