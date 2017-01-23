@@ -19,6 +19,7 @@ package
    import lib.EventDispatcher;
    import com.B;
    import lib.IProsess;
+   import com.Abs;
 
 
     public class Main extends B implements IProsess {
@@ -37,6 +38,8 @@ package
 
               var target=1
                   ,index=0;
+
+              //new Abs();
 
               for( var c in items )
               {
@@ -68,24 +71,29 @@ package
 
               }
               console.log(i, b  );
-              this.tests(1,2,3,4,5,6);
+              this.tests(undefined,2,3,4,5,6);
              
               console.log( this is IProsess,'==========' );
 
           }
 
-        function tests(a ,...avg)
+        function tests(a=666 ,...avg)
         {
+
+            var  bb=666;
             var tests;
             if( true ){
-
+                const bb=888;
                 var i=9;
                 if( a )
                 {
                 }
 
             }
-            console.log(a, avg  , i );
+
+
+
+            console.log(a, avg  , i, bb);
         }
 
         //private var bb:String=null;

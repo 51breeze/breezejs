@@ -22,7 +22,7 @@ package com
     import com.*;
     import lib.*;
 
-    public class B extends D {
+    public abstract class Abs extends D {
         
          public var dispatcher:EventDispatcher = null ;
          protected const age:String = '3' ;
@@ -32,15 +32,6 @@ package com
         {
             return '==the B classname=';
         }
-
-         function B(jj)
-         {
-              super(jj);
-              var cc:Number=66;
-             console.log('===the is B====', this is D);
-         } 
-
-
 
         protected function createName()
          {
@@ -59,9 +50,6 @@ package com
         function connect(str:Object):String{
             return '';
         }
-
-
-
     }
 
 }

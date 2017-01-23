@@ -51,7 +51,7 @@ define([],function()
      * @public
      */
     BreezeEvent.prototype = {
-        target:null,
+        __proxyTarget__:null,
         bubbles:true, // true 只触发冒泡阶段的事件 , false 只触发捕获阶段的事件
         cancelable:true, // 是否可以取消浏览器默认关联的事件
         currentTarget:null,
@@ -142,7 +142,7 @@ define([],function()
 
         event=event || window.event;
 
-        var target = event.target || event.srcElement || event.currentTarget;
+        var target = event.__proxyTarget__ || event.srcElement || event.currentTarget;
         var currentTarget =  event.currentTarget || target;
         target = target && target.nodeType===3 ? target.parentNode : target;
 
@@ -207,7 +207,7 @@ define([],function()
         }
 
         breezeEvent.type=type;
-        breezeEvent.target=target;
+        breezeEvent.__proxyTarget__=target;
         breezeEvent.currentTarget = currentTarget;
         breezeEvent.timeStamp = event.timeStamp;
         breezeEvent.relatedTarget= event.relatedTarget;

@@ -9,7 +9,7 @@ function getPrototypeOf(obj)
         return _Object.getPrototypeOf(obj);
     }else
     {
-        return obj.__proto__ || obj.constructor.prototype;
+        return obj.__proto__ || (obj ? obj.constructor.prototype : null);
     }
 }
 
@@ -21,17 +21,20 @@ function getPrototypeOf(obj)
  */
 function Object( value )
 {
-    if( value )
-    {
-        var proto = getPrototypeOf(value);
-        if ( proto && proto.constructor === Object )return value;
-    }
+    if( typeof value === 'boolean' )return value;
+    if( value && s.instanceof(value, Object) )return value;
     if( !(this instanceof Object) )return new Object( value );
-    if ( value && this.constructor === Object && isObject(value,true) )this.merge(true,value);
+    if ( value && isObject(value) )
+    {
+        this.__proxyTarget__=value;
+    }else{
+        this.__proxyTarget__={};
+    }
 }
 
 Object.prototype = new _Object();
 Object.prototype.constructor=Object;
+Object.prototype.__proxyTarget__={};
 
 /**
  * 指示 Object 类的实例是否在指定为参数的对象的原型链中
@@ -51,7 +54,7 @@ Object.prototype.constructor=Object;
         }
         return false
     }
-    return _Object.isPrototypeOf.call(obj, theClass );
+    return _Object.isPrototypeOf.call(this.__proxyTarget__, theClass );
 }
 
 /**
@@ -68,7 +71,7 @@ Object.prototype.hasOwnProperty = function( name )
         var desc = obj === this ? obj.static[name] : obj.proto[name];
         return desc && desc.id !== "function";
     }
-    return _Object.hasOwnProperty.call(obj,name)
+    return _Object.hasOwnProperty.call(this.__proxyTarget__,name)
 }
 
 /**
@@ -85,9 +88,9 @@ Object.prototype.propertyIsEnumerable = function( name )
     {
        var desc = obj === this ? obj.static[name] : obj.proto[ name ];
        if( !desc || desc.id === "function" )return false;
-       return !!desc.enumerable;
+       return desc.enumerable===true;
     }
-    return _Object.propertyIsEnumerable.call(obj,name);
+    return _Object.propertyIsEnumerable.call(this.__proxyTarget__,name);
 }
 
 /**
@@ -110,7 +113,7 @@ Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
 
     }else
     {
-        _Object.defineProperty(obj, name, {enumerable:isEnum !== false } );
+        _Object.defineProperty(this.__proxyTarget__, name, {enumerable:isEnum !== false } );
     }
 }
 
@@ -123,9 +126,9 @@ Object.prototype.valueOf=function()
     var obj = this.constructor instanceof Class ? this.constructor : this;
     if( obj instanceof Class )
     {
-        return obj === this ? '[class Class]' : '[class '+ obj.classname+']';
+        return obj === this ? '[class '+obj.classname+']' : '[object '+ obj.classname+']';
     }
-    return _Object.prototype.valueOf.call( this );
+    return _Object.prototype.valueOf.call( this.__proxyTarget__ );
 }
 
 /**
@@ -137,9 +140,9 @@ Object.prototype.toString=function()
     var obj = this.constructor instanceof Class ? this.constructor : this;
     if( obj instanceof Class )
     {
-        return obj === this ? '[class Class]' : '[class '+ obj.classname+']';
+        return obj === this ? '[class '+obj.classname+']' : '[object '+ obj.classname+']';
     }
-    return  _Object.prototype.toString.call( this );
+    return _Object.prototype.toString.call( this.__proxyTarget__ );
 }
 
 /**
@@ -165,7 +168,7 @@ Object.prototype.merge = function()
     }
     if ( length === i )
     {
-        target = this;
+        target = this.__proxyTarget__;
         --i;
     }else if ( typeof target !== "object" &&  typeof target !== "function" )
     {
@@ -181,6 +184,10 @@ Object.prototype.merge = function()
                 src = target[ name ];
                 copy = options[ name ];
                 if ( target === copy )continue;
+                if( typeof src === "function" && s.instanceof(target, Object) )
+                {
+                    throwError('syntax','"'+name+'" is a protected method');
+                }
                 if ( deep && copy && ( isObject(copy) || ( copyIsArray = isArray(copy) ) ) )
                 {
                     if ( copyIsArray )
@@ -191,7 +198,7 @@ Object.prototype.merge = function()
                     {
                         clone = src && isObject(src) ? src : {};
                     }
-                    target[ name ] = Object.prototype.merge.call(this, deep, clone, copy );
+                    target[ name ] = Object.prototype.merge( deep, clone, copy );
                 } else if ( typeof copy !== "undefined" )
                 {
                     target[ name ] = copy;
@@ -203,23 +210,77 @@ Object.prototype.merge = function()
 }
 
 /**
+ * 返回对象可枚举的属性的键名
+ * @returns {Array}
+ */
+Object.prototype.keys=function()
+{
+    var items=[];
+    for(var key in this.__proxyTarget__)items.push( key );
+    return items;
+}
+
+/**
+ *  返回对象可枚举的属性值
+ * @returns {Array}
+ */
+Object.prototype.values=function()
+{
+    var items=[];
+    for(var key in this.__proxyTarget__)items.push( this.__proxyTarget__[key] );
+    return items;
+}
+s.Object = Object;
+
+/**
+ * 数组构造器
+ * @returns {Array}
+ * @constructor
+ */
+var __array = Object.prototype.merge({}, _Array.prototype);
+function Array()
+{
+    Object.call(this, __array.slice.call(arguments,0) );
+    this.length = this.__proxyTarget__.length;
+    return this;
+}
+Array.prototype = new Object();
+Array.prototype.constructor = Array;
+Array.prototype.length =0;
+Array.prototype.slice = function(startIndex, endIndex )
+{
+    var obj = new Array();
+    obj.__proxyTarget__ = __array.slice.call( this.__proxyTarget__, startIndex, endIndex);
+    return obj;
+}
+
+Array.prototype.splice = function(startIndex, delCount, items )
+{
+    var obj = __array.slice.call(arguments,2)
+    obj.unshift(delCount);
+    obj.unshift(startIndex);
+    obj = __array.splice.apply( this.__proxyTarget__, obj );
+    this.length = obj.length;
+    return obj;
+}
+
+
+/**
  * 循环对象中的每一个属性，只有纯对象或者是一个数组才会执行。
  * @param callback 一个回调函数。
  * 参数中的第一个为属性值，第二个为属性名。
  * 如果返回 false 则退出循环
  * @returns {Object}
  */
-Object.prototype.forEach=function( callback )
+Array.prototype.forEach=function( callback )
 {
-      if( isObject(this) )
-      {
-          for(var i in this)if( callback.call(this, this[i], i ) === false )return this;
-      }
-      return this;
+    if( isObject(this) )
+    {
+        for(var i in this)if( callback.call(this, this[i], i ) === false )return this;
+    }
+    return this;
 }
 
-Object.prototype.constructor = Object;
-s.Object = Object;
 
 /**
  * 错误消息构造函数
@@ -314,6 +375,7 @@ globals.Array = Array;
 globals.Number = Number;
 globals.RegExp = RegExp;
 globals.Boolean = Boolean;
+globals.System = s;
 
 /**
  * 返回对象的字符串表示形式
@@ -409,8 +471,14 @@ s.new=function( theClass )
         theClass = arguments[1];
     }
     var obj;
-    var constructor = theClass instanceof Class ? theClass.constructor : theClass;
-    if( typeof constructor !== "function" )throwError('is not constructor');
+    var constructor =  theClass;
+    if( theClass instanceof Class )
+    {
+        if( theClass.isAbstract )throwError('type','Abstract class of cannot be instantiated');
+        constructor = theClass.constructor;
+    }
+
+    if( typeof constructor !== "function" )throwError('type','is not constructor');
     if( arguments.length <= 2 )
     {
         obj = new constructor( arguments[index] );
@@ -510,7 +578,7 @@ s.getQualifiedSuperclassName=getQualifiedSuperclassName;
 function isObject(val , flag )
 {
     var proto = getPrototypeOf(val);
-    var result = val ? (proto.constructor === Object || proto.constructor===_Object) : false;
+    var result = val && proto? (proto.constructor === Object || proto.constructor===_Object) : false;
     if( !result && flag !== true && isArray(val) )return true;
     return result;
 };

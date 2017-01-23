@@ -100,7 +100,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
         //点击下拉列表外隐藏列表
         EventDispatcher( skinGroup.getSkin('group') ).addEventListener( MouseEvent.MOUSE_OUTSIDE , function(event){
 
-            if( !Breeze.contains( skinGroup[0],  event.target ) )
+            if( !Breeze.contains( skinGroup[0],  event.__proxyTarget__ ) )
                 skinGroup.currentSkin('group').hide()
         });
     }

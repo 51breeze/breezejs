@@ -155,7 +155,7 @@ define('components/Modality',['./SkinComponent','../events/ModalityEvent','../Br
             Breeze(selector,skinGroup).addEventListener(MouseEvent.CLICK,function(event)
             {
                 event.stopPropagation();
-                var type =  Breeze(event.target).property(SkinGroup.NAME);
+                var type =  Breeze(event.__proxyTarget__).property(SkinGroup.NAME);
                 if( typeof type === "string" )
                 {
                     var uptype=type.toUpperCase();

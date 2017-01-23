@@ -4,6 +4,7 @@ const QS = require('querystring');
 const PATH = require('path');
 const Ruler = require('./Ruler.js');
 const globals=require('./lib/Globals.js');
+const Utils = require('./lib/Utils.js');
 const config = {'suffix':'.as','main':'Main','root':root,'cache':'off','cachePath':'./cache','debug':'on', 'browser':'enable','globals':globals };
 const modules={};
 
@@ -44,41 +45,7 @@ function pathfile( file, suffix , lib)
 {
     lib = lib || config.lib;
     suffix = suffix || config.suffix;
-    return  PATH.resolve(lib, file.replace('.',PATH.sep) + suffix );
-}
-
-/**
- * 去掉两边的空白
- * @param str
- * @returns {string|void|XML}
- */
-function trim( str )
-{
-    return typeof str === "string" ? str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,'') : '';
-}
-
-/**
- * 合并对象
- * @returns {*}
- */
-function merge()
-{
-    var target = arguments[0];
-    var len = arguments.length;
-    for(var i=1; i<len; i++ )
-    {
-        var item = arguments[i];
-        for( var p in item )
-        {
-            if( Object.prototype.isPrototypeOf( item[p] ) && Object.prototype.isPrototypeOf( target[p] ) )
-            {
-                target[p] = merge( target[p],  item[p] );
-            }else{
-                target[p] = item[p];
-            }
-        }
-    }
-    return target;
+    return  PATH.resolve( lib, file.replace('.',PATH.sep) + suffix );
 }
 
 /**
@@ -92,13 +59,10 @@ function getModuleName(a, b)
     return a ? a+'.'+b : b;
 }
 
-
-
 function typeToIdentifier( type )
 {
     return type.replace('.','');
 }
-
 
 /**
  * 创建属性的描述
@@ -240,13 +204,13 @@ Iteration.prototype.parseArgumentsOfMethodAndConstructor=function( stack )
         stack.addListener('(iterationDone)',function (e)
         {
             var index = this.name() && this.parent().keyword() !=='class' ? 7 : 5;
-            //如果没有调用超类，则调用超类的构造函数
-            if( e.iteration.module.inherit && !stack.called ){
-                e.iteration.content.splice( index, 0, e.iteration.module.inherit+'.constructor.call(this);\n' );
-                index++;
-            }
             //预留私有属性占位
             e.iteration.content.splice(index,0,'####{props}####');
+            //如果没有调用超类，则调用超类的构造函数
+            if( e.iteration.module.inherit && !stack.called ){
+                e.iteration.content.splice( index+1, 0, e.iteration.module.inherit+'.constructor.call(this);\n' );
+            }
+
         },-500);
     }
 
@@ -265,7 +229,7 @@ Iteration.prototype.parseArgumentsOfMethodAndConstructor=function( stack )
             var desc = scope.define( items[i] );
             if (desc.value instanceof Ruler.STACK) {
                 var value = toString(desc.value, this.module);
-                express.push(items[i] + '=System.typeof(' + items[i] + ') === "undefined" ?' + value + ':' + items[i] + ';\n');
+                express.push('if(System.typeof(' + items[i] + ') === "undefined"){'+value+';}\n');
                 desc.type = getType(desc.type);
                 if (desc.type !== '*') {
                     express.push('if(!System.is(' + items[i] + ',' + desc.type + '))System.throwError("type","type of mismatch. must is a ' + desc.type + '");\n');
@@ -349,15 +313,13 @@ Iteration.prototype.parseBlockScope=function(stack)
  */
 Iteration.prototype.parseFunctionScope=function( stack )
 {
-    if( stack.keyword() ==='var' && stack.scope().keyword() !== 'function' )
+    if( stack.keyword() ==='var' || stack.keyword() ==='const' || stack.keyword() ==='let')
     {
-        stack.addListener('(iterationSeek)',function (e) {
-            if( !e.iteration.prev && e.iteration.current.value==='var')e.iteration.seek();
-            stack.removeListener('(iterationSeek)');
-        });
+        this.seek();
+        this.content.push('var ');
     }
-
-    if( stack.keyword() === 'statement' && stack.parent().keyword() === 'var' && stack.parent().scope().keyword() !== 'function' )
+    //如果var变量不在函数域中则添加到函数域中
+    else if( stack.keyword() === 'statement' && stack.parent().keyword() === 'var' && stack.parent().scope().keyword() !== 'function' )
     {
         var items=[];
         stack.addListener('(iterationSeek)',function (e) {
@@ -372,7 +334,6 @@ Iteration.prototype.parseFunctionScope=function( stack )
                 }
             }
         });
-
         stack.scope().getScopeOf().addListener('(iterationDone)',function (e) {
             if( items.length > 0 )
             {
@@ -425,157 +386,6 @@ function checkParameter(it, desc, property )
     }
 }
 
-
-/**
- * 判断是否为一个恒定的值
- * @param val
- * @returns {boolean}
- */
-function getConstantType(val)
-{
-    switch ( val )
-    {
-        case 'null' :
-        case 'undefined' :
-            return 'Object';
-        case 'true' :
-        case 'false' :
-            return 'Boolean';
-        case 'NaN' :
-        case 'Infinity' :
-            return 'Number';
-    }
-    return null;
-}
-
-
-/**
- * 前置运算符
- * @param o
- * @returns {boolean}
- */
-function isLeftOperator(o)
-{
-    switch (o) {
-        case '~' :
-        case '-' :
-        case '+' :
-        case '!' :
-        case '!!' :
-        case '--' :
-        case '++' :
-        case 'new' :
-        case 'delete' :
-        case 'typeof' :
-            return true;
-    }
-    return false;
-}
-
-function isMathAssignOperator( o )
-{
-    switch (o) {
-        case '=' :
-        case '+=' :
-        case '-=' :
-        case '*=' :
-        case '/=' :
-        case '%=' :
-        case '^=' :
-        case '&=' :
-        case '|=' :
-        case '<<=' :
-        case '>>=' :
-        case '>>>=' :
-            return true;
-    }
-    return false;
-}
-
-
-/**
- * 前置运算符
- * @param o
- * @returns {boolean}
- */
-function isLeftOperator(o)
-{
-    switch (o) {
-        case '~' :
-        case '-' :
-        case '+' :
-        case '!' :
-        case '!!' :
-            return true;
-    }
-    return isLeftKeywordOperator(o) || isIncreaseAndDecreaseOperator(o);
-}
-
-/**
- * 是一个左关键字运算符
- * @param o
- * @returns {boolean}
- */
-function isLeftKeywordOperator(o)
-{
-    switch (o) {
-        case 'new' :
-        case 'delete' :
-        case 'typeof' :
-            return true;
-    }
-    return false;
-}
-
-/**
- * 后置运算符
- * @param o
- * @returns {boolean}
- */
-function isIncreaseAndDecreaseOperator(o)
-{
-    switch (o) {
-        case '--' :
-        case '++' :
-            return true;
-    }
-    return false;
-}
-
-
-
-/**
- * 布尔运算符
- * @param o
- * @returns {boolean}
- */
-function isLeftAndRightOperator(o)
-{
-    switch (o) {
-        case '-' :
-        case '+' :
-        case '*' :
-        case '/' :
-        case '%' :
-        case '^' :
-        case '<' :
-        case '>' :
-        case '<=' :
-        case '>=' :
-        case '==' :
-        case '!=' :
-        case '===' :
-        case '!==' :
-        case '&&' :
-        case '||' :
-        case 'instanceof' :
-        case 'is' :
-        case 'in' :
-            return true;
-    }
-    return false;
-}
-
 /**
  * 是否为一个可引用的属性
  * @param stack
@@ -583,6 +393,7 @@ function isLeftAndRightOperator(o)
  */
 function isReference( stack )
 {
+    if( globals[stack.value] )return true;
     return  stack.id === '(identifier)' ||
         stack.value === 'this'      ||
         stack.value === 'super'     ||
@@ -604,7 +415,7 @@ function getDescriptorOfExpression(it, classmodule)
     var property = {name:[],descriptor:null,thisArg:'',expression:false,before:'',after:'',"super":null,runningCheck:false,lastStack:null,isglobal:false};
 
     //是否有前置运算符
-    if( isLeftOperator(it.current.value) )
+    if( Utils.isLeftOperator(it.current.value) )
     {
         property.before =  it.current.value;
         property.lastStack = it.current;
@@ -634,7 +445,7 @@ function getDescriptorOfExpression(it, classmodule)
         if (isReference(it.current))
         {
             //获取字面量类型
-            type = getIdentifierType(it.current.type);
+            type = Utils.getValueTypeof(it.current.type);
             if (type) {
                 desc = globals[type];
                 property.isglobal=true;
@@ -644,14 +455,11 @@ function getDescriptorOfExpression(it, classmodule)
                 desc = it.stack.scope().define(it.current.value);
                 if (desc) {
                     desc.type = getType(desc.type);
-                    if( desc.id==='let' )
+                    if( desc.id==='let' || desc.id==='const' )
                     {
                         var blockScope = it.stack.scope();
                         while( blockScope && blockScope.keyword()==='function' )blockScope = blockScope.parent().scope();
-                        if( blockScope.hasListener('(blockScope)') )
-                        {
-                            blockScope.dispatcher({"type":"(blockScope)","name":it.current.value, "stack":it.stack, "current":it.current,'scope':desc.scope });
-                        }
+                        blockScope.dispatcher({"type":"(blockScope)","name":it.current.value, "stack":it.stack, "current":it.current,'scope':desc.scope });
                     }
                     if (desc.type !== '*')desc = module(getImportClassByType(classmodule, desc.type));
                 } else {
@@ -679,8 +487,11 @@ function getDescriptorOfExpression(it, classmodule)
         //一组常量的值
         else
         {
-            type = getConstantType(it.current.value) || getIdentifierType(it.current.type);
-            if (!type)error('Unexpected identifier','syntax',  it.current );
+            type = Utils.getConstantType(it.current.value) || Utils.getValueTypeof(it.current.type);
+            if (!type){
+                console.log( it.current )
+                error('Unexpected identifier','syntax',  it.current );
+            }
             it.stack.type(type);
             property.thisArg = it.current.value;
             property.lastStack = it.current;
@@ -690,6 +501,12 @@ function getDescriptorOfExpression(it, classmodule)
     }
 
     var isstatic = it.current.value === type || type==='Class';
+
+    if( it.current.value==='System'){
+      //  console.log( it.stack.content() , it.next , it.prev )
+       // process.exit()
+    }
+
     while ( it.next )
     {
         if ( it.next instanceof Ruler.STACK )
@@ -721,7 +538,8 @@ function getDescriptorOfExpression(it, classmodule)
                 property.expression = true;
                 property.param = value;
                 property.runningCheck=true;
-                if( desc && desc.id === 'function' )
+                property.descriptor = desc;
+                if( desc && (desc.id === 'function' || desc.id === 'class') )
                 {
                     it.stack.type(desc.type);
                     property.runningCheck=false;
@@ -746,8 +564,7 @@ function getDescriptorOfExpression(it, classmodule)
         } else if( it.next.value === '.' )
         {
             it.seek();
-
-        } else if( it.next.type === '(identifier)' )
+        } else if( it.next.id === '(identifier)' || (it.next.id === '(keyword)' && it.current.value==='.') )
         {
             it.seek();
             property.name.push( it.current.value );
@@ -767,7 +584,7 @@ function getDescriptorOfExpression(it, classmodule)
                 {
                     if( typeof desc.value === "object" )
                     {
-                        var setter = it.next && isMathAssignOperator(it.next.value);
+                        var setter = it.next && Utils.isMathAssignOperator(it.next.value);
                         if( setter && !desc.value.set )error( '"'+it.current.value+'" setter does exists');
                         if( !setter && !desc.value.get )error( '"'+it.current.value+'" getter does exists');
                         property.accessor = setter ? 'set' : 'get';
@@ -777,7 +594,7 @@ function getDescriptorOfExpression(it, classmodule)
                     }
                 }
                 //如果下一个是赋值运算符则检查当前的表达式
-                else if( it.next && isMathAssignOperator(it.next.value) )
+                else if( it.next && Utils.isMathAssignOperator(it.next.value) )
                 {
                     if (desc.id === 'const' )
                     {
@@ -816,7 +633,7 @@ function getDescriptorOfExpression(it, classmodule)
     }
 
     //是否有后置运算符
-    if( it.next && isIncreaseAndDecreaseOperator(it.next.value) )
+    if( it.next && Utils.isIncreaseAndDecreaseOperator(it.next.value) )
     {
         it.seek();
         property.after = it.current.value;
@@ -824,7 +641,7 @@ function getDescriptorOfExpression(it, classmodule)
     }
 
     //前后增减运算符只能是一个引用
-    if( property.expression && ( property.after || isIncreaseAndDecreaseOperator(property.before) ) )
+    if( property.expression && ( property.after || Utils.isIncreaseAndDecreaseOperator(property.before) ) )
     {
         error( '"'+it.next.value+'" can only is reference', 'reference', it.next );
     }
@@ -940,7 +757,6 @@ function parse( desc , value ,operator, returnValue )
         }
         return express.join('');
     }
-
     var check = !desc.descriptor || desc.super || ( desc.expression && desc.descriptor.id !=='function' && desc.descriptor.id !=='class');
     if( !check )
     {
@@ -949,6 +765,11 @@ function parse( desc , value ,operator, returnValue )
     if( !check && ( desc.expression && ( !desc.descriptor || desc.descriptor.id !=='function' ) ) )
     {
         check=true;
+    }
+
+    if( desc.descriptor && desc.descriptor.isAbstract && desc.before ==='new'  )
+    {
+        error('Abstract class of can not be instantiated', 'syntax', desc.lastStack );
     }
 
     if( desc.name.length > 1 || (desc.name.length===1 && desc.thisArg) )check = true;
@@ -1007,7 +828,7 @@ function getReferenceOf(desc , value , operator)
                 }else
                 {
                     //自增减运算
-                    if( isIncreaseAndDecreaseOperator( desc.before ) || isIncreaseAndDecreaseOperator( desc.after ) )
+                    if( Utils.isIncreaseAndDecreaseOperator( desc.before ) || Utils.isIncreaseAndDecreaseOperator( desc.after ) )
                     {
                         var o = desc.before ||  desc.after;
                         param.push( [ [props.slice(0).concat('get','call').join('.'), '(', thisvrg, ')'].join(''),  o.charAt(0) , 1 ].join('') );
@@ -1060,7 +881,7 @@ function bunch(it, classmodule)
 {
     var express = [ getDescriptorOfExpression(it, classmodule) ];
     var operator;
-    while( it.next && isLeftAndRightOperator(it.next.value) )
+    while( it.next && Utils.isLeftAndRightOperator(it.next.value) )
     {
         it.seek();
         operator = it.current.value;
@@ -1094,7 +915,7 @@ function expression( stack, classmodule )
     while ( it.seek() )
     {
         express.push( bunch(it, classmodule) );
-        if( it.next && isMathAssignOperator(it.next.value) )
+        if( it.next && Utils.isMathAssignOperator(it.next.value) )
         {
             it.seek();
             express.push( it.current.value );
@@ -1147,29 +968,6 @@ function getImportClassByType(classmodule, type )
     if( classmodule.import[type] )return classmodule.import[type];
     if( type.indexOf('.') > 0 )return type;
     return globals[type] ? type : null;
-}
-
-
-/**
- * 获取标识符定义的类型
- * @param it
- * @returns {*}
- */
-function getIdentifierType( type )
-{
-    switch ( type )
-    {
-        case '(string)' :
-            return 'String';
-        case '(regexp)' :
-            return 'RegExp';
-        case '(number)' :
-            return 'Number';
-        case '(boolean)' :
-            return 'Boolean';
-        default :
-            return null;
-    }
 }
 
 /**
@@ -1244,8 +1042,6 @@ function checkPrivilege(it, desc, inobject, currobject )
     }
 }
 
-
-
 /**
  * 转换语法
  * @returns {String}
@@ -1268,12 +1064,7 @@ function toString( stack, module )
             {
                 it.content.push(' ');
             }
-            if (it.current.value === 'let')
-            {
-                it.content.push('var');
-            } else {
-                it.content.push(it.current.value);
-            }
+            it.content.push(it.current.value);
             if ( it.current.id === '(keyword)' && !(it.next.value ==='(' || it.next.value ==='[') )it.content.push(' ');
         }
     }
@@ -1386,7 +1177,7 @@ function makeModule( stack )
     var len = data.length;
     var isstatic = stack.static();
     if( !isstatic ){
-        classModule.constructor.value=classModule.inherit ? 'function(){return '+classModule.inherit+'.constructor.call(this);}' : 'function(){}';
+        classModule.constructor.value=classModule.inherit ? 'function(){####{props}####return '+classModule.inherit+'.constructor.call(this);}' : 'function(){####{props}####}';
     }
 
     //需要实现的接口
@@ -1681,13 +1472,6 @@ function loadModuleDescription( file )
     module( data.fullclassname, data);
 }
 
-function getDirectoryFiles( path )
-{
-    path = PATH.resolve(config.lib, path.replace('.',PATH.sep) )
-    var files = fs.readdirSync( path );
-    return files;
-}
-
 /**
  * 获取一个方法的字符串表达式
  * @param name
@@ -1698,7 +1482,6 @@ function getMethods(name,param)
 {
     return name+'('+param.join(',')+')';
 }
-
 
 /**
  * 生成语法描述
@@ -1752,27 +1535,6 @@ function toValue( describe, uid )
     if( code.length===0 )return '{}';
     return '{\n'+code.join(',\n')+'\n}';
 }
-
-
-/**
- * 格式化字节
- * @param bytes
- * @returns {string}
- */
-function format(bytes)
-{
-    return (bytes/1024/1024).toFixed(2)+'MB';
-}
-
-/**
- * 获取占用的内存信息
- */
-function showMem()
-{
-    var mem = process.memoryUsage();
-    console.log('Process: heapTotal '+format(mem.heapTotal) + ' heapUsed ' + format(mem.heapUsed) + ' rss ' + format(mem.rss));
-}
-
 
 /**
  * 开始生成代码片段
@@ -1835,6 +1597,7 @@ function start()
         descriptor.push('\n"extends":' + o.inherit);
         descriptor.push('\n"classname":"' + o.classname + '"');
         descriptor.push('\n"package":"' + o.package + '"');
+        descriptor.push('\n"isAbstract":'+(!!o.isAbstract) );
         descriptor.push('\n"proto":' + toValue(o.proto, o.uid));
         descriptor = '{' + descriptor.join(',') + '}';
         if( o.id!=='interface' )
@@ -1872,7 +1635,7 @@ function start()
 // 合并传入的参数
 var arguments = process.argv.splice(1);
 config.make = PATH.dirname( arguments.shift() );
-for(var b in arguments )merge(config, QS.parse( arguments[b] ) );
+for(var b in arguments )Utils.merge(config, QS.parse( arguments[b] ) );
 config.cache = config.cache!=='off';
 
 //浏览器中的全局模块
@@ -1920,7 +1683,7 @@ if( config.config )
     {
         data =  require( config.config );
     }
-    merge(config,data);
+    Utils.merge(config,data);
 }
 
 //必须指主文件
@@ -1929,5 +1692,4 @@ if( !config.main )
     console.log('main file can not is empty');
     process.exit();
 }
-
 start();

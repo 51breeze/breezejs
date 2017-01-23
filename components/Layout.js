@@ -351,7 +351,7 @@
                 maxHeight = 0;
             }
             children.push({
-                'target': elem,
+                "__proxyTarget__": elem,
                 'left': x + marginLeft,
                 'top': y + marginTop,
                 'width':childWidth,

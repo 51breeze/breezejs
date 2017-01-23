@@ -117,7 +117,7 @@
      */
     var readyState=function( event , type , dispatch, add, remove )
     {
-        var target=  event.srcElement || event.target;
+        var target=  event.srcElement || event.__proxyTarget__;
         var readyState=target.readyState;
         var eventType= event.type || null;
         if( eltie9 )
@@ -152,7 +152,7 @@
                 if( event )
                 {
                     event.currentTarget= element;
-                    event.target=element;
+                    event.__proxyTarget__=element;
                     readyState.call(this,event,BreezeEvent.LOAD, dispatch, add, remove );
                 }
             };

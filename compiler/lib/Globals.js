@@ -8,6 +8,12 @@ var objects = {
         }
     },
     'Json':{'id':'object', 'type':'Json','inherit':'Object'},
+    'System':{
+        'id':'object', 'type':'System','inherit':'Object',
+        'static': {
+            'new': {type: '*', id: 'function', param: ['...']},
+        }
+    },
     'Object':{
         'id':'class',
         'type':'Object',

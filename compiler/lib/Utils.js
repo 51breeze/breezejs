@@ -1,85 +1,96 @@
-/**
- * 检查值的类型是否和声明时的类型一致
- * @param description
- * @param value
- */
-function checkValueType(description,value )
-{
-    if( description.type !== '*' )
-    {
-        var type = typeof value;
-        var result = false;
-        switch ( type )
-        {
-            case 'string' :
-                result =  description.type === String || description.type === Object;
-                break;
-            case 'number' :
-                result =  description.type === Number || description.type === Object;
-                break;
-            case 'boolean':
-                result =  description.type === Boolean;
-                break;
-            default :
-                result = description.type === Object ? true : System.instanceof(value,description.type);
-                break;
-        }
-        return result;
-    }
-    return true;
-}
+const utils={};
+const fs = require('fs');
+const PATH = require('path');
 
 /**
- * 抛出错误信息
- * @param type
- * @param msg
+ * 获取目录下的所有文件
+ * @param path
+ * @returns {Array}
  */
-function throwError(type, msg, error, classModule )
+function getDirectoryFiles( path )
 {
-    if( classModule )
-    {
-        msg = classModule.filename+':'+msg+'\n'
-        if( error )msg += error.message+'\n';
-    }
-
-    switch ( type ){
-        case 'type' :
-            throw new TypeError( msg );
-            break;
-        case 'reference':
-            throw new ReferenceError( msg );
-            break;
-        case 'syntax':
-            throw new SyntaxError( msg );
-            break;
-        default :
-            throw new Error( msg );
-    }
+    var files = fs.readdirSync( path );
+    return files.filter(function(a){
+        return !(a==='.' || a==='..');
+    });
 }
+utils.getDirectoryFiles=getDirectoryFiles;
 
-//检查是否可访问
-function checkPrivilege(descriptor,referenceModule, classModule  )
+/**
+ * 返回一个完整的绝对路径
+ * @param dir
+ * @param path
+ * @returns {*}
+ */
+function getResolvePath( dir, path )
 {
-    if( descriptor && descriptor.qualifier && descriptor.qualifier !== 'public' )
-    {
-        //不是本类中的成员调用（本类中的所有成员可以相互调用）
-        if( referenceModule !== classModule )
-        {
-            var is= false;
-            if( descriptor.qualifier === 'internal' )
-            {
-                is = referenceModule.package === classModule.package;
-
-            }else if( descriptor.qualifier === 'protected' )
-            {
-                is = referenceModule.isPrototypeOf( classModule );
-            }
-            return is;
-        }
-    }
-    return true;
+    return PATH.resolve( dir, (path || '').replace('.',PATH.sep) );
 }
+utils.getResolvePath=getResolvePath;
 
+/**
+ * 获取一个完整文件路径的文件名
+ * @param path
+ * @returns {*}
+ */
+function getFilenameByPath( path )
+{
+    return PATH.basename(path, PATH.extname(path) )
+}
+utils.getFilenameByPath=getFilenameByPath;
+
+/**
+ * 判断是否为一个有效的运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isOperator( o )
+{
+    switch (o) {
+        case ';' :
+        case '.' :
+        case ',' :
+        case ':' :
+        case '?' :
+            return true;
+    }
+    return isBoolOperator(o) || isLogicOperator(o) || isCombinationOperator(o) || isLeftOperator(o) || isMathAssignOperator(o);
+}
+utils.isOperator = isOperator;
+
+/**
+ * 是否为一个可以组合的运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isCombinationOperator( o )
+{
+    switch (o) {
+        case ':' :
+        case '=' :
+        case '&' :
+        case '|' :
+        case '<' :
+        case '>' :
+        case '-' :
+        case '+' :
+        case '*' :
+        case '/' :
+        case '%' :
+        case '!' :
+        case '^' :
+        case '~' :
+            return true;
+    }
+    return false;
+}
+utils.isCombinationOperator = isCombinationOperator;
+
+/**
+ * 赋值运算符
+ * @param o
+ * @returns {boolean}
+ */
 function isMathAssignOperator( o )
 {
     switch (o) {
@@ -95,231 +106,376 @@ function isMathAssignOperator( o )
         case '<<=' :
         case '>>=' :
         case '>>>=' :
+            return true;
+    }
+    return false;
+}
+utils.isMathAssignOperator = isMathAssignOperator;
+
+
+/**
+ * 前置运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isLeftOperator(o)
+{
+    switch (o) {
+        case '~' :
+        case '-' :
+        case '+' :
+        case '!' :
+        case '!!' :
+            return true;
+    }
+    return isIncreaseAndDecreaseOperator(o) || isKeywordLeftOperator(o);
+}
+utils.isLeftOperator = isLeftOperator;
+
+/**
+ * 关键字运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isKeywordLeftOperator(o)
+{
+    switch (o) {
+        case 'new' :
+        case 'delete' :
+        case 'typeof' :
+            return true;
+    }
+    return false;
+}
+utils.isKeywordLeftOperator = isKeywordLeftOperator;
+
+/**
+ * 后置运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isIncreaseAndDecreaseOperator(o)
+{
+    switch (o) {
         case '--' :
         case '++' :
             return true;
     }
     return false;
 }
+utils.isIncreaseAndDecreaseOperator = isIncreaseAndDecreaseOperator;
 
-function mathOperator( a, o, b)
+/**
+ * 在左右两边都需要标识符的运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isLeftAndRightOperator(o)
 {
-    if( a==='--' )return --o;
-    if( a==='++' )return ++o;
-    if( b==='--')return o--;
-    if( b==='++' )return o++;
-    switch (o)
-    {
-        case '+=' : return a+=b;
-        case '-=' : return a-=b;
-        case '*=' : return a*=b;
-        case '/=' : return a/=b;
-        case '%=' : return a%=b;
-        case '^=' : return a^=b;
-        case '&=' : return a&=b;
-        case '|=' :return a|=b;
-        case '<<=' :return a<<=b;
-        case '>>=' :return a>>=b;
-        case '>>>=' :return a>>>=b;
-        default : return b;
+    switch (o) {
+        case '&&' :
+        case '||' :
+        case '-' :
+        case '+' :
+        case '*' :
+        case '/' :
+        case '%' :
+        case '^' :
+            return true;
     }
+    return isBoolOperator(o) || isMathAssignOperator(o);
+}
+utils.isLeftAndRightOperator = isLeftAndRightOperator;
+
+
+/**
+ * 是否为结束表达式的操作符
+ * @param o
+ * @returns {boolean}
+ */
+function isEndOperator(o)
+{
+    switch (o) {
+        case ';' :
+        case ',' :
+        case ':' :
+        case '?' :
+        case ']' :
+        case ')' :
+        case '}' :
+            return true;
+    }
+    return false;
+}
+utils.isEndOperator = isEndOperator;
+
+/**
+ * 布尔运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isBoolOperator(o)
+{
+    switch (o) {
+        case '<' :
+        case '>' :
+        case '<=' :
+        case '>=' :
+        case '==' :
+        case '!=' :
+        case '===' :
+        case '!==' :
+        case 'instanceof' :
+        case 'is' :
+        case 'in' :
+            return true;
+    }
+    return false;
+}
+utils.isBoolOperator = isBoolOperator;
+
+/**
+ * 关系运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isKeywordOperator(o)
+{
+    switch (o) {
+        case 'instanceof' :
+        case 'is' :
+        case 'in' :
+            return true;
+    }
+    return isKeywordLeftOperator(o);
+}
+utils.isKeywordOperator = isKeywordOperator;
+
+/**
+ * 逻辑运算符
+ * @param o
+ * @returns {boolean}
+ */
+function isLogicOperator(o)
+{
+    switch (o) {
+        case '&&' :
+        case '||' :
+        case '!!' :
+        case '!' :
+            return true;
+    }
+    return false;
+}
+utils.isLogicOperator = isLogicOperator;
+
+/**
+ * 判断是否为一个标识符
+ * @param s
+ * @returns {boolean}
+ */
+function isIdentifier( o )
+{
+    return o.id === '(keyword)' || o.type==='(identifier)' || isLiteralObject(o.type);
+}
+utils.isIdentifier = isIdentifier;
+
+/**
+ * 是否为一个字面量对象
+ * @param val
+ * @returns {boolean}
+ */
+function isLiteralObject( val )
+{
+    return val==='(string)' || val==='(template)' || val==='(regexp)' || val==='(number)';
+}
+utils.isLiteralObject = isLiteralObject;
+
+/**
+ * 判断是否为一个定界符
+ * @param s
+ * @returns {boolean}
+ */
+function isDelimiter( s )
+{
+    return isLeftDelimiter(s) || isRightDelimiter(s);
+}
+utils.isDelimiter = isDelimiter;
+
+/**
+ * 判断是否为一个左定界符
+ * @param s
+ * @returns {boolean}
+ */
+function isLeftDelimiter(s)
+{
+    switch( s )
+    {
+        case '{' :
+        case '(' :
+        case '[' :
+            return true;
+    }
+    return false;
+}
+utils.isLeftDelimiter = isLeftDelimiter;
+
+/**
+ * 判断是否为一个右定界符
+ * @param s
+ * @returns {boolean}
+ */
+function isRightDelimiter(s)
+{
+    switch( s )
+    {
+        case '}' :
+        case ')' :
+        case ']' :
+            return true;
+    }
+    return false;
+}
+utils.isRightDelimiter = isRightDelimiter;
+
+/**
+ * 是否为一个有效的属性名
+ * @param s
+ * @returns {boolean}
+ */
+function isPropertyName(s)
+{
+    return /^([a-z_$]+[\w+]?)/i.test( s );
+}
+utils.isPropertyName = isPropertyName;
+
+/**
+ * 判断是否为一个恒定的值
+ * @param val
+ * @returns {boolean}
+ */
+function isConstant(val)
+{
+    switch ( val )
+    {
+        case 'null' :
+        case 'undefined' :
+        case 'true' :
+        case 'false' :
+        case 'NaN' :
+        case 'Infinity' :
+        case 'this' :
+            return true;
+            break;
+    }
+    return false;
+}
+utils.isConstant = isConstant;
+
+/**
+ * 去掉两边的空白
+ * @param str
+ * @returns {string|void|XML}
+ */
+function trim( str )
+{
+    return typeof str === "string" ? str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,'') : '';
+}
+utils.trim = trim;
+
+/**
+ * 合并对象到指定的第一个参数
+ * @returns {*}
+ */
+function merge()
+{
+    var target = arguments[0];
+    var len = arguments.length;
+    for(var i=1; i<len; i++ )
+    {
+        var item = arguments[i];
+        for( var p in item )
+        {
+            if( Object.prototype.isPrototypeOf( item[p] ) && Object.prototype.isPrototypeOf( target[p] ) )
+            {
+                target[p] = merge( target[p],  item[p] );
+            }else{
+                target[p] = item[p];
+            }
+        }
+    }
+    return target;
+}
+utils.merge = merge;
+
+
+
+/**
+ * 判断是否为一个恒定的值
+ * @param val
+ * @returns {boolean}
+ */
+function getConstantType(val)
+{
+    switch ( val )
+    {
+        case 'null' :
+        case 'undefined' :
+            return 'Object';
+        case 'true' :
+        case 'false' :
+            return 'Boolean';
+        case 'NaN' :
+        case 'Infinity' :
+            return 'Number';
+    }
+    return null;
+}
+utils.getConstantType = getConstantType;
+
+
+/**
+ * 返回可以通过 typeof 运算符返回的类型
+ * @param type 一个字面量表示的类型
+ * @returns {*}
+ */
+function getValueTypeof( type )
+{
+    switch ( type )
+    {
+        case '(string)' :
+            return 'String';
+        case '(regexp)' :
+            return 'RegExp';
+        case '(number)' :
+            return 'Number';
+        case '(boolean)' :
+            return 'Boolean';
+        default :
+            return null;
+    }
+}
+utils.getValueTypeof = getValueTypeof;
+
+
+/**
+ * 格式化字节
+ * @param bytes
+ * @returns {string}
+ */
+function byteFormat(bytes)
+{
+    return (bytes/1024/1024).toFixed(2)+'MB';
 }
 
 /**
- * 生成一个调用函数的方法
- * @param classModule
- * @returns {Function}
+ * 获取占用的内存信息
  */
-function __call__( classModule, thisArg, properties, args, iscall)
+function showMem()
 {
-    var desc;
-    var strName = properties ? properties : thisArg;
-    var lastProp = properties;
-    var refObj = thisArg;
-    var value = refObj;
-    var isset = typeof args !== "undefined" && !iscall;
-    var operator;
-    var left;
-
-    //一组引用对象的属性或者是运算符（必须在属性的前面或者后面）
-    if( properties && typeof properties !== "string" )
-    {
-        //前自增减运算符
-        if( properties[0]==='--' || properties[0]==='++' )left = properties.shift();
-        //指定的引用对象模块
-        if( properties[0] instanceof Class )refObj = value = properties.shift();
-        //属性名字符串的表示
-        strName = properties.join('.');
-        //需要操作的属性名
-        lastProp = properties.pop();
-        //指定的赋值运算符
-        if( isMathAssignOperator( lastProp )  )
-        {
-            operator = lastProp;
-            isset=true;
-            if(operator==='=')operator='';
-            lastProp = properties.pop();
-        }
-        //如果有链式操作则获取引用
-        if( properties.length > 0 )
-        {
-            var i = 0;
-            //获取实例引用
-            while( i < properties.length && refObj )
-            {
-                refObj = thisArg = __call__( classModule, thisArg, properties[i++], undefined , false);
-            }
-        }
-    }
-
-    //引用对象不能是空
-    if( !refObj && (isset || iscall || lastProp) )throwError('reference', '"'+strName+( refObj===null ? '" property of null' : '" is not defined') );
-    //属性对象是否可写
-    var writable=true;
-    //对属性引用的操作
-    if( lastProp )
-    {
-        //是否对静态模块的引用
-        var isStatic = refObj instanceof Class;
-        var referenceModule = isStatic ? refObj : refObj.constructor;
-        //是否为引用本地类的模块
-        if( referenceModule instanceof Class )
-        {
-            isStatic = isStatic && thisArg === refObj;
-            //模块描述符
-            desc = isStatic ? referenceModule.static[lastProp] : referenceModule.proto[lastProp];
-            //如果本类中没有定义则在在扩展的类中依次向上查找。
-            if ( (!desc || (desc.qualifier === 'private' && referenceModule !== classModule) ) && referenceModule.extends )
-            {
-                var parentModule = referenceModule.extends;
-                var description;
-                while (parentModule)
-                {
-                    description = isStatic ? parentModule.static : parentModule.proto;
-                    //继承的属性，私有的路过.
-                    if( description[lastProp] && ( description[lastProp].qualifier !== 'private' || parentModule===classModule ) )
-                    {
-                        desc = description[lastProp];
-                        referenceModule = parentModule;
-                        break;
-                    }
-                    parentModule = parentModule.extends;
-                }
-            }
-            //如果没有在类中定义
-            if ( !desc )throwError('reference', '"' + strName + '" is not defined');
-            //是否有访问的权限
-            if( !checkPrivilege( desc, referenceModule, classModule) )throwError('reference', '"' + strName + '" inaccessible.');
-            //如果是一个实例属性
-            if( !isStatic && ( desc.id === 'var' || desc.id === 'const' ) )
-            {
-                writable = desc.id === 'var';
-                refObj = refObj[ referenceModule.token ];
-            }
-            //引用描述符的原始值
-            else
-            {
-                lastProp='value';
-                refObj = desc;
-            }
-        }
-    }
-
-    //设置属性值
-    if( isset )
-    {
-        if( !writable )throwError('type', '"' + strName +'" cannot be alter of constant');
-        if( operator )args = mathOperator( getValue( thisArg, refObj, desc, lastProp ,strName  ), operator, args);
-        return setValue( thisArg, refObj, desc, lastProp ,args, strName, writable );
-    }
-
-    //获取原始值
-    if( desc && (desc.id==='var' || desc.id==='const' || typeof desc.value === "object" ) )
-    {
-        value = getValue( thisArg, refObj, desc, lastProp ,strName );
-    }else
-    {
-        value = refObj[lastProp];
-    }
-
-    //调用方法
-    if ( iscall )
-    {
-        if( value instanceof Class )value = value.constructor;
-        if ( typeof value !== 'function' )throwError('reference', '"' + strName + '" is not function');
-        return value.apply(thisArg, args);
-    }
-    //待返回的值
-    var val= value;
-    //如果有指定运算符
-    if( left || operator )
-    {
-        //前置运算(先返回运算后的结果再赋值)
-        if(left)
-        {
-            val = value = mathOperator( left, value)
-        }
-        //后置运算(先赋值后再返回运算后的结果)
-        else
-        {
-            value=mathOperator( null, value, operator );
-        }
-        //将运算后的结果保存
-        setValue( thisArg, refObj, desc, lastProp , value, strName, writable );
-    }
-    return val;
+    var mem = process.memoryUsage();
+    console.log('Process: heapTotal '+byteFormat(mem.heapTotal) + ' heapUsed ' + byteFormat(mem.heapUsed) + ' rss ' + byteFormat(mem.rss));
 }
+utils.showMem = showMem;
 
-function setValue(thisArg, refObj, desc, prop, value, strName)
-{
-    if ( desc )
-    {
-        //检查属性的类型是否匹配
-        if ( !checkValueType(desc, value) )throwError('type', '"' + strName + '" type can only be a (' + System.getQualifiedClassName(desc.type) + ')');
-        if( desc.id==='function' )
-        {
-            if (typeof desc.value.set !== 'function')throwError('reference', '"' + strName + '" Accessor setter does not exist');
-            desc.value.set.call(thisArg, value);
-            return value;
-        }
-    }
-
-    if ( !Object.prototype.hasOwnProperty.call(refObj, prop) )throwError('reference', '"' + strName + '" property does not exist');
-    try {
-        refObj[ prop ] = value;
-    } catch (e) {
-        throwError('reference', '"' + strName + '" property cannot be set');
-    }
-    if( refObj[prop] !== value )throwError('reference', '"' + strName + '" property cannot be set');
-    return value;
-}
-
-function getValue(thisArg, refObj, desc, prop, strName)
-{
-    //如是是对全局类的属性操作
-    if ( desc && desc.id ==='function' )
-    {
-        if (typeof desc.value.get !== 'function')throw new throwError('reference', '"' + strName + '" Accessor getter does not exist');
-        return desc.value.get.call(thisArg);
-    }
-    if( !prop )return refObj;
-    return refObj[prop];
-}
-
-/**
- * 构建一个访问器
- * @param classModule
- * @param flag
- * @returns {Function}
- */
-function make(classModule, flag )
-{
-    return function (info, thisArg, properties ,value)
-    {
-        try{
-            return __call__(classModule, thisArg, properties, value, flag);
-        }catch(error){
-            throwError("reference",info ,error, classModule );
-        }
-    }
-}
+module.exports = utils;

@@ -157,7 +157,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
         {
             element =  target[i] ;
             event.currentTarget=element;
-            event.target = event.target || element;
+            event.__proxyTarget__ = event.__proxyTarget__ || element;
             dispatchEvent( event );
             i++;
         }
@@ -455,7 +455,7 @@ define('EventDispatcher',['./events/BreezeEvent'], function(BreezeEvent, undefin
             if( event )
             {
                 event.currentTarget = event.currentTarget || doc;
-                event.target = event.target || event.currentTarget;
+                event.__proxyTarget__ = event.__proxyTarget__ || event.currentTarget;
                 dispatch( event );
                 remove.call(doc,'DOMContentLoaded');
                 remove.call(win,'load');
