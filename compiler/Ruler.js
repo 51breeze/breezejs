@@ -8,7 +8,7 @@ const reserved = [
     'static','public','private','protected','internal','package','override','final','System','system',
     'extends','import','class','var','let','function','new','typeof','const','interface','abstract','implements',
     'is','instanceof','if','else','do','while','for','in','of','switch','case','super',
-    'break','default','try','catch','throw','Infinity','this','debugger',
+    'break','default','try','catch','throw','Infinity','this','debugger','eval',
     'finally','return','null','false','true','NaN','undefined','delete',
     /*'export',*/
 ];
