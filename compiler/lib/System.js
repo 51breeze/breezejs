@@ -1,6 +1,6 @@
 var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp,_Error,_ReferenceError,_TypeError,_SyntaxError,undefined)
 {
-    var s={};
+    var s=System={};
     var m={};
     s.Object  = _Object;
     s.Function= _Function;
@@ -20,12 +20,13 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @returns {*}
      * @constructor
      */
-    s.Object = function Object( value )
+    function Object( value )
     {
         if ( !(value === undefined || value === null) )return _Object(value);
         if( !(this instanceof Object) ) return new Object();
         return this;
     }
+    s.Object =Object;
     Object.prototype = new _Object();
     Object.prototype.constructor=Object;
 
@@ -119,10 +120,21 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @param theClass
      * @returns {Boolean}
      */
+    var $isPrototypeOf = _Object.prototype.isPrototypeOf;
     Object.prototype.isPrototypeOf = function( theClass )
     {
-        var obj = this instanceof Class ? this : Object.getPrototypeOf(this).constructor;
-        return instanceOf( typeof theClass === "function" ? theClass.prototype : theClass , obj );
+        var proto = Object.getPrototypeOf(this);
+        var obj = this instanceof Class ? this : proto.constructor;
+        if( obj instanceof Class )
+        {
+            var classObj = theClass;
+            while (classObj instanceof Class)
+            {
+                if (classObj === obj)return true;
+                classObj = classObj.extends;
+            }
+        }
+        return $isPrototypeOf.call( proto, theClass);
     }
 
     /**
@@ -134,7 +146,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     var $hasOwnProperty = _Object.prototype.hasOwnProperty;
     Object.prototype.hasOwnProperty = function( name )
     {
-        var obj = this.constructor instanceof Class ? this.constructor : this;
+        var obj = this instanceof Class ? this : this.constructor;
         if( obj instanceof Class )
         {
             var desc = obj === this ? obj.static[name] : obj.proto[name];
@@ -153,11 +165,11 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     var $propertyIsEnumerable=_Object.prototype.propertyIsEnumerable;
     Object.prototype.propertyIsEnumerable = function( name )
     {
-        var obj = this.constructor instanceof Class ? this.constructor : this;
+        var obj = this instanceof Class ? this : this.constructor;
         if( obj instanceof Class )
         {
             var desc = obj === this ? obj.static[name] : obj.proto[ name ];
-            if( desc && desc.id === "function" )return false;
+            if( desc && ( desc.qualifier!=='public' || (desc.id === "function" && typeof desc.value === "function")))return false;
             return (obj.dynamic && !desc) || (desc && desc.enumerable !== false);
         }
         return $propertyIsEnumerable.call(this,name);
@@ -173,14 +185,19 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     var $defineProperty=_Object.defineProperty;
     Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
     {
-        var obj = this.constructor instanceof Class ? this.constructor : this;
+        var obj = this instanceof Class ? this : this.constructor;
         if( obj instanceof Class )
         {
             var desc = obj === this ? obj.static[name] : obj.proto[ name ];
-            if( desc && desc.id !=='function' )desc.enumerable = isEnum !== false;
+            if( desc )
+            {
+                desc.enumerable = isEnum !== false;
+                if( desc.id !=='function' || (desc.value && typeof desc.value.get === "function") )$defineProperty(obj === this ? obj.static : this[obj.token], name, {enumerable: isEnum !== false});
+            }
+
         }else if( $hasOwnProperty.call(this,name) )
         {
-            $defineProperty(this, name, {enumerable:isEnum !== false,value:this[name]} );
+            $defineProperty(this, name, {enumerable:isEnum !== false});
         }
     }
 
@@ -191,7 +208,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     var $valueOf = _Object.prototype.valueOf;
     Object.prototype.valueOf=function()
     {
-        var obj = this.constructor instanceof Class ? this.constructor : this;
+        var obj = this instanceof Class ? this : this.constructor;
         if( obj instanceof Class )
         {
             return obj === this ? '[class '+obj.classname+']' : '[object '+ obj.classname+']';
@@ -204,9 +221,9 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @returns {String}
      */
     var $toString = _Object.prototype.toString;
-    Object.prototype.toString=function()
+    Object.prototype.toString=function toString()
     {
-        var obj = this.constructor instanceof Class ? this.constructor : this;
+        var obj = this instanceof Class ? this : this.constructor;
         if( obj instanceof Class )
         {
             return obj === this ? '[class '+obj.classname+']' : '[object '+ obj.classname+']';
@@ -221,7 +238,10 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     Object.prototype.keys=function()
     {
         var items=[];
-        for(var key in this)items.push( key );
+        var it = new Iterator(this);
+        var len = it.items.length;
+        var i = 0;
+        for(;i<len;i++)items.push( it.items[i].key );
         return items;
     }
 
@@ -232,7 +252,10 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     Object.prototype.values=function()
     {
         var items=[];
-        for(var key in this)items.push( this[key] );
+        var it = new Iterator(this);
+        var len = it.items.length;
+        var i = 0;
+        for(;i<len;i++)items.push( it.items[i].value );
         return items;
     }
 
@@ -241,18 +264,13 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @returns {Array}
      * @constructor
      */
-    s.Array = function Array()
+    function Array(length)
     {
-        if( !(this instanceof Array) )
-        {
-           var obj = new Array();
-           if(arguments.length>0)Array.prototype.splice.apply(obj, [0,0].concat(arguments) );
-           return obj;
-        }
+        if( !(this instanceof Array) )return _Array.apply(new Array(), Array.prototype.slice.call(arguments,0) );
         this.length=0;
-        if(arguments.length>0)Array.prototype.splice.apply(this, [0,0].concat(arguments) );
-        return this;
+        return _Array.apply(this,Array.prototype.slice.call(arguments,0));
     }
+    s.Array =Array;
     Array.prototype = new Object();
     Array.prototype.constructor = Array;
     Array.prototype.length  =0;
@@ -266,6 +284,8 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     Array.prototype.unshift = _Array.prototype.unshift;
     Array.prototype.sort    = _Array.prototype.sort;
     Array.prototype.reverse = _Array.prototype.reverse;
+    Array.prototype.toString =_Array.prototype.toString;
+    Array.prototype.valueOf =_Array.prototype.valueOf;
 
     /**
      * 循环对象中的每一个属性，只有纯对象或者是一个数组才会执行。
@@ -274,39 +294,205 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * 如果返回 false 则退出循环
      * @returns {Object}
      */
-    Array.prototype.forEach=function( callback )
+    Array.prototype.forEach=function( callback, thisArg )
     {
         if( typeof callback !== "function" )throwError('type','"callback" must be a function')
-        if( isObject(this,true) || this.length > 0 )
-        {
-            for(var i in this)if( callback.call(this, this[i], i ) === false )return this;
-        }
+        var it = new Iterator(this);
+        var len = it.items.length;
+        var i = 0;
+        for(;i<len;i++)if(callback.call(thisArg, it.items[i].value, it.items[i].key )=== false)return this;
         return this;
     }
+
+    /**
+     * 方法使用指定的函数测试所有元素，并创建一个包含所有通过测试的元素的新数组。
+     * @param callback
+     * @param thisArg
+     * @returns {Array}
+     */
+    Array.prototype.filter=function (callback, thisArg)
+    {
+        if (typeof callback !== 'function')throwError('type','callback must be a function');
+        var it = new Iterator(this);
+        var len = it.items.length;
+        var items = new Array();
+        var i = 0;
+        for (; i < len; i++)if ( callback.call(thisArg, it.items[i].value, it.items[i].key) )items.push( it.items[i].value );
+        return items;
+    }
+
+    /**
+     * 将一个数组的所有元素从开始索引填充到具有静态值的结束索引
+     * @param value
+     * @param start
+     * @param end
+     * @returns {Object}
+     */
+    Array.prototype.fill = function fill(value, start, end)
+    {
+        var obj = Object(this);
+        if( !(obj instanceof Class) )
+        {
+            var o = obj.constructor instanceof Class ? obj[obj.constructor.token] : obj;
+            var len = o.length >> 0;
+            var relativeStart = start >> 0;
+            var k = relativeStart < 0 ? Math.max(len + relativeStart, 0) : Math.min(relativeStart, len);
+            var relativeEnd = end === undefined ? len : end >> 0;
+            var final = relativeEnd < 0 ? Math.max(len + relativeEnd, 0) : Math.min(relativeEnd, len);
+            while (k < final) {
+                o[k] = value;
+                k++;
+            }
+        }
+        return obj;
+    };
+
+    /**
+     * 返回数组中满足提供的测试函数的第一个元素的值。否则返回 undefined。
+     * @param callback
+     * @param thisArg
+     * @returns {*}
+     */
+    Array.prototype.find = function(callback,thisArg)
+    {
+        if (typeof callback !== 'function')throwError('type','callback must be a function');
+        var it = new Iterator(this);
+        var len = it.items.length;
+        for (var i = 0; i < len; i++)if ( callback.call(thisArg, it.items[i].value, it.items[i].value.key) )
+        {
+            return it.items[i].value;
+        }
+        return undefined;
+    };
+
+
+    /**
+     * 描述符构造器
+     * @constructor
+     */
+    function Descriptor(){}
+    s.Descriptor =Descriptor;
+    Descriptor.prototype = new Object();
+    Descriptor.prototype.constructor = Descriptor;
+    Descriptor.prototype.enumerable = false;
+    Descriptor.prototype.configurable = false;
+    Descriptor.prototype.writable = false;
+    Descriptor.prototype.value = undefined;
+    Descriptor.prototype.get = undefined;
+    Descriptor.prototype.set = undefined;
 
     /**
      * 迭代构造器
      * @param target
      * @constructor
      */
-    s.Iterator = function Iterator( target )
+    function Iterator( target )
     {
-       if( !(isObject(target,true) || typeof target.length === "number") )throwError('type','Invalid target');
-       this.target = target;
+       if( !(this instanceof Iterator) ) return new Iterator(target);
+       target = Object(target);
+       var items = [];
+       var desc;
+       var obj = target;
+       var dynamic = false;
+       if( target instanceof Class )
+       {
+           desc = obj = target.static;
+       }else if( target.constructor instanceof Class  )
+       {
+           obj = target[ target.constructor.token ];
+           desc = target.constructor.proto;
+           dynamic = target.constructor.dynamic;
+       }
+       for( var prop in obj )
+       {
+           if( !$propertyIsEnumerable.call(obj,prop) )continue;
+           if( desc )
+           {
+               if( desc[prop] && ( desc[prop].qualifier!=='public' || (desc[prop].id==='function' && typeof desc[prop].value === "function") ) )continue;
+               if( (dynamic && !desc[prop]) || ( desc[prop] && desc[prop].enumerable !== false) )
+               {
+                   items.push({
+                       key:prop,
+                       value:obj[prop] ==='__getter__' && desc[prop].id==='function' && typeof desc[prop].value.get === "function" ? desc[prop].value.get.call(target) : obj[prop]
+                   });
+               }
+               
+           }else
+           {
+               items.push({key:prop,value:obj[prop]});
+           }
+       }
+       this.items = items;
     }
+    s.Iterator = Iterator;
     Iterator.prototype = new Object();
-    Iterator.prototype.target = null;
-    Iterator.prototype.constructor = Interface;
-    Iterator.prototype.seek= function seek( callback )
+    Iterator.prototype.items = null;
+    Iterator.prototype.cursor = -1;
+    Iterator.prototype.constructor = Iterator;
+
+
+    /**
+     * 将指针向前移动一个位置并返回当前元素
+     * @returns {*}
+     */
+    Iterator.prototype.seek= function seek()
     {
-         var obj = this.target instanceof Class ? this.target.static : this.target.constructor instanceof Class ? this.target[ this.target.constructor.token ] : this.target;
-         for(var prop in obj)
-         {
-            if( Object.prototype.propertyIsEnumerable.call(this.target, prop) )
-            {
-                callback.call(undefined, obj[prop], prop);
-            }
-         }
+        if( this.items.length <= this.cursor+1 )return false;
+        return this.items[ ++this.cursor ];
+    }
+
+    /**
+     * 返回当前指针位置的元素
+     * @returns {*}
+     */
+    Iterator.prototype.current=function current()
+    {
+        return this.items[ this.cursor ];
+    }
+
+    /**
+     * 返回上一个指针位置的元素
+     * 如果当前指针位置在第一个则返回false
+     * @returns {*}
+     */
+    Iterator.prototype.prev=function current()
+    {
+        if( this.cursor < 1 )return false;
+        return this.items[ this.cursor-1 ];
+    }
+
+    /**
+     * 返回下一个指针位置的元素。
+     * 如果当前指针位置在最后一个则返回false
+     * @returns {*}
+     */
+    Iterator.prototype.next=function next()
+    {
+        if( this.cursor >= this.items.length )return false;
+        return this.items[ this.cursor+1 ];
+    }
+
+    /**
+     * 将指针移到到指定的位置并返回当前位置的元素
+     * @param cursor
+     * @returns {*}
+     */
+    Iterator.prototype.moveTo=function moveTo( cursor )
+    {
+        cursor=cursor >> 0;
+        if( cursor < 0 || cursor >= this.items.length )return false;
+        this.cursor = cursor;
+        return this.items[ this.cursor ];
+    }
+
+    /**
+     * 重置指针
+     * @returns {Iterator}
+     */
+    Iterator.prototype.reset=function reset()
+    {
+        this.cursor = -1;
+        return this;
     }
 
     /**
@@ -314,11 +500,12 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @returns {Class}
      * @constructor
      */
-    s.Class = function Class()
+    function Class()
     {
         Object.call(this);
         return this;
     }
+    s.Class = Class;
     Class.prototype                  = new Object();
     Class.prototype.constructor      = null;
     Class.prototype.extends          = null;
@@ -337,11 +524,12 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * 接口构造函数
      * @constructor
      */
-    s.Interface=function Interface()
+    function Interface()
     {
         Object.call(this);
         return this;
     }
+    s.Interface = Interface;
     Interface.prototype              = new Object();
     Interface.prototype.constructor  = null;
     Interface.prototype.extends      = null;
@@ -357,13 +545,14 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @param filename
      * @constructor
      */
-    s.Error = function Error( message , line, filename )
+    function Error( message , line, filename )
     {
         this.message = message;
         this.line=line;
         this.filename = filename;
         this.type='Error';
     }
+    s.Error = Error;
     Error.prototype = new Object();
     Error.prototype.constructor=Error;
     Error.prototype.line=null;
@@ -383,11 +572,12 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @param filename
      * @constructor
      */
-    s.ReferenceError = function ReferenceError( message , line, filename )
+    function ReferenceError( message , line, filename )
     {
         Error.call(this, message , line, filename);
         this.type='ReferenceError';
     }
+    s.ReferenceError = ReferenceError;
     ReferenceError.prototype = new Error();
     ReferenceError.prototype.constructor=ReferenceError;
 
@@ -399,11 +589,12 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @param filename
      * @constructor
      */
-    s.TypeError =function TypeError( message , line, filename )
+    function TypeError( message , line, filename )
     {
         Error.call(this, message , line, filename);
         this.type='TypeError';
     }
+    s.TypeError = TypeError;
     TypeError.prototype = new Error();
     TypeError.prototype.constructor=TypeError;
 
@@ -415,11 +606,12 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @param filename
      * @constructor
      */
-    s.SyntaxError = function SyntaxError( message , line, filename )
+    function SyntaxError( message , line, filename )
     {
         Error.call(this, message , line, filename);
         this.type='SyntaxError';
     }
+    s.SyntaxError = SyntaxError;
     SyntaxError.prototype = new Error();
     SyntaxError.prototype.constructor=SyntaxError;
 
@@ -428,13 +620,14 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @param instanceObj
      * @returns {*}
      */
-    s.typeOf=function typeOf( instanceObj )
+    function typeOf( instanceObj )
     {
         if( instanceObj instanceof Class )return 'class';
         if( instanceObj instanceof Interface )return 'interface';
         if( instanceObj instanceof s.RegExp )return 'regexp';
         return typeof instanceObj;
     }
+    s.typeOf=typeOf;
 
     /**
      * 检查实例对象是否属于指定的类型(不会检查接口类型)
@@ -442,7 +635,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @param theClass
      * @returns {boolean}
      */
-    s.instanceOf=function(instanceObj, theClass)
+    function instanceOf(instanceObj, theClass)
     {
         var isclass = theClass instanceof Class;
         var isInterface = theClass instanceof Interface;
@@ -457,16 +650,16 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
             }
         }
         if( typeof theClass !== "function" )return false;
-        return instanceObj instanceof theClass;
+        return Object(instanceObj) instanceof theClass;
     }
-
+    s.instanceOf=instanceOf;
     /**
      * 检查实例对象是否属于指定的类型(检查接口类型)
      * @param instanceObj
      * @param theClass
      * @returns {boolean}
      */
-    s.is=function is(instanceObj, theClass)
+    function is(instanceObj, theClass)
     {
         var isclass = theClass instanceof Class;
         var isInterface = theClass instanceof Interface;
@@ -492,7 +685,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         }
         return instanceOf( instanceObj, theClass);
     }
-
+    s.is=is;
 
     /**
      * 为指定的类创建一个新的实例对象
@@ -501,13 +694,13 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @returns {nop}
      */
     function Nop(){}
-    s.factory=function factory(theClass, args)
+    function factory(theClass, args)
     {
         var obj;
         var constructor =  theClass;
         if( theClass instanceof Class )
         {
-            if( theClass.isAbstract )throwError('type','Abstract class of cannot be instantiated');
+            if( theClass.isAbstract )throwError('type','Abstract class cannot be instantiated');
             constructor = theClass.constructor;
         }
 
@@ -520,33 +713,32 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
             Nop.prototype = constructor.prototype;
             obj = constructor.apply( new Nop() , Array.prototype.slice.call(arguments, 1) );
         }
-        //如果被实例的对象是类模块则为constructor属性引用为当前实例化类对象
-        if( constructor !== theClass && obj.constructor !== theClass )obj.constructor = theClass;
-        //兼容原型链引用
+        //原型链引用
         if( Object.getPrototypeOf(obj) !== constructor.prototype )$setPrototypeOf(obj, constructor.prototype);
         return obj;
     }
+    s.factory=factory;
 
     /**
      * 根据指定的类名获取类的对象
      * @param name
      * @returns {Object}
      */
-    s.getDefinitionByName = function getDefinitionByName( name )
+    function getDefinitionByName( name )
     {
         if( m[ name ] )return m[ name];
         for ( var i in m )if( i=== name )return m[i];
         if( globals[name] )return globals[name];
         throw new TypeError( '"'+name+'" is not define');
     }
-
-    /**
+    s.getDefinitionByName =getDefinitionByName;
+     /**
      * 返回对象的完全限定类名
      * @param value 需要完全限定类名称的对象。
      * 可以将任何类型、对象实例、原始类型和类对象
      * @returns {string}
      */
-    s.getQualifiedClassName= function getQualifiedClassName( value )
+    function getQualifiedClassName( value )
      {
          if( value === String )return 'String';
          if( value === Boolean )return 'Boolean';
@@ -576,13 +768,13 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
          }
          throwError('type','type does exits' );
     }
-
-    /**
+    s.getQualifiedClassName=getQualifiedClassName;
+     /**
      * 获取指定实例对象的超类名称
      * @param value
      * @returns {string}
      */
-    s.getQualifiedSuperclassName = function getQualifiedSuperclassName(value)
+    function getQualifiedSuperclassName(value)
     {
         var classname = getQualifiedClassName( value )
         if (classname)
@@ -597,7 +789,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         }
         return null;
     }
-
+    s.getQualifiedSuperclassName =getQualifiedSuperclassName;
     /**
      * 判断是否为一个可遍历的对象
      * null, undefined 属于对象类型但也会返回 false
@@ -605,7 +797,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @param flag 默认为 false。如为true表示一个纯对象,否则数组对象也会返回true
      * @returns {boolean}
      */
-    s.isObject = function isObject(val , flag )
+    function isObject(val , flag )
     {
         if( !val )return false;
         var proto =  Object.getPrototypeOf(val);
@@ -613,85 +805,85 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         if( !result && flag !== true && isArray(val) )return true;
         return result;
     };
-
+    s.isObject =isObject;
     /**
      * 检查所有传入的值定义
      * 如果传入多个值时所有的都定义的才返回true否则为false
      * @param val,...
      * @returns {boolean}
      */
-    s.isDefined = function isDefined()
+    function isDefined()
     {
         var i=arguments.length;
         while( i>0 ) if( typeof arguments[ --i ] === 'undefined' )return false;
         return true;
     };
-
+    s.isDefined =isDefined;
     /**
      * 判断是否为数组
      * @param val
      * @returns {boolean}
      */
-    s.isArray = function isArray(val)
+    function isArray(val)
     {
         return val instanceof Array || val instanceof _Array;
     };
-
+    s.isArray =isArray;
     /**
      * 判断是否为函数
      * @param val
      * @returns {boolean}
      */
-    s.isFunction=function isFunction( val ){
+    function isFunction( val ){
         return typeof val === 'function';
     };
-
+    s.isFunction =isFunction;
     /**
      * 判断是否为布尔类型
      * @param val
      * @returns {boolean}
      */
-    s.isBoolean=function isBoolean( val ){
+    function isBoolean( val ){
         return typeof val === 'boolean';
     };
-
+    s.isBoolean=isBoolean;
     /**
      * 判断是否为字符串
      * @param val
      * @returns {boolean}
      */
-    s.isString=function isString(val )
+    function isString(val )
     {
         return typeof val === 'string';
     };
-
+    s.isString=isString;
     /**
      * 判断是否为一个标量
      * 只有对象类型或者Null不是标量
      * @param {boolean}
      */
-    s.isScalar=function isScalar(val )
+    function isScalar(val )
     {
         var t=typeof val;
         return t==='string' || t==='number' || t==='float' || t==='boolean';
     };
-
+    s.isScalar=isScalar;
     /**
      * 判断是否为数字类型
      * @param val
      * @returns {boolean}
      */
-    s.isNumber=function isNumber(val )
+    function isNumber(val )
     {
         return typeof val === 'number';
     };
-
+    s.isNumber=isNumber;
     /**
      * 抛出错误信息
      * @param type
      * @param msg
      */
-    s.throwError = function throwError(type, msg , line, filename)
+    function throwError(type, msg , line, filename)
     {
         switch ( type ){
             case 'type' :
@@ -707,14 +899,14 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                 throw new s.Error( msg , line, filename );
         }
     }
-
+    s.throwError =throwError;
     /**
      * 判断是否为一个空值
      * @param val
      * @param flag 为true时排除val为0的值
      * @returns {boolean}
      */
-    s.isEmpty=function isEmpty(val , flag )
+    function isEmpty(val , flag )
     {
         if( !val )return flag !== true || val !== 0;
         if( isObject(val) )
@@ -725,7 +917,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         }
         return false;
     };
-
+    s.isEmpty=isEmpty;
     //引用属性或者方法
     var __call=(function () {
 
@@ -783,7 +975,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
 
                     }else if( descriptor.qualifier === 'protected' )
                     {
-                        is = instanceOf(classModule, referenceModule);
+                        is = Object.prototype.isPrototypeOf.call(classModule,referenceModule);
                     }
                     return is;
                 }
@@ -956,50 +1148,62 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
             if( lastProp )
             {
                 //是否对静态模块的引用
-                var isStatic = refObj instanceof Class;
-                var referenceModule = isStatic ? refObj : refObj.constructor;
+                var isStatic = thisArg instanceof Class || typeof thisArg === "function";
+                var referenceModule = isStatic ? refObj : refObj.constructor instanceof Class ? refObj.constructor : refObj;
 
                 //是否为引用本地类的模块
                 if( referenceModule instanceof Class )
                 {
-                    isStatic = isStatic && thisArg === refObj;
                     //模块描述符
-                    desc = isStatic ? referenceModule.static[lastProp] : referenceModule.proto[lastProp];
+                    desc = isStatic ? referenceModule.static : referenceModule.proto;
+                    desc = $hasOwnProperty.call(desc, lastProp) ? desc[lastProp] : null;
+
                     //如果本类中没有定义则在在扩展的类中依次向上查找。
-                    if ( (!desc || (desc.qualifier === 'private' && referenceModule !== classModule) ) && referenceModule.extends )
+                    if ( !desc || (desc.qualifier === 'private' && referenceModule !== classModule) )
                     {
                         var parentModule = referenceModule.extends;
                         var description;
-                        while (parentModule)
+                        while ( parentModule instanceof Class )
                         {
                             description = isStatic ? parentModule.static : parentModule.proto;
                             //继承的属性，私有的路过.
-                            if( description[lastProp] && ( description[lastProp].qualifier !== 'private' || parentModule===classModule ) )
-                            {
+                            if ( $hasOwnProperty.call(description,lastProp) && ( description[lastProp].qualifier !== 'private' || parentModule === classModule )) {
                                 desc = description[lastProp];
                                 referenceModule = parentModule;
                                 break;
                             }
                             parentModule = parentModule.extends;
                         }
+
+                        //默认继承全局对象
+                        parentModule = parentModule || System.Object;
+                        if( !desc && typeof parentModule=== "function" && parentModule.prototype[lastProp] )
+                        {
+                            desc = parentModule.prototype;
+                            refObj = desc;
+                            referenceModule = parentModule;
+                        }
                     }
+
                     //如果没有在类中定义
                     if ( !desc ){
                         throwError('reference', '"' + strName + '" is not defined');
                     }
-                    //是否有访问的权限
-                    if( !checkPrivilege( desc, referenceModule, classModule) )throwError('reference', '"' + strName + '" inaccessible.');
-                    //如果是一个实例属性
-                    if( !isStatic && ( desc.id === 'var' || desc.id === 'const' ) )
+                    //是一个类模块
+                    if( referenceModule instanceof Class )
                     {
-                        writable = desc.id === 'var';
-                        refObj = refObj[ referenceModule.token ];
-                    }
-                    //引用描述符的原始值
-                    else
-                    {
-                        lastProp='value';
-                        refObj = desc;
+                        //是否有访问的权限
+                        if (!checkPrivilege(desc, referenceModule, classModule))throwError('reference', '"' + strName + '" inaccessible.');
+                        //如果是一个实例属性
+                        if (!isStatic && ( desc.id === 'var' || desc.id === 'const' )) {
+                            writable = desc.id === 'var';
+                            refObj = refObj[referenceModule.token];
+                        }
+                        //引用描述符的原始值
+                        else {
+                            lastProp = 'value';
+                            refObj = desc;
+                        }
                     }
                 }
             }
@@ -1069,11 +1273,28 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
             try{
                 return __call(classModule, thisArg, properties, value, flag);
             }catch(error){
-                var msg = classModule.filename + ':' + info + '\n';
-                msg += error.filename ? error.message : error.type +' '+ error.message;
-                throwError("reference", msg, info, classModule.filename );
+                toErrorMsg(error, classModule, info)
             }
         }
+    }
+
+    function newInstance(classModule)
+    {
+        return function (info, theClass, args)
+        {
+            try{
+                return System.isArray(args) ? System.factory.apply(null, [theClass].concat(args) ) : System.factory(theClass);
+            }catch(error){
+                toErrorMsg(error, classModule, info)
+            }
+        }
+    }
+
+    function toErrorMsg(error, classModule, info)
+    {
+        var msg = classModule.filename + ':' + info + '\n';
+        msg += error.filename ? error.message : error.type +' '+ error.message;
+        throwError("reference", msg, info, classModule.filename );
     }
 
     /**
@@ -1083,9 +1304,9 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @param isInterface
      * @returns {*}
      */
-    s.define=function define(name , descriptor , isInterface)
+    function define(name , descriptor , isInterface)
     {
-        if( typeof globals[ name ] === "function" )return globals[ name ];
+        if( typeof s[ name ] === "function" )return s[ name ];
         var classModule;
         if( m[ name ] && (m[ name ] instanceof Class  || m[ name ] instanceof Interface) )
         {
@@ -1101,13 +1322,14 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                 classModule = m[name] = new Class();
                 classModule.call = make(classModule, true);
                 classModule.prop = make(classModule, false);
+                classModule.newInstance = newInstance(classModule);
             }
         }
 
         //如果是定义类或者接口
         if( typeof descriptor === "object" )
         {
-            classModule.merge( descriptor );
+            Object.merge(classModule,descriptor);
             if( !isInterface && typeof descriptor.constructor === "function" )
             {
                 descriptor.constructor.prototype= new Object();
@@ -1118,6 +1340,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         }
         return classModule;
     }
+    s.define=define;
     return s;
 
 }(Object,Function,Array,String,Number,Boolean,RegExp,Error,ReferenceError,TypeError,SyntaxError));

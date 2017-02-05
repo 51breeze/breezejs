@@ -32,21 +32,22 @@ var objects = {
             'isExtensible': {'type': 'Object', 'id': 'function', param: []},
             'isFrozen': {'type': 'Object', 'id': 'function', param: []},
             'isSealed': {'type': 'Object', 'id': 'function', param: []},
-            'keys': {'type': 'Object', 'id': 'function', param: []},
             'preventExtensions': {'type': 'Object', 'id': 'function', param: []},
             'seal': {'type': 'Object', 'id': 'function', param: []},
             'setPrototypeOf': {'type': 'Object', 'id': 'function', param: []},
-            'values': {'type': 'Object', 'id': 'function', param: []}
         },
         'proto':{
             'constructor':{'type': 'Function', 'id': 'var'},
             'hasOwnProperty': {'type': 'Boolean', 'id': 'function', param: []},
             'isPrototypeOf': {'type': 'Boolean', 'id': 'function', param: []},
             'propertyIsEnumerable': {'type': 'Boolean', 'id': 'function', param: []},
+            'setPropertyIsEnumerable': {'type': 'void', 'id': 'function', param: []},
             'toSource': {'type': 'String', 'id': 'function', param: []},
             'toLocaleString': {'type': 'String', 'id': 'function', param: []},
             'toString': {'type': 'String', 'id': 'function', param: []},
             'valueOf': {'type': 'String', 'id': 'function', param: []},
+            'keys': {'type': 'Object', 'id': 'function', param: []},
+            'values': {'type': 'Object', 'id': 'function', param: []}
        }
     },
     'RegExp':{'id':'class', 'type':'RegExp'},

@@ -20,15 +20,16 @@ package com
     import String;
     import Number;
 
-    public class D {
+    public class D extends Object {
 
          protected var bb=123;
 
          function D(jj:String='123')
           {
 
+              console.log(jj,' this is a D class ');
               var cc:Number=66;
-
+ 
          }
 
         protected function get address():String

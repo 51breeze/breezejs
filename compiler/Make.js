@@ -229,7 +229,7 @@ Iteration.prototype.parseArgumentsOfMethodAndConstructor=function( stack )
             var desc = scope.define( items[i] );
             if (desc.value instanceof Ruler.STACK) {
                 var value = toString(desc.value, this.module);
-                express.push('if(System.typeof(' + items[i] + ') === "undefined"){'+value+';}\n');
+                express.push('if(System.typeOf(' + items[i] + ') === "undefined"){'+value+';}\n');
                 desc.type = getType(desc.type);
                 if (desc.type !== '*') {
                     express.push('if(!System.is(' + items[i] + ',' + desc.type + '))System.throwError("type","type of mismatch. must is a ' + desc.type + '");\n');
@@ -316,7 +316,7 @@ Iteration.prototype.parseFunctionScope=function( stack )
     if( stack.keyword() ==='var' || stack.keyword() ==='const' || stack.keyword() ==='let')
     {
         this.seek();
-        this.content.push('var ');
+        if( stack.keyword() !== 'var' || stack.scope().keyword()==='function' )this.content.push('var ');
     }
     //如果var变量不在函数域中则添加到函数域中
     else if( stack.keyword() === 'statement' && stack.parent().keyword() === 'var' && stack.parent().scope().keyword() !== 'function' )
@@ -575,7 +575,6 @@ function getDescriptorOfExpression(it, classmodule)
                 desc = getClassPropertyDesc(it, desc, isstatic ? 'static' : 'proto', classmodule);
                 type = desc.type;
                 property.descriptor = desc;
-
                 //当前表达式的类型
                 it.stack.type(type);
 
@@ -656,10 +655,11 @@ function checkRunning( desc , value , operator )
     var express=[];
 
     //关键字运算符
-    if( desc.before === 'new' || desc.before === 'delete' || desc.before === 'typeof' )
+    switch (desc.before)
     {
-        method = 'System.' + desc.before;
-        desc.before='';
+        case 'new'    :  method = '__newInstance__';desc.before=''; break;
+        case 'delete' :  method = 'System.delete' ;desc.before=''; break;
+        case 'typeof' :  method = 'System.typeOf' ;desc.before=''; break;
     }
 
     //调用超类属性或者方法
@@ -881,7 +881,7 @@ function bunch(it, classmodule)
 {
     var express = [ getDescriptorOfExpression(it, classmodule) ];
     var operator;
-    while( it.next && Utils.isLeftAndRightOperator(it.next.value) )
+    while( it.next && Utils.isLeftAndRightOperator(it.next.value) && !Utils.isMathAssignOperator(it.next.value)  )
     {
         it.seek();
         operator = it.current.value;
@@ -889,7 +889,9 @@ function bunch(it, classmodule)
         it.seek();
         if( operator === 'instanceof' || operator === 'is' )
         {
+            operator = operator==='instanceof' ? 'instanceOf' : operator;
             express.push('System.'+operator+'('+parse( express.pop() )+','+ parse( getDescriptorOfExpression(it, classmodule) )+')');
+
         }else
         {
             if( operator ==='in' ){
@@ -974,38 +976,42 @@ function getImportClassByType(classmodule, type )
  * 获取类中成员信息。
  * 如果是继承的类，成员信息不存在时则会逐一向上查找，直到找到或者没有父级类为止。
  * @param it
- * @param object 引用类模块
+ * @param refObj 引用类模块
  * @param name 原型链名
  * @param classmodule 当前类模块
  * @returns {*}
  */
-function getClassPropertyDesc(it, object, name , classmodule )
+function getClassPropertyDesc(it, refObj, name , classmodule )
 {
-    if( object[ name ] )
+    if( refObj[ name ] )
     {
         var prop = it.current.value;
 
         //这里引用的是一个类，并非类的实例
-        if ( prop === object.type )return object;
-        var desc = object[name][prop];
-
-        //如果在本类中有定义
-        if ( desc )
+        if ( prop === refObj.type )return refObj;
+        var desc;
+        if( Object.prototype.hasOwnProperty.call(refObj[name], prop) )
         {
-            //非全局模块和外部类需要检查权限
-            if( classmodule.type !== object.type )checkPrivilege(it, desc, object, classmodule );
-            return desc;
+            desc = refObj[name][prop];
+            //如果在本类中有定义
+            if ( desc )
+            {
+                //非全局模块和外部类需要检查权限
+                if( classmodule.type !== refObj.type )checkPrivilege(it, desc, refObj, classmodule );
+                return desc;
+            }
         }
 
-        var parent = object;
+        var parent = refObj;
         var child;
-
+        //默认继承全局对象
+        if( !parent.inherit )parent.inherit='Object';
         //在继承的类中查找
         while (parent && parent.inherit )
         {
             child = parent;
             parent = module( getModuleFullname(parent, parent.inherit ) );
-            if ( parent && parent[name][prop] )
+            if ( parent && Object.prototype.hasOwnProperty.call(parent[name],prop) )
             {
                 desc = parent[name][prop];
                 checkPrivilege(it, desc, parent, child );
@@ -1244,6 +1250,10 @@ function makeModule( stack )
                 else
                 {
                     val.push( toString( item , classModule ) );
+                    if( item.accessor() ==='get' )
+                    {
+                        props.push('"'+item.name()+'":"__getter__"' );
+                    }
                 }
             }
             //类中的成员属性
@@ -1583,6 +1593,7 @@ function start()
         {
             str += 'var __prop__;\n';
             str += 'var __call__;\n';
+            str += 'var __newInstance__;\n';
             descriptor.push('\n"constructor":' + o.constructor.value);
             descriptor.push('\n"implements":[' + o.implements.join(',') + ']');
             descriptor.push('\n"final":' + !!o.isFinal);
@@ -1605,6 +1616,7 @@ function start()
             str += o.classname + '=System.define("' + o.fullclassname + '",' + descriptor + ');\n';
             str += '__prop__=' + o.classname + '.prop;\n';
             str += '__call__=' + o.classname + '.call;\n';
+            str += '__newInstance__=' + o.classname + '.newInstance;\n';
         }else
         {
             str += o.classname + '=System.define("' + o.fullclassname + '",' + descriptor + ', true);\n';
@@ -1619,15 +1631,15 @@ function start()
 
     fs.writeFileSync(  filename,[
         '(function(){\n',
-        'var System = '+system,
+        system,
         '\n',
-        '(function(Object, Class){\n',
+        '(function(Object,Array, String,Class,Interface){\n',
         code.join(''),
         'delete System.define;\n',
         'var main='+getMethods('System.getDefinitionByName', ['"'+config.main+'"'] ),
         ';\n',
-        'System.new(main);\n',
-        '})(System.Object, System.Class );\n',
+        'System.factory(main);\n',
+        '})(System.Object,System.Array,System.String,System.Class,System.Interface);\n',
         '})();'].join('') );
     console.log('Making done.' );
 }
