@@ -2,6 +2,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
 {
     var s=System={};
     var m={};
+    var $console = console || {};
     s.Object  = _Object;
     s.Function= _Function;
     s.Array   = _Array;
@@ -13,6 +14,15 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     s.ReferenceError = _ReferenceError;
     s.TypeError      = _TypeError;
     s.SyntaxError    = _SyntaxError;
+    s.log = $console.log || function(){};
+    s.info = $console.info || function(){};
+    s.dir = $console.dir || function(){};
+    s.error = $console.error || function(){};
+    s.assert = $console.assert || function(){};
+    s.time = $console.time || function(){};
+    s.timeEnd = $console.timeEnd || function(){};
+    s.trace = $console.trace || function(){};
+    s.warn = $console.warn || function(){};
 
     /**
      * 对象类构造器
@@ -211,7 +221,10 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         var obj = this instanceof Class ? this : this.constructor;
         if( obj instanceof Class )
         {
-            return obj === this ? '[class '+obj.classname+']' : '[object '+ obj.classname+']';
+            return obj === this ? '[Class: '+obj.classname+']' : '[object '+ obj.classname+']';
+        }else if( obj instanceof Interface )
+        {
+            return '[Interface: '+obj.classname +']';
         }
         return $valueOf.call( this );
     }
@@ -221,12 +234,16 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @returns {String}
      */
     var $toString = _Object.prototype.toString;
-    Object.prototype.toString=function toString()
+    Object.prototype.toString=function()
     {
         var obj = this instanceof Class ? this : this.constructor;
         if( obj instanceof Class )
         {
-            return obj === this ? '[class '+obj.classname+']' : '[object '+ obj.classname+']';
+            return obj === this ? '[Class: '+obj.classname+']' : '[object '+ obj.classname+']';
+
+        }else if( obj instanceof Interface )
+        {
+            return '[Interface: '+obj.classname +']';
         }
         return $toString.call( this );
     }
@@ -727,9 +744,9 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     function getDefinitionByName( name )
     {
         if( m[ name ] )return m[ name];
+        if( s[name] )return s[name];
         for ( var i in m )if( i=== name )return m[i];
-        if( globals[name] )return globals[name];
-        throw new TypeError( '"'+name+'" is not define');
+        throwError('type', '"'+name+'" is not define');
     }
     s.getDefinitionByName =getDefinitionByName;
      /**
@@ -739,16 +756,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @returns {string}
      */
     function getQualifiedClassName( value )
-     {
-         if( value === String )return 'String';
-         if( value === Boolean )return 'Boolean';
-         if( value === Number )return 'Number';
-         if( value === RegExp )return 'RegExp';
-         if( value === Array )return 'Array';
-         if( value === Object )return 'Object';
-         if( value === Function )return 'Function';
-         if( value === Class )return 'Class';
-         if( value === Interface )return 'Interface';
+    {
          switch ( typeOf(value) )
          {
              case 'boolean': return 'Boolean';
@@ -757,16 +765,22 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
              case 'regexp' : return 'RegExp' ;
              case 'class'  : return 'Class' ;
              case 'interface': return 'Interface' ;
-             case 'function' :return 'Function';
+             case 'function' :
+                 if (value === s.String)return 'String';
+                 if (value === s.Boolean)return 'Boolean';
+                 if (value === s.Number)return 'Number';
+                 if (value === s.RegExp)return 'RegExp';
+                 if (value === s.Array)return 'Array';
+                 if (value === s.Object)return 'Object';
+                  return 'Function';
          }
-
          if( isObject(value,true) )return 'Object';
          if( isArray(value) )return 'Array';
-         for( var classname in m )if( value.constructor === m[ classname ] )
-         {
-             return classname;
-         }
-         throwError('type','type does exits' );
+         if( value instanceof String )return 'String';
+         if( value instanceof Number )return 'Number';
+         if( value instanceof Boolean )return 'Boolean';
+         if( value.constructor instanceof Class )return value.constructor.classname;
+         throwError('type','type does not exist');
     }
     s.getQualifiedClassName=getQualifiedClassName;
      /**
@@ -783,8 +797,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
             var parentModule = classModule.extends;
             if ( parentModule )
             {
-                var classname = parentModule.classname;
-                return parentModule.package ? parentModule.package +'.'+ classname : classname;
+                return  parentModule.fullclassname;
             }
         }
         return null;
@@ -918,8 +931,26 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         return false;
     };
     s.isEmpty=isEmpty;
+
+    /**
+     * 去掉指定字符两边的空白
+     * @param str
+     * @returns {string}
+     */
+    function trim( str )
+    {
+        return typeof str === "string" ? str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,'') : '';
+    }
+    s.trim = trim;
+
     //引用属性或者方法
     var __call=(function () {
+
+        var policy={
+            "Array":{
+                "proto":{"length":{"writable":false, "enumerable":false, "configurable":false}}
+            }
+        }
 
         /**
          * 检查值的类型是否和声明时的类型一致
@@ -1144,13 +1175,12 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
             if( !refObj && (isset || iscall || lastProp) )throwError('reference', '"'+strName+( refObj===null ? '" property of null' : '" is not defined') );
             //属性对象是否可写
             var writable=true;
+            //是否对静态模块的引用
+            var isStatic = refObj instanceof Class || typeof refObj === "function";
             //对属性引用的操作
             if( lastProp )
             {
-                //是否对静态模块的引用
-                var isStatic = thisArg instanceof Class || typeof thisArg === "function";
                 var referenceModule = isStatic ? refObj : refObj.constructor instanceof Class ? refObj.constructor : refObj;
-
                 //是否为引用本地类的模块
                 if( referenceModule instanceof Class )
                 {
@@ -1177,26 +1207,24 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
 
                         //默认继承全局对象
                         parentModule = parentModule || System.Object;
-                        if( !desc && typeof parentModule=== "function" && parentModule.prototype[lastProp] )
+                        if( !desc && iscall && !isStatic && typeof parentModule=== "function" && parentModule.prototype[lastProp] )
                         {
                             desc = parentModule.prototype;
                             refObj = desc;
                             referenceModule = parentModule;
                         }
                     }
-
                     //如果没有在类中定义
-                    if ( !desc ){
-                        throwError('reference', '"' + strName + '" is not defined');
-                    }
+                    if ( !desc && iscall )throwError('reference', '"' + strName + '" is not defined');
                     //是一个类模块
                     if( referenceModule instanceof Class )
                     {
                         //是否有访问的权限
                         if (!checkPrivilege(desc, referenceModule, classModule))throwError('reference', '"' + strName + '" inaccessible.');
                         //如果是一个实例属性
-                        if (!isStatic && ( desc.id === 'var' || desc.id === 'const' )) {
-                            writable = desc.id === 'var';
+                        if (!isStatic && ( desc.id === 'var' || desc.id === 'const'))
+                        {
+                            writable = desc.id !== 'const';
                             refObj = refObj[referenceModule.token];
                         }
                         //引用描述符的原始值
@@ -1204,6 +1232,15 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                             lastProp = 'value';
                             refObj = desc;
                         }
+                    }
+                }
+                //引用全局对象的原型
+                else if( iscall && refObj !== System && !isStatic )
+                {
+                    var className = getQualifiedClassName( refObj );
+                    if( className && typeof System[className] === "function" )
+                    {
+                        refObj = System[className].prototype;
                     }
                 }
             }
@@ -1224,7 +1261,8 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
             if( desc && (desc.id==='var' || desc.id==='const' || typeof desc.value === "object" ) )
             {
                 value = getValue( thisArg, refObj, desc, lastProp ,strName );
-            }else if( lastProp )
+            }
+            else if( lastProp )
             {
                 value = refObj[lastProp];
             }
@@ -1290,10 +1328,23 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         }
     }
 
+    function checkType(classModule)
+    {
+        return function (info, type, value)
+        {
+             if( !System.is(value, type) )
+             {
+                 var strtype = getQualifiedClassName( type );
+                 toErrorMsg('TypeError Specify the type of value do not match. must is "'+strtype+'"', classModule, info);
+             }
+             return value;
+        }
+    }
+
     function toErrorMsg(error, classModule, info)
     {
         var msg = classModule.filename + ':' + info + '\n';
-        msg += error.filename ? error.message : error.type +' '+ error.message;
+         msg +=  typeof error === "string" ? error : error.message;
         throwError("reference", msg, info, classModule.filename );
     }
 
@@ -1323,6 +1374,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                 classModule.call = make(classModule, true);
                 classModule.prop = make(classModule, false);
                 classModule.newInstance = newInstance(classModule);
+                classModule.checkType = checkType(classModule);
             }
         }
 

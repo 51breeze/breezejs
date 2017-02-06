@@ -27,7 +27,7 @@ package com
          function D(jj:String='123')
           {
 
-              console.log(jj,' this is a D class ');
+              System.log(jj,' this is a D class ');
               var cc:Number=66;
  
          }

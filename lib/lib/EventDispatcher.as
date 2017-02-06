@@ -54,7 +54,7 @@ package lib
                 }
                 index++;
             }
-            console.log( this instanceof EventDispatcher , '====is even ====');
+            System.log( this instanceof EventDispatcher , '====is even ====');
             return false;
         };
 

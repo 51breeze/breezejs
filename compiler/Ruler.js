@@ -5,8 +5,8 @@ const Utils = require('./lib/Utils.js');
  * @type {string[]}
  */
 const reserved = [
-    'static','public','private','protected','internal','package','override','final','System','system',
-    'extends','import','class','var','let','function','new','typeof','const','interface','abstract','implements',
+    'static','public','private','protected','internal','package','override','final','System',
+    'extends','import','class','var','function','new','typeof','const','interface','abstract','implements',
     'is','instanceof','if','else','do','while','for','in','of','switch','case','super',
     'break','default','try','catch','throw','Infinity','this','debugger','eval',
     'finally','return','null','false','true','NaN','undefined','delete',
@@ -1044,11 +1044,7 @@ syntax['(delimiter)']=function( e )
         this.add( this.current );
         if( this.current.value !== balance[id] )this.error('Missing token '+balance[id] );
         s.switch();
-
         if( s.keyword()==='structure' )return true;
-
-        //console.log( this.scope().keyword() )
-
         // 如果下一个是运算符或者是一个定界符
         if( (this.scope().keyword() ==='object' || this.scope().keyword() ==='expression') && ( this.next.type==='(operator)' || Utils.isLeftDelimiter(this.next.value) ) )
         {
@@ -1060,12 +1056,6 @@ syntax['(delimiter)']=function( e )
             if( this.current.line === this.next.line && this.next.id==='(identifier)' && (id==='expression' || id==='condition' || id==='object') )
             {
                 this.error('Unexpected identifiler '+ this.next.value, this.next);
-            }
-
-            if( this.current.value===')' && this.current.line===35 ) {
-
-              // console.log( this.scope().content() )
-                //console.log( s.content() )
             }
             this.end();
         }
@@ -1095,6 +1085,15 @@ syntax['(operator)']=function( e )
     {
         //数字后面不能有点运算符 点运算符后面只能是属性名
         if( this.prev.type==='(number)' || !(this.next.id ==='(identifier)' || this.next.id==='(keyword)') )this.error();
+        var e = this.scope().previous();
+        if( e instanceof Stack && e.parent().keyword() !=='expression' )
+        {
+            var e= new Stack('expression', '(*)');
+            var obj = this.scope().content().pop();
+            e.content().push( obj )
+            obj.__parent__ = e;
+            this.add(e);
+        }
         this.add( this.current );
         return this.step();
     }
@@ -1236,7 +1235,7 @@ function statement()
 {
     var type = '*';
     var name = this.current.value;
-    var stack = this.scope();
+    var stack = this.scope().parent();
     var id = stack.parent().keyword();
 
     //剩余参数
@@ -1246,7 +1245,7 @@ function statement()
         stack.parent().param( name );
         this.seek();
         name = this.current.value;
-        if( this.next.value !==')' )this.error('Rest parameter is not last');
+        if( this.next.value !==')' )this.error('Rest parameter can only be in the final');
     }
 
     //获取声明的类型
@@ -1258,19 +1257,16 @@ function statement()
         type= getTypeName.call(this);
         this.current= current;
         this.prev = prev;
-
         //检查声明的类型是否定义
         if( !checkStatementType(type, stack.scope() , this.config('globals') ) )this.error( type+' not is defined');
     }
 
     //检查属性名是否可以声明
-    if( !checkStatement(name, this.config('reserved') ) )
+    var _reserved = this.config('reserved');
+    if( !checkStatement(name, _reserved ) )
     {
-        this.error(reserved.indexOf( name )>0 ? 'Reserved keyword is not statemented for '+name : 'Invalid statement for '+name);
+        this.error( reserved.indexOf( name )>0 || (_reserved && _reserved.indexOf(name) >0) ? 'Reserved keyword is not statemented for '+name : 'Invalid statement for '+name);
     }
-
-    var block = stack.parent();
-    while( block && !(block instanceof Scope) )block = block.parent();
 
     var scope =  stack.getScopeOf( id==='let' || id==='const' );
     var desc = {'type':'('+type+')','id':id, 'static': stack.parent().static() , 'scope':scope};
@@ -1289,158 +1285,56 @@ function statement()
     //不能重复声明变量
     var val = scope.define( name );
     if( val && val.scope === scope )this.error('Identifier "'+name+'" has already been declared');
+
     //将声明的变量定义到作用域中
     scope.define(name, desc);
 
     //常量必须指定默认值
     if( id==='const' && this.next.value !=='=' )this.error('Missing default value in const',this.next);
-    this.add(new Stack('expression', '(*)'));
-    //引用赋值
-    if( this.next.value === '=' ){
-        if( stack.parent().parent().keyword() === 'interface' )this.error('Can not assign default value',this.next);
-        desc.value=this.scope();
-    }
+    if( this.next.value ==='=' && stack.parent().parent().keyword() === 'interface' )this.error('Can not assign default value',this.next);
+    return desc;
 }
-
-/**
- * 根据当前的语法标识符返回对应的类型
- * @param o
- * @returns {*}
- */
-function toType( o , scope )
-{
-    if ( Utils.isConstant(o.value) )
-    {
-        switch (o.value) {
-            case 'NaN' :
-            case 'Infinity' :
-                return '(Number)';
-                break;
-            case 'undefined' :
-            case 'null' :
-                return '(Object)';
-                break;
-            case 'true' :
-            case 'false' :
-                return '(Boolean)';
-                break;
-            case 'this' :
-                return scope.scope().define('this').type;
-                break;
-        }
-
-    } else
-    {
-        switch (o.type) {
-            case '(template)' :
-            case '(string)' :
-                return '(String)';
-                break;
-            case '(number)' :
-                return '(Number)';
-                break;
-            case '(regexp)' :
-                return '(RegExp)';
-                break;
-        }
-    }
-    return null;
-}
-
 
 syntax['(identifier)']=function( e )
 {
     e.prevented=true;
-    var id = this.scope().keyword();
-    if( id==='class' || id==='package' )
-    {
-        this.error();
-    }
-
-    // 获取声明的类型
-    if( this.scope().keyword() === 'statement' )statement.call(this, e);
-
+    var stack = this.scope();
+    var id = stack.keyword();
+    if( id==='class' || id==='package' )this.error();
     //如果不是表达式
-    if( this.scope().keyword() !=='expression' )
+    if( this.scope().keyword() !=='expression' )this.add( new Stack('expression','(*)') );
+    if(this.current.value !=='...')this.add( this.current );
+
+    //声明属性
+    if( id==='statement' )
     {
-        this.add( new Stack('expression','(*)') );
+        do {
+            var desc = statement.call(this, e);
+            if( this.next.value !== '=' )break;
+            desc.value=this.scope();
+            //添加赋值运算符
+            this.seek();
+            this.add( this.current );
+            //下一个是可连续声明的变量
+            if( this.next.id==='(identifier)' )
+            {
+                this.seek();
+                this.add( this.current );
+            }
+        }while( this.current.id==='(identifier)' && (this.next.value ==='=' || this.next.value===':') );
     }
 
-    //检查所有的引用属性是否为先声明再使用。对象中的属性不会检查
-    if( this.prev.value !=='.' )
-    {
-        var type = toType( this.current, this.scope() );
-        if( !type )
-        {
-            var ps = this.scope().scope();
-
-            //是否有声明
-            var desc = ps.define( this.current.value );
-
-            //是否为全局对象
-            if ( !desc )
-            {
-                var global = this.config('globals');
-                desc = global[ this.current.value ];
-            }
-
-            if ( !desc )
-            {
-                this.error(this.current.value + ' is not defined', this.current, 'reference');
-            }
-
-            //如果对此表达式进行赋值则检查引用的类型是否与表达式的类型一致
-            if (this.next.value === '=')
-            {
-                var current = this.current;
-
-                //如果修改常量
-                if (desc.id === 'const' && id !== 'statement')
-                    this.error('constant can not be alter for "' + current.value + '"', current, 'syntax');
-
-                //类引用不能修改
-                if (desc.id === 'class')
-                    this.error('class can not be alter for "' + current.value + '"', current, 'syntax');
-
-                //如果引用的类型不一致
-                this.scope().addListener('(switch)', function (e) {
-                    if (desc.type !== '(*)') {
-                        if ( this.type() !=='(*)' && this.type() !== desc.type && this.type() !=='(Object)')
-                            error('type is not consistent, can only be ' + desc.type, 'type', current);
-                    } else {
-                       // desc.type = this.type();
-                    }
-                });
-            }
-            type = desc.type;
-            if( desc.id==='class' && this.current.value !=='this' && this.prev.value !=='new' )
-            {
-                type='(Class)';
-            }
-        }
-        //字面量获得类型后面不能有点运算符
-        else if( (type==='(Boolean)' || type==='(Number)' || type==='(Object)' ) &&  this.next.value==='.' )
-        {
-            this.error('', this.next);
-        }
-
-        //设置当前表达式返回的类型
-        this.scope().type( type );
-    }
-
-    this.add( this.current );
-    if( this.next.value==='(' || this.next.value==='[' )
-    {
-        if( this.current.type !== '(identifier)' )
-            this.error('Unexpected token '+this.next.value, this.next );
-        this.step();
-
-    }
-    else if( this.next.type === '(operator)' || this.next.value==='(' || this.next.value==='[' )
+    if( (id==='statement' && this.current.value==='=' ) || (this.next.type === '(operator)' && this.next.value !==';') )
     {
         this.step();
-
-    }else
+    }
+    //call fun or dynamic property
+    else if( this.next.value==='(' || this.next.value==='[' )
+    {
+        if( this.current.type !== '(identifier)' )this.error('Unexpected token '+this.next.value, this.next );
+        this.step();
+    }
+    else
     {
         var id = this.scope().parent().keyword();
         if( this.current.line === this.next.line && this.next.id==='(identifier)' && (id==='expression' || id==='condition' || id==='object') )
@@ -1656,19 +1550,7 @@ function Stack( keyword, type )
     this.__scope__   = null ;
     this.__blockScope__   = null ;
     this.__define__  ={};
-
     Listener.call(this);
-
-    /*this.addListener('(end)', function (e) {
-        if( e.target && e.target.id === '}' && this instanceof Scope )
-        {
-            this.switch();
-        }else if( e.target && e.target.id===';' && !(this instanceof Scope) )
-        {
-            this.switch();
-            this.parent().dispatcher( e );
-        }
-    });*/
 }
 
 // 全局属性， 保存为当前的代码块的作用域
@@ -2526,12 +2408,9 @@ Ruler.prototype.add=function( val , index )
 {
     if(val.type==='(end)')return false;
     try {
-
         this.scope().add(val, index);
-
     }catch (e)
     {
-        // console.log( this.scope()  , val )
         this.error(e.message);
     }
     return true;
@@ -2549,6 +2428,7 @@ Ruler.prototype.keyword=function(s)
     if( s )
     {
         var index = reserved.indexOf( s[1] );
+        if( index <0) index = this.config('reserved').indexOf(s[1]);
         var type = '(identifier)';
         if( Utils.isBoolOperator( s[1] ) || Utils.isLeftOperator( s[1] )  )type='(operator)';
         return describe(type, s[1] , index >= 0 ? '(keyword)' : '(identifier)' );

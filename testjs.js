@@ -1,3 +1,4 @@
-var o = new Object();
-
-console.log( o.length )
+//var o = new Console();
+"use strict";
+var b=d=c = 6666;
+console.log(  b,d,c  )

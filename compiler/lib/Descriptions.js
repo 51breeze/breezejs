@@ -8,12 +8,6 @@ var objects = {
         }
     },
     'Json':{'id':'object', 'type':'Json','inherit':'Object'},
-    'System':{
-        'id':'object', 'type':'System','inherit':'Object',
-        'static': {
-            'new': {type: '*', id: 'function', param: ['...']},
-        }
-    },
     'Object':{
         'id':'class',
         'type':'Object',
@@ -74,35 +68,6 @@ var objects = {
         }
     },
     'Symbol':{'id':'class', 'type':'Symbol'},
-    'Atomics':{'id':'class', 'type':'Atomics'},
-    'DataView':{
-        'id':'class',
-        'type':'DataView',
-        'static':{},
-        'properties':{
-            'buffer':'ArrayBuffer',
-            'byteLength':'Number',
-            'byteOffset':'*',
-        },
-        'methods':{
-            'getInt8':'*',
-            'getUint8':'*',
-            'getInt16':'*',
-            'getUint16':'*',
-            'getInt32':'*',
-            'getUint32':'*',
-            'getFloat32':'*',
-            'getFloat64':'*',
-            'setInt8':'*',
-            'setUint8':'*',
-            'setInt16':'*',
-            'setUint16':'*',
-            'setInt32':'*',
-            'setUint32':'*',
-            'setFloat32':'*',
-            'setFloat64':'*',
-        },
-    },
     'Array':{
         'id':'class',
         'type':'Array',
@@ -112,7 +77,7 @@ var objects = {
             'of':'Array',
         },
         'proto':{
-            'length':{'type':'Number','id':'const'},
+            'length':{'type':'Number','id':'var'},
             'concat':'Array',
             'copyWithin':'Array',
             'entries':'Iterator',
@@ -125,7 +90,7 @@ var objects = {
             'includes':'Boolean',
             'indexOf':'Number',
             'join':'String',
-            'keys':'Iterator',
+            'keys':{'type':'Array','id':'function','param':[]},
             'lastIndexOf':'Number',
             'map':'Array',
             'pop':'*',
@@ -142,7 +107,7 @@ var objects = {
             'toSource':'String',
             'toString':'String',
             'unshift':'Number',
-            'values':'Iterator',
+            'values':{'type':'Array','id':'function','param':[]},
         },
     },
     'ArrayBuffer':{},
@@ -151,51 +116,12 @@ var objects = {
     'Int16Array':{},
     'Int32Array':{},
     'Int8Array':{},
-    'Intl':{
-        'static':{
-            'DateTimeFormat':'*',
-            'NumberFormat':'*',
-            'Collator':'*',
-        },
-        'properties':{},
-        'methods':{},
-    },
     'Iterator':{},
     'JSON':{},
     'ParallelArray':{},
     'Promise':{},
     'Proxy':{},
     'Reflect':{},
-    'SIMD':{
-        'static':{
-            'Bool16x8':'*',
-            'Bool32x4':'*',
-            'Bool64x2':'*',
-            'Bool8x16':'*',
-            'Float32x4':'*',
-            'Float64x2':'*',
-            'Int16x8':'*',
-            'Int32x4':'*',
-            'Int8x16':'*',
-            'Uint16x8':'*',
-            'Uint32x4':'*',
-            'Uint8x16':'*',
-        },
-        'properties':{},
-        'methods':{},
-    },
-    'Set':{},
-    'SharedArrayBuffer':{},
-    'StopIteration':{},
-    'TypedArray':{},
-    'URIError':{},
-    'Uint16Array':{},
-    'Uint32Array':{},
-    'Uint8Array':{},
-    'Uint8ClampedArray':{},
-    'WeakMap':{},
-    'WeakSet':{},
-
 
     //系统全局方法
     'decodeURI':{type:'String',id:'function',param:['String']},
@@ -250,9 +176,9 @@ var objects = {
             'length': {type: 'Number', id: 'const'},
         }
     },
-    'console':{
+    'System':{
         'id':'object',
-        'type':'console',
+        'type':'System',
         'static': {
             'log': {type: 'void', id: 'function', param: ['...']},
             'error': {type: 'void', id: 'function', param: ['...']},
@@ -263,6 +189,19 @@ var objects = {
             'time': {type: 'void', id: 'function', param: ['String']},
             'timeEnd': {type: 'void', id: 'function', param: ['String']},
             'assert': {type: 'void', id: 'function', param: ['*']},
+            'getDefinitionByName': {type: 'Object', id: 'function', param: ['String']},
+            'getQualifiedClassName': {type: 'String', id: 'function', param: ['Object']},
+            'getQualifiedSuperclassName': {type: 'String', id: 'function', param: ['Object']},
+            'isObject': {type: 'Boolean', id: 'function', param: ['Object']},
+            'isString': {type: 'Boolean', id: 'function', param: ['Object']},
+            'isBoolean': {type: 'Boolean', id: 'function', param: ['Object']},
+            'factory': {type: 'Object', id: 'function', param: ['Object','...']},
+            'isDefined': {type: 'Boolean', id: 'function', param: ['...']},
+            'isFunction': {type: 'Boolean', id: 'function', param: ['Object']},
+            'isScalar': {type: 'Boolean', id: 'function', param: ['Object']},
+            'isNumber': {type: 'Boolean', id: 'function', param: ['Object']},
+            'isEmpty': {type: 'Boolean', id: 'function', param: ['Object','*']},
+            'trim': {type: 'String', id: 'function', param: ['String']},
         }
     },
 };

@@ -43,8 +43,8 @@ package com
         protected function cre(str:String)
         {
 
-            console.log(  this.name );
-            console.log( 'call cre');
+            System.log(  this.name );
+            System.log( 'call cre');
         }
 
         function connect(str:Object):String{

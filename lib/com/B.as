@@ -37,7 +37,7 @@ package com
          {
               super(jj);
               var cc:Number=66;
-             console.log('===the is B====', this is D);
+             System.log('===the is B====', this is D);
          } 
 
 
@@ -52,8 +52,8 @@ package com
         protected function cre(str:String)
         {
 
-            console.log(  this.name );
-            console.log( 'call cre');
+            System.log(  this.name );
+            System.log( 'call cre');
         }
 
         function connect(str:Object):String{

@@ -17,9 +17,8 @@
 package
 {
 
-
-import lib.EventDispatcher;
-   import com.B;
+ import lib.EventDispatcher;
+  import com.B;
    import lib.IProsess;
    import com.Abs;
 
@@ -35,9 +34,15 @@ import lib.EventDispatcher;
           //var bb:String='123';
           function Main(jj)
           {
+              var items:Array = ddd:Array = [] || {};
+
               var i = 50;
-              var items=[];
+
               var j=i;
+
+            //  items.length = 5;
+
+              System.log( [666].keys() ,  System.trim( '' ) );
 
               var a = new Array(5,6,8);
               a['name'] = 666 ;
@@ -48,7 +53,7 @@ import lib.EventDispatcher;
               var cc = {age:100};
               cc.age /= 3;
               cc.bb=66666;
-              console.log( cc );
+              System.log( cc , Main.name);
 
 
 
@@ -58,9 +63,9 @@ import lib.EventDispatcher;
 
              // this.setPropertyIsEnumerable('uuu',false);
 
-              console.log( a  ,'=====', a.length , a.values(), o.keys() , this.values()  );
+              System.log( a  ,'=====', a.length , a.values(), o.keys() , this.values() , ['=======','++++++++++'].values() );
 
-              console.log( '%s', a.find(function (val) {
+              System.log( '%s', a.find(function (val) {
                   return val===666;
               }));
 
@@ -71,7 +76,7 @@ import lib.EventDispatcher;
 
               for( var c in items )
               {
-                  console.log( items[c](), '====88888' );
+                  System.log( items[c](), '====88888' );
               }
 
 
@@ -84,7 +89,7 @@ import lib.EventDispatcher;
 
                   yyyy=8888888888;
 
-                  console.log( hh ,i );
+                  System.log( hh ,i );
                   //items.push( function(){ return i+'---'+hh;} );
 
                   if( false )
@@ -92,25 +97,24 @@ import lib.EventDispatcher;
 
 
                         let hh;
-                         console.log( jj );
-                         items.push(  function(){ return i+'---'+hh;} );
+                         System.log( jj );
+                        // items.push(  function(){ return i+'---'+hh;} );
 
                   }
 
               }
-              console.log(i, b  );
+              System.log(i, b  );
               this.tests(undefined,2,3,4,5,6);
 
-              console.log( this is IProsess,'==========' );
+              System.log( this is IProsess,'==========' );
 
           }
-
 
         private var _home:String='ooooo';
 
         function get home(){
 
-            console.log( this is IProsess , ' the is getter home');
+            System.log( this is IProsess , ' the is getter home');
             return this._home;
 
         }
@@ -118,7 +122,7 @@ import lib.EventDispatcher;
         function tests(a=666 ,...avg)
         {
 
-            var  bb=666; 
+            var  bb=666;
             var tests;
             if( true ){
                 const bb=888;
@@ -126,20 +130,20 @@ import lib.EventDispatcher;
                 if( a )
                 {
                 }
-                console.log( '===%s',Main );
+                System.log( '===%s',Main );
 
             }
 
 
 
-            console.log(a, avg  , i, bb);
+            System.log(a, avg  , i, bb);
         }
 
         //private var bb:String=null;
 
         override protected function cre(str:String){
-              return this.bb;
-          }
+            return this.bb;
+        }
 
         function database(name:String,type:Number):String{
             return '';

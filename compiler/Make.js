@@ -5,7 +5,18 @@ const PATH = require('path');
 const Ruler = require('./Ruler.js');
 const globals=require('./lib/Descriptions.js');
 const Utils = require('./lib/Utils.js');
-const config = {'suffix':'.as','main':'Main','root':root,'cache':'off','cachePath':'./cache','debug':'on', 'browser':'enable','globals':globals };
+const config = {
+    'suffix':'.as',
+    'main':'Main',
+    'root':root,
+    'cache':'off',
+    'cachePath':'./cache',
+    'debug':'on',
+    'browser':'enable',
+    'globals':globals,
+    'enableBlockScope':'on',
+    'reserved':['let']
+};
 const modules={};
 
 /**
@@ -111,6 +122,7 @@ function error(msg, type, obj )
     if( obj )
     {
         console.log('error line:',obj.line, ' characters:', obj.cursor );
+        console.log('identifier : %s',obj.value );
     }
     switch ( type )
     {
@@ -380,7 +392,7 @@ function checkParameter(it, desc, property )
             }
             if( ( param[i] !=='Object' || type==='Boolean' ) && param[i] !== type )
             {
-                error('Can only be a '+param[i]+'', 'type', property.lastStack );
+                error('parameter type do not match. must is a "'+param[i]+'"', 'type', property.lastStack );
             }
         }
     }
@@ -412,7 +424,7 @@ function getDescriptorOfExpression(it, classmodule)
 {
     var type;
     var desc;
-    var property = {name:[],descriptor:null,thisArg:'',expression:false,before:'',after:'',"super":null,runningCheck:false,lastStack:null,isglobal:false};
+    var property = {name:[],descriptor:null,thisArg:'',expression:false,before:'',after:'',"super":null,runningCheck:false,lastStack:null,isglobal:false,type:'*'};
 
     //是否有前置运算符
     if( Utils.isLeftOperator(it.current.value) )
@@ -436,7 +448,12 @@ function getDescriptorOfExpression(it, classmodule)
         {
             property.thisArg = toString(it.current, classmodule);
             it.stack.type( it.current.type() );
-            return property;
+            if( it.current.type() !=='(Array)' )return property;
+            type='Array';
+            desc = module(type);
+            property.isglobal=true;
+            property.type = type;
+            property.lastStack = getStack(  it.current, true );
         }
 
     }else
@@ -467,7 +484,6 @@ function getDescriptorOfExpression(it, classmodule)
                     property.isglobal=true;
                 }
             }
-
             if (!desc)error('"' + it.current.value + '" is not defined.', '', it.current);
             if( it.current.value==='super' )
             {
@@ -483,30 +499,25 @@ function getDescriptorOfExpression(it, classmodule)
             //如果没有确定类型并且有设置值类型则引用值的类型
             //if( type==='*' && desc.valueType )type = desc.valueType;
             it.stack.type(type);
+            property.type = type || '*';
         }
         //一组常量的值
         else
         {
             type = Utils.getConstantType(it.current.value) || Utils.getValueTypeof(it.current.type);
             if (!type){
-                console.log( it.current )
+                //console.log( it.stack )
                 error('Unexpected identifier','syntax',  it.current );
             }
             it.stack.type(type);
+            property.type = type || '*';
             property.thisArg = it.current.value;
             property.lastStack = it.current;
             property.isglobal=true;
             return property;
         }
     }
-
     var isstatic = it.current.value === type || type==='Class';
-
-    if( it.current.value==='System'){
-      //  console.log( it.stack.content() , it.next , it.prev )
-       // process.exit()
-    }
-
     while ( it.next )
     {
         if ( it.next instanceof Ruler.STACK )
@@ -542,6 +553,7 @@ function getDescriptorOfExpression(it, classmodule)
                 if( desc && (desc.id === 'function' || desc.id === 'class') )
                 {
                     it.stack.type(desc.type);
+                    property.type = desc.type || '*';
                     property.runningCheck=false;
                     //检查函数已定义的参数
                     checkParameter( it, desc, property );
@@ -577,7 +589,6 @@ function getDescriptorOfExpression(it, classmodule)
                 property.descriptor = desc;
                 //当前表达式的类型
                 it.stack.type(type);
-
                 //如果是一个函数或者是一个访问器
                 if(desc.id === 'function')
                 {
@@ -597,11 +608,11 @@ function getDescriptorOfExpression(it, classmodule)
                 {
                     if (desc.id === 'const' )
                     {
-                        if( it.stack.parent().keyword() !=='statement' )error('"' + property.name.join('.') + '" is constant', '', it.current);
+                        if( it.stack.parent().keyword() !=='statement' )error('"' + property.name.join('.') + '" constant is not can be modified', '', it.current);
 
-                    }else if ( desc.id !== 'var' && desc.id !== 'let' )
+                    }else if ( desc.id === 'function')
                     {
-                        error('"' + property.name.join('.') + '" is not variable', '', it.current);
+                        error('"'+property.name.join('.')+'" function is not can be modified', '', it.current);
                     }
                 }
 
@@ -612,11 +623,11 @@ function getDescriptorOfExpression(it, classmodule)
                 }
 
                 //获取指定类型的模块
-                if( type !== '*' && type !== 'void' )
+                if( type==='Function' || type==='Class')
                 {
-                    isstatic = type === 'Class' ? true : false;
                     desc = module( getImportClassByType(classmodule, type) );
                 }
+                desc.type=type || '*';
 
             }else
             {
@@ -738,15 +749,6 @@ function checkRunning( desc , value , operator )
 function parse( desc , value ,operator, returnValue )
 {
     var express=[];
-    if( desc instanceof Array )
-    {
-        for (var i in desc )if( desc[i] )
-        {
-            express.push( parse( desc[i] , value ,operator, returnValue ) );
-        }
-        return express.join('');
-    }
-
     if ( typeof desc === "string")
     {
         express.push(desc);
@@ -777,7 +779,7 @@ function parse( desc , value ,operator, returnValue )
     //运行时检查
     if( check || desc.runningCheck )
     {
-        return checkRunning( desc , value ,operator, returnValue );
+        return checkRunning( desc , value ,operator );
     }
     return getReferenceOf(desc , value , operator);
 }
@@ -881,6 +883,7 @@ function bunch(it, classmodule)
 {
     var express = [ getDescriptorOfExpression(it, classmodule) ];
     var operator;
+    var type= 'Boolean';
     while( it.next && Utils.isLeftAndRightOperator(it.next.value) && !Utils.isMathAssignOperator(it.next.value)  )
     {
         it.seek();
@@ -900,8 +903,18 @@ function bunch(it, classmodule)
             express.push( operator );
             express.push( getDescriptorOfExpression(it, classmodule) );
         }
+        if( operator ==='&&' || operator==='||')type='*';
     }
-    return express;
+    if( express.length > 1 )
+    {
+        var items=[];
+        for(var i in express )
+        {
+            items.push( typeof express[i] === "string" ? express[i] : parse(express[i]) );
+        }
+        return {type:type,value:items.join(""),coalition:true,lastStack:express[0].lastStack};
+    }
+    return express[0];
 }
 
 /**
@@ -917,7 +930,7 @@ function expression( stack, classmodule )
     while ( it.seek() )
     {
         express.push( bunch(it, classmodule) );
-        if( it.next && Utils.isMathAssignOperator(it.next.value) )
+        while( it.next && Utils.isMathAssignOperator(it.next.value) )
         {
             it.seek();
             express.push( it.current.value );
@@ -930,29 +943,58 @@ function expression( stack, classmodule )
                 if( getType( stack.type() ) ==='*' )stack.type( current.type() );
             }
             //给声明的属性设置值的类型
-            if( typeof express[0][0] === "object" && express[0][0].descriptor )
+            if( typeof express[0] === "object" && express[0].descriptor )
             {
-                express[0][0].descriptor.valueType=stack.type();
+                express[0].descriptor.valueType=stack.type();
             }
         }
     }
 
-    var value = parse( express.pop() );
+    //赋值运算从右向左（从后向前）如果有赋值
+    var describe = valueDescribe = express.pop();
+    var value = describe.coalition===true ? describe.value : parse( describe );
     var str=[];
     if( express.length === 0 )
     {
         str.push(value);
-
     }else
     {
         var operator;
         var returnValue = true;
+        var flag= false;
         while (express.length > 0)
         {
             operator = express.pop();
-            value = parse(express.pop(), value, operator, returnValue);
-            returnValue = true;
-            str.push(value);
+            describe = express.pop();
+            if( describe.coalition === true || (operator !=='=' && express.length>1) )error('is not reference', 'syntax', describe.lastStack);
+
+            //有指定类型必须检查
+            if(  describe.type !=='*' && describe.type !=='Object' && operator==='=' )
+            {
+                if( !flag && valueDescribe.type === '*' )
+                {
+                    var info = '"' + describe.lastStack.line + ':' + describe.lastStack.cursor + '"';
+                    value = '__check__(' + info + ',' + describe.type + ',' + value + ')';
+
+                }else if( describe.type !== valueDescribe.type )
+                {
+                   // error('Specify the type of value do not match. must is "'+describe.type+'"','type', describe.lastStack);
+                }
+            }
+
+            if( !flag )
+            {
+                value = parse(describe, value, operator, returnValue);
+                returnValue = true;
+                str.push(value);
+                flag=true;
+
+            }else
+            {
+                str.unshift(operator);
+                str.unshift( parse(describe) );
+            }
+            valueDescribe = describe;
         }
     }
     return str.join('');
@@ -1441,6 +1483,12 @@ function loadModuleDescription( file )
         console.log('Checking file', sourcefile,'...' );
         var content = fs.readFileSync( sourcefile , 'utf-8');
         var R= new Ruler( content, config );
+        if( config.enableBlockScope==='off' )
+        {
+           R.addListener("let",function (e) {
+               error('block scope be disabled. please set enableBlockScope="on" if need use block scope','systax', this.current);
+           },100);
+        }
 
         //解析代码语法
         try{
@@ -1594,6 +1642,7 @@ function start()
             str += 'var __prop__;\n';
             str += 'var __call__;\n';
             str += 'var __newInstance__;\n';
+            str += 'var __check__;\n';
             descriptor.push('\n"constructor":' + o.constructor.value);
             descriptor.push('\n"implements":[' + o.implements.join(',') + ']');
             descriptor.push('\n"final":' + !!o.isFinal);
@@ -1617,6 +1666,7 @@ function start()
             str += '__prop__=' + o.classname + '.prop;\n';
             str += '__call__=' + o.classname + '.call;\n';
             str += '__newInstance__=' + o.classname + '.newInstance;\n';
+            str += '__check__=' + o.classname + '.checkType;\n';
         }else
         {
             str += o.classname + '=System.define("' + o.fullclassname + '",' + descriptor + ', true);\n';
