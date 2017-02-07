@@ -7,7 +7,13 @@ var objects = {
           'replace':{ 'id':'function','qualifier':'public', 'type':'String' }
         }
     },
-    'Json':{'id':'object', 'type':'Json','inherit':'Object'},
+    'JSON':{
+        'id':'class', 'type':'JSON','inherit':'Object',
+        'static': {
+            'parse': {'type': 'Object', 'id': 'function', param: ['String']},
+            'stringify': {'type': 'String', 'id': 'function', param: ['Object']},
+        },
+    },
     'Object':{
         'id':'class',
         'type':'Object',
@@ -68,6 +74,18 @@ var objects = {
         }
     },
     'Symbol':{'id':'class', 'type':'Symbol'},
+    'Iterator':{
+        'id':'class', 'type':'Iterator','inherit':'Object',
+        'proto':{
+            'items':{'id':'const','type':'Array'},
+            'current':{'id':'const','type':'Object'},
+            'prev':{'id':'const','type':'Object'},
+            'next':{'id':'const','type':'Object'},
+            'seek':{'id':'function','type':'Boolean','param':[]},
+            'moveTo':{'id':'function','type':'Object','param':['Number']},
+            'reset':{'id':'function','type':'Iterator','param':[]},
+        }
+    },
     'Array':{
         'id':'class',
         'type':'Array',
@@ -116,8 +134,6 @@ var objects = {
     'Int16Array':{},
     'Int32Array':{},
     'Int8Array':{},
-    'Iterator':{},
-    'JSON':{},
     'ParallelArray':{},
     'Promise':{},
     'Proxy':{},

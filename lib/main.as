@@ -20,7 +20,9 @@ package
  import lib.EventDispatcher;
   import com.B;
    import lib.IProsess;
+   import lib.IProt;
    import com.Abs;
+import com.D;
 
 
     public class Main extends B implements IProsess {
@@ -34,7 +36,28 @@ package
           //var bb:String='123';
           function Main(jj)
           {
-              var items:Array = ddd:Array = [] || {};
+
+
+              this.tests({},2,3,4,(5+6),6 && 6666 );
+
+              System.log( Iterator(this,true).items[0] );
+
+              for(var bb in  this  )
+              {
+                  System.log( /*this[bb] , */ this[bb]   ,'=================', bb );
+              }
+
+              var items=9999,jjj:Object={"name":"666"},
+                  ddd:Object;
+
+             if( (jjj.name = ddd = items = [] || {}) ){
+
+                 System.log(jjj,ddd,items);
+             }
+
+              var bc:IProt= this;
+
+              System.log( '%s', Main );
 
               var i = 50;
 
@@ -104,7 +127,7 @@ package
 
               }
               System.log(i, b  );
-              this.tests(undefined,2,3,4,5,6);
+
 
               System.log( this is IProsess,'==========' );
 
@@ -119,7 +142,7 @@ package
 
         }
 
-        function tests(a=666 ,...avg)
+        function tests(a:*=666 ,...avg)
         {
 
             var  bb=666;

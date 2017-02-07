@@ -5,7 +5,7 @@ const Utils = require('./lib/Utils.js');
  * @type {string[]}
  */
 const reserved = [
-    'static','public','private','protected','internal','package','override','final','System',
+    'static','public','private','protected','internal','package','override','final',
     'extends','import','class','var','function','new','typeof','const','interface','abstract','implements',
     'is','instanceof','if','else','do','while','for','in','of','switch','case','super',
     'break','default','try','catch','throw','Infinity','this','debugger','eval',
@@ -40,7 +40,6 @@ function checkStatementType( type , scope , globals )
         if( self && (self.fullclassname === type || self.classname === type) )
         {
             val=self;
-
         }else
         {
             val = scope.define( type );
@@ -739,7 +738,7 @@ syntax['if,switch,while,for,catch'] = function(event)
          this.step();
          return true;
      });
-    this.scope().switch();
+    if( this.scope()===condition )condition.switch();
     this.add( this.seek() );
     if( this.current.value !== ')' )this.error('Missing token )');
     if( this.scope().keyword() !== event.type )this.error('Not end expression');
@@ -900,7 +899,6 @@ syntax["super"]=function (e)
     {
         fun.called=true;
     }
-
     this.add( this.current );
     if( this.next.type==='(operator)' || this.next.value==='(' || this.next.value==='[' )
     {
@@ -920,7 +918,7 @@ syntax["in"]=function(e)
     var p = this.scope().parent();
     this.scope().type('(Boolean)');
     if( p.keyword()==='var' || p.keyword()==='left' )this.scope().type('(String)');
-    if( !(this.next.type ==='(identifier)' && (this.next.id !=='(keyword)' || this.next.value==='this') ) )this.error('',this.next);
+    if( this.next.type ==='(operator)' || ( Utils.isConstant(this.next.value) && this.next.value!=='this' ) )this.error('',this.next);
     this.step();
 }
 
@@ -970,7 +968,7 @@ syntax['(delimiter)']=function( e )
 
        }else
        {
-           s = new Stack('object', id === '(' ? '(expression)' : id === '[' ? '(Array)' : '(Json)');
+           s = new Stack('object', id === '(' ? '(expression)' : id === '[' ? '(Array)' : '(JSON)');
            var self= this;
            if( s.type()==='(Array)' )
            {
@@ -994,7 +992,7 @@ syntax['(delimiter)']=function( e )
         this.add( this.current );
 
         //json object
-        if( s.type()==='(Json)' )
+        if( s.type()==='(JSON)' )
         {
             var fn = function (e) {
                 if (this.current.value === ';')this.error();
@@ -1101,7 +1099,8 @@ syntax['(operator)']=function( e )
     //顺序操作符
     if( id===',' )
     {
-        this.scope().switch();
+        //不关闭字面量的对象 {} [] ()
+        if( !(this.scope().keyword() ==='object' || this.scope().keyword()==='function') )this.scope().switch();
 
         //(1,) 不允许
         if( this.next.value === ')' )this.error('Unexpected token ,',this.current);
@@ -1291,7 +1290,10 @@ function statement()
 
     //常量必须指定默认值
     if( id==='const' && this.next.value !=='=' )this.error('Missing default value in const',this.next);
-    if( this.next.value ==='=' && stack.parent().parent().keyword() === 'interface' )this.error('Can not assign default value',this.next);
+    if( this.next.value ==='=' ){
+        desc.value=this.scope();
+        if(stack.parent().parent().keyword() === 'interface')this.error('Can not assign default value',this.next);
+    }
     return desc;
 }
 
@@ -1303,35 +1305,17 @@ syntax['(identifier)']=function( e )
     if( id==='class' || id==='package' )this.error();
     //如果不是表达式
     if( this.scope().keyword() !=='expression' )this.add( new Stack('expression','(*)') );
-    if(this.current.value !=='...')this.add( this.current );
-
     //声明属性
-    if( id==='statement' )
-    {
-        do {
-            var desc = statement.call(this, e);
-            if( this.next.value !== '=' )break;
-            desc.value=this.scope();
-            //添加赋值运算符
-            this.seek();
-            this.add( this.current );
-            //下一个是可连续声明的变量
-            if( this.next.id==='(identifier)' )
-            {
-                this.seek();
-                this.add( this.current );
-            }
-        }while( this.current.id==='(identifier)' && (this.next.value ==='=' || this.next.value===':') );
-    }
-
-    if( (id==='statement' && this.current.value==='=' ) || (this.next.type === '(operator)' && this.next.value !==';') )
-    {
-        this.step();
-    }
+    if( id==='statement' )statement.call(this, e);
+    this.add( this.current );
     //call fun or dynamic property
-    else if( this.next.value==='(' || this.next.value==='[' )
+     if( this.next.value==='(' || this.next.value==='[' )
     {
         if( this.current.type !== '(identifier)' )this.error('Unexpected token '+this.next.value, this.next );
+        this.step();
+    }
+    else if( this.next.type === '(operator)' && this.next.value !==';' )
+    {
         this.step();
     }
     else
@@ -2336,7 +2320,7 @@ Ruler.prototype.end=function( stack )
     }
     //如果下一个是一个右定界符 ] ) }
     //并且当前表达式不在域块级中
-    else if( ( id ==='expression' || id==='ternary' ) && Utils.isRightDelimiter( this.next.value ) && !(stack.parent() instanceof Scope) )
+    else if( ( id ==='expression' || id==='ternary' || id==='condition' || (id==='var' && stack.parent().keyword()==='condition') ) && Utils.isRightDelimiter( this.next.value ) )
     {
         stack.switch();
         return true;

@@ -1,4 +1,10 @@
 //var o = new Console();
 "use strict";
-var b=d=c = 6666;
-console.log(  b,d,c  )
+
+
+var i = 0;
+
+for( var i in {name:++i} )
+{
+   console.log( i );
+}

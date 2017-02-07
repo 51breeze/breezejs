@@ -1,4 +1,4 @@
-var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp,_Error,_ReferenceError,_TypeError,_SyntaxError,undefined)
+var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp,_Error,_ReferenceError,_TypeError,_SyntaxError,_JSON,undefined)
 {
     var s=System={};
     var m={};
@@ -277,6 +277,43 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     }
 
     /**
+     * JSON 对象构造器
+     * @constructor
+     */
+   function JSON(){ throwError('JSON is cannot be instanceds.'); };
+   s.JSON=JSON;
+   var escMap = {'"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f', '\n': '\\n', '\r': '\\r', '\t': '\\t'};
+   var escRE = /[\\"\u0000-\u001F\u2028\u2029]/g;
+   function escFunc(m) {return escMap[m] || '\\u' + (m.charCodeAt(0) + 0x10000).toString(16).substr(1);};
+   JSON.parse = function (strJson) {return eval('(' + strJson + ')');}
+   JSON.stringify = function(value)
+   {
+       if (value == null) {
+           return 'null';
+       } else if (typeof value === 'number') {
+           return isFinite(value) ? value.toString() : 'null';
+       } else if (typeof value === 'boolean') {
+           return value.toString();
+       } else if ( typeof value === 'object' )
+       {
+           if (typeof value.toJSON === 'function') {
+               return JSON.stringify( value.toJSON() );
+           } else if ( isArray(value) ) {
+               var items = new Iterator( value ).items;
+               var tmp = [];
+               for (var i = 0; i < items.length; i++)tmp.push( JSON.stringify( items[i].value ) );
+               return '['+tmp.join(',')+']';
+           } else if ( isObject(value,true) ) {
+               var tmp = [];
+               var items = new Iterator( value ).items;
+               for (var i = 0; i < items.length; i++)tmp.push( JSON.stringify(items[i].key)+':'+JSON.stringify(items[i].value) );
+               return '{' + tmp.join(', ') + '}';
+           }
+       }
+       return '"' + value.toString().replace(escRE, escFunc) + '"';
+   };
+
+    /**
      * 数组构造器
      * @returns {Array}
      * @constructor
@@ -403,9 +440,9 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @param target
      * @constructor
      */
-    function Iterator( target )
+    function Iterator( target , flag)
     {
-       if( !(this instanceof Iterator) ) return new Iterator(target);
+       if( !(this instanceof Iterator) ) return new Iterator(target, flag);
        target = Object(target);
        var items = [];
        var desc;
@@ -428,15 +465,15 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                if( desc[prop] && ( desc[prop].qualifier!=='public' || (desc[prop].id==='function' && typeof desc[prop].value === "function") ) )continue;
                if( (dynamic && !desc[prop]) || ( desc[prop] && desc[prop].enumerable !== false) )
                {
-                   items.push({
+                   itemsPush(items,{
                        key:prop,
                        value:obj[prop] ==='__getter__' && desc[prop].id==='function' && typeof desc[prop].value.get === "function" ? desc[prop].value.get.call(target) : obj[prop]
-                   });
+                   },flag);
                }
                
            }else
            {
-               items.push({key:prop,value:obj[prop]});
+               itemsPush(items,{key:prop,value:obj[prop]},flag);
            }
        }
        this.items = items;
@@ -446,7 +483,9 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     Iterator.prototype.items = null;
     Iterator.prototype.cursor = -1;
     Iterator.prototype.constructor = Iterator;
-
+    function itemsPush(items,obj,flag) {
+        return flag===true ? items[ obj.key ] = obj : items.push( obj );
+    }
 
     /**
      * 将指针向前移动一个位置并返回当前元素
@@ -667,7 +706,8 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
             }
         }
         if( typeof theClass !== "function" )return false;
-        return Object(instanceObj) instanceof theClass;
+        instanceObj = Object(instanceObj);
+        return instanceObj instanceof theClass || ( theClass===s.JSON && isObject(instanceObj,true) );
     }
     s.instanceOf=instanceOf;
     /**
@@ -735,6 +775,12 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         return obj;
     }
     s.factory=factory;
+    
+    function forIn(obj,callback)
+    {
+         
+    }
+    s.forIn = forIn;
 
     /**
      * 根据指定的类名获取类的对象
@@ -772,8 +818,10 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                  if (value === s.RegExp)return 'RegExp';
                  if (value === s.Array)return 'Array';
                  if (value === s.Object)return 'Object';
+                 if (value === s.JSON)return 'JSON';
                   return 'Function';
          }
+
          if( isObject(value,true) )return 'Object';
          if( isArray(value) )return 'Array';
          if( value instanceof String )return 'String';
@@ -1217,7 +1265,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                     //如果没有在类中定义
                     if ( !desc && iscall )throwError('reference', '"' + strName + '" is not defined');
                     //是一个类模块
-                    if( referenceModule instanceof Class )
+                    if( desc && referenceModule instanceof Class )
                     {
                         //是否有访问的权限
                         if (!checkPrivilege(desc, referenceModule, classModule))throwError('reference', '"' + strName + '" inaccessible.');
@@ -1271,7 +1319,9 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
             if ( iscall )
             {
                 if( value instanceof Class )value = value.constructor;
-                if ( typeof value !== 'function' )throwError('reference', '"' + strName + '" is not function');
+                if ( typeof value !== 'function' ){
+                    throwError('reference', '"' + strName + '" is not function');
+                }
                 return value.apply(thisArg, args);
             }
             //待返回的值
@@ -1395,5 +1445,5 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     s.define=define;
     return s;
 
-}(Object,Function,Array,String,Number,Boolean,RegExp,Error,ReferenceError,TypeError,SyntaxError));
+}(Object,Function,Array,String,Number,Boolean,RegExp,Error,ReferenceError,TypeError,SyntaxError,JSON));
 
