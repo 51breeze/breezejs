@@ -36,22 +36,17 @@ function checkStatementType( type , scope , globals )
     var val;
     if( scope )
     {
-        var self = scope.define('this');
-        if( self && (self.fullclassname === type || self.classname === type) )
+        val = scope.define( type ) || scope.define('this');
+        if( !( val && (val.fullclassname === type || val.classname === type) ) )
         {
-            val=self;
-        }else
-        {
-            val = scope.define( type );
-            if ( !val && scope.parent() )
+            val=null;
+            while ( scope.keyword() !=='class' && scope.parentScope )scope=scope.parentScope;
+            //这里判断是否使用命名定义的类型
+            var def = scope.define();
+            for (var i in def)if (def[i].id === 'class' && def[i].fullclassname === type)
             {
-                //这里判断是否使用命名定义的类型
-                var def = scope.define();
-                for (var i in def)if (def[i].id === 'class' && def[i].fullclassname === type)
-                {
-                    val = def[i];
-                    break;
-                }
+                val = def[i];
+                break;
             }
         }
     }
@@ -453,10 +448,10 @@ syntax['var,let']=function (event)
         if( !parent )this.error();
     }
 
-    if( this.next.type!=='(identifier)' || this.next.id==='(keyword)' )this.error('Invalid identifier for '+this.next.value,  this.next );
+    if( this.next.id==='(keyword)' )this.error('"'+this.next.value+'" is be keyword of reserved',  this.next );
+    if( this.next.type !=='(identifier)' )this.error('Invalid identifier for '+this.next.value,  this.next );
     this.add( statement );
     this.step();
-
     if( parent.keyword()==='for' )
     {
         //end expression
@@ -486,11 +481,6 @@ syntax['function']= function(event){
     if( this.scope().keyword() !=='function' || this.scope().parent().keyword() !=='class' )
     {
         this.add( new Scope( event.type, '(*)' ) );
-    }
-
-    if( this.prev.value === '=' && this.scope().keyword() === 'expression')
-    {
-        this.scope().type('(Function)');
     }
 
     this.add( this.current );
@@ -582,7 +572,9 @@ syntax['function']= function(event){
         //构造函数的修饰符必须为公有的
         if( stack.qualifier() !== 'public' )this.error('can only is public qualifier of constructor');
     }
-    stack.type('('+type+')');
+
+    //返回类型
+    stack.returnType = type;
 
     //定义到作用域中
     if( name )
@@ -788,16 +780,10 @@ syntax["return"]=function(event)
     fn.isReturn=false;
     if( Utils.isLeftDelimiter(this.next.value) || Utils.isIdentifier( this.next ) || Utils.isLeftOperator(this.next.value) || this.next.value==='function' )
     {
-        if( fn.accessor() === 'set' )
-        {
-            this.error('setter cannot has return');
-        }
-
+        if( fn.accessor() === 'set' )this.error('setter cannot has return');
         if( !fn )this.error('Unexpected identifier return');
         if( fn.type()==='(void)' )this.error('Do not return');
         this.step();
-        //if( !fn.returnValues )fn.returnValues=[];
-        // fn.returnValues.push( s );
         fn.isReturn=true;
 
     }else
@@ -1032,15 +1018,11 @@ syntax['(delimiter)']=function( e )
                 return true;
             });
         }
-
-        if( this.scope().keyword() ==='expression' && Utils.isRightDelimiter(this.next.value) )
-        {
-            this.scope().switch();
-        }
-
+        if( this.scope().keyword() ==='expression' && Utils.isRightDelimiter(this.next.value) )this.scope().switch();
         this.seek();
         this.add( this.current );
         if( this.current.value !== balance[id] )this.error('Missing token '+balance[id] );
+        if( this.scope() !== s )this.error();
         s.switch();
         if( s.keyword()==='structure' )return true;
         // 如果下一个是运算符或者是一个定界符
@@ -1257,7 +1239,7 @@ function statement()
         this.current= current;
         this.prev = prev;
         //检查声明的类型是否定义
-        if( !checkStatementType(type, stack.scope() , this.config('globals') ) )this.error( type+' not is defined');
+        if( !checkStatementType(type, stack.scope() , this.config('globals') ) )this.error( '"'+type+'" type is not defined');
     }
 
     //检查属性名是否可以声明
@@ -1266,9 +1248,11 @@ function statement()
     {
         this.error( reserved.indexOf( name )>0 || (_reserved && _reserved.indexOf(name) >0) ? 'Reserved keyword is not statemented for '+name : 'Invalid statement for '+name);
     }
-
     var scope =  stack.getScopeOf( id==='let' || id==='const' );
     var desc = {'type':'('+type+')','id':id, 'static': stack.parent().static() , 'scope':scope};
+    var e = {type:"(statement)", desc:desc};
+    this.dispatcher( e );
+    scope = desc.scope || scope;
 
     //如是函数声明的参数
     if( id==='function' )
@@ -2296,6 +2280,7 @@ Ruler.prototype.end=function( stack )
     var id = stack.keyword();
     if( stack.close() )return true;
     if( this.next.value===';')this.seek();
+    if( id==='object' && Utils.isRightDelimiter( this.next.value ) )return true;
 
     //如果当前是一个空操作符或者是一个右定界符则结束
     if( this.current.value === ';' )
@@ -2320,7 +2305,9 @@ Ruler.prototype.end=function( stack )
     }
     //如果下一个是一个右定界符 ] ) }
     //并且当前表达式不在域块级中
-    else if( ( id ==='expression' || id==='ternary' || id==='condition' || (id==='var' && stack.parent().keyword()==='condition') ) && Utils.isRightDelimiter( this.next.value ) )
+    else if( ( id ==='expression' || id==='ternary' || id==='condition' || 
+        (id==='var' && stack.parent().keyword()==='condition') )
+        && Utils.isRightDelimiter( this.next.value ) )
     {
         stack.switch();
         return true;

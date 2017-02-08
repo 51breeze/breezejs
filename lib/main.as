@@ -36,16 +36,21 @@ import com.D;
           //var bb:String='123';
           function Main(jj)
           {
+              var bc:lib.EventDispatcher;
+
+
+              var an = new Array(5,6,8);
+              an.values();
 
 
               this.tests({},2,3,4,(5+6),6 && 6666 );
-
-              System.log( Iterator(this,true).items[0] );
-
+              
               for(var bb in  this  )
               {
-                  System.log( /*this[bb] , */ this[bb]   ,'=================', bb );
+                  System.log(  this[bb]   ,'=================', bb );
               }
+
+              System.log( this );
 
               var items=9999,jjj:Object={"name":"666"},
                   ddd:Object;
@@ -55,7 +60,7 @@ import com.D;
                  System.log(jjj,ddd,items);
              }
 
-              var bc:IProt= this;
+
 
               System.log( '%s', Main );
 
@@ -115,18 +120,18 @@ import com.D;
                   System.log( hh ,i );
                   //items.push( function(){ return i+'---'+hh;} );
 
-                  if( false )
+                  if( true )
                   {
-
-
-                        let hh;
-                         System.log( jj );
-                        // items.push(  function(){ return i+'---'+hh;} );
-
+                         items.push(  function(){ return i+'---'+hh;} );
                   }
 
               }
-              System.log(i, b  );
+
+              for( let b in items )
+              {
+                  System.log( '%s=======items==========', items[b]() );
+              }
+
 
 
               System.log( this is IProsess,'==========' );
@@ -142,24 +147,24 @@ import com.D;
 
         }
 
-        function tests(a:*=666 ,...avg)
+        function tests(a:*=666 ,...avg):Main
         {
 
             var  bb=666;
             var tests;
             if( true ){
-                const bb=888;
+                //const bb=888;
+                const yy = 666;
                 var i=9;
                 if( a )
                 {
+                    return [];
                 }
+
                 System.log( '===%s',Main );
-
             }
-
-
-
             System.log(a, avg  , i, bb);
+            return this;
         }
 
         //private var bb:String=null;

@@ -15,7 +15,7 @@ const config = {
     'browser':'enable',
     'globals':globals,
     'enableBlockScope':'on',
-    'reserved':['let','JSON','System','Iterator']
+    'reserved':['let']
 };
 const modules={};
 
@@ -98,6 +98,7 @@ function createDescription( stack )
     {
         desc['param'] = stack.param();
         desc['paramType'] = [];
+        desc['type']=stack.returnType;
         for(var i in desc['param'] ){
             if( desc['param'][i] ==='...')
             {
@@ -180,10 +181,11 @@ function Iteration( stack , module )
         index++;
         this.next = this.data[index];
         stack.dispatcher({type:'(iterationSeek)',content:this.content,iteration:this});
+        if( this.current.value==='return' && this.current.id==='(keyword)' )this.checkReturnType( stack );
         return true;
     };
     stack.returnValues=[];
-    this.parseBlockScope( stack );
+    if( config.enableBlockScope ==='on')this.parseBlockScope( stack );
     this.parseFunctionScope( stack );
     this.parseArgumentsOfMethodAndConstructor( stack );
 }
@@ -201,6 +203,43 @@ Iteration.prototype.values=function( value )
 }
 
 /**
+ * 检查函数的返回类型
+ * @param stack
+ */
+Iteration.prototype.checkReturnType=function(stack)
+{
+    var fnScope = stack.getScopeOf();
+    if( fnScope.returnType && fnScope.returnType !=='*' )
+    {
+        if( fnScope.returnType ==='void' )
+        {
+            if(this.next.value !==';')error('can not has return value', 'type', this.current );
+            return;
+        }
+        if(this.next.value ===';')error('Missing return value', 'type', this.current );
+        if( fnScope.returnType ==='Object' )return;
+        this.content.push('return ');
+        var info = '"' + this.current.line + ':' + this.current.cursor + '"';
+        this.content.push( this.module.classname +".checkType("+info+","+ getDefinedClassName(this.module, fnScope.returnType )+",");
+        this.seek();
+        this.content.push( toString(this.current, this.module) );
+        this.content.push(")");
+        this.current={};
+    }
+}
+
+function getDefinedClassName(classmodule, type)
+{
+    if( classmodule.type === type )return type;
+    if( classmodule.import && classmodule.import[type] && classmodule.import[type].id==='class')return type;
+    if( type.indexOf('.') > 0 )
+    {
+        for(var b in classmodule.import )if( classmodule.import[b] === type )return b;
+    }
+    return globals[type] ? type : null;
+}
+
+/**
  * 生成函数
  * @param stack
  * @returns {string}
@@ -208,21 +247,22 @@ Iteration.prototype.values=function( value )
 Iteration.prototype.parseArgumentsOfMethodAndConstructor=function( stack )
 {
     //如果是一个构造函数
-    if( stack.keyword()==='function' && stack.name() === this.module.classname )
+    if( stack.keyword()==='function' )
     {
         //运行时检查实例对象是否属于本类
         // content.push( 'if( !(this instanceof '+stack.name()+') )throw new SyntaxError("Please use the new operation to build instances.");\n' );
-        stack.addListener('(iterationDone)',function (e)
+        if( stack.name() === this.module.classname )
         {
-            var index = this.name() && this.parent().keyword() !=='class' ? 7 : 5;
-            //预留私有属性占位
-            e.iteration.content.splice(index,0,'####{props}####');
-            //如果没有调用超类，则调用超类的构造函数
-            if( e.iteration.module.inherit && !stack.called ){
-                e.iteration.content.splice( index+1, 0, e.iteration.module.inherit+'.constructor.call(this);\n' );
-            }
-
-        },-500);
+            stack.addListener('(iterationDone)', function (e) {
+                var index = this.name() && this.parent().keyword() !== 'class' ? 7 : 5;
+                //预留私有属性占位
+                e.iteration.content.splice(index, 0, '####{props}####');
+                //如果没有调用超类，则调用超类的构造函数
+                if (e.iteration.module.inherit && !stack.called) {
+                    e.iteration.content.splice(index + 1, 0, e.iteration.module.inherit + '.constructor.call(this);\n');
+                }
+            }, -500);
+        }
     }
 
     if( stack.keyword() ==='statement' && stack.parent().keyword() === 'function' )
@@ -346,17 +386,19 @@ Iteration.prototype.parseFunctionScope=function( stack )
         if( stack.keyword() !== 'var' || stack.scope().keyword()==='function' )this.content.push('var ');
         if( stack.parent().keyword()==='condition' && stack.parent().parent().keyword() ==='for')
         {
-            stack.addListener('(iterationSeek)',function (e) {
+            var forin =function (e) {
                 if( e.iteration.current.value==='in')
                 {
                     e.content.push(' in ');
                     e.iteration.seek();
                     e.content.push('Iterator(');
                     e.content.push( toString(e.iteration.current, e.iteration.module ) );
-                    e.content.push(',true).items');
+                    e.content.push(',true)');
                     e.iteration.current={};
+                    stack.removeListener('(iterationSeek)',forin);
                 }
-            });
+            }
+            stack.addListener('(iterationSeek)',forin);
         }
     }
     //如果var变量不在函数域中则添加到函数域中
@@ -531,7 +573,6 @@ function getDescriptorOfExpression(it, classmodule)
                         while( blockScope && blockScope.keyword()==='function' )blockScope = blockScope.parent().scope();
                         blockScope.dispatcher({"type":"(blockScope)","name":it.current.value, "stack":it.stack, "current":it.current,'scope':desc.scope });
                     }
-                    if (desc.type !== '*')desc = module(getImportClassByType(classmodule, desc.type));
                 }
                  //全局引用
                 else
@@ -640,9 +681,11 @@ function getDescriptorOfExpression(it, classmodule)
             if ( desc && desc.type !=='*' && !(desc.referenceType ==='JSON' || desc.referenceType ==='Object') )
             {
                 var prevDesc = desc;
-                desc = getClassPropertyDesc(it, desc, isstatic ? 'static' : 'proto', classmodule);
+                desc = getClassPropertyDesc(it, module( getImportClassByType(classmodule, desc.type) ) , isstatic ? 'static' : 'proto', classmodule);
                 type = desc.type;
                 property.descriptor = desc;
+                property.type = type;
+                isstatic= type ==='Class';
 
                 //如果是一个函数或者是一个访问器
                 if(desc.id === 'function')
@@ -672,12 +715,6 @@ function getDescriptorOfExpression(it, classmodule)
                 if( !isstatic && prevDesc.id==='class' && (desc.id==='var' || desc.id==='const') && !globals[ prevDesc.type ] )
                 {
                     property.uid = prevDesc.uid;
-                }
-
-                //获取指定类型的模块
-                if( type !=='*' && type!=='void' )
-                {
-                    desc = module( getImportClassByType(classmodule, type) );
                 }
                 if( desc.id==='function' && property.type === '*' ) property.type = 'Function';
 
@@ -1019,7 +1056,19 @@ function expression( stack, classmodule )
     {
         operator = express.pop();
         describe = express.pop();
-        if( describe.coalition === true )error('is not reference', 'syntax', describe.lastStack);
+        if( describe.coalition === true || describe.expression )error('"'+describe.name.join('.')+'" is not reference', 'syntax', describe.lastStack);
+
+        //未声明的引用不能修改
+        if( describe.descriptor )
+        {
+            if( describe.descriptor.id ==='class' || describe.descriptor.id ==='object')
+               error('"' + describe.name.join('.') + '" is be protected', 'type', describe.lastStack);
+            if( describe.descriptor.id==='const' )
+            {
+                if( describe.descriptor.constValue )error('"' + describe.name.join('.') + '" is a constant', 'type', describe.lastStack);
+                describe.descriptor.constValue = true;
+            }
+        }
 
         //有指定类型必须检查
         if( describe.type !=='*' && describe.type !=='Object' && operator==='=' )
@@ -1032,7 +1081,7 @@ function expression( stack, classmodule )
 
             }else if( !checkTypeOf( classmodule, describe.type, valueDescribe.type ) )
             {
-                error('Specify the type of value do not match. must is "'+describe.type+'"','type', describe.lastStack);
+                error('"'+describe.name.join('.')+'" type of mismatch. must is "'+describe.type+'"','type', describe.lastStack);
             }
         }
 
@@ -1423,7 +1472,7 @@ function makeModule( stack )
 
     if( classModule.id !=='interface' && !isstatic )
     {
-        props = props.length > 0 ? 'this["'+classModule.uid+'"]={'+props.join(',')+'};\n' : '';
+        props = 'Object.defineProperty(this, "'+classModule.uid+'", {enumerable: false, configurable: false, writable: false, value: {'+props.join(',')+'}});'
         classModule.constructor.value = classModule.constructor.value.replace('####{props}####', props);
     }
     return classModule;
@@ -1562,9 +1611,9 @@ function loadModuleDescription( file )
         //侦听块级域
         if( config.enableBlockScope==='off' )
         {
-           R.addListener("let",function (e) {
-               error('block scope be disabled. please set enableBlockScope="on" if need use block scope','systax', this.current);
-           },100);
+           R.addListener("(statement)", function (e) {
+               if( e.desc.id !=='var' )e.desc.scope =this.scope().getScopeOf();
+           });
         }
 
         //解析代码语法

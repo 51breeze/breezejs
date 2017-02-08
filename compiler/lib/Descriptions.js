@@ -209,6 +209,7 @@ var objects = {
             'getQualifiedClassName': {type: 'String', id: 'function', param: ['Object']},
             'getQualifiedSuperclassName': {type: 'String', id: 'function', param: ['Object']},
             'isObject': {type: 'Boolean', id: 'function', param: ['Object']},
+            'isArray': {type: 'Boolean', id: 'function', param: ['Object']},
             'isString': {type: 'Boolean', id: 'function', param: ['Object']},
             'isBoolean': {type: 'Boolean', id: 'function', param: ['Object']},
             'factory': {type: 'Object', id: 'function', param: ['Object','...']},

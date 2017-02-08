@@ -193,6 +193,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * 如果设置为 false，则动态属性不会显示在 for..in 循环中，且方法 propertyIsEnumerable() 返回 false。
      */
     var $defineProperty=_Object.defineProperty;
+    Object.defineProperty=$defineProperty || function(obj,prop,descriptor){ obj[prop] = descriptor.value};
     Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
     {
         var obj = this instanceof Class ? this : this.constructor;
@@ -438,44 +439,49 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     /**
      * 迭代构造器
      * @param target
+     * @param forIn 如果为true则表示返回一个指定target对象上可枚举的属性集对象。
      * @constructor
      */
-    function Iterator( target , flag)
+    function Iterator( target , forIn )
     {
-       if( !(this instanceof Iterator) ) return new Iterator(target, flag);
+       if( target instanceof Iterator )return target;
+       if( !(this instanceof Iterator) ) return new Iterator(target, forIn);
        target = Object(target);
-       var items = [];
+       var items = target;
        var desc;
        var obj = target;
        var dynamic = false;
+       var isclass = false;
        if( target instanceof Class )
        {
+           isclass=true;
            desc = obj = target.static;
        }else if( target.constructor instanceof Class  )
        {
+           isclass=true;
            obj = target[ target.constructor.token ];
            desc = target.constructor.proto;
            dynamic = target.constructor.dynamic;
        }
-       for( var prop in obj )
+       if( isclass || forIn !== true )
        {
-           if( !$propertyIsEnumerable.call(obj,prop) )continue;
-           if( desc )
-           {
-               if( desc[prop] && ( desc[prop].qualifier!=='public' || (desc[prop].id==='function' && typeof desc[prop].value === "function") ) )continue;
-               if( (dynamic && !desc[prop]) || ( desc[prop] && desc[prop].enumerable !== false) )
-               {
-                   itemsPush(items,{
-                       key:prop,
-                       value:obj[prop] ==='__getter__' && desc[prop].id==='function' && typeof desc[prop].value.get === "function" ? desc[prop].value.get.call(target) : obj[prop]
-                   },flag);
+           items=[];
+           for (var prop in obj) {
+               if (!$propertyIsEnumerable.call(obj, prop))continue;
+               if (desc) {
+                   if (desc[prop] && ( desc[prop].qualifier !== 'public' || (desc[prop].id === 'function' && typeof desc[prop].value === "function") ))continue;
+                   if ((dynamic && !desc[prop]) || ( desc[prop] && desc[prop].enumerable !== false)) {
+                       itemsPush(items, {
+                           key: prop,
+                           value: obj[prop] === '__getter__' && desc[prop].id === 'function' && typeof desc[prop].value.get === "function" ? desc[prop].value.get.call(target) : obj[prop]
+                       }, forIn);
+                   }
+               } else {
+                   itemsPush(items, {key: prop, value: obj[prop]}, forIn);
                }
-               
-           }else
-           {
-               itemsPush(items,{key:prop,value:obj[prop]},flag);
            }
        }
+       if( forIn===true )return items;
        this.items = items;
     }
     s.Iterator = Iterator;
@@ -484,7 +490,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     Iterator.prototype.cursor = -1;
     Iterator.prototype.constructor = Iterator;
     function itemsPush(items,obj,flag) {
-        return flag===true ? items[ obj.key ] = obj : items.push( obj );
+        return flag===true ? items[ obj.key ] = obj.value : items.push( obj );
     }
 
     /**
@@ -503,6 +509,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      */
     Iterator.prototype.current=function current()
     {
+        if(this.cursor<0)this.cursor=0;
         return this.items[ this.cursor ];
     }
 
@@ -511,7 +518,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * 如果当前指针位置在第一个则返回false
      * @returns {*}
      */
-    Iterator.prototype.prev=function current()
+    Iterator.prototype.prev=function prev()
     {
         if( this.cursor < 1 )return false;
         return this.items[ this.cursor-1 ];
@@ -795,6 +802,12 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         throwError('type', '"'+name+'" is not define');
     }
     s.getDefinitionByName =getDefinitionByName;
+
+
+    function getFullname(classModule) {
+        return classModule.package ? classModule.package+'.'+classModule.classname : classModule.classname;
+    }
+
      /**
      * 返回对象的完全限定类名
      * @param value 需要完全限定类名称的对象。
@@ -809,8 +822,8 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
              case 'number' : return 'Number' ;
              case 'string' : return 'String' ;
              case 'regexp' : return 'RegExp' ;
-             case 'class'  : return 'Class' ;
-             case 'interface': return 'Interface' ;
+             case 'class'  : return  getFullname(value);
+             case 'interface': return  getFullname(value);
              case 'function' :
                  if (value === s.String)return 'String';
                  if (value === s.Boolean)return 'Boolean';
@@ -827,8 +840,8 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
          if( value instanceof String )return 'String';
          if( value instanceof Number )return 'Number';
          if( value instanceof Boolean )return 'Boolean';
-         if( value.constructor instanceof Class )return value.constructor.classname;
-         throwError('type','type does not exist');
+         if( value.constructor instanceof Class )return getFullname(value.constructor);
+         throwError('reference','type does not exist');
     }
     s.getQualifiedClassName=getQualifiedClassName;
      /**
@@ -1218,7 +1231,8 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                     }
                 }
             }
-
+            //不是调用函数并且没有指定操作属性名则返回
+            if( !lastProp && lastProp !==0 && !iscall )return refObj;
             //引用对象不能是空
             if( !refObj && (isset || iscall || lastProp) )throwError('reference', '"'+strName+( refObj===null ? '" property of null' : '" is not defined') );
             //属性对象是否可写
@@ -1283,10 +1297,10 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                     }
                 }
                 //引用全局对象的原型
-                else if( iscall && refObj !== System && !isStatic )
+                else if( iscall && !$hasOwnProperty.call(refObj, lastProp) )
                 {
                     var className = getQualifiedClassName( refObj );
-                    if( className && typeof System[className] === "function" )
+                    if( className && typeof System[className] === "function" && System[className].prototype && System[className].prototype[lastProp] )
                     {
                         refObj = System[className].prototype;
                     }
@@ -1310,7 +1324,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
             {
                 value = getValue( thisArg, refObj, desc, lastProp ,strName );
             }
-            else if( lastProp )
+            else if( lastProp || lastProp===0 )
             {
                 value = refObj[lastProp];
             }
