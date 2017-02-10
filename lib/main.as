@@ -36,6 +36,13 @@ import com.D;
           //var bb:String='123';
           function Main(jj)
           {
+
+              this.tests(  555 && {} ,2,3,4,(5+6),6 && 6666 );
+
+
+              delete this.uuu;
+
+
               var bc:lib.EventDispatcher;
 
 
@@ -43,7 +50,7 @@ import com.D;
               an.values();
 
 
-              this.tests({},2,3,4,(5+6),6 && 6666 );
+             // this.tests({},2,3,4,(5+6),6 && 6666 );
               
               for(var bb in  this  )
               {
@@ -147,7 +154,7 @@ import com.D;
 
         }
 
-        function tests(a:*=666 ,...avg):Main
+        function tests(a:Number=666 ,...avg):Main
         {
 
             var  bb=666;
@@ -158,7 +165,7 @@ import com.D;
                 var i=9;
                 if( a )
                 {
-                    return [];
+                    //return [];
                 }
 
                 System.log( '===%s',Main );

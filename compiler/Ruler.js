@@ -964,7 +964,6 @@ syntax['(delimiter)']=function( e )
                    is=true;
                    s.type('(property)');
                }
-
                s.addListener('(add)',function (e) {
                    if( e.__proxyTarget__.value==='[' ||  e.__proxyTarget__.value===']' )return;
                    //数组中的元素只能用','隔开
@@ -972,6 +971,7 @@ syntax['(delimiter)']=function( e )
                    if( is=== true && e.__proxyTarget__.value===',')self.error();
                });
            }
+           if( this.scope().keyword() !== 'expression' && s.type() !=='(expression)' )this.add( new Stack('expression',s.type() ) );
            this.add( s );
        }
 
@@ -1022,7 +1022,10 @@ syntax['(delimiter)']=function( e )
         this.seek();
         this.add( this.current );
         if( this.current.value !== balance[id] )this.error('Missing token '+balance[id] );
-        if( this.scope() !== s )this.error();
+        if( this.scope() !== s ){
+            console.log( this.scope().keyword() )
+            this.error();
+        }
         s.switch();
         if( s.keyword()==='structure' )return true;
         // 如果下一个是运算符或者是一个定界符
@@ -1146,7 +1149,7 @@ syntax['(operator)']=function( e )
         this.add( this.current );
         //添加表达式
         this.add(new Stack('expression', '(*)').addListener('(switch)', function () {
-            if (this.length() < 1)self.error('empty expression');
+            if (this.length() < 1)self.error('Missing expression');
         }));
         return this.step();
     }
@@ -1218,15 +1221,19 @@ function statement()
     var name = this.current.value;
     var stack = this.scope().parent();
     var id = stack.parent().keyword();
+    var isrest = false;
 
     //剩余参数
     if( name === '...' )
     {
         if( id !=='function' )this.error();
         stack.parent().param( name );
-        this.seek();
-        name = this.current.value;
-        if( this.next.value !==')' )this.error('Rest parameter can only be in the final');
+        if( this.next.type==='(identifier)')
+        {
+            this.seek();
+            name = this.current.value;
+        }
+        isrest=true;
     }
 
     //获取声明的类型
@@ -1242,18 +1249,17 @@ function statement()
         if( !checkStatementType(type, stack.scope() , this.config('globals') ) )this.error( '"'+type+'" type is not defined');
     }
 
+    //剩余参数必须在最后
+    if( isrest && this.next.value !==')' )this.error('Rest parameter can only be in the final');
+
     //检查属性名是否可以声明
     var _reserved = this.config('reserved');
-    if( !checkStatement(name, _reserved ) )
+    if( !(id==='function' && isrest) && !checkStatement(name, _reserved ) )
     {
         this.error( reserved.indexOf( name )>0 || (_reserved && _reserved.indexOf(name) >0) ? 'Reserved keyword is not statemented for '+name : 'Invalid statement for '+name);
     }
     var scope =  stack.getScopeOf( id==='let' || id==='const' );
     var desc = {'type':'('+type+')','id':id, 'static': stack.parent().static() , 'scope':scope};
-    var e = {type:"(statement)", desc:desc};
-    this.dispatcher( e );
-    scope = desc.scope || scope;
-
     //如是函数声明的参数
     if( id==='function' )
     {
@@ -1264,6 +1270,10 @@ function statement()
     {
         stack.parent().type( type );
     }
+
+    var e = {type:"(statement)", desc:desc};
+    this.dispatcher( e );
+    scope = desc.scope || scope;
 
     //不能重复声明变量
     var val = scope.define( name );
@@ -2280,7 +2290,6 @@ Ruler.prototype.end=function( stack )
     var id = stack.keyword();
     if( stack.close() )return true;
     if( this.next.value===';')this.seek();
-    if( id==='object' && Utils.isRightDelimiter( this.next.value ) )return true;
 
     //如果当前是一个空操作符或者是一个右定界符则结束
     if( this.current.value === ';' )
@@ -2305,11 +2314,14 @@ Ruler.prototype.end=function( stack )
     }
     //如果下一个是一个右定界符 ] ) }
     //并且当前表达式不在域块级中
-    else if( ( id ==='expression' || id==='ternary' || id==='condition' || 
-        (id==='var' && stack.parent().keyword()==='condition') )
-        && Utils.isRightDelimiter( this.next.value ) )
+    else if( Utils.isRightDelimiter( this.next.value ) )
     {
-        stack.switch();
+        while ( ( id ==='expression' || id==='ternary' || id==='condition' ||
+        (id==='var' && stack.parent().keyword()==='condition') ) ){
+            stack.switch();
+            stack = this.scope();
+            id = stack.keyword();
+        }
         return true;
     }
     this.error('Syntax not end');

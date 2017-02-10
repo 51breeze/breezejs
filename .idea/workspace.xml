@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="013723df-740c-4cf5-b05e-cf938a968d79" name="Default" comment="">
+    <list default="true" id="013723df-740c-4cf5-b05e-cf938a968d79" name="Default" comment="1.1">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Make.js" afterPath="$PROJECT_DIR$/compiler/Make.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Ruler.js" afterPath="$PROJECT_DIR$/compiler/Ruler.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/lib/Descriptions.js" afterPath="$PROJECT_DIR$/compiler/lib/Descriptions.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/lib/System.js" afterPath="$PROJECT_DIR$/compiler/lib/System.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Main-min.js" afterPath="$PROJECT_DIR$/lib/Main-min.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/com_bjson" afterPath="$PROJECT_DIR$/lib/cache/com_bjson" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/com_djson" afterPath="$PROJECT_DIR$/lib/cache/com_djson" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Main.as" afterPath="$PROJECT_DIR$/lib/Main.as" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/lib_eventdispatcherjson" afterPath="$PROJECT_DIR$/lib/cache/lib_eventdispatcherjson" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/mainjson" afterPath="$PROJECT_DIR$/lib/cache/mainjson" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/main.as" afterPath="$PROJECT_DIR$/lib/main.as" />
@@ -44,7 +41,7 @@
       <file leaf-file-name="System.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/lib/System.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="93">
+            <state relative-caret-position="27838">
               <caret line="898" column="25" selection-start-line="898" selection-start-column="25" selection-end-line="898" selection-end-column="25" />
               <folding />
             </state>
@@ -54,8 +51,8 @@
       <file leaf-file-name="Make.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/Make.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="454">
-              <caret line="1083" column="78" selection-start-line="1083" selection-start-column="53" selection-end-line="1083" selection-end-column="78" />
+            <state relative-caret-position="33542">
+              <caret line="1082" column="17" selection-start-line="1082" selection-start-column="17" selection-end-line="1082" selection-end-column="17" />
               <folding />
             </state>
           </provider>
@@ -64,7 +61,7 @@
       <file leaf-file-name="EcmaScript.js" pinned="false" current-in-tab="false">
         <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="762">
+            <state relative-caret-position="13392">
               <caret line="432" column="0" selection-start-line="432" selection-start-column="0" selection-end-line="432" selection-end-column="0" />
               <folding />
             </state>
@@ -74,7 +71,7 @@
       <file leaf-file-name="Descriptions.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/lib/Descriptions.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="303">
+            <state relative-caret-position="6448">
               <caret line="208" column="89" selection-start-line="208" selection-start-column="89" selection-end-line="208" selection-end-column="89" />
               <folding />
             </state>
@@ -84,8 +81,18 @@
       <file leaf-file-name="Ruler.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="248">
-              <caret line="110" column="21" selection-start-line="110" selection-start-column="21" selection-end-line="110" selection-end-column="21" />
+            <state relative-caret-position="71982">
+              <caret line="2322" column="33" selection-start-line="2322" selection-start-column="33" selection-end-line="2322" selection-end-column="33" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Utils.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/lib/Utils.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="10137">
+              <caret line="327" column="9" selection-start-line="327" selection-start-column="9" selection-end-line="327" selection-end-column="9" />
               <folding />
             </state>
           </provider>
@@ -94,8 +101,8 @@
       <file leaf-file-name="main.as" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lib/main.as">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="582">
-              <caret line="159" column="17" selection-start-line="159" selection-start-column="17" selection-end-line="159" selection-end-column="17" />
+            <state relative-caret-position="427">
+              <caret line="40" column="0" selection-start-line="40" selection-start-column="0" selection-end-line="40" selection-end-column="0" />
               <folding>
                 <element signature="e#546#573#0" expanded="true" />
               </folding>
@@ -106,7 +113,7 @@
       <file leaf-file-name="B.as" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/com/B.as">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="365">
+            <state relative-caret-position="1147">
               <caret line="40" column="11" selection-start-line="40" selection-start-column="11" selection-end-line="40" selection-end-column="11" />
               <folding />
             </state>
@@ -116,69 +123,10 @@
       <file leaf-file-name="Main-min.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="475">
-              <caret line="1607" column="57" selection-start-line="1607" selection-start-column="57" selection-end-line="1607" selection-end-column="57" />
+            <state relative-caret-position="50499">
+              <caret line="1629" column="24" selection-start-line="1629" selection-start-column="24" selection-end-line="1629" selection-end-column="24" />
               <folding>
-                <marker date="1486566987374" expanded="true" signature="953:1038" ph="/** 对象类构造器 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="1346:1422" ph="/** 获取指定对象的原型 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="1766:1818" ph="/** 设置对象的原型链 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="1975:2172" ph="/** 合并其它参数到指定的 target 对象中 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="3824:3922" ph="/** 指示 Object 类的实例是否在指定为参数的对象的原型链中 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="4488:4636" ph="/** 表示对象是否已经定义了指定的属性。 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="5064:5257" ph="/** 表示指定的属性是否存在、是否可枚举。 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="5871:6089" ph="/** 设置循环操作动态属性的可用性。 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="6969:7023" ph="/** 返回指定对象的原始值 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="7492:7551" ph="/** 返回指定对象的字符串表示形式。 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="8025:8081" ph="/** 返回对象可枚举的属性的键名 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="8325:8380" ph="/**  返回对象可枚举的属性值 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="8628:8677" ph="/** JSON 对象构造器 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="10237:10305" ph="/** 数组构造器 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="11344:11500" ph="/** 循环对象中的每一个属性，只有纯对象或者是一个数组才会执行。 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="11891:12016" ph="/** 方法使用指定的函数测试所有元素，并创建一个包含所有通过测试的元素的新数组。 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="12455:12585" ph="/** 将一个数组的所有元素从开始索引填充到具有静态值的结束索引 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="13315:13437" ph="/** 返回数组中满足提供的测试函数的第一个元素的值。否则返回 undefined。 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="13869:13914" ph="/** 描述符构造器 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="14333:14454" ph="/** 迭代构造器 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="16456:16513" ph="/** 将指针向前移动一个位置并返回当前元素 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="16682:16732" ph="/** 返回当前指针位置的元素 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="16882:16961" ph="/** 返回上一个指针位置的元素 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="17110:17191" ph="/** 返回下一个指针位置的元素。 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="17357:17438" ph="/** 将指针移到到指定的位置并返回当前位置的元素 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="17681:17731" ph="/** 重置指针 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="17842:17911" ph="/** 类对象构造器 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="18606:18651" ph="/** 接口构造函数 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="19088:19199" ph="/** 错误消息构造函数 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="19694:19804" ph="/** 引用错误构造器 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="20107:20217" ph="/** 类型错误构造器 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="20485:20595" ph="/** 语法错误构造器 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="20876:20955" ph="/** 返回对象类型的字符串表示形式 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="21250:21369" ph="/** 检查实例对象是否属于指定的类型(不会检查接口类型) ...*/" />
-                <marker date="1486566987374" expanded="true" signature="22128:22245" ph="/** 检查实例对象是否属于指定的类型(检查接口类型) ...*/" />
-                <marker date="1486566987374" expanded="true" signature="23307:23400" ph="/** 为指定的类创建一个新的实例对象 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="24386:24462" ph="/** 根据指定的类名获取类的对象 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="26256:26319" ph="{...}" />
-                <marker date="1486566987374" expanded="true" signature="26376:26453" ph="/** 获取指定实例对象的超类名称 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="26926:27101" ph="/** 判断是否为一个可遍历的对象 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="27433:27548" ph="/** 检查所有传入的值定义 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="27752:27822" ph="/** 判断是否为数组 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="27952:28022" ph="/** 判断是否为函数 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="28503:28579" ph="/** 判断是否为一个标量 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="28753:28825" ph="/** 判断是否为数字类型 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="28936:28998" ph="/** 抛出错误信息 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="29556:29663" ph="/** 判断是否为一个空值 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="29966:30039" ph="/** 去掉指定字符两边的空白 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="43580:43678" ph="/** 构建一个访问器 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="45014:45143" ph="/** 定义Class或者Interface对象 ...*/" />
-                <marker date="1486566987374" expanded="true" signature="46698:47486" ph="{...}" />
-                <marker date="1486566987374" expanded="true" signature="46728:47486" ph="{&quot;final&quot;: false...}" />
-                <marker date="1486566987374" expanded="true" signature="46756:47139" ph="{...}" />
-                <marker date="1486566987374" expanded="true" signature="47360:47486" ph="{...}" />
-                <marker date="1486566987374" expanded="true" signature="47438:47486" ph="{&quot;id&quot;: &quot;function&quot;...}" />
-                <marker date="1486566987374" expanded="true" signature="60740:60752" ph="{...}" />
-                <marker date="1486566987374" expanded="true" signature="60740:60753" ph="{&quot;id&quot;: &quot;function&quot;...}" />
-                <marker date="1486566987374" expanded="true" signature="60740:60755" ph="{...}" />
-                <marker date="1486566987374" expanded="true" signature="60740:60756" ph="{&quot;final&quot;: false...}" />
-                <marker date="1486566987374" expanded="true" signature="60740:60767" ph="{...}" />
+                <marker date="1486710038605" expanded="true" signature="26256:26319" ph="{...}" />
               </folding>
             </state>
           </provider>
@@ -187,18 +135,8 @@
       <file leaf-file-name="EventDispatcher.as" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/lib/EventDispatcher.as">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="365">
-              <caret line="51" column="17" selection-start-line="51" selection-start-column="17" selection-end-line="51" selection-end-column="17" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="EcmaScript5.js" pinned="false" current-in-tab="false">
-        <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript5.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="297">
-              <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
+            <state relative-caret-position="1085">
+              <caret line="41" column="9" selection-start-line="41" selection-start-column="9" selection-end-line="41" selection-end-column="9" />
               <folding />
             </state>
           </provider>
@@ -274,10 +212,10 @@
         <option value="$PROJECT_DIR$/lib/com/Abs.as" />
         <option value="$PROJECT_DIR$/testjs.js" />
         <option value="$PROJECT_DIR$/compiler/lib/Descriptions.js" />
-        <option value="$PROJECT_DIR$/compiler/Ruler.js" />
-        <option value="$PROJECT_DIR$/lib/Main-min.js" />
-        <option value="$PROJECT_DIR$/compiler/Make.js" />
         <option value="$PROJECT_DIR$/compiler/lib/System.js" />
+        <option value="$PROJECT_DIR$/lib/Main-min.js" />
+        <option value="$PROJECT_DIR$/compiler/Ruler.js" />
+        <option value="$PROJECT_DIR$/compiler/Make.js" />
         <option value="$PROJECT_DIR$/lib/main.as" />
       </list>
     </option>
@@ -342,8 +280,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -464,6 +400,8 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -498,19 +436,19 @@
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
   </component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="E:\webroot\breezejs\compiler\lib" />
-      <recent name="E:\webroot\breezejs\lib\com" />
-      <recent name="E:\webroot\breezejs\lib" />
-      <recent name="E:\nodejs\breezejs\compiler\lib" />
-      <recent name="E:\nodejs\breezejs\lib" />
-    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="E:\webroot\breezejs\compiler\lib" />
       <recent name="E:\nodejs\breezejs\compiler" />
       <recent name="E:\nodejs\breezejs\lib" />
       <recent name="E:\nodejs\breezejs" />
       <recent name="E:\nodejs\breezejs\components" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\webroot\breezejs\compiler\lib" />
+      <recent name="E:\webroot\breezejs\lib\com" />
+      <recent name="E:\webroot\breezejs\lib" />
+      <recent name="E:\nodejs\breezejs\compiler\lib" />
+      <recent name="E:\nodejs\breezejs\lib" />
     </key>
   </component>
   <component name="RunManager">
@@ -637,14 +575,9 @@
       <workItem from="1486263085293" duration="48691000" />
       <workItem from="1486350475486" duration="46839000" />
       <workItem from="1486438100714" duration="47411000" />
-      <workItem from="1486535354951" duration="27200000" />
-    </task>
-    <task id="LOCAL-00186" summary="tester">
-      <created>1478600779935</created>
-      <option name="number" value="00186" />
-      <option name="presentableId" value="LOCAL-00186" />
-      <option name="project" value="LOCAL" />
-      <updated>1478600779935</updated>
+      <workItem from="1486535354951" duration="28209000" />
+      <workItem from="1486694058266" duration="16148000" />
+      <workItem from="1486710471695" duration="11000" />
     </task>
     <task id="LOCAL-00187" summary="tester">
       <created>1478686139916</created>
@@ -982,11 +915,18 @@
       <option name="project" value="LOCAL" />
       <updated>1486488773749</updated>
     </task>
-    <option name="localTasksCounter" value="235" />
+    <task id="LOCAL-00235" summary="1.1">
+      <created>1486567078177</created>
+      <option name="number" value="00235" />
+      <option name="presentableId" value="LOCAL-00235" />
+      <option name="project" value="LOCAL" />
+      <updated>1486567078178</updated>
+    </task>
+    <option name="localTasksCounter" value="236" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1487994000" />
+    <option name="totallyTimeSpent" value="1505162000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1001,13 +941,13 @@
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15778251" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1609808" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32899022" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32790446" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.8208469" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" x="806" y="109" width="1011" height="756" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="false" show_stripe_button="true" weight="0.92833877" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" x="1367" y="75" width="1059" height="893" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -1242,7 +1182,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="10571">
           <caret line="341" column="5" selection-start-line="341" selection-start-column="5" selection-end-line="341" selection-end-column="5" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1279,7 +1218,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="297">
           <caret line="964" column="9" selection-start-line="964" selection-start-column="9" selection-end-line="964" selection-end-column="9" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1297,7 +1235,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="217">
           <caret line="46" column="23" selection-start-line="46" selection-start-column="23" selection-end-line="46" selection-end-column="23" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1305,9 +1242,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="651">
           <caret line="22" column="18" selection-start-line="22" selection-start-column="18" selection-end-line="22" selection-end-column="18" />
-          <folding>
-            <element signature="e#553#567#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1323,29 +1257,19 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="310">
           <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/lib/Utils.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="297">
-          <caret line="327" column="9" selection-start-line="327" selection-start-column="9" selection-end-line="327" selection-end-column="9" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript5.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="297">
+        <state relative-caret-position="806">
           <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="762">
+        <state relative-caret-position="13392">
           <caret line="432" column="0" selection-start-line="432" selection-start-column="0" selection-end-line="432" selection-end-column="0" />
           <folding />
         </state>
@@ -1353,7 +1277,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/compiler/lib/Descriptions.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="303">
+        <state relative-caret-position="6448">
           <caret line="208" column="89" selection-start-line="208" selection-start-column="89" selection-end-line="208" selection-end-column="89" />
           <folding />
         </state>
@@ -1361,117 +1285,66 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/com/B.as">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="365">
+        <state relative-caret-position="1147">
           <caret line="40" column="11" selection-start-line="40" selection-start-column="11" selection-end-line="40" selection-end-column="11" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/lib/EventDispatcher.as">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="365">
-          <caret line="51" column="17" selection-start-line="51" selection-start-column="17" selection-end-line="51" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="475">
-          <caret line="1607" column="57" selection-start-line="1607" selection-start-column="57" selection-end-line="1607" selection-end-column="57" />
-          <folding>
-            <marker date="1486566987374" expanded="true" signature="953:1038" ph="/** 对象类构造器 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="1346:1422" ph="/** 获取指定对象的原型 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="1766:1818" ph="/** 设置对象的原型链 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="1975:2172" ph="/** 合并其它参数到指定的 target 对象中 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="3824:3922" ph="/** 指示 Object 类的实例是否在指定为参数的对象的原型链中 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="4488:4636" ph="/** 表示对象是否已经定义了指定的属性。 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="5064:5257" ph="/** 表示指定的属性是否存在、是否可枚举。 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="5871:6089" ph="/** 设置循环操作动态属性的可用性。 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="6969:7023" ph="/** 返回指定对象的原始值 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="7492:7551" ph="/** 返回指定对象的字符串表示形式。 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="8025:8081" ph="/** 返回对象可枚举的属性的键名 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="8325:8380" ph="/**  返回对象可枚举的属性值 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="8628:8677" ph="/** JSON 对象构造器 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="10237:10305" ph="/** 数组构造器 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="11344:11500" ph="/** 循环对象中的每一个属性，只有纯对象或者是一个数组才会执行。 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="11891:12016" ph="/** 方法使用指定的函数测试所有元素，并创建一个包含所有通过测试的元素的新数组。 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="12455:12585" ph="/** 将一个数组的所有元素从开始索引填充到具有静态值的结束索引 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="13315:13437" ph="/** 返回数组中满足提供的测试函数的第一个元素的值。否则返回 undefined。 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="13869:13914" ph="/** 描述符构造器 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="14333:14454" ph="/** 迭代构造器 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="16456:16513" ph="/** 将指针向前移动一个位置并返回当前元素 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="16682:16732" ph="/** 返回当前指针位置的元素 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="16882:16961" ph="/** 返回上一个指针位置的元素 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="17110:17191" ph="/** 返回下一个指针位置的元素。 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="17357:17438" ph="/** 将指针移到到指定的位置并返回当前位置的元素 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="17681:17731" ph="/** 重置指针 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="17842:17911" ph="/** 类对象构造器 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="18606:18651" ph="/** 接口构造函数 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="19088:19199" ph="/** 错误消息构造函数 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="19694:19804" ph="/** 引用错误构造器 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="20107:20217" ph="/** 类型错误构造器 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="20485:20595" ph="/** 语法错误构造器 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="20876:20955" ph="/** 返回对象类型的字符串表示形式 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="21250:21369" ph="/** 检查实例对象是否属于指定的类型(不会检查接口类型) ...*/" />
-            <marker date="1486566987374" expanded="true" signature="22128:22245" ph="/** 检查实例对象是否属于指定的类型(检查接口类型) ...*/" />
-            <marker date="1486566987374" expanded="true" signature="23307:23400" ph="/** 为指定的类创建一个新的实例对象 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="24386:24462" ph="/** 根据指定的类名获取类的对象 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="26256:26319" ph="{...}" />
-            <marker date="1486566987374" expanded="true" signature="26376:26453" ph="/** 获取指定实例对象的超类名称 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="26926:27101" ph="/** 判断是否为一个可遍历的对象 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="27433:27548" ph="/** 检查所有传入的值定义 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="27752:27822" ph="/** 判断是否为数组 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="27952:28022" ph="/** 判断是否为函数 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="28503:28579" ph="/** 判断是否为一个标量 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="28753:28825" ph="/** 判断是否为数字类型 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="28936:28998" ph="/** 抛出错误信息 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="29556:29663" ph="/** 判断是否为一个空值 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="29966:30039" ph="/** 去掉指定字符两边的空白 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="43580:43678" ph="/** 构建一个访问器 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="45014:45143" ph="/** 定义Class或者Interface对象 ...*/" />
-            <marker date="1486566987374" expanded="true" signature="46698:47486" ph="{...}" />
-            <marker date="1486566987374" expanded="true" signature="46728:47486" ph="{&quot;final&quot;: false...}" />
-            <marker date="1486566987374" expanded="true" signature="46756:47139" ph="{...}" />
-            <marker date="1486566987374" expanded="true" signature="47360:47486" ph="{...}" />
-            <marker date="1486566987374" expanded="true" signature="47438:47486" ph="{&quot;id&quot;: &quot;function&quot;...}" />
-            <marker date="1486566987374" expanded="true" signature="60740:60752" ph="{...}" />
-            <marker date="1486566987374" expanded="true" signature="60740:60753" ph="{&quot;id&quot;: &quot;function&quot;...}" />
-            <marker date="1486566987374" expanded="true" signature="60740:60755" ph="{...}" />
-            <marker date="1486566987374" expanded="true" signature="60740:60756" ph="{&quot;final&quot;: false...}" />
-            <marker date="1486566987374" expanded="true" signature="60740:60767" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="248">
-          <caret line="110" column="21" selection-start-line="110" selection-start-column="21" selection-end-line="110" selection-end-column="21" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/Make.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="454">
-          <caret line="1083" column="78" selection-start-line="1083" selection-start-column="53" selection-end-line="1083" selection-end-column="78" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/compiler/lib/System.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="93">
+        <state relative-caret-position="27838">
           <caret line="898" column="25" selection-start-line="898" selection-start-column="25" selection-end-line="898" selection-end-column="25" />
           <folding />
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/lib/Utils.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="10137">
+          <caret line="327" column="9" selection-start-line="327" selection-start-column="9" selection-end-line="327" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/lib/EventDispatcher.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1085">
+          <caret line="41" column="9" selection-start-line="41" selection-start-column="9" selection-end-line="41" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="71982">
+          <caret line="2322" column="33" selection-start-line="2322" selection-start-column="33" selection-end-line="2322" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/Make.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="33542">
+          <caret line="1082" column="17" selection-start-line="1082" selection-start-column="17" selection-end-line="1082" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="50499">
+          <caret line="1629" column="24" selection-start-line="1629" selection-start-column="24" selection-end-line="1629" selection-end-column="24" />
+          <folding>
+            <marker date="1486710038605" expanded="true" signature="26256:26319" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/lib/main.as">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="582">
-          <caret line="159" column="17" selection-start-line="159" selection-start-column="17" selection-end-line="159" selection-end-column="17" />
+        <state relative-caret-position="427">
+          <caret line="40" column="0" selection-start-line="40" selection-start-column="0" selection-end-line="40" selection-end-column="0" />
           <folding>
             <element signature="e#546#573#0" expanded="true" />
           </folding>
