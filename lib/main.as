@@ -32,23 +32,52 @@ import com.D;
         public var uuu:String = 'yhhh' ;
       //  static public var name:String = '5' ;
 
+        public var iu:Number= 5;
+
+        public var dd:Class = Array;
+
 
           //var bb:String='123';
           function Main(jj)
           {
 
-              this.tests(  555 && {} ,2,3,4,(5+6),6 && 6666 );
+              var bcc
+                  ;bcc = 'uuu' in this;
+
+              System.log( bcc,'++++++uuu ' );
 
 
-              delete this.uuu;
+              var iv=this;
 
+              iv.iu++;
+
+              System.log( iv.iu ,'==========');
+
+              this.iu = 6 || iv;
+
+
+
+
+              typeof !iv;
+
+              this.tests(  555 ,2,3,4,(5+6),6 && 6666 );
 
               var bc:lib.EventDispatcher;
 
 
               var an = new Array(5,6,8);
-              an.values();
+            //  an.values();
 
+              var iii={};
+
+              iii.name=666;
+              iii.yyy='pppp';
+
+              System.log( iii ,'==+++===');
+
+              delete iii.name;
+
+              System.log( iii ,'==------===');
 
              // this.tests({},2,3,4,(5+6),6 && 6666 );
               
@@ -133,6 +162,8 @@ import com.D;
                   }
 
               }
+
+
 
               for( let b in items )
               {

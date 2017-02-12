@@ -898,20 +898,18 @@ syntax["super"]=function (e)
 syntax["in"]=function(e)
 {
     e.prevented=true;
-    this.scope().switch();
-    if('statement' ===  this.scope().keyword() )this.scope().switch();
+    //this.scope().switch();
+    //if('statement' ===  this.scope().keyword() )this.scope().switch();
     this.add( this.current );
-    var p = this.scope().parent();
-    this.scope().type('(Boolean)');
-    if( p.keyword()==='var' || p.keyword()==='left' )this.scope().type('(String)');
-    if( this.next.type ==='(operator)' || ( Utils.isConstant(this.next.value) && this.next.value!=='this' ) )this.error('',this.next);
+    if( this.next.type ==='(operator)' || ( Utils.isConstant(this.next.value) && this.next.value!=='this' ) || this.next.value ===';'  )this.error('Missing expression',this.next);
     this.step();
 }
 
 syntax["typeof"]=function(e)
 {
     e.prevented=true;
-    if( Utils.isOperator(this.next.value) )this.error();
+    if( Utils.isOperator(this.next.value) && !Utils.isIncreaseAndDecreaseOperator(this.next.value) && !(this.next.value==='!' || this.next.value==='!!' || this.next.value==='new' ) )
+        this.error();
     if( this.scope().keyword()!=='expression')this.add( new Stack('expression', '(String)' ) );
     this.scope().type('(String)');
     if( Utils.isBoolOperator(this.prev.value) ) this.scope().type('(Boolean)');
@@ -922,7 +920,8 @@ syntax["typeof"]=function(e)
 syntax["delete"]=function(e)
 {
     e.prevented=true;
-    if( this.next.type !==' (identifier)' || this.next.id==='(keyword)' )this.error();
+    if( Utils.isOperator(this.next.value) )this.error();
+    if( !(this.next.type ==='(identifier)' || this.next.value==='this') )this.error();
     if( !(this.scope() instanceof Scope) )this.error('Delete operator can only appear in the block scope');
     if( this.scope().keyword()!=='expression')this.add( new Stack('expression', '(*)' ) );
     this.add( this.current );

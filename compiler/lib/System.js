@@ -446,7 +446,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     {
        if( target instanceof Iterator )return target;
        if( !(this instanceof Iterator) ) return new Iterator(target, forIn);
-       target = Object(target);
+       target = target ? Object(target) : [];
        var items = target;
        var desc;
        var obj = target;
@@ -483,6 +483,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
        }
        if( forIn===true )return items;
        this.items = items;
+       return this;
     }
     s.Iterator = Iterator;
     Iterator.prototype = new Object();
@@ -782,12 +783,6 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         return obj;
     }
     s.factory=factory;
-    
-    function forIn(obj,callback)
-    {
-         
-    }
-    s.forIn = forIn;
 
     /**
      * 根据指定的类名获取类的对象
@@ -833,14 +828,14 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                  if (value === s.Object)return 'Object';
                  if (value === s.JSON)return 'JSON';
                   return 'Function';
+             default :
+                 if( isObject(value,true) )return 'Object';
+                 if( isArray(value) )return 'Array';
+                 if( value instanceof String )return 'String';
+                 if( value instanceof Number )return 'Number';
+                 if( value instanceof Boolean )return 'Boolean';
+                 if( value.constructor instanceof Class )return getFullname(value.constructor);
          }
-
-         if( isObject(value,true) )return 'Object';
-         if( isArray(value) )return 'Array';
-         if( value instanceof String )return 'String';
-         if( value instanceof Number )return 'Number';
-         if( value instanceof Boolean )return 'Boolean';
-         if( value.constructor instanceof Class )return getFullname(value.constructor);
          throwError('reference','type does not exist');
     }
     s.getQualifiedClassName=getQualifiedClassName;
@@ -1111,10 +1106,12 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
          */
         function mathOperator( a, o, b)
         {
-            if( a==='--' || b==='--')return o-1;
-            if( a==='++' || b==='++' )return o+1;
             switch (o)
             {
+                case ';++': return a++;
+                case ';--': return a--;
+                case '++;': return ++a;
+                case '--;': return --a;
                 case '+=' : return a+=b;
                 case '-=' : return a-=b;
                 case '*=' : return a*=b;
@@ -1126,7 +1123,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                 case '<<=' :return a<<=b;
                 case '>>=' :return a>>=b;
                 case '>>>=' :return a>>>=b;
-                default : return b;
+                default : return b || a;
             }
         }
 
@@ -1189,7 +1186,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
          * @param classModule
          * @returns {Function}
          */
-        function call( classModule, thisArg, properties, args, iscall)
+        function call( classModule, thisArg, properties, args, iscall ,operator)
         {
             var desc;
             var strName = properties ? properties : thisArg;
@@ -1197,29 +1194,15 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
             var refObj = thisArg;
             var value = refObj;
             var isset = typeof args !== "undefined" && !iscall;
-            var operator;
-            var left;
-
             //一组引用对象的属性或者是运算符（必须在属性的前面或者后面）
             if( properties && typeof properties !== "string" )
             {
-                //前自增减运算符
-                if( properties[0]==='--' || properties[0]==='++' )left = properties.shift();
                 //指定的引用对象模块
                 if( properties[0] instanceof Class )refObj = value = properties.shift();
                 //属性名字符串的表示
                 strName = properties.join('.');
                 //需要操作的属性名
                 lastProp = properties.pop();
-                //指定的赋值运算符
-                if( isMathAssignOperator( lastProp )  )
-                {
-                    operator = lastProp;
-                    if(operator==='=')operator='';
-                    strName = properties.join('.');
-                    lastProp = properties.pop();
-                }
-
                 //如果有链式操作则获取引用
                 if( properties.length > 0 )
                 {
@@ -1307,16 +1290,53 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                 }
             }
 
-            //设置属性值
-            if( isset )
+            //删除操作
+            if( operator==='delete' )
             {
+                //删除操作只能对一个纯对象的引用管用
+                if (
+                    (desc && (desc.id === 'var' || desc.id === 'class' || desc.id === 'const' || desc.id === 'function' )) ||
+                    !$hasOwnProperty.call(refObj, lastProp) ||
+                    (refObj.constructor instanceof Class && !refObj.constructor.dynamic)
+                ){
+                    throwError('reference','"'+strName+'" property can not delete');
+                }
+                return delete refObj[lastProp];
+            }
+
+
+            //设置属性值
+            if( isset || operator )
+            {
+                var ret=args;
                 if( operator )
                 {
                     var val = getValue( thisArg, refObj, desc, lastProp ,strName  );
-                    checkValueType(desc, val, strName);
-                    args = mathOperator( val, operator, args );
+                    switch (operator) {
+                        case ';++':
+                            ret = val;
+                            val++;
+                            break;
+                        case ';--':
+                            ret = val;
+                            val--;
+                            break;
+                        case '++;':
+                            ++val;
+                            ret = val;
+                            break;
+                        case '--;':
+                            --val;
+                            ret = val;
+                            break;
+                        default :
+                            ret = val = mathOperator( val, operator, args )
+                    }
+                    args = val;
                 }
-                return setValue( thisArg, refObj, desc, lastProp ,args, strName, writable );
+                checkValueType(desc, args, strName);
+                setValue( thisArg, refObj, desc, lastProp ,args, strName, writable );
+                return ret;
             }
 
             //获取原始值
@@ -1328,7 +1348,6 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
             {
                 value = refObj[lastProp];
             }
-
             //调用方法
             if ( iscall )
             {
@@ -1339,25 +1358,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                 return value.apply(thisArg, args);
             }
             //待返回的值
-            var val = value;
-            //如果有指定运算符
-            if( left || operator )
-            {
-                checkValueType(desc, 1, strName);
-                //前置运算(先返回运算后的结果再赋值)
-                if(left)
-                {
-                    val = value = mathOperator( left, value, null, desc )
-                }
-                //后置运算(先赋值后再返回运算后的结果)
-                else
-                {
-                    value=mathOperator( null, value, operator, desc );
-                }
-                //将运算后的结果保存
-                setValue( thisArg, refObj, desc, lastProp , value, strName, writable );
-            }
-            return val;
+            return value;
         }
         return call;
     })();
@@ -1370,10 +1371,10 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      */
     function make(classModule, flag )
     {
-        return function (info, thisArg, properties ,value)
+        return function (info, thisArg, properties ,value, operator)
         {
             try{
-                return __call(classModule, thisArg, properties, value, flag);
+                return __call(classModule, thisArg, properties, value, flag, operator);
             }catch(error){
                 toErrorMsg(error, classModule, info)
             }
@@ -1382,9 +1383,10 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
 
     function newInstance(classModule)
     {
-        return function (info, theClass, args)
+        return function (info, thisArg, properties , args)
         {
             try{
+                var theClass = __call(classModule, thisArg, properties, undefined, false );
                 return System.isArray(args) ? System.factory.apply(null, [theClass].concat(args) ) : System.factory(theClass);
             }catch(error){
                 toErrorMsg(error, classModule, info)
@@ -1405,10 +1407,22 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         }
     }
 
+    function $delete( classModule )
+    {
+        return function (info, thisArg, properties)
+        {
+            try{
+                return __call(classModule, thisArg, properties, undefined, false, true);
+            }catch(error){
+                toErrorMsg(error, classModule, info);
+            }
+        }
+    }
+
     function toErrorMsg(error, classModule, info)
     {
         var msg = classModule.filename + ':' + info + '\n';
-         msg +=  typeof error === "string" ? error : error.message;
+        msg +=  typeof error === "string" ? error : error.message;
         throwError("reference", msg, info, classModule.filename );
     }
 
@@ -1439,6 +1453,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                 classModule.prop = make(classModule, false);
                 classModule.newInstance = newInstance(classModule);
                 classModule.checkType = checkType(classModule);
+                classModule.delete = $delete(classModule);
             }
         }
 
