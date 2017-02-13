@@ -4,14 +4,14 @@
     <list default="true" id="013723df-740c-4cf5-b05e-cf938a968d79" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Make.js" afterPath="$PROJECT_DIR$/compiler/Make.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Ruler.js" afterPath="$PROJECT_DIR$/compiler/Ruler.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/lib/Descriptions.js" afterPath="$PROJECT_DIR$/compiler/lib/Descriptions.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/lib/System.js" afterPath="$PROJECT_DIR$/compiler/lib/System.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Main-min.js" afterPath="$PROJECT_DIR$/lib/Main-min.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Main.as" afterPath="$PROJECT_DIR$/lib/Main.as" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/lib_eventdispatcherjson" afterPath="$PROJECT_DIR$/lib/cache/lib_eventdispatcherjson" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/com_bjson" afterPath="$PROJECT_DIR$/lib/cache/com_bjson" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/mainjson" afterPath="$PROJECT_DIR$/lib/cache/mainjson" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/com/B.as" afterPath="$PROJECT_DIR$/lib/com/B.as" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/main.as" afterPath="$PROJECT_DIR$/lib/main.as" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/testjs.js" afterPath="$PROJECT_DIR$/testjs.js" />
     </list>
     <ignored path="breezejs.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -40,11 +40,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="System.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="System.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/compiler/lib/System.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="248">
-              <caret line="1320" column="38" selection-start-line="1320" selection-start-column="38" selection-end-line="1320" selection-end-column="38" />
+            <state relative-caret-position="527">
+              <caret line="35" column="43" selection-start-line="35" selection-start-column="43" selection-end-line="35" selection-end-column="43" />
               <folding />
             </state>
           </provider>
@@ -53,8 +53,8 @@
       <file leaf-file-name="Make.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/Make.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="644">
-              <caret line="256" column="25" selection-start-line="256" selection-start-column="25" selection-end-line="256" selection-end-column="25" />
+            <state relative-caret-position="191">
+              <caret line="591" column="23" selection-start-line="591" selection-start-column="23" selection-end-line="591" selection-end-column="23" />
               <folding />
             </state>
           </provider>
@@ -63,8 +63,8 @@
       <file leaf-file-name="Descriptions.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/lib/Descriptions.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6448">
-              <caret line="208" column="89" selection-start-line="208" selection-start-column="89" selection-end-line="208" selection-end-column="89" />
+            <state relative-caret-position="279">
+              <caret line="30" column="14" selection-start-line="30" selection-start-column="14" selection-end-line="30" selection-end-column="14" />
               <folding />
             </state>
           </provider>
@@ -73,7 +73,7 @@
       <file leaf-file-name="Ruler.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="385">
+            <state relative-caret-position="28055">
               <caret line="905" column="1" selection-start-line="905" selection-start-column="1" selection-end-line="905" selection-end-column="1" />
               <folding />
             </state>
@@ -83,18 +83,18 @@
       <file leaf-file-name="Utils.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/lib/Utils.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="297">
-              <caret line="356" column="9" selection-start-line="356" selection-start-column="9" selection-end-line="356" selection-end-column="9" />
+            <state relative-caret-position="18">
+              <caret line="441" column="9" selection-start-line="441" selection-start-column="9" selection-end-line="441" selection-end-column="9" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.as" pinned="false" current-in-tab="true">
+      <file leaf-file-name="main.as" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/main.as">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="411">
-              <caret line="47" column="0" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="0" />
+            <state relative-caret-position="442">
+              <caret line="48" column="46" selection-start-line="48" selection-start-column="46" selection-end-line="48" selection-end-column="46" />
               <folding>
                 <element signature="e#546#573#0" expanded="true" />
               </folding>
@@ -116,7 +116,7 @@
         <entry file="file://$PROJECT_DIR$/lib/com/B.as">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="272">
-              <caret line="31" column="9" selection-start-line="31" selection-start-column="9" selection-end-line="31" selection-end-column="9" />
+              <caret line="22" column="17" selection-start-line="22" selection-start-column="17" selection-end-line="22" selection-end-column="17" />
               <folding />
             </state>
           </provider>
@@ -125,18 +125,20 @@
       <file leaf-file-name="Main-min.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="568">
-              <caret line="1638" column="14" selection-start-line="1638" selection-start-column="14" selection-end-line="1638" selection-end-column="14" />
-              <folding />
+            <state relative-caret-position="1374">
+              <caret line="1678" column="10" selection-start-line="1678" selection-start-column="10" selection-end-line="1678" selection-end-column="10" />
+              <folding>
+                <marker date="1486965871280" expanded="true" signature="158:993" ph="{...}" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="EventDispatcher.as" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/lib/lib/EventDispatcher.as">
+      <file leaf-file-name="Browser.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/lib/Browser.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1085">
-              <caret line="41" column="9" selection-start-line="41" selection-start-column="9" selection-end-line="41" selection-end-column="9" />
+            <state relative-caret-position="-1364">
+              <caret line="55" column="6" selection-start-line="55" selection-start-column="6" selection-end-line="55" selection-end-column="6" />
               <folding />
             </state>
           </provider>
@@ -207,16 +209,16 @@
         <option value="$PROJECT_DIR$/compiler/lib/Utils.js" />
         <option value="$PROJECT_DIR$/compiler/lib/Globals.js" />
         <option value="$PROJECT_DIR$/lib/lib/EventDispatcher.as" />
-        <option value="$PROJECT_DIR$/lib/com/B.as" />
         <option value="$PROJECT_DIR$/lib/com/D.as" />
         <option value="$PROJECT_DIR$/lib/com/Abs.as" />
-        <option value="$PROJECT_DIR$/compiler/lib/Descriptions.js" />
         <option value="$PROJECT_DIR$/testjs.js" />
         <option value="$PROJECT_DIR$/compiler/Ruler.js" />
+        <option value="$PROJECT_DIR$/lib/com/B.as" />
         <option value="$PROJECT_DIR$/compiler/Make.js" />
-        <option value="$PROJECT_DIR$/lib/Main-min.js" />
-        <option value="$PROJECT_DIR$/compiler/lib/System.js" />
         <option value="$PROJECT_DIR$/lib/main.as" />
+        <option value="$PROJECT_DIR$/lib/Main-min.js" />
+        <option value="$PROJECT_DIR$/compiler/lib/Descriptions.js" />
+        <option value="$PROJECT_DIR$/compiler/lib/System.js" />
       </list>
     </option>
   </component>
@@ -280,7 +282,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -323,60 +324,6 @@
               <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="lib" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="lib" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="lib" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="com" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="lib" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cache" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
               <option name="myItemId" value="compiler" />
               <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
             </PATH_ELEMENT>
@@ -401,6 +348,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -579,14 +527,8 @@
       <workItem from="1486694058266" duration="16148000" />
       <workItem from="1486710471695" duration="345000" />
       <workItem from="1486782528298" duration="30711000" />
-      <workItem from="1486870132629" duration="36750000" />
-    </task>
-    <task id="LOCAL-00188" summary="tester">
-      <created>1478773599251</created>
-      <option name="number" value="00188" />
-      <option name="presentableId" value="LOCAL-00188" />
-      <option name="project" value="LOCAL" />
-      <updated>1478773599251</updated>
+      <workItem from="1486870132629" duration="36774000" />
+      <workItem from="1486956904231" duration="8844000" />
     </task>
     <task id="LOCAL-00189" summary="tester">
       <created>1479204516059</created>
@@ -924,11 +866,18 @@
       <option name="project" value="LOCAL" />
       <updated>1486710503238</updated>
     </task>
-    <option name="localTasksCounter" value="237" />
+    <task id="LOCAL-00237" summary="1.1">
+      <created>1486915776072</created>
+      <option name="number" value="00237" />
+      <option name="presentableId" value="LOCAL-00237" />
+      <option name="project" value="LOCAL" />
+      <updated>1486915776107</updated>
+    </task>
+    <option name="localTasksCounter" value="238" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1572957000" />
+    <option name="totallyTimeSpent" value="1581825000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -943,13 +892,13 @@
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.10554371" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1108742" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32899022" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32790446" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.4668838" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" x="969" y="294" width="750" height="430" />
+      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.4549403" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" x="674" y="317" width="766" height="419" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -1234,14 +1183,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/lib/Browser.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="217">
-          <caret line="46" column="23" selection-start-line="46" selection-start-column="23" selection-end-line="46" selection-end-column="23" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/com/D.as">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="651">
@@ -1268,15 +1209,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="13392">
           <caret line="432" column="0" selection-start-line="432" selection-start-column="0" selection-end-line="432" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/lib/Descriptions.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6448">
-          <caret line="208" column="89" selection-start-line="208" selection-start-column="89" selection-end-line="208" selection-end-column="89" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1284,22 +1216,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1085">
           <caret line="41" column="9" selection-start-line="41" selection-start-column="9" selection-end-line="41" selection-end-column="9" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/com/B.as">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="31" column="9" selection-start-line="31" selection-start-column="9" selection-end-line="31" selection-end-column="9" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/lib/Utils.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="297">
-          <caret line="356" column="9" selection-start-line="356" selection-start-column="9" selection-end-line="356" selection-end-column="9" />
           <folding />
         </state>
       </provider>
@@ -1314,43 +1230,77 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="385">
+        <state relative-caret-position="28055">
           <caret line="905" column="1" selection-start-line="905" selection-start-column="1" selection-end-line="905" selection-end-column="1" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/Make.js">
+    <entry file="file://$PROJECT_DIR$/compiler/lib/Utils.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="644">
-          <caret line="256" column="25" selection-start-line="256" selection-start-column="25" selection-end-line="256" selection-end-column="25" />
+        <state relative-caret-position="18">
+          <caret line="441" column="9" selection-start-line="441" selection-start-column="9" selection-end-line="441" selection-end-column="9" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/lib/System.js">
+    <entry file="file://$PROJECT_DIR$/lib/com/B.as">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="248">
-          <caret line="1320" column="38" selection-start-line="1320" selection-start-column="38" selection-end-line="1320" selection-end-column="38" />
+        <state relative-caret-position="272">
+          <caret line="22" column="17" selection-start-line="22" selection-start-column="17" selection-end-line="22" selection-end-column="17" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
+    <entry file="file://$PROJECT_DIR$/compiler/lib/Browser.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="568">
-          <caret line="1638" column="14" selection-start-line="1638" selection-start-column="14" selection-end-line="1638" selection-end-column="14" />
+        <state relative-caret-position="-1364">
+          <caret line="55" column="6" selection-start-line="55" selection-start-column="6" selection-end-line="55" selection-end-column="6" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/main.as">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="411">
-          <caret line="47" column="0" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="0" />
+        <state relative-caret-position="442">
+          <caret line="48" column="46" selection-start-line="48" selection-start-column="46" selection-end-line="48" selection-end-column="46" />
           <folding>
             <element signature="e#546#573#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1374">
+          <caret line="1678" column="10" selection-start-line="1678" selection-start-column="10" selection-end-line="1678" selection-end-column="10" />
+          <folding>
+            <marker date="1486965871280" expanded="true" signature="158:993" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/lib/Descriptions.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="279">
+          <caret line="30" column="14" selection-start-line="30" selection-start-column="14" selection-end-line="30" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/Make.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="191">
+          <caret line="591" column="23" selection-start-line="591" selection-start-column="23" selection-end-line="591" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/lib/System.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="527">
+          <caret line="35" column="43" selection-start-line="35" selection-start-column="43" selection-end-line="35" selection-end-column="43" />
+          <folding />
         </state>
       </provider>
     </entry>

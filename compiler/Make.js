@@ -12,7 +12,7 @@ const config = {
     'cache':'off',
     'cachePath':'./cache',
     'debug':'on',
-    'browser':'enable',
+    'browser':'disable',  //enable disable
     'globals':globals,
     'enableBlockScope':'on',
     'reserved':['let']
@@ -592,7 +592,12 @@ function getDescriptorOfExpression(it, classmodule)
                  //全局引用
                 else
                 {
-                    desc = globals[it.current.value];
+                    if( globals.hasOwnProperty( it.current.value ) )desc = globals[ it.current.value ];
+                    if( !desc && globals.System.static.hasOwnProperty(it.current.value) )
+                    {
+                        property.name.push('System');
+                        desc = globals.System;
+                    }
                     property.isglobal=true;
                 }
             }
@@ -627,7 +632,7 @@ function getDescriptorOfExpression(it, classmodule)
             return property;
         }
     }
-    var isstatic = it.current.value === type || type==='Class';
+    var isstatic = it.current.value === type || type==='Class' || (desc && desc.id==='object');
     while ( it.next )
     {
         if ( it.next instanceof Ruler.STACK )
@@ -772,7 +777,7 @@ function checkRunning( classmodule, desc , value , operator )
 {
     var method  ='';
     var thisvrg = desc.thisArg || desc.name[0];
-    var props   = desc.name;
+    var props   = desc.name.slice();
     var express=[];
     var _operator='';
 
@@ -1105,7 +1110,8 @@ function expression( stack, classmodule ,  acceptType )
         var operator;
         var returnValue = true;
         var separator = stack.parent().keyword() === 'object' && stack.parent().type() === '(expression)' ? ',' : ';';
-        while (express.length > 0) {
+        while (express.length > 0)
+        {
             operator = express.pop();
             describe = express.pop();
             if (describe.coalition === true || describe.expression){
@@ -1876,17 +1882,18 @@ function start()
     var mainfile = pathfile( config.main , config.suffix, config.lib );
     var filename = PATH.resolve(PATH.dirname( mainfile ),PATH.basename(mainfile,config.suffix)+'-min.js' );
     var system = fs.readFileSync( PATH.resolve(config.make, './lib/System.js') , 'utf-8');
-
+    var g = [];
+    for(var key in globals)if(key!=='System')g.push(key);
     fs.writeFileSync(  filename,[
         '(function(){\n',
         system,
         '\n',
-        '(function(Object,Array, String,Class,Interface,JSON,Iterator){\n',
+        '(function('+ g.join(',')+'){\n',
         code.join(''),
         'delete System.define;\n',
         'var main=System.getDefinitionByName("'+config.main+'");\n',
         'System.factory(main);\n',
-        '})(System.Object,System.Array,System.String,System.Class,System.Interface,System.JSON,System.Iterator);\n',
+        '})(System.'+g.join(',System.')+');\n',
         '})();'].join('') );
     console.log('Making done.' );
 }

@@ -26,7 +26,7 @@ package com
         
          public var dispatcher:EventDispatcher = null ;
          protected const age:String = '3' ;
-         static private var address:String = 'shu line 6666' ;
+         static protected var address:String = 'shu line 6666' ;
 
         static protected function get classname():String
         {

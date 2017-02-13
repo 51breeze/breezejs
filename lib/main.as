@@ -44,7 +44,11 @@ import com.D;
               var bcc
                   ;bcc = 'uuu' in this;
 
-              System.log( bcc,'++++++uuu ' );
+              log( bcc,'++++++uuu ' );
+
+              log( isFinite( Main.address ) );
+
+
 
 
               var iv=this;

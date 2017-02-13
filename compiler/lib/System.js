@@ -23,6 +23,19 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     s.timeEnd = $console.timeEnd || function(){};
     s.trace = $console.trace || function(){};
     s.warn = $console.warn || function(){};
+    s.isFinite = isFinite || function () {};
+    s.decodeURI= decodeURI || function () {};
+    s.decodeURIComponent= decodeURIComponent || function () {};
+    s.encodeURI= encodeURI || function () {};
+    s.encodeURIComponent= encodeURIComponent || function () {};
+    s.escape= escape || function () {};
+    s.eval= eval || function () {};
+    s.isNaN= isNaN || function () {};
+    s.parseFloat= parseFloat || function () {};
+    s.parseInt= parseInt || function () {};
+    s.unescape= unescape || function () {};
+    //s.uneval= uneval || function () {};
+
 
     /**
      * 对象类构造器
@@ -257,7 +270,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     {
         var items=[];
         var it = new Iterator(this);
-        var len = it.items.length;
+        var len = it.items.length >> 0;
         var i = 0;
         for(;i<len;i++)items.push( it.items[i].key );
         return items;
@@ -271,7 +284,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     {
         var items=[];
         var it = new Iterator(this);
-        var len = it.items.length;
+        var len = it.items.length >> 0;
         var i = 0;
         for(;i<len;i++)items.push( it.items[i].value );
         return items;
@@ -353,7 +366,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     {
         if( typeof callback !== "function" )throwError('type','"callback" must be a function')
         var it = new Iterator(this);
-        var len = it.items.length;
+        var len = it.items.length >> 0;
         var i = 0;
         for(;i<len;i++)if(callback.call(thisArg, it.items[i].value, it.items[i].key )=== false)return this;
         return this;
@@ -446,7 +459,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     {
        if( target instanceof Iterator )return target;
        if( !(this instanceof Iterator) ) return new Iterator(target, forIn);
-       target = target ? Object(target) : [];
+       target = target ? _Object(target) : [];
        var items = target;
        var desc;
        var obj = target;
@@ -678,6 +691,30 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     s.SyntaxError = SyntaxError;
     SyntaxError.prototype = new Error();
     SyntaxError.prototype.constructor=SyntaxError;
+
+    function URIError( message , line, filename) {
+        Error.call(this, message , line, filename);
+        this.type='URIError';
+    }
+    s.URIError = URIError;
+    URIError.prototype = new Error();
+    URIError.prototype.constructor=URIError;
+
+    function RangeError( message , line, filename) {
+        Error.call(this, message , line, filename);
+        this.type='RangeError';
+    }
+    s.RangeError = RangeError;
+    RangeError.prototype = new Error();
+    RangeError.prototype.constructor=RangeError;
+
+    function EvalError( message , line, filename) {
+        Error.call(this, message , line, filename);
+        this.type='EvalError';
+    }
+    s.EvalError = EvalError;
+    EvalError.prototype = new Error();
+    EvalError.prototype.constructor=EvalError;
 
     /**
      * 返回对象类型的字符串表示形式
