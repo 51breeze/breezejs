@@ -1,28 +1,41 @@
-var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp,_Error,_ReferenceError,_TypeError,_SyntaxError,_JSON,undefined)
+var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_Math,_Date,_RegExp,_Error,_ReferenceError,_TypeError,_SyntaxError,_JSON,undefined)
 {
     var s=System={};
     var m={};
     var $console = console || {};
-    s.Object  = _Object;
-    s.Function= _Function;
-    s.Array   = _Array;
-    s.String  = _String;
-    s.Number  = _Number;
-    s.Boolean = _Boolean;
-    s.RegExp  = _RegExp;
-    s.Error   = _Error;
-    s.ReferenceError = _ReferenceError;
-    s.TypeError      = _TypeError;
-    s.SyntaxError    = _SyntaxError;
-    s.log = $console.log || function(){};
-    s.info = $console.info || function(){};
-    s.dir = $console.dir || function(){};
-    s.error = $console.error || function(){};
+    var $traceItems=[];
+    var toString = function (item) {
+        if( isArray(item) )return Array.prototype.map.call(item,toString);
+        if( isObject(item,true) ){
+            var objs={};
+            for(var i in item){objs[i] = toString(item[i]);}
+            return objs;
+        }
+        return item ? item.valueOf() : item;
+    }
+    s.log = function log(){
+        $console.log.apply(undefined, Array.prototype.map.call(arguments,toString) );
+    };
+    s.info =function info(){
+        $console.info.apply(undefined, Array.prototype.map.call(arguments,toString) );
+    };
+    s.trace = function trace(){
+        $console.log.apply(undefined, ['Trace: '].concat( Array.prototype.map.call(arguments,toString) ) );
+        $console.log( '   At '+$traceItems.join('\n   At ') );
+    };
+    s.warn = function warn(){
+        $console.warn.apply(undefined, Array.prototype.map.call(arguments,toString) );
+    };
+    s.error = function error(){
+        $console.error.apply(undefined, Array.prototype.map.call(arguments,toString) );
+    };
+    s.dir = function dir(){
+        $console.dir.apply(undefined, Array.prototype.map.call(arguments,toString) );
+    };
     s.assert = $console.assert || function(){};
     s.time = $console.time || function(){};
     s.timeEnd = $console.timeEnd || function(){};
-    s.trace = $console.trace || function(){};
-    s.warn = $console.warn || function(){};
+
     s.isFinite = isFinite || function () {};
     s.decodeURI= decodeURI || function () {};
     s.decodeURIComponent= decodeURIComponent || function () {};
@@ -36,6 +49,19 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     s.unescape= unescape || function () {};
     //s.uneval= uneval || function () {};
 
+    s.Object  = _Object;
+    s.Function= _Function;
+    s.Array   = _Array;
+    s.String  = _String;
+    s.Number  = _Number;
+    s.Boolean = _Boolean;
+    s.RegExp  = _RegExp;
+    s.Error   = _Error;
+    s.ReferenceError = _ReferenceError;
+    s.TypeError      = _TypeError;
+    s.SyntaxError    = _SyntaxError;
+    s.Math = _Math;
+    s.Date = _Date;
 
     /**
      * 对象类构造器
@@ -100,7 +126,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         }
         if ( length === i )
         {
-            target = this;
+            target = {};
             --i;
         }else if ( typeof target !== "object" && typeof target !== "function" )
         {
@@ -161,7 +187,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     }
 
     /**
-     * 表示对象是否已经定义了指定的属性。
+     * 表示对象本身是否已经定义了指定的属性。
      * 如果目标对象具有与 name 参数指定的字符串匹配的属性，则此方法返回 true；否则返回 false。
      * @param prop 对象的属性。
      * @returns {Boolean}
@@ -172,8 +198,15 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         var obj = this instanceof Class ? this : this.constructor;
         if( obj instanceof Class )
         {
-            var desc = obj === this ? obj.static[name] : obj.proto[name];
-            return desc && desc.id !== "function";
+            var isstatic = obj === this;
+            var desc;
+            do {
+                desc = isstatic ? obj.static[name] : obj.proto[name];
+                if( desc && (desc.qualifier==='public' || desc.qualifier==='private') ){
+                    return desc.qualifier==='public';
+                }
+            }while ( (obj = obj.extends) && obj instanceof Class )
+            return false;
         }
         return $hasOwnProperty.call(this,name);
     }
@@ -191,12 +224,76 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         var obj = this instanceof Class ? this : this.constructor;
         if( obj instanceof Class )
         {
-            var desc = obj === this ? obj.static[name] : obj.proto[ name ];
-            if( desc && ( desc.qualifier!=='public' || (desc.id === "function" && typeof desc.value === "function")))return false;
-            return (obj.dynamic && !desc) || (desc && desc.enumerable !== false);
+            //动态创建的属性才可以枚举
+            if( obj.dynamic && obj !== this )
+            {
+                do{
+                   if( $hasOwnProperty.call(this[obj.token], name) )
+                   {
+                       //内置属性不可以枚举
+                       if( !$hasOwnProperty.call(obj.proto,name) )return true;
+                       return obj.proto[name].id==='dynamic' && obj.proto[name].enumerable !== false;
+                   }
+                }while ( (obj = obj.extends) && obj.dynamic && obj instanceof Class );
+            }
+            return false;
         }
+        if( $hasOwnProperty.call(this,name) && this[name].enumerable === false && this[name] instanceof Descriptor)
+            return false;
         return $propertyIsEnumerable.call(this,name);
     }
+
+    /**
+     * 描述符构造器
+     * @param desc
+     * @constructor
+     */
+    function Descriptor( desc )
+    {
+        if( !(this instanceof Descriptor) )return new Descriptor(desc);
+        this.writable = !!desc.writable;
+        this.enumerable = !!desc.enumerable;
+        this.configurable = !!desc.configurable;
+        if (typeof desc.value !== "undefined")
+        {
+            if(desc.get || desc.set || this.get || this.set)throwError('type','value and accessor can only has one');
+            this.value = desc.value;
+        }
+        if ( typeof desc.get !== "undefined" )
+        {
+            if( typeof desc.get !== "function" )throwError('type','getter accessor is not function');
+            if( typeof desc.value !== "undefined" || typeof this.value !== "undefined")throwError('type','value and accessor can only has one');
+            this.get = desc.get;
+        }
+        if ( typeof desc.set !== "undefined" )
+        {
+            if( typeof desc.set !== "function" )throwError('type','setter accessor is not function');
+            if( typeof desc.value !== "undefined" || typeof this.value !== "undefined")throwError('type','value and accessor can only has one');
+            this.set = desc.set;
+        }
+        return this;
+    }
+
+    /**
+     * 设置属性的描述
+     * @type {*|Function}
+     */
+    var $defineProperty=_Object.defineProperty || function(obj, prop, desc)
+    {
+        if( $hasOwnProperty.call(obj,prop) )
+        {
+            if( obj[prop] instanceof Descriptor )
+            {
+                if( obj[ prop ].configurable === false )throwError('type','"'+prop+'" property is not configurable');
+                Descriptor.call(obj[prop], desc );
+                return;
+            }
+            if( typeof desc.value === "undefined" )desc.value = obj[prop];
+        }
+        obj[prop] = new Descriptor(desc);
+        return;
+    };
+    Object.defineProperty=$defineProperty;
 
     /**
      * 设置循环操作动态属性的可用性。
@@ -205,24 +302,39 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      * @param isEnum  (default = true)
      * 如果设置为 false，则动态属性不会显示在 for..in 循环中，且方法 propertyIsEnumerable() 返回 false。
      */
-    var $defineProperty=_Object.defineProperty;
-    Object.defineProperty=$defineProperty || function(obj,prop,descriptor){ obj[prop] = descriptor.value};
     Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
     {
         var obj = this instanceof Class ? this : this.constructor;
         if( obj instanceof Class )
         {
-            var desc = obj === this ? obj.static[name] : obj.proto[ name ];
-            if( desc )
+            //动态创建的属性才可以设置枚举
+            if( obj.dynamic && obj !== this )
             {
-                desc.enumerable = isEnum !== false;
-                if( desc.id !=='function' || (desc.value && typeof desc.value.get === "function") )$defineProperty(obj === this ? obj.static : this[obj.token], name, {enumerable: isEnum !== false});
+                do{
+                    if( $hasOwnProperty.call(this[obj.token], name) )
+                    {
+                        var desc;
+                        //内置属性不可以枚举
+                        if( !$hasOwnProperty.call(obj.proto,name) )
+                        {
+                            desc= obj.proto[name] = {'id':'dynamic',enumerable:false};
+                        }else
+                        {
+                            desc= obj.proto[name];
+                        }
+                        desc.enumerable = isEnum !== false;
+                        return true;
+                    }
+                }while ( (obj = obj.extends) && obj.dynamic && obj instanceof Class );
             }
+            return false;
 
         }else if( $hasOwnProperty.call(this,name) )
         {
             $defineProperty(this, name, {enumerable:isEnum !== false});
+            return true;
         }
+        return false;
     }
 
     /**
@@ -268,12 +380,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      */
     Object.prototype.keys=function()
     {
-        var items=[];
-        var it = new Iterator(this);
-        var len = it.items.length >> 0;
-        var i = 0;
-        for(;i<len;i++)items.push( it.items[i].key );
-        return items;
+        return getEnumerableProperties.call(this,-1);
     }
 
     /**
@@ -282,19 +389,343 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
      */
     Object.prototype.values=function()
     {
+        return getEnumerableProperties.call(this,1);
+    }
+
+    /**
+     * 获取可枚举的属性
+     * @param state
+     * @returns {Array}
+     */
+    function getEnumerableProperties( state )
+    {
         var items=[];
-        var it = new Iterator(this);
-        var len = it.items.length >> 0;
-        var i = 0;
-        for(;i<len;i++)items.push( it.items[i].value );
+        var prop;
+        if( this instanceof Class || this.constructor instanceof Class)
+        {
+            var objClass = this.constructor;
+            var obj;
+            if ( objClass.dynamic && this !== objClass )
+            {
+                do {
+                    obj = this[objClass.token];
+                    if (obj)for(prop in obj)
+                    {
+                        if( !$hasOwnProperty.call(objClass.proto, prop) || objClass.proto[prop].enumerable !== false )
+                        {
+                            switch (state){
+                                case -1 : items.push(prop); break;
+                                case  1 : items.push( obj[prop] ); break;
+                                case  2 : items[prop] = obj[prop]; break;
+                                default : items.push({key: prop, value: obj[prop]}); break;
+                            }
+                        }
+                    }
+                } while ( (objClass = objClass.extends) && objClass.dynamic && objClass instanceof Class );
+            }
+
+        }else if( this && typeof this !== "function" )
+        {
+            for( prop in this )if( $propertyIsEnumerable.call(this,prop) && !( this[prop] && this[prop].enumerable === false && this[prop] instanceof Descriptor ) )
+            {
+                var val = Reflect.get(this,prop);
+                switch (state){
+                    case -1 : items.push(prop); break;
+                    case  1 : items.push(val); break;
+                    case  2 : items[prop] = val; break;
+                    default : items.push({key: prop, value: val}); break;
+                }
+            }
+        }
         return items;
+    }
+
+    /**
+     * 迭代构造器
+     * @param target
+     * @constructor
+     */
+    function Iterator( target )
+    {
+        if( System.is(target,Iterator) )return target;
+        if( !(this instanceof Iterator) ) return new Iterator(target);
+        this.items = getEnumerableProperties.call(target);
+        return this;
+    }
+    Iterator.current=null;
+    s.Iterator = Iterator;
+    Iterator.prototype = new Object();
+    Iterator.prototype.items = null;
+    Iterator.prototype.cursor = -1;
+    Iterator.prototype.constructor = Iterator;
+
+    /**
+     * 将指针向前移动一个位置并返回当前元素
+     * @returns {*}
+     */
+    Iterator.prototype.seek= function seek()
+    {
+        if( this.items.length <= this.cursor+1 )return false;
+        return this.items[ ++this.cursor ];
+    }
+
+    /**
+     * 返回当前指针位置的元素
+     * @returns {*}
+     */
+    Iterator.prototype.current=function current()
+    {
+        if(this.cursor<0)this.cursor=0;
+        return this.items[ this.cursor ];
+    }
+
+    /**
+     * 返回上一个指针位置的元素
+     * 如果当前指针位置在第一个则返回false
+     * @returns {*}
+     */
+    Iterator.prototype.prev=function prev()
+    {
+        if( this.cursor < 1 )return false;
+        return this.items[ this.cursor-1 ];
+    }
+
+    /**
+     * 返回下一个指针位置的元素。
+     * 如果当前指针位置在最后一个则返回false
+     * @returns {*}
+     */
+    Iterator.prototype.next=function next()
+    {
+        if( this.cursor >= this.items.length )return false;
+        return this.items[ this.cursor+1 ];
+    }
+
+    /**
+     * 将指针移到到指定的位置并返回当前位置的元素
+     * @param cursor
+     * @returns {*}
+     */
+    Iterator.prototype.move=function move( cursor )
+    {
+        cursor=cursor >> 0;
+        if( cursor < 0 || cursor >= this.items.length )return false;
+        this.cursor = cursor;
+        return this.items[ this.cursor ];
+    }
+
+    /**
+     * 重置指针
+     * @returns {Iterator}
+     */
+    Iterator.prototype.reset=function reset()
+    {
+        this.cursor = -1;
+        return this;
+    }
+
+    /**
+     * Reflect是一个内置的对象，提供可拦截的JavaScript操作的方法。方法与代理处理程序相同。反射不是一个函数对象，因此它不可构造。
+     * @constructor
+     */
+    function Reflect() {
+        if(this instanceof Reflect)throwError('Reflect is not constructor.');
+    }
+    s.Reflect = Reflect;
+    var $apply = _Function.prototype.apply;
+
+    /**
+     * 静态方法 Reflect.apply() 通过指定的参数列表发起对目标(target)函数的调用
+     * @param target
+     * @param thisArgument
+     * @param argumentsList
+     * @returns {*}
+     */
+    Reflect.apply=function apply(target, thisArgument, argumentsList)
+    {
+        if( typeof target !== "function" )throwError('type','is not function');
+        return $apply.call(target,thisArgument,argumentsList);
+    }
+
+    /**
+     * Reflect.construct() 方法的行为有点像 new 操作符 构造函数 ， 相当于运行 new target(...args).
+     * @param target
+     * @param argumentsList
+     * @param newTarget
+     * @returns {*}
+     */
+    Reflect.construct=function construct(target, argumentsList, newTarget)
+    {
+          if( typeof target !== "function" )throwError('type','is not function');
+          if( target === newTarget )newTarget=undefined;
+          if( typeof newTarget !== "function" )newTarget=Nop;
+          newTarget.prototype = target.prototype;
+          return $apply.call(target,new newTarget(), argumentsList);
+    }
+
+    /**
+     * 静态方法 Reflect.defineProperty() 有很像 Object.defineProperty() 方法，但返回的是 Boolean 值。
+     * @param target
+     * @param propertyKey
+     * @param attributes
+     * @returns {boolean}
+     */
+    Reflect.defineProperty=function defineProperty(target, propertyKey, attributes)
+    {
+        try {
+            $defineProperty.call(target, propertyKey, attributes);
+            return true;
+        }catch (e){
+            return false;
+        }
+    }
+
+    /**
+     * 静态方法 Reflect.deleteProperty() 允许用于删除属性。它很像 delete operator ，但它是一个函数。
+     * @param target
+     * @param propertyKey
+     * @returns {boolean}
+     */
+    Reflect.deleteProperty=function deleteProperty(target, propertyKey)
+    {
+        if( !target || target instanceof Class )return false;
+        if( target.constructor instanceof Class )
+        {
+            var objClass = target.constructor;
+            if( !objClass.dynamic )return false;
+            do{
+                var obj = target[objClass.token];
+                if( obj && $hasOwnProperty.call(obj,propertyKey) )
+                {
+                    if( !$hasOwnProperty.call(objClass.proto,propertyKey) || objClass.proto[propertyKey].configurable !== false )
+                    {
+                        delete obj[propertyKey];
+                        if ($hasOwnProperty.call(objClass.proto, propertyKey))delete objClass.proto[propertyKey];
+                        return true;
+                    }
+                    return false;
+                }
+            }while ( (objClass = objClass.extends) && objClass.dynamic && objClass instanceof Class )
+        }
+        delete target[propertyKey];
+        return !$hasOwnProperty.call(target,propertyKey);
+    }
+
+    /**
+     * 静态方法 Reflect.has() 作用与 in 操作符 相同。
+     * @param target
+     * @param propertyKey
+     * @returns {boolean}
+     */
+    Reflect.has=function has(target, propertyKey)
+    {
+        var obj = target instanceof Class ? target : target.constructor;
+        if( obj instanceof Class )
+        {
+            var isstatic = obj === target;
+            var desc;
+            do {
+                desc = isstatic ? obj.static : obj.proto;
+                if( $hasOwnProperty.call(desc, propertyKey) )
+                {
+                    desc = desc[propertyKey];
+                    if ( desc.qualifier === 'public' || desc.qualifier === 'private')return desc.qualifier === 'public';
+                }
+            }while ( (obj = obj.extends) && obj instanceof Class )
+            return false;
+        }
+        return propertyKey in target;
+    }
+
+    /**
+     * 获取目标公开的属性值
+     * @param target
+     * @param propertyKey
+     * @returns {*}
+     */
+    Reflect.get=function(target, propertyKey )
+    {
+        if( !target )throwError('type','target object is null');
+        var objClass = target instanceof Class ? target : target.constructor;
+        if( objClass instanceof Class )
+        {
+            var isstatic = objClass === target;
+            do {
+                var desc = isstatic ? objClass.static : objClass.proto;
+                if ( $hasOwnProperty.call(desc, propertyKey) )
+                {
+                    desc = desc[propertyKey];
+                    if( desc.qualifier!=='private')
+                    {
+                        if (desc.qualifier && desc.qualifier !== 'public')return undefined;
+                        if (desc.id === 'function' && typeof desc.value.get === 'function')return desc.value.get.call(target);
+                        if (desc.id !== 'function')return target[objClass.token][propertyKey];
+                    }
+                }else if(objClass.dynamic && $hasOwnProperty.call(target[objClass.token], propertyKey) )
+                {
+                    return target[objClass.token][propertyKey];
+                }
+            }while ( (objClass = objClass.extends) && objClass instanceof Class )
+            return undefined;
+        }
+        if( target[propertyKey] instanceof Descriptor ){
+            if( typeof target[propertyKey].get === "function" )
+               return target[propertyKey].get.call(target);
+            return target[propertyKey].value;
+        }
+        return target[propertyKey];
+    }
+
+    /**
+     * 设置目标公开的属性值
+     * @param target
+     * @param propertyKey
+     * @param value
+     * @returns {*}
+     */
+    Reflect.set=function(target, propertyKey, value )
+    {
+        if( !target )throwError('type','target object is null');
+        var objClass = target instanceof Class ? target : target.constructor;
+        if( objClass instanceof Class )
+        {
+            var isstatic = objClass === target;
+            var desc = isstatic ? objClass.static : objClass.proto;
+            if ( $hasOwnProperty.call(desc, propertyKey) )
+            {
+                desc = desc[propertyKey];
+                if( desc.qualifier!=='private')
+                {
+                    if (desc.qualifier && desc.qualifier !== 'public')return value;
+                    if (desc.id === 'function' && typeof desc.value.set === 'function'){
+                        desc.value.set.call(target, value);
+                        return value;
+                    }
+                    if (desc.id === 'const')throwError('reference','"'+propertyKey+'" is not writable');
+                    if (desc.id !== 'function')return target[objClass.token][propertyKey]=value;
+                }
+            }else if( objClass.dynamic && !isstatic )
+            {
+                return target[objClass.token][propertyKey]=value;
+            }
+        }
+        if( target[propertyKey] instanceof Descriptor )
+        {
+            if( typeof target[propertyKey].set === "function" ){
+                target[propertyKey].set.call(target, value);
+                return value;
+            }
+            if( target[propertyKey].writable=== false )throwError('reference','"'+propertyKey+'" is not writable');
+            return target[propertyKey].value=value;
+        }
+        return target[propertyKey]=value;
     }
 
     /**
      * JSON 对象构造器
      * @constructor
      */
-   function JSON(){ throwError('JSON is cannot be instanceds.'); };
+   function JSON(){ if(this instanceof JSON)throwError('JSON is not constructor.'); };
    s.JSON=JSON;
    var escMap = {'"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f', '\n': '\\n', '\r': '\\r', '\t': '\\t'};
    var escRE = /[\\"\u0000-\u001F\u2028\u2029]/g;
@@ -302,25 +733,21 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
    JSON.parse = function (strJson) {return eval('(' + strJson + ')');}
    JSON.stringify = function(value)
    {
-       if (value == null) {
-           return 'null';
-       } else if (typeof value === 'number') {
-           return isFinite(value) ? value.toString() : 'null';
-       } else if (typeof value === 'boolean') {
-           return value.toString();
-       } else if ( typeof value === 'object' )
+       if(value == null) return 'null';
+       var type = typeof value;
+       if (type=== 'number')return System.isFinite(value) ? value.toString() : 'null';
+       if (type === 'boolean')return value.toString();
+       if ( type === 'object' )
        {
+           var tmp = [];
            if (typeof value.toJSON === 'function') {
                return JSON.stringify( value.toJSON() );
            } else if ( isArray(value) ) {
-               var items = new Iterator( value ).items;
-               var tmp = [];
-               for (var i = 0; i < items.length; i++)tmp.push( JSON.stringify( items[i].value ) );
+               for (var i = 0; i < value.length; i++)tmp.push( JSON.stringify( value[i] ) );
                return '['+tmp.join(',')+']';
            } else if ( isObject(value,true) ) {
-               var tmp = [];
-               var items = new Iterator( value ).items;
-               for (var i = 0; i < items.length; i++)tmp.push( JSON.stringify(items[i].key)+':'+JSON.stringify(items[i].value) );
+               var items = getEnumerableProperties.call(value);
+               for( var i =0; i<items.length; i++ )tmp.push( JSON.stringify(items[i].key)+':'+JSON.stringify(items[i].value) );
                return '{' + tmp.join(', ') + '}';
            }
        }
@@ -351,8 +778,9 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     Array.prototype.shift   = _Array.prototype.shift;
     Array.prototype.unshift = _Array.prototype.unshift;
     Array.prototype.sort    = _Array.prototype.sort;
+    Array.prototype.map    = _Array.prototype.map;
     Array.prototype.reverse = _Array.prototype.reverse;
-    Array.prototype.toString =_Array.prototype.toString;
+    Array.prototype.toString=_Array.prototype.toString;
     Array.prototype.valueOf =_Array.prototype.valueOf;
 
     /**
@@ -366,9 +794,11 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     {
         if( typeof callback !== "function" )throwError('type','"callback" must be a function')
         var it = new Iterator(this);
-        var len = it.items.length >> 0;
-        var i = 0;
-        for(;i<len;i++)if(callback.call(thisArg, it.items[i].value, it.items[i].key )=== false)return this;
+        thisArg = thisArg || this;
+        for(;it.seek();)
+        {
+            if( callback.call(thisArg,it.current().value, it.current().key )=== false)return this;
+        }
         return this;
     }
 
@@ -426,7 +856,7 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         if (typeof callback !== 'function')throwError('type','callback must be a function');
         var it = new Iterator(this);
         var len = it.items.length;
-        for (var i = 0; i < len; i++)if ( callback.call(thisArg, it.items[i].value, it.items[i].value.key) )
+        for (var i = 0; i < len; i++)if ( callback.call(thisArg, it.items[i].value, it.items[i].key) )
         {
             return it.items[i].value;
         }
@@ -434,143 +864,6 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     };
 
 
-    /**
-     * 描述符构造器
-     * @constructor
-     */
-    function Descriptor(){}
-    s.Descriptor =Descriptor;
-    Descriptor.prototype = new Object();
-    Descriptor.prototype.constructor = Descriptor;
-    Descriptor.prototype.enumerable = false;
-    Descriptor.prototype.configurable = false;
-    Descriptor.prototype.writable = false;
-    Descriptor.prototype.value = undefined;
-    Descriptor.prototype.get = undefined;
-    Descriptor.prototype.set = undefined;
-
-    /**
-     * 迭代构造器
-     * @param target
-     * @param forIn 如果为true则表示返回一个指定target对象上可枚举的属性集对象。
-     * @constructor
-     */
-    function Iterator( target , forIn )
-    {
-       if( target instanceof Iterator )return target;
-       if( !(this instanceof Iterator) ) return new Iterator(target, forIn);
-       target = target ? _Object(target) : [];
-       var items = target;
-       var desc;
-       var obj = target;
-       var dynamic = false;
-       var isclass = false;
-       if( target instanceof Class )
-       {
-           isclass=true;
-           desc = obj = target.static;
-       }else if( target.constructor instanceof Class  )
-       {
-           isclass=true;
-           obj = target[ target.constructor.token ];
-           desc = target.constructor.proto;
-           dynamic = target.constructor.dynamic;
-       }
-       if( isclass || forIn !== true )
-       {
-           items=[];
-           for (var prop in obj) {
-               if (!$propertyIsEnumerable.call(obj, prop))continue;
-               if (desc) {
-                   if (desc[prop] && ( desc[prop].qualifier !== 'public' || (desc[prop].id === 'function' && typeof desc[prop].value === "function") ))continue;
-                   if ((dynamic && !desc[prop]) || ( desc[prop] && desc[prop].enumerable !== false)) {
-                       itemsPush(items, {
-                           key: prop,
-                           value: obj[prop] === '__getter__' && desc[prop].id === 'function' && typeof desc[prop].value.get === "function" ? desc[prop].value.get.call(target) : obj[prop]
-                       }, forIn);
-                   }
-               } else {
-                   itemsPush(items, {key: prop, value: obj[prop]}, forIn);
-               }
-           }
-       }
-       if( forIn===true )return items;
-       this.items = items;
-       return this;
-    }
-    s.Iterator = Iterator;
-    Iterator.prototype = new Object();
-    Iterator.prototype.items = null;
-    Iterator.prototype.cursor = -1;
-    Iterator.prototype.constructor = Iterator;
-    function itemsPush(items,obj,flag) {
-        return flag===true ? items[ obj.key ] = obj.value : items.push( obj );
-    }
-
-    /**
-     * 将指针向前移动一个位置并返回当前元素
-     * @returns {*}
-     */
-    Iterator.prototype.seek= function seek()
-    {
-        if( this.items.length <= this.cursor+1 )return false;
-        return this.items[ ++this.cursor ];
-    }
-
-    /**
-     * 返回当前指针位置的元素
-     * @returns {*}
-     */
-    Iterator.prototype.current=function current()
-    {
-        if(this.cursor<0)this.cursor=0;
-        return this.items[ this.cursor ];
-    }
-
-    /**
-     * 返回上一个指针位置的元素
-     * 如果当前指针位置在第一个则返回false
-     * @returns {*}
-     */
-    Iterator.prototype.prev=function prev()
-    {
-        if( this.cursor < 1 )return false;
-        return this.items[ this.cursor-1 ];
-    }
-
-    /**
-     * 返回下一个指针位置的元素。
-     * 如果当前指针位置在最后一个则返回false
-     * @returns {*}
-     */
-    Iterator.prototype.next=function next()
-    {
-        if( this.cursor >= this.items.length )return false;
-        return this.items[ this.cursor+1 ];
-    }
-
-    /**
-     * 将指针移到到指定的位置并返回当前位置的元素
-     * @param cursor
-     * @returns {*}
-     */
-    Iterator.prototype.moveTo=function moveTo( cursor )
-    {
-        cursor=cursor >> 0;
-        if( cursor < 0 || cursor >= this.items.length )return false;
-        this.cursor = cursor;
-        return this.items[ this.cursor ];
-    }
-
-    /**
-     * 重置指针
-     * @returns {Iterator}
-     */
-    Iterator.prototype.reset=function reset()
-    {
-        this.cursor = -1;
-        return this;
-    }
 
     /**
      * 类对象构造器
@@ -861,13 +1154,21 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
                  if (value === s.Boolean)return 'Boolean';
                  if (value === s.Number)return 'Number';
                  if (value === s.RegExp)return 'RegExp';
-                 if (value === s.Array)return 'Array';
-                 if (value === s.Object)return 'Object';
+                 if ( value === s.Array )return 'Array';
+                 if ( value === s.Date )return 'Date';
+                 if ( value === s.Object )return 'Object';
+                 if ( value === s.Iterator )return 'Iterator';
+                 if ( value === s.Reflect )return 'Reflect';
                  if (value === s.JSON)return 'JSON';
                   return 'Function';
              default :
-                 if( isObject(value,true) )return 'Object';
+                 if( value=== System )return 'System';
+                 if( value === s.Math )return 'Math';
+                 if( value === s.Reflect )return 'Reflect';
+                 if( value === s.Iterator )return 'Iterator';
                  if( isArray(value) )return 'Array';
+                 if( isObject(value,true) )return 'Object';
+                 if( value instanceof s.Date )return 'Date';
                  if( value instanceof String )return 'String';
                  if( value instanceof Number )return 'Number';
                  if( value instanceof Boolean )return 'Boolean';
@@ -1400,6 +1701,15 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
         return call;
     })();
 
+    function toPropertyStr(thisArg, properties ) {
+        var items = isArray(properties) ? Array.prototype.map.call(properties,function (item) {
+             if( typeof item === "string" )return item;
+             return getQualifiedClassName( item );
+        }) : [properties];
+        items.unshift( getQualifiedClassName( thisArg ) );
+        return items.join('.');
+    }
+
     /**
      * 构建一个访问器
      * @param classModule
@@ -1410,10 +1720,12 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     {
         return function (info, thisArg, properties ,value, operator)
         {
+            //$traceItems.unshift( toPropertyStr(thisArg,properties)+' ('+classModule.filename + ':' + info+')' );
+            //if( $traceItems.length > 10 )$traceItems.pop();
             try{
                 return __call(classModule, thisArg, properties, value, flag, operator);
             }catch(error){
-                toErrorMsg(error, classModule, info)
+                toErrorMsg(error, classModule, info);
             }
         }
     }
@@ -1511,5 +1823,5 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_RegExp
     s.define=define;
     return s;
 
-}(Object,Function,Array,String,Number,Boolean,RegExp,Error,ReferenceError,TypeError,SyntaxError,JSON));
+}(Object,Function,Array,String,Number,Boolean,Math,Date,RegExp,Error,ReferenceError,TypeError,SyntaxError,JSON));
 

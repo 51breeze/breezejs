@@ -478,7 +478,8 @@ syntax['const']=function (event)
 syntax['function']= function(event){
 
     event.prevented=true;
-    if( this.scope().keyword() !=='function' || this.scope().parent().keyword() !=='class' )
+    var isassign = this.prev && this.prev.value==='=';
+    if( this.scope().keyword() !=='function' || this.scope().content().length > 0 )
     {
         this.add( new Scope( event.type, '(*)' ) );
     }
@@ -488,7 +489,8 @@ syntax['function']= function(event){
     var n = this.seek();
     var name='';
     var isClassOrInterface = stack.parent().keyword() ==='class' || stack.parent().keyword() ==='interface';
-    var scope = isClassOrInterface ? stack.scope().parentScope : stack.scope();
+    var scope = stack.getScopeOf().parentScope;
+    if( !isFunScope(scope) )scope = scope.getScopeOf();
     if( isClassOrInterface && (n.value === 'get' || n.value === 'set') && this.next.id !== '(' )
     {
         stack.accessor(n.value);
@@ -581,7 +583,7 @@ syntax['function']= function(event){
     {
         //不能重复声明函数
         var val = scope.define( name );
-        if( val && val.scope === scope )
+        if( val && val.scope === scope && !isassign )
         {
             if( !stack.accessor() || stack.accessor() === val.get || stack.accessor() === val.set )
             {
@@ -627,7 +629,6 @@ syntax['function']= function(event){
         this.step();
         return true;
     });
-
     this.add( this.seek() );
     if( this.current.id !=='}' ) this.error('Missing token }');
     if( this.scope() !== stack )this.error('Syntax is not end');
@@ -713,7 +714,7 @@ syntax['if,switch,while,for,catch'] = function(event)
         var self= this;
         var num=0;
         var seek= function (e) {
-            if( e.__proxyTarget__.value==='in' )num=2;
+            if( e.__proxyTarget__.value==='in' || e.__proxyTarget__.value==='of' )num=2;
             if( e.__proxyTarget__.value===';' )num++;
             if( e.__proxyTarget__.value===')' )
             {
@@ -896,6 +897,16 @@ syntax["super"]=function (e)
 }
 
 syntax["in"]=function(e)
+{
+    e.prevented=true;
+    //this.scope().switch();
+    //if('statement' ===  this.scope().keyword() )this.scope().switch();
+    this.add( this.current );
+    if( this.next.type ==='(operator)' || ( Utils.isConstant(this.next.value) && this.next.value!=='this' ) || this.next.value ===';'  )this.error('Missing expression',this.next);
+    this.step();
+}
+
+syntax["of"]=function(e)
 {
     e.prevented=true;
     //this.scope().switch();
@@ -1613,13 +1624,19 @@ Stack.prototype.getScopeOf=function( isBlock )
 {
     var scope=this.scope();
     if( isBlock )return scope;
-    while ( scope &&
-    !(scope.keyword() ==='function' ||
-    scope.keyword()==='class'       ||
-    scope.keyword()==='package'     ||
-    scope.keyword()==='rooblock') )scope = scope.parent().scope();
+    while ( scope && !isFunScope(scope) )scope = scope.parent().scope();
     return scope;
 }
+
+function isFunScope(scope)
+{
+    return (scope.keyword() ==='function' ||
+    scope.keyword()==='class'             ||
+    scope.keyword()==='interface'         ||
+    scope.keyword()==='package'           ||
+    scope.keyword()==='rooblock');
+}
+
 
 /**
  * 关键字

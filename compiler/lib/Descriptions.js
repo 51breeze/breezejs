@@ -173,6 +173,18 @@ var objects = {
             'reset':{'id':'function','type':'Iterator','param':[]},
         }
     },
+    'Reflect':{
+        'id':'object', 'type':'Reflect',
+        'static':{
+            'apply':{'id':'function','type':'*','param':['Function','...']},
+            'construct':{'id':'function','type':'*','param':['Function','...']},
+            'defineProperty':{'id':'function','type':'Object','param':['Object','String','Object']},
+            'deleteProperty':{'id':'function','type':'Boolean','param':['Object','String']},
+            'has':{'id':'function','type':'Boolean','param':[]},
+            'get':{'id':'function','type':'*','param':['Object','String','*']},
+            'set':{'id':'function','type':'*','param':['Object','String','*','*']},
+        }
+    },
     'Array':{
         'id':'class',
         'type':'Array',

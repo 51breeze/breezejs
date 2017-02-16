@@ -15,7 +15,7 @@ const config = {
     'browser':'disable',  //enable disable
     'globals':globals,
     'enableBlockScope':'on',
-    'reserved':['let']
+    'reserved':['let','of']
 };
 const modules={};
 
@@ -184,6 +184,7 @@ function Iteration( stack , module )
         stack.dispatcher({type:'(iterationSeek)',content:this.content,iteration:this});
         if( this.current.value==='return' && this.current.id==='(keyword)' )this.checkReturnType( stack );
         if( this.next && this.next.value==='in')this.nextIn( stack );
+        if( this.next && this.next.value==='of')this.nextOf( stack );
         return true;
     };
     stack.returnValues=[];
@@ -207,7 +208,7 @@ Iteration.prototype.values=function( value )
 Iteration.prototype.nextIn=function(stack)
 {
     var infor=false;
-    if( stack.parent().keyword() === 'statement' ) 
+    if( stack.parent().keyword() === 'statement' )
     {
         if( stack.parent().parent().parent().keyword() === "condition" )
         {
@@ -227,7 +228,7 @@ Iteration.prototype.nextIn=function(stack)
         this.content.push({
             name:[],
             descriptor:null,
-            thisArg:'Object.prototype.hasOwnProperty.call('+obj+','+name+')',
+            thisArg:'Reflect.has('+obj+','+name+')',
             expression:false,
             before:[],
             after:'',
@@ -240,9 +241,13 @@ Iteration.prototype.nextIn=function(stack)
 
     }else
     {
+        if( stack.parent().content().length > 1 )error('Can only statement one','syntax', this.current);
         var name = this.current.value;
         var desc = stack.scope().define( name );
         if( desc )desc.referenceType='String';
+        var funScope = stack.scope().getScopeOf();
+        funScope.forIterator >>= 0;
+        var itn = '__$it'+(funScope.forIterator++)+'__';
         this.seek()
         this.seek()
         var property = getDescriptorOfExpression(this, this.module);
@@ -250,7 +255,7 @@ Iteration.prototype.nextIn=function(stack)
         this.content.push({
             name:[],
             descriptor:null,
-            thisArg:name+' in Iterator('+parse( this.module, property)+',true)',
+            thisArg:'var '+itn+' = Iterator('+parse( this.module, property)+');'+itn+'.seek();',
             expression:false,
             before:[],
             after:'',
@@ -260,8 +265,66 @@ Iteration.prototype.nextIn=function(stack)
             isglobal:false,
             type:'String'
         });
+        var seek = function (e) {
+            if( e.iteration.current.value==='{' ){
+                e.iteration.seek();
+                e.iteration.content.push('{ '+name+'='+itn+'.current().key;');
+                stack.scope().removeListener('(iterationSeek)',seek);
+            }
+        }
+        stack.scope().addListener('(iterationSeek)',seek);
     }
 }
+
+Iteration.prototype.nextOf=function(stack)
+{
+    var infor=false;
+    if( stack.parent().keyword() === 'statement' )
+    {
+        if( stack.parent().parent().parent().keyword() === "condition" )
+        {
+            infor = stack.parent().parent().parent().parent().keyword() === 'for';
+        }
+    }
+    if( !infor )error('keyword the "of" can only in for iterator','syntax');
+    if( stack.parent().content().length > 1 )error('Can only statement one','syntax', this.current);
+
+    var name = this.current.value;
+    var desc = stack.scope().define( name );
+    if( desc )desc.referenceType='String';
+
+    var funScope = stack.scope().getScopeOf();
+    funScope.forIterator >>= 0;
+    var itn = '__$it'+(funScope.forIterator++)+'__';
+
+    this.seek();
+    this.seek();
+    var property = getDescriptorOfExpression(this, this.module);
+    this.state=false;
+    this.content.push({
+        name:[],
+        descriptor:null,
+        thisArg:'var '+itn+' = Iterator('+parse( this.module, property)+'); '+itn+'.seek();',
+        expression:false,
+        before:[],
+        after:'',
+        "super":null,
+        runningCheck:false,
+        lastStack:property.lastStack,
+        isglobal:false,
+        type:'String'
+    });
+    var seek = function (e) {
+        if( e.iteration.current.value==='{' ){
+            e.iteration.seek();
+            e.iteration.content.push('{ '+name+'='+itn+'.current().value;');
+            stack.scope().removeListener('(iterationSeek)',seek);
+        }
+    }
+    stack.scope().addListener('(iterationSeek)',seek);
+
+}
+
 
 /**
  * 检查函数的返回类型
@@ -450,27 +513,30 @@ Iteration.prototype.parseFunctionScope=function( stack )
     else if( stack.keyword() === 'statement' && stack.parent().keyword() === 'var' && stack.parent().scope().keyword() !== 'function' )
     {
         var items=[];
-        stack.addListener('(iterationSeek)',function (e) {
+        var seek = function (e)
+        {
+            //is expression
             if( e.iteration.current instanceof Ruler.STACK )
             {
-                items.push( e.iteration.current.content()[0].value );
-                var infor = this.scope().keyword() === 'for';
-                if( !infor )
-                {
-                    if (e.iteration.current.content().length === 1)e.iteration.seek();
+                items.push(e.iteration.current.content()[0].value);
+                if (e.iteration.current.content().length === 1){
+                    e.iteration.seek();
                     if (e.iteration.current.value === ',')e.iteration.seek();
                 }
             }
-        });
-        stack.scope().getScopeOf().addListener('(iterationDone)',function (e) {
+        }
+        var done = function (e)
+        {
             if( items.length > 0 )
             {
                 var startIndex = this.name() && this.parent().keyword() !=='class' ? 7 : 5;
                 e.content.splice( startIndex , 0, 'var ' + items.join(',')+';\n' );
             }
-            stack.removeListener('(iterationSeek)');
-            this.removeListener('(iterationDone)');
-        });
+            stack.removeListener('(iterationSeek)',seek );
+            this.removeListener('(iterationDone)', done );
+        };
+        stack.addListener('(iterationSeek)', seek );
+        stack.scope().getScopeOf().addListener('(iterationDone)', done);
     }
 }
 
@@ -621,10 +687,7 @@ function getDescriptorOfExpression(it, classmodule)
         else
         {
             type = Utils.getConstantType(it.current.value) || Utils.getValueTypeof(it.current.type);
-            if (!type){
-                //console.log( it.stack )
-                error('Unexpected identifier','syntax',  it.current );
-            }
+            if (!type)error('Unexpected identifier','syntax',  it.current );
             property.type = type || '*';
             property.thisArg = it.current.value;
             property.lastStack = it.current;

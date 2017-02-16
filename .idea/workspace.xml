@@ -4,14 +4,15 @@
     <list default="true" id="013723df-740c-4cf5-b05e-cf938a968d79" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Make.js" afterPath="$PROJECT_DIR$/compiler/Make.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Ruler.js" afterPath="$PROJECT_DIR$/compiler/Ruler.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/lib/Descriptions.js" afterPath="$PROJECT_DIR$/compiler/lib/Descriptions.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/lib/System.js" afterPath="$PROJECT_DIR$/compiler/lib/System.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/lib/Utils.js" afterPath="$PROJECT_DIR$/compiler/lib/Utils.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Main-min.js" afterPath="$PROJECT_DIR$/lib/Main-min.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Main.as" afterPath="$PROJECT_DIR$/lib/Main.as" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/com_bjson" afterPath="$PROJECT_DIR$/lib/cache/com_bjson" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/mainjson" afterPath="$PROJECT_DIR$/lib/cache/mainjson" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/com/B.as" afterPath="$PROJECT_DIR$/lib/com/B.as" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/main.as" afterPath="$PROJECT_DIR$/lib/main.as" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/testjs.js" afterPath="$PROJECT_DIR$/testjs.js" />
     </list>
     <ignored path="breezejs.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -43,18 +44,28 @@
       <file leaf-file-name="System.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/compiler/lib/System.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="527">
-              <caret line="35" column="43" selection-start-line="35" selection-start-column="43" selection-end-line="35" selection-end-column="43" />
+            <state relative-caret-position="283">
+              <caret line="1715" column="18" selection-start-line="1715" selection-start-column="18" selection-end-line="1715" selection-end-column="18" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Make.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler/Make.js">
+      <file leaf-file-name="DHTML.js" pinned="false" current-in-tab="false">
+        <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DHTML.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="191">
-              <caret line="591" column="23" selection-start-line="591" selection-start-column="23" selection-end-line="591" selection-end-column="23" />
+            <state relative-caret-position="297">
+              <caret line="935" column="0" selection-start-line="935" selection-start-column="0" selection-end-line="935" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="D.as" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/com/D.as">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="341">
+              <caret line="24" column="30" selection-start-line="24" selection-start-column="30" selection-end-line="24" selection-end-column="30" />
               <folding />
             </state>
           </provider>
@@ -63,8 +74,8 @@
       <file leaf-file-name="Descriptions.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/lib/Descriptions.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="279">
-              <caret line="30" column="14" selection-start-line="30" selection-start-column="14" selection-end-line="30" selection-end-column="14" />
+            <state relative-caret-position="111">
+              <caret line="85" column="51" selection-start-line="85" selection-start-column="51" selection-end-line="85" selection-end-column="51" />
               <folding />
             </state>
           </provider>
@@ -73,8 +84,8 @@
       <file leaf-file-name="Ruler.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="28055">
-              <caret line="905" column="1" selection-start-line="905" selection-start-column="1" selection-end-line="905" selection-end-column="1" />
+            <state relative-caret-position="473">
+              <caret line="616" column="0" selection-start-line="616" selection-start-column="0" selection-end-line="616" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -83,8 +94,8 @@
       <file leaf-file-name="Utils.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/lib/Utils.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="18">
-              <caret line="441" column="9" selection-start-line="441" selection-start-column="9" selection-end-line="441" selection-end-column="9" />
+            <state relative-caret-position="334">
+              <caret line="467" column="0" selection-start-line="467" selection-start-column="0" selection-end-line="470" selection-end-column="1" />
               <folding />
             </state>
           </provider>
@@ -93,8 +104,8 @@
       <file leaf-file-name="main.as" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/main.as">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="442">
-              <caret line="48" column="46" selection-start-line="48" selection-start-column="46" selection-end-line="48" selection-end-column="46" />
+            <state relative-caret-position="427">
+              <caret line="53" column="23" selection-start-line="53" selection-start-column="23" selection-end-line="53" selection-end-column="23" />
               <folding>
                 <element signature="e#546#573#0" expanded="true" />
               </folding>
@@ -102,21 +113,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="testjs.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/testjs.js">
+      <file leaf-file-name="Make.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/Make.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="310">
-              <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
+            <state relative-caret-position="467">
+              <caret line="254" column="27" selection-start-line="254" selection-start-column="27" selection-end-line="254" selection-end-column="27" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="B.as" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/lib/com/B.as">
+      <file leaf-file-name="testjs.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/testjs.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="272">
-              <caret line="22" column="17" selection-start-line="22" selection-start-column="17" selection-end-line="22" selection-end-column="17" />
+            <state relative-caret-position="179">
+              <caret line="15" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -125,21 +136,291 @@
       <file leaf-file-name="Main-min.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1374">
-              <caret line="1678" column="10" selection-start-line="1678" selection-start-column="10" selection-end-line="1678" selection-end-column="10" />
+            <state relative-caret-position="413">
+              <caret line="1983" column="16" selection-start-line="1983" selection-start-column="16" selection-end-line="1983" selection-end-column="16" />
               <folding>
-                <marker date="1486965871280" expanded="true" signature="158:993" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="170:56997" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="300:583" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="410:532" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="610:703" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="732:826" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="858:1036" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="1066:1160" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="1192:1287" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="1315:1408" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="2469:2554" ph="/** 对象类构造器 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="2588:2755" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="2862:2938" ph="/** 获取指定对象的原型 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="3049:3276" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="3112:3270" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="3282:3334" ph="/** 设置对象的原型链 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="3427:3485" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="3491:3688" ph="/** 合并其它参数到指定的 target 对象中 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="3723:5332" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="3959:4055" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="4092:4145" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="4224:4260" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="4304:5303" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="4372:5293" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="4430:5279" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="4692:5130" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="4761:4905" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="4935:5031" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="5191:5261" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="5338:5436" ph="/** 指示 Object 类的实例是否在指定为参数的对象的原型链中 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="5557:5996" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="5719:5936" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="5816:5926" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="6002:6152" ph="/** 表示对象本身是否已经定义了指定的属性。 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="6272:6853" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="6384:6799" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="6464:6710" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="6623:6696" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="6859:7052" ph="/** 表示指定的属性是否存在、是否可枚举。 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="7188:8074" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="7300:7872" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="7387:7836" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="7407:7753" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="7497:7735" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="8080:8144" ph="/** 描述符构造器 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="8181:9332" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="8667:8958" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="9014:9305" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="9338:9390" ph="/** 设置属性的描述 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="9471:9947" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="9526:9883" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="9590:9798" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="9997:10215" ph="/** 设置循环操作动态属性的可用性。 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="10292:11434" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="10404:11247" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="10493:11210" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="10513:11127" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="10605:11109" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="10769:10883" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="10912:10990" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="11298:11406" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="11440:11494" ph="/** 返回指定对象的原始值 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="11585:11957" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="11697:11804" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="11848:11913" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="11963:12022" ph="/** 返回指定对象的字符串表示形式。 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="12116:12490" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="12228:12336" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="12380:12445" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="12496:12552" ph="/** 返回对象可枚举的属性的键名 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="12594:12655" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="12661:12716" ph="/**  返回对象可枚举的属性值 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="12760:12820" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="12826:12897" ph="/** 获取可枚举的属性 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="12948:14676" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="13070:14051" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="13207:14040" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="13228:13936" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="13343:13918" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="13488:13896" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="13532:13870" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="14105:14648" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="14284:14638" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="14366:14624" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="14682:14747" ph="/** 迭代构造器 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="14784:14997" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="15216:15273" ph="/** 将指针向前移动一个位置并返回当前元素 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="15323:15436" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="15442:15492" ph="/** 返回当前指针位置的元素 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="15547:15636" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="15642:15721" ph="/** 返回上一个指针位置的元素 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="15770:15864" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="15870:15951" ph="/** 返回下一个指针位置的元素。 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="16000:16111" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="16117:16198" ph="/** 将指针移到到指定的位置并返回当前位置的元素 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="16255:16431" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="16437:16487" ph="/** 重置指针 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="16538:16592" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="16598:16706" ph="/** Reflect是一个内置的对象，提供可拦截的JavaScript操作的方法。方法与代理处理程序相同。反射不是一个函数对象，因此它不可构造。 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="16890:17053" ph="/** 静态方法 Reflect.apply() 通过指定的参数列表发起对目标(target)函数的调用 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="17128:17278" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="17284:17466" ph="/** Reflect.construct() 方法的行为有点像 new 操作符 构造函数 ， 相当于运行 new target(...args). ...*/" />
+                <marker date="1487262974264" expanded="true" signature="17546:17873" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="17879:18073" ph="/** 静态方法 Reflect.defineProperty() 有很像 Object.defineProperty() 方法，但返回的是 Boolean 值。 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="18162:18331" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="18176:18279" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="18288:18325" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="18337:18497" ph="/** 静态方法 Reflect.deleteProperty() 允许用于删除属性。它很像 delete operator ，但它是一个函数。 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="18574:19582" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="18696:19482" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="18808:19384" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="18943:19370" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="19095:19318" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="19588:19713" ph="/** 静态方法 Reflect.has() 作用与 in 操作符 相同。 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="19768:20439" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="19886:20395" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="19968:20306" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="20106:20292" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="20445:20541" ph="/** 获取目标公开的属性值 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="20593:22067" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="20786:21788" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="20851:21680" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="21004:21479" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="21124:21461" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="21583:21666" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="21844:22025" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="22073:22189" ph="/** 设置目标公开的属性值 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="22248:23872" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="22441:23410" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="22630:23266" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="22738:23252" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="22911:23032" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="23319:23400" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="23475:23824" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="23540:23646" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="23878:23927" ph="/** JSON 对象构造器 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="24406:25361" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="24661:25288" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="24837:24989" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="25023:25279" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="25368:25436" ph="/** 数组构造器 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="25468:25687" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="26525:26681" ph="/** 循环对象中的每一个属性，只有纯对象或者是一个数组才会执行。 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="26744:27083" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="26946:27056" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="27089:27214" ph="/** 方法使用指定的函数测试所有元素，并创建一个包含所有通过测试的元素的新数组。 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="27275:27647" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="27653:27783" ph="/** 将一个数组的所有元素从开始索引填充到具有静态值的结束索引 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="27848:28506" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="27928:28480" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="28404:28470" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="28513:28635" ph="/** 返回数组中满足提供的测试函数的第一个元素的值。否则返回 undefined。 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="28694:29053" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="28972:29021" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="29062:29131" ph="/** 类对象构造器 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="29157:29212" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="29826:29871" ph="/** 接口构造函数 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="29901:29956" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="30308:30419" ph="/** 错误消息构造函数 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="30471:30595" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="30871:30907" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="30914:31024" ph="/** 引用错误构造器 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="31085:31180" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="31327:31437" ph="/** 类型错误构造器 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="31493:31583" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="31705:31815" ph="/** 语法错误构造器 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="31873:31965" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="32141:32230" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="32393:32484" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="32656:32746" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="32867:32946" ph="/** 返回对象类型的字符串表示形式 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="32986:33214" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="33241:33360" ph="/** 检查实例对象是否属于指定的类型(不会检查接口类型) ...*/" />
+                <marker date="1487262974264" expanded="true" signature="33412:34085" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="33582:33875" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="33742:33865" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="34119:34236" ph="/** 检查实例对象是否属于指定的类型(检查接口类型) ...*/" />
+                <marker date="1487262974264" expanded="true" signature="34280:35279" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="34433:35222" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="34593:35212" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="34752:35149" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="34832:35131" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="34933:35036" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="35298:35391" ph="/** 为指定的类创建一个新的实例对象 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="35454:36267" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="35558:35714" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="35848:35946" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="35959:36114" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="36296:36372" ph="/** 根据指定的类名获取类的对象 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="36418:36612" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="36823:36941" ph="/** 返回对象的完全限定类名 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="36990:38774" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="37035:38712" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="38831:38908" ph="/** 获取指定实例对象的超类名称 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="38960:39314" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="39048:39287" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="39210:39277" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="39381:39556" ph="/** 判断是否为一个可遍历的对象 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="39596:39856" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="39888:40003" ph="/** 检查所有传入的值定义 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="40033:40173" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="40207:40277" ph="/** 判断是否为数组 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="40308:40377" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="40407:40477" ph="/** 判断是否为函数 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="40508:40557" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="40593:40665" ph="/** 判断是否为布尔类型 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="40695:40743" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="40776:40847" ph="/** 判断是否为字符串 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="40880:40927" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="40958:41034" ph="/** 判断是否为一个标量 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="41067:41177" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="41208:41280" ph="/** 判断是否为数字类型 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="41313:41360" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="41391:41453" ph="/** 抛出错误信息 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="41510:41976" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="41535:41970" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="42011:42118" ph="/** 判断是否为一个空值 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="42157:42391" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="42248:42363" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="42421:42494" ph="/** 去掉指定字符两边的空白 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="42524:42631" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="42695:56374" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="42717:42860" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="42739:42850" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="42870:42968" ph="/** 检查值的类型是否和声明时的类型一致 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="43037:44436" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="43129:44426" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="43257:44216" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="44263:44412" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="44539:45265" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="44643:45230" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="44760:45216" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="44879:44981" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="45049:45167" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="45275:45364" ph="/** 是否为一个数学赋值运算符 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="45416:45920" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="45441:45884" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="45930:46045" ph="/** 数学运算 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="46094:46812" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="46131:46802" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="46822:47025" ph="/** 设置属性值 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="47114:48096" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="47247:47768" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="47362:47610" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="47785:47840" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="47851:47951" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="48106:48285" ph="/** 获取属性值 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="48358:48741" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="48448:48660" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="48751:48850" ph="/** 生成一个调用函数的方法 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="48940:56347" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="49313:49977" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="49671:49963" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="49814:49945" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="50489:53789" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="50717:53308" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="51092:52354" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="51291:51880" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="51593:51789" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="52143:52332" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="52606:53290" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="52929:53084" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="53150:53268" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="53430:53775" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="53672:53757" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="53860:54380" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="54214:54318" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="54451:55599" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="54530:55418" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="54655:55368" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="55733:55826" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="56002:56291" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="56125:56226" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="56429:56757" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="56525:56643" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="56763:56861" ph="/** 构建一个访问器 ...*/" />
+                <marker date="1487262974264" expanded="true" signature="56904:56997" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="56983:56997" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="71576:71703" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="71576:73663" ph="{&quot;final&quot;: false...}" />
+                <marker date="1487262974264" expanded="true" signature="71576:73674" ph="{...}" />
+                <marker date="1487262974264" expanded="true" signature="71576:73769" ph="{...}" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Browser.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler/lib/Browser.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1364">
-              <caret line="55" column="6" selection-start-line="55" selection-start-column="6" selection-end-line="55" selection-end-column="6" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -206,18 +487,18 @@
         <option value="$PROJECT_DIR$/lib/lib/IProt.as" />
         <option value="$PROJECT_DIR$/lib/lib/IProsess.as" />
         <option value="$PROJECT_DIR$/compiler/lib/operation.js" />
-        <option value="$PROJECT_DIR$/compiler/lib/Utils.js" />
         <option value="$PROJECT_DIR$/compiler/lib/Globals.js" />
         <option value="$PROJECT_DIR$/lib/lib/EventDispatcher.as" />
         <option value="$PROJECT_DIR$/lib/com/D.as" />
         <option value="$PROJECT_DIR$/lib/com/Abs.as" />
-        <option value="$PROJECT_DIR$/testjs.js" />
-        <option value="$PROJECT_DIR$/compiler/Ruler.js" />
         <option value="$PROJECT_DIR$/lib/com/B.as" />
+        <option value="$PROJECT_DIR$/compiler/lib/Descriptions.js" />
+        <option value="$PROJECT_DIR$/compiler/lib/Utils.js" />
         <option value="$PROJECT_DIR$/compiler/Make.js" />
+        <option value="$PROJECT_DIR$/compiler/Ruler.js" />
+        <option value="$PROJECT_DIR$/testjs.js" />
         <option value="$PROJECT_DIR$/lib/main.as" />
         <option value="$PROJECT_DIR$/lib/Main-min.js" />
-        <option value="$PROJECT_DIR$/compiler/lib/Descriptions.js" />
         <option value="$PROJECT_DIR$/compiler/lib/System.js" />
       </list>
     </option>
@@ -324,6 +605,24 @@
               <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="lib" />
+              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="com" />
+              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="compiler" />
               <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
             </PATH_ELEMENT>
@@ -348,8 +647,8 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -528,14 +827,10 @@
       <workItem from="1486710471695" duration="345000" />
       <workItem from="1486782528298" duration="30711000" />
       <workItem from="1486870132629" duration="36774000" />
-      <workItem from="1486956904231" duration="8844000" />
-    </task>
-    <task id="LOCAL-00189" summary="tester">
-      <created>1479204516059</created>
-      <option name="number" value="00189" />
-      <option name="presentableId" value="LOCAL-00189" />
-      <option name="project" value="LOCAL" />
-      <updated>1479204516059</updated>
+      <workItem from="1486956904231" duration="8871000" />
+      <workItem from="1487070144059" duration="13275000" />
+      <workItem from="1487125803124" duration="30057000" />
+      <workItem from="1487224731790" duration="35288000" />
     </task>
     <task id="LOCAL-00190" summary="tester">
       <created>1479291818856</created>
@@ -873,11 +1168,18 @@
       <option name="project" value="LOCAL" />
       <updated>1486915776107</updated>
     </task>
-    <option name="localTasksCounter" value="238" />
+    <task id="LOCAL-00238" summary="1.1">
+      <created>1486965887514</created>
+      <option name="number" value="00238" />
+      <option name="presentableId" value="LOCAL-00238" />
+      <option name="project" value="LOCAL" />
+      <updated>1486965887514</updated>
+    </task>
+    <option name="localTasksCounter" value="239" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1581825000" />
+    <option name="totallyTimeSpent" value="1660472000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -892,13 +1194,13 @@
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1108742" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.07356077" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32899022" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32790446" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.4549403" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" x="674" y="317" width="766" height="419" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.47557002" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" x="1193" y="203" width="744" height="476" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -1032,13 +1334,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Utils.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="358" column="19" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/EventDispatcher.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -1145,13 +1440,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/Downloads/core-js-master/core-js-master/client/library.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
-          <caret line="380" column="64" selection-start-line="380" selection-start-column="56" selection-end-line="380" selection-end-column="64" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/cache/lib_iprosessjson">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -1166,13 +1454,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DHTML.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="297">
-          <caret line="964" column="9" selection-start-line="964" selection-start-column="9" selection-end-line="964" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/com/Abs.as">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="494">
@@ -1180,13 +1461,6 @@
           <folding>
             <element signature="e#553#567#0" expanded="false" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/com/D.as">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="651">
-          <caret line="22" column="18" selection-start-line="22" selection-start-column="18" selection-end-line="22" selection-end-column="18" />
         </state>
       </provider>
     </entry>
@@ -1198,72 +1472,121 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript5.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="806">
-          <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="13392">
-          <caret line="432" column="0" selection-start-line="432" selection-start-column="0" selection-end-line="432" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/lib/EventDispatcher.as">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1085">
           <caret line="41" column="9" selection-start-line="41" selection-start-column="9" selection-end-line="41" selection-end-column="9" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/testjs.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="310">
-          <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="28055">
-          <caret line="905" column="1" selection-start-line="905" selection-start-column="1" selection-end-line="905" selection-end-column="1" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/lib/Utils.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18">
-          <caret line="441" column="9" selection-start-line="441" selection-start-column="9" selection-end-line="441" selection-end-column="9" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/com/B.as">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
+        <state relative-caret-position="589">
           <caret line="22" column="17" selection-start-line="22" selection-start-column="17" selection-end-line="22" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Downloads/core-js-master/core-js-master/client/library.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="25978">
+          <caret line="838" column="40" selection-start-line="838" selection-start-column="40" selection-end-line="838" selection-end-column="40" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/compiler/lib/Browser.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1364">
+        <state relative-caret-position="1705">
           <caret line="55" column="6" selection-start-line="55" selection-start-column="6" selection-end-line="55" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="297">
+          <caret line="35" column="0" selection-start-line="35" selection-start-column="0" selection-end-line="35" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript5.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="483">
+          <caret line="32" column="2" selection-start-line="32" selection-start-column="2" selection-end-line="32" selection-end-column="2" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Utils.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1209">
+          <caret line="75" column="6" selection-start-line="31" selection-start-column="3" selection-end-line="75" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/Make.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="467">
+          <caret line="254" column="27" selection-start-line="254" selection-start-column="27" selection-end-line="254" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/Ruler.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="473">
+          <caret line="616" column="0" selection-start-line="616" selection-start-column="0" selection-end-line="616" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/com/D.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="341">
+          <caret line="24" column="30" selection-start-line="24" selection-start-column="30" selection-end-line="24" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DHTML.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="297">
+          <caret line="935" column="0" selection-start-line="935" selection-start-column="0" selection-end-line="935" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/lib/Utils.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="334">
+          <caret line="467" column="0" selection-start-line="467" selection-start-column="0" selection-end-line="470" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/lib/Descriptions.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="111">
+          <caret line="85" column="51" selection-start-line="85" selection-start-column="51" selection-end-line="85" selection-end-column="51" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/testjs.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="179">
+          <caret line="15" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/main.as">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="442">
-          <caret line="48" column="46" selection-start-line="48" selection-start-column="46" selection-end-line="48" selection-end-column="46" />
+        <state relative-caret-position="427">
+          <caret line="53" column="23" selection-start-line="53" selection-start-column="23" selection-end-line="53" selection-end-column="23" />
           <folding>
             <element signature="e#546#573#0" expanded="true" />
           </folding>
@@ -1272,34 +1595,298 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1374">
-          <caret line="1678" column="10" selection-start-line="1678" selection-start-column="10" selection-end-line="1678" selection-end-column="10" />
+        <state relative-caret-position="413">
+          <caret line="1983" column="16" selection-start-line="1983" selection-start-column="16" selection-end-line="1983" selection-end-column="16" />
           <folding>
-            <marker date="1486965871280" expanded="true" signature="158:993" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="170:56997" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="300:583" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="410:532" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="610:703" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="732:826" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="858:1036" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="1066:1160" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="1192:1287" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="1315:1408" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="2469:2554" ph="/** 对象类构造器 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="2588:2755" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="2862:2938" ph="/** 获取指定对象的原型 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="3049:3276" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="3112:3270" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="3282:3334" ph="/** 设置对象的原型链 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="3427:3485" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="3491:3688" ph="/** 合并其它参数到指定的 target 对象中 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="3723:5332" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="3959:4055" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="4092:4145" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="4224:4260" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="4304:5303" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="4372:5293" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="4430:5279" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="4692:5130" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="4761:4905" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="4935:5031" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="5191:5261" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="5338:5436" ph="/** 指示 Object 类的实例是否在指定为参数的对象的原型链中 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="5557:5996" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="5719:5936" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="5816:5926" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="6002:6152" ph="/** 表示对象本身是否已经定义了指定的属性。 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="6272:6853" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="6384:6799" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="6464:6710" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="6623:6696" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="6859:7052" ph="/** 表示指定的属性是否存在、是否可枚举。 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="7188:8074" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="7300:7872" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="7387:7836" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="7407:7753" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="7497:7735" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="8080:8144" ph="/** 描述符构造器 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="8181:9332" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="8667:8958" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="9014:9305" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="9338:9390" ph="/** 设置属性的描述 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="9471:9947" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="9526:9883" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="9590:9798" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="9997:10215" ph="/** 设置循环操作动态属性的可用性。 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="10292:11434" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="10404:11247" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="10493:11210" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="10513:11127" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="10605:11109" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="10769:10883" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="10912:10990" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="11298:11406" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="11440:11494" ph="/** 返回指定对象的原始值 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="11585:11957" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="11697:11804" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="11848:11913" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="11963:12022" ph="/** 返回指定对象的字符串表示形式。 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="12116:12490" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="12228:12336" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="12380:12445" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="12496:12552" ph="/** 返回对象可枚举的属性的键名 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="12594:12655" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="12661:12716" ph="/**  返回对象可枚举的属性值 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="12760:12820" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="12826:12897" ph="/** 获取可枚举的属性 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="12948:14676" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="13070:14051" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="13207:14040" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="13228:13936" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="13343:13918" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="13488:13896" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="13532:13870" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="14105:14648" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="14284:14638" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="14366:14624" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="14682:14747" ph="/** 迭代构造器 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="14784:14997" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="15216:15273" ph="/** 将指针向前移动一个位置并返回当前元素 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="15323:15436" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="15442:15492" ph="/** 返回当前指针位置的元素 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="15547:15636" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="15642:15721" ph="/** 返回上一个指针位置的元素 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="15770:15864" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="15870:15951" ph="/** 返回下一个指针位置的元素。 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="16000:16111" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="16117:16198" ph="/** 将指针移到到指定的位置并返回当前位置的元素 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="16255:16431" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="16437:16487" ph="/** 重置指针 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="16538:16592" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="16598:16706" ph="/** Reflect是一个内置的对象，提供可拦截的JavaScript操作的方法。方法与代理处理程序相同。反射不是一个函数对象，因此它不可构造。 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="16890:17053" ph="/** 静态方法 Reflect.apply() 通过指定的参数列表发起对目标(target)函数的调用 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="17128:17278" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="17284:17466" ph="/** Reflect.construct() 方法的行为有点像 new 操作符 构造函数 ， 相当于运行 new target(...args). ...*/" />
+            <marker date="1487262974264" expanded="true" signature="17546:17873" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="17879:18073" ph="/** 静态方法 Reflect.defineProperty() 有很像 Object.defineProperty() 方法，但返回的是 Boolean 值。 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="18162:18331" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="18176:18279" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="18288:18325" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="18337:18497" ph="/** 静态方法 Reflect.deleteProperty() 允许用于删除属性。它很像 delete operator ，但它是一个函数。 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="18574:19582" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="18696:19482" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="18808:19384" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="18943:19370" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="19095:19318" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="19588:19713" ph="/** 静态方法 Reflect.has() 作用与 in 操作符 相同。 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="19768:20439" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="19886:20395" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="19968:20306" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="20106:20292" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="20445:20541" ph="/** 获取目标公开的属性值 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="20593:22067" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="20786:21788" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="20851:21680" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="21004:21479" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="21124:21461" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="21583:21666" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="21844:22025" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="22073:22189" ph="/** 设置目标公开的属性值 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="22248:23872" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="22441:23410" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="22630:23266" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="22738:23252" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="22911:23032" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="23319:23400" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="23475:23824" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="23540:23646" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="23878:23927" ph="/** JSON 对象构造器 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="24406:25361" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="24661:25288" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="24837:24989" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="25023:25279" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="25368:25436" ph="/** 数组构造器 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="25468:25687" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="26525:26681" ph="/** 循环对象中的每一个属性，只有纯对象或者是一个数组才会执行。 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="26744:27083" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="26946:27056" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="27089:27214" ph="/** 方法使用指定的函数测试所有元素，并创建一个包含所有通过测试的元素的新数组。 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="27275:27647" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="27653:27783" ph="/** 将一个数组的所有元素从开始索引填充到具有静态值的结束索引 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="27848:28506" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="27928:28480" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="28404:28470" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="28513:28635" ph="/** 返回数组中满足提供的测试函数的第一个元素的值。否则返回 undefined。 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="28694:29053" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="28972:29021" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="29062:29131" ph="/** 类对象构造器 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="29157:29212" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="29826:29871" ph="/** 接口构造函数 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="29901:29956" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="30308:30419" ph="/** 错误消息构造函数 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="30471:30595" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="30871:30907" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="30914:31024" ph="/** 引用错误构造器 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="31085:31180" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="31327:31437" ph="/** 类型错误构造器 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="31493:31583" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="31705:31815" ph="/** 语法错误构造器 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="31873:31965" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="32141:32230" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="32393:32484" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="32656:32746" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="32867:32946" ph="/** 返回对象类型的字符串表示形式 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="32986:33214" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="33241:33360" ph="/** 检查实例对象是否属于指定的类型(不会检查接口类型) ...*/" />
+            <marker date="1487262974264" expanded="true" signature="33412:34085" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="33582:33875" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="33742:33865" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="34119:34236" ph="/** 检查实例对象是否属于指定的类型(检查接口类型) ...*/" />
+            <marker date="1487262974264" expanded="true" signature="34280:35279" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="34433:35222" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="34593:35212" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="34752:35149" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="34832:35131" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="34933:35036" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="35298:35391" ph="/** 为指定的类创建一个新的实例对象 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="35454:36267" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="35558:35714" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="35848:35946" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="35959:36114" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="36296:36372" ph="/** 根据指定的类名获取类的对象 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="36418:36612" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="36823:36941" ph="/** 返回对象的完全限定类名 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="36990:38774" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="37035:38712" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="38831:38908" ph="/** 获取指定实例对象的超类名称 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="38960:39314" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="39048:39287" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="39210:39277" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="39381:39556" ph="/** 判断是否为一个可遍历的对象 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="39596:39856" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="39888:40003" ph="/** 检查所有传入的值定义 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="40033:40173" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="40207:40277" ph="/** 判断是否为数组 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="40308:40377" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="40407:40477" ph="/** 判断是否为函数 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="40508:40557" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="40593:40665" ph="/** 判断是否为布尔类型 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="40695:40743" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="40776:40847" ph="/** 判断是否为字符串 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="40880:40927" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="40958:41034" ph="/** 判断是否为一个标量 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="41067:41177" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="41208:41280" ph="/** 判断是否为数字类型 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="41313:41360" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="41391:41453" ph="/** 抛出错误信息 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="41510:41976" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="41535:41970" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="42011:42118" ph="/** 判断是否为一个空值 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="42157:42391" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="42248:42363" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="42421:42494" ph="/** 去掉指定字符两边的空白 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="42524:42631" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="42695:56374" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="42717:42860" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="42739:42850" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="42870:42968" ph="/** 检查值的类型是否和声明时的类型一致 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="43037:44436" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="43129:44426" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="43257:44216" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="44263:44412" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="44539:45265" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="44643:45230" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="44760:45216" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="44879:44981" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="45049:45167" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="45275:45364" ph="/** 是否为一个数学赋值运算符 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="45416:45920" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="45441:45884" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="45930:46045" ph="/** 数学运算 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="46094:46812" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="46131:46802" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="46822:47025" ph="/** 设置属性值 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="47114:48096" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="47247:47768" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="47362:47610" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="47785:47840" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="47851:47951" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="48106:48285" ph="/** 获取属性值 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="48358:48741" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="48448:48660" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="48751:48850" ph="/** 生成一个调用函数的方法 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="48940:56347" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="49313:49977" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="49671:49963" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="49814:49945" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="50489:53789" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="50717:53308" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="51092:52354" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="51291:51880" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="51593:51789" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="52143:52332" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="52606:53290" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="52929:53084" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="53150:53268" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="53430:53775" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="53672:53757" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="53860:54380" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="54214:54318" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="54451:55599" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="54530:55418" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="54655:55368" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="55733:55826" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="56002:56291" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="56125:56226" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="56429:56757" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="56525:56643" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="56763:56861" ph="/** 构建一个访问器 ...*/" />
+            <marker date="1487262974264" expanded="true" signature="56904:56997" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="56983:56997" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="71576:71703" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="71576:73663" ph="{&quot;final&quot;: false...}" />
+            <marker date="1487262974264" expanded="true" signature="71576:73674" ph="{...}" />
+            <marker date="1487262974264" expanded="true" signature="71576:73769" ph="{...}" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/lib/Descriptions.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="279">
-          <caret line="30" column="14" selection-start-line="30" selection-start-column="14" selection-end-line="30" selection-end-column="14" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/Make.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="191">
-          <caret line="591" column="23" selection-start-line="591" selection-start-column="23" selection-end-line="591" selection-end-column="23" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/compiler/lib/System.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="527">
-          <caret line="35" column="43" selection-start-line="35" selection-start-column="43" selection-end-line="35" selection-end-column="43" />
+        <state relative-caret-position="283">
+          <caret line="1715" column="18" selection-start-line="1715" selection-start-column="18" selection-end-line="1715" selection-end-column="18" />
           <folding />
         </state>
       </provider>

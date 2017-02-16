@@ -228,6 +228,7 @@ function isBoolOperator(o)
         case 'instanceof' :
         case 'is' :
         case 'in' :
+        case 'of' :
             return true;
     }
     return false;
@@ -245,6 +246,7 @@ function isKeywordOperator(o)
         case 'instanceof' :
         case 'is' :
         case 'in' :
+        case 'of' :
             return true;
     }
     return isKeywordLeftOperator(o);
@@ -478,4 +480,4 @@ function showMem()
 }
 utils.showMem = showMem;
 
-module.exports = utils;
+ module.exports = utils;
