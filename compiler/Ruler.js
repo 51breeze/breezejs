@@ -478,7 +478,7 @@ syntax['const']=function (event)
 syntax['function']= function(event){
 
     event.prevented=true;
-    var isassign = this.prev && this.prev.value==='=';
+    var isassign = this.prev && (this.prev.value==='=' || this.prev.value===':');
     if( this.scope().keyword() !=='function' || this.scope().content().length > 0 )
     {
         this.add( new Scope( event.type, '(*)' ) );
@@ -579,11 +579,11 @@ syntax['function']= function(event){
     stack.returnType = type;
 
     //定义到作用域中
-    if( name )
+    if( name && !isassign )
     {
         //不能重复声明函数
         var val = scope.define( name );
-        if( val && val.scope === scope && !isassign )
+        if( val && val.scope === scope )
         {
             if( !stack.accessor() || stack.accessor() === val.get || stack.accessor() === val.set )
             {
@@ -601,6 +601,7 @@ syntax['function']= function(event){
         {
            if( stack.parent().construct() )this.error('function "'+name+'" has already been declared', name_stack );
            stack.parent().construct( stack );
+
         }else
         {
             var obj = {
@@ -608,7 +609,8 @@ syntax['function']= function(event){
                 'id': 'function',
                 'qualifier': stack.qualifier(),
                 'static': stack.static(),
-                'scope': scope
+                'scope': scope,
+                'reference':stack
             };
             if (stack.accessor())obj[stack.accessor()] = stack.accessor();
             scope.define(name, obj);
@@ -882,9 +884,10 @@ syntax["super"]=function (e)
     if( !fun.parent().extends() )this.error('No parent class inheritance');
 
     //构造函数中有调用超类
-    if( fun.parent().keyword() ==='class' && fun.name()===fun.parent().name() )
+    if( !fun.called && fun.parent().keyword() ==='class' && fun.name()===fun.parent().name() )
     {
-        fun.called=true;
+        //调用超类的构造函数
+        fun.called= this.next.value==='(';
     }
     this.add( this.current );
     if( this.next.type==='(operator)' || this.next.value==='(' || this.next.value==='[' )
@@ -933,7 +936,6 @@ syntax["delete"]=function(e)
     e.prevented=true;
     if( Utils.isOperator(this.next.value) )this.error();
     if( !(this.next.type ==='(identifier)' || this.next.value==='this') )this.error();
-    if( !(this.scope() instanceof Scope) )this.error('Delete operator can only appear in the block scope');
     if( this.scope().keyword()!=='expression')this.add( new Stack('expression', '(*)' ) );
     this.add( this.current );
     this.step();
@@ -990,16 +992,6 @@ syntax['(delimiter)']=function( e )
         //json object
         if( s.type()==='(JSON)' )
         {
-            var fn = function (e) {
-                if (this.current.value === ';')this.error();
-                if (this.current.value === ',') {
-                    //this.scope().switch();
-                    if (this.next.value !== '}')this.add( this.current );
-                    e.prevented=true;
-                    e.stopPropagation=true;
-                }
-            }
-            this.addListener('(operator)', fn, 100);
             this.loop(function () {
                 if( this.next.value === '}' )return false;
                 this.seek();
@@ -1014,10 +1006,19 @@ syntax['(delimiter)']=function( e )
                 this.add( this.seek() );
                 if ( this.current.value !== ':' )this.error('Missing token :');
                 this.step();
-                if( this.current.value !== ',' && this.next.value !== '}' )this.error('Missing token ,', this.prev);
+                if( this.next.value === '}' )return false;
+                if( this.current.value === '}' ){
+                    var prev = this.scope().previous();
+                    if( prev.keyword()=== "function" ){
+                        this.seek();
+                        if( this.current.value===',' && this.next.value !== '}' )
+                        {
+                            this.add( this.current );
+                        }
+                    }
+                }
                 return true;
             });
-            this.removeListener('(operator)', fn);
 
         }else
         {
@@ -1032,10 +1033,7 @@ syntax['(delimiter)']=function( e )
         this.seek();
         this.add( this.current );
         if( this.current.value !== balance[id] )this.error('Missing token '+balance[id] );
-        if( this.scope() !== s ){
-            console.log( this.scope().keyword() )
-            this.error();
-        }
+        if( this.scope() !== s )this.error();
         s.switch();
         if( s.keyword()==='structure' )return true;
         // 如果下一个是运算符或者是一个定界符

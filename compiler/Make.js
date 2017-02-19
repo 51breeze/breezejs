@@ -86,6 +86,7 @@ function createDescription( stack )
     desc['id'] =stack.keyword();
     desc['type'] = getType( stack.type() );
     desc['privilege'] =stack.qualifier();
+    desc['static'] = !!stack.static();
     if( stack.final() )
     {
         desc['final'] =stack.final();
@@ -170,6 +171,7 @@ function Iteration( stack , module )
     this.content=[];
     this.state=true;
     this.seek=function(){
+        if( !this.state )return false;
         if( index===0 )stack.dispatcher({type:'(iterationStart)',content:this.content,iteration:this});
         if( index >= this.data.length )
         {
@@ -344,7 +346,7 @@ Iteration.prototype.checkReturnType=function(stack)
         if( fnScope.returnType ==='Object' )return;
         this.content.push('return ');
         var info = '"' + this.current.line + ':' + this.current.cursor + '"';
-        this.content.push( this.module.classname +".checkType("+info+","+ getDefinedClassName(this.module, fnScope.returnType )+",");
+        this.content.push( this.module.classname +".check("+info+","+ getDefinedClassName(this.module, fnScope.returnType )+",");
         this.seek();
         this.content.push( toString(this.current, this.module) );
         this.content.push(")");
@@ -399,6 +401,7 @@ Iteration.prototype.parseArgumentsOfMethodAndConstructor=function( stack )
             express.unshift(items.slice(-1) + '=Array.prototype.slice.call(arguments, ' + rest + ');\n');
             items = items.slice(0, rest);
         }
+
         this.content.push( items.join(',') );
         for (var i in items) {
             var desc = scope.define( items[i] );
@@ -420,8 +423,10 @@ Iteration.prototype.parseArgumentsOfMethodAndConstructor=function( stack )
                 var index = this.name() && this.parent().keyword() !=='class' ? 7: 5;
                 e.iteration.content.splice( index, 0, express.join('') )
             }
+
         },-400);
         this.seek();
+        this.state=false;
     }
 }
 
@@ -550,18 +555,38 @@ function checkCallParameter(it, desc, property )
 {
     var parameters = [];
     var index = 0 ;
-    var param = desc ? property.isglobal ? desc.param : desc.paramType : null;
+    var param = desc ? (property.isglobal ? desc.param : desc.paramType) : null;
     var acceptType;
+    if( !param && desc && !property.isglobal && desc.id==='function' && !desc.paramType  && desc.reference instanceof Ruler.STACK )
+    {
+        param = desc.reference.param();
+        desc.paramType=[];
+        for(var i in param )
+        {
+            if( param[i] ==='...')
+            {
+                desc.paramType.push('*');
+            }else{
+                var obj = desc.reference.define( param[i] );
+                obj.type = getType(obj.type);
+                desc.paramType.push( obj.type );
+            }
+        }
+        param = desc.paramType;
+    }
 
     if( it.current.content().length > 0 )
     {
         var it = new Iteration(it.current, it.module);
-        while (it.seek()) {
-            if (it.current instanceof Ruler.STACK) {
+        while (it.seek())
+        {
+            if (it.current instanceof Ruler.STACK)
+            {
                 acceptType = param && param[index] !=='...' ? param[index] : '*';
                 parameters.push( toString(it.current, it.module, acceptType ) );
                 index++;
-            } else if (it.current.value !== ',') {
+            } else if (it.current.value !== ',')
+            {
                 error('Invalid identifier token', 'syntax', it.current);
             }
         }
@@ -687,7 +712,10 @@ function getDescriptorOfExpression(it, classmodule)
         else
         {
             type = Utils.getConstantType(it.current.value) || Utils.getValueTypeof(it.current.type);
-            if (!type)error('Unexpected identifier','syntax',  it.current );
+            if (!type){
+                console.log( it.current )
+                error('Unexpected identifier','syntax',  it.current );
+            }
             property.type = type || '*';
             property.thisArg = it.current.value;
             property.lastStack = it.current;
@@ -718,6 +746,15 @@ function getDescriptorOfExpression(it, classmodule)
                 desc = null;
                 value = toString(it.current, classmodule,'String');
                 if( !value )error('Missing expression', 'syntax', property.lastStack );
+                if( property.name.length > 0)
+                {
+                    var before = property.before;
+                    property.before=[];
+                    property.thisArg = parse(classmodule,property);
+                    property.name=[];
+                    property.before=before;
+                }
+
                 property.name.push( [value] );
                 property.descriptor = desc;
                 property.runningCheck=true;
@@ -739,10 +776,18 @@ function getDescriptorOfExpression(it, classmodule)
                 if( it.next && (it.next.value==='.' || (it.next instanceof Ruler.STACK && (it.next.type() === '(property)' || it.next.type() === '(expression)' ))))
                 {
                     if (type === 'void')error('"' + it.prev.value + '" no return value', 'reference', it.prev);
-                    var before = property.before;
-                    property.before = [];
                     isstatic=false;
-                    property = {name:[],descriptor:null,thisArg:parse(classmodule,property),expression:false,before:before,after:'',"super":null,runningCheck:false,lastStack:property.lastStack};
+                    var _before = property.before.slice();
+                    var before=property.before.pop();
+                    if(before==='new')
+                    {
+                        _before.pop();
+                        property.before=[before];
+                    }
+                    property.thisArg = parse(classmodule,property);
+                    property.name=[];
+                    property.super=null;
+                    property.before = _before;
                 }
 
             }else
@@ -753,9 +798,19 @@ function getDescriptorOfExpression(it, classmodule)
         } else if( it.next.value === '.' )
         {
             it.seek();
+
         } else if( it.next.id === '(identifier)' || (it.next.id === '(keyword)' && it.current.value==='.') )
         {
             it.seek();
+            if( property.name.length > 0)
+            {
+                var before = property.before;
+                property.before=[];
+                property.thisArg = parse(classmodule,property);
+                property.name=[];
+                property.before=before;
+            }
+
             property.name.push( it.current.value );
             property.lastStack = it.current;
 
@@ -844,6 +899,14 @@ function checkRunning( classmodule, desc , value , operator )
     var express=[];
     var _operator='';
 
+    //调用超类属性或者方法
+    if( desc.super )
+    {
+        thisvrg = 'this';
+        //props.unshift( desc.super );
+        //console.log( props , desc.name )
+    }
+
     //如果引用对象和属性对象完全相同就删除
     if( thisvrg === props[0] )
     {
@@ -855,13 +918,6 @@ function checkRunning( classmodule, desc , value , operator )
         if ( item instanceof Array )return item.join('');
         return '"' + item + '"';
     });
-
-    //调用超类属性或者方法
-    if( desc.super )
-    {
-        thisvrg = 'this';
-        props.unshift( desc.super );
-    }
 
     //前置运算符
     _operator = desc.before.length >0 ? desc.before.pop() : '';
@@ -878,18 +934,31 @@ function checkRunning( classmodule, desc , value , operator )
     {
         if ( desc.expression || _operator==='new' )
         {
-            method = classmodule.classname + '.call';
-            if( _operator==='new' ) {
-                method = classmodule.classname + '.newInstance';
-                _operator = desc.before.pop();
-            }
+            method = classmodule.classname + '.apply';
             props.push( info );
-            props.push( thisvrg );
-            props.push( 'undefined' );
-            if(desc.param)props.push('[' + desc.param + ']');
+            if( _operator==='new' )
+            {
+                method = classmodule.classname + '.new';
+                _operator = desc.before.pop();
+                props.push( thisvrg );
+
+            }else
+            {
+                props.push( thisvrg );
+                props.push( 'undefined' );
+            }
+            if(desc.param)
+            {
+                props.push('[' + desc.param + ']');
+            }
+            if( desc.super ){
+                method=desc.super+'.constructor.call';
+                props=[thisvrg];
+                if( desc.param )props.push( desc.param );
+            }
             express.push(method + '(' + props.join(',')+')' );
 
-        }else if( _operator==='new' ||  _operator==='typeof'  )
+        }else if( _operator==='typeof'  )
         {
             express.push(thisvrg);
 
@@ -906,21 +975,22 @@ function checkRunning( classmodule, desc , value , operator )
     }else
     {
         //对象引用的属性
-        props = props.length === 1 && !desc.super ? [ props[0] ] : ['[' + props.join(',') + ']'];
+        props = props.length === 1 ? [ props[0] ] : ['[' + props.join(',') + ']'];
         props.unshift( thisvrg );
-        method = classmodule.classname + '.prop';
+        method = classmodule.classname + '.get';
         //调用函数
         if ( desc.expression || _operator === 'new' )
         {
             if (desc.param)props.push('[' + desc.param + ']');
-            method = classmodule.classname + '.call';
+            method = classmodule.classname + '.apply';
             if( _operator === 'new' ){
-                method = classmodule.classname+'.newInstance';
+                method = classmodule.classname+'.new';
             }
         }
         //设置属性值
         else if (value)
         {
+            method = classmodule.classname + '.set';
             props.push( value );
             if( operator!=='=' )props.push('"'+operator+'"');
         }
@@ -929,11 +999,18 @@ function checkRunning( classmodule, desc , value , operator )
         var increment = right || left;
         if( _operator ==='delete' || increment )
         {
-            props.push('undefined');
             _operator==='delete' ? props.push('"'+_operator+'"') : props.push('"'+increment+'"');
+            if( _operator ==='delete' )
+            {
+                method = classmodule.classname + '.delete';
+            }
             _operator = desc.before.pop();
         }
         props.unshift(info);
+        if( desc.super ){
+            if( !desc.expression && (operator==='=' || !operator) )props.push('undefined');
+            props.push('true');
+        }
         express.push(method + '(' + props.join(',') + ')');
     }
 
@@ -1200,7 +1277,7 @@ function expression( stack, classmodule ,  acceptType )
                 if (valueType=== '*' )
                 {
                     var info = '"' + describe.lastStack.line + ':' + describe.lastStack.cursor + '"';
-                    value = classmodule.classname + '.checkType(' + info + ',' + describe.type + ',' + value + ')';
+                    value = classmodule.classname + '.check(' + info + ',' + describe.type + ',' + value + ')';
                 } else if (!checkTypeOf(classmodule, describe.type, valueType))
                 {
                     error('"' + describe.name.join('.') + '" type of mismatch. must is "' + describe.type + '"', 'type', describe.lastStack);
@@ -1229,7 +1306,7 @@ function expression( stack, classmodule ,  acceptType )
         if ( valueType === '*' )
         {
             var info = '"' + valueDescribe.lastStack.line + ':' + valueDescribe.lastStack.cursor + '"';
-            value = classmodule.classname + '.checkType(' + info + ',' + acceptType + ',' + value + ')';
+            value = classmodule.classname + '.check(' + info + ',' + acceptType + ',' + value + ')';
         } else if ( !checkTypeOf(classmodule, acceptType, valueType) && !( stack.parent().type() ==='(property)' && valueType==='Number' ) )
         {
             error('type of mismatch. must is "' + acceptType + '"', 'type', valueDescribe.lastStack);
@@ -1374,18 +1451,6 @@ function toString( stack, module, acceptType )
     return it.content.join('');
 }
 
-/**
- * 获取模块的全名
- * @param module
- * @param classname
- * @returns {*}
- */
-function getModuleFullname( module , classname )
-{
-    if( module.classname === classname )return module.fullclassname;
-    if( module.import && module.import[ classname ] )return module.import[ classname ];
-    return classname;
-}
 
 /**
  * 执行模块的原型链，直到回调函数返回值或者已到达最上层为止
@@ -1417,7 +1482,7 @@ function doPrototype(classModule, callback)
  */
 function checkTypeOf(classModule, needType, currentType )
 {
-    if( needType==='*' || currentType==='*' || currentType==='void' || needType==='void')return true;
+    if( needType==='*' || currentType==='*' || currentType==='void' || needType==='void' || currentType==='Object' || needType==='Object')return true;
     currentType = module( getImportClassByType( classModule, currentType ));
     var need = module( getImportClassByType( classModule, needType ) );
     var isInterfaceType = need.id==="interface";
@@ -1573,10 +1638,6 @@ function makeModule( stack )
                 else
                 {
                     val.push( toString( item , classModule ) );
-                    if( item.accessor() ==='get' )
-                    {
-                        props.push('"'+item.name()+'":"__getter__"' );
-                    }
                 }
             }
             //类中的成员属性
@@ -1842,39 +1903,41 @@ function toValue( describe, uid )
     {
         // if( describe[p].inherit )continue;
         var item = [];
-        if( uid && (describe[p].id==='var' || describe[p].id==='const') )
-        {
-            //item.push('"token":'+uid );
-        };
+        var id = describe[p].id;
+        var writable=!(id==='const' || id==='function');
+        if(describe[p].privilege !=='public')item.push( '"qualifier":"'+ describe[p].privilege+'"' );
 
-        item.push( '"id":"'+ describe[p].id+'"' );
-        item.push( '"qualifier":"'+ describe[p].privilege+'"' );
-
-        if( describe[p].type==='*' || describe[p].type==='void' )
+        /*if( describe[p].type==='*' || describe[p].type==='void' )
         {
             item.push( '"type":"'+ describe[p].type+'"' );
         }else{
-
             if( describe[p].type.indexOf('.') > 0  )
             {
                 item.push( '"type":System.define("'+ describe[p].type+'")' );
             }else {
                 item.push('"type":' + describe[p].type);
             }
-        }
+        }*/
 
-        if( typeof describe[p].value === "object" )
+        if( id==='function' || describe[p].static )
         {
-            var val=[];
-            if ( describe[p].value.get )val.push('get:' +describe[p].value.get.value );
-            if ( describe[p].value.set )val.push('set:' +describe[p].value.set.value );
-            item.push( '"value":{'+val.join(',')+'}' );
+            if (typeof describe[p].value === "object") {
+                /* var val=[];
+                 if ( describe[p].value.get )val.push('get:' +describe[p].value.get.value );
+                 if ( describe[p].value.set )val.push('set:' +describe[p].value.set.value );
+                 item.push( '"value":{'+val.join(',')+'}' );*/
+                if (describe[p].value.get)item.push('"get":' + describe[p].value.get.value);
+                if (describe[p].value.set){
+                    writable=true;
+                    item.push('"set":' + describe[p].value.set.value);
+                }
 
-        }else if( describe[p].value )
-        {
-            item.push( '"value":'+ describe[p].value );
+            } else if (describe[p].value) {
+                item.push('"value":' + describe[p].value);
+            }
         }
-        code.push('"'+p+'":{'+item.join(',')+'}');
+        if( writable=== false )item.unshift('"writable":false' );
+        if( item.length > 0)code.push('"'+p+'":{'+item.join(',')+'}');
     }
     if( code.length===0 )return '{}';
     return '{\n'+code.join(',\n')+'\n}';

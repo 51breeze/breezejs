@@ -128,7 +128,7 @@ package lib
          * @param event
          * @returns {boolean}
          */
-        function dispatchEvent( event )
+        function dispatchEvent( event, type:String )
         {
             var BreezeEvent;
             var dispatchEvent;

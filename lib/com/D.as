@@ -22,7 +22,7 @@ package com
 
     public class D extends Object {
 
-         protected var bb=123;
+         protected var bb:String='123';
 
          function D(jj:String='123')
           {

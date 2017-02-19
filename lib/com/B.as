@@ -51,7 +51,6 @@ package com
 
         protected function cre(str:String)
         {
-
             System.log(  this.name );
             System.log( 'call cre');
         }

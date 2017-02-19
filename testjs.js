@@ -1,37 +1,40 @@
 //var o = new Console();
 "use strict";
 
+var x = {p: 1};
 
-var date =  new Date();
-var rinningTime = date.getTime();
-var ccc = [1,2,3];
+Object.defineProperty(x,'foo',{
+   "get":function() {
+      console.log( this )
+      return "foo bar";
+   },
+   "@qu":'public'
+})
+
 
 function A() {
 
 }
-A.prototype.test = function() {}
-A.prototype.f = function() {}
-A.prototype.b = function() {}
-A.prototype.h = function() {}
 
-function B() {
+/*
+Object.defineProperty(A.prototype,'constructor',{
+   enumerable:false,
+   value:A
+})
+*/
 
-}
-B.prototype=new A()
-B.prototype.fc = function() {}
-B.prototype.bcc = function() {}
-B.prototype.hty = function() {}
+(function (_Reflect) {
 
 
 
-var b=new B();
+
+
+})(Reflect);
 
 
 
-for(var i=0; i<100000 ; i++ )
-{
-   b['test']();
-}
 
-var _d =  new Date();
-console.log( _d.getTime() - rinningTime  );
+
+
+
+

@@ -109,7 +109,7 @@ var objects = {
             'getMinutes':{'id':'function','type':'Number','param':['Object','Array']},
             'getMonth':{'id':'function','type':'Number','param':['Object','Array']},
             'getSeconds':{'id':'function','type':'Number','param':['Object','Array']},
-            'getTime':{'id':'function','type':'Number','param':['Object','Array']},
+            'getTime':{'id':'function','type':'Number','param':[]},
             'getTimezoneOffset':{'id':'function','type':'Number','param':['Object','Array']},
             'getUTCDate':{'id':'function','type':'Number','param':['Object','Array']},
             'getUTCDay':{'id':'function','type':'Number','param':['Object','Array']},
