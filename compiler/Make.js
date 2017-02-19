@@ -15,9 +15,11 @@ const config = {
     'browser':'disable',  //enable disable
     'globals':globals,
     'enableBlockScope':'on',
-    'reserved':['let','of']
+    'reserved':['let','of'],
+    'minify':'off',
 };
 const modules={};
+const uglify = require('uglify-js');
 
 /**
  * 全局模块
@@ -2010,7 +2012,8 @@ function start()
     var system = fs.readFileSync( PATH.resolve(config.make, './lib/System.js') , 'utf-8');
     var g = [];
     for(var key in globals)if(key!=='System')g.push(key);
-    fs.writeFileSync(  filename,[
+
+    var content = [
         '(function(){\n',
         system,
         '\n',
@@ -2020,7 +2023,17 @@ function start()
         'var main=System.getDefinitionByName("'+config.main+'");\n',
         'System.factory(main);\n',
         '})(System.'+g.join(',System.')+');\n',
-        '})();'].join('') );
+        '})();'].join('');
+
+    if( config.minify ==='on' )
+    {
+        var result = uglify.minify(content, {
+            mangle: true,
+            fromString: true
+        });
+        content = result.code;
+    }
+    fs.writeFileSync(filename, content );
     console.log('Making done.' );
 }
 

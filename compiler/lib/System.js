@@ -245,6 +245,29 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_Math,_
         return $propertyIsEnumerable.call(this,name);
     }
 
+    var $create = _Object.create;
+    if ( typeof $create != 'function')
+    {
+        $create = (function() {
+            function Temp() {};
+            return function (O) {
+                if (typeof O != 'object')throw TypeError('Object prototype may only be an Object or null');
+                Temp.prototype = O;
+                var obj = new Temp();
+                Temp.prototype = null;
+                if (arguments.length > 1)
+                {
+                    var Properties = Object( arguments[1] );
+                    for (var prop in Properties)if ($hasOwnProperty.call(Properties, prop) )
+                    {
+                        obj[prop] = Properties[prop];
+                    }
+                }
+                return obj;
+            };
+        })();
+    }
+
     /**
      * 描述符构造器
      * @param desc
@@ -558,30 +581,50 @@ var System = (function(_Object,_Function,_Array,_String,_Number,_Boolean,_Math,_
      * @param newTarget
      * @returns {*}
      */
-    Reflect.construct=function construct(theClass, argumentsList, newTarget)
+    Reflect.construct=function construct(theClass, args, newTarget)
     {
         if( theClass === newTarget )newTarget=undefined;
+        var is=false;
         if( theClass instanceof Class )
         {
             if( theClass.isAbstract )throwError('type','Abstract class cannot be instantiated');
             if( typeof theClass.constructor !== "function"  )throwError('type','is not constructor');
             theClass = theClass.constructor;
+            is=true;
 
         }else if( typeof theClass !== "function" )
         {
             throwError('type','is not function');
         }
-        argumentsList = argumentsList || [];
+        args = args || [];
+        if( theClass === s.Date )newTarget=null;
         if( $rConstruct )
         {
-           return newTarget ? $rConstruct(theClass, argumentsList, newTarget) : $rConstruct(theClass, argumentsList);
+           return newTarget ? $rConstruct(theClass, args, newTarget) : $rConstruct(theClass, args);
         }
-
-        if( typeof newTarget !== "function" )newTarget=Nop;
+        if( !newTarget || theClass===newTarget )
+        {
+            switch (args.length)
+            {
+                case 0 : return new theClass();
+                case 1 : return new theClass(args[0]);
+                case 2 : return new theClass(args[0],args[1]);
+                case 3 : return new theClass(args[0],args[1],args[2]);
+                case 4 : return new theClass(args[0],args[1],args[2],args[3]);
+                case 5 : return new theClass(args[0],args[1],args[2],args[3],args[4]);
+                case 6 : return new theClass(args[0],args[1],args[2],args[3],args[4],args[5]);
+                case 7 : return new theClass(args[0],args[1],args[2],args[3],args[4],args[5],args[6]);
+                case 8 : return new theClass(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7]);
+                case 9 : return new theClass(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8]);
+                case 10 : return new theClass(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8],args[9]);
+            }
+        }
+        if (typeof newTarget !== "function")newTarget = Nop;
         newTarget.prototype = theClass.prototype;
-        var obj = argumentsList && isArray(argumentsList) ? theClass.apply( new newTarget(), argumentsList ) : theClass.call( new newTarget(), argumentsList );
+        var obj = new newTarget();
+        isArray(args) ? theClass.apply(obj, args) : theClass.call(obj, args);
         //原型链引用
-        if( Object.getPrototypeOf(obj) !== theClass.prototype )$setPrototypeOf(obj, theClass.prototype);
+        if (Object.getPrototypeOf(obj) !== theClass.prototype)$setPrototypeOf(obj, theClass.prototype);
         return obj;
     }
 

@@ -17,11 +17,11 @@
 package
 {
 
- import lib.EventDispatcher;
-  import com.B;
-   import lib.IProsess;
-   import lib.IProt;
-   import com.Abs;
+import lib.EventDispatcher;
+import com.B;
+import lib.IProsess;
+import lib.IProt;
+import com.Abs;
 import com.D;
 
 public class Main extends B implements IProsess {
@@ -35,50 +35,11 @@ public class Main extends B implements IProsess {
 
         public var dd:Class = Array;
 
-          //var bb:String='123';
+
           function Main(jj)
           {
 
-              var rinningTime = new Date().getTime();
-              function nnn(cccc:String,nnnn):String{
-                  log('nnn===nnn', cccc, nnnn );
-                  return '';
-              }
-
-
-              log(  new Date().getTime() );
-              this.iu++;
-              log( this.iu );
-              this.iu = 60;
-              log( this.iu );
-              this.iu *= 60;
-              log( this.iu );
-
-              var obj={
-                  name:6666, 
-                  address:{
-                      city:'sssss the is city',
-                      uuu:{name:666},
-                      list:{
-                          name:[2,3.6,69,'5555',{
-                              name:66666,
-                              cccc:{'666':[1.0000005]}
-                          }],
-                      },
-                  },
-                  home:function home(name:String,phone:Number) {
-                      log('home fun ', name, phone)
-                  },
-                  hhhh:{n:'sss'},
-                  bbb:this.iu,
-              };
-
-
-              log( obj.address.list.name[4].cccc );
-              log( delete obj.address );
-              log( obj.bbb );
-              log( obj.home('666pppp',1) );
-              log( new Date().getTime() - rinningTime  );
+              log('Hello world!');
 
           }
 
