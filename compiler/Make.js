@@ -3,8 +3,8 @@ const root = process.cwd();
 const QS = require('querystring');
 const PATH = require('path');
 const Ruler = require('./Ruler.js');
-const globals=require('./lib/Descriptions.js');
-const Utils = require('./lib/Utils.js');
+const globals=require('./descriptions/globals.js');
+const Utils = require('./lib/utils.js');
 const config = {
     'suffix':'.as',
     'main':'Main',
@@ -17,6 +17,7 @@ const config = {
     'enableBlockScope':'on',
     'reserved':['let','of'],
     'minify':'off',
+    'compat':'*', // {'ie':8,'chrome':32.5}
 };
 const modules={};
 const uglify = require('uglify-js');
@@ -259,7 +260,7 @@ Iteration.prototype.nextIn=function(stack)
         this.content.push({
             name:[],
             descriptor:null,
-            thisArg:'var '+itn+' = Iterator('+parse( this.module, property)+');'+itn+'.seek();',
+            thisArg:'var '+itn+' = Iterator('+parse( this.module, property)+');'+itn+'.seek() && ('+name+'='+itn+'.current().key)!=null;',
             expression:false,
             before:[],
             after:'',
@@ -269,14 +270,6 @@ Iteration.prototype.nextIn=function(stack)
             isglobal:false,
             type:'String'
         });
-        var seek = function (e) {
-            if( e.iteration.current.value==='{' ){
-                e.iteration.seek();
-                e.iteration.content.push('{ '+name+'='+itn+'.current().key;');
-                stack.scope().removeListener('(iterationSeek)',seek);
-            }
-        }
-        stack.scope().addListener('(iterationSeek)',seek);
     }
 }
 
@@ -748,6 +741,10 @@ function getDescriptorOfExpression(it, classmodule)
                 desc = null;
                 value = toString(it.current, classmodule,'String');
                 if( !value )error('Missing expression', 'syntax', property.lastStack );
+                if(  Utils.isConstant( value ) && value !=='this' )
+                {
+                    value = '"'+value+'"';
+                }
                 if( property.name.length > 0)
                 {
                     var before = property.before;
@@ -756,7 +753,6 @@ function getDescriptorOfExpression(it, classmodule)
                     property.name=[];
                     property.before=before;
                 }
-
                 property.name.push( [value] );
                 property.descriptor = desc;
                 property.runningCheck=true;
@@ -1462,7 +1458,8 @@ function toString( stack, module, acceptType )
  */
 function doPrototype(classModule, callback)
 {
-    do{
+    while ( classModule )
+    {
         var val = callback( classModule );
         if( val )return val;
         if( classModule.inherit )
@@ -1472,7 +1469,7 @@ function doPrototype(classModule, callback)
         {
             return null;
         }
-    } while ( classModule );
+    };
 }
 
 /**
@@ -1511,7 +1508,10 @@ function checkInterface(classModule)
     var interfaceDesc = [];
     for( var i in classModule.implements )
     {
-        doPrototype( module( getImportClassByType( classModule, classModule.implements[i] ) ) ,function (module) {
+        var last;
+        doPrototype( module( getImportClassByType( classModule, classModule.implements[i] ) ),function (module) {
+            if( module.id !== 'interface' )error('Interface can only extends an interface ('+(last || module).filename+')' );
+            last = module;
             interfaceDesc.push( module.proto );
         });
     }
@@ -1525,16 +1525,16 @@ function checkInterface(classModule)
             obj=doPrototype(classModule,function (module) {
                 if( module.proto[name] && module.proto[name].id === 'function')return module.proto[name];
             });
-            if( !obj )error('Not implementation of the "' + name + '" method interface')
-            if( obj.type !== desc[name].type )error('the "' + name + '" interface of mismatch the return type')
-            if( desc[name].param.length !== obj.param.length )error('Not implementation of the "' + name + '" method parameter')
+            if( !obj )error('the "' + name + '" interface method no implementation ('+classModule.filename+')')
+            if( obj.type !== desc[name].type )error('the "' + name + '" interface of mismatch the return type ('+classModule.filename+')')
+            if( desc[name].param.length !== obj.param.length )error('the "' + name + '" method parameter no implementation ('+classModule.filename+')')
             if( desc[name].param.length > 0 )
             {
                 for(var b in desc[name].paramType )
                 {
                     if( desc[name].paramType[b] !== obj.paramType[b] )
                     {
-                        error('the "'+name+'" method of mismatch parameter type','type');
+                        error('the "'+name+'" method of mismatch parameter type ('+classModule.filename+')','type');
                     }
                 }
             }
@@ -1559,6 +1559,10 @@ function makeModule( stack )
         var parent = module( getImportClassByType( classModule, classModule.inherit ) );
         //终结的类不可以扩展
         if( parent.isFinal )error('parent class is not extends.');
+        if( classModule.id !== parent.id )
+        {
+            classModule.id==='class' ? error('Class can only extends the class') : error('Interface can only extends the interface');
+        }
     }
 
     if( stack.keyword() ==='interface' )
@@ -2009,19 +2013,19 @@ function start()
 
     var mainfile = pathfile( config.main , config.suffix, config.lib );
     var filename = PATH.resolve(PATH.dirname( mainfile ),PATH.basename(mainfile,config.suffix)+'-min.js' );
-    var system = fs.readFileSync( PATH.resolve(config.make, './lib/System.js') , 'utf-8');
+    var system =  require('./lib/system.js');
     var g = [];
     for(var key in globals)if(key!=='System')g.push(key);
 
     var content = [
         '(function(){\n',
-        system,
+        system(config),
         '\n',
         '(function('+ g.join(',')+'){\n',
         code.join(''),
         'delete System.define;\n',
         'var main=System.getDefinitionByName("'+config.main+'");\n',
-        'System.factory(main);\n',
+        'Reflect.construct(main);\n',
         '})(System.'+g.join(',System.')+');\n',
         '})();'].join('');
 
@@ -2046,7 +2050,7 @@ config.cache = config.cache!=='off';
 //浏览器中的全局模块
 if( config.browser !=='disable' )
 {
-    var browser = require('./lib/Browser.js');
+    var browser = require('./descriptions/browser.js');
     for(var b in browser)globals[b]=browser[b];
 }
 

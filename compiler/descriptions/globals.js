@@ -1,4 +1,4 @@
-var objects = {
+var descriptor = {
     'Class':{'id':'class', 'type':'Class', 'inherit':'Object'},
     'Interface':{'id':'class', 'type':'Interface', 'inherit':'Object'},
     'Number':{
@@ -299,4 +299,4 @@ var objects = {
     },
 };
 
-module.exports  = objects;
+module.exports  = descriptor;

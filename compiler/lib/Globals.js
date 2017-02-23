@@ -1,436 +1,660 @@
-var globals = (function(_Object,_String,_Array,_Error, undefined )
+/**
+ * 控制台输出对象时先转成字符串
+ * @param item
+ * @returns {*}
+ */
+var toString = function (item)
 {
-    var g={};
+    if( isArray(item) )return Array.prototype.map.call(item,toString);
+    if( isObject(item,true) ){
+        var objs={};
+        for(var i in item){objs[i] = toString(item[i]);}
+        return objs;
+    }
+    return item ? item.valueOf() : item;
+}
+system.log = function log(){
+    console.log.apply(undefined, Array.prototype.map.call(arguments,toString) );
+};
+system.info =function info(){
+    console.info.apply(undefined, Array.prototype.map.call(arguments,toString) );
+};
+system.trace = function trace(){
+    console.log.apply(undefined, ['Trace: '].concat( Array.prototype.map.call(arguments,toString) ) );
+    console.log( '   At '+$traceItems.join('\n   At ') );
+};
+system.warn = function warn(){
+    console.warn.apply(undefined, Array.prototype.map.call(arguments,toString) );
+};
+system.error = function error(){
+    console.error.apply(undefined, Array.prototype.map.call(arguments,toString) );
+};
+system.dir = function dir(){
+    console.dir.apply(undefined, Array.prototype.map.call(arguments,toString) );
+};
+system.assert = console.assert;
+system.time = console.time;
+system.timeEnd = console.timeEnd;
+
+/**
+ * 全局函数
+ * @type {*|Function}
+ */
+system.isFinite = isFinite || function () {};
+system.decodeURI= decodeURI || function () {};
+system.decodeURIComponent= decodeURIComponent || function () {};
+system.encodeURI= encodeURI || function () {};
+system.encodeURIComponent= encodeURIComponent || function () {};
+system.escape= escape || function () {};
+system.eval= eval || function () {};
+system.isNaN= isNaN || function () {};
+system.parseFloat= parseFloat || function () {};
+system.parseInt= parseInt || function () {};
+system.unescape= unescape || function () {};
+
+/**
+ * 环境参数配置
+ */
+system.Env={
+    'BROWSER_IE':'IE',
+    'BROWSER_FIREFOX':'FIREFOX',
+    'BROWSER_CHROME':'CHROME',
+    'BROWSER_OPERA':'OPERA',
+    'BROWSER_SAFARI':'SAFARI',
+    'BROWSER_MOZILLA':'MOZILLA',
+    'NODE_JS':'NODEJS',
+}
+
+/**
+ * 获取环境变量的参数
+ */
+;(function(env){
+
+    var _platform=[];
+    if( typeof navigator !== "undefined" )
+    {
+        var ua = navigator.userAgent.toLowerCase();
+        var s;
+        (s = ua.match(/msie ([\d.]+)/))             ? _platform=[env.BROWSER_IE,parseFloat(s[1])] :
+        (s = ua.match(/firefox\/([\d.]+)/))         ? _platform=[env.BROWSER_FIREFOX,parseFloat(s[1])] :
+        (s = ua.match(/chrome\/([\d.]+)/))          ? _platform=[env.BROWSER_CHROME,parseFloat(s[1])] :
+        (s = ua.match(/opera.([\d.]+)/))            ? _platform=[env.BROWSER_OPERA,parseFloat(s[1])] :
+        (s = ua.match(/version\/([\d.]+).*safari/)) ? _platform=[env.BROWSER_SAFARI,parseFloat(s[1])] :
+        (s = ua.match(/^mozilla\/([\d.]+)/))        ? _platform=[env.BROWSER_MOZILLA,parseFloat(s[1])] : null ;
+
+    }else if( typeof process !== "undefined" )
+    {
+        _platform=[env.NODE_JS, process.version ];
+    }
 
     /**
-     * 对象类构造器
-     * @param value
+     * 获取当前运行平台
      * @returns {*}
-     * @constructor
      */
-    function Object( value )
-    {
-        if( value !== undefined && value !== null )switch (typeof value)
-        {
-            case 'boolean' : return Boolean(value);
-            case 'number'  : return Number(value);
-            case 'regexp'  : return value;
-            case 'string'  : return String(value);
-        }
-        if ( value && ( value instanceof Object || value instanceof Array ) )return value;
-        if ( !(this instanceof Object) )return new g.Object(value);
-        this.originValue = value ? value : {};
-        return this;
-    }
-
-    Object.prototype = new _Object();
-    Object.prototype.constructor=Object;
-    Object.prototype.originValue=null;
-
-    /**
-     * 获取指定对象的原型
-     * @type {Object}
-     * @returns {Boolean}
-     */
-    Object.getPrototypeOf = _Object.getPrototypeOf;
-    if( typeof Object.getPrototypeOf !== 'function' )
-    {
-        Object.getPrototypeOf = function getPrototypeOf(obj) {
-            if( !obj )return null;
-            return obj && obj.__proto__ ? obj.__proto__ : (obj.constructor ? obj.constructor.prototype : null);
-        }
+    env.platform = function platform( name ) {
+        if( name != null )return name == platform[0];
+        return platform[0];
     }
 
     /**
-     * 指示 Object 类的实例是否在指定为参数的对象的原型链中
-     * @param theClass
-     * @returns {Boolean}
+     * 判断是否为指定的浏览器
+     * @param type
+     * @returns {string|null}
      */
-    var __isPrototypeOf = _Object.prototype.isPrototypeOf;
-    Object.prototype.isPrototypeOf = function( theClass )
+    env.version=function version(value, expre)
     {
-        var obj = this instanceof Class ? this : this.constructor;
-        if( obj instanceof Class )
+        var result = _platform[1];
+        if( arguments.length===0 )return result;
+        value = parseFloat(value);
+        switch ( expre )
         {
-            theClass = theClass instanceof Class ? theClass : theClass.constructor;
-            while ( theClass instanceof Class )
+            case '=' :
+                return value == result;
+            case '!=' :
+                return value != result;
+            case '>' :
+                return value > result;
+            case '>=' :
+                return value >= result;
+            case '<' :
+                return value < result;
+            default:
+                return value <= result;
+        }
+    };
+
+}(system.Env));
+
+
+/**
+ * 返回对象类型的字符串表示形式
+ * @param instanceObj
+ * @returns {*}
+ */
+function typeOf( instanceObj )
+{
+    if( instanceObj instanceof Class )return 'class';
+    if( instanceObj instanceof Interface )return 'interface';
+    return typeof instanceObj;
+}
+system.typeOf=typeOf;
+
+/**
+ * 检查实例对象是否属于指定的类型(不会检查接口类型)
+ * @param instanceObj
+ * @param theClass
+ * @returns {boolean}
+ */
+function instanceOf(instanceObj, theClass)
+{
+    var isclass = theClass instanceof Class;
+    //instanceof 不检查接口类型
+    if( !isclass && theClass instanceof Interface )return false;
+    if( instanceObj && isclass )
+    {
+        if( instanceObj instanceof Class )return isclass;
+        var proto = instanceObj.constructor;
+        while( proto )
+        {
+            if( proto === theClass )return true;
+            proto=proto.extends;
+        }
+    }
+    //如果不是一个函数直接返回false
+    else if( typeof theClass !== "function" )
+    {
+        return false;
+    }
+    instanceObj = Object(instanceObj);
+    return instanceObj instanceof theClass || ( theClass===system.JSON && isObject(instanceObj,true) );
+}
+system.instanceOf=instanceOf;
+/**
+ * 检查实例对象是否属于指定的类型(检查接口类型)
+ * @param instanceObj
+ * @param theClass
+ * @returns {boolean}
+ */
+function is(instanceObj, theClass)
+{
+    var isclass = theClass instanceof Class;
+    var isInterface = !isclass ? theClass instanceof Interface : false;
+    if(instanceObj && (isclass || isInterface) )
+    {
+        if( instanceObj instanceof Class )return isclass;
+        var proto = instanceObj.constructor;
+        while( proto )
+        {
+            if( proto === theClass )return true;
+            if( proto.implements && proto.implements.length > 0 )
             {
-                if( obj=== theClass )return true;
-                theClass = theClass.extends;
-            }
-            return false
-        }
-        return __isPrototypeOf.call(this, theClass );
-    }
-
-    /**
-     * 表示对象是否已经定义了指定的属性。
-     * 如果目标对象具有与 name 参数指定的字符串匹配的属性，则此方法返回 true；否则返回 false。
-     * @param prop 对象的属性。
-     * @returns {Boolean}
-     */
-    var __hasOwnProperty = _Object.prototype.hasOwnProperty;
-    Object.prototype.hasOwnProperty = function( name )
-    {
-        var obj = this.constructor instanceof Class ? this.constructor : this;
-        if( obj instanceof Class )
-        {
-            var desc = obj === this ? obj.static[name] : obj.proto[name];
-            return desc && desc.id !== "function";
-        }
-        return __hasOwnProperty.call(this,name);
-    }
-
-    /**
-     * 表示指定的属性是否存在、是否可枚举。
-     * 如果为 true，则该属性存在并且可以在 for..in 循环中枚举。该属性必须存在于目标对象上，
-     * 原因是：该方法不检查目标对象的原型链。您创建的属性是可枚举的，但是内置属性通常是不可枚举的。
-     * @param name
-     * @returns {Boolean}
-     */
-    var __propertyIsEnumerable=_Object.prototype.propertyIsEnumerable;
-    Object.prototype.propertyIsEnumerable = function( name )
-    {
-        var obj = this.constructor instanceof Class ? this.constructor : this;
-        if( obj instanceof Class )
-        {
-            var desc = obj === this ? obj.static[name] : obj.proto[ name ];
-            if( !desc || desc.id === "function" )return false;
-            return desc.enumerable===true;
-        }
-        return __propertyIsEnumerable.call(this,name);
-    }
-
-    /**
-     * 设置循环操作动态属性的可用性。
-     * 该属性必须存在于目标对象上，原因是：该方法不检查目标对象的原型链。
-     * @param name 对象的属性
-     * @param isEnum  (default = true)
-     * 如果设置为 false，则动态属性不会显示在 for..in 循环中，且方法 propertyIsEnumerable() 返回 false。
-     */
-    var __defineProperty=_Object.defineProperty;
-    Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
-    {
-        var obj = this.constructor instanceof Class ? this.constructor : this;
-        if( obj instanceof Class )
-        {
-            var desc = obj === this ? obj.static[name] : obj.proto[ name ];
-            if( desc && typeof desc.enumerable !== "undefined" )
-            {
-                desc.enumerable = isEnum !== false;
-            }
-
-        }else
-        {
-            __defineProperty.call(this, name, {enumerable:isEnum !== false } );
-        }
-    }
-
-    /**
-     * 返回指定对象的原始值
-     * @returns {String}
-     */
-    var __valueOf = _Object.prototype.valueOf;
-    Object.prototype.valueOf=function()
-    {
-        var obj = this.constructor instanceof Class ? this.constructor : this;
-        if( obj instanceof Class )
-        {
-            return obj === this ? '[class '+obj.classname+']' : '[object '+ obj.classname+']';
-        }
-        return __valueOf.call( this );
-    }
-
-    /**
-     * 返回指定对象的字符串表示形式。
-     * @returns {String}
-     */
-    var __toString = _Object.prototype.toString;
-    Object.prototype.toString=function()
-    {
-        var obj = this.constructor instanceof Class ? this.constructor : this;
-        if( obj instanceof Class )
-        {
-            return obj === this ? '[class '+obj.classname+']' : '[object '+ obj.classname+']';
-        }
-        return __toString.call( this );
-    }
-
-    /**
-     * 合并其它参数到指定的 target 对象中
-     * 如果只有一个参数则只对本身进行扩展。
-     * @param deep true 深度合并
-     * @param target object 目标源对象
-     * @param ...valueObj object 待合并到目标源上的对象
-     * @returns Object
-     */
-    Object.prototype.merge = function()
-    {
-        var options, name, src, copy, copyIsArray, clone,
-            target = arguments[0] || new Object(),
-            i = 1,
-            length = arguments.length,
-            deep = false;
-        if ( typeof target === "boolean" )
-        {
-            deep = target;
-            target = arguments[1] || new Object();
-            i++;
-        }
-        if ( length === i )
-        {
-            target = this;
-            --i;
-        }else if ( typeof target !== "object" &&  typeof target !== "function" )
-        {
-            target = new Object();
-        }
-
-        for ( ; i < length; i++ )
-        {
-            if ( (options = arguments[ i ]) != null )
-            {
-                for ( name in options )
+                var i = 0;
+                for(;i<proto.implements.length;i++)
                 {
-                    src = target[ name ];
-                    copy = options[ name ];
-                    if ( target === copy )continue;
-                    if( typeof src === "function" && system.instanceof(target, Object) )
+                    var interfaceModule = proto.implements[i];
+                    while ( interfaceModule )
                     {
-                        throwError('syntax','"'+name+'" is a protected method');
-                    }
-                    if ( deep && copy && ( isObject(copy,true) || ( copyIsArray = isArray(copy) ) ) )
-                    {
-                        if ( copyIsArray )
-                        {
-                            copyIsArray = false;
-                            clone = src && isArray(src) ? src : new Array();
-                        } else
-                        {
-                            clone = src && isObject(src) ? src : new Object();
-                        }
-                        target[ name ] = Object.prototype.merge( deep, clone, copy );
-                    } else if ( typeof copy !== "undefined" )
-                    {
-                        target[ name ] = copy;
+                        if( interfaceModule === theClass )return true;
+                        interfaceModule = interfaceModule.extends;
                     }
                 }
             }
+            proto=proto.extends;
         }
-        return target;
-    }
+        if( isInterface )return false;
 
-    /**
-     * 返回对象可枚举的属性的键名
-     * @returns {Array}
-     */
-    Object.prototype.keys=function()
+    }else if( typeof theClass !== "function" )
     {
-        var items=[];
-        for(var key in this)items.push( key );
-        return items;
+        return false;
     }
+    instanceObj = Object( instanceObj );
+    return instanceObj instanceof theClass || ( theClass===system.JSON && isObject(instanceObj,true) );
+}
+system.is=is;
 
-    /**
-     *  返回对象可枚举的属性值
-     * @returns {Array}
-     */
-    Object.prototype.values=function()
+/**
+ * 根据指定的类名获取类的对象
+ * @param name
+ * @returns {Object}
+ */
+function getDefinitionByName( name )
+{
+    if( modules[ name ] )return modules[ name];
+    if( system[name] )return system[name];
+    for ( var i in modules )if( i=== name )return modules[i];
+    throwError('type', '"'+name+'" is not define');
+}
+system.getDefinitionByName =getDefinitionByName;
+
+/**
+ * @private
+ * 获取一个类的命名
+ * @param classModule
+ * @returns {string}
+ */
+function getFullname(classModule) {
+    return classModule.package ? classModule.package+'.'+classModule.classname : classModule.classname;
+}
+
+/**
+ * 返回对象的完全限定类名
+ * @param value 需要完全限定类名称的对象。
+ * 可以将任何类型、对象实例、原始类型和类对象
+ * @returns {string}
+ */
+function getQualifiedClassName( value )
+{
+    switch ( typeOf(value) )
     {
-        var items=[];
-        for(var key in this)items.push( this[key] );
-        return items;
+        case 'boolean': return 'Boolean';
+        case 'number' : return 'Number' ;
+        case 'string' : return 'String' ;
+        case 'regexp' : return 'RegExp' ;
+        case 'class'  : return  getFullname(value);
+        case 'interface': return  getFullname(value);
+        case 'function' :
+            if (value === system.String)return 'String';
+            if (value === system.Boolean)return 'Boolean';
+            if (value === system.Number)return 'Number';
+            if (value === system.RegExp)return 'RegExp';
+            if ( value === system.Array )return 'Array';
+            if ( value === system.Date )return 'Date';
+            if ( value === system.Object )return 'Object';
+            if ( value === system.Iterator )return 'Iterator';
+            if ( value === system.Reflect )return 'Reflect';
+            if (value === system.JSON)return 'JSON';
+            return 'Function';
+        default :
+            if( value=== system )return 'System';
+            if( value === system.Math )return 'Math';
+            if( value === system.Reflect )return 'Reflect';
+            if( value === system.Iterator )return 'Iterator';
+            if( isArray(value) )return 'Array';
+            if( isObject(value,true) )return 'Object';
+            if( value instanceof system.RegExp )return 'RegExp';
+            if( value instanceof system.Date )return 'Date';
+            if( value instanceof String )return 'String';
+            if( value instanceof Number )return 'Number';
+            if( value instanceof Boolean )return 'Boolean';
+            if( value.constructor instanceof Class )return getFullname(value.constructor);
     }
-
-    /**
-     * 数组构造器
-     * @returns {Array}
-     * @constructor
-     */
-    function Array()
+    throwError('reference','type does not exist');
+}
+system.getQualifiedClassName=getQualifiedClassName;
+/**
+ * 获取指定实例对象的超类名称
+ * @param value
+ * @returns {string}
+ */
+function getQualifiedSuperclassName(value)
+{
+    var classname = getQualifiedClassName( value )
+    if (classname)
     {
-        _Array.prototype.splice.call(arguments,0);
-        this.length = 0;
-        return this;
-    }
-    Array.prototype = new Object();
-    Array.prototype.constructor = Array;
-    Array.prototype.length =0;
-
-    var __slice = _Array.prototype.slice;
-    Array.prototype.slice = function(startIndex, endIndex )
-    {
-        var obj = new Array();
-        startIndex = parseInt( startIndex );
-        endIndex   = parseInt( endIndex );
-        if( isNaN(startIndex) ) startIndex =  0;
-        if( isNaN(endIndex) ) endIndex =  this.length;
-        startIndex = Math.max(startIndex,  0);
-        endIndex   = Math.min(endIndex,  this.length );
-        while( startIndex < endIndex )
+        var classModule = getDefinitionByName( classname );
+        var parentModule = classModule.extends;
+        if ( parentModule )
         {
-            obj[startIndex] = this[startIndex];
-            startIndex++;
+            return  parentModule.fullclassname;
         }
-        return obj;
     }
+    return null;
+}
+system.getQualifiedSuperclassName =getQualifiedSuperclassName;
+/**
+ * 判断是否为一个可遍历的对象
+ * null, undefined 属于对象类型但也会返回 false
+ * @param val
+ * @param flag 默认为 false。如为true表示一个纯对象,否则数组对象也会返回true
+ * @returns {boolean}
+ */
+function isObject(val , flag )
+{
+    if( !val )return false;
+    var proto =  Object.getPrototypeOf(val);
+    var result = !!(proto === Object.prototype || proto===$Object.prototype);
+    if( !result && flag !== true && isArray(val) )return true;
+    return result;
+};
+system.isObject =isObject;
+/**
+ * 检查所有传入的值定义
+ * 如果传入多个值时所有的都定义的才返回true否则为false
+ * @param val,...
+ * @returns {boolean}
+ */
+function isDefined()
+{
+    var i=arguments.length;
+    while( i>0 ) if( typeof arguments[ --i ] === 'undefined' )return false;
+    return true;
+};
+system.isDefined =isDefined;
+/**
+ * 判断是否为数组
+ * @param val
+ * @returns {boolean}
+ */
+function isArray(val)
+{
+    if(!val)return false;
+    return val instanceof Array || val instanceof $Array;
+};
+system.isArray =isArray;
 
-    var __splice = _Array.prototype.splice;
-    Array.prototype.splice = function(startIndex, delCount, items )
-    {
-        var obj = __array.slice.call(arguments,2)
-        obj.unshift(delCount);
-        obj.unshift(startIndex);
-        obj = __array.splice.apply( this.__proxyTarget__, obj );
-        this.length = obj.length;
-        return obj;
+/**
+ * 判断是否为函数
+ * @param val
+ * @returns {boolean}
+ */
+function isFunction( val ){
+    return typeof val === 'function' || val instanceof Function;
+};
+system.isFunction =isFunction;
+/**
+ * 判断是否为布尔类型
+ * @param val
+ * @returns {boolean}
+ */
+function isBoolean( val ){
+    return typeof val === 'boolean';
+};
+system.isBoolean=isBoolean;
+/**
+ * 判断是否为字符串
+ * @param val
+ * @returns {boolean}
+ */
+function isString(val )
+{
+    return typeof val === 'string';
+};
+system.isString=isString;
+/**
+ * 判断是否为一个标量
+ * 只有对象类型或者Null不是标量
+ * @param {boolean}
+ */
+function isScalar(val )
+{
+    var t=typeof val;
+    return t==='string' || t==='number' || t==='float' || t==='boolean';
+};
+system.isScalar=isScalar;
+/**
+ * 判断是否为数字类型
+ * @param val
+ * @returns {boolean}
+ */
+function isNumber(val )
+{
+    return typeof val === 'number';
+};
+system.isNumber=isNumber;
+/**
+ * 抛出错误信息
+ * @param type
+ * @param msg
+ */
+function throwError(type, msg , line, filename)
+{
+    switch ( type ){
+        case 'type' :
+            throw new system.TypeError( msg,line, filename );
+            break;
+        case 'reference':
+            throw new system.ReferenceError( msg ,line, filename);
+            break;
+        case 'syntax':
+            throw new system.SyntaxError( msg ,line, filename );
+            break;
+        default :
+            throw new system.Error( msg , line, filename );
     }
-
-
-    /**
-     * 循环对象中的每一个属性，只有纯对象或者是一个数组才会执行。
-     * @param callback 一个回调函数。
-     * 参数中的第一个为属性值，第二个为属性名。
-     * 如果返回 false 则退出循环
-     * @returns {Object}
-     */
-    Array.prototype.forEach=function( callback )
+}
+system.throwError =throwError;
+/**
+ * 判断是否为一个空值
+ * @param val
+ * @param flag 为true时排除val为0的值
+ * @returns {boolean}
+ */
+function isEmpty(val , flag )
+{
+    if( !val )return flag !== true || val !== 0;
+    if( isObject(val) )
     {
-        if( typeof callback !== "function" )throwError('type','"callback" must be a function')
-        if( isObject(this) )
+        var ret;
+        for( ret in val )break;
+        return typeof ret === "undefined";
+    }
+    return false;
+};
+system.isEmpty=isEmpty;
+
+/**
+ * 去掉指定字符两边的空白
+ * @param str
+ * @returns {string}
+ */
+function trim( str )
+{
+    return typeof str === "string" ? str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,'') : '';
+}
+system.trim = trim;
+
+
+/**
+ * 返回一组指定范围值的数组
+ * @param low 最低值
+ * @param high 最高值
+ * @param step 每次的步增数，默认为1
+ */
+function range(low,high,step)
+{
+    var obj = new Array();
+    if( !isNumber(step) )step=1;
+    step = Math.max(step,1);
+    for(;low<high;low+=step)obj.push(low);
+    return obj;
+}
+system.range=range;
+
+/**
+ * 数学运算
+ * @private
+ * @param a
+ * @param o
+ * @param b
+ * @returns {*}
+ */
+function mathOperator( a, o, b)
+{
+    switch (o)
+    {
+        case '=' : return  b;
+        case '+=' : return a+=b;
+        case '-=' : return a-=b;
+        case '*=' : return a*=b;
+        case '/=' : return a/=b;
+        case '%=' : return a%=b;
+        case '^=' : return a^=b;
+        case '&=' : return a&=b;
+        case '|=' :return a|=b;
+        case '<<=' :return a<<=b;
+        case '>>=' :return a>>=b;
+        case '>>>=' :return a>>>=b;
+        default :
+            throwError('syntax','Invalid operator "'+o+'"' );
+    }
+}
+
+function toPropertyStr(thisArg, properties ) {
+    var items = isArray(properties) ? Array.prototype.map.call(properties,function (item) {
+        if( typeof item === "string" )return item;
+        return getQualifiedClassName( item );
+    }) : [properties];
+    items.unshift( getQualifiedClassName( thisArg ) );
+    return items.join('.');
+}
+
+function toErrorMsg(error, classModule, info, thisArg)
+{
+    var msg = classModule.filename + ':' + info + '\n';
+    msg +=  typeof error === "string" ? error : error.message;
+    throwError("reference", msg, info, classModule.filename );
+}
+
+/**
+ * @private
+ * 生成操作函数
+ * @param method
+ * @param classModule
+ * @returns {Function}
+ */
+function makeMethods(method, classModule)
+{
+    switch ( method )
+    {
+        case 'get' : return function(info, thisArg, property, operator, issuper)
         {
-            for(var i in this)if( callback.call(this, this[i], i ) === false )return this;
+            try{
+                if( property==null )return thisArg;
+                var receiver = undefined;
+                if( issuper ){
+                    receiver=thisArg;
+                    thisArg = classModule.extends;
+                }
+                var value=Reflect.get(thisArg, property, receiver, classModule);
+                var ret = value;
+                switch ( operator ){
+                    case ';++':
+                        value++;
+                        Reflect.set(thisArg, property, value , receiver, classModule);
+                        break;
+                    case ';--':
+                        value--;
+                        Reflect.set(thisArg, property, value , receiver, classModule);
+                        break;
+                    case '++;':
+                        ++ret;
+                        Reflect.set(thisArg, property, ret , receiver, classModule);
+                        break;
+                    case '--;':
+                        --ret;
+                        Reflect.set(thisArg, property, ret , receiver, classModule);
+                        break;;
+                }
+                return ret;
+            }catch(error){
+                toErrorMsg(error, classModule, info, thisArg);
+            }
         }
-        return this;
+        case 'set' : return function(info, thisArg, property,value, operator, issuper)
+        {
+            try{
+                if( property == null )return value;
+                var receiver=undefined;
+                if( issuper ){
+                    receiver=thisArg;
+                    thisArg = classModule.extends;
+                }
+                if( operator && operator !=='=' )
+                {
+                    value = mathOperator( Reflect.get(thisArg, property, receiver, classModule), operator, value);
+                }
+                Reflect.set(thisArg, property, value, receiver, classModule);
+                return value;
+            }catch(error){
+                toErrorMsg(error, classModule, info, thisArg);
+            }
+        }
+        case 'delete' : return function(info, thisArg, property)
+        {
+            try{
+                return Reflect.deleteProperty(thisArg, property);
+            }catch(error){
+                toErrorMsg(error, classModule, info, thisArg);
+            }
+        }
+        case 'new' : return function(info, theClass, argumentsList)
+        {
+            try{
+                return Reflect.construct(theClass, argumentsList);
+            }catch(error){
+                toErrorMsg(error, classModule, info, theClass);
+            }
+        }
+        case 'apply' : return function(info,thisArg, property, argumentsList,issuper)
+        {
+            try{
+                var receiver=undefined;
+                if( issuper ){
+                    receiver=thisArg;
+                    thisArg = classModule.extends;
+                }
+                if( property ) {
+                    return Reflect.apply( Reflect.get(thisArg, property, receiver, classModule), receiver || thisArg, argumentsList );
+                }else{
+                    return Reflect.apply(thisArg, receiver, argumentsList);
+                }
+            }catch(error){
+                toErrorMsg(error, classModule, info, thisArg);
+            }
+        }
+        case 'check' : return function (info, type, value)
+        {
+            if( value === null )return value;
+            if ( !system.is(value, type) )toErrorMsg('TypeError Specify the type of value do not match. must is "' + getQualifiedClassName(type) + '"', classModule, info, value);
+            return value;
+        }
     }
+}
 
-
-    /**
-     * 错误消息构造函数
-     * @param message
-     * @param line
-     * @param filename
-     * @constructor
-     */
-    function Error( message , line, filename )
+/**
+ * 定义Class或者Interface对象
+ * @param name
+ * @param descriptions
+ * @param isInterface
+ * @returns {*}
+ */
+function define(name , descriptions , isInterface)
+{
+    if( typeof system[ name ] === "function" )return system[ name ];
+    var classModule;
+    if( modules[ name ] && (modules[ name ] instanceof Class  || modules[ name ] instanceof Interface) )
     {
-        this.message = message;
-        this.line=line;
-        this.filename = filename;
-        this.type='Error';
-    }
-    Error.prototype = new Object();
-    Error.prototype.constructor=Error;
-    Error.prototype.line=null;
-    Error.prototype.type='Error';
-    Error.prototype.message=null;
-    Error.prototype.filename=null;
-    Error.prototype.toString=function ()
+        classModule = modules[ name ];
+    }else
     {
-        return this.message;
+        if( isInterface )
+        {
+            classModule = modules[ name ] = new Interface();
+            descriptions.constructor = null;
+        }else
+        {
+            classModule = modules[name] = new Class();
+            classModule.delete = makeMethods('delete', classModule);
+            classModule.get = makeMethods('get', classModule);
+            classModule.set = makeMethods('set', classModule);
+            classModule.new = makeMethods('new', classModule);
+            classModule.apply = makeMethods('apply', classModule);
+            classModule.check = makeMethods('check', classModule);
+        }
     }
 
-
-    /**
-     * 引用错误构造器
-     * @param message
-     * @param line
-     * @param filename
-     * @constructor
-     */
-    function ReferenceError( message , line, filename )
+    //如果是定义类或者接口
+    if( typeof descriptions === "object" )
     {
-        Error.call(this, message , line, filename);
-        this.type='ReferenceError';
+        for (var prop in descriptions )classModule[prop] = descriptions[prop];
+        if( typeof descriptions.constructor === "function" )
+        {
+            descriptions.constructor.prototype= new Object();
+            descriptions.constructor.prototype.constructor = classModule;
+            //开放原型继承
+            classModule.prototype = descriptions.constructor.prototype;
+        }
     }
-    ReferenceError.prototype = new Error();
-    ReferenceError.prototype.constructor=ReferenceError;
-
-
-    /**
-     * 类型错误构造器
-     * @param message
-     * @param line
-     * @param filename
-     * @constructor
-     */
-    function TypeError( message , line, filename )
-    {
-        Error.call(this, message , line, filename);
-        this.type='TypeError';
-    }
-    TypeError.prototype = new Error();
-    TypeError.prototype.constructor=TypeError;
-
-
-    /**
-     * 语法错误构造器
-     * @param message
-     * @param line
-     * @param filename
-     * @constructor
-     */
-    function SyntaxError( message , line, filename )
-    {
-        Error.call(this, message , line, filename);
-        this.type='SyntaxError';
-    }
-    SyntaxError.prototype = new Error();
-    SyntaxError.prototype.constructor=SyntaxError;
-
-    /**
-     * 类对象构造器
-     * @returns {Class}
-     * @constructor
-     */
-    function Class()
-    {
-        Object.call(this);
-        return this;
-    }
-    Class.prototype                  = new Object();
-    Class.prototype.constructor      = null;
-    Class.prototype.extends          = null;
-    Class.prototype.static           = null;
-    Class.prototype.proto            = null;
-    Class.prototype.token            = '';
-    Class.prototype.classname        = '';
-    Class.prototype.package          = '';
-    Class.prototype.implements       = [];
-    Class.prototype.final            = false;
-    Class.prototype.dynamic          = false;
-    Class.prototype.call             = null;
-    Class.prototype.prop             = null;
-
-    /**
-     * 接口构造函数
-     * @constructor
-     */
-    function Interface()
-    {
-        Object.call(this);
-        return this;
-    }
-    Interface.prototype              = new Object();
-    Interface.prototype.constructor  = null;
-    Interface.prototype.extends      = null;
-    Interface.prototype.proto        = null;
-    Interface.prototype.classname    = '';
-    Interface.prototype.package      = '';
-    Interface.prototype.token        = '';
-
-    g.Object = Object;
-    g.Class = Class;
-    g.Interface = Interface;
-    g.Array = Array;
-    g.Error = Error;
-    g.ReferenceError = ReferenceError;
-    g.TypeError = TypeError;
-    g.SyntaxError = SyntaxError;
-    g.String = _String;
-    g.Number = _Number;
-    g.RegExp = _RegExp;
-    g.Boolean = _Boolean;
-    return g;
-
-}(Object,String,Array,Error));
+    return classModule;
+}
+system.define=define;

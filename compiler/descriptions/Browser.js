@@ -2,7 +2,7 @@
  * 浏览器全局对象
  * @type {string[]}
  */
-var browser= {
+var descriptor = {
     'window': {
         'type': 'Object',
         'id': 'object',
@@ -119,7 +119,6 @@ var browser= {
         }
     }
 };
-
-module.exports=browser;
+module.exports=descriptor;
 
 

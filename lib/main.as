@@ -19,6 +19,7 @@ package
 
 import lib.EventDispatcher;
 import com.B;
+
 import lib.IProsess;
 import lib.IProt;
 import com.Abs;
@@ -38,9 +39,8 @@ public class Main extends B implements IProsess {
 
           function Main(jj)
           {
-
               log('Hello world!');
-
+              log(  this.home );
           }
 
         function ddcc(){}
@@ -75,7 +75,7 @@ public class Main extends B implements IProsess {
             return this;
         }
 
-        private var bb:String=null;
+        //private var bb:String=null;
 
         override protected function cre(str:String):String{
 

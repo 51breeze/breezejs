@@ -2,6 +2,18 @@ const utils={};
 const fs = require('fs');
 const PATH = require('path');
 
+
+/**
+ * 获取文件内容
+ * @param filepath
+ * @returns {*}
+ */
+function getContents( filepath )
+{
+    return fs.readFileSync( filepath , 'utf-8');
+}
+utils.getContents=getContents;
+
 /**
  * 获取目录下的所有文件
  * @param path
