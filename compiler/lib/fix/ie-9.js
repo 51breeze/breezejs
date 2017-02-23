@@ -9,7 +9,6 @@ Object.getPrototypeOf = $Object.getPrototypeOf || function getPrototypeOf(obj)
     return obj.__proto__ ? obj.__proto__ : (obj.constructor ? obj.constructor.prototype : null);
 }
 
-
 /**
  * 生成一个对象
  */
@@ -88,6 +87,8 @@ function Descriptor( desc )
     }
     return this;
 }
+Descriptor.prototype={};
+Descriptor.prototype.constructor = Descriptor;
 
 /**
  * 返回一个数组
@@ -98,7 +99,7 @@ Array.prototype.map = $Array.prototype.map || function(callback, thisArg)
     var T, A, k;
     if (this == null)throwError('type',"this is null or not defined");
     if (!isFunction(callback))throwError('type',callback + " is not a function");
-    var O = Object(this);
+    var O =  isObject(this) ? this : [];
     var len = O.length >>> 0;
     if (thisArg)T = thisArg;
     A = new Array(len);

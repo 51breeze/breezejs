@@ -17,7 +17,7 @@ function Reflect() {
  */
 Reflect.apply=function apply( func, thisArgument, argumentsList)
 {
-    if( func instanceof Class )func=func.constructor;
+    if( func instanceof Class )func=$get(func,"constructor");
     if( typeof func !== "function" )throwError('type','is not function');
     if( func===thisArgument )thisArgument=undefined;
     return isArray(argumentsList) ? func.apply( thisArgument, argumentsList ) : func.call( thisArgument, argumentsList );
@@ -35,9 +35,9 @@ Reflect.construct=function construct(theClass, args, newTarget)
     if( theClass === newTarget )newTarget=undefined;
     if( theClass instanceof Class )
     {
-        if( theClass.isAbstract )throwError('type','Abstract class cannot be instantiated');
-        if( typeof theClass.constructor !== "function"  )throwError('type','is not constructor');
-        theClass = theClass.constructor;
+        if( $get(theClass,"isAbstract") )throwError('type','Abstract class cannot be instantiated');
+        theClass = $get(theClass,"constructor");
+        if( typeof theClass !== "function"  )throwError('type','is not constructor');
 
     }else if( typeof theClass !== "function" )
     {
@@ -50,7 +50,7 @@ Reflect.construct=function construct(theClass, args, newTarget)
         instanceObj = newTarget ? $rConstruct(theClass, args, newTarget) : $rConstruct(theClass, args);
     }else
     {
-        switch (args.length)
+        switch ( $get(args,"length") )
         {
             case 0 :instanceObj = new theClass(); break;
             case 1 :instanceObj = new theClass(args[0]);break;
@@ -100,28 +100,29 @@ Reflect.defineProperty=function defineProperty(target, propertyKey, attributes)
 Reflect.deleteProperty=function deleteProperty(target, propertyKey)
 {
     if( !target || propertyKey==null || target instanceof Class )return false;
-    if( target.constructor instanceof Class )
+    var objClass = $get(target,"constructor");
+    if( objClass instanceof Class )
     {
-        var objClass = target.constructor;
-        if( !objClass.dynamic )return false;
+        if( !$get(objClass,"dynamic") )return false;
         do{
-            var obj = target[objClass.token];
+            var obj = $get(target, objClass.token);
             if( obj && $hasOwnProperty.call(obj,propertyKey) )
             {
-                var hasDesc =  $hasOwnProperty.call(objClass.proto,propertyKey);
+                var protoDesc = $get(objClass,"proto");
+                var hasDesc =  $hasOwnProperty.call(protoDesc,propertyKey);
                 //只有动态添加的属性或者是可配置的属性才可以删除
                 if( hasDesc )
                 {
-                    var desc = objClass.proto[propertyKey];
-                    if( desc.configurable === false || desc.id !=='dynamic' )return false;
+                    var desc = $get(protoDesc,propertyKey);
+                    if( $get(desc,"configurable") === false || $get(desc,"id") !=='dynamic' )return false;
                 }
                 delete obj[propertyKey];
                 if ( hasDesc ){
-                    delete objClass.proto[propertyKey];
+                    delete protoDesc[propertyKey];
                 }
                 return true;
             }
-        }while ( (objClass = objClass.extends) && objClass.dynamic && objClass instanceof Class )
+        }while ( (objClass = $get(objClass,"extends") ) && $get(objClass,"dynamic") && objClass instanceof Class )
     }
     delete target[propertyKey];
     return !$hasOwnProperty.call(target,propertyKey);
@@ -135,28 +136,29 @@ Reflect.deleteProperty=function deleteProperty(target, propertyKey)
  */
 Reflect.has=function has(target, propertyKey)
 {
-    if( propertyKey==null )return false;
-    var objClass = target instanceof Class ? target : target.constructor;
+    if( propertyKey==null || target == null )return false;
+    var objClass = target instanceof Class ? target : $get(target,"constructor");
     if( objClass instanceof Class )
     {
         var isstatic = objClass === target;
         do {
-            var desc= isstatic ? objClass.static :  objClass.proto;
+            var desc= isstatic ? $get(objClass,"static") :  $get(objClass,"proto");
             //没有属性描述符默认为public
             if( !$hasOwnProperty.call(desc, propertyKey) )
             {
                 desc=null;
                 //只有非静态的才有实例属性
-                if( !isstatic && target[objClass.token] && $hasOwnProperty.call(target[objClass.token],propertyKey) )
+                if( !isstatic && $hasOwnProperty.call(target[objClass.token],propertyKey) )
                 {
                     return true;
                 }
             }
             if( desc )
             {
-                return !desc[propertyKey].qualifier || desc[propertyKey].qualifier === 'public';
+                var qualifier = $get( $get(desc,propertyKey), "qualifier");
+                return !qualifier || qualifier === 'public';
             }
-            objClass = objClass.extends;
+            objClass = $get(objClass,"extends");
             if( !(objClass instanceof Class) )
             {
                 return propertyKey in (objClass||Object).prototype;
@@ -177,14 +179,14 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
 {
     if( propertyKey==null )return target;
     if( !target )throwError('type','target object is null');
-    var objClass = target instanceof Class ? target : target.constructor;
+    var objClass = target instanceof Class ? target : $get(target,"constructor");
     if( objClass instanceof Class )
     {
         var isstatic = objClass === target;
         //如果是获取超类中的属性或者方法
-        if( isstatic && (receiver && receiver.constructor instanceof Class) )isstatic=false;
+        if( isstatic && (receiver && $get(receiver,"constructor") instanceof Class) )isstatic=false;
         do {
-            var desc= isstatic ? objClass.static :  objClass.proto;
+            var desc= isstatic ? $get(objClass,"static") :  $get(objClass,"proto");
             //没有属性描述符默认为public
             if( !$hasOwnProperty.call(desc, propertyKey) )
             {
@@ -192,15 +194,15 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
                 //只有非静态的才有实例属性
                 if( !isstatic )
                 {
-                    if( target[objClass.token] && $hasOwnProperty.call( target[objClass.token],propertyKey ) )
+                    if( $hasOwnProperty.call(target[objClass.token],propertyKey ) )
                     {
-                        return target[objClass.token][propertyKey];
+                        return $get( $get(target,objClass.token),propertyKey);
                     }
                 }
             }
             if( desc && ( desc[propertyKey].qualifier !== 'private' || classScope === objClass ) )
             {
-                desc = desc[propertyKey];
+                desc = $get(desc,propertyKey);
 
                 //是否有访问的权限
                 if( !checkPrivilege(desc, objClass, classScope) ){
@@ -210,14 +212,14 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
                 if( desc.get ){
                     return desc.get.call(receiver || target);
                 }else {
-                    if( isstatic )return desc.value;
-                    return $hasOwnProperty.call(desc,'value') ? desc.value : target[objClass.token][propertyKey];
+                    if( isstatic )return $get(desc,"value");
+                    return $hasOwnProperty.call(desc,'value') ? $get(desc,"value") : $get( $get(target,objClass.token), propertyKey );
                 }
             }
-            objClass = objClass.extends;
+            objClass = $get(objClass,"extends");
             if( !(objClass instanceof Class) )
             {
-                return (objClass||Object).prototype[propertyKey];
+                return $get( (objClass||Object).prototype,propertyKey);
             }
 
         }while ( objClass )
@@ -237,14 +239,14 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
 {
     if( propertyKey==null )return false;
     if( !target )throwError('reference','Reference object is null');
-    var objClass = target instanceof Class ? target : target.constructor;
+    var objClass = target instanceof Class ? target : $get(target,"constructor");
     if( objClass instanceof Class )
     {
         var isstatic = objClass === target;
         //如果是获取超类中的属性或者方法
         if( isstatic && (receiver && receiver.constructor instanceof Class) )isstatic=false;
         do{
-            var desc= isstatic ? objClass.static :  objClass.proto;
+            var desc= isstatic ? $get(objClass,"static") :  $get(objClass,"proto");
             //没有属性描述符默认为public
             if( !$hasOwnProperty.call(desc, propertyKey) )
             {
@@ -252,42 +254,50 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
                 //只有非静态的才有实例属性
                 if( !isstatic )
                 {
-                    if( target[objClass.token] && $hasOwnProperty.call( target[objClass.token],propertyKey ) )
+                    if( $hasOwnProperty.call(target[objClass.token],propertyKey ) )
                     {
-                        target[objClass.token][propertyKey] = value;
+                        $set( $get(target,objClass.token), propertyKey, value );
                         return true;
                     }
                     //动态对象可以动态添加
-                    else if( objClass.dynamic === true )
+                    else if( $get(objClass,"dynamic") === true )
                     {
-                        var refObj = target[objClass.token] || (target[objClass.token]={});
-                        objClass.proto[propertyKey]={id:'dynamic'};
-                        refObj[propertyKey] = value;
+                        if( !$hasOwnProperty.call(target,objClass.token) ){
+                            Object.defineProperty(target,objClass.token,{value:{}});
+                        }
+                        var refObj = $get(target, objClass.token);
+                        $set($get(objClass,"proto"),propertyKey,{id:'dynamic'});
+                        $set(refObj,propertyKey,value);
                         return true;
                     }
                 }
             }
-            if( desc && ( desc[propertyKey].qualifier !== 'private' || classScope === objClass ) )
+            if( desc && ( $get( $get(desc,propertyKey),"qualifier") !== 'private' || classScope === objClass ) )
             {
-                desc = desc[propertyKey];
+                desc = $get(desc,propertyKey);
                 //是否有访问的权限
                 if( !checkPrivilege(desc, objClass, classScope) ){
                     if(classScope)throwError('reference', '"' + propertyKey + '" inaccessible.');
                     return false;
                 }
-                if( desc.set ){
+                if( $hasOwnProperty.call(desc,"set") ){
                     desc.set.call(receiver || target, value);
                 }else {
                     if (desc.writable === false)throwError('reference', '"' + propertyKey + '" is not writable');
-                    isstatic ? desc.value = value : target[objClass.token][propertyKey] = value;
+                    isstatic ? $set(desc,"value", value) : $set( $get( target,objClass.token ), propertyKey ,value);
                 }
                 return true;
             }
-        }while( objClass=objClass.extends );
+        }while( objClass=$get(objClass,"extends") );
         return false;
     }
     return $set(target,propertyKey,value,receiver);
 }
+
+/**
+@private
+*/
+var __ieCheck__ = system.env.platform() === 'IE' && system.env.version(9);
 
 /**
  * @private
@@ -295,7 +305,7 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
 function $get(target, propertyKey, receiver)
 {
     var value = target[propertyKey];
-    if( value instanceof Descriptor )
+    if( __ieCheck__ && value instanceof Descriptor )
     {
         return value.get ? value.get.call(receiver || target) : value.value;
     }
@@ -308,7 +318,7 @@ function $get(target, propertyKey, receiver)
 function $set(target,propertyKey,value,receiver)
 {
     var desc = target[propertyKey];
-    if( desc instanceof Descriptor )
+    if( __ieCheck__ && desc instanceof Descriptor )
     {
         if( desc.writable=== false )throwError('reference','"'+propertyKey+'" is not writable');
         if( desc.set ){
@@ -336,16 +346,18 @@ function $set(target,propertyKey,value,receiver)
  */
 function checkPrivilege(descriptor,referenceModule, classModule  )
 {
-    if( descriptor && descriptor.qualifier && descriptor.qualifier !== 'public' )
+    if( descriptor )
     {
-        //不是本类中的成员调用（本类中的所有成员可以相互调用）
-        if( referenceModule !== classModule )
-        {
-            if( descriptor.qualifier === 'internal' )
-            {
-                return referenceModule.package === classModule.package;
+        var qualifier = $get(descriptor,"qualifier");
 
-            }else if( descriptor.qualifier === 'protected' )
+        //不是本类中的成员调用（本类中的所有成员可以相互调用）
+        if( (qualifier && qualifier !=='public') && referenceModule !== classModule )
+        {
+            if( qualifier === 'internal' )
+            {
+                return $get(referenceModule,"package") === $get(classModule,"package");
+
+            }else if( qualifier === 'protected' )
             {
                 return Object.prototype.isPrototypeOf.call(classModule,referenceModule);
             }

@@ -683,6 +683,9 @@ function getDescriptorOfExpression(it, classmodule)
                     {
                         property.name.push('System');
                         desc = globals.System;
+                        if( desc.static[it.current.value].id==='object'){
+                            desc = desc.static[it.current.value];
+                        }
                     }
                     property.isglobal=true;
                 }
@@ -708,7 +711,6 @@ function getDescriptorOfExpression(it, classmodule)
         {
             type = Utils.getConstantType(it.current.value) || Utils.getValueTypeof(it.current.type);
             if (!type){
-                console.log( it.current )
                 error('Unexpected identifier','syntax',  it.current );
             }
             property.type = type || '*';
@@ -815,11 +817,13 @@ function getDescriptorOfExpression(it, classmodule)
             if ( desc && desc.type !=='*' && !(desc.referenceType ==='JSON' || desc.referenceType ==='Object') )
             {
                 var prevDesc = desc;
-                desc = getClassPropertyDesc(it, module( getImportClassByType(classmodule, desc.type) ) , isstatic ? 'static' : 'proto', classmodule);
+                if( desc.notCheckType !== true ){
+                    desc = getClassPropertyDesc(it, module( getImportClassByType(classmodule, desc.type) ) , isstatic ? 'static' : 'proto', classmodule);
+                }
                 type = desc.type;
                 property.descriptor = desc;
                 property.type = type;
-                isstatic= type ==='Class';
+                isstatic= type ==='Class' || desc.id==='object';
 
                 //如果是一个函数或者是一个访问器
                 if(desc.id === 'function')

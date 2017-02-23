@@ -40,22 +40,22 @@ system.timeEnd = console.timeEnd;
  * 全局函数
  * @type {*|Function}
  */
-system.isFinite = isFinite || function () {};
-system.decodeURI= decodeURI || function () {};
-system.decodeURIComponent= decodeURIComponent || function () {};
-system.encodeURI= encodeURI || function () {};
-system.encodeURIComponent= encodeURIComponent || function () {};
-system.escape= escape || function () {};
-system.eval= eval || function () {};
-system.isNaN= isNaN || function () {};
-system.parseFloat= parseFloat || function () {};
-system.parseInt= parseInt || function () {};
-system.unescape= unescape || function () {};
+system.isFinite = isFinite;
+system.decodeURI= decodeURI;
+system.decodeURIComponent= decodeURIComponent;
+system.encodeURI= encodeURI;
+system.encodeURIComponent= encodeURIComponent;
+system.escape= escape;
+system.eval= eval;
+system.isNaN= isNaN;
+system.parseFloat= parseFloat;
+system.parseInt= parseInt;
+system.unescape= unescape;
 
 /**
  * 环境参数配置
  */
-system.Env={
+system.env={
     'BROWSER_IE':'IE',
     'BROWSER_FIREFOX':'FIREFOX',
     'BROWSER_CHROME':'CHROME',
@@ -84,7 +84,7 @@ system.Env={
 
     }else if( typeof process !== "undefined" )
     {
-        _platform=[env.NODE_JS, process.version ];
+        _platform=[env.NODE_JS, process.versions.node];
     }
 
     /**
@@ -92,8 +92,8 @@ system.Env={
      * @returns {*}
      */
     env.platform = function platform( name ) {
-        if( name != null )return name == platform[0];
-        return platform[0];
+        if( name != null )return name == _platform[0];
+        return _platform[0];
     }
 
     /**
@@ -104,7 +104,7 @@ system.Env={
     env.version=function version(value, expre)
     {
         var result = _platform[1];
-        if( arguments.length===0 )return result;
+        if( value==null )return result;
         value = parseFloat(value);
         switch ( expre )
         {
@@ -123,7 +123,7 @@ system.Env={
         }
     };
 
-}(system.Env));
+}(system.env));
 
 
 /**
@@ -153,11 +153,11 @@ function instanceOf(instanceObj, theClass)
     if( instanceObj && isclass )
     {
         if( instanceObj instanceof Class )return isclass;
-        var proto = instanceObj.constructor;
+        var proto = $get(instanceObj,"constructor");
         while( proto )
         {
             if( proto === theClass )return true;
-            proto=proto.extends;
+            proto=$get(proto,"extends");
         }
     }
     //如果不是一个函数直接返回false
@@ -182,24 +182,26 @@ function is(instanceObj, theClass)
     if(instanceObj && (isclass || isInterface) )
     {
         if( instanceObj instanceof Class )return isclass;
-        var proto = instanceObj.constructor;
+        var proto = $get(instanceObj,"constructor");
         while( proto )
         {
             if( proto === theClass )return true;
-            if( proto.implements && proto.implements.length > 0 )
+            var impls = $get(proto,"implements");
+            if( impls && $get(impls,"length") > 0 )
             {
                 var i = 0;
-                for(;i<proto.implements.length;i++)
+                var len=$get(impls,"length");
+                for(;i<len;i++)
                 {
-                    var interfaceModule = proto.implements[i];
+                    var interfaceModule = impls[i];
                     while ( interfaceModule )
                     {
                         if( interfaceModule === theClass )return true;
-                        interfaceModule = interfaceModule.extends;
+                        interfaceModule = $get(interfaceModule,"extends");
                     }
                 }
             }
-            proto=proto.extends;
+            proto=$get(proto,"extends");
         }
         if( isInterface )return false;
 
@@ -219,8 +221,8 @@ system.is=is;
  */
 function getDefinitionByName( name )
 {
-    if( modules[ name ] )return modules[ name];
-    if( system[name] )return system[name];
+    if( $hasOwnProperty.call(modules,name) )return $get(modules,name);
+    if( $hasOwnProperty.call(system,name) )return $get(system,name);
     for ( var i in modules )if( i=== name )return modules[i];
     throwError('type', '"'+name+'" is not define');
 }
@@ -233,7 +235,7 @@ system.getDefinitionByName =getDefinitionByName;
  * @returns {string}
  */
 function getFullname(classModule) {
-    return classModule.package ? classModule.package+'.'+classModule.classname : classModule.classname;
+    return $get(classModule,"package") ? $get(classModule,"package")+'.'+$get(classModule,"classname") : $get(classModule,"classname");
 }
 
 /**
@@ -292,10 +294,10 @@ function getQualifiedSuperclassName(value)
     if (classname)
     {
         var classModule = getDefinitionByName( classname );
-        var parentModule = classModule.extends;
+        var parentModule = $get(classModule,"extends");
         if ( parentModule )
         {
-            return  parentModule.fullclassname;
+            return $get(parentModule,"fullclassname");
         }
     }
     return null;
@@ -312,7 +314,7 @@ function isObject(val , flag )
 {
     if( !val )return false;
     var proto =  Object.getPrototypeOf(val);
-    var result = !!(proto === Object.prototype || proto===$Object.prototype);
+    var result = proto === Object.prototype || proto===$Object.prototype;
     if( !result && flag !== true && isArray(val) )return true;
     return result;
 };
@@ -338,7 +340,8 @@ system.isDefined =isDefined;
 function isArray(val)
 {
     if(!val)return false;
-    return val instanceof Array || val instanceof $Array;
+    var proto =  Object.getPrototypeOf(val);
+    return proto === Array.prototype || proto===$Array.prototype;
 };
 system.isArray =isArray;
 
@@ -348,6 +351,7 @@ system.isArray =isArray;
  * @returns {boolean}
  */
 function isFunction( val ){
+    if(!val)return false;
     return typeof val === 'function' || val instanceof Function;
 };
 system.isFunction =isFunction;
@@ -391,6 +395,7 @@ function isNumber(val )
     return typeof val === 'number';
 };
 system.isNumber=isNumber;
+
 /**
  * 抛出错误信息
  * @param type
@@ -461,200 +466,89 @@ function range(low,high,step)
 system.range=range;
 
 /**
- * 数学运算
- * @private
+ * 将字符串的首字母转换为大写
+ * @param str
+ * @returns {string}
+ */
+function ucfirst( str )
+{
+    return typeof str === "string" ? str.charAt(0).toUpperCase()+str.substr(1) : str;
+};
+system.ucfirst=ucfirst;
+
+/**
+ * 将字符串的首字母转换为小写
+ * @param str
+ * @returns {string}
+ */
+function lcfirst( str )
+{
+    return typeof str === "string" ? str.charAt(0).toLowerCase()+str.substr(1) : str;
+};
+system.lcfirst=lcfirst;
+
+/**
+ * 格式化输出
+ * @format
+ * @param [...]
+ * @returns {string}
+ */
+function format()
+{
+    var str='',i= 1,len=arguments.length,param;
+    if( len > 0 && typeof arguments[0] === "string" )
+    {
+        str=arguments[0];
+        for (; i < len; i++) {
+            param = arguments[i];
+            str = str.replace(/%(s|d|f)/, function (all, method) {
+                if (method === 'd') {
+                    return parseInt(param);
+                } else if (method === 'f') return parseFloat(param);
+                return Object.prototype.valueOf.call(param);
+            })
+        }
+        str.replace(/%(s|d|f)/g, '');
+    }
+    return str;
+};
+system.format=format;
+
+/**
+ * 复制字符串到指定的次数
+ * @param string str
+ * @param number num
+ * @returns {string}
+ */
+function repeat(str, num )
+{
+    if( typeof str === "string" )
+    {
+        return new Array( (parseInt(num) || 0)+1 ).join(str);
+    }
+    return '';
+};
+system.repeat=repeat;
+
+/**
+ * 比较两个两个字符串的值。
+ * 如果 a > b 返回 1 a<b 返回 -1 否则返回 0
+ * 比较的优先级数字优先于字符串。字母及汉字是按本地字符集排序。
  * @param a
- * @param o
  * @param b
  * @returns {*}
  */
-function mathOperator( a, o, b)
+function compare(a, b)
 {
-    switch (o)
+    var c = parseFloat( a ), d = parseFloat( b );
+    if( isNaN(c) && isNaN(d) )
     {
-        case '=' : return  b;
-        case '+=' : return a+=b;
-        case '-=' : return a-=b;
-        case '*=' : return a*=b;
-        case '/=' : return a/=b;
-        case '%=' : return a%=b;
-        case '^=' : return a^=b;
-        case '&=' : return a&=b;
-        case '|=' :return a|=b;
-        case '<<=' :return a<<=b;
-        case '>>=' :return a>>=b;
-        case '>>>=' :return a>>>=b;
-        default :
-            throwError('syntax','Invalid operator "'+o+'"' );
+        return a.localeCompare(b);
+
+    }else if( !isNaN(c) && !isNaN(d) )
+    {
+        return c > d ? 1 : (c < d ? -1 : 0);
     }
-}
-
-function toPropertyStr(thisArg, properties ) {
-    var items = isArray(properties) ? Array.prototype.map.call(properties,function (item) {
-        if( typeof item === "string" )return item;
-        return getQualifiedClassName( item );
-    }) : [properties];
-    items.unshift( getQualifiedClassName( thisArg ) );
-    return items.join('.');
-}
-
-function toErrorMsg(error, classModule, info, thisArg)
-{
-    var msg = classModule.filename + ':' + info + '\n';
-    msg +=  typeof error === "string" ? error : error.message;
-    throwError("reference", msg, info, classModule.filename );
-}
-
-/**
- * @private
- * 生成操作函数
- * @param method
- * @param classModule
- * @returns {Function}
- */
-function makeMethods(method, classModule)
-{
-    switch ( method )
-    {
-        case 'get' : return function(info, thisArg, property, operator, issuper)
-        {
-            try{
-                if( property==null )return thisArg;
-                var receiver = undefined;
-                if( issuper ){
-                    receiver=thisArg;
-                    thisArg = classModule.extends;
-                }
-                var value=Reflect.get(thisArg, property, receiver, classModule);
-                var ret = value;
-                switch ( operator ){
-                    case ';++':
-                        value++;
-                        Reflect.set(thisArg, property, value , receiver, classModule);
-                        break;
-                    case ';--':
-                        value--;
-                        Reflect.set(thisArg, property, value , receiver, classModule);
-                        break;
-                    case '++;':
-                        ++ret;
-                        Reflect.set(thisArg, property, ret , receiver, classModule);
-                        break;
-                    case '--;':
-                        --ret;
-                        Reflect.set(thisArg, property, ret , receiver, classModule);
-                        break;;
-                }
-                return ret;
-            }catch(error){
-                toErrorMsg(error, classModule, info, thisArg);
-            }
-        }
-        case 'set' : return function(info, thisArg, property,value, operator, issuper)
-        {
-            try{
-                if( property == null )return value;
-                var receiver=undefined;
-                if( issuper ){
-                    receiver=thisArg;
-                    thisArg = classModule.extends;
-                }
-                if( operator && operator !=='=' )
-                {
-                    value = mathOperator( Reflect.get(thisArg, property, receiver, classModule), operator, value);
-                }
-                Reflect.set(thisArg, property, value, receiver, classModule);
-                return value;
-            }catch(error){
-                toErrorMsg(error, classModule, info, thisArg);
-            }
-        }
-        case 'delete' : return function(info, thisArg, property)
-        {
-            try{
-                return Reflect.deleteProperty(thisArg, property);
-            }catch(error){
-                toErrorMsg(error, classModule, info, thisArg);
-            }
-        }
-        case 'new' : return function(info, theClass, argumentsList)
-        {
-            try{
-                return Reflect.construct(theClass, argumentsList);
-            }catch(error){
-                toErrorMsg(error, classModule, info, theClass);
-            }
-        }
-        case 'apply' : return function(info,thisArg, property, argumentsList,issuper)
-        {
-            try{
-                var receiver=undefined;
-                if( issuper ){
-                    receiver=thisArg;
-                    thisArg = classModule.extends;
-                }
-                if( property ) {
-                    return Reflect.apply( Reflect.get(thisArg, property, receiver, classModule), receiver || thisArg, argumentsList );
-                }else{
-                    return Reflect.apply(thisArg, receiver, argumentsList);
-                }
-            }catch(error){
-                toErrorMsg(error, classModule, info, thisArg);
-            }
-        }
-        case 'check' : return function (info, type, value)
-        {
-            if( value === null )return value;
-            if ( !system.is(value, type) )toErrorMsg('TypeError Specify the type of value do not match. must is "' + getQualifiedClassName(type) + '"', classModule, info, value);
-            return value;
-        }
-    }
-}
-
-/**
- * 定义Class或者Interface对象
- * @param name
- * @param descriptions
- * @param isInterface
- * @returns {*}
- */
-function define(name , descriptions , isInterface)
-{
-    if( typeof system[ name ] === "function" )return system[ name ];
-    var classModule;
-    if( modules[ name ] && (modules[ name ] instanceof Class  || modules[ name ] instanceof Interface) )
-    {
-        classModule = modules[ name ];
-    }else
-    {
-        if( isInterface )
-        {
-            classModule = modules[ name ] = new Interface();
-            descriptions.constructor = null;
-        }else
-        {
-            classModule = modules[name] = new Class();
-            classModule.delete = makeMethods('delete', classModule);
-            classModule.get = makeMethods('get', classModule);
-            classModule.set = makeMethods('set', classModule);
-            classModule.new = makeMethods('new', classModule);
-            classModule.apply = makeMethods('apply', classModule);
-            classModule.check = makeMethods('check', classModule);
-        }
-    }
-
-    //如果是定义类或者接口
-    if( typeof descriptions === "object" )
-    {
-        for (var prop in descriptions )classModule[prop] = descriptions[prop];
-        if( typeof descriptions.constructor === "function" )
-        {
-            descriptions.constructor.prototype= new Object();
-            descriptions.constructor.prototype.constructor = classModule;
-            //开放原型继承
-            classModule.prototype = descriptions.constructor.prototype;
-        }
-    }
-    return classModule;
-}
-system.define=define;
+    return isNaN(c) ? 1 : -1;
+};
+system.compare=compare;

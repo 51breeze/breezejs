@@ -29,9 +29,9 @@ var descriptor = {
         }
     },
     'String':{
-        'id':'class', 'type':'String', 'inherit':'Object','constructor':String,
+        'id':'class', 'type':'String', 'inherit':'Object',
         'proto': {
-          'replace':{ 'id':'function','qualifier':'public', 'type':'String' }
+          'replace':{ 'id':'function','type':'String'}
         }
     },
     'JSON':{
@@ -259,6 +259,22 @@ var descriptor = {
         'id':'object',
         'type':'System',
         'static': {
+            'env':{
+                'id':'object',
+                'type':'Object',
+                'notCheckType':true,
+                'static':{
+                    'BROWSER_IE': {type: 'String', id: 'const'},
+                    'BROWSER_FIREFOX':{type: 'String', id: 'const'},
+                    'BROWSER_CHROME':{type: 'String', id: 'const'},
+                    'BROWSER_OPERA':{type: 'String', id: 'const'},
+                    'BROWSER_SAFARI':{type: 'String', id: 'const'},
+                    'BROWSER_MOZILLA':{type: 'String', id: 'const'},
+                    'NODE_JS':{type: 'String', id: 'const'},
+                    'platform':{type: 'String', id: 'function', param: ['...']},
+                    'version':{type: 'Number', id: 'function', param: ['...']},
+                }
+            },
             'log': {type: 'void', id: 'function', param: ['...']},
             'error': {type: 'void', id: 'function', param: ['...']},
             'info': {type: 'void', id: 'function', param: ['...']},

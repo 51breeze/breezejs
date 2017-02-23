@@ -40,7 +40,7 @@ public class Main extends B implements IProsess {
           function Main(jj)
           {
               log('Hello world!');
-              log(  this.home );
+              log(  this.home, env.platform(), env.version() );
           }
 
         function ddcc(){}

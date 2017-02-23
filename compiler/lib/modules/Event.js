@@ -88,7 +88,8 @@ var fix=Event.fix={
         'DOMContentLoaded':true
     }
 };
-if( navigator.userAgent.match(/msie ([\d.]+)/i) && RegExp.$1 < 9 )
+
+if( system.Env.platform() === 'IE' && System.Env.version(9) )
 {
     fix.onPrefix='on';
     fix.map[ Event.READY ] = 'readystatechange';

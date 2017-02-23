@@ -70,19 +70,15 @@ Array.prototype.filter=function (callback, thisArg)
  */
 Array.prototype.fill = function fill(value, start, end)
 {
-    var obj = Object(this);
-    if( !(obj instanceof Class) )
-    {
-        var o = obj.constructor instanceof Class ? obj[obj.constructor.token] : obj;
-        var len = o.length >> 0;
-        var relativeStart = start >> 0;
-        var k = relativeStart < 0 ? Math.max(len + relativeStart, 0) : Math.min(relativeStart, len);
-        var relativeEnd = end === undefined ? len : end >> 0;
-        var final = relativeEnd < 0 ? Math.max(len + relativeEnd, 0) : Math.min(relativeEnd, len);
-        while (k < final) {
-            o[k] = value;
-            k++;
-        }
+    var o =isArray(this) ? this : [];
+    var len = o.length >> 0;
+    var relativeStart = start >> 0;
+    var k = relativeStart < 0 ? Math.max(len + relativeStart, 0) : Math.min(relativeStart, len);
+    var relativeEnd = end === undefined ? len : end >> 0;
+    var final = relativeEnd < 0 ? Math.max(len + relativeEnd, 0) : Math.min(relativeEnd, len);
+    while (k < final) {
+        o[k] = value;
+        k++;
     }
     return obj;
 };

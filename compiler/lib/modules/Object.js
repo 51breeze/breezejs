@@ -62,8 +62,8 @@ Object.merge = function()
         {
             for ( name in options )
             {
-                src = target[ name ];
-                copy = options[ name ];
+                src =  system.Reflect.get(target,name);
+                copy = system.Reflect.get(options,name);
                 if ( target === copy )continue;
                 if ( deep && copy && ( isObject(copy,true) || ( copyIsArray = isArray(copy) ) ) )
                 {
@@ -75,11 +75,11 @@ Object.merge = function()
                     {
                         clone = src && isObject(src) ? src : {};
                     }
-                    target[ name ] = Object.merge( deep, clone, copy );
+                    system.Reflect.set(target, name ,Object.merge( deep, clone, copy ) )
 
                 } else if ( typeof copy !== "undefined" )
                 {
-                    target[ name ] = copy;
+                    system.Reflect.set(target,name,copy);
                 }
             }
         }
@@ -96,14 +96,14 @@ var $isPrototypeOf = $Object.prototype.isPrototypeOf;
 Object.prototype.isPrototypeOf = function( theClass )
 {
     var proto = Object.getPrototypeOf(this);
-    var obj = this instanceof Class ? this : proto.constructor;
+    var obj = this instanceof Class ? this : $get(proto,"constructor");
     if( obj instanceof Class )
     {
         var classObj = theClass;
         while (classObj instanceof Class)
         {
             if (classObj === obj)return true;
-            classObj = classObj.extends;
+            classObj = $get(classObj,"extends");
         }
     }
     return $isPrototypeOf.call( this, theClass);
@@ -118,17 +118,23 @@ Object.prototype.isPrototypeOf = function( theClass )
 var $hasOwnProperty = $Object.prototype.hasOwnProperty;
 Object.prototype.hasOwnProperty = function( name )
 {
-    var obj = this instanceof Class ? this : this.constructor;
+    var obj = this instanceof Class ? this : $get(this,"constructor");
     if( obj instanceof Class )
     {
         var isstatic = obj === this;
         var desc;
         do {
-            desc = isstatic ? obj.static[name] : obj.proto[name];
-            if( desc && (desc.qualifier==='public' || desc.qualifier==='private') ){
-                return desc.qualifier==='public';
+            desc = isstatic ? $get(obj,"static") : $get(obj,"proto");
+            if( $hasOwnProperty.call(desc,name) )
+            {
+                var qualifier = $get( $get(desc, name),'qualifier');
+                if (qualifier === 'public' || qualifier === 'private')
+                {
+                    return qualifier === 'public';
+                }
+                return false;
             }
-        }while ( (obj = obj.extends) && obj instanceof Class )
+        }while ( (obj = $get(obj,"extends") ) && obj instanceof Class )
         return false;
     }
     return $hasOwnProperty.call(this,name);
@@ -144,20 +150,21 @@ Object.prototype.hasOwnProperty = function( name )
 var $propertyIsEnumerable=$Object.prototype.propertyIsEnumerable;
 Object.prototype.propertyIsEnumerable = function( name )
 {
-    var obj = this instanceof Class ? this : this.constructor;
+    var obj = this instanceof Class ? this : $get(this,"constructor");
     if( obj instanceof Class )
     {
         //动态创建的属性才可以枚举
-        if( obj.dynamic && obj !== this )
+        if( $get(obj,"dynamic")===true && obj !== this )
         {
             do{
                 if( $hasOwnProperty.call(this[obj.token], name) )
                 {
+                    var proto = $get(obj,'proto');
                     //内置属性不可以枚举
-                    if( !$hasOwnProperty.call(obj.proto,name) )return true;
-                    return obj.proto[name].id==='dynamic' && obj.proto[name].enumerable !== false;
+                    if( !$hasOwnProperty.call(proto,name) )return true;
+                    return $get( $get(proto,name),"id")==='dynamic' && $get( $get( proto,name),"enumerable") !== false;
                 }
-            }while ( (obj = obj.extends) && obj.dynamic && obj instanceof Class );
+            }while ( (obj = $get(obj,"extends") ) && $get(obj,"dynamic") && obj instanceof Class );
         }
         return false;
     }
@@ -175,11 +182,11 @@ Object.prototype.propertyIsEnumerable = function( name )
  */
 Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
 {
-    var obj = this instanceof Class ? this : this.constructor;
+    var obj = this instanceof Class ? this : $get(this,"constructor");
     if( obj instanceof Class )
     {
         //动态创建的属性才可以设置枚举
-        if( obj.dynamic && obj !== this )
+        if( $get(obj,"dynamic") === true && obj !== this )
         {
             do{
                 if( $hasOwnProperty.call(this[obj.token], name) )
@@ -188,15 +195,16 @@ Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
                     //内置属性不可以枚举
                     if( !$hasOwnProperty.call(obj.proto,name) )
                     {
-                        desc= obj.proto[name] = {'id':'dynamic',enumerable:false};
+                        desc = {'id':'dynamic',enumerable:false};
+                        $set( $get(obj,'proto') , name, desc);
                     }else
                     {
-                        desc= obj.proto[name];
+                        desc= $get( $get(obj,'proto') , name);
                     }
-                    desc.enumerable = isEnum !== false;
+                    $set( desc, "enumerable", isEnum !== false);
                     return true;
                 }
-            }while ( (obj = obj.extends) && obj.dynamic && obj instanceof Class );
+            }while ( (obj = $get(obj,"extends") ) && $get(obj,"dynamic") && obj instanceof Class );
         }
         return false;
 
@@ -215,13 +223,13 @@ Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
 var $valueOf = $Object.prototype.valueOf;
 Object.prototype.valueOf=function()
 {
-    var obj = this instanceof Class ? this : this.constructor;
+    var obj = this instanceof Class ? this : $get(this,"constructor");
     if( obj instanceof Class )
     {
-        return obj === this ? '[Class: '+obj.classname+']' : '[object '+ obj.classname+']';
+        return obj === this ? '[Class: '+$get(obj,"classname")+']' : '[object '+ $get(obj,"classname")+']';
     }else if( obj instanceof Interface )
     {
-        return '[Interface: '+obj.classname +']';
+        return '[Interface: '+$get(obj,"classname") +']';
     }
     return $valueOf.call( this );
 }
@@ -232,14 +240,13 @@ Object.prototype.valueOf=function()
  */
 Object.prototype.toString=function()
 {
-    var obj = this instanceof Class ? this : this.constructor;
+    var obj = this instanceof Class ? this : $get(this,"constructor");
     if( obj instanceof Class )
     {
-        return obj === this ? '[Class: '+obj.classname+']' : '[object '+ obj.classname+']';
-
+        return obj === this ? '[Class: '+$get(obj,"classname")+']' : '[object '+ $get(obj,"classname")+']';
     }else if( obj instanceof Interface )
     {
-        return '[Interface: '+obj.classname +']';
+        return '[Interface: '+$get(obj,"classname") +']';
     }
     return $Object.prototype.toString.call( this );
 }
@@ -272,17 +279,18 @@ function getEnumerableProperties( state )
 {
     var items=[];
     var prop;
-    if( this instanceof Class || this.constructor instanceof Class)
+    var objClass = this instanceof Class ? this : $get(this,"constructor");
+    if( objClass instanceof Class)
     {
-        var objClass = this.constructor;
         var obj;
-        if ( objClass.dynamic && this !== objClass )
+        if ( $get(objClass,"dynamic") && this !== objClass )
         {
             do {
-                obj = this[objClass.token];
+                obj = $get(this,objClass.token);
                 if (obj)for(prop in obj)
                 {
-                    if( !$hasOwnProperty.call(objClass.proto, prop) || objClass.proto[prop].enumerable !== false )
+                    if( !$hasOwnProperty.call(objClass.proto, prop) ||
+                    ( $propertyIsEnumerable.call(objClass.proto,prop) && objClass.proto[prop].enumerable !== false) )
                     {
                         switch (state){
                             case -1 : items.push(prop); break;
@@ -297,7 +305,7 @@ function getEnumerableProperties( state )
 
     }else if( this && typeof this !== "function" )
     {
-        for( prop in this )if( $propertyIsEnumerable.call(this,prop) && !( this[prop] && this[prop].enumerable === false && this[prop] instanceof Descriptor ) )
+        for( prop in this )if( $propertyIsEnumerable.call(this,prop) && !( this[prop] && this[prop].enumerable === false) )
         {
             var val = Reflect.get(this,prop);
             switch (state){
