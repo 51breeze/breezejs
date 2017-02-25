@@ -62,13 +62,14 @@ system.env={
     'BROWSER_OPERA':'OPERA',
     'BROWSER_SAFARI':'SAFARI',
     'BROWSER_MOZILLA':'MOZILLA',
-    'NODE_JS':'NODEJS',
-}
+    'NODE_JS':'NODE_JS',
+    'IS_CLIENT':false,
+};
 
 /**
  * 获取环境变量的参数
  */
-;(function(env){
+(function(env){
 
     var _platform=[];
     if( typeof navigator !== "undefined" )
@@ -81,6 +82,7 @@ system.env={
         (s = ua.match(/opera.([\d.]+)/))            ? _platform=[env.BROWSER_OPERA,parseFloat(s[1])] :
         (s = ua.match(/version\/([\d.]+).*safari/)) ? _platform=[env.BROWSER_SAFARI,parseFloat(s[1])] :
         (s = ua.match(/^mozilla\/([\d.]+)/))        ? _platform=[env.BROWSER_MOZILLA,parseFloat(s[1])] : null ;
+        env.IS_CLIENT=true;
 
     }else if( typeof process !== "undefined" )
     {
@@ -147,21 +149,22 @@ system.typeOf=typeOf;
  */
 function instanceOf(instanceObj, theClass)
 {
-    var isclass = theClass instanceof Class;
-    //instanceof 不检查接口类型
-    if( !isclass && theClass instanceof Interface )return false;
-    if( instanceObj && isclass )
+    if( theClass === Class )
     {
-        if( instanceObj instanceof Class )return isclass;
-        var proto = $get(instanceObj,"constructor");
+        return instanceObj instanceof Class;
+    }
+    var proto = $get(instanceObj,"constructor");
+    if( proto instanceof Class)
+    {
         while( proto )
         {
             if( proto === theClass )return true;
             proto=$get(proto,"extends");
         }
     }
+
     //如果不是一个函数直接返回false
-    else if( typeof theClass !== "function" )
+    if( typeof theClass !== "function" )
     {
         return false;
     }
@@ -177,12 +180,13 @@ system.instanceOf=instanceOf;
  */
 function is(instanceObj, theClass)
 {
-    var isclass = theClass instanceof Class;
-    var isInterface = !isclass ? theClass instanceof Interface : false;
-    if(instanceObj && (isclass || isInterface) )
+    if( theClass === Class )
     {
-        if( instanceObj instanceof Class )return isclass;
-        var proto = $get(instanceObj,"constructor");
+        return instanceObj instanceof Class;
+    }
+    var proto = $get( instanceObj, "constructor");
+    if( proto instanceof Class )
+    {
         while( proto )
         {
             if( proto === theClass )return true;
@@ -203,9 +207,9 @@ function is(instanceObj, theClass)
             }
             proto=$get(proto,"extends");
         }
-        if( isInterface )return false;
+    }
 
-    }else if( typeof theClass !== "function" )
+    if( typeof theClass !== "function" )
     {
         return false;
     }

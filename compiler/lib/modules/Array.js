@@ -53,13 +53,39 @@ Array.prototype.forEach=function( callback, thisArg )
 Array.prototype.filter=function (callback, thisArg)
 {
     if (typeof callback !== 'function')throwError('type','callback must be a function');
-    var it = new Iterator(this);
-    var len = it.items.length;
     var items = new Array();
     var i = 0;
-    for (; i < len; i++)if ( callback.call(thisArg, it.items[i].value, it.items[i].key) )items.push( it.items[i].value );
+    if( isObject(this) )
+    {
+        for (i in this )if (callback.call(thisArg, this[i], i))items.push(this[i]);
+    }else
+    {
+        var it = new Iterator(this);
+        var len = it.items.length;
+        for (; i < len; i++)if (callback.call(thisArg, it.items[i].value, it.items[i].key))items.push(it.items[i].value);
+    }
     return items;
 }
+
+/**
+ * 返回一个唯一元素的数组
+ * @returns {Array}
+ */
+Array.prototype.unique=function()
+{
+    var arr= this.slice(0);
+    for (var i = 0; i<arr.length; i++)
+    {
+        for(var b=i+1; b<arr.length; b++ )
+        {
+            if( arr[i]===arr[b] )
+            {
+                arr.splice(b,1);
+            }
+        }
+    }
+    return arr;
+};
 
 /**
  * 将一个数组的所有元素从开始索引填充到具有静态值的结束索引

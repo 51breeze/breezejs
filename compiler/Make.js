@@ -12,7 +12,7 @@ const config = {
     'cache':'off',
     'cachePath':'./cache',
     'debug':'on',
-    'browser':'disable',  //enable disable
+    'browser':'enable',  //enable disable
     'globals':globals,
     'enableBlockScope':'on',
     'reserved':['let','of'],
@@ -372,16 +372,21 @@ Iteration.prototype.parseArgumentsOfMethodAndConstructor=function( stack )
     {
         //运行时检查实例对象是否属于本类
         // content.push( 'if( !(this instanceof '+stack.name()+') )throw new SyntaxError("Please use the new operation to build instances.");\n' );
-        if( stack.name() === this.module.classname )
+        if( stack.name() === this.module.classname && !stack.static() && stack.parent().keyword() === 'class')
         {
-            stack.addListener('(iterationDone)', function (e) {
-                var index = this.name() && this.parent().keyword() !== 'class' ? 7 : 5;
+            stack.addListener('(iterationDone)', function (e)
+            {
+                var param = stack.param();
+                var index =  param && param.length > 0 ?  5 : 4;
+
                 //预留私有属性占位
                 e.iteration.content.splice(index, 0, '####{props}####');
+
                 //如果没有调用超类，则调用超类的构造函数
                 if (e.iteration.module.inherit && !stack.called) {
-                    e.iteration.content.splice(index + 1, 0, e.iteration.module.inherit + '.constructor.call(this);\n');
+                    e.iteration.content.splice(index + 1, 0, 'Reflect.apply('+e.iteration.module.inherit+',this);\n');
                 }
+                
             }, -500);
         }
     }
@@ -1370,8 +1375,7 @@ function getClassPropertyDesc(it, refObj, name , classmodule )
         }
         var parent = refObj;
         var child;
-        //默认继承全局对象
-        if( !parent.inherit && refObj.id==='class' && refObj.type !=='Object')parent.inherit='Object';
+
         //在继承的类中查找
         while (parent && parent.inherit )
         {
@@ -1383,6 +1387,11 @@ function getClassPropertyDesc(it, refObj, name , classmodule )
                 checkPrivilege(it, desc, parent, child );
                 return desc;
             }
+        }
+        //默认都继承对象
+        if( globals.Object[name][prop] )
+        {
+            return globals.Object[name][prop];
         }
     }
     error('"' + it.current.value + '" does not exits', 'reference', it.current );
@@ -1581,7 +1590,9 @@ function makeModule( stack )
     var len = data.length;
     var isstatic = stack.static();
     if( !isstatic ){
-        classModule.constructor.value=classModule.inherit ? 'function(){####{props}####return '+classModule.inherit+'.constructor.call(this);}' : 'function(){####{props}####}';
+        classModule.constructor.value=classModule.inherit ?
+        'function(){####{props}#### Reflect.apply('+classModule.inherit+',this);}' :
+            'function(){####{props}####}';
     }
 
     //需要实现的接口
@@ -2020,9 +2031,8 @@ function start()
     var system =  require('./lib/system.js');
     var g = [];
     for(var key in globals)if(key!=='System')g.push(key);
-
     var content = [
-        '(function(){\n',
+        '(function(undefined){\n',
         system(config),
         '\n',
         '(function('+ g.join(',')+'){\n',
@@ -2052,7 +2062,7 @@ for(var b in arguments )Utils.merge(config, QS.parse( arguments[b] ) );
 config.cache = config.cache!=='off';
 
 //浏览器中的全局模块
-if( config.browser !=='disable' )
+if( config.browser === 'enable' )
 {
     var browser = require('./descriptions/browser.js');
     for(var b in browser)globals[b]=browser[b];

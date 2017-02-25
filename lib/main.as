@@ -19,11 +19,11 @@ package
 
 import lib.EventDispatcher;
 import com.B;
-
 import lib.IProsess;
 import lib.IProt;
 import com.Abs;
 import com.D;
+import com.Dispatcher;
 
 public class Main extends B implements IProsess {
 
@@ -39,8 +39,29 @@ public class Main extends B implements IProsess {
 
           function Main(jj)
           {
-              log('Hello world!');
-              log(  this.home, env.platform(), env.version() );
+
+              EventDispatcher( window ).addEventListener( Event.READY , function (e) {
+
+                  log( '=====ready=====');
+                  var elem = Element('div');
+                  log( elem, elem.height() );
+
+              });
+
+
+
+
+
+
+              var t = new Date().getTime();
+              var d = new Dispatcher();
+              log( d is  EventDispatcher );
+              var fn =  function (e) {
+                  log( e.type ,'====dispathcer====');
+              };
+              d.addEventListener('addData', fn );
+              d.addData({});
+              log( new Date().getTime()- t );
           }
 
         function ddcc(){}
@@ -80,7 +101,6 @@ public class Main extends B implements IProsess {
         override protected function cre(str:String):String{
 
             log( this.bb ,'====this cre====');
-
             return this.bb;
         }
 

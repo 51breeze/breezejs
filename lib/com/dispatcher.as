@@ -17,34 +17,18 @@
 
 package com
 {
-    import String;
-    import Number;
+    public class Dispatcher extends EventDispatcher
+    {
 
-    public class D extends Object {
 
-         protected var bb:String='123';
-
-         function D()
-          {
-
-             /* System.log(jj,' this is a D class ');
-              var cc:Number=66;*/
- 
-         }
-
-        protected function get address():String
+       public function addData(val:Object):Object
         {
-            return '66666';
-        }
-        protected function set address(add:String):void
-        {
-        }
+            var e = new Event('addData');
+           // e.data = val;
+            this.dispatchEvent( e );
+            return val;
 
-         public function test()
-         {
-             return 'the fun createname';
-         }
-
+        }
     }
 
 }

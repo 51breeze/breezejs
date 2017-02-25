@@ -6,7 +6,7 @@
  */
 function Object( value )
 {
-    if ( value !== null )return $Object(value);
+    if ( value != null )return $Object(value);
     if( !(this instanceof Object) ) return new Object();
     return this;
 }
@@ -100,10 +100,14 @@ Object.prototype.isPrototypeOf = function( theClass )
     if( obj instanceof Class )
     {
         var classObj = theClass;
-        while (classObj instanceof Class)
+        while ( classObj )
         {
             if (classObj === obj)return true;
             classObj = $get(classObj,"extends");
+            if( !(classObj instanceof Class) && Object === obj )
+            {
+                return true;
+            }
         }
     }
     return $isPrototypeOf.call( this, theClass);
@@ -118,23 +122,32 @@ Object.prototype.isPrototypeOf = function( theClass )
 var $hasOwnProperty = $Object.prototype.hasOwnProperty;
 Object.prototype.hasOwnProperty = function( name )
 {
-    var obj = this instanceof Class ? this : $get(this,"constructor");
-    if( obj instanceof Class )
+    var objClass = this instanceof Class ? this : $get(this,"constructor");
+    if( objClass instanceof Class )
     {
-        var isstatic = obj === this;
+        var isstatic = objClass === this;
         var desc;
         do {
-            desc = isstatic ? $get(obj,"static") : $get(obj,"proto");
+            desc = isstatic ? $get(objClass,"static") : $get(objClass,"proto");
             if( $hasOwnProperty.call(desc,name) )
             {
                 var qualifier = $get( $get(desc, name),'qualifier');
-                if (qualifier === 'public' || qualifier === 'private')
+                return qualifier === undefined || qualifier === 'public';
+
+            }else if( !isstatic )
+            {
+                var refObj = $get( this, $get(objClass,"token") );
+                if( $hasOwnProperty.call(refObj,name) )
                 {
-                    return qualifier === 'public';
+                    return true;
                 }
-                return false;
             }
-        }while ( (obj = $get(obj,"extends") ) && obj instanceof Class )
+            objClass = $get(objClass,"extends");
+            if( !(objClass instanceof Class) )
+            {
+                return !!(objClass||Object).prototype[propertyKey];
+            }
+        }while ( objClass );
         return false;
     }
     return $hasOwnProperty.call(this,name);

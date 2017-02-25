@@ -187,34 +187,31 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
         if( isstatic && (receiver && $get(receiver,"constructor") instanceof Class) )isstatic=false;
         do {
             var desc= isstatic ? $get(objClass,"static") :  $get(objClass,"proto");
-            //没有属性描述符默认为public
-            if( !$hasOwnProperty.call(desc, propertyKey) )
+            var refObj = $get(target, $get(objClass,'token') );
+            var has = $hasOwnProperty.call(desc, propertyKey);
+            //没有属性描述符默认为public  只有非静态的才有实例属性
+            if( !isstatic && !has && $hasOwnProperty.call(refObj, propertyKey) )
             {
-                desc=null;
-                //只有非静态的才有实例属性
-                if( !isstatic )
-                {
-                    if( $hasOwnProperty.call(target[objClass.token],propertyKey ) )
-                    {
-                        return $get( $get(target,objClass.token),propertyKey);
-                    }
-                }
+                return $get(refObj, propertyKey);
             }
-            if( desc && ( desc[propertyKey].qualifier !== 'private' || classScope === objClass ) )
+            if( desc && has )
             {
-                desc = $get(desc,propertyKey);
-
-                //是否有访问的权限
-                if( !checkPrivilege(desc, objClass, classScope) ){
-                    if(classScope)throwError('reference', '"' + propertyKey + '" inaccessible.');
-                    return undefined;
-                }
-                if( desc.get ){
-                    return desc.get.call(receiver || target);
-                }else {
-                    if( isstatic )return $get(desc,"value");
-                    return $hasOwnProperty.call(desc,'value') ? $get(desc,"value") : $get( $get(target,objClass.token), propertyKey );
-                }
+               desc = $get(desc,propertyKey);
+               if( $get(desc,"qualifier") !== 'private' || classScope === objClass )
+               {
+                   //是否有访问的权限
+                   if (!checkPrivilege(desc, objClass, classScope))
+                   {
+                       if (classScope)throwError('reference', '"' + propertyKey + '" inaccessible.');
+                       return undefined;
+                   }
+                   if (desc.get) {
+                       return desc.get.call(receiver || target);
+                   } else {
+                       if (isstatic)return $get(desc, "value");
+                       return $hasOwnProperty.call(desc, 'value') ? $get(desc, "value") : $get(refObj, propertyKey);
+                   }
+               }
             }
             objClass = $get(objClass,"extends");
             if( !(objClass instanceof Class) )
@@ -305,6 +302,7 @@ var __ieCheck__ = system.env.platform() === 'IE' && system.env.version(9);
 function $get(target, propertyKey, receiver)
 {
     var value = target[propertyKey];
+    if( propertyKey ==='addEventListener')
     if( __ieCheck__ && value instanceof Descriptor )
     {
         return value.get ? value.get.call(receiver || target) : value.value;

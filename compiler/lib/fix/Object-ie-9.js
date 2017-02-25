@@ -24,20 +24,19 @@ Object.create  = $Object.create || (function() {
             P = Object( P );
             for (var n in P)if( $hasOwnProperty.call(P, n) )
             {
-                $defineProperty(obj,n, P[n]);
+                Object.defineProperty(obj,n, P[n]);
             }
         }
         return obj;
     };
 })();
 
-
 /**
  * 定义属性的描述
  * @type {*|Function}
  */
 Object.defineProperty =$Object.defineProperty;
-if( !Object.defineProperty )
+if( !Object.defineProperty || system.env.platform()===system.env.BROWSER_IE && system.env.version(8) )
 {
     Object.defineProperty = function defineProperty(obj, prop, desc)
     {
@@ -55,7 +54,6 @@ if( !Object.defineProperty )
         return;
     };
 }
-var $defineProperty= Object.defineProperty;
 
 /**
  * 描述符构造器
@@ -89,43 +87,3 @@ function Descriptor( desc )
 }
 Descriptor.prototype={};
 Descriptor.prototype.constructor = Descriptor;
-
-/**
- * 返回一个数组
- * @type {Function}
- */
-Array.prototype.map = $Array.prototype.map || function(callback, thisArg)
-{
-    var T, A, k;
-    if (this == null)throwError('type',"this is null or not defined");
-    if (!isFunction(callback))throwError('type',callback + " is not a function");
-    var O =  isObject(this) ? this : [];
-    var len = O.length >>> 0;
-    if (thisArg)T = thisArg;
-    A = new Array(len);
-    k = 0;
-    var kValue, mappedValue;
-    while(k < len) {
-        if (k in O) {
-            kValue = O[ k ];
-            mappedValue = callback.call(T, kValue, k, O);
-            A[ k ] = mappedValue;
-        }
-        k++;
-    }
-    return A;
-};
-
-Function.prototype.bind = $Function.prototype.bind || function bind( thisArg )
-{
-    if (typeof this !== "function")throwError('type',"Function.prototype.bind - what is trying to be bound is not callable");
-    var args = Array.prototype.slice.call(arguments, 1),
-        fn = this,
-        Nop = function(){},
-        Bound = function () {
-            return fn.apply( this instanceof Nop ? this : thisArg || this, args.concat(Array.prototype.slice.call(arguments) ) );
-        };
-    Nop.prototype = this.prototype;
-    Bound.prototype = new Nop();
-    return Bound;
-};

@@ -6,203 +6,20 @@
  * @returns {Event}
  * @constructor
  */
-function Event(type, bubbles, cancelable )
+function Event( type, bubbles, cancelable )
 {
     if ( !(this instanceof Event) )
         return new Event(  type, bubbles,cancelable );
-
+    if( typeof type1==="string" )throwError('type','event type is not string');
     this.type = type;
-    if ( type && type.type )
-    {
-        this.originalEvent = type;
-        this.type = type.type;
-        this.bubbles=!(type.bubbles===false);
-        this.cancelable=!(type.cancelable===false);
-        this.defaultPrevented = type.defaultPrevented || type.returnValue === false ? true : false;
-
-    }else
-    {
-        if ( bubbles && typeof bubbles === "object" )
-        {
-            for(var i in bubbles)this[i]=bubbles[i];
-        }else
-        {
-            this.bubbles = !(bubbles===false);
-            this.cancelable = !(cancelable===false);
-        }
-    }
-}
-/**
- * event property
- * @public
- */
-Event.prototype = {
-    __proxyTarget__:null,
-    bubbles:true, // true 只触发冒泡阶段的事件 , false 只触发捕获阶段的事件
-    cancelable:true, // 是否可以取消浏览器默认关联的事件
-    currentTarget:null,
-    defaultPrevented: false,
-    originalEvent:null,
-    type:null,
-    propagationStopped: false,
-    immediatePropagationStopped: false,
-    altkey:false,
-    button:false,
-    ctrlKey:false,
-    shiftKey:false,
-    metaKey:false,
-    preventDefault: function()
-    {
-        var e = this.originalEvent;
-        if( this.cancelable===true )
-        {
-            this.defaultPrevented = true;
-            if ( e )e.preventDefault ? e.preventDefault() : e.returnValue = false
-        }
-    },
-    stopPropagation: function()
-    {
-        if( this.originalEvent && this.originalEvent.stopPropagation )this.originalEvent.stopPropagation();
-        this.propagationStopped = true;
-    }
-    ,stopImmediatePropagation:function()
-    {
-        if( this.originalEvent && this.originalEvent.stopImmediatePropagation )this.originalEvent.stopImmediatePropagation();
-        this.stopPropagation();
-        this.immediatePropagationStopped = true;
-    }
-};
-
-
-/**
- * map event name
- * @private
- */
-var fix=Event.fix={
-    map:{},
-    onPrefix:'',
-    hooks:{},
-    eventname:{
-        'webkitAnimationEnd':true,
-        'webkitAnimationIteration':true,
-        'DOMContentLoaded':true
-    }
-};
-
-if( system.Env.platform() === 'IE' && System.Env.version(9) )
-{
-    fix.onPrefix='on';
-    fix.map[ Event.READY ] = 'readystatechange';
+    this.bubbles = !(bubbles===false);
+    this.cancelable = !(cancelable===false);
 }
 
 /**
- * 统一事件名
- * @param type
- * @param flag
- * @returns {*}
+ * 一组事件名的常量
+ * @type {string}
  */
-Event.eventType=function( type, flag )
-{
-    if( typeof type !== "string" )return null;
-    if( flag===true )
-    {
-        type= fix.onPrefix==='on' ? type.replace(/^on/i,'') : type;
-        var lowre =  type.toLowerCase();
-        for(var prop in fix.map)if( prop.toLowerCase() === lowre )
-        {
-            return fix.map[prop];
-        }
-        return type;
-    }
-    return fix.eventname[ type ]===true ? type : fix.onPrefix+type.toLowerCase();
-};
-
-/**
- * 根据原型事件创建一个Breeze Event
- * @param event
- * @returns {Event}
- */
-Event.create=function( event )
-{
-    if( event instanceof Event )return event;
-    event=event || window.event;
-    var target = event.__proxyTarget__ || event.srcElement || event.currentTarget;
-    var currentTarget =  event.currentTarget || target;
-    target = target && target.nodeType===3 ? target.parentNode : target;
-
-    //阻止浏览浏览器的事件冒泡
-    if ( event )
-    {
-        //!event.stopImmediatePropagation || event.stopImmediatePropagation();
-        //!event.stopPropagation ? event.cancelBubble=true : event.stopPropagation();
-    }
-
-    var Event=null;
-   // var type = Event.eventType(event.type || event,true);
-    var type = event.type || event;
-    if( typeof type !== "string" )
-    {
-       throw new Error('invalid event type')
-    }
-
-    //鼠标事件
-   if( /^mouse|click$/i.test(type) )
-   {
-        Event=new MouseEvent( event );
-        Event.pageX= event.x || event.clientX || event.pageX;
-        Event.pageY= event.y || event.clientY || event.pageY;
-        if( typeof event.offsetX==='undefined' && target )
-        {
-            event.offsetX=Event.pageX-target.offsetLeft;
-            event.offsetY=Event.pageY-target.offsetTop;
-        }
-
-        Event.offsetX = event.offsetX;
-        Event.offsetY = event.offsetY;
-        Event.screenX= event.screenX;
-        Event.screenY= event.screenY;
-
-        if( type === MouseEvent.MOUSE_WHEEL )
-        {
-           Event.wheelDelta=event.wheelDelta || ( event.detail > 0 ? -event.detail :Math.abs( event.detail ) );
-        }
-    }
-    //键盘事件
-    else if(KeyboardEvent.KEY_PRESS===type || KeyboardEvent.KEY_UP===type || KeyboardEvent.KEY_DOWN===type)
-    {
-        Event=new KeyboardEvent( event );
-        Event.keycode = event.keyCode || event.keycode;
-
-    }
-    //属性事件
-    else if( typeof PropertyEvent !== "undefined" && (PropertyEvent.CHANGE === type || PropertyEvent.COMMIT === type) )
-    {
-       Event=new PropertyEvent( event );
-       if( typeof Event.originalEvent.propertyName === "string" )
-       {
-           Event.property = Event.originalEvent.propertyName;
-           Event.newValue = target[ Event.property ];
-       }
-    }
-    //标准事件
-    else
-    {
-        Event = typeof fix.hooks[type] === "function" ? fix.hooks[type]( event ) : new Event( event );
-    }
-
-    Event.type=type;
-    Event.__proxyTarget__=target;
-    Event.currentTarget = currentTarget;
-    Event.timeStamp = event.timeStamp;
-    Event.relatedTarget= event.relatedTarget;
-    Event.altkey= !!event.altkey;
-    Event.button= event.button;
-    Event.ctrlKey= !!event.ctrlKey;
-    Event.shiftKey= !!event.shiftKey;
-    Event.metaKey= !!event.metaKey;
-    return Event;
-};
-
 Event.SUBMIT='submit';
 Event.RESIZE='resize';
 Event.FETCH='fetch';
@@ -221,4 +38,146 @@ Event.BEFOREPASTE='beforepaste';
 Event.SELECTSTART='selectstart';
 Event.READY='ready';
 Event.SCROLL='scroll';
-fix.map[ Event.READY ]='DOMContentLoaded';
+
+/**
+ * 事件原型
+ * @type {Object}
+ */
+Event.prototype = new Object();
+Event.prototype.constructor = Event;
+//true 只触发冒泡阶段的事件 , false 只触发捕获阶段的事件
+Event.prototype.bubbles = true;
+//是否可以取消浏览器默认关联的事件
+Event.prototype.cancelable = true;
+Event.prototype.currentTarget = null;
+Event.prototype.defaultPrevented = false;
+Event.prototype.originalEvent = null;
+Event.prototype.type = null;
+Event.prototype.propagationStopped = false;
+Event.prototype.immediatePropagationStopped = false;
+Event.prototype.altkey = false;
+Event.prototype.button = false;
+Event.prototype.ctrlKey = false;
+Event.prototype.shiftKey = false;
+Event.prototype.metaKey = false;
+
+/**
+ * 阻止事件的默认行为
+ */
+Event.prototype.preventDefault = function preventDefault()
+{
+    if( this.cancelable===true )
+    {
+        this.defaultPrevented = true;
+        if ( this.originalEvent )this.originalEvent.preventDefault ? this.originalEvent.preventDefault() : this.originalEvent.returnValue = false
+    }
+};
+
+/**
+ * 停止在当前节点上调度此事件
+ */
+Event.prototype.stopPropagation = function stopPropagation()
+{
+    if( this.originalEvent && this.originalEvent.stopPropagation )this.originalEvent.stopPropagation();
+    this.propagationStopped = true;
+}
+
+/**
+ * 停止向其它节点上调度此事件
+ */
+Event.prototype.stopImmediatePropagation = function stopImmediatePropagation()
+{
+    if( this.originalEvent && this.originalEvent.stopImmediatePropagation )this.originalEvent.stopImmediatePropagation();
+    this.stopPropagation();
+    this.immediatePropagationStopped = true;
+}
+
+/**
+ * map event name
+ * @private
+ */
+Event.fix={
+    map:{},
+    prefix:'',
+    eventname:{
+        'webkitAnimationEnd':true,
+        'webkitAnimationIteration':true,
+        'DOMContentLoaded':true
+    }
+};
+Event.fix.map[ Event.READY ]='DOMContentLoaded';
+
+/**
+ * 获取统一的事件名
+ * @param type
+ * @param flag
+ * @returns {*}
+ */
+Event.type = function(type, flag )
+{
+    if( typeof type !== "string" )return type;
+    if( flag===true )
+    {
+        type= Event.fix.prefix==='on' ? type.replace(/^on/i,'') : type;
+        var lower =  type.toLowerCase();
+        for(var prop in Event.fix.map)
+        {
+            if( Event.fix.map[prop].toLowerCase() === lower )
+            {
+                return prop;
+            }
+        }
+        return type;
+    }
+    if( Event.fix.eventname[ type ]===true )return type;
+    return Event.fix.map[ type ] ? Event.fix.map[ type ] : Event.fix.prefix+type.toLowerCase();
+};
+
+(function () {
+
+    var eventModules=[];
+    Event.registerEvent = function registerEvent( callback )
+    {
+        eventModules.push( callback );
+    }
+
+    /**
+     * 根据原型事件创建一个Breeze Event
+     * @param event
+     * @returns {Event}
+     */
+    Event.create = function create( originalEvent )
+    {
+        originalEvent=originalEvent || (typeof window === "object" ? window.event : null);
+        var event=null;
+        var i=0;
+        if( !originalEvent )throwError('type','Invalid event');
+        var type = originalEvent.type;
+        var target = originalEvent.srcElement || originalEvent.target;
+        target = target && target.nodeType===3 ? target.parentNode : target;
+        var currentTarget =  originalEvent.currentTarget || target;
+        if( typeof type !== "string" )throwError('type','Invalid event type');
+        type = Event.type( type, true );
+        while ( !event && i<eventModules.length )
+        {
+            event = eventModules[i]( type, target, originalEvent );
+            i++;
+        }
+        if( !(event instanceof Event) )event = new Event( type );
+        event.type= type;
+        event.target=target;
+        event.currentTarget = currentTarget;
+        event.bubbles = !!originalEvent.bubbles;
+        event.cancelable = !!originalEvent.cancelable;
+        event.originalEvent = originalEvent;
+        event.timeStamp = originalEvent.timeStamp;
+        event.relatedTarget= originalEvent.relatedTarget;
+        event.altkey= !!originalEvent.altkey;
+        event.button= originalEvent.button;
+        event.ctrlKey= !!originalEvent.ctrlKey;
+        event.shiftKey= !!originalEvent.shiftKey;
+        event.metaKey= !!originalEvent.metaKey;
+        return event;
+    };
+}());
+
