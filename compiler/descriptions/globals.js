@@ -231,7 +231,7 @@ var descriptor = {
         'proto':{
             'dispatchEvent':{'id':'function','type':'Boolean','param':['Event']},
             'removeEventListener':{'id':'function','type':'Boolean','param':['String']},
-            'addEventListener':{'id':'function','type':'EventDispatcher','param':['Strng','Function']},
+            'addEventListener':{'id':'function','type':'EventDispatcher','param':['String','Function']},
             'hasEventListener':{'id':'function','type':'Boolean','param':['String']},
         }
     },

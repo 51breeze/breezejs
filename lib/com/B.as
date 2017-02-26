@@ -37,7 +37,7 @@ package com
          {
               super(jj);
               var cc:Number=66;
-             System.log('===the is B====', this is D);
+             System.log('===the is B====');
          } 
 
 

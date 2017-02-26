@@ -61,7 +61,7 @@ function makeMethods(method, classModule)
                 var receiver = undefined;
                 if( issuper ){
                     receiver=thisArg;
-                    thisArg = classModule.extends;
+                    thisArg = $get(classModule,"extends");
                 }
                 var value=Reflect.get(thisArg, property, receiver, classModule);
                 var ret = value;
@@ -95,7 +95,7 @@ function makeMethods(method, classModule)
                 var receiver=undefined;
                 if( issuper ){
                     receiver=thisArg;
-                    thisArg = classModule.extends;
+                    thisArg = $get(classModule,"extends");
                 }
                 if( operator && operator !=='=' )
                 {
@@ -129,7 +129,7 @@ function makeMethods(method, classModule)
                 var receiver=undefined;
                 if( issuper ){
                     receiver=thisArg;
-                    thisArg = classModule.extends;
+                    thisArg = $get(classModule,"extends");
                 }
                 if( property ) {
                     return Reflect.apply( Reflect.get(thisArg, property, receiver, classModule), receiver || thisArg, argumentsList );
@@ -172,10 +172,10 @@ function define(name , descriptions , isInterface)
         }else
         {
             classModule = modules[name] = new Class();
-            classModule.delete = makeMethods('delete', classModule);
+            classModule.del = makeMethods('delete', classModule);
             classModule.get = makeMethods('get', classModule);
             classModule.set = makeMethods('set', classModule);
-            classModule.new = makeMethods('new', classModule);
+            classModule.newin = makeMethods('new', classModule);
             classModule.apply = makeMethods('apply', classModule);
             classModule.check = makeMethods('check', classModule);
         }

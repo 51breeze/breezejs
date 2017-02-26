@@ -9,9 +9,11 @@ function EventDispatcher( target )
     if( !(this instanceof EventDispatcher) )return new EventDispatcher( target );
     if( target )
     {
-        this.target = target;
-        if( typeof target !=='object' || !(typeof target.addEventListener === "function" || typeof target.attachEvent=== "function" ) )
-           throwError('type','target is not "EventDispatcher"');
+        if( typeof target !=='object' || !(  System.typeOf( target.addEventListener ) === "function" || System.typeOf( target.attachEvent )=== "function" ) )
+        {
+            throwError('type', 'target is not "EventDispatcher"');
+        }
+        Object.defineProperty(this,'target', {value:target});
     }
 }
 EventDispatcher.prototype=new Object();
@@ -24,8 +26,22 @@ EventDispatcher.prototype.target=null;
  */
 EventDispatcher.prototype.hasEventListener=function( type  )
 {
-    var target = this.target || this;
-    var events = $get(target,'__events__');
+    var target = $get(this,'target') || this;
+    var events;
+    var len = target.length >> 0;
+    if( len > 0 ){
+        while(len>0)
+        {
+            events = $get( target[len--],'__events__');
+            if( events && Object.prototype.hasOwnProperty.call(events,type) )
+            {
+                events =$get(events,type)
+                return events && events.length > 0;
+            }
+        }
+        return false;
+    }
+    events = $get( target,'__events__');
     if( events && Object.prototype.hasOwnProperty.call(events,type) )
     {
         events =$get(events,type)
@@ -33,6 +49,7 @@ EventDispatcher.prototype.hasEventListener=function( type  )
     }
     return false;
 };
+
 (function(){
 
 /**
@@ -47,7 +64,12 @@ EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,pri
     if( typeof type !== 'string' )throwError('type','Invalid event type.')
     if( typeof callback !== 'function' )throwError('type','Invalid callback function.')
     var listener=new Listener(type,callback,useCapture,priority,reference,this);
-    var target = this.target || this;
+    var target = $get(this,"target") || this;
+    var len = target.length >> 0;
+    if( len > 0 ){
+        while(len>0)addEventListener(target[--len], listener);
+        return this;
+    }
     addEventListener(target, listener);
     return this;
 };
@@ -60,7 +82,12 @@ EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,pri
  */
 EventDispatcher.prototype.removeEventListener=function(type,listener)
 {
-    var target= this.target || this;
+    var target= $get(this,"target") || this;
+    var len = target.length >> 0;
+    if( len > 0 ){
+        while(len>0)removeEventListener( target[--len], type, listener, this);
+        return true;
+    }
     return removeEventListener(target,type,listener,this);
 };
 
@@ -72,7 +99,17 @@ EventDispatcher.prototype.removeEventListener=function(type,listener)
 EventDispatcher.prototype.dispatchEvent=function( event )
 {
     if( !(event instanceof Event) )throwError('type','invalid event.');
-    event.target = event.currentTarget=this.target || this;
+    var target = $get(this,"target") || this;
+    var len = target.length >> 0;
+    if( len > 0 ){
+        while(len>0)
+        {
+            event.target = event.currentTarget = target[--len];
+            dispatchEvent(event);
+        }
+        return !event.immediatePropagationStopped;
+    }
+    event.target = event.currentTarget=target;
     return dispatchEvent( event );
 };
 
@@ -159,7 +196,7 @@ function removeEventListener(target, type, listener , dispatcher )
             target.detachEvent(eventType,dispatchEvent);
         }
     }
-    return  events.length !== ret;
+    return events.length !== ret;
 };
 
 /**
@@ -170,11 +207,9 @@ function removeEventListener(target, type, listener , dispatcher )
  */
 function dispatchEvent( e )
 {
-
     if( !(e instanceof Event) )e = Event.create( e );
     if( !e || !e.currentTarget )throw new Error('invalid event target')
     var target = e.currentTarget;
-    console.log( e );
     var events = $get(target ,'__events__')
     if( !Object.prototype.hasOwnProperty.call(events, e.type) )return true;
     events = $get( events, e.type ).slice(0);
@@ -185,7 +220,7 @@ function dispatchEvent( e )
         thisArg = listener.reference || listener.dispatcher;
         //调度侦听项
         listener.callback.call( thisArg , e );
-        if( e.propagationStopped===true )
+        if( e.immediatePropagationStopped===true )
            return false;
     }
     return true;

@@ -302,7 +302,6 @@ var __ieCheck__ = system.env.platform() === 'IE' && system.env.version(9);
 function $get(target, propertyKey, receiver)
 {
     var value = target[propertyKey];
-    if( propertyKey ==='addEventListener')
     if( __ieCheck__ && value instanceof Descriptor )
     {
         return value.get ? value.get.call(receiver || target) : value.value;

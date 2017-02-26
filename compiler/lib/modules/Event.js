@@ -74,7 +74,7 @@ Event.prototype.preventDefault = function preventDefault()
 };
 
 /**
- * 停止在当前节点上调度此事件
+ * 阻止向上冒泡事件
  */
 Event.prototype.stopPropagation = function stopPropagation()
 {
@@ -83,7 +83,7 @@ Event.prototype.stopPropagation = function stopPropagation()
 }
 
 /**
- * 停止向其它节点上调度此事件
+ *  阻止向上冒泡事件，并停止执行当前事件类型的所有侦听器
  */
 Event.prototype.stopImmediatePropagation = function stopImmediatePropagation()
 {

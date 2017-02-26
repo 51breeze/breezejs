@@ -11,10 +11,10 @@ var toString = function (item)
         for(var i in item){objs[i] = toString(item[i]);}
         return objs;
     }
-    return item ? item.valueOf() : item;
+    return item ? Object.prototype.valueOf.call(item) : item;
 }
 system.log = function log(){
-    console.log.apply(undefined, Array.prototype.map.call(arguments,toString) );
+    console.log('%s', Array.prototype.map.call(arguments,toString).join(' ')  );
 };
 system.info =function info(){
     console.info.apply(undefined, Array.prototype.map.call(arguments,toString) );
@@ -45,12 +45,13 @@ system.decodeURI= decodeURI;
 system.decodeURIComponent= decodeURIComponent;
 system.encodeURI= encodeURI;
 system.encodeURIComponent= encodeURIComponent;
-system.escape= escape;
+/*system.escape= escape;
 system.eval= eval;
+system.unescape= unescape;*/
 system.isNaN= isNaN;
 system.parseFloat= parseFloat;
 system.parseInt= parseInt;
-system.unescape= unescape;
+
 
 /**
  * 环境参数配置
@@ -63,7 +64,7 @@ system.env={
     'BROWSER_SAFARI':'SAFARI',
     'BROWSER_MOZILLA':'MOZILLA',
     'NODE_JS':'NODE_JS',
-    'IS_CLIENT':false,
+    'IS_CLIENT':false
 };
 
 /**
@@ -111,17 +112,17 @@ system.env={
         switch ( expre )
         {
             case '=' :
-                return value == result;
+                return result == value;
             case '!=' :
-                return value != result;
+                return result != value;
             case '>' :
-                return value > result;
+                return result > value;
             case '>=' :
-                return value >= result;
+                return result >= value;
             case '<' :
-                return value < result;
+                return result < value;
             default:
-                return value <= result;
+                return result <= value;
         }
     };
 
@@ -133,13 +134,37 @@ system.env={
  * @param instanceObj
  * @returns {*}
  */
-function typeOf( instanceObj )
+
+if( System.env.platform( System.env.BROWSER_IE ) && System.env.version( 8, '<=' ) )
 {
-    if( instanceObj instanceof Class )return 'class';
-    if( instanceObj instanceof Interface )return 'interface';
-    return typeof instanceObj;
+    system.typeOf= (function () {
+        function typeOf( instanceObj )
+        {
+            if( instanceObj instanceof Class )return 'class';
+            if( instanceObj instanceof Interface )return 'interface';
+            var val = typeof instanceObj;
+            if( val=== "object" && /function/i.test(instanceObj + "") )
+            {
+                return "function";
+            }else if( val === 'function' && instanceObj.constructor === system.RegExp )
+            {
+                return "object";
+            }
+            return val;
+        }
+        return typeOf;
+    }());
+
+}else
+{
+    system.typeOf=function typeOf( instanceObj )
+    {
+        if( instanceObj instanceof Class )return 'class';
+        if( instanceObj instanceof Interface )return 'interface';
+        return typeof instanceObj;
+    }
 }
-system.typeOf=typeOf;
+
 
 /**
  * 检查实例对象是否属于指定的类型(不会检查接口类型)
@@ -316,7 +341,7 @@ system.getQualifiedSuperclassName =getQualifiedSuperclassName;
  */
 function isObject(val , flag )
 {
-    if( !val )return false;
+    if( !val || typeof val !== "object" )return false;
     var proto =  Object.getPrototypeOf(val);
     var result = proto === Object.prototype || proto===$Object.prototype;
     if( !result && flag !== true && isArray(val) )return true;
@@ -343,7 +368,7 @@ system.isDefined =isDefined;
  */
 function isArray(val)
 {
-    if(!val)return false;
+    if( !val || typeof val !== "object" )return false;
     var proto =  Object.getPrototypeOf(val);
     return proto === Array.prototype || proto===$Array.prototype;
 };
@@ -356,7 +381,7 @@ system.isArray =isArray;
  */
 function isFunction( val ){
     if(!val)return false;
-    return typeof val === 'function' || val instanceof Function;
+    return system.typeOf(val) === 'function' || val instanceof Function;
 };
 system.isFunction =isFunction;
 /**
@@ -407,6 +432,7 @@ system.isNumber=isNumber;
  */
 function throwError(type, msg , line, filename)
 {
+    console.log( type, msg , line, filename );
     switch ( type ){
         case 'type' :
             throw new system.TypeError( msg,line, filename );

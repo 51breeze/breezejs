@@ -36,7 +36,7 @@ Object.create  = $Object.create || (function() {
  * @type {*|Function}
  */
 Object.defineProperty =$Object.defineProperty;
-if( !Object.defineProperty || system.env.platform()===system.env.BROWSER_IE && system.env.version(8) )
+if( !Object.defineProperty || system.env.platform( system.env.BROWSER_IE ) && system.env.version(8) )
 {
     Object.defineProperty = function defineProperty(obj, prop, desc)
     {

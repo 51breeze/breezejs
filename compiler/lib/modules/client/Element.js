@@ -112,11 +112,7 @@ function access(callback, name, newValue)
         getter = typeof fix.fnHooks[callback].get === "function" ? fix.fnHooks[callback].get : getter ;
         setter = typeof fix.fnHooks[callback].set === "function" ? fix.fnHooks[callback].set : setter ;
     }
-    if( !write )
-    {
-        return getter.call(this.next(),name,this);
-    }
-
+    if( !write )return getter.call(this.current(),name,this);
     return this.forEach(function(elem)
     {
         var oldValue= getter.call(elem,name,this);
@@ -128,7 +124,7 @@ function access(callback, name, newValue)
                 event = event===StyleEvent.CHANGE ?  new StyleEvent( StyleEvent.CHANGE ) :  new PropertyEvent( PropertyEvent.CHANGE );
                 event.property = name;
             }
-            if( event instanceof PropertyEvent && this.hasEventListener( event.type ) )
+            if( event instanceof PropertyEvent )
             {
                 event.property = event.property || name;
                 event.newValue = event.newValue || newValue;
@@ -195,7 +191,7 @@ function doMake( elems )
 {
     var r = this.__reverts__ || (this.__reverts__ = []);
     r.push( this.splice(0,this.length, elems ) );
-    this.next(null);
+    this.current(null);
     return this;
 }
 
@@ -578,24 +574,28 @@ function Element(selector, context)
     {
         return new Element( selector, context );
     }
-    this.context=context;
+    if( context )
+    {
+        Object.defineProperty(this,'context',{value:context});
+    }
     var result=[];
     if( selector instanceof Array )
     {
         result =  Array.prototype.filter.call(selector,function(elem){
             return Element.isNodeElement( elem ) || Element.isWindow(elem);
         });
+
     }else if( selector instanceof Element )
     {
         result = selector.slice(0);
     }else
     {
-        result = querySelector(selector, context);
+        result = Element.isNodeElement(selector) ? selector : querySelector(selector, context);
     }
     Array.prototype.splice.apply(this,[0,0].concat(result) );
     EventDispatcher.call(this);
-    this.forEachCurrentItem=null;
-    this.forEachCurrentIndex=NaN;
+    Object.defineProperty(this,'forEachCurrentItem',{writable:true,value:null});
+    Object.defineProperty(this,'forEachCurrentIndex',{writable:true,value:NaN});
 }
 Element.prototype= new EventDispatcher();
 Element.prototype.constructor = Element;
@@ -618,9 +618,10 @@ Element.prototype.forEach=function(callback , refObject )
 {
     var result;
     refObject=refObject || this;
-    if( this.forEachCurrentItem  )
+    var current = $get(this,'forEachCurrentItem');
+    if( current  )
     {
-        result=callback.call( refObject ,this.forEachCurrentItem,this.forEachCurrentIndex);
+        result=callback.call( refObject ,current,$get(this,"forEachCurrentIndex") );
     }else
     {
         var items=this.slice(0),
@@ -628,52 +629,52 @@ Element.prototype.forEach=function(callback , refObject )
             len=items.length;
         for( ; index < len ; index++ )
         {
-            this.forEachCurrentItem=items[ index ];
-            this.forEachCurrentIndex=index;
-            result=callback.call( refObject ,this.forEachCurrentItem,index);
+            current = items[ index ];
+            $set(this,"forEachCurrentItem",current);
+            $set(this,"forEachCurrentIndex",index);
+            result=callback.call( refObject ,current,index);
             if( result !== undefined )
                 break;
         }
-        this.forEachCurrentItem = null;
-        this.forEachCurrentIndex= NaN;
+        $set(this,"forEachCurrentItem",null);
+        $set(this,"forEachCurrentIndex",NaN);
     }
     return typeof result === 'undefined' ? this : result;
 };
 
 /**
- * 设置获取当前游标位置的元素
+ * 设置获取当前操作的元素
+ * 此操作不会改变原有元素结果集，只是对当前操作的设置和一个引用的元素
+ * 如果在调用这个方法之前调用了this.forEach且没有结束遍历，则返回的是forEach当前游标位置的元素，否则为0的游标元素
  * @param selector|HTMLElement element
  * @returns {*}
  */
-Element.prototype.next=function(elem )
+Element.prototype.current=function( elem )
 {
-    if( typeof elem !== "undefined" )
+    if( elem == null )return $get(this,"forEachCurrentItem") || this[0];
+    if( typeof elem=== "string" )
     {
-        if( typeof elem=== "string" )
-        {
-            elem=querySelector(elem, this.context || document );
-            this.forEachCurrentItem = elem && elem.length > 0 ? elem[0] : null;
-            this.forEachCurrentIndex = NaN;
+        elem=querySelector(elem, $get(this,"context") || document );
+        $set(this,"forEachCurrentItem" , (elem && elem.length > 0 ? elem[0] : null) );
+        $set(this,"forEachCurrentIndex",NaN);
 
-        }else if(  Element.isNodeElement( elem ) || Element.isWindow(elem) )
-        {
-            this.forEachCurrentItem = elem ;
-            this.forEachCurrentIndex = NaN;
+    }else if(  Element.isNodeElement( elem ) || Element.isWindow(elem) )
+    {
+        $set(this,"forEachCurrentItem",elem);
+        $set(this,"forEachCurrentIndex",NaN);
 
-        }else
-        {
-            this.forEachCurrentItem =  null;
-            this.forEachCurrentIndex = NaN;
-        }
-        return this;
+    }else
+    {
+        $set(this,"forEachCurrentItem",null);
+        $set(this,"forEachCurrentIndex",NaN);
     }
-    return this.forEachCurrentItem || this[0];
+    return this;
 };
 
 /**
  * @private
  */
-accessor['property']= {
+accessor['property']={
     get:function(name){
         return ( fix.attrtrue[name] || typeof this.getAttribute !== "function"  ? this[name] : this.getAttribute(name) ) || null; }
     ,set:function(name,newValue){
@@ -683,7 +684,6 @@ accessor['property']= {
         return PropertyEvent.CHANGE;
     }
 };
-
 
 /**
  * 为每一个元素设置属性值
@@ -721,7 +721,7 @@ Element.prototype.property=function(name, value )
  */
 Element.prototype.hasProperty=function(prop )
 {
-    var elem = this.next();
+    var elem = this.current();
     return typeof elem.hasAttributes === 'function' ? elem.hasAttributes( prop ) : !!elem[prop];
 };
 
@@ -814,14 +814,12 @@ accessor['style']= {
         }
 
         try {
-
             var orgname = getStyleName(name);
             if ( !fix.cssHooks[name] || typeof fix.cssHooks[name].set !== "function"
                 || !fix.cssHooks[name].set.call(this, this.style, value, orgname) )
             {
                 this.style[ orgname ] = value;
             }
-
         } catch (e) {
         }
         return StyleEvent.CHANGE;
@@ -925,7 +923,7 @@ Element.prototype.value=function(value )
  */
 Element.prototype.hasClass=function(className )
 {
-    var elem = this.next();
+    var elem = this.current();
     var value=elem['className'] || '';
     return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
 };
@@ -1093,7 +1091,7 @@ Element.prototype.scrollHeight=function()
 Element.prototype.getBoundingRect=function(force )
 {
     var value={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0,'width':0,'height':0};
-    var elem= this.next();
+    var elem= this.current();
     if( Element.isWindow(elem) )
     {
         value.left = elem.screenLeft || elem.screenX;
@@ -1109,10 +1107,10 @@ Element.prototype.getBoundingRect=function(force )
         throw new Error('invalid elem. elem not is NodeElement');
 
     var doc =  elem.ownerDocument || elem, docElem=doc.documentElement;
-    this.next( Element.getWindow(doc) );
+    this.current( Element.getWindow(doc) );
     var scrollTop = this.scrollTop();
     var scrollLeft = this.scrollLeft();
-    this.next( elem );
+    this.current( elem );
 
     if( "getBoundingClientRect" in document.documentElement )
     {
@@ -1211,10 +1209,10 @@ Element.prototype.bottom=function(val )
 function point(left, top, local )
 {
     var old = this.forEachCurrentItem;
-    var target = this.next();
-    this.next( target.parentNode );
+    var target = this.current();
+    this.current( target.parentNode );
     var offset=this.getBoundingRect();
-    this.next( old );
+    this.current( old );
     left = left || 0;
     top = top || 0;
     return local===true ? {left:offset.left+left,top:offset.top+top} : {left:left-offset.left, top:top-offset.top};
@@ -1387,8 +1385,8 @@ Element.prototype.wrap=function(element )
     return this.forEach(function(elem)
     {
         var wrap=createElement( is ? element.call(this,elem) : element );
-        this.next( elem.parentNode ).addChildAt( wrap , elem );
-        this.next( wrap ).addChildAt( elem ,-1);
+        this.current( elem.parentNode ).addChildAt( wrap , elem );
+        this.current( wrap ).addChildAt( elem ,-1);
     });
 };
 
@@ -1409,7 +1407,7 @@ Element.prototype.unwrap=function(selector )
             var children=parent.hasChildNodes() ? parent.childNodes : [];
             if( parent.parentNode )
             {
-                this.next( parent.parentNode );
+                this.current( parent.parentNode );
                 var len=children.length,i=0;
                 while( i<len ){
                     if( children[i] )this.addChildAt( children[ i ], parent );
@@ -1533,10 +1531,10 @@ Element.prototype.addChildAt=function(childElemnet, index)
     var isElement= childElemnet && childElemnet.nodeType && typeof childElemnet.nodeName === 'string';
 
     //如果没有父级元素则设置上下文为父级元素
-    if( this.length === 0 && !this.next() )
+    if( this.length === 0 && !this.current() )
     {
         var context = this.context;
-        this.next( context === document ? document.body : context );
+        this.current( context === document ? document.body : context );
     }
 
     return this.forEach(function(parent)
@@ -1558,7 +1556,7 @@ Element.prototype.addChildAt=function(childElemnet, index)
             {
                 this.removeChildAt( child );
             }
-            this.next(parent);
+            this.current(parent);
             var refChild=index && index.parentNode && index.parentNode===parent ? index : null;
             !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
             refChild && (refChild=index.nextSibling);
@@ -1608,9 +1606,9 @@ Element.prototype.getChildIndex=function(childElemnet )
     {
         childElemnet= querySelector( childElemnet, null, null, this.slice(0) )[0];
         if( !childElemnet )return -1;
-        this.next( childElemnet.parentNode );
+        this.current( childElemnet.parentNode );
     }
-    var parent = this.next();
+    var parent = this.current();
     if( childElemnet.parentNode===parent )
     {
         return this.indexOf.call( getChildNodes(parent), childElemnet );
@@ -1653,7 +1651,7 @@ Element.prototype.removeChildAt=function(index )
 {
     var is=false;
     if(  index && index.parentNode ){
-        this.next( index.parentNode );
+        this.current( index.parentNode );
         is=true;
     }else if( !System.isNumber( index ) )
         throw new Error('Invalid param the index. in removeChildAt');

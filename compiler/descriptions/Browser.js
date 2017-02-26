@@ -4,8 +4,9 @@
  */
 var descriptor = {
     'window': {
-        'type': 'Object',
+        'type': '*',
         'id': 'object',
+        'inherit':'EventDispatcher',
         'static': {
             'setInterval': {type: 'Number', id: 'function', param: ['Function', 'Number']},
             'clearInterval': {type: 'Boolean', id: 'function', param: ['Number']},
@@ -52,10 +53,16 @@ var descriptor = {
             'screenX': {type: 'Number', 'id': 'const'},
             'screenY': {type: 'Number', 'id': 'const'},
             'document': {type: 'Document', 'id': 'const'},
+        },
+        'proto':{
+            'dispatchEvent':{'id':'function','type':'Boolean','param':['Event']},
+            'removeEventListener':{'id':'function','type':'Boolean','param':['String']},
+            'addEventListener':{'id':'function','type':'EventDispatcher','param':['String','Function']},
+            'hasEventListener':{'id':'function','type':'Boolean','param':['String']},
         }
     },
     'document': {
-        'type': 'Object',
+        'type': '*',
         'id': 'object',
         'static': {
             'all': {type: 'Array', 'id': 'const'},
@@ -117,7 +124,97 @@ var descriptor = {
             'reload': {type: 'void', 'id': 'function', param: []},
             'replace': {type: 'void', 'id': 'function', param: []},
         }
-    }
+    },
+    'Element': {
+        'type': 'Element',
+        'id': 'class',
+        'inherit':'EventDispatcher',
+        'proto': {
+            'forEach': {type: '*', 'id': 'function',param:['Function']},
+            'property': {type: 'String', 'id': 'function',param:[]},
+        }
+    },
+    'MouseEvent':{
+        'id':'class', 'type':'MouseEvent','inherit':'Event',
+        'static':{
+            "MOUSE_DOWN":{'id':'const','type':'String'},
+            "MOUSE_UP":{'id':'const','type':'String'},
+            "MOUSE_OVER":{'id':'const','type':'String'},
+            "MOUSE_OUT":{'id':'const','type':'String'},
+            "MOUSE_OUTSIDE":{'id':'const','type':'String'},
+            "MOUSE_MOVE":{'id':'const','type':'String'},
+            "MOUSE_WHEEL":{'id':'const','type':'String'},
+            "CLICK":{'id':'const','type':'String'},
+            "DBLCLICK":{'id':'const','type':'String'},
+            "MOUSE_OVER":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "pageX":{'id':'const','type':'Number'},
+            "pageY":{'id':'const','type':'Number'},
+            "offsetX":{'id':'const','type':'Number'},
+            "offsetY":{'id':'const','type':'Number'},
+            "screenX":{'id':'const','type':'Number'},
+            "screenY":{'id':'const','type':'Number'},
+        }
+    },
+    'KeyboardEvent':{
+        'id':'class', 'type':'KeyboardEvent','inherit':'Event',
+        'static':{
+            "KEY_PRESS":{'id':'const','type':'String'},
+            "KEY_UP":{'id':'const','type':'String'},
+            "KEY_DOWN":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "keycode":{'id':'const','type':'Number'},
+        }
+    },
+    'HttpEvent':{
+        'id':'class', 'type':'HttpEvent','inherit':'Event',
+        'static':{
+            "SUCCESS":{'id':'const','type':'String'},
+            "ERROR":{'id':'const','type':'String'},
+            "CANCELED":{'id':'const','type':'String'},
+            "TIMEOUT":{'id':'const','type':'String'},
+            "DONE":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "data":{'id':'const','type':'Object'},
+            "url":{'id':'const','type':'String'},
+        }
+    },
+    'StyleEvent':{
+        'id':'class', 'type':'StyleEvent','inherit':'PropertyEvent',
+        'static':{
+            "CHANGE":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "property":{'id':'const','type':'String'},
+            "newValue":{'id':'const','type':'Object'},
+            "oldValue":{'id':'const','type':'Object'},
+        }
+    },
+    'PropertyEvent':{
+        'id':'class', 'type':'PropertyEvent','inherit':'Event',
+        'static':{
+            "CHANGE":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "property":{'id':'const','type':'String'},
+            "newValue":{'id':'const','type':'Object'},
+            "oldValue":{'id':'const','type':'Object'},
+        }
+    },
+    'ElementEvent':{
+        'id':'class', 'type':'ElementEvent','inherit':'Event',
+        'static':{
+            "ADD":{'id':'const','type':'String'},
+            "REMOVE":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "parent":{'id':'const','type':'Object'},
+            "child":{'id':'const','type':'Object'},
+        }
+    },
 };
 module.exports=descriptor;
 

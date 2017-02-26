@@ -1035,9 +1035,11 @@ syntax['(delimiter)']=function( e )
         if( this.current.value !== balance[id] )this.error('Missing token '+balance[id] );
         if( this.scope() !== s )this.error();
         s.switch();
+
         if( s.keyword()==='structure' )return true;
         // 如果下一个是运算符或者是一个定界符
-        if( (this.scope().keyword() ==='object' || this.scope().keyword() ==='expression') && ( this.next.type==='(operator)' || Utils.isLeftDelimiter(this.next.value) ) )
+        if( ( this.scope().keyword() ==='object' && Utils.isLeftDelimiter(this.next.value) ) ||
+            ( this.scope().keyword() ==='expression' && this.next.type==='(operator)' ) )
         {
             this.step();
 
@@ -2330,8 +2332,14 @@ Ruler.prototype.end=function( stack )
     //并且当前表达式不在域块级中
     else if( Utils.isRightDelimiter( this.next.value ) )
     {
+        var pid = stack.parent().keyword();
+        if( (id === 'expression' || id==='ternary') && !(pid==='object' || pid==='statement' || pid==='condition' ) )
+        {
+            this.error('Syntax not end');
+        }
+
         while ( ( id ==='expression' || id==='ternary' || id==='condition' ||
-        (id==='var' && stack.parent().keyword()==='condition') ) ){
+        (id==='var' && pid==='condition') ) ){
             stack.switch();
             stack = this.scope();
             id = stack.keyword();

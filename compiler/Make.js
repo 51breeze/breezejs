@@ -574,7 +574,6 @@ function checkCallParameter(it, desc, property )
         }
         param = desc.paramType;
     }
-
     if( it.current.content().length > 0 )
     {
         var it = new Iteration(it.current, it.module);
@@ -585,6 +584,7 @@ function checkCallParameter(it, desc, property )
                 acceptType = param && param[index] !=='...' ? param[index] : '*';
                 parameters.push( toString(it.current, it.module, acceptType ) );
                 index++;
+
             } else if (it.current.value !== ',')
             {
                 error('Invalid identifier token', 'syntax', it.current);
@@ -698,9 +698,18 @@ function getDescriptorOfExpression(it, classmodule)
             if (!desc)error('"' + it.current.value + '" is not defined.', 'reference', it.current);
             if( it.current.value==='super' )
             {
+                if( it.stack.parent().keyword() !=='function' || it.stack.parent().parent().keyword() !=='class' )
+                {
+                    error('Unexpected identifier "'+it.current.value+'"', 'syntax', it.current);
+                }
                 property.super = desc.type;
+
             }else
             {
+                if( it.current.value==='this' && (it.stack.parent().keyword() !=='function' || it.stack.parent().parent().keyword() !=='class') )
+                {
+                    desc={'type':'*'};
+                }
                 property.name.push( it.current.value );
             }
             property.descriptor = desc;
@@ -945,7 +954,7 @@ function checkRunning( classmodule, desc , value , operator )
             props.push( info );
             if( _operator==='new' )
             {
-                method = classmodule.classname + '.new';
+                method = classmodule.classname + '.newin';
                 _operator = desc.before.pop();
                 props.push( thisvrg );
 
@@ -959,7 +968,7 @@ function checkRunning( classmodule, desc , value , operator )
                 props.push('[' + desc.param + ']');
             }
             if( desc.super ){
-                method=desc.super+'.constructor.call';
+                method=globals[desc.super] ? desc.super+'.call' : desc.super+'.constructor.call';
                 props=[thisvrg];
                 if( desc.param )props.push( desc.param );
             }
@@ -991,7 +1000,7 @@ function checkRunning( classmodule, desc , value , operator )
             if (desc.param)props.push('[' + desc.param + ']');
             method = classmodule.classname + '.apply';
             if( _operator === 'new' ){
-                method = classmodule.classname+'.new';
+                method = classmodule.classname+'.newin';
             }
         }
         //设置属性值
@@ -1009,7 +1018,7 @@ function checkRunning( classmodule, desc , value , operator )
             _operator==='delete' ? props.push('"'+_operator+'"') : props.push('"'+increment+'"');
             if( _operator ==='delete' )
             {
-                method = classmodule.classname + '.delete';
+                method = classmodule.classname + '.del';
             }
             _operator = desc.before.pop();
         }
@@ -1438,7 +1447,7 @@ function toString( stack, module, acceptType )
     {
         if (it.current instanceof Ruler.STACK)
         {
-            it.content.push( toString(it.current, module, acceptType ) );
+            it.content.push( toString(it.current, module ) );
         } else
         {
             if ( it.current.id === '(keyword)' && (it.current.value === 'in' || it.current.value === 'is' || it.current.value === 'instanceof' ))

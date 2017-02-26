@@ -1,6 +1,7 @@
 const utils = require('./utils.js');
 const globals=['Object','Function','Array','String','Number','Boolean','Math','Date','RegExp','Error','ReferenceError','TypeError','SyntaxError','JSON','Reflect'];
 const contents=['var System','=','(function($',globals.join(',$'),'){\n'];
+contents.push('"use strict";\n');
 
 /**
  * 全局系统对象
@@ -64,6 +65,9 @@ function system( config )
         }
     }
 
+
+
+
     /**
      * 内置模块
      * @type {string[]}
@@ -108,8 +112,17 @@ function system( config )
     /**
      * 返回系统对象
      */
+
+    var g = globals.map(function(val) {
+         if( val==='JSON' || val==='Reflect' )
+         {
+             return 'typeof '+val+'==="undefined"?null:'+val;
+         }
+         return val;
+    })
+
     contents.push('return system;\n');
-    contents.push('}(' + globals.join(',') + '));\n');
+    contents.push('}(' + g.join(',') + '));\n');
     return contents.join('');
 }
 module.exports = system;

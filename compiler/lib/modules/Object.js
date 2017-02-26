@@ -14,7 +14,6 @@ Object.prototype = new $Object();
 Object.prototype.constructor=Object;
 Object.create = $Object.create;
 
-
 /**
  * @private
  * 设置对象的原型链
@@ -302,8 +301,9 @@ function getEnumerableProperties( state )
                 obj = $get(this,objClass.token);
                 if (obj)for(prop in obj)
                 {
-                    if( !$hasOwnProperty.call(objClass.proto, prop) ||
-                    ( $propertyIsEnumerable.call(objClass.proto,prop) && objClass.proto[prop].enumerable !== false) )
+                    var proto = $get(objClass,'proto');
+                    if( !$hasOwnProperty.call(proto, prop) ||
+                    ( $propertyIsEnumerable.call(proto,prop) && $get( $get(proto,prop),"enumerable" ) !== false) )
                     {
                         switch (state){
                             case -1 : items.push(prop); break;
@@ -313,7 +313,7 @@ function getEnumerableProperties( state )
                         }
                     }
                 }
-            } while ( (objClass = objClass.extends) && objClass.dynamic && objClass instanceof Class );
+            } while ( (objClass = $get(objClass,"extends") ) && $get(objClass,"dynamic") && objClass instanceof Class );
         }
 
     }else if( this && typeof this !== "function" )

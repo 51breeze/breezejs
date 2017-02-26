@@ -39,18 +39,26 @@ public class Main extends B implements IProsess {
 
           function Main(jj)
           {
-
-              EventDispatcher( window ).addEventListener( Event.READY , function (e) {
+              EventDispatcher( document ).addEventListener( Event.READY , function (e) {
 
                   log( '=====ready=====');
-                  var elem = Element('div');
-                  log( elem, elem.height() );
+                  var elem = Element('#container');
+                  elem.addEventListener( StyleEvent.CHANGE, function (e) {
+                         log( '==========style event=====');
+                         log( e.property, e.oldValue, e.newValue );
+                  });
+
+                  Element('#list').addEventListener( MouseEvent.CLICK, function (e) {
+
+                      this.current( e.currentTarget );
+                      log( '==========%s=====', this.property('id'));
+                  
+                  } );
+                   elem.style('backgroundColor','rgba(255,0,0,0.6)');
+                   log( elem.height(), elem.width() );
+
 
               });
-
-
-
-
 
 
               var t = new Date().getTime();
@@ -62,9 +70,13 @@ public class Main extends B implements IProsess {
               d.addEventListener('addData', fn );
               d.addData({});
               log( new Date().getTime()- t );
+
+
           }
 
-        function ddcc(){}
+        function ddcc(e)
+        {
+        }
 
         private var _home:String='ooooo';
 
