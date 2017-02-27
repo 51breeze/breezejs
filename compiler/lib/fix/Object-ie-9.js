@@ -15,7 +15,7 @@ Object.getPrototypeOf = $Object.getPrototypeOf || function getPrototypeOf(obj)
 Object.create  = $Object.create || (function() {
     function F() {};
     return function (O,P) {
-        if (typeof O != 'object')throwError('type','Object prototype may only be an Object or null');
+        if (typeof O != 'object')System.throwError('type','Object prototype may only be an Object or null');
         F.prototype = O;
         var obj = new F();
         F.prototype = null;
@@ -36,7 +36,7 @@ Object.create  = $Object.create || (function() {
  * @type {*|Function}
  */
 Object.defineProperty =$Object.defineProperty;
-if( !Object.defineProperty || system.env.platform( system.env.BROWSER_IE ) && system.env.version(8) )
+if( !Object.defineProperty || System.env.platform( System.env.BROWSER_IE ) && System.env.version(8) )
 {
     Object.defineProperty = function defineProperty(obj, prop, desc)
     {
@@ -44,7 +44,7 @@ if( !Object.defineProperty || system.env.platform( system.env.BROWSER_IE ) && sy
         {
             if (obj[prop] instanceof Descriptor)
             {
-                if (obj[prop].configurable === false)throwError('type', '"' + prop + '" property is not configurable');
+                if (obj[prop].configurable === false)System.throwError('type', '"' + prop + '" property is not configurable');
                 Descriptor.call(obj[prop], desc);
                 return;
             }
@@ -57,6 +57,7 @@ if( !Object.defineProperty || system.env.platform( system.env.BROWSER_IE ) && sy
 
 /**
  * 描述符构造器
+ * @private
  * @param desc
  * @constructor
  */

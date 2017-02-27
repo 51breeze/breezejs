@@ -5,13 +5,12 @@
  * @param cancelable
  * @constructor
  */
-function ElementEvent( type, bubbles,cancelable )
+var ElementEvent = function ElementEvent( type, bubbles,cancelable )
 {
     if( !(this instanceof ElementEvent) )return new ElementEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
-}
-
+};
 ElementEvent.prototype=new Event();
 ElementEvent.prototype.parent=null;
 ElementEvent.prototype.child=null;

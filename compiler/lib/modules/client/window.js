@@ -1,1 +1,1 @@
-system.window = window;
+System.window = window;

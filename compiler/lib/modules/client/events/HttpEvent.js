@@ -1,9 +1,8 @@
-
-function HttpEvent( type, bubbles,cancelable ){
+var HttpEvent = function HttpEvent( type, bubbles,cancelable ){
     if( !(this instanceof HttpEvent) )return new HttpEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
-}
+};
 HttpEvent.prototype=new Event();
 HttpEvent.prototype.data=null;
 HttpEvent.prototype.url=null;

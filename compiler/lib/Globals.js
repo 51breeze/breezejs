@@ -3,60 +3,58 @@
  * @param item
  * @returns {*}
  */
-var toString = function (item)
+var toString = function (items)
 {
-    if( isArray(item) )return Array.prototype.map.call(item,toString);
-    if( isObject(item,true) ){
-        var objs={};
-        for(var i in item){objs[i] = toString(item[i]);}
-        return objs;
-    }
-    return item ? Object.prototype.valueOf.call(item) : item;
+   var str=[];
+   for(var i=0; i<items.length; i++)
+   {
+       str.push( System.Object.prototype.valueOf.call(items[i]) );
+   }
+   return str.join(' ');
 }
-system.log = function log(){
-    console.log('%s', Array.prototype.map.call(arguments,toString).join(' ')  );
+System.log = function log(){
+    console.log( toString(arguments) );
 };
-system.info =function info(){
-    console.info.apply(undefined, Array.prototype.map.call(arguments,toString) );
+System.info =function info(){
+    console.info( toString(arguments) );
 };
-system.trace = function trace(){
-    console.log.apply(undefined, ['Trace: '].concat( Array.prototype.map.call(arguments,toString) ) );
-    console.log( '   At '+$traceItems.join('\n   At ') );
+System.trace = function trace(){
+    console.trace( toString(arguments) );
 };
-system.warn = function warn(){
-    console.warn.apply(undefined, Array.prototype.map.call(arguments,toString) );
+System.warn = function warn(){
+    console.warn( toString(arguments) );
 };
-system.error = function error(){
-    console.error.apply(undefined, Array.prototype.map.call(arguments,toString) );
+System.error = function error(){
+    console.error( toString(arguments)  );
 };
-system.dir = function dir(){
-    console.dir.apply(undefined, Array.prototype.map.call(arguments,toString) );
+System.dir = function dir(){
+    console.dir( toString(arguments) );
 };
-system.assert = console.assert;
-system.time = console.time;
-system.timeEnd = console.timeEnd;
+System.assert = console.assert;
+System.time = console.time;
+System.timeEnd = console.timeEnd;
 
 /**
  * 全局函数
  * @type {*|Function}
  */
-system.isFinite = isFinite;
-system.decodeURI= decodeURI;
-system.decodeURIComponent= decodeURIComponent;
-system.encodeURI= encodeURI;
-system.encodeURIComponent= encodeURIComponent;
-/*system.escape= escape;
-system.eval= eval;
-system.unescape= unescape;*/
-system.isNaN= isNaN;
-system.parseFloat= parseFloat;
-system.parseInt= parseInt;
+System.isFinite = isFinite;
+System.decodeURI= decodeURI;
+System.decodeURIComponent= decodeURIComponent;
+System.encodeURI= encodeURI;
+System.encodeURIComponent= encodeURIComponent;
+/*System.escape= escape;
+System.eval= eval;
+System.unescape= unescape;*/
+System.isNaN= isNaN;
+System.parseFloat= parseFloat;
+System.parseInt= parseInt;
 
 
 /**
  * 环境参数配置
  */
-system.env={
+System.env={
     'BROWSER_IE':'IE',
     'BROWSER_FIREFOX':'FIREFOX',
     'BROWSER_CHROME':'CHROME',
@@ -126,7 +124,7 @@ system.env={
         }
     };
 
-}(system.env));
+}(System.env));
 
 
 /**
@@ -137,16 +135,16 @@ system.env={
 
 if( System.env.platform( System.env.BROWSER_IE ) && System.env.version( 8, '<=' ) )
 {
-    system.typeOf= (function () {
+    System.typeOf= (function () {
         function typeOf( instanceObj )
         {
-            if( instanceObj instanceof Class )return 'class';
-            if( instanceObj instanceof Interface )return 'interface';
+            if( instanceObj instanceof System.Class )return 'class';
+            if( instanceObj instanceof System.Interface )return 'interface';
             var val = typeof instanceObj;
             if( val=== "object" && /function/i.test(instanceObj + "") )
             {
                 return "function";
-            }else if( val === 'function' && instanceObj.constructor === system.RegExp )
+            }else if( val === 'function' && instanceObj.constructor === System.RegExp )
             {
                 return "object";
             }
@@ -157,10 +155,10 @@ if( System.env.platform( System.env.BROWSER_IE ) && System.env.version( 8, '<=' 
 
 }else
 {
-    system.typeOf=function typeOf( instanceObj )
+    System.typeOf=function typeOf( instanceObj )
     {
-        if( instanceObj instanceof Class )return 'class';
-        if( instanceObj instanceof Interface )return 'interface';
+        if( instanceObj instanceof System.Class )return 'class';
+        if( instanceObj instanceof System.Interface )return 'interface';
         return typeof instanceObj;
     }
 }
@@ -179,7 +177,7 @@ function instanceOf(instanceObj, theClass)
         return instanceObj instanceof Class;
     }
     var proto = $get(instanceObj,"constructor");
-    if( proto instanceof Class)
+    if( proto instanceof System.Class)
     {
         while( proto )
         {
@@ -193,10 +191,10 @@ function instanceOf(instanceObj, theClass)
     {
         return false;
     }
-    instanceObj = Object(instanceObj);
-    return instanceObj instanceof theClass || ( theClass===system.JSON && isObject(instanceObj,true) );
+    instanceObj = System.Object(instanceObj);
+    return instanceObj instanceof theClass || ( theClass===System.JSON && isObject(instanceObj,true) );
 }
-system.instanceOf=instanceOf;
+System.instanceOf=instanceOf;
 /**
  * 检查实例对象是否属于指定的类型(检查接口类型)
  * @param instanceObj
@@ -238,10 +236,10 @@ function is(instanceObj, theClass)
     {
         return false;
     }
-    instanceObj = Object( instanceObj );
-    return instanceObj instanceof theClass || ( theClass===system.JSON && isObject(instanceObj,true) );
+    instanceObj = System.Object( instanceObj );
+    return instanceObj instanceof theClass || ( theClass===System.JSON && isObject(instanceObj,true) );
 }
-system.is=is;
+System.is=is;
 
 /**
  * 根据指定的类名获取类的对象
@@ -255,7 +253,7 @@ function getDefinitionByName( name )
     for ( var i in modules )if( i=== name )return modules[i];
     throwError('type', '"'+name+'" is not define');
 }
-system.getDefinitionByName =getDefinitionByName;
+System.getDefinitionByName =getDefinitionByName;
 
 /**
  * @private
@@ -284,34 +282,34 @@ function getQualifiedClassName( value )
         case 'class'  : return  getFullname(value);
         case 'interface': return  getFullname(value);
         case 'function' :
-            if (value === system.String)return 'String';
-            if (value === system.Boolean)return 'Boolean';
-            if (value === system.Number)return 'Number';
-            if (value === system.RegExp)return 'RegExp';
-            if ( value === system.Array )return 'Array';
-            if ( value === system.Date )return 'Date';
-            if ( value === system.Object )return 'Object';
-            if ( value === system.Iterator )return 'Iterator';
-            if ( value === system.Reflect )return 'Reflect';
-            if (value === system.JSON)return 'JSON';
+            if (value === System.String)return 'String';
+            if (value === System.Boolean)return 'Boolean';
+            if (value === System.Number)return 'Number';
+            if (value === System.RegExp)return 'RegExp';
+            if ( value === System.Array )return 'Array';
+            if ( value === System.Date )return 'Date';
+            if ( value === System.Object )return 'Object';
+            if ( value === System.Iterator )return 'Iterator';
+            if ( value === System.Reflect )return 'Reflect';
+            if (value === System.JSON)return 'JSON';
             return 'Function';
         default :
             if( value=== system )return 'System';
-            if( value === system.Math )return 'Math';
-            if( value === system.Reflect )return 'Reflect';
-            if( value === system.Iterator )return 'Iterator';
+            if( value === System.Math )return 'Math';
+            if( value === System.Reflect )return 'Reflect';
+            if( value === System.Iterator )return 'Iterator';
             if( isArray(value) )return 'Array';
             if( isObject(value,true) )return 'Object';
-            if( value instanceof system.RegExp )return 'RegExp';
-            if( value instanceof system.Date )return 'Date';
-            if( value instanceof String )return 'String';
-            if( value instanceof Number )return 'Number';
-            if( value instanceof Boolean )return 'Boolean';
+            if( value instanceof System.RegExp )return 'RegExp';
+            if( value instanceof System.Date )return 'Date';
+            if( value instanceof System.String )return 'String';
+            if( value instanceof System.Number )return 'Number';
+            if( value instanceof System.Boolean )return 'Boolean';
             if( value.constructor instanceof Class )return getFullname(value.constructor);
     }
     throwError('reference','type does not exist');
 }
-system.getQualifiedClassName=getQualifiedClassName;
+System.getQualifiedClassName=getQualifiedClassName;
 /**
  * 获取指定实例对象的超类名称
  * @param value
@@ -331,7 +329,7 @@ function getQualifiedSuperclassName(value)
     }
     return null;
 }
-system.getQualifiedSuperclassName =getQualifiedSuperclassName;
+System.getQualifiedSuperclassName =getQualifiedSuperclassName;
 /**
  * 判断是否为一个可遍历的对象
  * null, undefined 属于对象类型但也会返回 false
@@ -347,7 +345,7 @@ function isObject(val , flag )
     if( !result && flag !== true && isArray(val) )return true;
     return result;
 };
-system.isObject =isObject;
+System.isObject =isObject;
 /**
  * 检查所有传入的值定义
  * 如果传入多个值时所有的都定义的才返回true否则为false
@@ -360,7 +358,7 @@ function isDefined()
     while( i>0 ) if( typeof arguments[ --i ] === 'undefined' )return false;
     return true;
 };
-system.isDefined =isDefined;
+System.isDefined =isDefined;
 /**
  * 判断是否为数组
  * @param val
@@ -369,10 +367,10 @@ system.isDefined =isDefined;
 function isArray(val)
 {
     if( !val || typeof val !== "object" )return false;
-    var proto =  Object.getPrototypeOf(val);
-    return proto === Array.prototype || proto===$Array.prototype;
+    var proto =  System.Object.getPrototypeOf(val);
+    return proto === System.Array.prototype || proto===$Array.prototype;
 };
-system.isArray =isArray;
+System.isArray =isArray;
 
 /**
  * 判断是否为函数
@@ -381,9 +379,9 @@ system.isArray =isArray;
  */
 function isFunction( val ){
     if(!val)return false;
-    return system.typeOf(val) === 'function' || val instanceof Function;
+    return System.typeOf(val) === 'function' || val instanceof Function;
 };
-system.isFunction =isFunction;
+System.isFunction =isFunction;
 /**
  * 判断是否为布尔类型
  * @param val
@@ -392,17 +390,17 @@ system.isFunction =isFunction;
 function isBoolean( val ){
     return typeof val === 'boolean';
 };
-system.isBoolean=isBoolean;
+System.isBoolean=isBoolean;
 /**
  * 判断是否为字符串
  * @param val
  * @returns {boolean}
  */
-function isString(val )
+function isString( val )
 {
     return typeof val === 'string';
 };
-system.isString=isString;
+System.isString=isString;
 /**
  * 判断是否为一个标量
  * 只有对象类型或者Null不是标量
@@ -413,7 +411,7 @@ function isScalar(val )
     var t=typeof val;
     return t==='string' || t==='number' || t==='float' || t==='boolean';
 };
-system.isScalar=isScalar;
+System.isScalar=isScalar;
 /**
  * 判断是否为数字类型
  * @param val
@@ -423,7 +421,7 @@ function isNumber(val )
 {
     return typeof val === 'number';
 };
-system.isNumber=isNumber;
+System.isNumber=isNumber;
 
 /**
  * 抛出错误信息
@@ -435,19 +433,19 @@ function throwError(type, msg , line, filename)
     console.log( type, msg , line, filename );
     switch ( type ){
         case 'type' :
-            throw new system.TypeError( msg,line, filename );
+            throw new System.TypeError( msg,line, filename );
             break;
         case 'reference':
-            throw new system.ReferenceError( msg ,line, filename);
+            throw new System.ReferenceError( msg ,line, filename);
             break;
         case 'syntax':
-            throw new system.SyntaxError( msg ,line, filename );
+            throw new System.SyntaxError( msg ,line, filename );
             break;
         default :
-            throw new system.Error( msg , line, filename );
+            throw new System.Error( msg , line, filename );
     }
 }
-system.throwError =throwError;
+System.throwError =throwError;
 /**
  * 判断是否为一个空值
  * @param val
@@ -465,7 +463,7 @@ function isEmpty(val , flag )
     }
     return false;
 };
-system.isEmpty=isEmpty;
+System.isEmpty=isEmpty;
 
 /**
  * 去掉指定字符两边的空白
@@ -476,7 +474,7 @@ function trim( str )
 {
     return typeof str === "string" ? str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,'') : '';
 }
-system.trim = trim;
+System.trim = trim;
 
 
 /**
@@ -489,11 +487,11 @@ function range(low,high,step)
 {
     var obj = new Array();
     if( !isNumber(step) )step=1;
-    step = Math.max(step,1);
+    step = System.Math.max(step,1);
     for(;low<high;low+=step)obj.push(low);
     return obj;
 }
-system.range=range;
+System.range=range;
 
 /**
  * 将字符串的首字母转换为大写
@@ -504,7 +502,7 @@ function ucfirst( str )
 {
     return typeof str === "string" ? str.charAt(0).toUpperCase()+str.substr(1) : str;
 };
-system.ucfirst=ucfirst;
+System.ucfirst=ucfirst;
 
 /**
  * 将字符串的首字母转换为小写
@@ -515,7 +513,7 @@ function lcfirst( str )
 {
     return typeof str === "string" ? str.charAt(0).toLowerCase()+str.substr(1) : str;
 };
-system.lcfirst=lcfirst;
+System.lcfirst=lcfirst;
 
 /**
  * 格式化输出
@@ -542,7 +540,7 @@ function format()
     }
     return str;
 };
-system.format=format;
+System.format=format;
 
 /**
  * 复制字符串到指定的次数
@@ -558,7 +556,7 @@ function repeat(str, num )
     }
     return '';
 };
-system.repeat=repeat;
+System.repeat=repeat;
 
 /**
  * 比较两个两个字符串的值。
@@ -581,4 +579,42 @@ function compare(a, b)
     }
     return isNaN(c) ? 1 : -1;
 };
-system.compare=compare;
+System.compare=compare;
+
+
+/**
+ * 格式化输出
+ * @format
+ * @param [...]
+ * @returns {string}
+ */
+function sprintf()
+{
+    var str='',i= 1,len=arguments.length,param;
+    if( len > 0 )
+    {
+        str=arguments[0];
+        if( typeof str === "string" )
+        {
+            for (; i < len; i++)
+            {
+                param = arguments[i];
+                str = str.replace(/%(s|d|f|v)/, function (all, method) {
+                    if (method === 'd') {
+                        param = parseInt(param);
+                        return isNaN(param) ? '' : param;
+                    } else if (method === 'f') {
+                        param = parseFloat(param);
+                        return isNaN(param) ? '' : param;
+                    } else if (method === 'v') {
+                        return System.Object.prototype.valueOf.call(param);
+                    }
+                    return System.Object.prototype.toString.call(param);
+                });
+            }
+            str.replace(/%(s|d|f|v)/g, '');
+        }
+    }
+    return str;
+}
+System.sprintf=sprintf;

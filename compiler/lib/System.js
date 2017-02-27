@@ -7,13 +7,14 @@ contents.push('"use strict";\n');
  * 全局系统对象
  * @type {{}}
  */
-contents.push('var system=System={};\n');
+contents.push('var System={};\n');
 
 /**
  * 本地模块对象
  * @type {{}}
  */
 contents.push('var modules={};\n');
+
 function system( config )
 {
     /**
@@ -59,9 +60,9 @@ function system( config )
                     contents.push( utils.getContents(fix_items[name][f]) );
                 }
             }
-            contents.push('system.' + name + '=' + name + ';\n');
+            contents.push('System.' + name + '=' + name + ';\n');
         } catch (e) {
-            contents.push('system.' + name + '=$' + name + ';\n');
+            contents.push('System.' + name + '=$' + name + ';\n');
         }
     }
 
@@ -75,8 +76,17 @@ function system( config )
     var coreModule=['Class','Interface','Event','EventDispatcher'];
     for( var p in coreModule )
     {
-        contents.push( utils.getContents(__dirname + '/modules/'+coreModule[p]+'.js') );
-        contents.push('system.'+coreModule[p]+'='+coreModule[p]+';\n');
+        var name = coreModule[p];
+        contents.push( utils.getContents(__dirname + '/modules/'+name+'.js') );
+        //加载对应模块的兼容策略文件
+        if( fix_items[name] )
+        {
+            for( var f in fix_items[name] )
+            {
+                contents.push( utils.getContents(fix_items[name][f]) );
+            }
+        }
+        contents.push('System.'+name+'='+name+';\n');
     }
 
     /**
@@ -96,7 +106,7 @@ function system( config )
             var path = __dirname + '/modules/client/events/'+files[p];
             var name = utils.getFilenameByPath( path )
             contents.push( utils.getContents(path) );
-            contents.push('system.'+name+'='+name+';\n');
+            contents.push('System.'+name+'='+name+';\n');
         }
         contents.push( utils.getContents(__dirname + '/modules/client/Element.js') );
         contents.push( utils.getContents(__dirname + '/modules/client/Window.js') );
@@ -121,7 +131,7 @@ function system( config )
          return val;
     })
 
-    contents.push('return system;\n');
+    contents.push('return System;\n');
     contents.push('}(' + g.join(',') + '));\n');
     return contents.join('');
 }

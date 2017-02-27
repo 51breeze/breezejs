@@ -4,7 +4,7 @@
  * @returns {EventDispatcher}
  * @constructor
  */
-function EventDispatcher( target )
+var EventDispatcher = function EventDispatcher( target )
 {
     if( !(this instanceof EventDispatcher) )return new EventDispatcher( target );
     if( target )
@@ -15,10 +15,12 @@ function EventDispatcher( target )
         }
         Object.defineProperty(this,'target', {value:target});
     }
-}
+};
 EventDispatcher.prototype=new Object();
 EventDispatcher.prototype.constructor=EventDispatcher;
 EventDispatcher.prototype.target=null;
+(function(){
+
 /**
  * 判断是否有指定类型的侦听器
  * @param type
@@ -49,8 +51,6 @@ EventDispatcher.prototype.hasEventListener=function( type  )
     }
     return false;
 };
-
-(function(){
 
 /**
  * 添加侦听器
@@ -138,8 +138,13 @@ function addEventListener(target, listener )
     //如果不是 EventDispatcher 则在第一个事件中添加事件代理。
     if( events.length===0 && !System.instanceOf(target, EventDispatcher) )
     {
-        type= Event.type( type );
-        target.addEventListener ? target.addEventListener(type,dispatchEvent,listener.useCapture) : target.attachEvent(type,dispatchEvent);
+        if( Object.prototype.hasOwnProperty.call(Event.fix.hooks,type) )
+        {
+            Event.fix.hooks[ type ].call(target, listener, dispatchEvent);
+        }else {
+            type = Event.type(type);
+            target.addEventListener ? target.addEventListener(type, dispatchEvent, listener.useCapture) : target.attachEvent(type,function(e){dispatchEvent(e,target)});
+        }
     }
 
     //添加到元素
@@ -205,9 +210,12 @@ function removeEventListener(target, type, listener , dispatcher )
  * @param listeners
  * @returns {boolean}
  */
-function dispatchEvent( e )
+function dispatchEvent( e, currentTarget)
 {
-    if( !(e instanceof Event) )e = Event.create( e );
+    if( !(e instanceof Event) ){
+        e = Event.create( e );
+        if(currentTarget)e.currentTarget = currentTarget;
+    }
     if( !e || !e.currentTarget )throw new Error('invalid event target')
     var target = e.currentTarget;
     var events = $get(target ,'__events__')

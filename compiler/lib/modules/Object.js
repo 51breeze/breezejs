@@ -4,12 +4,12 @@
  * @returns {*}
  * @constructor
  */
-function Object( value )
+var Object = function Object( value )
 {
     if ( value != null )return $Object(value);
     if( !(this instanceof Object) ) return new Object();
     return this;
-}
+};
 Object.prototype = new $Object();
 Object.prototype.constructor=Object;
 Object.create = $Object.create;
@@ -61,8 +61,8 @@ Object.merge = function()
         {
             for ( name in options )
             {
-                src =  system.Reflect.get(target,name);
-                copy = system.Reflect.get(options,name);
+                src =  System.Reflect.get(target,name);
+                copy = System.Reflect.get(options,name);
                 if ( target === copy )continue;
                 if ( deep && copy && ( isObject(copy,true) || ( copyIsArray = isArray(copy) ) ) )
                 {
@@ -74,11 +74,11 @@ Object.merge = function()
                     {
                         clone = src && isObject(src) ? src : {};
                     }
-                    system.Reflect.set(target, name ,Object.merge( deep, clone, copy ) )
+                    System.Reflect.set(target, name ,Object.merge( deep, clone, copy ) )
 
                 } else if ( typeof copy !== "undefined" )
                 {
-                    system.Reflect.set(target,name,copy);
+                    System.Reflect.set(target,name,copy);
                 }
             }
         }

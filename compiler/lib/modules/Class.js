@@ -3,5 +3,5 @@
  * @returns {Class}
  * @constructor
  */
-function Class(){}
+var Class = function Class(){};
 Class.prototype = new Object();

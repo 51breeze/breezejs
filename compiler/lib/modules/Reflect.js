@@ -4,7 +4,7 @@
  * @constructor
  */
 var $rConstruct =$Reflect && $Reflect.construct;
-function Reflect() {
+var Reflect = function Reflect() {
     if(this instanceof Reflect)throwError('Reflect is not constructor.');
 }
 
@@ -294,7 +294,7 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
 /**
 @private
 */
-var __ieCheck__ = system.env.platform() === 'IE' && system.env.version(9);
+var __ieCheck__ = System.env.platform() === 'IE' && System.env.version(9);
 
 /**
  * @private

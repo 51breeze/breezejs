@@ -6,7 +6,7 @@
  * @returns {Event}
  * @constructor
  */
-function Event( type, bubbles, cancelable )
+var Event = function Event( type, bubbles, cancelable )
 {
     if ( !(this instanceof Event) )
         return new Event(  type, bubbles,cancelable );
@@ -14,7 +14,7 @@ function Event( type, bubbles, cancelable )
     this.type = type;
     this.bubbles = !(bubbles===false);
     this.cancelable = !(cancelable===false);
-}
+};
 
 /**
  * 一组事件名的常量
@@ -78,7 +78,10 @@ Event.prototype.preventDefault = function preventDefault()
  */
 Event.prototype.stopPropagation = function stopPropagation()
 {
-    if( this.originalEvent && this.originalEvent.stopPropagation )this.originalEvent.stopPropagation();
+    if( this.originalEvent )
+    {
+        this.originalEvent.stopPropagation ? this.originalEvent.stopPropagation() :  this.originalEvent.cancelBubble=true;
+    }
     this.propagationStopped = true;
 }
 
@@ -98,6 +101,7 @@ Event.prototype.stopImmediatePropagation = function stopImmediatePropagation()
  */
 Event.fix={
     map:{},
+    hooks:{},
     prefix:'',
     eventname:{
         'webkitAnimationEnd':true,
@@ -148,7 +152,7 @@ Event.type = function(type, flag )
      */
     Event.create = function create( originalEvent )
     {
-        originalEvent=originalEvent || (typeof window === "object" ? window.event : null);
+        originalEvent=originalEvent ? originalEvent  : (typeof window === "object" ? window.event : null);
         var event=null;
         var i=0;
         if( !originalEvent )throwError('type','Invalid event');
@@ -158,11 +162,7 @@ Event.type = function(type, flag )
         var currentTarget =  originalEvent.currentTarget || target;
         if( typeof type !== "string" )throwError('type','Invalid event type');
         type = Event.type( type, true );
-        while ( !event && i<eventModules.length )
-        {
-            event = eventModules[i]( type, target, originalEvent );
-            i++;
-        }
+        while ( i<eventModules.length && !(event =eventModules[i++]( type, target, originalEvent )));
         if( !(event instanceof Event) )event = new Event( type );
         event.type= type;
         event.target=target;

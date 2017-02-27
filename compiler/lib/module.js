@@ -143,7 +143,7 @@ function makeMethods(method, classModule)
         case 'check' : return function (info, type, value)
         {
             if( value === null )return value;
-            if ( !system.is(value, type) )toErrorMsg('TypeError Specify the type of value do not match. must is "' + getQualifiedClassName(type) + '"', classModule, info, value);
+            if ( !System.is(value, type) )toErrorMsg('TypeError Specify the type of value do not match. must is "' + getQualifiedClassName(type) + '"', classModule, info, value);
             return value;
         }
     }
@@ -158,7 +158,7 @@ function makeMethods(method, classModule)
  */
 function define(name , descriptions , isInterface)
 {
-    if( typeof system[ name ] === "function" )return system[ name ];
+    if( typeof System[ name ] === "function" )return System[ name ];
     var classModule;
     if( modules[ name ] && (modules[ name ] instanceof Class  || modules[ name ] instanceof Interface) )
     {
@@ -195,4 +195,4 @@ function define(name , descriptions , isInterface)
     }
     return classModule;
 }
-system.define=define;
+System.define=define;

@@ -1,1 +1,1 @@
-system.document = document;
+System.document = document;

@@ -2,5 +2,5 @@
  * 接口构造函数
  * @constructor
  */
-function Interface(){}
+var Interface = function Interface(){};
 Interface.prototype = new Object();

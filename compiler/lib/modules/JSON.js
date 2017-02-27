@@ -2,7 +2,7 @@
  * JSON 对象构造器
  * @constructor
  */
-function JSON(){ if(this instanceof JSON)throwError('JSON is not constructor.'); };
+var JSON = function JSON(){ if(this instanceof JSON)throwError('JSON is not constructor.'); };
 (function () {
 var escMap = {'"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f', '\n': '\\n', '\r': '\\r', '\t': '\\t'};
 var escRE = /[\\"\u0000-\u001F\u2028\u2029]/g;
@@ -12,7 +12,7 @@ JSON.stringify = function(value)
 {
     if(value == null) return 'null';
     var type = typeof value;
-    if (type ==='number')return system.isFinite(value) ? value.toString() : 'null';
+    if (type ==='number')return System.isFinite(value) ? value.toString() : 'null';
     if (type ==='boolean')return value.toString();
     if (type ==='object')
     {

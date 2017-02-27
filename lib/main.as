@@ -42,35 +42,29 @@ public class Main extends B implements IProsess {
               EventDispatcher( document ).addEventListener( Event.READY , function (e) {
 
                   log( '=====ready=====');
-                  var elem = Element('#container');
-                  elem.addEventListener( StyleEvent.CHANGE, function (e) {
-                         log( '==========style event=====');
-                         log( e.property, e.oldValue, e.newValue );
+
+                  Element('#container').addEventListener( MouseEvent.CLICK, function (e)
+                  {
+                         log( '==========style =====event=====');
+                      //   log( e.property, e.oldValue, e.newValue );
+
+                   //   this.style('backgroundColor','rgba(255,0,0,0.6)');
+                     // log( this.height(), this.width() );
+
                   });
 
                   Element('#list').addEventListener( MouseEvent.CLICK, function (e) {
 
                       this.current( e.currentTarget );
-                      log( '==========%s=====', this.property('id'));
-                  
-                  } );
-                   elem.style('backgroundColor','rgba(255,0,0,0.6)');
-                   log( elem.height(), elem.width() );
+                      //e.stopPropagation();
+
+                      log( '==========%s=====', this.property('id') );
+
+                  });
+
 
 
               });
-
-
-              var t = new Date().getTime();
-              var d = new Dispatcher();
-              log( d is  EventDispatcher );
-              var fn =  function (e) {
-                  log( e.type ,'====dispathcer====');
-              };
-              d.addEventListener('addData', fn );
-              d.addData({});
-              log( new Date().getTime()- t );
-
 
           }
 

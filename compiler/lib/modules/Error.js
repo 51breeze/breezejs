@@ -5,13 +5,13 @@
  * @param filename
  * @constructor
  */
-function Error( message , line, filename )
+var Error = function Error( message , line, filename )
 {
     this.message = message;
     this.line=line;
     this.filename = filename;
     this.type='Error';
-}
+};
 Error.prototype = new Object();
 Error.prototype.constructor=Error;
 Error.prototype.line=null;

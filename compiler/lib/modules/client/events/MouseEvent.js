@@ -4,11 +4,11 @@
  * @param props
  * @constructor
  */
-function MouseEvent( type, bubbles,cancelable  )
+var MouseEvent = function MouseEvent( type, bubbles,cancelable  )
 {
     if( !(this instanceof MouseEvent) )return new MouseEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
-}
+};
 MouseEvent.prototype=new Event();
 MouseEvent.prototype.constructor=MouseEvent;
 MouseEvent.prototype.pageX= NaN;
@@ -52,7 +52,7 @@ Event.registerEvent(function ( type , target, originalEvent ) {
     }
 });
 
-if( system.env.platform( system.env.BROWSER_FIREFOX ) )
+if( System.env.platform( System.env.BROWSER_FIREFOX ) )
 {
     Event.fix.map[ MouseEvent.MOUSE_WHEEL ] = 'DOMMouseScroll';
 }

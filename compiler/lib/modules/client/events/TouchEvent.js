@@ -5,13 +5,12 @@
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
 */
-
-function TouchEvent(type, bubbles, cancelable)
+var TouchEvent = function TouchEvent(type, bubbles, cancelable)
 {
     if( !(this instanceof TouchEvent) )return new TouchEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
-}
+};
 TouchEvent.prototype.constructor=TouchEvent ;
 TouchEvent.prototype=new Event();
 TouchEvent.TOUCH_START='touchStart';
@@ -19,12 +18,12 @@ TouchEvent.TOUCH_MOVE='touchMove';
 TouchEvent.TOUCH_END='touchEnd';
 TouchEvent.TOUCH_CANCEL='touchCancel';
 
-function TouchPinchEvent(type, bubbles, cancelable)
+var TouchPinchEvent = function TouchPinchEvent(type, bubbles, cancelable)
 {
     if( !(this instanceof TouchPinchEvent) )return new TouchPinchEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
-}
+};
 TouchPinchEvent.prototype.constructor=TouchPinchEvent ;
 TouchPinchEvent.prototype=new TouchEvent();
 TouchPinchEvent.prototype.moveX=NaN;
@@ -39,12 +38,12 @@ TouchPinchEvent.TOUCH_PINCH_START='touchPinchStart';
 TouchPinchEvent.TOUCH_PINCH_MOVE='touchPinchMove';
 TouchPinchEvent.TOUCH_PINCH_END='touchPinchEnd';
 
-function TouchDragEvent(type, bubbles, cancelable)
+var TouchDragEvent = function TouchDragEvent(type, bubbles, cancelable)
 {
     if( !(this instanceof TouchDragEvent) )return new TouchDragEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
-}
+};
 TouchDragEvent.prototype.constructor=TouchDragEvent;
 TouchDragEvent.prototype=new TouchEvent();
 TouchDragEvent.prototype.startX=NaN;
@@ -61,12 +60,12 @@ TouchDragEvent.TOUCH_DRAG_START='touchDragStart';
 TouchDragEvent.TOUCH_DRAG_MOVE='touchDragMove';
 TouchDragEvent.TOUCH_DRAG_END='touchDragEnd';
 
-function TouchSwipeEvent(type, bubbles, cancelable)
+var TouchSwipeEvent = function TouchSwipeEvent(type, bubbles, cancelable)
 {
     if( !(this instanceof TouchSwipeEvent) )return new TouchSwipeEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
-}
+};
 TouchSwipeEvent.prototype.constructor=TouchSwipeEvent;
 TouchSwipeEvent.prototype=new TouchEvent();
 TouchSwipeEvent.prototype.startX=NaN;

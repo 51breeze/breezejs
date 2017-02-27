@@ -3,12 +3,12 @@
  * @returns {Array}
  * @constructor
  */
-function Array(length)
+var Array = function Array(length)
 {
-    if( !(this instanceof Array) )return $Array.apply(new Array(), Array.prototype.slice.call(arguments,0) );
+    if( !(this instanceof Array) )return $Array.apply( new Array(), Array.prototype.slice.call(arguments,0) );
     this.length=0;
     return $Array.apply(this,Array.prototype.slice.call(arguments,0));
-}
+};
 Array.prototype = new Object();
 Array.prototype.constructor = Array;
 Array.prototype.length  =0;
@@ -34,7 +34,7 @@ Array.prototype.valueOf = $Array.prototype.valueOf;
  */
 Array.prototype.forEach=function( callback, thisArg )
 {
-    if (!isFunction(callback))throwError('type',callback + " is not a function");
+    if (!isFunction(callback))module.throwError('type',callback + " is not a function");
     var it = new Iterator(this);
     thisArg = thisArg || this;
     for(;it.seek();)

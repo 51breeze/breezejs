@@ -1,4 +1,3 @@
-
 /**
  * PropertyEvent
  * @param type
@@ -6,11 +5,11 @@
  * @param cancelable
  * @constructor
  */
-function PropertyEvent( type, bubbles,cancelable ){
+var PropertyEvent = function PropertyEvent( type, bubbles,cancelable ){
     if( !(this instanceof PropertyEvent) )return new PropertyEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
-}
+};
 PropertyEvent.prototype=new Event();
 PropertyEvent.prototype.property=null;
 PropertyEvent.prototype.newValue=null;

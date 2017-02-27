@@ -5,8 +5,8 @@
 Array.prototype.map = $Array.prototype.map || function(callback, thisArg)
 {
     var T, A, k;
-    if (this == null)throwError('type',"this is null or not defined");
-    if (!isFunction(callback))throwError('type',callback + " is not a function");
+    if (this == null)System.throwError('type',"this is null or not defined");
+    if (!isFunction(callback))System.throwError('type',callback + " is not a function");
     var O =  isObject(this) ? this : [];
     var len = O.length >>> 0;
     if (thisArg)T = thisArg;

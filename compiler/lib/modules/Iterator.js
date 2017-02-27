@@ -3,13 +3,13 @@
  * @param target
  * @constructor
  */
-function Iterator( target )
+var Iterator = function Iterator( target )
 {
-    if( system.is(target,Iterator) )return target;
+    if( System.is(target,Iterator) )return target;
     if( !(this instanceof Iterator) ) return new Iterator(target);
     this.items = getEnumerableProperties.call(target);
     return this;
-}
+};
 Iterator.current=null;
 Iterator.prototype = new Object();
 Iterator.prototype.items = null;

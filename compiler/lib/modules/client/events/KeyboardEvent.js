@@ -1,9 +1,9 @@
-function KeyboardEvent( type, bubbles,cancelable  )
+var KeyboardEvent = function KeyboardEvent( type, bubbles,cancelable  )
 {
     if( !(this instanceof KeyboardEvent) )return new KeyboardEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
-}
+};
 KeyboardEvent.prototype=new Event();
 KeyboardEvent.prototype.constructor=KeyboardEvent;
 KeyboardEvent.prototype.keycode=null;
