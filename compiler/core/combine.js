@@ -106,8 +106,8 @@ function combine( config )
             contents.push( utils.getContents(path) );
             contents.push('System.'+name+'='+name+';\n');
         }
-        contents.push('System.window = window || {};\n');
-        contents.push('System.document = document || {};\n');
+        contents.push('System.window = window;\n');
+        contents.push('System.document = document;\n');
         contents.push('\n}\n');
     }
 

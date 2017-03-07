@@ -18,9 +18,10 @@ var Reflect = function Reflect() {
 Reflect.apply=function apply( func, thisArgument, argumentsList)
 {
     if( func instanceof Class )func=$get(func,"constructor");
-    if( typeof func !== "function" )throwError('type','is not function');
+    if( System.typeOf(func) !== "function" )throwError('type','is not function');
     if( func===thisArgument )thisArgument=undefined;
-    return isArray(argumentsList) ? func.apply( thisArgument, argumentsList ) : func.call( thisArgument, argumentsList );
+    return isArray(argumentsList) ? System.Function.prototype.apply.call( func, thisArgument, argumentsList ) :
+        System.Function.prototype.call.call( func, thisArgument, argumentsList );
 }
 
 /**
@@ -301,6 +302,7 @@ var __descCheck__ = System.env.platform('IE') && System.env.version(8);
  */
 function $get(target, propertyKey, receiver)
 {
+    if( !target )return undefined;
     var value = target[propertyKey];
     if( __descCheck__ && value instanceof Descriptor )
     {

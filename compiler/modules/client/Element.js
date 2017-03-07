@@ -69,7 +69,7 @@ var fix={
     ,fnHooks:{}
     ,getsizeval:function( prop )
     {
-        if ( Element.isWindow(this) )
+        if ( Element.prototype.isWindow.call(this) )
         {
             return Math.max(
                 this['inner'+prop] || 0,
@@ -78,7 +78,7 @@ var fix={
                 this.document.documentElement['client'+prop] || 0
             );
 
-        } else if (Element.isDocument(this))
+        } else if (Element.prototype.isDocument.call(this) )
         {
             return Math.max(
                     this.body['scroll'+prop] || 0,
@@ -132,6 +132,7 @@ function access(callback, name, newValue)
                 this.dispatchEvent( event );
             }
         }
+
     });
 }
 
@@ -154,7 +155,7 @@ function removeChild(parent,child, flag )
  */
 function getChildNodes(elem, selector, flag)
 {
-    var ret=[],isfn=isFunction(selector);
+    var ret=[],isfn=System.isFunction(selector);
     if( elem.hasChildNodes() )
     {
         var len=elem.childNodes.length,index= 0,node;
@@ -270,7 +271,7 @@ var querySelector = typeof Sizzle === "function" ?  function querySelector(selec
         //如果选择器不是一个字符串
         if (typeof selector !== "string")
         {
-            results = Element.isNodeElement(selector) || Element.isWindow(selector) ? [selector] : [];
+            results = Element.prototype.isNodeElement.call(selector) || Element.prototype.isWindow(selector) ? [selector] : [];
         }else
         {
             var has = false;
@@ -369,83 +370,9 @@ function createElement(html )
             return div.parentNode.removeChild( div );
         }
 
-    }else if (Element.isNodeElement(html) )
+    }else if (Element.prototype.isNodeElement.call(html) )
         return  html.parentNode ?cloneNode(html,true) : html;
     throw new Error('createElement param invalid')
-};
-
-/**
- * 把一个对象序列化为一个字符串
- * @param object 要序列化的对象
- * @param type   要序列化那种类型,可用值为：url 请求的查询串,style 样式字符串。 默认为 url 类型
- * @param group  是否要用分组，默认是分组（只限url 类型）
- * @return string
- */
-function serialize(object, type , group )
-{
-    if( typeof object === "string" || !object )
-        return object;
-    var str=[],key,joint='&',separate='=',val='',prefix=System.isBoolean(group) ? null : group;
-    type = type || 'url';
-    group = ( group !== false );
-    if( type==='style' )
-    {
-        joint=';';
-        separate=':';
-        group=false;
-    }else if(type === 'attr' )
-    {
-        separate='=';
-        joint=' ';
-        group=false;
-    }
-    if(System.isObject(object,true) )for( key in object )
-    {
-        val=type === 'attr' ? '"' +object[key]+'"' : object[key];
-        key=prefix ? prefix+'[' + key +']' : key;
-        str=str.concat(  typeof val==='object' ?serialize( val ,type , group ? key : false ) : key + separate + val  );
-    }
-    return str.join( joint );
-};
-
-/**
- * 将一个已序列化的字符串反序列化为一个对象
- * @param str
- * @returns {{}}
- */
-function unserialize(str )
-{
-    var object={},index,joint='&',separate='=',val,ref,last,group=false;
-    if( /[\w\-]+\s*\=.*?(?=\&|$)/.test( str ) )
-    {
-        str=str.replace(/^&|&$/,'');
-        group=true;
-
-    }else if( /[\w\-\_]+\s*\:.*?(?=\;|$)/.test( str ) )
-    {
-        joint=';';
-        separate=':';
-        str=str.replace(/^;|;$/,'')
-    }
-
-    str=str.split( joint );
-    for( index in str )
-    {
-        val=str[index].split( separate );
-        if( group &&  /\]\s*$/.test( val[0] ) )
-        {
-            ref=object,last;
-            val[0].replace(/\w+/ig,function(key){
-                last=ref;
-                ref=!ref[ key ] ? ref[ key ]={} : ref[ key ];
-            });
-            last && ( last[ RegExp.lastMatch ]=val[1] );
-        }else
-        {
-            object[ val[0] ]=val[1];
-        }
-    }
-    return object;
 };
 
 var getAttrExp = /(\w+)(\s*=\s*([\"\'])([^\3]*?)[^\\]\3)?/g;
@@ -504,7 +431,7 @@ function getNodeName(elem )
  */
 function mergeAttributes(target, oSource)
 {
-    var iselem=Element.isNodeElement( target );
+    var iselem=Element.prototype.isNodeElement.call( target );
     if( System.isObject(oSource,true) )
     {
         for (var key in oSource)if (oSource[key] && oSource[key] != '')
@@ -576,18 +503,23 @@ function Element(selector, context)
         Object.defineProperty(this,'context',{value:context});
     }
     var result=[];
-    if( selector instanceof Array )
+    if( selector )
     {
-        result =  Array.prototype.filter.call(selector,function(elem){
-            return Element.isNodeElement( elem ) || Element.isWindow(elem);
-        });
+        if (System.isArray(selector))
+        {
+            result = Array.prototype.filter.call(selector, function (elem) {
+                return Element.prototype.isNodeElement.call(elem) || Element.prototype.isWindow.call(elem);
+            });
 
-    }else if( selector instanceof Element )
-    {
-        result = selector.slice(0);
-    }else
-    {
-        result = Element.isNodeElement(selector) ? selector : querySelector(selector, context);
+        } else if (selector instanceof Element) {
+            result = selector.slice(0);
+
+        } else if (typeof selector === "string") {
+            result = selector.charAt(0) === '<' && selector.charAt(selector.length - 1) === '>' ? createElement(selector) : querySelector(selector, context);
+        }
+        else if (Element.prototype.isNodeElement.call(selector)) {
+            result = selector;
+        }
     }
     Array.prototype.splice.apply(this,[0,0].concat(result) );
     EventDispatcher.call(this);
@@ -611,7 +543,7 @@ Element.prototype.splice= Array.prototype.splice;
  * @param object refObject
  * @returns {*}
  */
-Element.prototype.forEach=function(callback , refObject )
+Element.prototype.forEach=function forEach(callback , refObject )
 {
     var result;
     refObject=refObject || this;
@@ -646,7 +578,7 @@ Element.prototype.forEach=function(callback , refObject )
  * @param selector|HTMLElement element
  * @returns {*}
  */
-Element.prototype.current=function( elem )
+Element.prototype.current=function current( elem )
 {
     if( elem == null )return $get(this,"forEachCurrentItem") || this[0];
     if( typeof elem=== "string" )
@@ -655,7 +587,7 @@ Element.prototype.current=function( elem )
         $set(this,"forEachCurrentItem" , (elem && elem.length > 0 ? elem[0] : null) );
         $set(this,"forEachCurrentIndex",NaN);
 
-    }else if(  Element.isNodeElement( elem ) || Element.isWindow(elem) )
+    }else if(  Element.prototype.isNodeElement.call(elem) || Element.prototype.isWindow.call(elem) )
     {
         $set(this,"forEachCurrentItem",elem);
         $set(this,"forEachCurrentIndex",NaN);
@@ -688,7 +620,7 @@ accessor['property']={
  * @param value
  * @returns {Element}
  */
-Element.prototype.property=function(name, value )
+Element.prototype.property=function property(name, value )
 {
     name =  fix.attrMap[name] || name;
     var lower=name.toLowerCase();
@@ -716,9 +648,10 @@ Element.prototype.property=function(name, value )
  * @param prop
  * @returns {boolean}
  */
-Element.prototype.hasProperty=function(prop )
+Element.prototype.hasProperty=function hasProperty(prop )
 {
     var elem = this.current();
+    if( !elem )return false;
     return typeof elem.hasAttributes === 'function' ? elem.hasAttributes( prop ) : !!elem[prop];
 };
 
@@ -729,7 +662,7 @@ Element.prototype.hasProperty=function(prop )
  * @param value
  * @returns {*}
  */
-Element.prototype.data=function(name, value )
+Element.prototype.data=function data(name, value )
 {
     var write = typeof value !== "undefined";
     var type =  typeof name;
@@ -804,7 +737,7 @@ accessor['style']= {
                 if (fix.cssHooks[name] && typeof fix.cssHooks[name].set === "function") {
                     var obj = {};
                     fix.cssHooks[name].set.call(elem, obj, value);
-                    return serialize(obj, 'style');
+                    return System.serialize(obj, 'style');
                 }
                 return getStyleName(name) + ':' + value;
             });
@@ -829,7 +762,7 @@ accessor['style']= {
  * @param value
  * @returns {Element}
  */
-Element.prototype.style=function(name, value )
+Element.prototype.style=function style(name, value )
 {
     if( typeof name === 'string' && /^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/.test(name)  )
     {
@@ -838,7 +771,7 @@ Element.prototype.style=function(name, value )
     }
     else if( System.isObject(name) )
     {
-        value=serialize( name,'style');
+        value=System.serialize( name,'style');
         name='cssText';
     }
     return access.call(this,'style',name,value);
@@ -848,7 +781,7 @@ Element.prototype.style=function(name, value )
  * 显示元素
  * @returns {Element}
  */
-Element.prototype.show=function()
+Element.prototype.show=function show()
 {
     return this.forEach(function(){
         var type = this.data('display') || 'block';
@@ -860,7 +793,7 @@ Element.prototype.show=function()
  * 隐藏当前元素
  * @returns {Element}
  */
-Element.prototype.hide=function()
+Element.prototype.hide=function hide()
 {
     return this.forEach(function(){
         var d = this.style('display');
@@ -886,7 +819,7 @@ accessor['text']= {
  * 获取设置当前元素的文本内容。
  * @returns {string|Element}
  */
-Element.prototype.text=function(value )
+Element.prototype.text=function text(value )
 {
     return access.call(this,'text','text',value);
 };
@@ -907,7 +840,7 @@ accessor['value']= {
  * 获取设置表单元素的值。此方法只会对表单元素有用。
  * @returns {string|Element}
  */
-Element.prototype.value=function(value )
+Element.prototype.value=function value(value )
 {
     return access.call(this,'value','value',value);
 };
@@ -918,9 +851,10 @@ Element.prototype.value=function(value )
  * @param className
  * @returns {boolean}
  */
-Element.prototype.hasClass=function(className )
+Element.prototype.hasClass=function hasClass(className )
 {
     var elem = this.current();
+    if( !elem )return false;
     var value=elem['className'] || '';
     return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
 };
@@ -931,7 +865,7 @@ Element.prototype.hasClass=function(className )
  * @param className
  * @returns {Element}
  */
-Element.prototype.addClass=function(className )
+Element.prototype.addClass=function addClass(className )
 {
     if( typeof className !== "string" )
         throw new Error('invaild class name');
@@ -965,7 +899,7 @@ Element.prototype.addClass=function(className )
  * @param className
  * @returns {Element}
  */
-Element.prototype.removeClass=function(className )
+Element.prototype.removeClass=function removeClass(className )
 {
     var all = typeof className !== 'string';
     return this.forEach(function(elem){
@@ -996,7 +930,7 @@ Element.prototype.removeClass=function(className )
  * @param value
  * @returns {int|Element}
  */
-Element.prototype.width=function(value )
+Element.prototype.width=function width(value )
 {
     return access.call(this,'style','width',value);
 };
@@ -1006,7 +940,7 @@ Element.prototype.width=function(value )
  * @param value
  * @returns {int|Element}
  */
-Element.prototype.height=function(value )
+Element.prototype.height=function height(value )
 {
     return access.call(this,'style','height',value);
 };
@@ -1018,7 +952,7 @@ accessor['scroll']={
     get:function(prop){
         var e = this.defaultView || this.parentWindow || this;
         var p= 'scroll'+prop;
-        return Element.isWindow( e ) ? e[ prop.toLowerCase()==='top'?'pageYOffset':'pageXOffset'] || e.document.documentElement[p] || e.document.body[p] : e[p] ;
+        return Element.prototype.isWindow.call( e ) ? e[ prop.toLowerCase()==='top'?'pageYOffset':'pageXOffset'] || e.document.documentElement[p] || e.document.body[p] : e[p] ;
     },
     set:function(prop,newValue,obj){
         var e = this.defaultView || this.parentWindow || this;
@@ -1046,7 +980,7 @@ accessor['scroll']={
  * 获取设置滚动条顶部的位置
  * @param value
  */
-Element.prototype.scrollTop=function(value)
+Element.prototype.scrollTop=function scrollTop(value)
 {
     return access.call(this,'scroll','Top',value);
 };
@@ -1055,7 +989,7 @@ Element.prototype.scrollTop=function(value)
  * 获取设置滚动条左部的位置
  * @param value
  */
-Element.prototype.scrollLeft=function(value)
+Element.prototype.scrollLeft=function scrollLeft(value)
 {
     return access.call(this,'scroll','Left',value);
 };
@@ -1064,7 +998,7 @@ Element.prototype.scrollLeft=function(value)
  * 获取滚动条的宽度
  * @param value
  */
-Element.prototype.scrollWidth=function()
+Element.prototype.scrollWidth=function scrollWidth()
 {
     return access.call(this,'scroll','Width');
 };
@@ -1073,7 +1007,7 @@ Element.prototype.scrollWidth=function()
  * 获取滚动条的高度
  * @param value
  */
-Element.prototype.scrollHeight=function()
+Element.prototype.scrollHeight=function scrollHeight()
 {
     return access.call(this,'scroll','Height');
 };
@@ -1085,11 +1019,11 @@ Element.prototype.scrollHeight=function()
  * @param boolean force
  * @returns {left,top,right,bottom,width,height}
  */
-Element.prototype.getBoundingRect=function(force )
+Element.prototype.getBoundingRect=function getBoundingRect( force )
 {
     var value={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0,'width':0,'height':0};
     var elem= this.current();
-    if( Element.isWindow(elem) )
+    if( this.isWindow() )
     {
         value.left = elem.screenLeft || elem.screenX;
         value.top = elem.screenTop || elem.screenY;
@@ -1100,11 +1034,11 @@ Element.prototype.getBoundingRect=function(force )
         return value;
     }
 
-    if( !Element.isNodeElement(elem) )
+    if( !this.isNodeElement() )
         throw new Error('invalid elem. elem not is NodeElement');
 
     var doc =  elem.ownerDocument || elem, docElem=doc.documentElement;
-    this.current( Element.getWindow(doc) );
+    this.current( Element.prototype.getWindow.call(doc) );
     var scrollTop = this.scrollTop();
     var scrollLeft = this.scrollLeft();
     this.current( elem );
@@ -1165,7 +1099,7 @@ accessor['position']={
  * @param number val
  * @returns {number|Element}
  */
-Element.prototype.left=function(val )
+Element.prototype.left=function left(val )
 {
     return access.call(this,'position','left',val)
 };
@@ -1175,7 +1109,7 @@ Element.prototype.left=function(val )
  * @param number val
  * @returns {number|Element}
  */
-Element.prototype.top=function(val )
+Element.prototype.top=function top(val )
 {
     return access.call(this,'position','top',val)
 };
@@ -1185,7 +1119,7 @@ Element.prototype.top=function(val )
  * @param number val
  * @returns {number|Element}
  */
-Element.prototype.right=function(val )
+Element.prototype.right=function right(val )
 {
     return access.call(this,'position','right',val)
 };
@@ -1195,7 +1129,7 @@ Element.prototype.right=function(val )
  * @param number val
  * @returns {number|Element}
  */
-Element.prototype.bottom=function(val )
+Element.prototype.bottom=function bottom(val )
 {
     return access.call(this,'position','bottom',val)
 };
@@ -1221,7 +1155,7 @@ function point(left, top, local )
  *  @param top
  *  @returns {object} left top
  */
-Element.prototype.localToGlobal=function(left, top)
+Element.prototype.localToGlobal=function localToGlobal(left, top)
 {
     return point.call(this,left, top, true);
 };
@@ -1232,7 +1166,7 @@ Element.prototype.localToGlobal=function(left, top)
  *  @param top
  *  @returns {object}  left top
  */
-Element.prototype.globalToLocal=function(left, top )
+Element.prototype.globalToLocal=function globalToLocal(left, top )
 {
     return point.call(this,left, top);
 };
@@ -1244,7 +1178,7 @@ Element.prototype.globalToLocal=function(left, top )
  * @param step
  * @returns {Element}
  */
-Element.prototype.revert=function(step )
+Element.prototype.revert=function revert(step )
 {
     var reverts= this.__reverts__;
     if( reverts && reverts.length > 0 )
@@ -1263,7 +1197,7 @@ Element.prototype.revert=function(step )
  * @param selector
  * @returns {Element}
  */
-Element.prototype.find=function(selector )
+Element.prototype.find=function find(selector )
 {
     var ret=[];
     this.forEach(function(elem){
@@ -1277,7 +1211,7 @@ Element.prototype.find=function(selector )
  * @param selector
  * @returns {Element}
  */
-Element.prototype.parent=function(selector )
+Element.prototype.parent=function parent(selector )
 {
     return doMake.call( this, Array.prototype.unique.call( doRecursion.call(this,'parentNode',selector ) ) );
 };
@@ -1288,9 +1222,9 @@ Element.prototype.parent=function(selector )
  * @param selector
  * @returns {Element}
  */
-Element.prototype.parents=function(selector )
+Element.prototype.parents=function parents(selector )
 {
-    return doMake.call( this, DataArray( doRecursion.call(this,'parentNode',selector, true ) ).unique().toArray() );
+    return doMake.call( this, Array.prototype.unique.call( doRecursion.call(this,'parentNode',selector, true ) ) );
 };
 
 /**
@@ -1298,7 +1232,7 @@ Element.prototype.parents=function(selector )
  * @param selector
  * @returns {Element}
  */
-Element.prototype.prevAll=function(selector )
+Element.prototype.prevAll=function prevAll(selector )
 {
     return doMake.call( this, doRecursion.call(this,'previousSibling', selector, true ) );
 };
@@ -1308,7 +1242,7 @@ Element.prototype.prevAll=function(selector )
  * @param selector
  * @returns {Element}
  */
-Element.prototype.prev=function(selector )
+Element.prototype.prev=function prev(selector )
 {
     return doMake.call( this, doRecursion.call(this,'previousSibling', selector ) );
 };
@@ -1318,7 +1252,7 @@ Element.prototype.prev=function(selector )
  * @param selector
  * @returns {Element}
  */
-Element.prototype.nextAll=function(selector )
+Element.prototype.nextAll=function nextAll(selector )
 {
     return doMake.call( this, doRecursion.call(this,'nextSibling', selector , true ) );
 };
@@ -1328,7 +1262,7 @@ Element.prototype.nextAll=function(selector )
  * @param selector
  * @returns {Element}
  */
-Element.prototype.next=function(selector )
+Element.prototype.next=function next(selector )
 {
     return doMake.call( this, doRecursion.call(this,'nextSibling', selector ) );
 };
@@ -1338,7 +1272,7 @@ Element.prototype.next=function(selector )
  * @param selector
  * @returns {Element}
  */
-Element.prototype.siblings=function(selector )
+Element.prototype.siblings=function siblings(selector )
 {
     var results=[].concat( doRecursion.call(this,'previousSibling',selector,true) , doRecursion.call(this,'nextSibling',selector, true) );
     return doMake.call( this, results );
@@ -1349,7 +1283,7 @@ Element.prototype.siblings=function(selector )
  * @param selector 如果是 * 返回包括文本节点的所有元素。不指定返回所有HTMLElement元素。
  * @returns {Element}
  */
-Element.prototype.children=function(selector )
+Element.prototype.children=function children(selector )
 {
     if( typeof selector === 'undefined' )
     {
@@ -1359,14 +1293,14 @@ Element.prototype.children=function(selector )
     var results=[];
     this.forEach(function(element)
     {
-        if( !Element.isFrame( element ) && element.hasChildNodes() )
+        if( !this.isFrame() && element.hasChildNodes() )
         {
             var child = this.slice.call( element.childNodes );
             results =  is ? this.concat.call( results, Array.prototype.filter.call(child, selector ) ) :
                 this.concat.call( results, querySelector(selector,element,null,child) );
         }
     });
-    return doMake.call( this, DataArray(results).unique().toArray() );
+    return doMake.call( this, Array.prototype.unique.call(results) );
 };
 
 //========================操作元素===========================
@@ -1376,7 +1310,7 @@ Element.prototype.children=function(selector )
  * @param element
  * @returns {Element}
  */
-Element.prototype.wrap=function(element )
+Element.prototype.wrap=function wrap(element )
 {
     var is=System.isFunction( element );
     return this.forEach(function(elem)
@@ -1393,13 +1327,13 @@ Element.prototype.wrap=function(element )
  * @param selector
  * @returns {Element}
  */
-Element.prototype.unwrap=function(selector )
+Element.prototype.unwrap=function unwrap(selector )
 {
     var is= typeof selector === "undefined";
     return this.forEach(function(elem)
     {
         var parent= is ?  elem.parentNode : doRecursion.call(this,'parentNode',selector )[0];
-        if( parent && parent.ownerDocument && Element.contains( parent.ownerDocument.body, parent ) )
+        if( parent && parent.ownerDocument && Element.prototype.contains.call( parent.ownerDocument.body, parent ) )
         {
             var children=parent.hasChildNodes() ? parent.childNodes : [];
             if( parent.parentNode )
@@ -1422,7 +1356,7 @@ Element.prototype.unwrap=function(selector )
  * @param html
  * @returns {string | Element}
  */
-Element.prototype.html=function(html )
+Element.prototype.html=function html(html )
 {
     var outer = html === true;
     var write= !outer && typeof html !== "undefined";
@@ -1498,7 +1432,7 @@ Element.prototype.html=function(html )
  * @param childElemnet
  * @returns {Element}
  */
-Element.prototype.addChild=function(childElemnet )
+Element.prototype.addChild=function addChild(childElemnet )
 {
     return this.addChildAt( childElemnet,-1);
 };
@@ -1510,7 +1444,7 @@ Element.prototype.addChild=function(childElemnet )
  * @param index | refChild | fn(node,index,parent)  要添加到的索引位置
  * @returns {Element}
  */
-Element.prototype.addChildAt=function(childElemnet, index)
+Element.prototype.addChildAt=function addChildAt(childElemnet, index)
 {
     if( childElemnet instanceof Element )
     {
@@ -1530,29 +1464,24 @@ Element.prototype.addChildAt=function(childElemnet, index)
     //如果没有父级元素则设置上下文为父级元素
     if( this.length === 0 && !this.current() )
     {
-        var context = this.context;
+        var context = $get(this,"context");
         this.current( context === document ? document.body : context );
     }
 
     return this.forEach(function(parent)
     {
-        if( !Element.isHTMLElement( parent ) )
+        if( !this.isHTMLElement() )
         {
             throw new Error('invalid parent HTMLElement.');
         }
-
         try{
             var child=isElement ? childElemnet : createElement( childElemnet );
         }catch(e){
             throw new Error('The childElemnet not is HTMLElement');
         }
-
         if( child.parentNode !== parent  )
         {
-            if( child.parentNode )
-            {
-                this.removeChildAt( child );
-            }
+            if( child.parentNode )this.removeChildAt( child );
             this.current(parent);
             var refChild=index && index.parentNode && index.parentNode===parent ? index : null;
             !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
@@ -1570,7 +1499,7 @@ Element.prototype.addChildAt=function(childElemnet, index)
  * @param index | refChild | fn(node,index,parent)
  * @returns {Node|null}
  */
-Element.prototype.getChildAt=function(index )
+Element.prototype.getChildAt=function getChildAt( index )
 {
     return this.forEach(function(parent)
     {
@@ -1597,7 +1526,7 @@ Element.prototype.getChildAt=function(index )
  * @param childElemnet | selector
  * @returns {Number}
  */
-Element.prototype.getChildIndex=function(childElemnet )
+Element.prototype.getChildIndex=function getChildIndex( childElemnet )
 {
     if( typeof childElemnet==='string' )
     {
@@ -1619,7 +1548,7 @@ Element.prototype.getChildIndex=function(childElemnet )
  * @param childElemnet|selector
  * @returns {Element}
  */
-Element.prototype.removeChild=function(childElemnet )
+Element.prototype.removeChild=function removeChild( childElemnet )
 {
     if( typeof childElemnet==='string' )
     {
@@ -1644,10 +1573,11 @@ Element.prototype.removeChild=function(childElemnet )
  *        也可以是一个回调函数过滤要删除的子节点元素。
  * @returns {Element}
  */
-Element.prototype.removeChildAt=function(index )
+Element.prototype.removeChildAt=function removeChildAt(index)
 {
     var is=false;
-    if(  index && index.parentNode ){
+    if( typeof index === "object" && index.parentNode )
+    {
         this.current( index.parentNode );
         is=true;
     }else if( !System.isNumber( index ) )
@@ -1655,44 +1585,42 @@ Element.prototype.removeChildAt=function(index )
     return this.forEach(function(parent)
     {
         var child= is ? index : this.getChildAt( index );
-        if(  removeChild.call(this,parent,child) && is )
-            return this;
+        if( child.parentNode === parent )parent.removeChild(child);
+        if( is )return this;
     });
 };
 
-
 /**
- * 指定的选择器是否为当前作用域的子级
- * @param parent
+ * 测试指定的元素（或者是一个选择器）是否为当前元素的子级
  * @param child
  * @returns {boolean}
  */
-Element.contains=function(parent, child )
+Element.prototype.contains=function contains( child )
 {
-    if( Element.isNodeElement(child) )
+    var parent = this instanceof Element ? this.current() : this;
+    if( isNodeElement(child) )
     {
-        if('contains' in parent) {
-            return parent.contains( child ) && parent !== child;
-        }
-        else {
-            return !!(parent.compareDocumentPosition(child) & 16) && parent !== child ;
-        }
+        if('contains' in parent)return parent.contains( child ) && parent !== child;
+        return !!(parent.compareDocumentPosition(child) & 16) && parent !== child ;
     }
     return querySelector( child, parent ).length > 0;
-};
-
+}
 
 /**
  * 获取元素所在的窗口对象
  * @param elem
  * @returns {window|null}
  */
-Element.getWindow=function( elem )
+Element.prototype.getWindow=function getWindow()
 {
-    if( typeof elem !== "object" )return null;
-    elem= elem.ownerDocument || elem ;
-    return elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || window || null;
-};
+    var elem = this instanceof Element ? this.current() : this;
+    var ret = null;
+    if( elem ) {
+        elem = elem.ownerDocument || elem;
+        ret = elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow;
+    }
+    return ret ? ret : window || null;
+}
 
 //form elements
 var formPatternReg=/select|input|textarea|button/i;
@@ -1701,8 +1629,9 @@ var formPatternReg=/select|input|textarea|button/i;
  * 判断是否为一个表单元素
  * @returns {boolean}
  */
-Element.isFormElement=function(elem, exclude )
+Element.prototype.isForm=function isForm(exclude)
 {
+    var elem  = this instanceof Element ? this.current() : this;
     if( elem && typeof elem.nodeName ==='string' )
     {
         var ret=formPatternReg.test( elem.nodeName );
@@ -1721,8 +1650,9 @@ var ishtmlobject = typeof HTMLElement==='object';
  * 判断是否为一个HtmlElement类型元素,document 不属性于 HtmlElement
  * @returns {boolean}
  */
-Element.isHTMLElement=function(elem )
+Element.prototype.isHTMLElement=function isHTMLElement()
 {
+    var elem  = this instanceof Element ? this.current() : this;
     if( typeof elem !== "object" )return false;
     return ishtmlobject ? elem instanceof HTMLElement : ( elem.nodeType === 1 && typeof elem.nodeName === "string" );
 };
@@ -1732,8 +1662,9 @@ Element.isHTMLElement=function(elem )
  * document window 不属于节点类型元素
  * @returns {boolean}
  */
-Element.isNodeElement=function(elem)
+Element.prototype.isNodeElement=function isNodeElement()
 {
+    var elem  = this instanceof Element ? this.current() : this;
     if( typeof elem !== "object" ) return false;
     return typeof Node !== "undefined" ? elem instanceof Node :
         !!( elem.nodeType && typeof elem.nodeName === "string" && (typeof elem.tagName === "string" || elem.nodeType===9) );
@@ -1745,10 +1676,11 @@ Element.isNodeElement=function(elem)
  * @param element
  * @returns {boolean|*|boolean}
  */
-Element.isHTMLContainer=function( elem )
+Element.prototype.isHTMLContainer=function isHTMLContainer()
 {
+    var elem  = this instanceof Element ? this.current() : this;
     if( typeof elem !== "object" ) return false;
-    return Element.isHTMLElement(elem) || Element.isDocument(elem);
+    return Element.prototype.isHTMLElement.call(elem) || Element.prototype.isDocument.call(elem);
 };
 
 /**
@@ -1756,8 +1688,9 @@ Element.isHTMLContainer=function( elem )
  * @param element
  * @returns {boolean}
  */
-Element.isEventElement=function(elem)
+Element.prototype.isEventElement=function isEventElement()
 {
+    var elem  = this instanceof Element ? this.current() : this;
     return (elem && ( typeof elem.addEventListener === "function" || typeof elem.attachEvent=== "function" ) );
 };
 
@@ -1766,17 +1699,19 @@ Element.isEventElement=function(elem)
  * @param obj
  * @returns {boolean}
  */
-Element.isWindow=function( elem )
+Element.prototype.isWindow=function isWindow()
 {
-    return ( elem && elem === Element.getWindow(elem) );
+    var elem  = this instanceof Element ? this.current() : this;
+    return ( elem && elem === Element.prototype.getWindow.call(elem) );
 };
 
 /**
  * 决断是否为文档对象
  * @returns {*|boolean}
  */
-Element.isDocument=function(elem )
+Element.prototype.isDocument=function isDocument()
 {
+    var elem  = this instanceof Element ? this.current() : this;
     return elem && elem.nodeType===9;
 };
 
@@ -1784,212 +1719,13 @@ Element.isDocument=function(elem )
  * 判断是否为一个框架元素
  * @returns {boolean}
  */
-Element.isFrame=function( elem )
+Element.prototype.isFrame=function isFrame()
 {
+    var elem  = this instanceof Element ? this.current() : this;
     var nodename =getNodeName(elem);
     return (nodename === 'iframe' || nodename==='frame');
 };
 
-/**
- * 导入一个可执行的脚本文件。通常是 js,css 文件。
- * @param file 脚本的文件地址。
- * @param callback 成功时的回调函数。
- */
-Element.require=function(file , callback )
-{
-    var script;
-    if( typeof file !== 'string' )
-    {
-        script=file;
-        file= file.src || file.href;
-    }
-
-    var type = file.match(/\.(css|js)(\?.*?)?$/i);
-    if( !type )throw new Error('import script file format of invalid');
-
-    file+=( !type[2] ? '?t=' : '&t=')+Element.time();
-
-    type=type[1];
-    type=type.toLowerCase() === 'css' ? 'link' : 'script';
-
-    if( !script )
-    {
-        var head=document.getElementsByTagName('head')[0];
-        var ref=querySelector( type +':last,:last-child',head )[0];
-        ref = ref ? ref.nextSibling : null;
-        script=document.createElement( type );
-        head.insertBefore(script,ref);
-    }
-
-    script.onload=script.onreadystatechange=function(event)
-    {
-        if( !script.readyState || /loaded|complete/.test( script.readyState ) )
-        {
-            script.onload=script.onreadystatechange=null;
-            if( typeof callback ==='function' )
-                callback( event );
-        }
-    };
-
-    if( type==='link' )
-    {
-        script.setAttribute('rel', 'stylesheet');
-        script.setAttribute('type','text/css');
-        script.setAttribute('href', file );
-    }else
-    {
-        script.setAttribute('type','text/javascript');
-        script.setAttribute('src', file );
-    }
-};
-
-/**
- * @private
- */
-var animationSupport=null;
-
-/**
- * 判断是否支持css3动画
- * @returns {boolean}
- */
-Element.isAnimationSupport=function()
-{
-    if( animationSupport === null )
-    {
-        var prefix = fix.cssPrefixName;
-        var div =createElement('div');
-        var prop = prefix+'animation-play-state';
-        div.style[prop] = 'paused';
-        animationSupport = div.style[prop] === 'paused';
-    }
-    return animationSupport;
-};
-
-
-/**
- * @private
- */
-var createdAnimationStyle={};
-
-/**
- * @private
- */
-var defaultOptions= {
-    'duration':'1s',
-    'repeats':'1',
-    'reverse':'normal',
-    'delay':'0s',
-    'timing':'ease',
-    'state':'running',
-    'mode':'forwards'
-};
-
-/**
- * 生成css3样式动画
- * properties={
-*    '0%':'left:10px;',
-*    '100%':'left:100px;'
-* }
- */
-Element.CSS3Animation=function(properties, options )
-{
-    if( !Element.isAnimationSupport() )
-        return false;
-    options =Object.merge(defaultOptions,options || {});
-    var  css=[];
-    for( var i in properties )
-    {
-        if( typeof  properties[i] === "string" )
-        {
-            css.push( i + ' {');
-            css.push( properties[i] );
-            css.push( '}' );
-        }
-    }
-
-    var prefix = fix.cssPrefixName;
-    var stylename = 'A'+Element.crc32( css.join('') ) ;
-    if( createdAnimationStyle[ stylename ] !==true )
-    {
-        createdAnimationStyle[ stylename ]=true;
-        css.unshift('@'+prefix+'keyframes ' + stylename + '{');
-        css.push('}');
-        css.push( '.'+stylename+'{' );
-
-        var repeats = options.repeats < 0 ? 'infinite' : options.repeats;
-        var timing=options.timing.replace(/([A-Z])/,function(all,a){
-            return '-'+a.toLowerCase();
-        });
-
-        var param = {
-            'name':stylename,
-            'duration':options.duration,
-            'iteration-count': repeats,  //infinite
-            'delay':options.delay,
-            'fill-mode':options.mode,  //both backwards none forwards
-            'direction': options.reverse,  // alternate-reverse  reverse alternate normal
-            'timing-function': timing,  //ease  ease-in  ease-out  cubic-bezier  linear
-            'play-state':options.state //paused running
-        };
-        for( var p in  param )
-        {
-            css.push(prefix+'animation-'+p+':'+param[p]+';');
-        }
-        css.push('}');
-        css = css.join("\r\n");
-        var head = document.getElementsByTagName('head')[0];
-        var style = document.createElement('style');
-        style.setAttribute('id',stylename);
-        style.innerHTML= css;
-        head.appendChild( style );
-    }
-    return stylename;
-};
-
-/**
- * @private
- */
-var headStyle =null;
-
-/**
- * @param string style
- */
-Element.appendStyle=function(styleName, styleObject )
-{
-    if( headStyle=== null )
-    {
-        var head = document.getElementsByTagName('head')[0];
-        headStyle = document.createElement('style');
-        document.getElementsByTagName('head')[0].appendChild( headStyle );
-    }
-
-    if(System.isObject(styleObject) )
-    {
-        styleObject=serialize( styleObject, 'style' );
-    }
-
-    if( typeof styleObject === "string" )
-    {
-        if( System.env.platform( System.env.BROWSER_IE ) && System.env.version(9,'<') )
-        {
-            var styleName = styleName.split(',');
-            styleObject = styleObject.replace(/^\{/,'').replace(/\}$/,'');
-            for(var i=0; i<styleName.length; i++ )
-            {
-                headStyle.styleSheet.addRule(styleName[i], styleObject, -1);
-            }
-        }else
-        {
-            if (styleObject.charAt(0) !== '{')
-            {
-                styleObject = '{' + styleObject + '}';
-            }
-            headStyle.appendChild(document.createTextNode(styleName + styleObject));
-        }
-        return true;
-    }
-    return false;
-};
 
 // fix style name add prefix
 if( System.env.platform( System.env.BROWSER_FIREFOX ) && System.env.version(4) )
@@ -2141,5 +1877,139 @@ fix.cssHooks.width= {
 fix.cssHooks.height={
     get:function (style){return parseInt( fix.getsizeval.call(this,'Height') || style['height'] ) || 0;}
 };
+
+
+var Stylesheet = {};
+
+/**
+ * @private
+ */
+var animationSupport=null;
+
+/**
+ * 判断是否支持css3动画
+ * @returns {boolean}
+ */
+function isAnimationSupport()
+{
+    if( animationSupport === null )
+    {
+        var prefix = fix.cssPrefixName;
+        var div =createElement('div');
+        var prop = prefix+'animation-play-state';
+        div.style[prop] = 'paused';
+        animationSupport = div.style[prop] === 'paused';
+    }
+    return animationSupport;
+};
+
+/**
+ * @private
+ */
+var defaultOptions= {
+    'duration':'1s',
+    'repeats':'1',
+    'reverse':'normal',
+    'delay':'0s',
+    'timing':'ease',
+    'state':'running',
+    'mode':'forwards'
+};
+
+/**
+ * 生成css3样式动画
+ * properties={
+*    '0%':'left:10px;',
+*    '100%':'left:100px;'
+* }
+ */
+Stylesheet.createAnimationStyleSheet=function(stylename, properties, options )
+{
+    if( !isAnimationSupport() )return false;
+    options =Object.merge(defaultOptions,options || {});
+    var  css=[];
+    for( var i in properties )
+    {
+        if( typeof  properties[i] === "string" )
+        {
+            css.push( i + ' {');
+            css.push( properties[i] );
+            css.push( '}' );
+        }
+    }
+
+    var prefix = fix.cssPrefixName;
+    css.unshift('@'+prefix+'keyframes ' + stylename + '{');
+    css.push('}');
+    css.push( '.'+stylename+'{' );
+
+    var repeats = options.repeats < 0 ? 'infinite' : options.repeats;
+    var timing=options.timing.replace(/([A-Z])/,function(all,a){
+        return '-'+a.toLowerCase();
+    });
+
+    var param = {
+        'name':stylename,
+        'duration':options.duration,
+        'iteration-count': repeats,  //infinite
+        'delay':options.delay,
+        'fill-mode':options.mode,  //both backwards none forwards
+        'direction': options.reverse,  // alternate-reverse  reverse alternate normal
+        'timing-function': timing,  //ease  ease-in  ease-out  cubic-bezier  linear
+        'play-state':options.state //paused running
+    };
+    for( var p in  param )
+    {
+        css.push(prefix+'animation-'+p+':'+param[p]+';');
+    }
+    css.push('}');
+    return css.join("\r\n");
+};
+
+/**
+ * @private
+ */
+var headStyle =null;
+
+/**
+ * @param string style
+ */
+Stylesheet.addStyleSheet=function(styleName, styleSheetObject )
+{
+    if( headStyle=== null )
+    {
+        var head = document.getElementsByTagName('head')[0];
+        headStyle = document.createElement('style');
+        document.getElementsByTagName('head')[0].appendChild( headStyle );
+    }
+
+    if(System.isObject(styleSheetObject) )
+    {
+        styleSheetObject=System.serialize( styleSheetObject, 'style' );
+    }
+
+    if( typeof styleSheetObject === "string" )
+    {
+        if( System.env.platform( System.env.BROWSER_IE ) && System.env.version(9,'<') )
+        {
+            var styleName = styleName.split(',');
+            styleSheetObject = styleSheetObject.replace(/^\{/,'').replace(/\}$/,'');
+            for(var i=0; i<styleName.length; i++ )
+            {
+                headStyle.styleSheet.addRule(styleName[i], styleSheetObject, -1);
+            }
+        }else
+        {
+            if (styleSheetObject.charAt(0) !== '{')
+            {
+                styleSheetObject = '{' + styleSheetObject + '}';
+            }
+            headStyle.appendChild(document.createTextNode(styleName + styleSheetObject));
+        }
+        return true;
+    }
+    return false;
+};
+System.StyleSheel = Stylesheet;
 return Element;
 })(System,Sizzle);

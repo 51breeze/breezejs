@@ -638,7 +638,7 @@
      *        也可以是一个回调函数过滤要删除的子节点元素。
      * @returns {Breeze}
      */
-    Element.prototype.removeChildAt=function(index )
+    Element.prototype.removeChildAt=function( index )
     {
         var is=false;
         if(  index !== undefined && index.parentNode ){

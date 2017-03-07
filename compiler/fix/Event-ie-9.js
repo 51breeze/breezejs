@@ -39,7 +39,7 @@ if( System.env.platform('IE') && System.env.version(8) )
             {
                 if( !event )
                 {
-                   switch ( getReadyState( target ) )
+                   switch ( getReadyState( doc ) )
                    {
                        case 'loaded'   :
                        case 'complete' :

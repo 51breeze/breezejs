@@ -185,10 +185,12 @@ function define(name , descriptions , isInterface)
     if( typeof descriptions === "object" )
     {
         for (var prop in descriptions )classModule[prop] = descriptions[prop];
+        classModule.constructor=null;
         if( typeof descriptions.constructor === "function" )
         {
             descriptions.constructor.prototype= new Object();
             descriptions.constructor.prototype.constructor = classModule;
+            classModule.constructor = descriptions.constructor;
             //开放原型继承
             classModule.prototype = descriptions.constructor.prototype;
         }

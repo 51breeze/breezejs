@@ -39,16 +39,19 @@ public class Main extends B implements IProsess {
 
           function Main(jj)
           {
+
               EventDispatcher( document ).addEventListener( Event.READY , function (e) {
 
                   log( '=====ready=====');
 
                   Element('#container').addEventListener( MouseEvent.CLICK, function (e)
                   {
-                         log( '==========style =====event=====');
+                      log( '==========style =====event=====');
+
+
                       //   log( e.property, e.oldValue, e.newValue );
 
-                   //   this.style('backgroundColor','rgba(255,0,0,0.6)');
+                     //   this.style('backgroundColor','rgba(255,0,0,0.6)');
                      // log( this.height(), this.width() );
 
                   });
