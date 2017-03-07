@@ -5,7 +5,7 @@
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
  */
-(function(module, Sizzle){
+var Element = (function(System, Sizzle){
 "use strict";
 var fix={
     attrMap:{
@@ -261,12 +261,10 @@ function getStyleName( name )
  * @param mixed context  上下文
  * @returns []
  */
-function querySelector(selector, context, results, seed )
+var querySelector = typeof Sizzle === "function" ?  function querySelector(selector, context, results, seed) {
+    return Sizzle( selector, context, results, seed);
+} : function querySelector(selector, context, results, seed )
 {
-    if( typeof Sizzle === "function" )
-    {
-        return Sizzle( selector, context, results, seed);
-    }
     if( !(results instanceof Array) )
     {
         //如果选择器不是一个字符串
@@ -306,7 +304,6 @@ function querySelector(selector, context, results, seed )
     }
     return results;
 };
-
 
 /**
  * @type {RegExp}
@@ -2144,5 +2141,5 @@ fix.cssHooks.width= {
 fix.cssHooks.height={
     get:function (style){return parseInt( fix.getsizeval.call(this,'Height') || style['height'] ) || 0;}
 };
-module.Element = Element;
+return Element;
 })(System,Sizzle);

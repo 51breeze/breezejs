@@ -1,6 +1,7 @@
 const utils = require('./utils.js');
 const globals=['Object','Function','Array','String','Number','Boolean','Math','Date','RegExp','Error','ReferenceError','TypeError','SyntaxError','JSON','Reflect'];
 const contents=['var System','=','(function($',globals.join(',$'),'){\n'];
+const rootPath =  utils.getResolvePath( __dirname+'/../');
 contents.push('"use strict";\n');
 
 /**
@@ -15,23 +16,23 @@ contents.push('var System={};\n');
  */
 contents.push('var modules={};\n');
 
-function system( config )
+function combine( config )
 {
     /**
      * 全局对象
      */
-    contents.push( utils.getContents(__dirname + '/globals.js') );
+    contents.push( utils.getContents(rootPath + '/core/globals.js') );
 
     /**
      * 根据指定的版本加载对应的策略文件
      * @type {Array}
      */
-    var files = utils.getDirectoryFiles( __dirname+'/fix/' );
+    var files = utils.getDirectoryFiles( rootPath+'/fix/' );
     var fix_items={};
     for(var i in files )
     {
         var is=true;
-        var path = __dirname + '/fix/' + files[i];
+        var path = rootPath + '/fix/' + files[i];
         var info = utils.getFilenameByPath(path).split('-', 2);
         if( config.compat && typeof config.compat === 'object' && config.compat.hasOwnProperty( info[1] ) )
         {
@@ -50,7 +51,7 @@ function system( config )
     {
         var name = globals[prop];
         try {
-            contents.push(utils.getContents(__dirname + '/modules/' + name + '.js'));
+            contents.push(utils.getContents(rootPath + '/modules/' + name + '.js'));
             contents.push('\n');
             //加载对应模块的兼容策略文件
             if( fix_items[name] )
@@ -66,9 +67,6 @@ function system( config )
         }
     }
 
-
-
-
     /**
      * 内置模块
      * @type {string[]}
@@ -77,7 +75,7 @@ function system( config )
     for( var p in coreModule )
     {
         var name = coreModule[p];
-        contents.push( utils.getContents(__dirname + '/modules/'+name+'.js') );
+        contents.push( utils.getContents(rootPath + '/modules/'+name+'.js') );
         //加载对应模块的兼容策略文件
         if( fix_items[name] )
         {
@@ -98,31 +96,29 @@ function system( config )
         //ie 下需要使用的元素选择器
         if( config.compat==='*' || (typeof config.compat === "object" && config.compat.ie < 9 ) )
         {
-            contents.push( utils.getContents(__dirname + '/modules/client/Sizzle.js') );
+            contents.push( utils.getContents(rootPath + '/plus/Sizzle.js') );
         }
-        var files = utils.getDirectoryFiles( __dirname+'/modules/client/events/' );
+        var files = utils.getDirectoryFiles( rootPath+'/modules/client/' );
         for( var p in files )
         {
-            var path = __dirname + '/modules/client/events/'+files[p];
+            var path = rootPath + '/modules/client/'+files[p];
             var name = utils.getFilenameByPath( path )
             contents.push( utils.getContents(path) );
             contents.push('System.'+name+'='+name+';\n');
         }
-        contents.push( utils.getContents(__dirname + '/modules/client/Element.js') );
-        contents.push( utils.getContents(__dirname + '/modules/client/Window.js') );
-        contents.push( utils.getContents(__dirname + '/modules/client/Document.js') );
+        contents.push('System.window = window || {};\n');
+        contents.push('System.document = document || {};\n');
         contents.push('\n}\n');
     }
 
     /**
      * 模块注册器
      */
-    contents.push( utils.getContents(__dirname + '/module.js') );
+    contents.push( utils.getContents(rootPath + '/core/define.js') );
 
     /**
      * 返回系统对象
      */
-
     var g = globals.map(function(val) {
          if( val==='JSON' || val==='Reflect' )
          {
@@ -135,6 +131,6 @@ function system( config )
     contents.push('}(' + g.join(',') + '));\n');
     return contents.join('');
 }
-module.exports = system;
+module.exports = combine;
 
 

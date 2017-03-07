@@ -114,7 +114,6 @@ public class Main extends B implements IProsess {
         function database(name:String='123',type:Number=666):String{
             return '';
         }
-
-
+    
     }
 }

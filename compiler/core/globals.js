@@ -618,3 +618,89 @@ function sprintf()
     return str;
 }
 System.sprintf=sprintf;
+
+/**
+ * 把一个对象序列化为一个字符串
+ * @param object 要序列化的对象
+ * @param type   要序列化那种类型,可用值为：url 请求的查询串,style 样式字符串。 默认为 url 类型
+ * @param group  是否要用分组，默认是分组（只限url 类型）
+ * @return string
+ */
+function serialize(object, type , group )
+{
+    if( typeof object === "string" || !object )
+        return object;
+    var str=[],key,joint='&',separate='=',val='',prefix=isBoolean(group) ? null : group;
+    type = type || 'url';
+    group = ( group !== false );
+    if( type==='style' )
+    {
+        joint=';';
+        separate=':';
+        group=false;
+    }else if(type === 'attr' )
+    {
+        separate='=';
+        joint=' ';
+        group=false;
+    }
+    if(isObject(object,true) )for( key in object )
+    {
+        val=type === 'attr' ? '"' +object[key]+'"' : object[key];
+        key=prefix ? prefix+'[' + key +']' : key;
+        str=str.concat(  typeof val==='object' ?serialize( val ,type , group ? key : false ) : key + separate + val  );
+    }
+    return str.join( joint );
+};
+System.serialize=serialize;
+
+/**
+ * 将一个已序列化的字符串反序列化为一个对象
+ * @param str
+ * @returns {{}}
+ */
+function unserialize( str )
+{
+    var object={},index,joint='&',separate='=',val,ref,last,group=false;
+    if( /[\w\-]+\s*\=.*?(?=\&|$)/.test( str ) )
+    {
+        str=str.replace(/^&|&$/,'');
+        group=true;
+
+    }else if( /[\w\-\_]+\s*\:.*?(?=\;|$)/.test( str ) )
+    {
+        joint=';';
+        separate=':';
+        str=str.replace(/^;|;$/,'')
+    }
+
+    str=str.split( joint );
+    for( index in str )
+    {
+        val=str[index].split( separate );
+        if( group &&  /\]\s*$/.test( val[0] ) )
+        {
+            ref=object,last;
+            val[0].replace(/\w+/ig,function(key){
+                last=ref;
+                ref=!ref[ key ] ? ref[ key ]={} : ref[ key ];
+            });
+            last && ( last[ RegExp.lastMatch ]=val[1] );
+        }else
+        {
+            object[ val[0] ]=val[1];
+        }
+    }
+    return object;
+};
+System.unserialize=unserialize;
+
+/**
+ * 获取 1970 到现在的所有毫秒数
+ * @returns {number}
+ */
+function time()
+{
+    return new System.Date().getTime();
+}
+System.time = time;

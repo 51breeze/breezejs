@@ -2,25 +2,25 @@ const fs = require('fs');
 const root = process.cwd();
 const QS = require('querystring');
 const PATH = require('path');
-const Ruler = require('./Ruler.js');
+const Ruler = require('./core/ruler.js');
+const Utils = require('./core/utils.js');
 const globals=require('./descriptions/globals.js');
-const Utils = require('./lib/utils.js');
-const config = {
-    'suffix':'.as',
-    'main':'Main',
-    'root':root,
-    'cache':'off',
-    'cachePath':'./cache',
-    'debug':'on',
-    'browser':'enable',  //enable disable
-    'globals':globals,
-    'enableBlockScope':'on',
-    'reserved':['let','of'],
-    'minify':'off',
-    'compat':'*', // {'ie':8,'chrome':32.5}
-};
 const modules={};
 const uglify = require('uglify-js');
+const config = {
+    'suffix':'.as',            //需要编译文件的后缀
+    'main':'Main',             //需要运行的主文件
+    'cache':'off',             //是否需要开启缓存
+    'cachePath':'./cache',     //代码缓存路径
+    'debug':'on',              //是否需要开启调式
+    'browser':'enable',        //enable disable
+    'enableBlockScope':'on',   //是否启用块级域
+    'reserved':['let','of'],   //需要保护的关键字
+    'minify':'off',            //是否需要压缩
+    'compat':'*',              //要兼容的平台 {'ie':8,'chrome':32.5}
+};
+config.globals = globals;
+config.root = root;
 
 /**
  * 全局模块
@@ -47,7 +47,6 @@ function module(name, module)
     }
     return obj[ classname.toLowerCase() ] || globals[classname] || null;
 }
-
 
 /**
  * 返回文件的路径
@@ -2037,12 +2036,12 @@ function start()
 
     var mainfile = pathfile( config.main , config.suffix, config.lib );
     var filename = PATH.resolve(PATH.dirname( mainfile ),PATH.basename(mainfile,config.suffix)+'-min.js' );
-    var system =  require('./lib/system.js');
+    var combine =  require('./core/combine.js');
     var g = [];
     for(var key in globals)if(key!=='System')g.push(key);
     var content = [
         '(function(undefined){\n',
-        system(config),
+        combine(config),
         '\n',
         '(function('+ g.join(',')+'){\n',
         code.join(''),

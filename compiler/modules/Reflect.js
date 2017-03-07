@@ -294,7 +294,7 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
 /**
 @private
 */
-var __ieCheck__ = System.env.platform() === 'IE' && System.env.version(9);
+var __descCheck__ = System.env.platform('IE') && System.env.version(8);
 
 /**
  * @private
@@ -302,7 +302,7 @@ var __ieCheck__ = System.env.platform() === 'IE' && System.env.version(9);
 function $get(target, propertyKey, receiver)
 {
     var value = target[propertyKey];
-    if( __ieCheck__ && value instanceof Descriptor )
+    if( __descCheck__ && value instanceof Descriptor )
     {
         return value.get ? value.get.call(receiver || target) : value.value;
     }
@@ -315,7 +315,7 @@ function $get(target, propertyKey, receiver)
 function $set(target,propertyKey,value,receiver)
 {
     var desc = target[propertyKey];
-    if( __ieCheck__ && desc instanceof Descriptor )
+    if( __descCheck__ && desc instanceof Descriptor )
     {
         if( desc.writable=== false )throwError('reference','"'+propertyKey+'" is not writable');
         if( desc.set ){
