@@ -19,11 +19,6 @@ contents.push('var modules={};\n');
 function combine( config )
 {
     /**
-     * 全局对象
-     */
-    contents.push( utils.getContents(rootPath + '/core/globals.js') );
-
-    /**
      * 根据指定的版本加载对应的策略文件
      * @type {Array}
      */
@@ -43,6 +38,18 @@ function combine( config )
             fix_items[ info[0] ].push(path);
         }
     }
+
+    //全局对象需要依赖的控制台对象
+    if( fix_items.Console )
+    {
+        for( var f in fix_items.Console )contents.push( utils.getContents(fix_items.Console[f]) );
+    }
+    contents.push( utils.getContents(rootPath + '/core/globals.js') );
+
+    /**
+     * 全局对象
+     */
+    contents.push( utils.getContents(rootPath + '/core/globals.js') );
 
     /**
      * 构建全局对象模块

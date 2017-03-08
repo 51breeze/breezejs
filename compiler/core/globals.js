@@ -1,90 +1,4 @@
 /**
- * 控制台输出对象时先转成字符串
- * @param item
- * @returns {*}
- */
-
-(function (System,console) {
-
-var toString = function (items)
-{
-   var str=[];
-   for(var i=0; i<items.length; i++)
-   {
-       str.push( System.Object.prototype.valueOf.call(items[i]) );
-   }
-   return str.join(' ');
-}
-
-if( console===null )
-{
-    (function () {
-
-         var __container__=null;
-         function panel() {
-             if( System.Element && !__container__ )
-             {
-                var container = System.Element('<div />');
-                 container.style('border','solid 1px #ccc');
-                 container.width('100%');
-                 container.height(200);
-                 container.style('position','absolute');
-                 container.style('left','0px');
-                 container.style('bottom','0px');
-                 container.style('overflow','auto');
-                // container.bottom(0);
-                // container.left(0);
-                 __container__ = container;
-                 System.EventDispatcher( document ).addEventListener( System.Event.READY , function (e) {
-                     System.Element( document.body ).addChild( container );
-                 })
-             }
-             return __container__;
-         }  
-        console={
-            log:function log() {
-                var container = panel();
-                if( container ) {
-                    container.addChild( '<p style="line-height: 12px;padding: 3px 0px;margin: 0px;">' + toString(arguments) +'</p>' );
-                }
-            },
-            info:function info() {},
-            trace:function trace() {},
-            warn:function warn() {},
-            error:function error() {},
-            dir:function dir() {},
-            assert:function assert() {},
-            time:function time() {},
-            timeEnd:function timeEnd() {}
-        }
-    }());
-}
-
-System.log = function log(){
-    console.log( toString(arguments) );
-};
-System.info =function info(){
-    console.info( toString(arguments) );
-};
-System.trace = function trace(){
-    console.trace( toString(arguments) );
-};
-System.warn = function warn(){
-    console.warn( toString(arguments) );
-};
-System.error = function error(){
-    console.error( toString(arguments)  );
-};
-System.dir = function dir(){
-    console.dir( toString(arguments) );
-};
-System.assert = console.assert;
-System.time = console.time;
-System.timeEnd = console.timeEnd;
-
-}(System, typeof console === "undefined" ? null : console ));
-
-/**
  * 全局函数
  * @type {*|Function}
  */
@@ -99,7 +13,6 @@ System.unescape= unescape;*/
 System.isNaN= isNaN;
 System.parseFloat= parseFloat;
 System.parseInt= parseInt;
-
 
 /**
  * 环境参数配置
@@ -796,6 +709,45 @@ var crc32 = (function () {
 }());
 System.crc32 = crc32;
 
+/**
+ * 控制台
+ */
+(function (System,console)
+{
+    function toString(items)
+    {
+        var str=[];
+        for(var i=0; i<items.length; i++)str.push( System.Object.prototype.valueOf.call(items[i]) );
+        return str.join(' ');
+    }
+    if( !console )
+    {
+        console={};
+        console.trace=console.warn=console.error= console.dir=console.assert=console.time=console.timeEnd=console.info=console.log=function(){};
+    }
 
+    System.log = function log(){
+        console.log( toString(arguments) );
+    };
+    System.info =function info(){
+        console.info( toString(arguments) );
+    };
+    System.trace = function trace(){
+        console.trace( toString(arguments) );
+    };
+    System.warn = function warn(){
+        console.warn( toString(arguments) );
+    };
+    System.error = function error(){
+        console.error( toString(arguments)  );
+    };
+    System.dir = function dir(){
+        console.dir( toString(arguments) );
+    };
+    System.assert = console.assert;
+    System.time = console.time;
+    System.timeEnd = console.timeEnd;
+
+}(System, System.console));
 
 

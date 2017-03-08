@@ -157,7 +157,7 @@ syntax['import']=function (event)
         if( this.current.value==='*' && this.prev.value==='.' )
         {
             filename.pop();
-            var files = Utils.getDirectoryFiles( Utils.getResolvePath( this.config('lib'), filename.join('') ) );
+            var files = Utils.getDirectoryFiles( Utils.getResolvePath( this.config('path'), filename.join('') ) );
             files.forEach(function (a) {
                 importClass(null,filename.concat('.', Utils.getFilenameByPath(a) ),  s.scope() );
             })

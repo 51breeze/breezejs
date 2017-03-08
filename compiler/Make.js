@@ -1831,7 +1831,7 @@ function loadModuleDescription( file )
     module( file, {} );
 
     //获取源文件的路径
-    var sourcefile = pathfile(file, config.suffix, config.lib );
+    var sourcefile = pathfile(file, config.suffix, config.path );
 
     //检查源文件的状态
     var stat = fs.statSync( sourcefile );
@@ -1982,7 +1982,7 @@ function start()
     for( var i in needMakeModules )
     {
         var moduleObject = needMakeModules[i];
-        console.log('  Making ',  pathfile( getModuleName( moduleObject.parent().name(), moduleObject.name() )  , config.suffix, config.lib ) );
+        console.log('  Making ',  pathfile( getModuleName( moduleObject.parent().name(), moduleObject.name() )  , config.suffix, config.path ) );
         try {
             var data = makeModule(moduleObject);
             var cachefile = data.cachefile;
@@ -2034,7 +2034,7 @@ function start()
         code.push( str );
     });
 
-    var mainfile = pathfile( config.main , config.suffix, config.lib );
+    var mainfile = pathfile( config.main , config.suffix, config.path );
     var filename = PATH.resolve(PATH.dirname( mainfile ),PATH.basename(mainfile,config.suffix)+'-min.js' );
     var combine =  require('./core/combine.js');
     var g = [];
@@ -2077,19 +2077,22 @@ if( config.browser === 'enable' )
 }
 
 //检查是否有指定需要编译的源文件目录
-if( !config.lib  )
+if( !config.path  )
 {
-    if( config.make === root )
+    config.path = root;
+    if( config.main )
     {
-        console.log('not found lib path');
-        process.exit();
+        config.path = PATH.resolve( config.main+config.suffix );
+        config.main = PATH.basename( config.path, config.suffix );
+        //源码文件的根目录
+        config.path = PATH.resolve( config.path,'../' );
     }
-    config.lib = root;
 }
 
+
 //返回绝对路径
-config.lib = PATH.resolve( config.lib );
-config.cachePath = PATH.resolve(config.lib, config.cachePath);
+config.path = PATH.resolve( config.path );
+config.cachePath = PATH.resolve(config.path, config.cachePath);
 if( !fs.existsSync(config.cachePath) )fs.mkdirSync( config.cachePath );
 
 //如果指定的配置文件
@@ -2123,4 +2126,11 @@ if( !config.main )
     console.log('main file can not is empty');
     process.exit();
 }
+
+/*
+delete  config.globals;
+console.log( config );
+process.exit();
+*/
+
 start();

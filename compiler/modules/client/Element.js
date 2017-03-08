@@ -700,6 +700,21 @@ Element.prototype.data=function data(name, value )
     })
 };
 
+var rgbregex = /\s*rgba\(\s*(\d+)\,\s*(\d+)\,\s*(\d+)/i;
+var rgbToHex = function (value)
+{
+      var ret = value.match(rgbregex);
+      if( ret )
+      {
+          return [
+              '#',
+              ("0" + System.Number(ret[1] >> 0).toString(16) ).slice(-2),
+              ("0" + System.Number(ret[2] >> 0).toString(16) ).slice(-2),
+              ("0" + System.Number(ret[3] >> 0).toString(16) ).slice(-2),
+          ].join('');
+      }
+      return value;
+}
 
 /**
  * @private
@@ -712,8 +727,11 @@ accessor['style']= {
         return getter ? getter.call(this, currentStyle, name) : currentStyle[name];
     }
     ,set:function(name,value, obj ){
-
-        var type =/^\d+$/.test( System.trim(value) ) ? 'number' : typeof value;
+        var type = typeof value;
+        if( type === "string" ){
+            value = System.trim(value);
+            type = /^\d+$/.test( value ) ? 'number' : type;
+        }
         if( !this || !this.style || ( type === "number" && isNaN( value ) ) )return;
         var increment = type === "string" ? /^([\-+])=([\-+.\de]+)/.exec( value ) : null;
 
@@ -723,6 +741,9 @@ accessor['style']= {
             inc = parseFloat(inc) || 0;
             value = ( +( increment[1] + 1 ) * +increment[2] ) + inc;
             type = "number";
+        }else if(type==='string' && !fix.cssPrefixName && value.substr(0,5) === "rgba(" )
+        {
+            value = rgbToHex( value );
         }
 
         //添加单位
@@ -734,6 +755,10 @@ accessor['style']= {
         {
             var elem = this;
             value = value.replace(/([\w\-]+)\s*\:([^\;]*)/g, function (all, name, value) {
+                if( !fix.cssPrefixName && value.substr(0,5) === "rgba(" )
+                {
+                    value = rgbToHex( value );
+                }
                 if (fix.cssHooks[name] && typeof fix.cssHooks[name].set === "function") {
                     var obj = {};
                     fix.cssHooks[name].set.call(elem, obj, value);
@@ -750,8 +775,7 @@ accessor['style']= {
             {
                 this.style[ orgname ] = value;
             }
-        } catch (e) {
-        }
+        } catch (e) {}
         return StyleEvent.CHANGE;
     }
 };
@@ -819,7 +843,7 @@ accessor['text']= {
  * 获取设置当前元素的文本内容。
  * @returns {string|Element}
  */
-Element.prototype.text=function text(value )
+Element.prototype.text=function text( value )
 {
     return access.call(this,'text','text',value);
 };
@@ -840,9 +864,9 @@ accessor['value']= {
  * 获取设置表单元素的值。此方法只会对表单元素有用。
  * @returns {string|Element}
  */
-Element.prototype.value=function value(value )
+Element.prototype.value=function value( val )
 {
-    return access.call(this,'value','value',value);
+    return access.call(this,'value','value',val);
 };
 
 
@@ -1088,7 +1112,20 @@ accessor['position']={
         return obj.getBoundingRect()[ prop ];
     },
     set:function(prop,newValue,obj){
-        if( obj.style('position')==='static' )obj.style('position','relative');
+
+       /* var elem = obj.current();
+        if( elem.parentNode )
+        {
+            obj.current( elem.parentNode )
+            if( obj.style('position')==='static' ){
+                obj.style('position','relative');
+            }
+            obj.current( elem );
+        }*/
+        if( obj.style('position')==='static' )
+        {
+            obj.style('position','absolute');
+        }
         return obj.style(prop,parseInt(newValue) || 0 );
     }
 };
@@ -1353,34 +1390,34 @@ Element.prototype.unwrap=function unwrap(selector )
 
 /**
  * 获取或者设置 html
- * @param html
+ * @param htmlObject
  * @returns {string | Element}
  */
-Element.prototype.html=function html(html )
+Element.prototype.html=function html( htmlObject )
 {
-    var outer = html === true;
-    var write= !outer && typeof html !== "undefined";
+    var outer = htmlObject === true;
+    var write= !outer && typeof htmlObject !== "undefined";
     if( !write && this.length < 1 ) return '';
     return this.forEach(function(elem)
     {
         if( !write )
         {
-            html=elem.innerHTML;
+            htmlObject=elem.innerHTML;
             if( outer )
             {
                 if( typeof elem.outerHTML==='string' )
                 {
-                    html=elem.outerHTML;
+                    htmlObject=elem.outerHTML;
                 }else
                 {
                     var cloneElem=cloneNode( elem, true);
                     if( cloneElem )
                     {
-                        html=document.createElement( 'div' ).appendChild( cloneElem ).innerHTML;
+                        htmlObject=document.createElement( 'div' ).appendChild( cloneElem ).innerHTML;
                     }
                 }
             }
-            return html;
+            return htmlObject;
         }
 
         if( elem.hasChildNodes() )
@@ -1393,20 +1430,20 @@ Element.prototype.html=function html(html )
             }
         }
 
-        if( typeof html === "string" )
+        if( typeof htmlObject === "string" )
         {
-            html = System.trim( html );
+            htmlObject = System.trim( htmlObject );
             try{
-                elem.innerHTML = html;
-                dispatchElementEvent.call(this,elem,html,ElementEvent.ADD)
+                elem.innerHTML = htmlObject;
+                dispatchElementEvent.call(this,elem,htmlObject,ElementEvent.ADD)
             }catch(e)
             {
                 var nodename = getNodeName( elem );
-                if( !new RegExp("^<"+nodename).exec(html) )
+                if( !new RegExp("^<"+nodename).exec(htmlObject) )
                 {
-                    html= System.sprintf('<%s>%s</%s>',nodename,html,nodename);
+                    htmlObject= System.sprintf('<%s>%s</%s>',nodename,htmlObject,nodename);
                 }
-                var child= createElement( html );
+                var child= createElement( htmlObject );
                 var deep =  nodename === 'tr' ? 2 : 1,d=0;
                 while( d < deep && child.firstChild )
                 {
@@ -1420,7 +1457,7 @@ Element.prototype.html=function html(html )
 
         }else
         {
-            this.addChild(html);
+            this.addChild(htmlObject);
             return true;
         }
     });

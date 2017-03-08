@@ -51,7 +51,12 @@ public class Main extends B implements IProsess {
 
                       //   log( e.property, e.oldValue, e.newValue );
 
-                     //   this.style('backgroundColor','rgba(255,0,0,0.6)');
+                      this.style('backgroundColor','rgba(255,0,0,0.6)');
+                      this.style('border','solid #ff0000 1px');
+                      this.width( 400 );
+                      this.height( 300 );
+                      this.bottom(0);
+
                      // log( this.height(), this.width() );
 
                   });
