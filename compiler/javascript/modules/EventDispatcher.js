@@ -12,44 +12,47 @@ function EventDispatcher( target )
     {
         if( typeof target !=='object' || !(  System.typeOf( target.addEventListener ) === "function" || System.typeOf( target.attachEvent )=== "function" ) )
         {
-            throwError('type', 'target is not "EventDispatcher"');
+            System.throwError('type', 'target is not "EventDispatcher"');
         }
-        Object.defineProperty(this,'target', {value:target});
+        this.target = target;
     }
 };
 System.EventDispatcher=EventDispatcher;
 EventDispatcher.prototype=new Object();
 EventDispatcher.prototype.constructor=EventDispatcher;
 
-//@public EventDispatcher.prototype.target non-writable;
+//@public EventDispatcher.prototype.target non-writable non-enumerable;
 EventDispatcher.prototype.target=null;
+
+//@private EventDispatcher.prototype.__events__ non-writable non-enumerable;
+EventDispatcher.prototype.__events__=null;
 
 /**
  * 判断是否有指定类型的侦听器
  * @param type
  * @returns {boolean}
  */
-EventDispatcher.prototype.hasEventListener=function( type  )
+EventDispatcher.prototype.hasEventListener=function( type )
 {
-    var target = $get(this,'target') || this;
+    var target = this.target || this;
     var events;
     var len = target.length >> 0;
     if( len > 0 ){
-        while(len>0)
+        while(len>0 && target[len--] )
         {
-            events = $get( target[len--],'__events__');
+            events =  target[len].__events__;
             if( events && Object.prototype.hasOwnProperty.call(events,type) )
             {
-                events =$get(events,type)
+                events =events[type];
                 return events && events.length > 0;
             }
         }
         return false;
     }
-    events = $get( target,'__events__');
+    events = target.__events__;
     if( events && Object.prototype.hasOwnProperty.call(events,type) )
     {
-        events =$get(events,type)
+        events =events[type];
         return events && events.length > 0;
     }
     return false;
@@ -64,13 +67,13 @@ EventDispatcher.prototype.hasEventListener=function( type  )
  */
 EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,priority,reference)
 {
-    if( typeof type !== 'string' )throwError('type','Invalid event type.')
+    if( typeof type !== 'string' )System.throwError('type','Invalid event type.')
     if( typeof callback !== 'function' )throwError('type','Invalid callback function.')
     var listener=new Listener(type,callback,useCapture,priority,reference,this);
-    var target = $get(this,"target") || this;
+    var target = this.target || this;
     var len = target.length >> 0;
     if( len > 0 ){
-        while(len>0)addEventListener(target[--len], listener);
+        while(len>0 && target[--len])addEventListener(target[len], listener);
         return this;
     }
     addEventListener(target, listener);
@@ -85,10 +88,10 @@ EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,pri
  */
 EventDispatcher.prototype.removeEventListener=function(type,listener)
 {
-    var target= $get(this,"target") || this;
+    var target= this.target || this;
     var len = target.length >> 0;
     if( len > 0 ){
-        while(len>0)removeEventListener( target[--len], type, listener, this);
+        while(len>0 && target[--len] )removeEventListener( target[len], type, listener, this);
         return true;
     }
     return removeEventListener(target,type,listener,this);
@@ -102,12 +105,12 @@ EventDispatcher.prototype.removeEventListener=function(type,listener)
 EventDispatcher.prototype.dispatchEvent=function( event )
 {
     if( !(event instanceof Event) )throwError('type','invalid event.');
-    var target = $get(this,"target") || this;
+    var target = this.target || this;
     var len = target.length >> 0;
     if( len > 0 ){
-        while(len>0)
+        while(len>0 && target[--len] )
         {
-            event.target = event.currentTarget = target[--len];
+            event.target = event.currentTarget = target[len];
             dispatchEvent(event);
         }
         return !event.immediatePropagationStopped;
@@ -124,15 +127,17 @@ EventDispatcher.prototype.dispatchEvent=function( event )
  */
 function addEventListener(target, listener )
 {
+    if( target==null )System.throwError('reference','this is null or not defined');
+
     //获取事件数据集
     var type = listener.type;
-    var events = $get( target, '__events__');
+    var events = target.__events__;
 
     //如果没有则定义
     if( !events )
     {
         events = {};
-        Object.defineProperty(target,'__events__',{value:events});
+        target.__events__=events;
     }
 
     //获取指定事件类型的引用
@@ -171,8 +176,10 @@ function addEventListener(target, listener )
  */
 function removeEventListener(target, type, listener , dispatcher )
 {
+    if( target==null )System.throwError('reference','this is null or not defined');
+
     //获取事件数据集
-    var events = $get(target,'__events__');
+    var events = target.__events__;
     if( !Object.prototype.hasOwnProperty.call(events,type) )
     {
         return false;
@@ -213,7 +220,7 @@ function removeEventListener(target, type, listener , dispatcher )
  * @param listeners
  * @returns {boolean}
  */
-function dispatchEvent( e, currentTarget)
+function dispatchEvent( e, currentTarget )
 {
     if( !(e instanceof Event) ){
         e = Event.create( e );
@@ -221,7 +228,7 @@ function dispatchEvent( e, currentTarget)
     }
     if( !e || !e.currentTarget )throw new Error('invalid event target')
     var target = e.currentTarget;
-    var events = $get(target ,'__events__')
+    var events = target.__events__;
     if( !Object.prototype.hasOwnProperty.call(events, e.type) )return true;
     events = $get( events, e.type ).slice(0);
     var length= 0,listener,thisArg;
@@ -252,7 +259,7 @@ function Listener(type,callback,useCapture,priority,reference,dispatcher)
     this.type=type;
     this.callback=callback;
     this.useCapture=!!useCapture;
-    this.priority=parseInt(priority) || 0;
+    this.priority=priority>>0;
     this.reference=reference || null;
     this.dispatcher=dispatcher;
 };

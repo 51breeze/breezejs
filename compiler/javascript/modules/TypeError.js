@@ -4,11 +4,13 @@
  * @param line
  * @param filename
  * @constructor
+ * @require Error
  */
-var TypeError = function TypeError( message , line, filename )
+function TypeError( message , line, filename )
 {
     Error.call(this, message , line, filename);
     this.type='TypeError';
 };
+System.TypeError=TypeError;
 TypeError.prototype = new Error();
 TypeError.prototype.constructor=TypeError;

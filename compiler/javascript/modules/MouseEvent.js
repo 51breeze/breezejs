@@ -3,12 +3,14 @@
  * @param src
  * @param props
  * @constructor
+ * @require Event,Math;
  */
-var MouseEvent = function MouseEvent( type, bubbles,cancelable  )
+function MouseEvent( type, bubbles,cancelable  )
 {
     if( !(this instanceof MouseEvent) )return new MouseEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
 };
+System.MouseEvent=MouseEvent;
 MouseEvent.prototype=new Event();
 MouseEvent.prototype.constructor=MouseEvent;
 MouseEvent.prototype.pageX= NaN;

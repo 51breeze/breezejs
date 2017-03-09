@@ -4,11 +4,13 @@
  * @param line
  * @param filename
  * @constructor
+ * @require Error;
  */
-var ReferenceError = function ReferenceError( message , line, filename )
+function ReferenceError( message , line, filename )
 {
     Error.call(this, message , line, filename);
     this.type='ReferenceError';
 };
+System.ReferenceError =ReferenceError;
 ReferenceError.prototype = new Error();
 ReferenceError.prototype.constructor=ReferenceError;

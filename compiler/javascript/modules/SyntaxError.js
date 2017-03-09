@@ -4,11 +4,13 @@
  * @param line
  * @param filename
  * @constructor
+ * @require Error;
  */
-var SyntaxError = function SyntaxError( message , line, filename )
+function SyntaxError( message , line, filename )
 {
     Error.call(this, message , line, filename);
     this.type='SyntaxError';
 };
+System.SyntaxError = SyntaxError;
 SyntaxError.prototype = new Error();
 SyntaxError.prototype.constructor=SyntaxError;

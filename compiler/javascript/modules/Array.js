@@ -6,14 +6,13 @@
 * @require Object;
 */
 function Array(length) {
-    if (!(this instanceof Array))return $Array.apply(new Array(), Array.prototype.slice.call(arguments, 0));
+    if (!(this instanceof Array))return $Array.apply( new Array(), Array.prototype.slice.call(arguments, 0));
     this.length = 0;
     return $Array.apply(this, Array.prototype.slice.call(arguments, 0));
 };
+System.Array = Array;
 Array.prototype = new Object();
 Array.prototype.constructor = Array;
-
-//@public Array.prototype.length non-writable
 Array.prototype.length = 0;
 Array.prototype.slice = $Array.prototype.slice;
 Array.prototype.splice = $Array.prototype.splice;
@@ -26,21 +25,8 @@ Array.prototype.unshift = $Array.prototype.unshift;
 Array.prototype.sort = $Array.prototype.sort;
 Array.prototype.reverse = $Array.prototype.reverse;
 Array.prototype.toString = $Array.prototype.toString;
-Array.prototype.valueOf = $Array.prototype.valueOf;
-
-/**
- * 返回指定元素的索引位置
- * @param searchElement
- * @returns {number}
- */
-if (typeof Array.prototype.indexOf !== "function") {
-    Array.prototype.indexOf = function indexOf(searchElement) {
-        var i = 0;
-        for (; i < this.length; i++)if (this[i] === searchElement)
-            return i;
-        return -1;
-    };
-}
+Array.prototype.indexOf = $Array.prototype.indexOf;
+Array.prototype.map = $Array.prototype.map;
 
 /**
  * 循环对象中的每一个属性，只有纯对象或者是一个数组才会执行。
@@ -49,13 +35,15 @@ if (typeof Array.prototype.indexOf !== "function") {
  * 如果返回 false 则退出循环
  * @returns {Object}
  */
-Array.prototype.forEach = function (callback, thisArg) {
-    if (!isFunction(callback))module.throwError('type', callback + " is not a function");
-    var it = new Iterator(this);
+Array.prototype.forEach = function forEach(callback, thisArg)
+{
+    if (!System.isFunction(callback))System.throwError('type', callback + " is not a function");
+    if (this==null)System.throwError('reference','this is null or not defined');
+    var obj = System.Object(this);
+    var len = obj.length >>> 0;
+    var k = 0;
     thisArg = thisArg || this;
-    for (; it.seek();) {
-        if (callback.call(thisArg, it.current().value, it.current().key, it.items) === false)return this;
-    }
+    while (k<len)if (k in obj)callback.call(thisArg, obj[k++], k, obj);
     return this;
 }
 
@@ -65,17 +53,16 @@ Array.prototype.forEach = function (callback, thisArg) {
  * @param thisArg
  * @returns {Array}
  */
-Array.prototype.filter = function (callback, thisArg) {
-    if (typeof callback !== 'function')throwError('type', 'callback must be a function');
-    var items = new Array();
-    var i = 0;
-    if (isObject(this)) {
-        for (i in this)if (callback.call(thisArg, this[i], i))items.push(this[i]);
-    } else {
-        var it = new Iterator(this);
-        var len = it.items.length;
-        for (; i < len; i++)if (callback.call(thisArg, it.items[i].value, it.items[i].key))items.push(it.items[i].value);
-    }
+Array.prototype.filter = function filter(callback, thisArg)
+{
+    if (typeof callback !== 'function')System.throwError('type', 'callback must be a function');
+    if (this==null)System.throwError('reference','this is null or not defined');
+    var items = new System.Array();
+    var obj = System.Object(this);
+    var len = obj.length >>> 0;
+    var k = 0;
+    thisArg = thisArg || this;
+    while (k<len)if( k in obj && callback.call(thisArg, obj[k++], k, obj) )items.push(obj[k]);
     return items;
 }
 
@@ -83,14 +70,18 @@ Array.prototype.filter = function (callback, thisArg) {
  * 返回一个唯一元素的数组
  * @returns {Array}
  */
-Array.prototype.unique = function () {
-    var arr = this.slice(0);
-    for (var i = 0; i < arr.length; i++) {
-        for (var b = i + 1; b < arr.length; b++) {
-            if (arr[i] === arr[b]) {
-                arr.splice(b, 1);
-            }
-        }
+Array.prototype.unique = function unique()
+{
+    if (this==null)System.throwError('reference','this is null or not defined');
+    var obj = System.Object(this);
+    var arr = Array.prototype.slice.call(obj,0);
+    var i=0;
+    var b;
+    var len = arr.length >>> 0;
+    for(;i<len;i++)
+    {
+        b = i+1;
+        for (;b<len;b++)if(arr[i]===arr[b])arr.splice(b, 1);
     }
     return arr;
 };
@@ -102,18 +93,20 @@ Array.prototype.unique = function () {
  * @param end
  * @returns {Object}
  */
-Array.prototype.fill = function fill(value, start, end) {
-    var o = isArray(this) ? this : [];
-    var len = o.length >> 0;
-    var relativeStart = start >> 0;
-    var k = relativeStart < 0 ? Math.max(len + relativeStart, 0) : Math.min(relativeStart, len);
-    var relativeEnd = end === undefined ? len : end >> 0;
-    var final = relativeEnd < 0 ? Math.max(len + relativeEnd, 0) : Math.min(relativeEnd, len);
+Array.prototype.fill = function fill(value, start, end)
+{
+    if (this==null)System.throwError('reference','this is null or not defined');
+    if (!(System.is(this, System.Array) || System.isArray(this)))System.throwError('reference','this is not Array');
+    var len = this.length >>> 0;
+    var relativeStart = start >>> 0;
+    var k = relativeStart < 0 ? System.Math.max(len + relativeStart, 0) : System.Math.min(relativeStart, len);
+    var relativeEnd = end == null ? len : end >> 0;
+    var final = relativeEnd < 0 ? System.Math.max(len + relativeEnd, 0) : System.Math.min(relativeEnd, len);
     while (k < final) {
-        o[k] = value;
+        this[k] = value;
         k++;
     }
-    return obj;
+    return this;
 };
 
 /**
@@ -122,12 +115,20 @@ Array.prototype.fill = function fill(value, start, end) {
  * @param thisArg
  * @returns {*}
  */
-Array.prototype.find = function find(callback, thisArg) {
-    if (typeof callback !== 'function')throwError('type', 'callback must be a function');
-    var it = new Iterator(this);
-    var len = it.items.length;
-    for (var i = 0; i < len; i++)if (callback.call(thisArg, it.items[i].value, it.items[i].key)) {
-        return it.items[i].value;
+Array.prototype.find = function find(callback, thisArg)
+{
+    if (typeof callback !== 'function')System.throwError('type', 'callback must be a function');
+    if (this==null)System.throwError('reference','this is null or not defined');
+    var obj = System.Object(this);
+    var len = obj.length >>> 0;
+    var k = 0;
+    thisArg = thisArg || this;
+    while (k<len)if( k in obj)
+    {
+        if( callback.call(thisArg, obj[k++], k, obj) )
+        {
+            return obj[k];
+        }
     }
-    return undefined;
+    return;
 };

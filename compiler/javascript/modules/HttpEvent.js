@@ -1,8 +1,18 @@
-var HttpEvent = function HttpEvent( type, bubbles,cancelable ){
+/**
+ * HttpEvent
+ * @param type
+ * @param bubbles
+ * @param cancelable
+ * @returns {HttpEvent}
+ * @constructor
+ * @require Event
+ */
+function HttpEvent( type, bubbles,cancelable ){
     if( !(this instanceof HttpEvent) )return new HttpEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
 };
+System.HttpEvent=HttpEvent;
 HttpEvent.prototype=new Event();
 HttpEvent.prototype.data=null;
 HttpEvent.prototype.url=null;

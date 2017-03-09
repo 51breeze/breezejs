@@ -1,9 +1,18 @@
-var KeyboardEvent = function KeyboardEvent( type, bubbles,cancelable  )
+/**
+ * @param type
+ * @param bubbles
+ * @param cancelable
+ * @returns {KeyboardEvent}
+ * @constructor
+ * @require Event
+ */
+function KeyboardEvent( type, bubbles,cancelable  )
 {
     if( !(this instanceof KeyboardEvent) )return new KeyboardEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
 };
+System.KeyboardEvent=KeyboardEvent;
 KeyboardEvent.prototype=new Event();
 KeyboardEvent.prototype.constructor=KeyboardEvent;
 KeyboardEvent.prototype.keycode=null;
@@ -19,6 +28,7 @@ Event.registerEvent(function ( type , target, originalEvent )
         case KeyboardEvent.KEY_UP :
         case KeyboardEvent.KEY_DOWN :
             var event =new KeyboardEvent( type );
+            event.originalEvent = originalEvent;
             event.keycode = originalEvent.keyCode || originalEvent.keycode;
             return event;
     }

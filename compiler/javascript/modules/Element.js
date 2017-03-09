@@ -4,7 +4,7 @@
  * Copyright © 2015 BreezeJS All rights reserved.
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
- * @require System,Object,EventDispatcher,Document,Window,StyleEvent,PropertyEvent,ElementEvent
+ * @require System,Object,Array,EventDispatcher,Document,Window,StyleEvent,PropertyEvent,ElementEvent,Math
  */
 var fix={
     attrMap:{
@@ -499,7 +499,7 @@ function Element(selector, context)
     }
     if( context )
     {
-        Object.defineProperty(this,'context',{value:context});
+        this.context = context;
     }
     var result=[];
     if( selector )
@@ -522,13 +522,15 @@ function Element(selector, context)
     }
     Array.prototype.splice.apply(this,[0,0].concat(result) );
     EventDispatcher.call(this);
-    Object.defineProperty(this,'forEachCurrentItem',{writable:true,value:null});
-    Object.defineProperty(this,'forEachCurrentIndex',{writable:true,value:NaN});
+    this.forEachCurrentItem = null;
+    this.forEachCurrentIndex = NaN;
 }
 Element.prototype= new EventDispatcher();
 Element.prototype.constructor = Element;
 Element.prototype.context = undefined;
+//@private Element.prototype.forEachCurrentItem
 Element.prototype.forEachCurrentItem=undefined;
+//@private Element.prototype.forEachCurrentIndex
 Element.prototype.forEachCurrentIndex=NaN;
 Element.prototype.length=0;
 Element.prototype.slice= Array.prototype.slice;
@@ -546,10 +548,10 @@ Element.prototype.forEach=function forEach(callback , refObject )
 {
     var result;
     refObject=refObject || this;
-    var current = $get(this,'forEachCurrentItem');
+    var current = this.forEachCurrentItem;
     if( current  )
     {
-        result=callback.call( refObject ,current,$get(this,"forEachCurrentIndex") );
+        result=callback.call( refObject ,current,this.forEachCurrentIndex );
     }else
     {
         var items=this.slice(0),
@@ -558,14 +560,14 @@ Element.prototype.forEach=function forEach(callback , refObject )
         for( ; index < len ; index++ )
         {
             current = items[ index ];
-            $set(this,"forEachCurrentItem",current);
-            $set(this,"forEachCurrentIndex",index);
+           this.forEachCurrentItem=current;
+           this.forEachCurrentIndex=index;
             result=callback.call( refObject ,current,index);
             if( result !== undefined )
                 break;
         }
-        $set(this,"forEachCurrentItem",null);
-        $set(this,"forEachCurrentIndex",NaN);
+        this.forEachCurrentItem=null;
+        this.forEachCurrentIndex=NaN;
     }
     return typeof result === 'undefined' ? this : result;
 };
@@ -579,22 +581,22 @@ Element.prototype.forEach=function forEach(callback , refObject )
  */
 Element.prototype.current=function current( elem )
 {
-    if( elem == null )return $get(this,"forEachCurrentItem") || this[0];
+    if( elem == null )return this.forEachCurrentItem || this[0];
     if( typeof elem=== "string" )
     {
-        elem=querySelector(elem, $get(this,"context") || document );
-        $set(this,"forEachCurrentItem" , (elem && elem.length > 0 ? elem[0] : null) );
-        $set(this,"forEachCurrentIndex",NaN);
+        elem=querySelector(elem, this.context || document );
+        this.forEachCurrentItem=(elem && elem.length > 0 ? elem[0] : null);
+        this.forEachCurrentIndex=NaN;
 
     }else if(  Element.prototype.isNodeElement.call(elem) || Element.prototype.isWindow.call(elem) )
     {
-        $set(this,"forEachCurrentItem",elem);
-        $set(this,"forEachCurrentIndex",NaN);
+       this.forEachCurrentItem=elem;
+       this.forEachCurrentIndex=NaN;
 
     }else
     {
-        $set(this,"forEachCurrentItem",null);
-        $set(this,"forEachCurrentIndex",NaN);
+        this.forEachCurrentItem=null;
+        this.forEachCurrentIndex=NaN;
     }
     return this;
 };
@@ -637,7 +639,7 @@ Element.prototype.property=function property(name, value )
 
     }else if( lower === 'style' )
     {
-        throw new Error('the style property names only use style method to operate in property');
+        System.throwError('error', 'the style property names only use style method to operate in property');
     }
     return access.call(this,'property',name,value);
 };
@@ -731,13 +733,13 @@ accessor['style']= {
             value = System.trim(value);
             type = /^\d+$/.test( value ) ? 'number' : type;
         }
-        if( !this || !this.style || ( type === "number" && isNaN( value ) ) )return;
+        if( !this || !this.style || ( type === "number" && System.isNaN( value ) ) )return;
         var increment = type === "string" ? /^([\-+])=([\-+.\de]+)/.exec( value ) : null;
 
         //增量值
         if (increment) {
             var inc = obj.style(name);
-            inc = parseFloat(inc) || 0;
+            inc = System.parseFloat(inc) || 0;
             value = ( +( increment[1] + 1 ) * +increment[2] ) + inc;
             type = "number";
         }else if(type==='string' && !fix.cssPrefixName && value.substr(0,5) === "rgba(" )
@@ -1125,7 +1127,7 @@ accessor['position']={
         {
             obj.style('position','absolute');
         }
-        return obj.style(prop,parseInt(newValue) || 0 );
+        return obj.style(prop,newValue>>0);
     }
 };
 
@@ -1214,7 +1216,7 @@ Element.prototype.globalToLocal=function globalToLocal(left, top )
  * @param step
  * @returns {Element}
  */
-Element.prototype.revert=function revert(step )
+Element.prototype.revert=function revert(step)
 {
     var reverts= this.__reverts__;
     if( reverts && reverts.length > 0 )
@@ -1493,7 +1495,7 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
     }
 
     if( index===undefined )
-        throw new Error('Invalid param the index');
+        System.throwError('error','Invalid param the index');
 
     var isElement= childElemnet && childElemnet.nodeType && typeof childElemnet.nodeName === 'string';
 
@@ -1508,12 +1510,12 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
     {
         if( !this.isHTMLElement() )
         {
-            throw new Error('invalid parent HTMLElement.');
+            System.throwError('error','invalid parent HTMLElement.');
         }
         try{
             var child=isElement ? childElemnet : createElement( childElemnet );
         }catch(e){
-            throw new Error('The childElemnet not is HTMLElement');
+            System.throwError('error','The childElemnet not is HTMLElement');
         }
         if( child.parentNode !== parent  )
         {
@@ -1831,7 +1833,7 @@ fix.cssHooks.radialGradient=fix.cssHooks.linearGradient={
                     deg = deg[1];
                     value.splice(0,1);
                 }
-                deg=parseFloat(deg) || 0;
+                deg=System.parseFloat(deg) || 0;
             }
             var color = [];
             for(var i=0; i<value.length; i++)
@@ -1840,7 +1842,7 @@ fix.cssHooks.radialGradient=fix.cssHooks.linearGradient={
                 if( i===0 )color.push("from("+item[0]+")");
                 if( !(i===0 || i===value.length-1 ) || typeof item[1] !== "undefined"  )
                 {
-                    var num = (parseFloat(item[1]) || 0) / 100;
+                    var num = (item[1]>>0) / 100;
                     color.push( "color-stop("+num+","+item[0]+")" );
                 }
                 if( i===value.length-1 )
@@ -1906,12 +1908,12 @@ fix.cssHooks.radialGradient=fix.cssHooks.linearGradient={
 
 //add get width hooks
 fix.cssHooks.width= {
-    get:function(style){ return parseInt( fix.getsizeval.call(this,'Width') || style['width'] ) || 0 }
+    get:function(style){ return ( fix.getsizeval.call(this,'Width') || style['width'] ) >> 0; }
 };
 
 //add get height hooks
 fix.cssHooks.height={
-    get:function (style){return parseInt( fix.getsizeval.call(this,'Height') || style['height'] ) || 0;}
+    get:function (style){return ( fix.getsizeval.call(this,'Height') || style['height'] ) >> 0;}
 };
 
 

@@ -1,9 +1,9 @@
 /**
  * JSON 对象构造器
  * @constructor
+ *
  */
-var JSON = function JSON(){ if(this instanceof JSON)throwError('JSON is not constructor.'); };
-(function () {
+function JSON(){ if(this instanceof JSON)System.throwError('JSON is not constructor.'); };
 var escMap = {'"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f', '\n': '\\n', '\r': '\\r', '\t': '\\t'};
 var escRE = /[\\"\u0000-\u001F\u2028\u2029]/g;
 function escFunc(m) {return escMap[m] || '\\u' + (m.charCodeAt(0) + 0x10000).toString(16).substr(1);};
@@ -19,10 +19,10 @@ JSON.stringify = function(value)
         var tmp = [];
         if (typeof value.toJSON === 'function') {
             return JSON.stringify( value.toJSON() );
-        } else if ( isArray(value) ) {
+        } else if ( System.isArray(value) ) {
             for (var i = 0; i < value.length; i++)tmp.push( JSON.stringify( value[i] ) );
             return '['+tmp.join(',')+']';
-        } else if ( isObject(value,true) ) {
+        } else if ( System.isObject(value,true) ) {
             var items = getEnumerableProperties.call(value);
             for( var i =0; i<items.length; i++ )tmp.push( JSON.stringify(items[i].key)+':'+JSON.stringify(items[i].value) );
             return '{' + tmp.join(', ') + '}';
@@ -30,4 +30,3 @@ JSON.stringify = function(value)
     }
     return '"' + value.toString().replace(escRE, escFunc) + '"';
 };
-}());

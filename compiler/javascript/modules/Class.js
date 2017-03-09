@@ -4,6 +4,6 @@
  * @constructor
  * @require System,Object;
  */
-var Class = function Class(){};
+function Class(){};
 Class.prototype = new Object();
 System.Class = Class;

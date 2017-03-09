@@ -4,15 +4,8 @@
 * Copyright © 2015 BreezeJS All rights reserved.
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
+* @require System,Object,Array,EventDispatcher,Http,HttpEvent,DataSourceEvent,Math;
 */
-
-/**
- * 数据源
- * @param options
- * @returns {DataSource}
- * @constructor
- * @require System,Object,EventDispatcher,Http,DataSourceEvent;
- */
 function DataSource( options )
 {
     if( !(this instanceof DataSource) )return new DataSource(options);
@@ -81,7 +74,7 @@ DataSource.prototype.options=function( options )
 {
     if( typeof options !== "undefined" )
     {
-        if( Breeze.isObject(options) )
+        if( System.isObject(options) )
         {
             this.__options__ = Object.merge(true,this.__options__, options);
         }
@@ -155,7 +148,7 @@ DataSource.prototype.source=function( source )
                 }
 
                 var data = event.data;
-                var total = parseInt( data[totalProfile] ) || 0;
+                var total = data[totalProfile] >> 0;
                 if ( total > 0 ) {
                     this.predicts( total );
                 }
@@ -717,7 +710,7 @@ var dosynch = function( data, action, index, setting )
 
     var param  = setting.param || {};
     param[ setting.actionProfile ] = action;
-    param = Breeze.serialize(param,'url');
+    param = System.serialize(param,'url');
     url = /\?/.test(url) ? url+'&'+param : url+'?'+param;
 
     lastSynch.send( url, data , setting.method );

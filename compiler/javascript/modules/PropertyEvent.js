@@ -4,12 +4,14 @@
  * @param bubbles
  * @param cancelable
  * @constructor
+ * @require Event
  */
-var PropertyEvent = function PropertyEvent( type, bubbles,cancelable ){
+function PropertyEvent( type, bubbles,cancelable ){
     if( !(this instanceof PropertyEvent) )return new PropertyEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
 };
+System.PropertyEvent=PropertyEvent;
 PropertyEvent.prototype=new Event();
 PropertyEvent.prototype.property=null;
 PropertyEvent.prototype.newValue=null;

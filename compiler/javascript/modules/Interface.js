@@ -1,6 +1,8 @@
 /**
  * 接口构造函数
  * @constructor
+ * @require Object;
  */
-var Interface = function Interface(){};
+function Interface(){};
+System.Interface=Interface;
 Interface.prototype = new Object();

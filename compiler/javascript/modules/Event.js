@@ -11,7 +11,7 @@ function Event( type, bubbles, cancelable )
 {
     if ( !(this instanceof Event) )
         return new Event(  type, bubbles,cancelable );
-    if( typeof type1==="string" )throwError('type','event type is not string');
+    if( typeof type !=="string" )throwError('type','event type is not string');
     this.type = type;
     this.bubbles = !(bubbles===false);
     this.cancelable = !(cancelable===false);
@@ -139,50 +139,48 @@ Event.type = function(type, flag )
     return Event.fix.map[ type ] ? Event.fix.map[ type ] : Event.fix.prefix+type.toLowerCase();
 };
 
-(function () {
+var eventModules=[];
 
-    var eventModules=[];
+//@private Event.registerEvent;
+Event.registerEvent = function registerEvent( callback )
+{
+    eventModules.push( callback );
+}
 
-    //@private Event.registerEvent;
-    Event.registerEvent = function registerEvent( callback )
-    {
-        eventModules.push( callback );
-    }
+/*
+ * 根据原型事件创建一个Event
+ * @param event
+ * @returns {Event}
+ * @private Event.create;
+ */
+Event.create = function create( originalEvent )
+{
+    originalEvent=originalEvent ? originalEvent : (typeof window === "object" ? window.event : null);
+    var event=null;
+    var i=0;
+    if( !originalEvent )System.throwError('type','Invalid event');
+    var type = originalEvent.type;
+    var target = originalEvent.srcElement || originalEvent.target;
+    target = target && target.nodeType===3 ? target.parentNode : target;
+    var currentTarget =  originalEvent.currentTarget || target;
+    if( typeof type !== "string" )System.throwError('type','Invalid event type');
+    type = Event.type( type, true );
+    while ( i<eventModules.length && !(event=eventModules[i++]( type, target, originalEvent )));
+    if( !(event instanceof Event) )event = new Event( type );
+    event.type=type;
+    event.target=target;
+    event.currentTarget = currentTarget;
+    event.bubbles = !!originalEvent.bubbles;
+    event.cancelable = !!originalEvent.cancelable;
+    event.originalEvent = originalEvent;
+    event.timeStamp = originalEvent.timeStamp;
+    event.relatedTarget= originalEvent.relatedTarget;
+    event.altkey= !!originalEvent.altkey;
+    event.button= originalEvent.button;
+    event.ctrlKey= !!originalEvent.ctrlKey;
+    event.shiftKey= !!originalEvent.shiftKey;
+    event.metaKey= !!originalEvent.metaKey;
+    return event;
+};
 
-    /**
-     * 根据原型事件创建一个Breeze Event
-     * @param event
-     * @returns {Event}
-     * @private Event.create;
-     */
-    Event.create = function create( originalEvent )
-    {
-        originalEvent=originalEvent ? originalEvent  : (typeof window === "object" ? window.event : null);
-        var event=null;
-        var i=0;
-        if( !originalEvent )System.throwError('type','Invalid event');
-        var type = originalEvent.type;
-        var target = originalEvent.srcElement || originalEvent.target;
-        target = target && target.nodeType===3 ? target.parentNode : target;
-        var currentTarget =  originalEvent.currentTarget || target;
-        if( typeof type !== "string" )System.throwError('type','Invalid event type');
-        type = Event.type( type, true );
-        while ( i<eventModules.length && !(event =eventModules[i++]( type, target, originalEvent )));
-        if( !(event instanceof Event) )event = new Event( type );
-        event.type= type;
-        event.target=target;
-        event.currentTarget = currentTarget;
-        event.bubbles = !!originalEvent.bubbles;
-        event.cancelable = !!originalEvent.cancelable;
-        event.originalEvent = originalEvent;
-        event.timeStamp = originalEvent.timeStamp;
-        event.relatedTarget= originalEvent.relatedTarget;
-        event.altkey= !!originalEvent.altkey;
-        event.button= originalEvent.button;
-        event.ctrlKey= !!originalEvent.ctrlKey;
-        event.shiftKey= !!originalEvent.shiftKey;
-        event.metaKey= !!originalEvent.metaKey;
-        return event;
-    };
-}());
 

@@ -6,13 +6,14 @@
  * @constructor
  * @require Object
  */
-var Error = function Error( message , line, filename )
+function Error( message , line, filename )
 {
     this.message = message;
     this.line=line;
     this.filename = filename;
     this.type='Error';
 };
+System.Error=Error;
 Error.prototype = new Object();
 Error.prototype.constructor=Error;
 Error.prototype.line=null;

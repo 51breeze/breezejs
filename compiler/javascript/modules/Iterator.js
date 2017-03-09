@@ -2,26 +2,38 @@
  * 迭代构造器
  * @param target
  * @constructor
+ * @require Object
  */
-var Iterator = function Iterator( target )
+function Iterator( target )
 {
     if( System.is(target,Iterator) )return target;
     if( !(this instanceof Iterator) ) return new Iterator(target);
-    this.items = getEnumerableProperties.call(target);
+    this.target=target;
     return this;
 };
-Iterator.current=null;
+System.Iterator=Iterator;
 Iterator.prototype = new Object();
 Iterator.prototype.items = null;
+Iterator.prototype.target = null;
 Iterator.prototype.cursor = -1;
 Iterator.prototype.constructor = Iterator;
+
+/**
+ * 获取对象可枚举的属性
+ * @returns {Array}
+ */
+Iterator.prototype.getEnumerableProperties=function getEnumerableProperties()
+{
+    return Object.prototype.getEnumerableProperties.call(this.target || this);
+}
 
 /**
  * 将指针向前移动一个位置并返回当前元素
  * @returns {*}
  */
-Iterator.prototype.seek= function seek()
+Iterator.prototype.seek=function seek()
 {
+    if( this.items===null )this.items = this.getEnumerableProperties();
     if( this.items.length <= this.cursor+1 )return false;
     return this.items[ ++this.cursor ];
 }
@@ -77,6 +89,7 @@ Iterator.prototype.move=function move( cursor )
  */
 Iterator.prototype.reset=function reset()
 {
+    this.items=null;
     this.cursor = -1;
     return this;
 }
