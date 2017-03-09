@@ -45,4 +45,4 @@
         timeEnd:function timeEnd() {}
     }
 
-}(System, typeof console !== "undefined" ? console : null));
+}(System, typeof Console !== "undefined" ? Console : null));

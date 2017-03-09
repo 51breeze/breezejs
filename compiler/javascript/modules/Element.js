@@ -4,9 +4,8 @@
  * Copyright © 2015 BreezeJS All rights reserved.
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
+ * @require System,Object,EventDispatcher,Document,Window,StyleEvent,PropertyEvent,ElementEvent
  */
-var Element = (function(System, Sizzle){
-"use strict";
 var fix={
     attrMap:{
         'tabindex'       : 'tabIndex',
@@ -2048,5 +2047,4 @@ Stylesheet.addStyleSheet=function(styleName, styleSheetObject )
     return false;
 };
 System.StyleSheel = Stylesheet;
-return Element;
-})(System,Sizzle);
+System.Element = Element;

@@ -4,13 +4,15 @@
  * @param bubbles
  * @param cancelable
  * @constructor
+ * @require System,Event
  */
-var ElementEvent = function ElementEvent( type, bubbles,cancelable )
+function ElementEvent( type, bubbles,cancelable )
 {
     if( !(this instanceof ElementEvent) )return new ElementEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
 };
+System.ElementEvent = ElementEvent;
 ElementEvent.prototype=new Event();
 ElementEvent.prototype.parent=null;
 ElementEvent.prototype.child=null;

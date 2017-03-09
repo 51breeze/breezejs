@@ -52,6 +52,16 @@ function getFilenameByPath( path )
 utils.getFilenameByPath=getFilenameByPath;
 
 /**
+ * 判断文件是否存在
+ * @param filepath
+ * @returns {*}
+ */
+function isFileExists( filepath ) {
+    return fs.existsSync( filepath );
+}
+utils.isFileExists = isFileExists;
+
+/**
  * 判断是否为一个有效的运算符
  * @param o
  * @returns {boolean}
@@ -491,5 +501,4 @@ function showMem()
     console.log('Process: heapTotal '+byteFormat(mem.heapTotal) + ' heapUsed ' + byteFormat(mem.heapUsed) + ' rss ' + byteFormat(mem.rss));
 }
 utils.showMem = showMem;
-
- module.exports = utils;
+module.exports = utils;

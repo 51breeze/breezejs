@@ -41,4 +41,4 @@ for(var i=0; i<1000000; i++ ){
     o.env.version();
 }
 
-console.log( new Date().getTime() - a );
+Console.log( new Date().getTime() - a );

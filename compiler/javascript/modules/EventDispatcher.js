@@ -3,8 +3,9 @@
  * @param HTMLElement|EventDispatcher target 需要代理事件的目标对象
  * @returns {EventDispatcher}
  * @constructor
+ * @require System,Object,Event
  */
-var EventDispatcher = function EventDispatcher( target )
+function EventDispatcher( target )
 {
     if( !(this instanceof EventDispatcher) )return new EventDispatcher( target );
     if( target )
@@ -16,10 +17,12 @@ var EventDispatcher = function EventDispatcher( target )
         Object.defineProperty(this,'target', {value:target});
     }
 };
+System.EventDispatcher=EventDispatcher;
 EventDispatcher.prototype=new Object();
 EventDispatcher.prototype.constructor=EventDispatcher;
+
+//@public EventDispatcher.prototype.target non-writable;
 EventDispatcher.prototype.target=null;
-(function(){
 
 /**
  * 判断是否有指定类型的侦听器
@@ -234,8 +237,6 @@ function dispatchEvent( e, currentTarget)
     return true;
 };
 
-
-
 /**
  * 事件侦听器
  * @param type
@@ -263,4 +264,3 @@ Listener.prototype.priority=0;
 Listener.prototype.callback=null;
 Listener.prototype.currentTarget=null;
 Listener.prototype.type=null;
-}());

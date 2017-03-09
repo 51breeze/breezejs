@@ -2036,21 +2036,9 @@ function start()
 
     var mainfile = pathfile( config.main , config.suffix, config.path );
     var filename = PATH.resolve(PATH.dirname( mainfile ),PATH.basename(mainfile,config.suffix)+'-min.js' );
-    var combine =  require('./core/combine.js');
-    var g = [];
-    for(var key in globals)if(key!=='System')g.push(key);
-    var content = [
-        '(function(undefined){\n',
-        combine(config),
-        '\n',
-        '(function('+ g.join(',')+'){\n',
-        code.join(''),
-        'delete System.define;\n',
-        'var main=System.getDefinitionByName("'+config.main+'");\n',
-        'Reflect.construct(main);\n',
-        '})(System.'+g.join(',System.')+');\n',
-        '})();'].join('');
-
+    var syntax = 'javascript';
+    var combine = require( './'+syntax+'/combine.js');
+    var content = combine(config, code.join('') );
     if( config.minify ==='on' )
     {
         var result = uglify.minify(content, {

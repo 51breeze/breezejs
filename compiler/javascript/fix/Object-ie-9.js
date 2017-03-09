@@ -69,19 +69,19 @@ function Descriptor( desc )
     this.configurable = !!desc.configurable;
     if (typeof desc.value !== "undefined")
     {
-        if(desc.get || desc.set || this.get || this.set)throwError('type','value and accessor can only has one');
+        if(desc.get || desc.set || this.get || this.set)System.throwError('type','value and accessor can only has one');
         this.value = desc.value;
     }
     if ( typeof desc.get !== "undefined" )
     {
-        if( typeof desc.get !== "function" )throwError('type','getter accessor is not function');
-        if( typeof desc.value !== "undefined" || typeof this.value !== "undefined")throwError('type','value and accessor can only one');
+        if( typeof desc.get !== "function" )System.throwError('type','getter accessor is not function');
+        if( typeof desc.value !== "undefined" || typeof this.value !== "undefined")System.throwError('type','value and accessor can only one');
         this.get = desc.get;
     }
     if ( typeof desc.set !== "undefined" )
     {
-        if( typeof desc.set !== "function" )throwError('type','setter accessor is not function');
-        if( typeof desc.value !== "undefined" || typeof this.value !== "undefined" || this.writable===false )throwError('type','value and accessor and writable can only one');
+        if( typeof desc.set !== "function" )System.throwError('type','setter accessor is not function');
+        if( typeof desc.value !== "undefined" || typeof this.value !== "undefined" || this.writable===false )System.throwError('type','value and accessor and writable can only one');
         this.set = desc.set;
     }
     return this;

@@ -2,8 +2,9 @@
  * 函数构造器
  * @returns {*}
  * @constructor
+ * @import System,Array
  */
-var Function = function Function() {
+function Function() {
     return $Function.apply(this, Array.prototype.slice.call(arguments,0) );
 };
 Function.prototype = new $Function();

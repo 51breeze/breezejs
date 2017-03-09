@@ -7,7 +7,7 @@
  */
 
 
-define('components/DataRender',['./Template','../DataSource','../events/DataSourceEvent','./Pagination'],
+define('components/DataRender',['./Template','../compiler/javascript/modules/DataSource','../events/DataSourceEvent','./Pagination'],
 function(Template, DataSource, DataSourceEvent, Pagination)
 {
     "use strict";

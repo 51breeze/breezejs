@@ -3,27 +3,18 @@
  * @param value
  * @returns {*}
  * @constructor
+ * @require System;
  */
-var Object = function Object( value )
+function Object( value )
 {
     if ( value != null )return $Object(value);
     if( !(this instanceof Object) ) return new Object();
     return this;
 };
+System.Object = Object;
 Object.prototype = new $Object();
 Object.prototype.constructor=Object;
 Object.create = $Object.create;
-
-/**
- * @private
- * 设置对象的原型链
- * @returns {Object}
- */
-var $setPrototypeOf = $Object.setPrototypeOf || function setPrototypeOf(obj, proto)
-{
-    obj.__proto__ = proto;
-    return obj;
-}
 
 /**
  * 合并其它参数到指定的 target 对象中
@@ -33,7 +24,7 @@ var $setPrototypeOf = $Object.setPrototypeOf || function setPrototypeOf(obj, pro
  * @param ...valueObj object 待合并到目标源上的对象
  * @returns Object
  */
-Object.merge = function()
+Object.merge =function merge()
 {
     var options, name, src, copy, copyIsArray, clone,
         target = arguments[0] || {},
@@ -87,6 +78,22 @@ Object.merge = function()
 }
 
 /**
+ * @private
+ * 设置对象的原型链
+ * @returns {Object}
+ */
+var $setPrototypeOf = $Object.setPrototypeOf || function setPrototypeOf(obj, proto)
+{
+    obj.__proto__ = proto;
+    return obj;
+}
+
+/**
+ * @internal Object.isPrototypeOf
+ */
+Object.setPrototypeOf = $setPrototypeOf;
+
+/**
  * 指示 Object 类的实例是否在指定为参数的对象的原型链中
  * @param theClass
  * @returns {Boolean}
@@ -95,15 +102,15 @@ var $isPrototypeOf = $Object.prototype.isPrototypeOf;
 Object.prototype.isPrototypeOf = function( theClass )
 {
     var proto = Object.getPrototypeOf(this);
-    var obj = this instanceof Class ? this : $get(proto,"constructor");
-    if( obj instanceof Class )
+    var obj = this instanceof System.Class ? this : $get(proto,"constructor");
+    if( obj instanceof System.Class )
     {
         var classObj = theClass;
         while ( classObj )
         {
             if (classObj === obj)return true;
             classObj = $get(classObj,"extends");
-            if( !(classObj instanceof Class) && Object === obj )
+            if( !(classObj instanceof System.Class) && Object === obj )
             {
                 return true;
             }
@@ -121,8 +128,8 @@ Object.prototype.isPrototypeOf = function( theClass )
 var $hasOwnProperty = $Object.prototype.hasOwnProperty;
 Object.prototype.hasOwnProperty = function( name )
 {
-    var objClass = this instanceof Class ? this : $get(this,"constructor");
-    if( objClass instanceof Class )
+    var objClass = this instanceof System.Class ? this : $get(this,"constructor");
+    if( objClass instanceof System.Class )
     {
         var isstatic = objClass === this;
         var desc;
@@ -142,7 +149,7 @@ Object.prototype.hasOwnProperty = function( name )
                 }
             }
             objClass = $get(objClass,"extends");
-            if( !(objClass instanceof Class) )
+            if( !(objClass instanceof System.Class) )
             {
                 return !!(objClass||Object).prototype[propertyKey];
             }
@@ -162,8 +169,8 @@ Object.prototype.hasOwnProperty = function( name )
 var $propertyIsEnumerable=$Object.prototype.propertyIsEnumerable;
 Object.prototype.propertyIsEnumerable = function( name )
 {
-    var obj = this instanceof Class ? this : $get(this,"constructor");
-    if( obj instanceof Class )
+    var obj = this instanceof System.Class ? this : $get(this,"constructor");
+    if( obj instanceof System.Class )
     {
         //动态创建的属性才可以枚举
         if( $get(obj,"dynamic")===true && obj !== this )
@@ -176,7 +183,7 @@ Object.prototype.propertyIsEnumerable = function( name )
                     if( !$hasOwnProperty.call(proto,name) )return true;
                     return $get( $get(proto,name),"id")==='dynamic' && $get( $get( proto,name),"enumerable") !== false;
                 }
-            }while ( (obj = $get(obj,"extends") ) && $get(obj,"dynamic") && obj instanceof Class );
+            }while ( (obj = $get(obj,"extends") ) && $get(obj,"dynamic") && obj instanceof System.Class );
         }
         return false;
     }
@@ -194,8 +201,8 @@ Object.prototype.propertyIsEnumerable = function( name )
  */
 Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
 {
-    var obj = this instanceof Class ? this : $get(this,"constructor");
-    if( obj instanceof Class )
+    var obj = this instanceof System.Class ? this : $get(this,"constructor");
+    if( obj instanceof System.Class )
     {
         //动态创建的属性才可以设置枚举
         if( $get(obj,"dynamic") === true && obj !== this )
@@ -216,7 +223,7 @@ Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
                     $set( desc, "enumerable", isEnum !== false);
                     return true;
                 }
-            }while ( (obj = $get(obj,"extends") ) && $get(obj,"dynamic") && obj instanceof Class );
+            }while ( (obj = $get(obj,"extends") ) && $get(obj,"dynamic") && obj instanceof System.Class );
         }
         return false;
 
@@ -235,11 +242,11 @@ Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
 var $valueOf = $Object.prototype.valueOf;
 Object.prototype.valueOf=function()
 {
-    var obj = this instanceof Class ? this : $get(this,"constructor");
-    if( obj instanceof Class )
+    var obj = this instanceof System.Class ? this : $get(this,"constructor");
+    if( obj instanceof System.Class )
     {
         return obj === this ? '[Class: '+$get(obj,"classname")+']' : '[object '+ $get(obj,"classname")+']';
-    }else if( obj instanceof Interface )
+    }else if( obj instanceof System.Interface )
     {
         return '[Interface: '+$get(obj,"classname") +']';
     }
@@ -252,11 +259,11 @@ Object.prototype.valueOf=function()
  */
 Object.prototype.toString=function()
 {
-    var obj = this instanceof Class ? this : $get(this,"constructor");
-    if( obj instanceof Class )
+    var obj = this instanceof System.Class ? this : $get(this,"constructor");
+    if( obj instanceof System.Class )
     {
         return obj === this ? '[Class: '+$get(obj,"classname")+']' : '[object '+ $get(obj,"classname")+']';
-    }else if( obj instanceof Interface )
+    }else if( obj instanceof System.Interface )
     {
         return '[Interface: '+$get(obj,"classname") +']';
     }
@@ -331,3 +338,8 @@ function getEnumerableProperties( state )
     }
     return items;
 }
+
+/**
+ * @internal Object.prototype.getEnumerableProperties
+ */
+Object.prototype.getEnumerableProperties=getEnumerableProperties;

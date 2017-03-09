@@ -4,6 +4,7 @@
  * @param line
  * @param filename
  * @constructor
+ * @require Object
  */
 var Error = function Error( message , line, filename )
 {
