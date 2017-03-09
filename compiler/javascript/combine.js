@@ -18,14 +18,9 @@ contents.push('"use strict";\n');
 contents.push('var System={};\n');
 
 /**
- * 模块描述
- */
-contents.push('var descriptions={};\n');
-
-/**
  * 封闭域
  */
-contents.push('(function(System,$',globals.join(',$'),'){\n');
+contents.push('(function(System,$'+globals.join(',$')+'){\n');
 
 /**
  * 根据指定的版本加载对应的策略文件
@@ -52,6 +47,8 @@ function polyfill( config )
     return items;
 }
 
+const cg = ['non-writable','non-enumerable','non-configurable'];
+
 /**
  * 获取内置模块的描述信息
  * @param str
@@ -77,26 +74,39 @@ function describe( str, name )
             case 'private' :
             case 'internal' :
             case 'protected' :
-                val = val.toLowerCase().replace(/\s+/g,' ').split(' ');
-                var writable = val[1]==='non-writable' ? ',writable:false' : '';
+                val = val.replace(/\s+/g,' ').split(' ');
                 var prop = val[0];
                 var lastIndex = prop.lastIndexOf('.');
                 var proto = true;
                 if( lastIndex > 0 )
                 {
-                    proto = prop.indexOf( name.toLowerCase()+'.prototype.' )===0;
+                    proto = prop.indexOf( name+'.prototype.' )===0;
                     prop = prop.substr( lastIndex+1 );
                 }
                 var obj = proto ? desc.describe.proto : desc.describe.static;
                 var info=[];
-                if( prefix !== 'public' )info.push('qualifier:"'+prefix+'"');
-                if( val[1]==='non-writable' )info.push('writable:false');
-                if( info.length > 0 && prop )obj[ prop ]='{'+info.join(',')+'}';
+                if( prefix !== 'public' )info.push('"qualifier":"'+prefix+'"');
+                for(var i in cg)
+                {
+                    if( val.indexOf(cg[i]) > 0 )
+                    {
+                        switch ( cg[i] )
+                        {
+                            case 'non-writable' : info.push('"writable":false'); break;
+                            case 'non-enumerable' : info.push('"enumerable":false'); break;
+                            case 'non-configurable' : info.push('"configurable":false'); break;
+                        }
+                        break;
+                    }
+                }
+                if( info.length > 0 && prop )obj[ prop ]=JSON.parse('{'+info.join(',')+'}');
             break;
         }
     }
     return desc;
 }
+
+const descriptions={};
 
 /**
  * 获取指定的文件模块
@@ -111,20 +121,27 @@ function include( name , filepath, fix )
     {
         var str = utils.getContents( filepath );
         var desc = describe( str, name);
+        if( desc.requirements.indexOf('System') < 0 )desc.requirements.unshift('System');
         var map = desc.requirements.map(function (val) {
             if( val === 'System' || val === 'system')return 'System';
-            include(val);
+            include(val, null, fix);
             return 'System.'+val;
         });
-        contents.push('(function('+desc.requirements.join(',')+'){\n');
-        contents.push( str );
-        contents.push('\n');
+        if( isEmpty( desc.describe.static ) )delete desc.describe.static;
+        if( isEmpty( desc.describe.proto ) )delete desc.describe.proto;
+        if( !isEmpty( desc.describe ) )descriptions[name] = desc.describe;
+
+        var module=[];
+        module.push('(function('+desc.requirements.join(',')+'){\n');
+        module.push( str );
+        module.push('\n');
         //加载对应模块的兼容策略文件
         if( fix[name] )for( var f in fix[name] )
         {
-            contents.push( utils.getContents(fix[name][f]) );
+            module.push( utils.getContents(fix[name][f]) );
         }
-        contents.push('}('+map.join(',')+'));\n');
+        module.push('\n}('+map.join(',')+'));\n');
+        contents.push( module.join('') );
         return true;
 
     }else if( globals.indexOf(name) >=0 )
@@ -133,6 +150,11 @@ function include( name , filepath, fix )
         return true;
     }
     throw new Error(name+' does exists');
+}
+
+function isEmpty( obj ) {
+    for(var i in obj )return false;
+    return true;
 }
 
 /**
@@ -166,6 +188,11 @@ function combine( config , code )
      * 模块定义器
      */
     include('define' , rootPath+'/define.js', fix );
+
+    /**
+     * 模块描述
+     */
+    contents.splice(3,0, 'var descriptions = '+JSON.stringify(descriptions)+';\n' );
 
     /**
      * 内置系统对象

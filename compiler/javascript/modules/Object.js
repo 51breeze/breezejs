@@ -89,7 +89,7 @@ var $setPrototypeOf = $Object.setPrototypeOf || function setPrototypeOf(obj, pro
 }
 
 /**
- * @internal Object.isPrototypeOf
+ * @internal Object.setPrototypeOf
  */
 Object.setPrototypeOf = $setPrototypeOf;
 
@@ -102,14 +102,14 @@ var $isPrototypeOf = $Object.prototype.isPrototypeOf;
 Object.prototype.isPrototypeOf = function( theClass )
 {
     var proto = Object.getPrototypeOf(this);
-    var obj = this instanceof System.Class ? this : $get(proto,"constructor");
+    var obj = this instanceof System.Class ? this : proto.constructor;
     if( obj instanceof System.Class )
     {
         var classObj = theClass;
         while ( classObj )
         {
             if (classObj === obj)return true;
-            classObj = $get(classObj,"extends");
+            classObj = classObj.extends;
             if( !(classObj instanceof System.Class) && Object === obj )
             {
                 return true;
@@ -128,27 +128,27 @@ Object.prototype.isPrototypeOf = function( theClass )
 var $hasOwnProperty = $Object.prototype.hasOwnProperty;
 Object.prototype.hasOwnProperty = function( name )
 {
-    var objClass = this instanceof System.Class ? this : $get(this,"constructor");
+    var objClass = this instanceof System.Class ? this : this.constructor;
     if( objClass instanceof System.Class )
     {
         var isstatic = objClass === this;
         var desc;
         do {
-            desc = isstatic ? $get(objClass,"static") : $get(objClass,"proto");
+            desc = isstatic ? objClass.static : objClass.proto;
             if( $hasOwnProperty.call(desc,name) )
             {
-                var qualifier = $get( $get(desc, name),'qualifier');
+                var qualifier = desc[name].qualifier;
                 return qualifier === undefined || qualifier === 'public';
 
             }else if( !isstatic )
             {
-                var refObj = $get( this, $get(objClass,"token") );
+                var refObj = this[objClass.token];
                 if( $hasOwnProperty.call(refObj,name) )
                 {
                     return true;
                 }
             }
-            objClass = $get(objClass,"extends");
+            objClass = objClass.extends;
             if( !(objClass instanceof System.Class) )
             {
                 return !!(objClass||Object).prototype[propertyKey];
@@ -167,13 +167,13 @@ Object.prototype.hasOwnProperty = function( name )
  * @returns {Boolean}
  */
 var $propertyIsEnumerable=$Object.prototype.propertyIsEnumerable;
-Object.prototype.propertyIsEnumerable = function( name )
+Object.prototype.propertyIsEnumerable = function propertyIsEnumerable( name )
 {
-    var obj = this instanceof System.Class ? this : $get(this,"constructor");
+    var obj = this instanceof System.Class ? this : this.constructor;
     if( obj instanceof System.Class )
     {
         //动态创建的属性才可以枚举
-        if( $get(obj,"dynamic")===true && obj !== this )
+        if( obj.dynamic===true && obj !== this )
         {
             do{
                 if( $hasOwnProperty.call(this[obj.token], name) )
@@ -181,9 +181,9 @@ Object.prototype.propertyIsEnumerable = function( name )
                     var proto = $get(obj,'proto');
                     //内置属性不可以枚举
                     if( !$hasOwnProperty.call(proto,name) )return true;
-                    return $get( $get(proto,name),"id")==='dynamic' && $get( $get( proto,name),"enumerable") !== false;
+                    return proto[name].id==='dynamic' && proto[name].enumerable !== false;
                 }
-            }while ( (obj = $get(obj,"extends") ) && $get(obj,"dynamic") && obj instanceof System.Class );
+            }while ( (obj = obj.extends ) && obj.dynamic && obj instanceof System.Class );
         }
         return false;
     }
@@ -199,13 +199,13 @@ Object.prototype.propertyIsEnumerable = function( name )
  * @param isEnum  (default = true)
  * 如果设置为 false，则动态属性不会显示在 for..in 循环中，且方法 propertyIsEnumerable() 返回 false。
  */
-Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
+Object.prototype.setPropertyIsEnumerable = function setPropertyIsEnumerable( name, isEnum )
 {
-    var obj = this instanceof System.Class ? this : $get(this,"constructor");
+    var obj = this instanceof System.Class ? this : this.constructor;
     if( obj instanceof System.Class )
     {
         //动态创建的属性才可以设置枚举
-        if( $get(obj,"dynamic") === true && obj !== this )
+        if( obj.dynamic === true && obj !== this )
         {
             do{
                 if( $hasOwnProperty.call(this[obj.token], name) )
@@ -215,22 +215,17 @@ Object.prototype.setPropertyIsEnumerable = function( name, isEnum )
                     if( !$hasOwnProperty.call(obj.proto,name) )
                     {
                         desc = {'id':'dynamic',enumerable:false};
-                        $set( $get(obj,'proto') , name, desc);
+                        obj.proto[name]=desc;
                     }else
                     {
-                        desc= $get( $get(obj,'proto') , name);
+                        desc= obj.proto[name];
                     }
-                    $set( desc, "enumerable", isEnum !== false);
+                    desc.enumerable=isEnum !== false;
                     return true;
                 }
-            }while ( (obj = $get(obj,"extends") ) && $get(obj,"dynamic") && obj instanceof System.Class );
+            }while ( (obj = obj.extends ) && obj.dynamic && obj instanceof System.Class );
         }
         return false;
-
-    }else if( $hasOwnProperty.call(this,name) )
-    {
-        Object.defineProperty(this, name, {enumerable:isEnum !== false});
-        return true;
     }
     return false;
 }
@@ -276,41 +271,41 @@ Object.prototype.toString=function()
  */
 Object.prototype.keys=function()
 {
-    return getEnumerableProperties.call(this,-1);
+    return Object.prototype.getEnumerableProperties.call(this,-1);
 }
 
 /**
- *  返回对象可枚举的属性值
+ * 返回对象可枚举的属性值
  * @returns {Array}
  */
 Object.prototype.values=function()
 {
-    return getEnumerableProperties.call(this,1);
+    return Object.prototype.getEnumerableProperties.call(this,1);
 }
 
 /**
- * @private
  * 获取可枚举的属性
  * @param state
  * @returns {Array}
+ * @internal Object.prototype.getEnumerableProperties
  */
-function getEnumerableProperties( state )
+Object.prototype.getEnumerableProperties=function getEnumerableProperties( state )
 {
     var items=[];
     var prop;
-    var objClass = this instanceof Class ? this : $get(this,"constructor");
+    var objClass = this instanceof Class ? this : this.constructor;
     if( objClass instanceof Class)
     {
         var obj;
-        if ( $get(objClass,"dynamic") && this !== objClass )
+        if ( objClass.dynamic && this !== objClass )
         {
             do {
-                obj = $get(this,objClass.token);
+                obj = this[objClass.token];
                 if (obj)for(prop in obj)
                 {
-                    var proto = $get(objClass,'proto');
+                    var proto = objClass.proto;
                     if( !$hasOwnProperty.call(proto, prop) ||
-                    ( $propertyIsEnumerable.call(proto,prop) && $get( $get(proto,prop),"enumerable" ) !== false) )
+                    ( $propertyIsEnumerable.call(proto,prop) && proto[prop].enumerable !== false) )
                     {
                         switch (state){
                             case -1 : items.push(prop); break;
@@ -320,14 +315,14 @@ function getEnumerableProperties( state )
                         }
                     }
                 }
-            } while ( (objClass = $get(objClass,"extends") ) && $get(objClass,"dynamic") && objClass instanceof Class );
+            } while ( (objClass = objClass.extends ) && objClass.dynamic && objClass instanceof Class );
         }
 
     }else if( this && typeof this !== "function" )
     {
         for( prop in this )if( $propertyIsEnumerable.call(this,prop) && !( this[prop] && this[prop].enumerable === false) )
         {
-            var val = Reflect.get(this,prop);
+            var val = System.Reflect.get(this,prop);
             switch (state){
                 case -1 : items.push(prop); break;
                 case  1 : items.push(val); break;
@@ -338,8 +333,3 @@ function getEnumerableProperties( state )
     }
     return items;
 }
-
-/**
- * @internal Object.prototype.getEnumerableProperties
- */
-Object.prototype.getEnumerableProperties=getEnumerableProperties;

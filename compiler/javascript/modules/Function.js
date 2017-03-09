@@ -2,7 +2,7 @@
  * 函数构造器
  * @returns {*}
  * @constructor
- * @import System,Array
+ * @require System,Array
  */
 function Function() {
     return $Function.apply(this, Array.prototype.slice.call(arguments,0) );

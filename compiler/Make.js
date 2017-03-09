@@ -397,7 +397,7 @@ Iteration.prototype.parseArgumentsOfMethodAndConstructor=function( stack )
         var express = [];
         var rest = items.indexOf('...');
         if (rest >= 0) {
-            express.unshift(items.slice(-1) + '=Array.prototype.slice.call(arguments, ' + rest + ');\n');
+            express.unshift( 'var '+items.slice(-1)+'=Array.prototype.slice.call(arguments, ' + rest + ');\n');
             items = items.slice(0, rest);
         }
 
