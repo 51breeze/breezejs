@@ -108,11 +108,11 @@ System.instanceOf = function instanceOf(instanceObj, theClass) {
     if (theClass === System.Class) {
         return instanceObj instanceof System.Class;
     }
-    var proto = $get(instanceObj, "constructor");
+    var proto = instanceObj.constructor;
     if (proto instanceof System.Class) {
         while (proto) {
             if (proto === theClass)return true;
-            proto = $get(proto, "extends");
+            proto =proto.extends;
         }
     }
 
@@ -134,23 +134,23 @@ System.is = function is(instanceObj, theClass) {
     if (theClass === System.Class) {
         return instanceObj instanceof System.Class;
     }
-    var proto = $get(instanceObj, "constructor");
+    var proto =instanceObj.constructor;
     if (proto instanceof System.Class) {
         while (proto) {
             if (proto === theClass)return true;
-            var impls = $get(proto, "implements");
-            if (impls && $get(impls, "length") > 0) {
+            var impls = proto.implements;
+            if (impls && impls.length > 0) {
                 var i = 0;
-                var len = $get(impls, "length");
+                var len = impls.length;
                 for (; i < len; i++) {
                     var interfaceModule = impls[i];
                     while (interfaceModule) {
                         if (interfaceModule === theClass)return true;
-                        interfaceModule = $get(interfaceModule, "extends");
+                        interfaceModule =interfaceModule.extends;
                     }
                 }
             }
-            proto = $get(proto, "extends");
+            proto =proto.extends;
         }
     }
 
@@ -507,3 +507,9 @@ function crc32(str, crc) {
 };
 return crc32;
 }());
+
+var __uid__=1;
+System.uid = function uid()
+{
+   return (__uid__++)+''+(System.Math.random() * 10000)>>>0;
+}

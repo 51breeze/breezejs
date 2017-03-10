@@ -1,5 +1,5 @@
 const utils = require('../core/utils.js');
-const globals=['Object','Function','Array','String','Number','Boolean','Math','Date','RegExp','Error','ReferenceError','TypeError','SyntaxError','JSON','Reflect','console'];
+const globals=['Object','Function','Array','String','Number','Boolean','Math','Date','RegExp','Error','ReferenceError','TypeError','SyntaxError','JSON','Reflect','Symbol','console'];
 const contents=[];
 const rootPath =  utils.getResolvePath( __dirname );
 /**
@@ -107,6 +107,7 @@ function describe( str, name )
 }
 
 const descriptions={};
+const mapname={'window':'Window','document':'Document','console':'Console'};
 
 /**
  * 获取指定的文件模块
@@ -114,6 +115,7 @@ const descriptions={};
  */
 function include( name , filepath, fix )
 {
+    name = mapname[name] || name;
     if( loaded[name] === true )return;
     loaded[name]=true;
     filepath = filepath ? filepath : rootPath + '/modules/' + name + '.js';
@@ -162,7 +164,7 @@ function isEmpty( obj ) {
  * @param config
  * @returns {string}
  */
-function combine( config , code )
+function combine( config , code, requirements )
 {
     var fix = polyfill( config );
 
@@ -175,11 +177,12 @@ function combine( config , code )
      * 引用全局对象模块
      */
     var requires = ['Class','Interface'].concat( globals.slice(0) );
-    if( config.import && config.import.length>0 )
+    if( requirements )
     {
-        for ( var i in config.import )
+        delete  requirements['System'];
+        for ( var p in requirements )
         {
-            if( requires.indexOf( config.import[i] ) < 0 )requires.push( config.import[i] );
+            if( requirements[p]===true && requires.indexOf( p ) < 0 )requires.push( p );
         }
     }
     for(var prop in requires)include( requires[prop] , null, fix );
@@ -211,7 +214,9 @@ function combine( config , code )
         'delete System.define;\n',
         'var main=System.getDefinitionByName("'+config.main+'");\n',
         'System.Reflect.construct(main);\n',
-        '})(System,System.'+requires.join(',System.')+');\n',
+        '})(System,System.'+requires.map(function (a){
+            return mapname[a] || a;
+        }).join(',System.')+');\n',
         '})();'
     ].join('');
 }

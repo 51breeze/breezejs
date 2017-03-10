@@ -94,6 +94,12 @@ var $setPrototypeOf = $Object.setPrototypeOf || function setPrototypeOf(obj, pro
 Object.setPrototypeOf = $setPrototypeOf;
 
 /**
+ * 定义属性描述
+ * @internal Object.defineProperty
+ */
+Object.defineProperty = $Object.defineProperty;
+
+/**
  * 指示 Object 类的实例是否在指定为参数的对象的原型链中
  * @param theClass
  * @returns {Boolean}
@@ -148,12 +154,7 @@ Object.prototype.hasOwnProperty = function( name )
                     return true;
                 }
             }
-            objClass = objClass.extends;
-            if( !(objClass instanceof System.Class) )
-            {
-                return !!(objClass||Object).prototype[propertyKey];
-            }
-        }while ( objClass );
+        }while( (objClass = objClass.extends) && objClass instanceof System.Class );
         return false;
     }
     return $hasOwnProperty.call(this,name);
@@ -178,7 +179,7 @@ Object.prototype.propertyIsEnumerable = function propertyIsEnumerable( name )
             do{
                 if( $hasOwnProperty.call(this[obj.token], name) )
                 {
-                    var proto = $get(obj,'proto');
+                    var proto = obj.proto;
                     //内置属性不可以枚举
                     if( !$hasOwnProperty.call(proto,name) )return true;
                     return proto[name].id==='dynamic' && proto[name].enumerable !== false;
@@ -187,7 +188,7 @@ Object.prototype.propertyIsEnumerable = function propertyIsEnumerable( name )
         }
         return false;
     }
-    if( $hasOwnProperty.call(this,name) && this[name].enumerable === false && this[name] instanceof Descriptor)
+    if( $hasOwnProperty.call(this,name) && this[name].enumerable === false && !!System.Descriptor && this[name] instanceof System.Descriptor)
         return false;
     return $propertyIsEnumerable.call(this,name);
 }
@@ -237,13 +238,14 @@ Object.prototype.setPropertyIsEnumerable = function setPropertyIsEnumerable( nam
 var $valueOf = $Object.prototype.valueOf;
 Object.prototype.valueOf=function()
 {
-    var obj = this instanceof System.Class ? this : $get(this,"constructor");
+    if(this==null)return this===null ? 'null' : 'undefined';
+    var obj = this instanceof System.Class ? this : this.constructor;
     if( obj instanceof System.Class )
     {
-        return obj === this ? '[Class: '+$get(obj,"classname")+']' : '[object '+ $get(obj,"classname")+']';
+        return obj === this ? '[Class: '+obj.classname+']' : '[object '+obj.classname+']';
     }else if( obj instanceof System.Interface )
     {
-        return '[Interface: '+$get(obj,"classname") +']';
+        return '[Interface: '+obj.classname +']';
     }
     return $valueOf.call( this );
 }
@@ -254,13 +256,14 @@ Object.prototype.valueOf=function()
  */
 Object.prototype.toString=function()
 {
-    var obj = this instanceof System.Class ? this : $get(this,"constructor");
+    if(this==null)return this===null ? 'null' : 'undefined';
+    var obj = this instanceof System.Class ? this : this.constructor;
     if( obj instanceof System.Class )
     {
-        return obj === this ? '[Class: '+$get(obj,"classname")+']' : '[object '+ $get(obj,"classname")+']';
+        return obj === this ? '[Class: '+obj.classname+']' : '[object '+obj.classname+']';
     }else if( obj instanceof System.Interface )
     {
-        return '[Interface: '+$get(obj,"classname") +']';
+        return '[Interface: '+obj.classname +']';
     }
     return $Object.prototype.toString.call( this );
 }

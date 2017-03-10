@@ -609,6 +609,7 @@ function isReference( stack )
         stack.type==='(regexp)'
 }
 
+const requirements={};
 
 /**
  * 获取表达式的描述说明
@@ -682,7 +683,11 @@ function getDescriptorOfExpression(it, classmodule)
                  //全局引用
                 else
                 {
-                    if( globals.hasOwnProperty( it.current.value ) )desc = globals[ it.current.value ];
+                    if( globals.hasOwnProperty( it.current.value ) )
+                    {
+                        desc = globals[ it.current.value ];
+                        requirements[ it.current.value ]=true;
+                    }
                     if( !desc && globals.System.static.hasOwnProperty(it.current.value) )
                     {
                         property.name.push('System');
@@ -1788,6 +1793,11 @@ function getPropertyDescription( stack )
         }
     }
 
+    //需要的系统模块
+    if( stack.extends() &&  globals.hasOwnProperty(stack.extends()) )
+    {
+        requirements[ stack.extends() ]=true;
+    }
     list['inherit'] = stack.extends() ? stack.extends() : null;
     list['package']=stack.parent().name();
     list['type']=stack.name();
@@ -2038,7 +2048,7 @@ function start()
     var filename = PATH.resolve(PATH.dirname( mainfile ),PATH.basename(mainfile,config.suffix)+'-min.js' );
     var syntax = 'javascript';
     var combine = require( './'+syntax+'/combine.js');
-    var content = combine(config, code.join('') );
+    var content = combine(config, code.join(''), requirements );
     if( config.minify ==='on' )
     {
         var result = uglify.minify(content, {

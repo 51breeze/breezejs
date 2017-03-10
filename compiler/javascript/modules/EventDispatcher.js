@@ -71,9 +71,11 @@ EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,pri
     if( typeof callback !== 'function' )throwError('type','Invalid callback function.')
     var listener=new Listener(type,callback,useCapture,priority,reference,this);
     var target = this.target || this;
-    var len = target.length >> 0;
+    var len = target.length >>> 0;
     if( len > 0 ){
-        while(len>0 && target[--len])addEventListener(target[len], listener);
+        while(len>0 && target[--len]){
+            addEventListener(target[len], listener);
+        }
         return this;
     }
     addEventListener(target, listener);
@@ -89,7 +91,7 @@ EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,pri
 EventDispatcher.prototype.removeEventListener=function(type,listener)
 {
     var target= this.target || this;
-    var len = target.length >> 0;
+    var len = target.length >>> 0;
     if( len > 0 ){
         while(len>0 && target[--len] )removeEventListener( target[len], type, listener, this);
         return true;
@@ -106,7 +108,7 @@ EventDispatcher.prototype.dispatchEvent=function( event )
 {
     if( !(event instanceof Event) )throwError('type','invalid event.');
     var target = this.target || this;
-    var len = target.length >> 0;
+    var len = target.length >>> 0;
     if( len > 0 ){
         while(len>0 && target[--len] )
         {
@@ -139,7 +141,6 @@ function addEventListener(target, listener )
         events = {};
         target.__events__=events;
     }
-
     //获取指定事件类型的引用
     events = events[ type ] || ( events[ type ]=[] );
 
@@ -230,7 +231,7 @@ function dispatchEvent( e, currentTarget )
     var target = e.currentTarget;
     var events = target.__events__;
     if( !Object.prototype.hasOwnProperty.call(events, e.type) )return true;
-    events = $get( events, e.type ).slice(0);
+    events = events[e.type];
     var length= 0,listener,thisArg;
     while( length < events.length )
     {

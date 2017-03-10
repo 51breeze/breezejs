@@ -46,7 +46,7 @@ function toErrorMsg(error, classModule, info, thisArg)
 {
     var msg = classModule.filename + ':' + info + '\n';
     msg +=  typeof error === "string" ? error : error.message;
-    throwError("reference", msg, info, classModule.filename );
+    System.throwError("reference", msg, info, classModule.filename );
 }
 
 /**
@@ -67,7 +67,7 @@ function makeMethods(method, classModule)
                 var receiver = undefined;
                 if( issuper ){
                     receiver=thisArg;
-                    thisArg = $get(classModule,"extends");
+                    thisArg = classModule.extends;
                 }
                 var value=Reflect.get(thisArg, property, receiver, classModule);
                 var ret = value;
@@ -101,7 +101,7 @@ function makeMethods(method, classModule)
                 var receiver=undefined;
                 if( issuper ){
                     receiver=thisArg;
-                    thisArg = $get(classModule,"extends");
+                    thisArg = classModule.extends;
                 }
                 if( operator && operator !=='=' )
                 {
@@ -135,7 +135,7 @@ function makeMethods(method, classModule)
                 var receiver=undefined;
                 if( issuper ){
                     receiver=thisArg;
-                    thisArg = $get(classModule,"extends");
+                    thisArg = classModule.extends;
                 }
                 if( property ) {
                     return Reflect.apply( Reflect.get(thisArg, property, receiver, classModule), receiver || thisArg, argumentsList );
@@ -162,10 +162,11 @@ function makeMethods(method, classModule)
  * @returns {Object}
  */
 System.getDefinitionByName = function getDefinitionByName(name) {
-    if ($hasOwnProperty.call(modules, name))return $get(modules, name);
-    if ($hasOwnProperty.call(system, name))return $get(system, name);
+
+    if( Object.prototype.hasOwnProperty.call(modules,name) )return modules[name];
+    if(Object.prototype.hasOwnProperty.call(System, name))return System[name];
     for (var i in modules)if (i === name)return modules[i];
-    throwError('type', '"' + name + '" is not define');
+    System.throwError('type', '"' + name + '" is not define');
 }
 
 /**
@@ -175,7 +176,7 @@ System.getDefinitionByName = function getDefinitionByName(name) {
  * @returns {string}
  */
 function getFullname(classModule) {
-    return $get(classModule, "package") ? $get(classModule, "package") + '.' + $get(classModule, "classname") : $get(classModule, "classname");
+    return classModule.package ? classModule.package + '.' + classModule.classname : classModule.classname;
 }
 
 /**
@@ -224,7 +225,7 @@ System.getQualifiedClassName = function getQualifiedClassName(value) {
             if (value instanceof System.Boolean)return 'Boolean';
             if (value.constructor instanceof System.Class)return getFullname(value.constructor);
     }
-    throwError('reference', 'type does not exist');
+    System.throwError('reference', 'type does not exist');
 }
 /**
  * 获取指定实例对象的超类名称
@@ -235,9 +236,9 @@ System.getQualifiedSuperclassName =function getQualifiedSuperclassName(value) {
     var classname = System.getQualifiedClassName(value)
     if (classname) {
         var classModule = System.getDefinitionByName(classname);
-        var parentModule = $get(classModule, "extends");
+        var parentModule = classModule.extends;
         if (parentModule) {
-            return $get(parentModule, "fullclassname");
+            return parentModule.fullclassname;
         }
     }
     return null;
@@ -279,15 +280,16 @@ function define(name , descriptions , isInterface)
     //如果是定义类或者接口
     if( typeof descriptions === "object" )
     {
+        var construct = descriptions.constructor;
         for (var prop in descriptions )classModule[prop] = descriptions[prop];
         classModule.constructor=null;
-        if( typeof descriptions.constructor === "function" )
+        if( typeof construct === "function" )
         {
-            descriptions.constructor.prototype= new Object();
-            descriptions.constructor.prototype.constructor = classModule;
-            classModule.constructor = descriptions.constructor;
+            classModule.constructor = construct;
+            construct.prototype=classModule;
+
             //开放原型继承
-            classModule.prototype = descriptions.constructor.prototype;
+            //classModule.prototype = descriptions.constructor.prototype;
         }
     }
     return classModule;

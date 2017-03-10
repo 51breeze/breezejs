@@ -1,44 +1,28 @@
-//var o = new Console();
-"use strict";
 
-var _platform=['node',1.23];
-var o={
-    'env':{
-        platform:function platform( name ) {
-            if( name != null )return name == _platform[0];
-            return _platform[0];
-        } ,
-        version:function version(value, expre)
-        {
-            var result = _platform[1];
-            if( value==null )return result;
-            value = parseFloat(value);
-            switch ( expre )
-            {
-                case '=' :
-                    return value == result;
-                case '!=' :
-                    return value != result;
-                case '>' :
-                    return value > result;
-                case '>=' :
-                    return value >= result;
-                case '<' :
-                    return value < result;
-                default:
-                    return value <= result;
-            }
-        }
-    }
+
+function Class() {}
+Class.prototype.uuu=function () {
+    console.log('=========')
 }
 
 
+var fClass = new Class();
+function f() {}
+fClass.constructor = f;
+f.prototype = fClass;
 
-var a = new Date().getTime();
 
-for(var i=0; i<1000000; i++ ){
-    o.env.platform();
-    o.env.version();
-}
 
-Console.log( new Date().getTime() - a );
+var o = new f()
+
+
+
+console.log( o , o instanceof Class , fClass instanceof Class , o.constructor === fClass.constructor, Object.getPrototypeOf(o) === Object.getPrototypeOf(fClass) )
+console.log(  Object.getPrototypeOf(o) === fClass , Object.getPrototypeOf(fClass) ===  Class.prototype )
+
+o.uuu();
+
+console.log( o.constructor.prototype === fClass )
+
+
+

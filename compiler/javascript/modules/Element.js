@@ -265,7 +265,7 @@ var querySelector = typeof Sizzle === "function" ?  function querySelector(selec
     return Sizzle( selector, context, results, seed);
 } : function querySelector(selector, context, results, seed )
 {
-    if( !(results instanceof Array) )
+    if( !results || !System.isArray(results) )
     {
         //如果选择器不是一个字符串
         if (typeof selector !== "string")
@@ -286,12 +286,14 @@ var querySelector = typeof Sizzle === "function" ?  function querySelector(selec
             } else if (typeof context === "string") {
                 selector = context + ' ' + selector;
             }
+            var tem=[];
             results = document.querySelectorAll(selector);
+            if( results.length > 0 )for(var i=0; i< results.length ; i++)tem[i]=results[i];
+            results = tem;
             if(has)context.removeAttribute('id');
         }
     }
-
-    if( isArray(seed) )
+    if( System.isArray(seed) )
     {
         var i=0;
         var ret=[];

@@ -35,12 +35,11 @@ Object.create  = $Object.create || (function() {
  * 定义属性的描述
  * @type {*|Function}
  */
-Object.defineProperty =$Object.defineProperty;
-if( !Object.defineProperty || ( System.env.platform( System.env.BROWSER_IE ) && System.env.version(8) ) )
+if( !Object.defineProperty || System.env.platform('IE') && System.env.version(8) )
 {
-    Object.defineProperty = function defineProperty(obj, prop, desc)
+    Object.defineProperty=function defineProperty(obj, prop, desc)
     {
-        if ($hasOwnProperty.call(obj, prop))
+        if( $hasOwnProperty.call(obj, prop) )
         {
             if (obj[prop] instanceof Descriptor)
             {
@@ -88,3 +87,4 @@ function Descriptor( desc )
 }
 Descriptor.prototype={};
 Descriptor.prototype.constructor = Descriptor;
+System.Descriptor=Descriptor;

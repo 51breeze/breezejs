@@ -36,7 +36,6 @@ public class Main extends B implements IProsess {
 
         public var dd:Class = Array;
 
-
           function Main(jj)
           {
 
