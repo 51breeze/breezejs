@@ -22,7 +22,8 @@ console.log(  Object.getPrototypeOf(o) === fClass , Object.getPrototypeOf(fClass
 
 o.uuu();
 
-console.log( o.constructor.prototype === fClass )
+console.log( fClass.constructor.prototype === fClass , o.constructor.prototype === o )
+console.log( o === fClass.constructor.prototype  )
 
 
 

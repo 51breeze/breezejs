@@ -10,12 +10,13 @@ Class.prototype.constructor = Class;
 Class.prototype.valueOf=function()
 {
     if(this==null)return this===null ? 'null' : 'undefined';
-    if( this.constructor instanceof Class )
+    if( this instanceof Class )
     {
+        if( this.constructor.prototype === this )
+        {
+            return '[Class: '+this.classname+']';
+        }
         return '[object '+this.classname+']';
-    } else if( this instanceof Class )
-    {
-        return '[Class: '+this.classname+']';
     }
     return Object.prototype.valueOf.call( this );
 }
@@ -27,15 +28,14 @@ Class.prototype.valueOf=function()
 Class.prototype.toString=function()
 {
     if(this==null)return this===null ? 'null' : 'undefined';
-    var obj = this instanceof System.Class ? this : this.constructor;
-    if( obj instanceof System.Class )
+    if( this instanceof Class )
     {
-        return obj === this ? '[Class: '+obj.classname+']' : '[object '+obj.classname+']';
-    }else if( obj instanceof System.Interface )
-    {
-        return '[Interface: '+obj.classname +']';
+        if( this.constructor.prototype === this )
+        {
+            return '[Class: '+this.classname+']';
+        }
+        return '[object '+this.classname+']';
     }
-    return $Object.prototype.toString.call( this );
+    return Object.prototype.toString.call( this );
 }
-
 System.Class = Class;

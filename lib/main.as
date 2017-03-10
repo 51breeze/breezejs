@@ -39,6 +39,8 @@ public class Main extends B implements IProsess {
           function Main(jj)
           {
 
+              log( Main.name is String , Main , this, this instanceof Class, Main instanceof Class );
+
               EventDispatcher( document ).addEventListener( Event.READY , function (e) {
 
                   log( '=====ready=====');

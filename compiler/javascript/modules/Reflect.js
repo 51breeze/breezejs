@@ -9,18 +9,18 @@ function Reflect(){if(this instanceof Reflect)throwError('Reflect is not constru
 System.Reflect=Reflect;
 /**
  * 静态方法 Reflect.apply() 通过指定的参数列表发起对目标(target)函数的调用
- * @param func
+ * @param theClass
  * @param thisArgument
  * @param argumentsList
  * @returns {*}
  */
-Reflect.apply=function apply( func, thisArgument, argumentsList)
+Reflect.apply=function apply( theClass, thisArgument, argumentsList)
 {
-    if( func instanceof Class )func=$get(func,"constructor");
-    if( System.typeOf(func) !== "function" )System.throwError('type','is not function');
-    if( func===thisArgument )thisArgument=undefined;
-    return argumentsList && System.isArray(argumentsList) ? System.Function.prototype.apply.call( func, thisArgument, argumentsList ) :
-        System.Function.prototype.call.call( func, thisArgument, argumentsList );
+    if( theClass instanceof Class && theClass.constructor.prototype === theClass )theClass=$get(theClass,"constructor");
+    if( System.typeOf(theClass) !== "function" )System.throwError('type','is not function');
+    if( theClass===thisArgument )thisArgument=undefined;
+    return argumentsList && System.isArray(argumentsList) ? System.Function.prototype.apply.call( theClass, thisArgument, argumentsList ) :
+        System.Function.prototype.call.call( theClass, thisArgument, argumentsList );
 }
 
 /**
@@ -33,7 +33,7 @@ Reflect.apply=function apply( func, thisArgument, argumentsList)
 Reflect.construct=function construct(theClass, args, newTarget)
 {
     if( theClass === newTarget )newTarget=undefined;
-    if( theClass instanceof Class )
+    if( theClass instanceof Class && theClass.constructor.prototype === theClass)
     {
         if( $get(theClass,"isAbstract") )System.throwError('type','Abstract class cannot be instantiated');
         theClass = $get(theClass,"constructor");
@@ -81,10 +81,11 @@ Reflect.construct=function construct(theClass, args, newTarget)
  */
 Reflect.deleteProperty=function deleteProperty(target, propertyKey)
 {
-    if( !target || propertyKey==null || target instanceof Class )return false;
-    var objClass = $get(target,"constructor");
-    if( objClass instanceof Class )
+    if( !target || propertyKey==null )return false;
+    if( target instanceof Class )
     {
+        var objClass = target.constructor.prototype;
+        if( objClass === target )return false;
         if( !$get(objClass,"dynamic") )return false;
         var token = $get(objClass,"token");
         var obj = $get(target, token );
@@ -116,9 +117,9 @@ Reflect.deleteProperty=function deleteProperty(target, propertyKey)
 Reflect.has=function has(target, propertyKey)
 {
     if( propertyKey==null || target == null )return false;
-    var objClass = target instanceof Class ? target : $get(target,"constructor");
-    if( objClass instanceof Class )
+    if( target instanceof Class )
     {
+        var objClass = target.constructor.prototype;
         var isstatic = objClass === target;
         do {
             var desc= isstatic ? $get(objClass,"static") :  $get(objClass,"proto");
@@ -159,12 +160,13 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
 {
     if( propertyKey==null )return target;
     if( target == null )System.throwError('type','target object is null');
-    var objClass = target instanceof Class ? target : $get(target,"constructor");
-    if( objClass instanceof Class )
+    if( target instanceof Class )
     {
+        var objClass = target.constructor.prototype;
         var isstatic = objClass === target;
+
         //如果是获取超类中的属性或者方法
-        if( isstatic && (receiver && $get(receiver,"constructor") instanceof Class) )isstatic=false;
+        if( isstatic && (receiver && receiver instanceof Class && receiver.constructor.prototype !== receiver) )isstatic=false;
         do {
             var desc= isstatic ? $get(objClass,"static") :  $get(objClass,"proto");
             var token = $get(objClass,'token');
@@ -219,12 +221,12 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
 {
     if( propertyKey==null )return false;
     if( target==null )System.throwError('reference','Reference object is '+(target));
-    var objClass = target instanceof Class ? target : $get(target,"constructor");
-    if( objClass instanceof Class )
+    if( target instanceof Class )
     {
+        var objClass = target.constructor.prototype;
         var isstatic = objClass === target;
         //如果是获取超类中的属性或者方法
-        if( isstatic && (receiver && receiver.constructor instanceof Class) )isstatic=false;
+        if( isstatic && (receiver && receiver instanceof Class && receiver.constructor.prototype !== receiver ) )isstatic=false;
         do{
             var desc= isstatic ? $get(objClass,"static") :  $get(objClass,"proto");
             var token = $get(objClass,"token");

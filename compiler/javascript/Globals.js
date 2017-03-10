@@ -92,8 +92,9 @@ System.env = {
  * @param instanceObj
  * @returns {*}
  */
-System.typeOf = function typeOf(instanceObj) {
-    if (instanceObj instanceof System.Class)return 'class';
+System.typeOf = function typeOf(instanceObj)
+{
+    if (instanceObj instanceof System.Class && instanceObj.constructor.prototype===instanceObj )return 'class';
     if (instanceObj instanceof System.Interface)return 'interface';
     return typeof instanceObj;
 }
@@ -104,20 +105,25 @@ System.typeOf = function typeOf(instanceObj) {
  * @param theClass
  * @returns {boolean}
  */
-System.instanceOf = function instanceOf(instanceObj, theClass) {
-    if (theClass === System.Class) {
-        return instanceObj instanceof System.Class;
+System.instanceOf = function instanceOf(instanceObj, theClass)
+{
+    if (theClass === System.Class)
+    {
+        return instanceObj instanceof System.Class && instanceObj.constructor.prototype===instanceObj;
     }
-    var proto = instanceObj.constructor;
-    if (proto instanceof System.Class) {
-        while (proto) {
-            if (proto === theClass)return true;
-            proto =proto.extends;
+    if ( instanceObj instanceof System.Class && instanceObj.constructor.prototype!==instanceObj )
+    {
+        var objClass = instanceObj.constructor.prototype;
+        while (objClass)
+        {
+            if (objClass === theClass)return true;
+            objClass =objClass.extends;
         }
     }
 
     //如果不是一个函数直接返回false
-    if (typeof theClass !== "function") {
+    if (typeof theClass !== "function")
+    {
         return false;
     }
     instanceObj = System.Object(instanceObj);
@@ -130,15 +136,19 @@ System.instanceOf = function instanceOf(instanceObj, theClass) {
  * @param theClass
  * @returns {boolean}
  */
-System.is = function is(instanceObj, theClass) {
-    if (theClass === System.Class) {
-        return instanceObj instanceof System.Class;
+System.is =function is(instanceObj, theClass)
+{
+    if( theClass === System.Class )
+    {
+        return instanceObj instanceof System.Class && instanceObj.constructor.prototype===instanceObj;
     }
-    var proto =instanceObj.constructor;
-    if (proto instanceof System.Class) {
-        while (proto) {
-            if (proto === theClass)return true;
-            var impls = proto.implements;
+    if( instanceObj instanceof System.Class && instanceObj.constructor.prototype !== instanceObj )
+    {
+        var objClass =instanceObj.constructor.prototype;
+        while (objClass)
+        {
+            if (objClass === theClass)return true;
+            var impls = objClass.implements;
             if (impls && impls.length > 0) {
                 var i = 0;
                 var len = impls.length;
@@ -150,11 +160,12 @@ System.is = function is(instanceObj, theClass) {
                     }
                 }
             }
-            proto =proto.extends;
+            objClass =objClass.extends;
         }
     }
 
-    if (typeof theClass !== "function") {
+    if (typeof theClass !== "function")
+    {
         return false;
     }
     instanceObj = System.Object(instanceObj);

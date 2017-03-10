@@ -2,21 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="013723df-740c-4cf5-b05e-cf938a968d79" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Document.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Symbol.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Window.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Make.js" afterPath="$PROJECT_DIR$/compiler/Make.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/Globals.js" afterPath="$PROJECT_DIR$/compiler/javascript/Globals.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/combine.js" afterPath="$PROJECT_DIR$/compiler/javascript/combine.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/define.js" afterPath="$PROJECT_DIR$/compiler/javascript/define.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/fix/Console-ie-9.js" afterPath="$PROJECT_DIR$/compiler/javascript/fix/Console-ie-9.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/fix/Event-ie-9.js" afterPath="$PROJECT_DIR$/compiler/javascript/fix/Event-ie-9.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/fix/Object-ie-9.js" afterPath="$PROJECT_DIR$/compiler/javascript/fix/Object-ie-9.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Class.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Class.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Element.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Element.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Event.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Event.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/EventDispatcher.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/EventDispatcher.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Interface.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Interface.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Object.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Object.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Reflect.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Reflect.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Main.as" afterPath="$PROJECT_DIR$/lib/Main.as" />
@@ -51,18 +40,6 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Symbol.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Symbol.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="589">
-              <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
-              <folding>
-                <element signature="n#!!doc" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="Object-ie-9.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/javascript/fix/Object-ie-9.js">
           <provider selected="true" editor-type-id="text-editor">
@@ -77,19 +54,15 @@
         <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="569">
-              <caret line="5156" column="6" selection-start-line="5156" selection-start-column="6" selection-end-line="5156" selection-end-column="6" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Event-ie-9.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler/javascript/fix/Event-ie-9.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="427">
-              <caret line="78" column="25" selection-start-line="78" selection-start-column="25" selection-end-line="78" selection-end-column="25" />
+              <caret line="5194" column="6" selection-start-line="5194" selection-start-column="6" selection-end-line="5194" selection-end-column="6" />
               <folding>
-                <element signature="n#!!doc" expanded="true" />
+                <marker date="1489164391818" expanded="true" signature="217:3626" ph="{...}" />
+                <marker date="1489164391818" expanded="true" signature="153622:155127" ph="{&quot;final&quot;: false...}" />
+                <marker date="1489164391818" expanded="true" signature="153622:155138" ph="{...}" />
+                <marker date="1489164391818" expanded="true" signature="153622:155243" ph="{...}" />
+                <marker date="1489164391818" expanded="true" signature="155106:155123" ph="{...}" />
+                <marker date="1489164391818" expanded="true" signature="155106:155124" ph="{&quot;writable&quot;: false...}" />
+                <marker date="1489164391818" expanded="true" signature="155106:155126" ph="{...}" />
               </folding>
             </state>
           </provider>
@@ -98,8 +71,8 @@
       <file leaf-file-name="Object.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Object.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="855">
-              <caret line="270" column="3" selection-start-line="270" selection-start-column="3" selection-end-line="270" selection-end-column="3" />
+            <state relative-caret-position="2628">
+              <caret line="297" column="17" selection-start-line="297" selection-start-column="17" selection-end-line="297" selection-end-column="17" />
               <folding />
             </state>
           </provider>
@@ -108,28 +81,38 @@
       <file leaf-file-name="Class.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Class.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="427">
-              <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+            <state relative-caret-position="675">
+              <caret line="39" column="1" selection-start-line="39" selection-start-column="1" selection-end-line="39" selection-end-column="1" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Event.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Event.js">
+      <file leaf-file-name="Interface.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Interface.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="527">
-              <caret line="17" column="21" selection-start-line="17" selection-start-column="21" selection-end-line="17" selection-end-column="21" />
+            <state relative-caret-position="558">
+              <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="define.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="globals.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/javascript/globals.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="215">
+              <caret line="93" column="3" selection-start-line="93" selection-start-column="3" selection-end-line="93" selection-end-column="3" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="define.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/javascript/define.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="554">
-              <caret line="293" column="5" selection-start-line="293" selection-start-column="5" selection-end-line="293" selection-end-column="5" />
+            <state relative-caret-position="4088">
+              <caret line="290" column="20" selection-start-line="290" selection-start-column="20" selection-end-line="290" selection-end-column="20" />
               <folding />
             </state>
           </provider>
@@ -138,8 +121,18 @@
       <file leaf-file-name="Reflect.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Reflect.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="272">
-              <caret line="120" column="5" selection-start-line="120" selection-start-column="5" selection-end-line="120" selection-end-column="5" />
+            <state relative-caret-position="-87">
+              <caret line="90" column="39" selection-start-line="90" selection-start-column="39" selection-end-line="90" selection-end-column="39" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="main.as" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/lib/main.as">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="551">
+              <caret line="50" column="0" selection-start-line="50" selection-start-column="0" selection-end-line="50" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -148,8 +141,8 @@
       <file leaf-file-name="testjs.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/testjs.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="582">
-              <caret line="24" column="47" selection-start-line="24" selection-start-column="47" selection-end-line="24" selection-end-column="47" />
+            <state relative-caret-position="675">
+              <caret line="27" column="0" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -195,7 +188,6 @@
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Error.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Http.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/HttpEvent.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/Interface.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/MouseEvent.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/PropertyEvent.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/RangeError.js" />
@@ -217,20 +209,21 @@
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Window.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Document.js" />
         <option value="$PROJECT_DIR$/lib/Main-min.js" />
-        <option value="$PROJECT_DIR$/lib/main.as" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/EventDispatcher.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Element.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/globals.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Symbol.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/combine.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Event.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/fix/Reflect-ie-9.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/fix/Object-ie-9.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/Reflect.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/Object.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/Class.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/define.js" />
         <option value="$PROJECT_DIR$/testjs.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/Object.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/Reflect.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/Class.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/Interface.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/globals.js" />
+        <option value="$PROJECT_DIR$/lib/main.as" />
       </list>
     </option>
   </component>
@@ -623,14 +616,7 @@
       <workItem from="1488888688606" duration="21556000" />
       <workItem from="1488952701011" duration="31828000" />
       <workItem from="1489031647667" duration="35762000" />
-      <workItem from="1489123691138" duration="32273000" />
-    </task>
-    <task id="LOCAL-00204" summary="1.1">
-      <created>1481192281856</created>
-      <option name="number" value="00204" />
-      <option name="presentableId" value="LOCAL-00204" />
-      <option name="project" value="LOCAL" />
-      <updated>1481192281856</updated>
+      <workItem from="1489123691138" duration="36816000" />
     </task>
     <task id="LOCAL-00205" summary="1.1">
       <created>1481278128771</created>
@@ -968,11 +954,18 @@
       <option name="project" value="LOCAL" />
       <updated>1489073281711</updated>
     </task>
-    <option name="localTasksCounter" value="253" />
+    <task id="LOCAL-00253" summary="1.1.1">
+      <created>1489159825744</created>
+      <option name="number" value="00253" />
+      <option name="presentableId" value="LOCAL-00253" />
+      <option name="project" value="LOCAL" />
+      <updated>1489159825744</updated>
+    </task>
+    <option name="localTasksCounter" value="254" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2075306000" />
+    <option name="totallyTimeSpent" value="2079849000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -993,7 +986,7 @@
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32790446" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.5646037" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" x="909" y="364" width="717" height="520" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.5646037" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" x="909" y="364" width="717" height="520" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -1034,7 +1027,8 @@
     <MESSAGE value="tester" />
     <MESSAGE value="New changelist" />
     <MESSAGE value="1.1" />
-    <option name="LAST_COMMIT_MESSAGE" value="1.1" />
+    <MESSAGE value="1.1.1" />
+    <option name="LAST_COMMIT_MESSAGE" value="1.1.1" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1101,13 +1095,6 @@
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Interface.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="217">
-          <caret line="7" column="35" selection-start-line="7" selection-start-column="35" selection-end-line="7" selection-end-column="35" />
         </state>
       </provider>
     </entry>
@@ -1322,26 +1309,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/main.as">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="675">
-          <caret line="60" column="21" selection-start-line="60" selection-start-column="17" selection-end-line="60" selection-end-column="21" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/EventDispatcher.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="496">
           <caret line="190" column="44" selection-start-line="190" selection-start-column="44" selection-end-line="190" selection-end-column="44" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/globals.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="676">
-          <caret line="514" column="1" selection-start-line="514" selection-start-column="1" selection-end-line="514" selection-end-column="1" />
           <folding />
         </state>
       </provider>
@@ -1395,8 +1366,16 @@
     <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="569">
-          <caret line="5156" column="6" selection-start-line="5156" selection-start-column="6" selection-end-line="5156" selection-end-column="6" />
-          <folding />
+          <caret line="5194" column="6" selection-start-line="5194" selection-start-column="6" selection-end-line="5194" selection-end-column="6" />
+          <folding>
+            <marker date="1489164391818" expanded="true" signature="217:3626" ph="{...}" />
+            <marker date="1489164391818" expanded="true" signature="153622:155127" ph="{&quot;final&quot;: false...}" />
+            <marker date="1489164391818" expanded="true" signature="153622:155138" ph="{...}" />
+            <marker date="1489164391818" expanded="true" signature="153622:155243" ph="{...}" />
+            <marker date="1489164391818" expanded="true" signature="155106:155123" ph="{...}" />
+            <marker date="1489164391818" expanded="true" signature="155106:155124" ph="{&quot;writable&quot;: false...}" />
+            <marker date="1489164391818" expanded="true" signature="155106:155126" ph="{...}" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -1416,42 +1395,66 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Class.js">
+    <entry file="file://$PROJECT_DIR$/testjs.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="427">
-          <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+        <state relative-caret-position="675">
+          <caret line="27" column="0" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Object.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="855">
-          <caret line="270" column="3" selection-start-line="270" selection-start-column="3" selection-end-line="270" selection-end-column="3" />
+        <state relative-caret-position="2628">
+          <caret line="297" column="17" selection-start-line="297" selection-start-column="17" selection-end-line="297" selection-end-column="17" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Reflect.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="120" column="5" selection-start-line="120" selection-start-column="5" selection-end-line="120" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/testjs.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="582">
-          <caret line="24" column="47" selection-start-line="24" selection-start-column="47" selection-end-line="24" selection-end-column="47" />
+        <state relative-caret-position="-87">
+          <caret line="90" column="39" selection-start-line="90" selection-start-column="39" selection-end-line="90" selection-end-column="39" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/compiler/javascript/define.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="554">
-          <caret line="293" column="5" selection-start-line="293" selection-start-column="5" selection-end-line="293" selection-end-column="5" />
+        <state relative-caret-position="4088">
+          <caret line="290" column="20" selection-start-line="290" selection-start-column="20" selection-end-line="290" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="675">
+          <caret line="39" column="1" selection-start-line="39" selection-start-column="1" selection-end-line="39" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Interface.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="558">
+          <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/globals.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="215">
+          <caret line="93" column="3" selection-start-line="93" selection-start-column="3" selection-end-line="93" selection-end-column="3" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/main.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="551">
+          <caret line="50" column="0" selection-start-line="50" selection-start-column="0" selection-end-line="50" selection-end-column="0" />
           <folding />
         </state>
       </provider>

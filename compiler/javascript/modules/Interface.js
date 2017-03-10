@@ -6,3 +6,27 @@
 function Interface(){};
 System.Interface=Interface;
 Interface.prototype = new Object();
+Interface.prototype.constructor = Interface;
+Interface.prototype.valueOf=function valueOf()
+{
+    if(this==null)return this===null ? 'null' : 'undefined';
+    if( this instanceof Interface )
+    {
+        return '[Interface '+this.classname+']';
+    }
+    return Object.prototype.valueOf.call( this );
+}
+
+/**
+ * 返回指定对象的字符串表示形式。
+ * @returns {String}
+ */
+Interface.prototype.toString=function toString()
+{
+    if(this==null)return this===null ? 'null' : 'undefined';
+    if( this instanceof Interface )
+    {
+        return '[Interface '+this.classname+']';
+    }
+    return Object.prototype.toString.call( this );
+}
