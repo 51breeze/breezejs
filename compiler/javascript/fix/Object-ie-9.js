@@ -3,38 +3,51 @@
  * @type {Object}
  * @returns {Boolean}
  */
-Object.getPrototypeOf = $Object.getPrototypeOf || function getPrototypeOf(obj)
+if( !Object.getPrototypeOf )
 {
-    if( !obj )return null;
-    return obj.__proto__ ? obj.__proto__ : (obj.constructor ? obj.constructor.prototype : null);
+    Object.getPrototypeOf = function getPrototypeOf(obj) {
+        if (!obj)return null;
+        return obj.__proto__ ? obj.__proto__ : (obj.constructor ? obj.constructor.prototype : null);
+    }
 }
+
+var __ie8__ = System.env.platform('IE') && System.env.version(8);
 
 /**
  * 生成一个对象
  */
-Object.create  = $Object.create || (function() {
-    function F() {};
-    return function (O,P) {
-        if (typeof O != 'object')System.throwError('type','Object prototype may only be an Object or null');
-        F.prototype = O;
-        var obj = new F();
-        F.prototype = null;
-        if( P !=null )
-        {
-            P = Object( P );
-            for (var n in P)if( $hasOwnProperty.call(P, n) )
-            {
-                Object.defineProperty(obj,n, P[n]);
+if( !Object.create  )
+{
+    Object.create = (function () {
+        function F() {};
+        var $has = $Object.prototype.hasOwnProperty;
+        return function (O, P) {
+            if (typeof O != 'object')System.throwError('type', 'Object prototype may only be an Object or null');
+            F.prototype = O;
+            var obj = new F();
+            F.prototype = null;
+            if (P != null) {
+                P = Object(P);
+                for (var n in P)if ($has.call(P, n))
+                {
+                    if( __ie8__ || !Object.defineProperty )
+                    {
+                        obj[n]=P[n];
+                    }else
+                    {
+                        Object.defineProperty(obj, n, P[n]);
+                    }
+                }
             }
-        }
-        return obj;
-    };
-})();
+            return obj;
+        };
+    })();
+}
 
 /**
  * 定义属性的描述
  */
-if( (!Object.defineProperty || System.env.platform('IE') && System.env.version(8)) && System.Descriptor )
+if( (!Object.defineProperty || __ie8__) && System.Descriptor )
 {
     Object.defineProperty=function defineProperty(obj, prop, desc)
     {

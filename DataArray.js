@@ -4,24 +4,22 @@
 * Copyright © 2015 BreezeJS All rights reserved.
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
+* @require System,Array,Object
 */
 
 function DataArray()
 {
-    if( !(this instanceof DataArray) )
+    if( !System.instanceOf(this,DataArray) )
     {
-        var d = new DataArray();
-        return d.concat.apply(d, arguments);
+        return Array.apply( new DataArray(), Array.prototype.slice.call(arguments,0) );
     }
-    Array.call(this);
-    this.length = 0;
-    this.concat.apply(this,arguments);
+    return Array.apply(this, Array.prototype.slice.call(arguments,0) );
 }
-
-DataArray.prototype=new Array();
+System.DataArray=DataArray;
+DataArray.DESC='desc';
+DataArray.ASC='asc';
+DataArray.prototype= Object.create( Array.prototype );
 DataArray.prototype.constructor = DataArray;
-
-
 
 /**
  * 根据指定的列进行排序
@@ -31,21 +29,20 @@ DataArray.prototype.constructor = DataArray;
  */
 DataArray.prototype.orderBy=function(column,type)
 {
-    var orderGroup=column,orderby=['var a=arguments[0],b=arguments[1],s=0;'];
+    var field=column,orderby=['var a=arguments[0],b=arguments[1],s=0;'];
     if( typeof column !== "object" )
     {
-        orderGroup={};
-        orderGroup[ column ] = type;
+        field={};
+        field[ column ] = type;
     }
-    for(var c in orderGroup )
+    for(var c in field )
     {
-         type = DataArray.DESC === orderGroup[c].toLowerCase() ?  DataArray.DESC :  DataArray.ASC;
-         orderby.push( type===DataArray.DESC ? "Breeze.compare(b['"+c+"'],a['"+c+"']):s;" : "Breeze.compare(a['"+c+"'],b['"+c+"']):s;");
+         type = DataArray.DESC === field[c].toLowerCase() ?  DataArray.DESC :  DataArray.ASC;
+         orderby.push( type===DataArray.DESC ? "System.compare(b['"+c+"'],a['"+c+"']):s;" : "System.compare(a['"+c+"'],b['"+c+"']):s;");
     }
-    orderby = orderby.join("\r\ns=s==0?");
-    orderby+="\r\n  return s;";
-    var fn = new Function( orderby );
-    var s = DataArray.prototype.sort.call(this, fn);
+    orderby = orderby.join("s=s==0?");
+    orderby+="return s;";
+    Array.prototype.sort.call(this, new Function( orderby ) );
     return this;
 };
 
@@ -66,14 +63,11 @@ DataArray.prototype.sum=function( callback )
             return typeof value === "number"  ?  value : 0;
         }
     }
-    var index = 0, len=this.length;
-    for( ; index < len ; index++ )
+    var index=0,len=this.length;
+    for(;index<len;index++)
     {
-        result+=callback.call( this ,this[index] ) || 0;
+        result+=callback.call(this,this[index]) || 0;
     }
     return result;
 };
-
-DataArray.DESC='desc';
-DataArray.ASC='asc';
 

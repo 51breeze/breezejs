@@ -527,7 +527,7 @@ function Element(selector, context)
     this.forEachCurrentItem = null;
     this.forEachCurrentIndex = NaN;
 }
-Element.prototype= new EventDispatcher();
+Element.prototype= Object.create( EventDispatcher.prototype );
 Element.prototype.constructor = Element;
 Element.prototype.context = undefined;
 //@private Element.prototype.forEachCurrentItem

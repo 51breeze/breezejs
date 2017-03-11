@@ -43,7 +43,7 @@ Event.SCROLL='scroll';
  * 事件原型
  * @type {Object}
  */
-Event.prototype = new Object();
+Event.prototype = Object.create( Object.prototype );
 Event.prototype.constructor = Event;
 //true 只触发冒泡阶段的事件 , false 只触发捕获阶段的事件
 Event.prototype.bubbles = true;

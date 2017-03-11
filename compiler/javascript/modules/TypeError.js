@@ -4,7 +4,7 @@
  * @param line
  * @param filename
  * @constructor
- * @require Error
+ * @require Error,Object
  */
 function TypeError( message , line, filename )
 {
@@ -12,5 +12,5 @@ function TypeError( message , line, filename )
     this.type='TypeError';
 };
 System.TypeError=TypeError;
-TypeError.prototype = new Error();
+TypeError.prototype =Object.create( Error.prototype );
 TypeError.prototype.constructor=TypeError;

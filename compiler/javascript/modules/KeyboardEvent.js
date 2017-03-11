@@ -4,7 +4,7 @@
  * @param cancelable
  * @returns {KeyboardEvent}
  * @constructor
- * @require Event
+ * @require Event,Object
  */
 function KeyboardEvent( type, bubbles,cancelable  )
 {
@@ -13,7 +13,7 @@ function KeyboardEvent( type, bubbles,cancelable  )
     return this;
 };
 System.KeyboardEvent=KeyboardEvent;
-KeyboardEvent.prototype=new Event();
+KeyboardEvent.prototype=Object.create( Event.prototype );
 KeyboardEvent.prototype.constructor=KeyboardEvent;
 KeyboardEvent.prototype.keycode=null;
 KeyboardEvent.KEY_PRESS='keypress';

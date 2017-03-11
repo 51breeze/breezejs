@@ -4,7 +4,7 @@
 * Copyright © 2015 BreezeJS All rights reserved.
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
-* @require Event,TouchEvent,Math,EventDispatcher;
+* @require Event,TouchEvent,Math,EventDispatcher,Object;
 */
 function TouchPinchEvent(type, bubbles, cancelable)
 {
@@ -14,7 +14,7 @@ function TouchPinchEvent(type, bubbles, cancelable)
 };
 System.TouchPinchEvent=TouchPinchEvent;
 TouchPinchEvent.prototype.constructor=TouchPinchEvent ;
-TouchPinchEvent.prototype=new TouchEvent();
+TouchPinchEvent.prototype=Object.create( TouchEvent.prototype );
 TouchPinchEvent.prototype.moveX=NaN;
 TouchPinchEvent.prototype.moveY=NaN;
 TouchPinchEvent.prototype.startX=NaN;

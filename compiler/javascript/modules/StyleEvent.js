@@ -4,7 +4,7 @@
  * @param bubbles
  * @param cancelable
  * @constructor
- * @require Event,PropertyEvent
+ * @require Event,PropertyEvent,Object
  */
 function StyleEvent( type, bubbles,cancelable ){
     if( !(this instanceof StyleEvent) )return new StyleEvent(type, bubbles,cancelable);
@@ -12,7 +12,7 @@ function StyleEvent( type, bubbles,cancelable ){
     return this;
 };
 System.StyleEvent =StyleEvent;
-    StyleEvent.prototype=new PropertyEvent();
+StyleEvent.prototype=Object.create( PropertyEvent.prototype );
 StyleEvent.prototype.constructor=StyleEvent;
 StyleEvent.CHANGE='styleChange';
 

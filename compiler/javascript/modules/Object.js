@@ -14,7 +14,6 @@ function Object( value )
 System.Object = Object;
 Object.prototype = new $Object();
 Object.prototype.constructor=Object;
-Object.create = $Object.create;
 
 /**
  * 合并其它参数到指定的 target 对象中
@@ -100,6 +99,18 @@ Object.setPrototypeOf = $setPrototypeOf;
 Object.defineProperty = $Object.defineProperty;
 
 /**
+ * 获取对象的原型
+ * @internal Object.getPrototypeOf
+ */
+Object.getPrototypeOf = $Object.getPrototypeOf;
+
+/**
+ * 生成一个对象
+ * @internal Object.create
+ */
+Object.create = $Object.create;
+
+/**
  * 指示 Object 类的实例是否在指定为参数的对象的原型链中
  * @param theClass
  * @returns {Boolean}
@@ -169,27 +180,34 @@ Object.prototype.hasOwnProperty = function( name )
 var $propertyIsEnumerable=$Object.prototype.propertyIsEnumerable;
 Object.prototype.propertyIsEnumerable = function propertyIsEnumerable( name )
 {
-    if( this instanceof System.Class )
+    var isClass = this instanceof System.Class;
+    var objClass = isClass ? this.constructor.prototype : null;
+    var token;
+    var proto;
+    if( isClass && objClass)
     {
-        var objClass = this.constructor.prototype;
-        //动态创建的属性才可以枚举
-        if( $get(objClass,"dynamic")===true && objClass !== this )
+        //静态类没有可枚举的属性
+        if( this === objClass )return items;
+        token = $get(objClass,'token');
+        proto = $get(objClass,'proto');
+    }
+    if( $hasOwnProperty.call(this,name) )
+    {
+        if( name !== token && $propertyIsEnumerable.call(this,name)  )
         {
-            do{
-                if( $hasOwnProperty.call( $get(this, $get(objClass,'token') ), name) )
-                {
-                    var proto = $get(objClass,"proto");
-                    //内置属性不可以枚举
-                    if( !$hasOwnProperty.call(proto,name) )return true;
-                    return proto[name].id==='dynamic' && proto[name].enumerable !== false;
-                }
-            }while ( (objClass = $get(objClass,"extends") ) && $get(objClass,"dynamic") && objClass instanceof System.Class );
+            if( proto && $hasOwnProperty.call(proto, name) )
+            {
+                //动态创建的属性通过设置变得不可枚举
+                if( proto[name].id==='dynamic' && proto[name].enumerable === false )return false;
+
+                //通过对象的定义属性设置不可枚举
+                if( proto[name].enumerable === false && System.Descriptor && proto[name] instanceof System.Descriptor )return false;
+            }
+            return true;
         }
         return false;
     }
-    if( $hasOwnProperty.call(this,name) && this[name].enumerable === false && System.Descriptor && this[name] instanceof System.Descriptor)
-        return false;
-    return $propertyIsEnumerable.call(this,name);
+    return false;
 }
 
 /**
@@ -207,25 +225,24 @@ Object.prototype.setPropertyIsEnumerable = function setPropertyIsEnumerable( nam
         //动态创建的属性才可以设置枚举
         if( $get(objClass,"dynamic") === true && objClass !== this )
         {
-            do{
-                var token = $get(objClass,"token");
-                if( $hasOwnProperty.call( $get(this,token), name) )
+            var token = $get(objClass,"token");
+            if( name === token )return false;
+            if( $hasOwnProperty.call(this, name) )
+            {
+                var desc;
+                var proto = $get(objClass,'proto');
+                //内置属性不可以枚举
+                if( !$hasOwnProperty.call(proto,name) )
                 {
-                    var desc;
-                    var proto = $get(objClass,'proto');
-                    //内置属性不可以枚举
-                    if( !$hasOwnProperty.call(proto,name) )
-                    {
-                        desc = {'id':'dynamic',enumerable:false};
-                        proto[name]=desc;
-                    }else
-                    {
-                        desc= proto[name];
-                    }
-                    desc.enumerable=isEnum !== false;
-                    return true;
+                    desc = {'id':'dynamic',enumerable:false};
+                    proto[name]=desc;
+                }else
+                {
+                    desc= proto[name];
                 }
-            }while ( (objClass = $get(objClass,"extends") ) && $get(objClass,"dynamic") && objClass instanceof System.Class );
+                desc.enumerable=isEnum !== false;
+                return true;
+            }
         }
         return false;
     }
@@ -260,43 +277,33 @@ Object.prototype.getEnumerableProperties=function getEnumerableProperties( state
 {
     var items=[];
     var prop;
-    if( this instanceof System.Class )
-    {
-        var objClass = this.constructor.prototype;
-        if ( $get(objClass,"dynamic") && this !== objClass )
+    var isClass = this instanceof System.Class;
+    var objClass = isClass ? this.constructor.prototype : null;
+    var token;
+    var proto;
+    do {
+        if( isClass && objClass)
         {
-            do {
-                var token = $get(objClass,'token');
-                var obj = $get(this,token);
-                if (obj)for(prop in obj)
+            //静态类没有可枚举的属性
+            if( this === objClass )return items;
+            token = $get(objClass,'token');
+            proto = $get(objClass,'proto');
+        }
+        for(prop in this)
+        {
+            if( prop !== token && $propertyIsEnumerable.call(this,prop) && $hasOwnProperty.call(this,prop) )
+            {
+                if( !(proto && $hasOwnProperty.call(proto, prop) && proto[prop].id==='dynamic' && proto[prop].enumerable === false) )
                 {
-                    var proto = $get(objClass,"proto");
-                    if( !$hasOwnProperty.call(proto, prop) ||
-                    ( $propertyIsEnumerable.call(proto,prop) && proto[prop].enumerable !== false) )
-                    {
-                        switch (state){
-                            case -1 : items.push(prop); break;
-                            case  1 : items.push( obj[prop] ); break;
-                            case  2 : items[prop] = obj[prop]; break;
-                            default : items.push({key: prop, value: obj[prop]}); break;
-                        }
+                    switch (state){
+                        case -1 : items.push(prop); break;
+                        case  1 : items.push( $get(this,prop) ); break;
+                        case  2 : items[prop] = $get(this,prop); break;
+                        default : items.push({key: prop, value: $get(this,prop)}); break;
                     }
                 }
-            } while ( (objClass = $get(objClass,"extends") ) && $get(objClass,"dynamic") && objClass instanceof System.Class );
-        }
-
-    }else if( this && typeof this !== "function" )
-    {
-        for( prop in this )if( $propertyIsEnumerable.call(this,prop) && !( this[prop] && this[prop].enumerable === false) )
-        {
-            var val = $get(this,prop);
-            switch (state){
-                case -1 : items.push(prop); break;
-                case  1 : items.push(val); break;
-                case  2 : items[prop] = val; break;
-                default : items.push({key: prop, value: val}); break;
             }
         }
-    }
+    } while ( isClass && (objClass = $get(objClass,"extends") ) && $get(objClass,"dynamic")===true && objClass instanceof System.Class );
     return items;
 }

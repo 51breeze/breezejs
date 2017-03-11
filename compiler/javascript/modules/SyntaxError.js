@@ -4,7 +4,7 @@
  * @param line
  * @param filename
  * @constructor
- * @require Error;
+ * @require Error,Object;
  */
 function SyntaxError( message , line, filename )
 {
@@ -12,5 +12,5 @@ function SyntaxError( message , line, filename )
     this.type='SyntaxError';
 };
 System.SyntaxError = SyntaxError;
-SyntaxError.prototype = new Error();
+SyntaxError.prototype = Object.create( Error.prototype );
 SyntaxError.prototype.constructor=SyntaxError;

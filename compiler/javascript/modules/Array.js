@@ -3,15 +3,28 @@
 * @returns {Array}
 * @constructor
 * @require System;
-* @require Object;
+* @require Object,Math;
 */
-function Array(length) {
-    if (!(this instanceof Array))return $Array.apply( new Array(), Array.prototype.slice.call(arguments, 0));
-    this.length = 0;
-    return $Array.apply(this, Array.prototype.slice.call(arguments, 0));
+function Array(length)
+{
+    if ( !System.instanceOf(this, Array) )
+    {
+        return $Array.apply( new Array(), Array.prototype.slice.call(arguments, 0));
+    }
+    this.length=0;
+    if( arguments.length > 0 )
+    {
+        if( typeof length === 'number' && arguments.length===1 )
+        {
+            this.length = length >>> 0;
+            return $Array.call(this, this.length );
+        }
+        return Array.prototype.splice.apply(this, [0,0].concat( Array.prototype.slice.call(arguments,0)));
+    }
+    return $Array.call(this);
 };
 System.Array = Array;
-Array.prototype = new Object();
+Array.prototype = Object.create( Object.prototype );
 Array.prototype.constructor = Array;
 Array.prototype.length = 0;
 Array.prototype.slice = $Array.prototype.slice;

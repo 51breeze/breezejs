@@ -4,7 +4,7 @@
 * Copyright © 2015 BreezeJS All rights reserved.
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
-* @require Event,TouchEvent,Math,EventDispather;
+* @require Event,TouchEvent,Math,EventDispather,Object;
 */
 function TouchDragEvent(type, bubbles, cancelable)
 {
@@ -14,7 +14,7 @@ function TouchDragEvent(type, bubbles, cancelable)
 };
 System.TouchDragEvent=TouchDragEvent;
 TouchDragEvent.prototype.constructor=TouchDragEvent;
-TouchDragEvent.prototype=new TouchEvent();
+TouchDragEvent.prototype=Object.create( TouchEvent.prototype );
 TouchDragEvent.prototype.startX=NaN;
 TouchDragEvent.prototype.startY=NaN;
 TouchDragEvent.prototype.moveX=NaN;

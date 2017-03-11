@@ -18,7 +18,7 @@ function EventDispatcher( target )
     }
 };
 System.EventDispatcher=EventDispatcher;
-EventDispatcher.prototype=new Object();
+EventDispatcher.prototype=Object.create( Object.prototype );
 EventDispatcher.prototype.constructor=EventDispatcher;
 
 //@public EventDispatcher.prototype.target non-writable non-enumerable;

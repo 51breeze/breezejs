@@ -4,7 +4,7 @@
 * Copyright © 2015 BreezeJS All rights reserved.
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
-* @require Event,TouchEvent,Math,EventDispatcher;
+* @require Event,TouchEvent,Math,EventDispatcher,Object;
 */
 function TouchSwipeEvent(type, bubbles, cancelable)
 {
@@ -14,7 +14,7 @@ function TouchSwipeEvent(type, bubbles, cancelable)
 };
 System.TouchSwipeEvent = TouchSwipeEvent;
 TouchSwipeEvent.prototype.constructor=TouchSwipeEvent;
-TouchSwipeEvent.prototype=new TouchEvent();
+TouchSwipeEvent.prototype=Object.create( TouchEvent.prototype );
 TouchSwipeEvent.prototype.startX=NaN;
 TouchSwipeEvent.prototype.startY=NaN;
 TouchSwipeEvent.prototype.moveX=NaN;

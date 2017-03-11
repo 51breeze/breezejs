@@ -42,7 +42,7 @@ function DataSource( options )
     this.__cached__={'queues':[],'lastSegments':null,'loadSegmented':new DataArray() };
 }
 System.DataSource=DataSource;
-DataSource.prototype = new EventDispatcher();
+DataSource.prototype = Object.create( EventDispatcher.prototype );
 DataSource.prototype.constructor=DataSource;
 DataSource.prototype.length=0;
 DataSource.prototype.indexOf=Array.prototype.indexOf;
@@ -274,11 +274,11 @@ DataSource.prototype.__grep__=null;
 
 /**
  * 获取检索对象
- * @returns {*|Grep}
+ * @returns {*|DataGrep}
  */
 DataSource.prototype.grep=function()
 {
-    return this.__grep__ || ( this.__grep__=new Grep( this ) );
+    return this.__grep__ || ( this.__grep__=new DataGrep( this ) );
 };
 
 /**

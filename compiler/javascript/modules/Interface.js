@@ -5,7 +5,7 @@
  */
 function Interface(){};
 System.Interface=Interface;
-Interface.prototype = new Object();
+Interface.prototype = Object.create( Object.prototype );
 Interface.prototype.constructor = Interface;
 Interface.prototype.valueOf=function valueOf()
 {

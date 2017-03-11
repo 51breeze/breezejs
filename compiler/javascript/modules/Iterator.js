@@ -12,7 +12,7 @@ function Iterator( target )
     return this;
 };
 System.Iterator=Iterator;
-Iterator.prototype = new Object();
+Iterator.prototype = Object.create( Object.prototype );
 Iterator.prototype.items = null;
 Iterator.prototype.target = null;
 Iterator.prototype.cursor = -1;

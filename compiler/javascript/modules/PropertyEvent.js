@@ -4,7 +4,7 @@
  * @param bubbles
  * @param cancelable
  * @constructor
- * @require Event
+ * @require Event,Object
  */
 function PropertyEvent( type, bubbles,cancelable ){
     if( !(this instanceof PropertyEvent) )return new PropertyEvent(type, bubbles,cancelable);
@@ -12,7 +12,7 @@ function PropertyEvent( type, bubbles,cancelable ){
     return this;
 };
 System.PropertyEvent=PropertyEvent;
-PropertyEvent.prototype=new Event();
+PropertyEvent.prototype=Object.create( Event.prototype );
 PropertyEvent.prototype.property=null;
 PropertyEvent.prototype.newValue=null;
 PropertyEvent.prototype.oldValue=null;

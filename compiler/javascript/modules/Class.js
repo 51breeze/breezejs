@@ -5,7 +5,7 @@
  * @require System,Object;
  */
 function Class(){};
-Class.prototype = new Object();
+Class.prototype = Object.create( Object.prototype );
 Class.prototype.constructor = Class;
 Class.prototype.valueOf=function()
 {

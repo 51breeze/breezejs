@@ -4,7 +4,7 @@
  * @param bubbles
  * @param cancelable
  * @constructor
- * @require System,Event
+ * @require System,Event,Object
  */
 function ElementEvent( type, bubbles,cancelable )
 {
@@ -13,7 +13,7 @@ function ElementEvent( type, bubbles,cancelable )
     return this;
 };
 System.ElementEvent = ElementEvent;
-ElementEvent.prototype=new Event();
+ElementEvent.prototype=Object.create( Event.prototype );
 ElementEvent.prototype.parent=null;
 ElementEvent.prototype.child=null;
 ElementEvent.prototype.constructor=ElementEvent;

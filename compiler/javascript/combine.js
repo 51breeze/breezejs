@@ -8,21 +8,6 @@ const rootPath =  utils.getResolvePath( __dirname );
 const loaded = {};
 
 /**
- * 使用严格模式
- */
-contents.push('"use strict";\n');
-
-/**
- * 全局系统对象
- */
-contents.push('var System={};\n');
-
-/**
- * 封闭域
- */
-contents.push('(function(System,$'+globals.join(',$')+'){\n');
-
-/**
  * 根据指定的版本加载对应的策略文件
  * @type {Array}
  */
@@ -113,7 +98,7 @@ const mapname={'window':'Window','document':'Document','console':'Console'};
  * 获取指定的文件模块
  * @param filepath
  */
-function include( name , filepath, fix )
+function include(contents, name , filepath, fix )
 {
     name = mapname[name] || name;
     if( loaded[name] === true )return;
@@ -126,21 +111,28 @@ function include( name , filepath, fix )
         if( desc.requirements.indexOf('System') < 0 )desc.requirements.unshift('System');
         var map = desc.requirements.map(function (val) {
             if( val === 'System' || val === 'system')return 'System';
-            if(val.charAt(0)!=='$')include(val, null, fix);
+            if(val.charAt(0)!=='$')include(contents,val, null, fix);
             return 'System.'+val;
         });
-        if( isEmpty( desc.describe.static ) )delete desc.describe.static;
-        if( isEmpty( desc.describe.proto ) )delete desc.describe.proto;
-        if( !isEmpty( desc.describe ) )descriptions[name] = desc.describe;
+        if( !isEmpty( desc.describe.static ) ){
+            if( !descriptions[name] )descriptions[name]={};
+            if(!descriptions[name].static)descriptions[name].static={};
+            utils.merge( descriptions[name].static, desc.describe.static);
+        }
+        if( !isEmpty( desc.describe.proto ) ){
+            if( !descriptions[name] )descriptions[name]={};
+            if(!descriptions[name].proto)descriptions[name].proto={};
+            utils.merge( descriptions[name].proto, desc.describe.proto);
+        }
 
         var module=[];
         module.push('(function('+desc.requirements.join(',')+'){\n');
         module.push( str );
         module.push('\n');
         //加载对应模块的兼容策略文件
-        if( fix[name] )for( var f in fix[name] )
+        if( fix && fix[name] )for( var f in fix[name] )
         {
-            module.push( utils.getContents(fix[name][f]) );
+            module.push( utils.getContents( fix[name][f] ) );
         }
         module.push('\n}('+map.join(',')+'));\n');
         contents.push( module.join('') );
@@ -154,10 +146,22 @@ function include( name , filepath, fix )
     throw new Error(name+' does exists');
 }
 
+/**
+ * 是否为空对象
+ * @param obj
+ * @returns {boolean}
+ */
 function isEmpty( obj ) {
     for(var i in obj )return false;
     return true;
 }
+
+/**
+ * 在特定的版本下需要加载的库文件
+ */
+const library={
+    'ie-9':{'Element':'Sizzle.js'}
+};
 
 /**
  * 合并代码
@@ -167,6 +171,21 @@ function isEmpty( obj ) {
 function combine( config , code, requirements )
 {
     var fix = polyfill( config );
+
+    /**
+     * 需要支持的库文件
+     */
+    var libs={};
+    for(var prop in library)
+    {
+        var is=config.compat==='*' || prop==='*';
+        var info = prop.split('-', 1);
+        if( !is && config.compat && typeof config.compat === 'object' && config.compat.hasOwnProperty( info[0] ) )
+        {
+            is = parseFloat( info[1] ) > parseFloat( config.compat[ info[0] ] );
+        }
+        if(is)utils.merge(libs, library[prop] );
+    }
 
     /**
      * 引用全局对象模块
@@ -179,17 +198,25 @@ function combine( config , code, requirements )
             if( requirements[p]===true && requires.indexOf( p ) < 0 )requires.push( p );
         }
     }
-    for(var prop in requires)include( requires[prop] , null, fix );
+    for(var prop in requires)include(contents, requires[prop] , null, fix );
 
     /**
      * 模块定义器
      */
-    include('define' , rootPath+'/define.js', fix );
+    include(contents,'define' , rootPath+'/define.js', fix );
 
     /**
      * 模块描述
      */
-    contents.splice(3,0, 'var descriptions = '+JSON.stringify(descriptions)+';\n' );
+    contents.unshift('var descriptions = '+JSON.stringify(descriptions)+';\n');
+
+    /**
+     * 加载库文件
+     */
+    for ( var p in libs )if( requires.indexOf( p ) >= 0 )
+    {
+        contents.push( utils.getContents(rootPath+'/lib/'+ libs[p] ) );
+    }
 
     /**
      * 内置系统对象
@@ -197,13 +224,17 @@ function combine( config , code, requirements )
     var g = globals.map(function(val) {
          if( val==='JSON' || val==='Reflect' || val==='console')return 'typeof '+val+'==="undefined"?null:'+val;
          return val;
-    })
-    contents.push('}(System,' + g.join(',') + '));\n');
+    });
+
     return [
-        '(function(undefined){\n',
-        contents.join(''),
-        '\n',
-        '(function('+ requires.join(',')+'){\n',
+        '(function(System,undefined){\n',
+        '"use strict";\n',
+        //系统全局模块域
+        '(function(System,$'+globals.join(',$')+'){\n',
+         contents.join(''),
+        '}(System,' + g.join(',') + '));\n',
+        //自定义模块域
+        '(function('+requires.join(',')+'){\n',
         code,
         'delete System.define;\n',
         'var main=System.getDefinitionByName("'+config.main+'");\n',
@@ -213,7 +244,7 @@ function combine( config , code, requirements )
             if(a==='System')return a;
             return 'System.'+a;
         }).join(',')+');\n',
-        '})();'
+        '}({}));'
     ].join('');
 }
 module.exports = combine;

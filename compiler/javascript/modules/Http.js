@@ -155,7 +155,7 @@ Http.METHOD = {
  * 继承事件类
  * @type {Object|Function}
  */
-Http.prototype = new EventDispatcher();
+Http.prototype = Object.create( EventDispatcher.prototype );
 Http.prototype.constructor = Http;
 
 /**

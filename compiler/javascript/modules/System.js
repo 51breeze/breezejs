@@ -107,11 +107,8 @@ System.typeOf = function typeOf(instanceObj)
  */
 System.instanceOf = function instanceOf(instanceObj, theClass)
 {
-    if (theClass === System.Class)
-    {
-        return instanceObj instanceof System.Class && instanceObj.constructor.prototype===instanceObj;
-    }
-    if ( instanceObj instanceof System.Class && instanceObj.constructor.prototype!==instanceObj )
+    if (theClass === System.Class)return instanceObj instanceof System.Class && instanceObj.constructor.prototype===instanceObj;
+    if ( instanceObj instanceof System.Class && instanceObj.constructor.prototype !== instanceObj )
     {
         var objClass = instanceObj.constructor.prototype;
         while (objClass)
@@ -120,14 +117,14 @@ System.instanceOf = function instanceOf(instanceObj, theClass)
             objClass =objClass.extends;
         }
     }
-
     //如果不是一个函数直接返回false
-    if (typeof theClass !== "function")
-    {
-        return false;
-    }
-    instanceObj = System.Object(instanceObj);
-    return instanceObj instanceof theClass || ( theClass === System.JSON && System.isObject(instanceObj, true) );
+    if (typeof theClass !== "function")return false;
+    if( instanceObj instanceof theClass )return true;
+    if( theClass === System.Object )return instanceObj instanceof $Object;
+    if( theClass === System.Array )return  instanceObj instanceof $Array;
+    if( theClass === System.String )return instanceObj instanceof $String;
+    if( theClass === System.RegExp )return instanceObj instanceof $RegExp;
+    return false;
 }
 
 /**
@@ -138,10 +135,7 @@ System.instanceOf = function instanceOf(instanceObj, theClass)
  */
 System.is =function is(instanceObj, theClass)
 {
-    if( theClass === System.Class )
-    {
-        return instanceObj instanceof System.Class && instanceObj.constructor.prototype===instanceObj;
-    }
+    if( theClass === System.Class )return instanceObj instanceof System.Class && instanceObj.constructor.prototype===instanceObj;
     if( instanceObj instanceof System.Class && instanceObj.constructor.prototype !== instanceObj )
     {
         var objClass =instanceObj.constructor.prototype;
@@ -149,10 +143,12 @@ System.is =function is(instanceObj, theClass)
         {
             if (objClass === theClass)return true;
             var impls = objClass.implements;
-            if (impls && impls.length > 0) {
+            if (impls && impls.length > 0)
+            {
                 var i = 0;
                 var len = impls.length;
-                for (; i < len; i++) {
+                for (; i < len; i++)
+                {
                     var interfaceModule = impls[i];
                     while (interfaceModule) {
                         if (interfaceModule === theClass)return true;
@@ -164,12 +160,14 @@ System.is =function is(instanceObj, theClass)
         }
     }
 
-    if (typeof theClass !== "function")
-    {
-        return false;
-    }
-    instanceObj = System.Object(instanceObj);
-    return instanceObj instanceof theClass || ( theClass === System.JSON && System.isObject(instanceObj, true) );
+    //如果不是一个函数直接返回false
+    if (typeof theClass !== "function")return false;
+    if( instanceObj instanceof theClass )return true;
+    if( theClass === System.Object )return instanceObj instanceof $Object;
+    if( theClass === System.Array )return  instanceObj instanceof $Array;
+    if( theClass === System.String )return instanceObj instanceof $String;
+    if( theClass === System.RegExp )return instanceObj instanceof $RegExp;
+    return false;
 }
 
 /**

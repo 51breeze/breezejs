@@ -3,7 +3,7 @@
  * @param src
  * @param props
  * @constructor
- * @require Event,Math;
+ * @require Event,Math,Object;
  */
 function MouseEvent( type, bubbles,cancelable  )
 {
@@ -11,7 +11,7 @@ function MouseEvent( type, bubbles,cancelable  )
     Event.call(this, type, bubbles,cancelable );
 };
 System.MouseEvent=MouseEvent;
-MouseEvent.prototype=new Event();
+MouseEvent.prototype=Object.create( Event.prototype );
 MouseEvent.prototype.constructor=MouseEvent;
 MouseEvent.prototype.pageX= NaN;
 MouseEvent.prototype.pageY= NaN;

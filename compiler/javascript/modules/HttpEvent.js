@@ -5,7 +5,7 @@
  * @param cancelable
  * @returns {HttpEvent}
  * @constructor
- * @require Event
+ * @require Event,Object
  */
 function HttpEvent( type, bubbles,cancelable ){
     if( !(this instanceof HttpEvent) )return new HttpEvent(type, bubbles,cancelable);
@@ -13,7 +13,7 @@ function HttpEvent( type, bubbles,cancelable ){
     return this;
 };
 System.HttpEvent=HttpEvent;
-HttpEvent.prototype=new Event();
+HttpEvent.prototype=Object.create( Event.prototype );
 HttpEvent.prototype.data=null;
 HttpEvent.prototype.url=null;
 HttpEvent.SUCCESS = 'httpSuccess';

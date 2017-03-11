@@ -4,7 +4,7 @@
  * @param line
  * @param filename
  * @constructor
- * @require Error;
+ * @require Error,Object;
  */
 function ReferenceError( message , line, filename )
 {
@@ -12,5 +12,5 @@ function ReferenceError( message , line, filename )
     this.type='ReferenceError';
 };
 System.ReferenceError =ReferenceError;
-ReferenceError.prototype = new Error();
+ReferenceError.prototype = Object.create( Error.prototype );
 ReferenceError.prototype.constructor=ReferenceError;

@@ -5,6 +5,7 @@
  * @require Class,Object,$get,$set
  */
 var $rConstruct =$Reflect && $Reflect.construct;
+var $has = $Object.prototype.hasOwnProperty;
 function Reflect(){if(this instanceof Reflect)throwError('Reflect is not constructor.');}
 System.Reflect=Reflect;
 /**
@@ -89,11 +90,11 @@ Reflect.deleteProperty=function deleteProperty(target, propertyKey)
         if( !$get(objClass,"dynamic") )return false;
         var token = $get(objClass,"token");
         var obj = $get(target, token );
-        if( obj && Object.prototype.hasOwnProperty.call(obj,propertyKey) )
+        if( obj && $has.call(obj,propertyKey) )
         {
             var protoDesc = $get(objClass,"proto");
             //只有动态添加的属性或者是可配置的属性才可以删除
-            if( Object.prototype.hasOwnProperty.call(protoDesc,propertyKey) )
+            if( $has.call(protoDesc,propertyKey) )
             {
                 var desc = $get(protoDesc,propertyKey);
                 if( $get(desc,"configurable") === false || $get(desc,"id") !=='dynamic' )return false;
@@ -105,7 +106,7 @@ Reflect.deleteProperty=function deleteProperty(target, propertyKey)
         return false;
     }
     delete target[propertyKey];
-    return !Object.prototype.hasOwnProperty.call(target,propertyKey);
+    return !$has.call(target,propertyKey);
 }
 
 /**
@@ -125,11 +126,11 @@ Reflect.has=function has(target, propertyKey)
             var desc= isstatic ? $get(objClass,"static") :  $get(objClass,"proto");
             var token = $get(objClass,"token");
             //没有属性描述符默认为public
-            if( !Object.prototype.hasOwnProperty.call(desc, propertyKey) )
+            if( !$has.call(desc, propertyKey) )
             {
                 desc=null;
                 //只有实例对象才有实例属性
-                if( !isstatic && Object.prototype.hasOwnProperty.call( $get(target,token),propertyKey) )
+                if( !isstatic && $has.call( $get(target,token),propertyKey) )
                 {
                     return true;
                 }
@@ -171,8 +172,10 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
             var desc= isstatic ? $get(objClass,"static") :  $get(objClass,"proto");
             var token = $get(objClass,'token');
             var refObj = $get(target, token);
-            var has = Object.prototype.hasOwnProperty.call( desc, propertyKey);
-            var hasProp = refObj && Object.prototype.hasOwnProperty.call(refObj, propertyKey);
+            var has = $has.call( desc, propertyKey);
+            var hasProp = refObj && $has.call(refObj, propertyKey);
+            if( token===propertyKey && !hasProp)return undefined;
+
             //没有属性描述符默认为public  只有非静态的才有实例属性
             if( !isstatic && !has && hasProp )
             {
@@ -201,7 +204,11 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
             objClass = $get(objClass,"extends");
             if( !(objClass instanceof Class) )
             {
-                return $get((objClass||Object).prototype,propertyKey);
+                if( $has.call(target, propertyKey) )
+                {
+                    return $get(target, propertyKey, receiver );
+                }
+                return $get((objClass||Object).prototype,propertyKey,receiver);
             }
 
         }while ( objClass )
@@ -231,36 +238,32 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
             var desc= isstatic ? $get(objClass,"static") :  $get(objClass,"proto");
             var token = $get(objClass,"token");
             var isdynamic = !!$get(objClass,"dynamic");
-
+            var hasDesc = $has.call(desc, propertyKey);
             //没有属性描述符默认为public
-            if( !Object.prototype.hasOwnProperty.call(desc, propertyKey) )
+            if( !hasDesc || isdynamic === true )
             {
                 //只有非静态的才有实例属性
                 if( !isstatic )
                 {
-                    var refObj = $get(target,token);
-                    if( refObj && Object.prototype.hasOwnProperty.call( refObj ,propertyKey ) )
-                    {
-                        $set( refObj, propertyKey, value );
-                        return true;
-                    }
                     //动态对象可以动态添加
-                    else if( isdynamic === true )
+                    if( isdynamic === true )
                     {
-                        if( !refObj )
-                        {
-                            refObj={};
-                            $set(target,token,refObj);
-                        }
-                        //为动态属性添加一个描述符
-                        $set(desc,propertyKey,{'id':'dynamic'});
-                        $set(refObj,propertyKey,value);
+                        if( propertyKey === token )System.throwError('syntax', '"' + propertyKey + '" is not configurable.');
+                        $set(target,propertyKey,value);
                         return true;
+                    }else
+                    {
+                        var refObj = $get(target,token);
+                        if( refObj && $has.call( refObj ,propertyKey ) )
+                        {
+                            $set( refObj, propertyKey, value );
+                            return true;
+                        }
                     }
                 }
-                desc=null;
             }
 
+            if( !hasDesc )desc=null;
             if( desc )desc=$get(desc,propertyKey);
             if( desc && (classScope === objClass || $get(desc,"qualifier") !== 'private') )
             {
@@ -271,7 +274,7 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
                     return false;
                 }
                 //是否为一个访问器
-                if( Object.prototype.hasOwnProperty.call(desc,"set") )
+                if( $has.call(desc,"set") )
                 {
                     desc.set.call(receiver || target, value);
                 }else

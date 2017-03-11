@@ -14,7 +14,7 @@ function Error( message , line, filename )
     this.type='Error';
 };
 System.Error=Error;
-Error.prototype = new Object();
+Error.prototype =Object.create( Object.prototype );
 Error.prototype.constructor=Error;
 Error.prototype.line=null;
 Error.prototype.type='Error';

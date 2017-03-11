@@ -24,6 +24,7 @@ import lib.IProt;
 import com.Abs;
 import com.D;
 import com.Dispatcher;
+import com.DataArray;
 
 public class Main extends B implements IProsess {
 
@@ -39,7 +40,7 @@ public class Main extends B implements IProsess {
           function Main(jj)
           {
 
-              log( Main.name is String , Main , this is IProsess , this instanceof Class, Main instanceof Class );
+              var arr = new DataArray(5);
 
               EventDispatcher( document ).addEventListener( Event.READY , function (e) {
 
@@ -48,7 +49,6 @@ public class Main extends B implements IProsess {
                   Element('#container').addEventListener( MouseEvent.CLICK, function (e)
                   {
                       log( '==========style =====event=====');
-
 
                       //   log( e.property, e.oldValue, e.newValue );
 
