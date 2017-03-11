@@ -1,7 +1,9 @@
 if (System.env.platform(System.env.BROWSER_IE) && System.env.version(8, '<='))
 {
-    System.typeOf = function typeOf(instanceObj) {
-        if (instanceObj instanceof System.Class)return 'class';
+    hasDescriptor=true;
+    System.typeOf = function typeOf(instanceObj)
+    {
+        if (instanceObj instanceof System.Class && instanceObj.constructor.prototype === instanceObj )return 'class';
         if (instanceObj instanceof System.Interface)return 'interface';
         var val = typeof instanceObj;
         if (val === "object" && /function/i.test(instanceObj + "")) {
@@ -12,3 +14,37 @@ if (System.env.platform(System.env.BROWSER_IE) && System.env.version(8, '<='))
         return val;
     }
 }
+
+/**
+ * 描述符构造器
+ * @private System.Descriptor
+ * @param desc
+ * @constructor
+ */
+System.Descriptor=function Descriptor( desc )
+{
+    if( !(this instanceof Descriptor) )return new Descriptor(desc);
+    this.writable = !!desc.writable;
+    this.enumerable = !!desc.enumerable;
+    this.configurable = !!desc.configurable;
+    if (typeof desc.value !== "undefined")
+    {
+        if(desc.get || desc.set || this.get || this.set)System.throwError('type','value and accessor can only has one');
+        this.value = desc.value;
+    }
+    if ( typeof desc.get !== "undefined" )
+    {
+        if( typeof desc.get !== "function" )System.throwError('type','getter accessor is not function');
+        if( typeof desc.value !== "undefined" || typeof this.value !== "undefined")System.throwError('type','value and accessor can only one');
+        this.get = desc.get;
+    }
+    if ( typeof desc.set !== "undefined" )
+    {
+        if( typeof desc.set !== "function" )System.throwError('type','setter accessor is not function');
+        if( typeof desc.value !== "undefined" || typeof this.value !== "undefined" || this.writable===false )System.throwError('type','value and accessor and writable can only one');
+        this.set = desc.set;
+    }
+    return this;
+}
+System.Descriptor.prototype={};
+System.Descriptor.prototype.constructor = System.Descriptor;

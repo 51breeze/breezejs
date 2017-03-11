@@ -5,7 +5,7 @@ const rootPath =  utils.getResolvePath( __dirname );
 /**
  *  已加载的模块
  */
-const loaded = {'System':true};
+const loaded = {};
 
 /**
  * 使用严格模式
@@ -126,7 +126,7 @@ function include( name , filepath, fix )
         if( desc.requirements.indexOf('System') < 0 )desc.requirements.unshift('System');
         var map = desc.requirements.map(function (val) {
             if( val === 'System' || val === 'system')return 'System';
-            include(val, null, fix);
+            if(val.charAt(0)!=='$')include(val, null, fix);
             return 'System.'+val;
         });
         if( isEmpty( desc.describe.static ) )delete desc.describe.static;
@@ -169,17 +169,11 @@ function combine( config , code, requirements )
     var fix = polyfill( config );
 
     /**
-     * 全局函数
-     */
-    include('globals' , rootPath+'/globals.js', fix );
-
-    /**
      * 引用全局对象模块
      */
-    var requires = ['Class','Interface'].concat( globals.slice(0) );
+    var requires = ['System','Class','Interface'].concat( globals.slice(0) );
     if( requirements )
     {
-        delete  requirements['System'];
         for ( var p in requirements )
         {
             if( requirements[p]===true && requires.indexOf( p ) < 0 )requires.push( p );
@@ -209,14 +203,16 @@ function combine( config , code, requirements )
         '(function(undefined){\n',
         contents.join(''),
         '\n',
-        '(function(System,'+ requires.join(',')+'){\n',
+        '(function('+ requires.join(',')+'){\n',
         code,
         'delete System.define;\n',
         'var main=System.getDefinitionByName("'+config.main+'");\n',
         'System.Reflect.construct(main);\n',
-        '})(System,System.'+requires.map(function (a){
-            return mapname[a] || a;
-        }).join(',System.')+');\n',
+        '})('+requires.map(function (a){
+            a = mapname[a] || a;
+            if(a==='System')return a;
+            return 'System.'+a;
+        }).join(',')+');\n',
         '})();'
     ].join('');
 }

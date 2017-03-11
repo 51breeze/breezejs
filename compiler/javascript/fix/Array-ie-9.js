@@ -8,8 +8,8 @@ if( !Array.prototype.map )
     {
         var T, A, k;
         if (this == null)System.throwError('type',"this is null or not defined");
-        if (!isFunction(callback))System.throwError('type',callback + " is not a function");
-        var O =  isObject(this) ? this : [];
+        if (!System.isFunction(callback))System.throwError('type',callback + " is not a function");
+        var O =  System.isObject(this) ? this : [];
         var len = O.length >>> 0;
         if (thisArg)T = thisArg;
         A = new Array(len);

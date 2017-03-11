@@ -520,7 +520,55 @@ return crc32;
 }());
 
 var __uid__=1;
+
+/**
+ * 全局唯一值
+ * @returns {string}
+ */
 System.uid = function uid()
 {
    return (__uid__++)+''+(System.Math.random() * 10000)>>>0;
+}
+
+/**
+ @private
+ */
+var hasDescriptor = false;
+
+/**
+ * @internal System.$get;
+ */
+System.$get = function $get(target, propertyKey, receiver)
+{
+    if( !target )return undefined;
+    var value = target[propertyKey];
+    if( hasDescriptor && value instanceof System.Descriptor )
+    {
+        return value.get ? value.get.call(receiver || target) : value.value;
+    }
+    return value;
+}
+
+/**
+ * @internal System.$set;
+ */
+System.$set = function $set(target,propertyKey,value,receiver)
+{
+    var desc = target[propertyKey];
+    if( hasDescriptor && desc instanceof System.Descriptor )
+    {
+        if( desc.writable=== false )System.throwError('reference','"'+propertyKey+'" is not writable');
+        if( desc.set ){
+            desc.set.call(receiver||target, value);
+        }else {
+            desc.value = value;
+        }
+        return true;
+    }
+    try {
+        target[ propertyKey ] = value;
+    }catch (e){
+        return false;
+    }
+    return true;
 }

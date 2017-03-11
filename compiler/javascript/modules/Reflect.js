@@ -2,7 +2,7 @@
  * Reflect是一个内置的对象，提供可拦截的JavaScript操作的方法。
  * 方法与代理处理程序相同。反射不是一个函数对象，因此它不可构造。
  * @constructor
- * @require Class,Object
+ * @require Class,Object,$get,$set
  */
 var $rConstruct =$Reflect && $Reflect.construct;
 function Reflect(){if(this instanceof Reflect)throwError('Reflect is not constructor.');}
@@ -288,61 +288,6 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
     }
     return $set(target,propertyKey,value,receiver);
 }
-
-/**
-@private
-*/
-var hasDescriptor = !!System.Descriptor && System.env.platform('IE') && System.env.version(8);
-
-/**
- * @private
- */
-function $get(target, propertyKey, receiver)
-{
-    if( !target )return undefined;
-    var value = target[propertyKey];
-    if( hasDescriptor && value instanceof System.Descriptor )
-    {
-        return value.get ? value.get.call(receiver || target) : value.value;
-    }
-    return value;
-}
-
-/**
- * @internal Reflect.$get;
- * @type {$get}
- */
-Reflect.$get = $get;
-
-/**
- * @private
- */
-function $set(target,propertyKey,value,receiver)
-{
-    var desc = target[propertyKey];
-    if( hasDescriptor && desc instanceof System.Descriptor )
-    {
-        if( desc.writable=== false )System.throwError('reference','"'+propertyKey+'" is not writable');
-        if( desc.set ){
-            desc.set.call(receiver||target, value);
-        }else {
-            desc.value = value;
-        }
-        return true;
-    }
-    try {
-        target[ propertyKey ] = value;
-    }catch (e){
-        return false;
-    }
-    return true;
-}
-
-/**
- * @internal Reflect.$set;
- * @type {$set}
- */
-Reflect.$set = $set;
 
 /**
  * 检查是否可访问
