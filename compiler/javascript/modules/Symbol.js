@@ -24,7 +24,7 @@ var factor = (function () {
  * @constructor
  */
 function Symbol( name ){
-    if(this instanceof Symbol )System.throwError('type','is not constructor');
+    if(this instanceof Symbol )Internal.throwError('type','is not constructor');
     return new factor(name);
 }
 System.Symbol = Symbol;
@@ -64,7 +64,7 @@ Symbol.prototype[toPrimitive] = function()
  * @param name
  * @returns {Symbol}
  */
-Symbol.for = function( name )
+Symbol["for"] = function( name )
 {
     if( tables[name] )return tables[name];
     return tables[name] = Symbol( name );

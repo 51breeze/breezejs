@@ -2,7 +2,7 @@
  * JSON 对象构造器
  * @constructor
  */
-function JSON(){ if(this instanceof JSON)System.throwError('JSON is not constructor.'); };
+function JSON(){ if(this instanceof JSON)Internal.throwError('JSON is not constructor.'); };
 System.JSON=JSON;
 var escMap = {'"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f', '\n': '\\n', '\r': '\\r', '\t': '\\t'};
 var escRE = /[\\"\u0000-\u001F\u2028\u2029]/g;

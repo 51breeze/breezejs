@@ -1,6 +1,6 @@
 /**
  * 本地模块对象
- * @require System,Array,Reflect,Object,Class,Interface;
+ * @require System,Array,Reflect,Object,Class,Interface,Internal.$get,Internal.$set;
  */
 var modules={};
 
@@ -29,24 +29,24 @@ function mathOperator( a, o, b)
         case '>>=' :return a>>=b;
         case '>>>=' :return a>>>=b;
         default :
-            throwError('syntax','Invalid operator "'+o+'"' );
+            Internal.throwError('syntax','Invalid operator "'+o+'"' );
     }
 }
 
-function toPropertyStr(thisArg, properties ) {
+function toMessage(thisArg, properties, classModule, error, info , method )
+{
     var items = System.isArray(properties) ? Array.prototype.map.call(properties,function (item) {
         if( typeof item === "string" )return item;
-        return getQualifiedClassName( item );
+        return System.getQualifiedClassName( item );
     }) : [properties];
-    items.unshift( getQualifiedClassName( thisArg ) );
-    return items.join('.');
-}
-
-function toErrorMsg(error, classModule, info, thisArg)
-{
-    var msg = classModule.filename + ':' + info + '\n';
-    msg +=  typeof error === "string" ? error : error.message;
-    System.throwError("reference", msg, info, classModule.filename );
+    if(thisArg)items.unshift( System.getQualifiedClassName( thisArg ) );
+    var msg = (typeof error === "string" ? error : error.message)+'\n';
+    if( error instanceof System.Error ){
+        msg = error.type + ' '+error.message+'\n';
+        if( method === 'new' || method==='delete')msg=method+' '+msg;
+    }
+    msg+=items.join('.')+'('+classModule.filename + ':' + info + ')\n';
+    throw new Error(msg);
 }
 
 /**
@@ -65,11 +65,12 @@ function makeMethods(method, classModule)
             try{
                 if( property==null )return thisArg;
                 var receiver = undefined;
-                if( issuper ){
+                if( issuper===true ){
                     receiver=thisArg;
-                    thisArg = classModule.extends;
+                    thisArg = $get(classModule,"extends");
                 }
                 var value=Reflect.get(thisArg, property, receiver, classModule);
+                if( arguments[arguments.length-1]==='throw' )throw new System.Error(value);
                 var ret = value;
                 switch ( operator ){
                     case ';++':
@@ -91,7 +92,7 @@ function makeMethods(method, classModule)
                 }
                 return ret;
             }catch(error){
-                toErrorMsg(error, classModule, info, thisArg);
+                toMessage(thisArg, property, classModule, error, info,'get');
             }
         }
         case 'set' : return function(info, thisArg, property,value, operator, issuper)
@@ -99,9 +100,9 @@ function makeMethods(method, classModule)
             try{
                 if( property == null )return value;
                 var receiver=undefined;
-                if( issuper ){
+                if( issuper===true ){
                     receiver=thisArg;
-                    thisArg = classModule.extends;
+                    thisArg = $get(classModule,"extends");
                 }
                 if( operator && operator !=='=' )
                 {
@@ -110,7 +111,7 @@ function makeMethods(method, classModule)
                 Reflect.set(thisArg, property, value, receiver, classModule);
                 return value;
             }catch(error){
-                toErrorMsg(error, classModule, info, thisArg);
+                toMessage(thisArg, property, classModule, error, info,'set');
             }
         }
         case 'delete' : return function(info, thisArg, property)
@@ -118,38 +119,45 @@ function makeMethods(method, classModule)
             try{
                 return Reflect.deleteProperty(thisArg, property);
             }catch(error){
-                toErrorMsg(error, classModule, info, thisArg);
+                toMessage(thisArg, property, classModule, error, info,'delete');
             }
         }
-        case 'new' : return function(info, theClass, argumentsList)
+        case 'new' : return function(info, theClass, argumentsList )
         {
             try{
+                if( arguments[arguments.length-1]==='throw' )throw new System.Error( Reflect.construct(theClass, argumentsList) );
                 return Reflect.construct(theClass, argumentsList);
             }catch(error){
-                toErrorMsg(error, classModule, info, theClass);
+                toMessage(theClass, [], classModule, error, info,'new');
             }
         }
         case 'apply' : return function(info,thisArg, property, argumentsList,issuper)
         {
             try{
                 var receiver=undefined;
-                if( issuper ){
+                if( issuper === true ){
                     receiver=thisArg;
-                    thisArg = classModule.extends;
+                    thisArg = $get(classModule,"extends");
                 }
+                var ret;
                 if( property ) {
-                    return Reflect.apply( Reflect.get(thisArg, property, receiver, classModule), receiver || thisArg, argumentsList );
+                    ret= Reflect.apply( Reflect.get(thisArg, property, receiver, classModule), receiver || thisArg, argumentsList );
                 }else{
-                    return Reflect.apply(thisArg, receiver, argumentsList);
+                    ret= Reflect.apply(thisArg, receiver, argumentsList);
                 }
+                if( arguments[arguments.length-1]==='throw' )throw new System.Error( ret );
+                return ret;
             }catch(error){
-                toErrorMsg(error, classModule, info, thisArg);
+                toMessage(thisArg, property, classModule, error, info, 'call');
             }
         }
         case 'check' : return function (info, type, value)
         {
-            if( value === null )return value;
-            if ( !System.is(value, type) )toErrorMsg('TypeError Specify the type of value do not match. must is "' + getQualifiedClassName(type) + '"', classModule, info, value);
+            if( value == null && type === System.Object )return value;
+            if ( !System.is(value, type) )
+            {
+                toMessage(null, [], classModule, 'TypeError Specify the type of value do not match. must is "' + getQualifiedClassName(type) + '"', info, 'Type');
+            }
             return value;
         }
     }
@@ -166,7 +174,7 @@ System.getDefinitionByName = function getDefinitionByName(name) {
     if( Object.prototype.hasOwnProperty.call(modules,name) )return modules[name];
     if(Object.prototype.hasOwnProperty.call(System, name))return System[name];
     for (var i in modules)if (i === name)return modules[i];
-    System.throwError('type', '"' + name + '" is not define');
+    Internal.throwError('type', '"' + name + '" is not define');
 }
 
 /**
@@ -185,47 +193,18 @@ function getFullname(classModule) {
  * 可以将任何类型、对象实例、原始类型和类对象
  * @returns {string}
  */
-System.getQualifiedClassName = function getQualifiedClassName(value) {
-    switch (System.typeOf(value)) {
-        case 'boolean':
-            return 'Boolean';
-        case 'number' :
-            return 'Number';
-        case 'string' :
-            return 'String';
-        case 'regexp' :
-            return 'RegExp';
-        case 'class'  :
-            return getFullname(value);
-        case 'interface':
-            return getFullname(value);
-        case 'function' :
-            if (value === System.String)return 'String';
-            if (value === System.Boolean)return 'Boolean';
-            if (value === System.Number)return 'Number';
-            if (value === System.RegExp)return 'RegExp';
-            if (value === System.Array)return 'Array';
-            if (value === System.Date)return 'Date';
-            if (value === System.Object)return 'Object';
-            if (value === System.Iterator)return 'Iterator';
-            if (value === System.Reflect)return 'Reflect';
-            if (value === System.JSON)return 'JSON';
-            return 'Function';
-        default :
-            if (value === system)return 'System';
-            if (value === System.Math)return 'Math';
-            if (value === System.Reflect)return 'Reflect';
-            if (value === System.Iterator)return 'Iterator';
-            if (System.isArray(value))return 'Array';
-            if (System.isObject(value, true))return 'Object';
-            if (value instanceof System.RegExp)return 'RegExp';
-            if (value instanceof System.Date)return 'Date';
-            if (value instanceof System.String)return 'String';
-            if (value instanceof System.Number)return 'Number';
-            if (value instanceof System.Boolean)return 'Boolean';
-            if (value.constructor instanceof System.Class)return getFullname(value.constructor);
-    }
-    System.throwError('reference', 'type does not exist');
+System.getQualifiedClassName = function getQualifiedClassName(value)
+{
+    if( value==null )return 'Object';
+    if( value===System )return 'System';
+    if( value instanceof Class )return getFullname(value.constructor.prototype);
+    var type = typeof value;
+    if( type==='number' || type==='boolean')return System.ucfirst(type);
+    var str = (value.constructor || value).toString();
+    str = str.substr(0, str.indexOf('(') );
+    var name = str.substr(str.lastIndexOf(' ')+1);
+    if( !System[name] )Internal.throwError('reference', '"'+name+'" type does not exist');
+    return name;
 }
 /**
  * 获取指定实例对象的超类名称
@@ -236,7 +215,7 @@ System.getQualifiedSuperclassName =function getQualifiedSuperclassName(value) {
     var classname = System.getQualifiedClassName(value)
     if (classname) {
         var classModule = System.getDefinitionByName(classname);
-        var parentModule = classModule.extends;
+        var parentModule = $get(classModule,"extends");
         if (parentModule) {
             return parentModule.fullclassname;
         }
@@ -286,7 +265,7 @@ function define(name , descriptions , isInterface)
         if( typeof construct === "function" )
         {
             classModule.constructor = construct;
-            construct.prototype=classModule;
+            construct.prototype = classModule;
 
             //开放原型继承
             //classModule.prototype = descriptions.constructor.prototype;

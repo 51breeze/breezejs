@@ -20,9 +20,11 @@ package com
             this.unshift('888888888');
             log( this.length ,  this[1], this.slice(0)  );
 
-            this.uuuu = '9999';
+            this.uuuu = '9999666666666666666';
 
-            log( this.propertyIsEnumerable('uuuu') , this.uuuu );
+           // this["length"] = 50;
+
+            log( this.uuuu,this.length );
         }
     }
 }

@@ -12,7 +12,14 @@ if (System.env.platform(System.env.BROWSER_IE) && System.env.version(8, '<='))
             return "object";
         }
         return val;
-    }
+    };
+    (function(f){
+        System.setTimeout =f(System.setTimeout);
+        System.setInterval =f(System.setInterval);
+    })(function(f){return function(c,t){
+        var a=[].slice.call(arguments,2);
+        return f(function(){c.apply(this,a)},t)}
+    });
 }
 
 /**
@@ -21,7 +28,7 @@ if (System.env.platform(System.env.BROWSER_IE) && System.env.version(8, '<='))
  * @param desc
  * @constructor
  */
-System.Descriptor=function Descriptor( desc )
+function Descriptor( desc )
 {
     if( !(this instanceof Descriptor) )return new Descriptor(desc);
     this.writable = !!desc.writable;
@@ -29,22 +36,26 @@ System.Descriptor=function Descriptor( desc )
     this.configurable = !!desc.configurable;
     if (typeof desc.value !== "undefined")
     {
-        if(desc.get || desc.set || this.get || this.set)System.throwError('type','value and accessor can only has one');
+        if(desc.get || desc.set || this.get || this.set)Internal.throwError('type','value and accessor can only has one');
         this.value = desc.value;
     }
     if ( typeof desc.get !== "undefined" )
     {
-        if( typeof desc.get !== "function" )System.throwError('type','getter accessor is not function');
-        if( typeof desc.value !== "undefined" || typeof this.value !== "undefined")System.throwError('type','value and accessor can only one');
+        if( typeof desc.get !== "function" )Internal.throwError('type','getter accessor is not function');
+        if( typeof desc.value !== "undefined" || typeof this.value !== "undefined")Internal.throwError('type','value and accessor can only one');
         this.get = desc.get;
     }
     if ( typeof desc.set !== "undefined" )
     {
-        if( typeof desc.set !== "function" )System.throwError('type','setter accessor is not function');
-        if( typeof desc.value !== "undefined" || typeof this.value !== "undefined" || this.writable===false )System.throwError('type','value and accessor and writable can only one');
+        if( typeof desc.set !== "function" )Internal.throwError('type','setter accessor is not function');
+        if( typeof desc.value !== "undefined" || typeof this.value !== "undefined" || this.writable===false )Internal.throwError('type','value and accessor and writable can only one');
         this.set = desc.set;
     }
     return this;
 }
-System.Descriptor.prototype={};
-System.Descriptor.prototype.constructor = System.Descriptor;
+Descriptor.prototype={};
+Descriptor.prototype.constructor = Descriptor;
+Internal.Descriptor=Descriptor;
+
+
+

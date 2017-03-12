@@ -2,7 +2,7 @@
  * Reflect是一个内置的对象，提供可拦截的JavaScript操作的方法。
  * 方法与代理处理程序相同。反射不是一个函数对象，因此它不可构造。
  * @constructor
- * @require Class,Object,$get,$set
+ * @require Class,Object,Internal.$get,Internal.$set
  */
 var $rConstruct =$Reflect && $Reflect.construct;
 var $has = $Object.prototype.hasOwnProperty;
@@ -18,7 +18,7 @@ System.Reflect=Reflect;
 Reflect.apply=function apply( theClass, thisArgument, argumentsList)
 {
     if( theClass instanceof Class && theClass.constructor.prototype === theClass )theClass=$get(theClass,"constructor");
-    if( System.typeOf(theClass) !== "function" )System.throwError('type','is not function');
+    if( System.typeOf(theClass) !== "function" )Internal.throwError('type','is not function');
     if( theClass===thisArgument )thisArgument=undefined;
     return argumentsList && System.isArray(argumentsList) ? System.Function.prototype.apply.call( theClass, thisArgument, argumentsList ) :
         System.Function.prototype.call.call( theClass, thisArgument, argumentsList );
@@ -36,13 +36,13 @@ Reflect.construct=function construct(theClass, args, newTarget)
     if( theClass === newTarget )newTarget=undefined;
     if( theClass instanceof Class && theClass.constructor.prototype === theClass)
     {
-        if( $get(theClass,"isAbstract") )System.throwError('type','Abstract class cannot be instantiated');
+        if( $get(theClass,"isAbstract") )Internal.throwError('type','Abstract class cannot be instantiated');
         theClass = $get(theClass,"constructor");
-        if( typeof theClass !== "function" )System.throwError('type','is not constructor');
+        if( typeof theClass !== "function" )Internal.throwError('type','is not constructor');
 
     }else if( typeof theClass !== "function" )
     {
-        System.throwError('type','is not function');
+        Internal.throwError('type','is not function');
     }
     args = System.isArray(args) ? args : [];
     var instanceObj;
@@ -160,7 +160,7 @@ Reflect.has=function has(target, propertyKey)
 Reflect.get=function(target, propertyKey, receiver , classScope )
 {
     if( propertyKey==null )return target;
-    if( target == null )System.throwError('type','target object is null');
+    if( target == null )Internal.throwError('type','target object is null');
     if( target instanceof Class )
     {
         var objClass = target.constructor.prototype;
@@ -189,7 +189,7 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
                    //是否有访问的权限
                    if (!checkPrivilege(desc, objClass, classScope))
                    {
-                       if (classScope)System.throwError('reference', '"' + propertyKey + '" inaccessible.');
+                       if (classScope)Internal.throwError('reference', '"' + propertyKey + '" inaccessible.');
                        return undefined;
                    }
                    //访问器
@@ -214,6 +214,11 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
         }while ( objClass )
         return undefined;
     }
+    //非对象的引用
+    if( target == null )
+    {
+        Internal.throwError('reference', 'non-object');
+    }
     return $get(target, propertyKey, receiver );
 }
 
@@ -227,7 +232,7 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
 Reflect.set=function(target, propertyKey, value , receiver , classScope )
 {
     if( propertyKey==null )return false;
-    if( target==null )System.throwError('reference','Reference object is '+(target));
+    if( target==null )Internal.throwError('reference','Reference object is '+(target));
     if( target instanceof Class )
     {
         var objClass = target.constructor.prototype;
@@ -238,56 +243,71 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
             var desc= isstatic ? $get(objClass,"static") :  $get(objClass,"proto");
             var token = $get(objClass,"token");
             var isdynamic = !!$get(objClass,"dynamic");
-            var hasDesc = $has.call(desc, propertyKey);
-            //没有属性描述符默认为public
-            if( !hasDesc || isdynamic === true )
-            {
-                //只有非静态的才有实例属性
-                if( !isstatic )
-                {
-                    //动态对象可以动态添加
-                    if( isdynamic === true )
-                    {
-                        if( propertyKey === token )System.throwError('syntax', '"' + propertyKey + '" is not configurable.');
-                        $set(target,propertyKey,value);
-                        return true;
-                    }else
-                    {
-                        var refObj = $get(target,token);
-                        if( refObj && $has.call( refObj ,propertyKey ) )
-                        {
-                            $set( refObj, propertyKey, value );
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            if( !hasDesc )desc=null;
-            if( desc )desc=$get(desc,propertyKey);
+            desc = $has.call(desc, propertyKey) ? $get(desc,propertyKey) : null;
             if( desc && (classScope === objClass || $get(desc,"qualifier") !== 'private') )
             {
                 //是否有访问的权限
                 if( !checkPrivilege(desc, objClass, classScope) )
                 {
-                    if(classScope)System.throwError('reference', '"' + propertyKey + '" inaccessible.');
+                    if(classScope)Internal.throwError('reference', '"' + propertyKey + '" inaccessible.');
                     return false;
                 }
+
                 //是否为一个访问器
                 if( $has.call(desc,"set") )
                 {
                     desc.set.call(receiver || target, value);
-                }else
-                {
-                    //不可写操作
-                    if (desc.writable === false)System.throwError('reference', '"' + propertyKey + '" is not writable');
-                    isstatic ? $set(desc,"value", value) : $set( $get( target, token ), propertyKey ,value);
+                    return true
                 }
+
+                //不可写操作
+                if (desc.writable === false)Internal.throwError('reference', '"' + propertyKey + '" is not writable');
+                isstatic ? $set(desc,"value", value) : $set( $get( target, token ), propertyKey ,value);
                 return true;
             }
+
+            //如果实例属性
+            if( !isstatic )
+            {
+                //动态对象可以动态添加
+                if( isdynamic === true )
+                {
+                    if( propertyKey === token )Internal.throwError('syntax', '"' + propertyKey + '" is not configurable.');
+                    var parent = objClass;
+                    do{
+                        parent = $get(parent,"extends");
+                        if( !(parent instanceof Class) && $has.call( (parent || Object).prototype, propertyKey) )
+                        {
+                            Internal.throwError('reference', '"' + propertyKey + '" is not wirtable.');
+                        }
+                    }while ( parent );
+                    $set(target,propertyKey,value);
+                    return true;
+                }
+                //如果是公开的属性
+                var refObj = $get(target,token);
+                if( refObj && $has.call( refObj ,propertyKey ) )
+                {
+                    $set( refObj, propertyKey, value );
+                    return true;
+                }
+            }
             if( isdynamic )return false;
+
         }while( ( objClass=$get(objClass,"extends") ) && objClass instanceof Class );
         return false;
+    }
+
+    //非对象的引用
+    if( target == null || typeof target !== "object" )
+    {
+        Internal.throwError('reference', 'non-object');
+    }
+
+    //原型链上的属性不可设置
+    if( target.constructor && target.constructor.prototype && $has.call(target.constructor.prototype, propertyKey) )
+    {
+        Internal.throwError('reference', '"' + propertyKey + '" is not wirtable.');
     }
     return $set(target,propertyKey,value,receiver);
 }

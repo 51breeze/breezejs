@@ -3,7 +3,7 @@
  * @param value
  * @returns {*}
  * @constructor
- * @require System,$get,$set;
+ * @require System,Internal.$get,Internal.$set;
  */
 function Object( value )
 {
@@ -77,24 +77,18 @@ Object.merge =function merge()
 }
 
 /**
- * @private
+ * @internal Object.setPrototypeOf
  * 设置对象的原型链
  * @returns {Object}
  */
-var $setPrototypeOf = $Object.setPrototypeOf || function setPrototypeOf(obj, proto)
+Object.setPrototypeOf = $Object.setPrototypeOf || function setPrototypeOf(obj, proto)
 {
     obj.__proto__ = proto;
     return obj;
 }
 
 /**
- * @internal Object.setPrototypeOf
- */
-Object.setPrototypeOf = $setPrototypeOf;
-
-/**
  * 定义属性描述
- * @internal Object.defineProperty
  */
 Object.defineProperty = $Object.defineProperty;
 

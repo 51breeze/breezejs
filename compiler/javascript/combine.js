@@ -1,6 +1,6 @@
 const utils = require('../core/utils.js');
 const globals=['Object','Function','Array','String','Number','Boolean','Math','Date','RegExp','Error','ReferenceError','TypeError','SyntaxError','JSON','Reflect','Symbol','console'];
-const contents=[];
+var contents=[];
 const rootPath =  utils.getResolvePath( __dirname );
 /**
  *  已加载的模块
@@ -42,11 +42,12 @@ const cg = ['non-writable','non-enumerable','non-configurable'];
  */
 function describe( str, name )
 {
-    var result = str.match( /\@(require|public|private|protected|internal)\s+([^\r\n\;]*)/ig );
+
+    var result = str.match(/@(require|public|private|protected|internal)\s+([^\r\n\;]*)/ig );
     var desc={"requirements":[],'describe':{"static":{},"proto":{}}};
     for( var i in result )
     {
-        var val = result[i];
+        var val = utils.trim(result[i]).replace(/\s+/g,' ');
         var index = val.indexOf(' ');
         var prefix = val.substr(1, index-1).toLowerCase();
         val = val.substr(index+1);
@@ -55,11 +56,11 @@ function describe( str, name )
             case 'require' :
                 desc.requirements = desc.requirements.concat( val.split(',') );
             break;
+            case 'internal' :
             case 'public' :
             case 'private' :
-            case 'internal' :
             case 'protected' :
-                val = val.replace(/\s+/g,' ').split(' ');
+                val = val.split(' ');
                 var prop = val[0];
                 var lastIndex = prop.lastIndexOf('.');
                 var proto = true;
@@ -110,10 +111,24 @@ function include(contents, name , filepath, fix )
         var desc = describe( str, name);
         if( desc.requirements.indexOf('System') < 0 )desc.requirements.unshift('System');
         var map = desc.requirements.map(function (val) {
-            if( val === 'System' || val === 'system')return 'System';
+            if( val === 'System' || val === 'system' )return 'System';
+            if( val==='Internal' || val==='internal' )return 'Internal';
+            if( val.substr(0,9) === 'Internal.')return val;
             if(val.charAt(0)!=='$')include(contents,val, null, fix);
             return 'System.'+val;
         });
+
+        var module=[];
+        module.push('(function('+desc.requirements.map(function(a){return a.substr(a.lastIndexOf('.')+1);}).join(',')+'){\n');
+        module.push( str );
+        module.push('\n');
+        //加载对应模块的兼容策略文件
+        if( fix && fix[name] )for( var f in fix[name] )
+        {
+            module.push( utils.getContents( fix[name][f] ) );
+        }
+        module.push('\n}('+map.join(',')+'));\n');
+        str = module.join('');
         if( !isEmpty( desc.describe.static ) ){
             if( !descriptions[name] )descriptions[name]={};
             if(!descriptions[name].static)descriptions[name].static={};
@@ -124,18 +139,7 @@ function include(contents, name , filepath, fix )
             if(!descriptions[name].proto)descriptions[name].proto={};
             utils.merge( descriptions[name].proto, desc.describe.proto);
         }
-
-        var module=[];
-        module.push('(function('+desc.requirements.join(',')+'){\n');
-        module.push( str );
-        module.push('\n');
-        //加载对应模块的兼容策略文件
-        if( fix && fix[name] )for( var f in fix[name] )
-        {
-            module.push( utils.getContents( fix[name][f] ) );
-        }
-        module.push('\n}('+map.join(',')+'));\n');
-        contents.push( module.join('') );
+        contents.push( str );
         return true;
 
     }else if( globals.indexOf(name) >=0 )
@@ -144,6 +148,38 @@ function include(contents, name , filepath, fix )
         return true;
     }
     throw new Error(name+' does exists');
+}
+
+/**
+ * 解析内部属性
+ * @param str
+ * @param descriptions
+ */
+function parseInternal( str , descriptions )
+{
+    for( var m  in descriptions )
+    {
+        var desc = descriptions[m];
+        str = parse(str, desc.static, m );
+        str = parse(str, desc.proto, m+'.prototype' );
+    }
+    return str;
+}
+
+function parse( str, desc , prefix )
+{
+    if(desc)for( var p in desc )
+    {
+        if( desc[p].qualifier === 'internal' )
+        {
+            str = str.replace(new RegExp('([^$])\\b'+prefix + '\\.' + p+'\\b', 'g'), function (a,b,c)
+            {
+                return b+'Internal["' + prefix + '.' + p + '"]';
+            });
+        }
+    }
+    str = str.replace('System.Internal[','Internal[');
+    return str;
 }
 
 /**
@@ -209,20 +245,23 @@ function combine( config , code, requirements )
      * 模块描述
      */
     contents.unshift('var descriptions = '+JSON.stringify(descriptions)+';\n');
+    contents=parseInternal(contents.join(''), descriptions);
 
     /**
      * 加载库文件
      */
+    var libCode=[];
     for ( var p in libs )if( requires.indexOf( p ) >= 0 )
     {
-        contents.push( utils.getContents(rootPath+'/lib/'+ libs[p] ) );
+        libCode.push( utils.getContents(rootPath+'/lib/'+ libs[p] ) );
     }
+    contents=libCode.join(';\n')+contents;
 
     /**
      * 内置系统对象
      */
     var g = globals.map(function(val) {
-         if( val==='JSON' || val==='Reflect' || val==='console')return 'typeof '+val+'==="undefined"?null:'+val;
+         if( val==='JSON' || val==='Reflect' || val==='console' || val==='Symbol')return 'typeof '+val+'==="undefined"?null:'+val;
          return val;
     });
 
@@ -231,7 +270,8 @@ function combine( config , code, requirements )
         '"use strict";\n',
         //系统全局模块域
         '(function(System,$'+globals.join(',$')+'){\n',
-         contents.join(''),
+        'var Internal={};\n',
+         contents,
         '}(System,' + g.join(',') + '));\n',
         //自定义模块域
         '(function('+requires.join(',')+'){\n',

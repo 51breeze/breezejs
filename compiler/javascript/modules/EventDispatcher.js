@@ -12,7 +12,7 @@ function EventDispatcher( target )
     {
         if( typeof target !=='object' || !(  System.typeOf( target.addEventListener ) === "function" || System.typeOf( target.attachEvent )=== "function" ) )
         {
-            System.throwError('type', 'target is not "EventDispatcher"');
+            Internal.throwError('type', 'target is not "EventDispatcher"');
         }
         this.target = target;
     }
@@ -67,7 +67,7 @@ EventDispatcher.prototype.hasEventListener=function( type )
  */
 EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,priority,reference)
 {
-    if( typeof type !== 'string' )System.throwError('type','Invalid event type.')
+    if( typeof type !== 'string' )Internal.throwError('type','Invalid event type.')
     if( typeof callback !== 'function' )throwError('type','Invalid callback function.')
     var listener=new Listener(type,callback,useCapture,priority,reference,this);
     var target = this.target || this;
@@ -129,7 +129,7 @@ EventDispatcher.prototype.dispatchEvent=function( event )
  */
 function addEventListener(target, listener )
 {
-    if( target==null )System.throwError('reference','this is null or not defined');
+    if( target==null )Internal.throwError('reference','this is null or not defined');
 
     //获取事件数据集
     var type = listener.type;
@@ -147,6 +147,7 @@ function addEventListener(target, listener )
     //如果不是 EventDispatcher 则在第一个事件中添加事件代理。
     if( events.length===0 && !System.instanceOf(target, EventDispatcher) )
     {
+
         if( Object.prototype.hasOwnProperty.call(Event.fix.hooks,type) )
         {
             Event.fix.hooks[ type ].call(target, listener, dispatchEvent);
@@ -177,7 +178,7 @@ function addEventListener(target, listener )
  */
 function removeEventListener(target, type, listener , dispatcher )
 {
-    if( target==null )System.throwError('reference','this is null or not defined');
+    if( target==null )Internal.throwError('reference','this is null or not defined');
 
     //获取事件数据集
     var events = target.__events__;

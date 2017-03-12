@@ -180,7 +180,7 @@ Http.prototype.abort = function abort()
  */
 Http.prototype.send = function send(url, data, method)
 {
-    if (typeof url !== "string")System.throwError('error','Invalid url');
+    if (typeof url !== "string")Internal.throwError('error','Invalid url');
     if ( this.__xhr__ )return true;
     var options = this.__options__;
     var async = !!options.async;

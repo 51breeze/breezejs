@@ -165,6 +165,7 @@ function isKeywordLeftOperator(o)
         case 'new' :
         case 'delete' :
         case 'typeof' :
+        case 'throw' :
             return true;
     }
     return false;

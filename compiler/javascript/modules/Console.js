@@ -3,7 +3,7 @@
  * 控制台
  * @require System,Object
  */
-function Console(){ if(this instanceof Console)System.throwError('syntax','is not constructor')};
+function Console(){ if(this instanceof Console)Internal.throwError('syntax','is not constructor')};
 
 /**
  * @private
@@ -13,7 +13,7 @@ function Console(){ if(this instanceof Console)System.throwError('syntax','is no
 function toString(items)
 {
     var str=[];
-    for(var i=0; i<items.length; i++)str.push( Object.prototype.valueOf.call(items[i]) );
+    for(var i=0; i<items.length; i++)if(items[i]!=null)str.push( Object.prototype.valueOf.call(items[i]) );
     return str.join(' ');
 }
 if( !$console )
@@ -50,7 +50,7 @@ Console.timeEnd = function timeEnd(){
 }
 System.Console = Console;
 System.log =Console.log;
-System.info=Console.log;
+System.info=Console.info;
 System.trace =Console.trace;
 System.warn=Console.warn;
 System.error =Console.error;

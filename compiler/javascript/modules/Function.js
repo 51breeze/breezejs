@@ -8,4 +8,7 @@ function Function() {
     return $Function.apply(this, Array.prototype.slice.call(arguments,0) );
 };
 System.Function = Function;
-Function.prototype = Object.create( $Function.prototype );
+Function.prototype = Object.create( Object.prototype );
+Function.prototype.apply = $Function.prototype.apply;
+Function.prototype.call = $Function.prototype.call;
+Function.prototype.bind = $Function.prototype.bind;

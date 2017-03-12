@@ -96,7 +96,7 @@ function createFilter()
 function DataGrep( dataItems )
 {
     if( !(this instanceof DataGrep) )return new DataGrep( dataList );
-    if( !System.isObject( dataItems ) )System.throwError('error','Invalid data list');
+    if( !System.isObject( dataItems ) )Internal.throwError('error','Invalid data list');
     this.dataItems=dataItems;
 }
 
@@ -175,7 +175,7 @@ DataGrep.prototype.filter=function filter( filter )
         {
             return b.toLowerCase()=='or' ? ' || ' : ' && ';
         });
-        this.__filter__=new Function('try{ return !!('+filter+') }catch(e){ System.throwError("error","syntax error is in grep:'+old+'");}');
+        this.__filter__=new Function('try{ return !!('+filter+') }catch(e){ Internal.throwError("error","syntax error is in grep:'+old+'");}');
 
     }else if( filter === null )
     {

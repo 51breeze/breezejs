@@ -376,10 +376,10 @@ Iteration.prototype.parseArgumentsOfMethodAndConstructor=function( stack )
             stack.addListener('(iterationDone)', function (e)
             {
                 var param = stack.param();
-                var index =  param && param.length > 0 ?  5 : 4;
+                var index = e.iteration.content.indexOf('{');
 
                 //预留私有属性占位
-                e.iteration.content.splice(index, 0, '####{props}####');
+                e.iteration.content.splice(++index, 0, '####{props}####');
 
                 //如果没有调用超类，则调用超类的构造函数
                 if (e.iteration.module.inherit && !stack.called) {
@@ -419,8 +419,8 @@ Iteration.prototype.parseArgumentsOfMethodAndConstructor=function( stack )
         {
             if(express.length>0)
             {
-                var index = this.name() && this.parent().keyword() !=='class' ? 7: 5;
-                e.iteration.content.splice( index, 0, express.join('') )
+                var index =  e.iteration.content.indexOf('{');
+                e.iteration.content.splice( ++index, 0, express.join('') )
             }
 
         },-400);
@@ -479,7 +479,8 @@ Iteration.prototype.parseBlockScope=function(stack)
 
                 }else
                 {
-                    var startIndex =  this.name() && this.parent().keyword() !=='class' ? 7 : 5;
+                    var startIndex = e.content.indexOf(')');
+                    if( e.content[++startIndex] ==='{')startIndex++;
                     e.content.splice( startIndex, 0, '(function('+ blockScopeItems.join(',')+'){' );
                     e.content.splice( e.content.length-1,0, '}).call('+['this'].concat(blockScopeItems).join(',')+');' );
                 }
@@ -533,8 +534,8 @@ Iteration.prototype.parseFunctionScope=function( stack )
         {
             if( items.length > 0 )
             {
-                var startIndex = this.name() && this.parent().keyword() !=='class' ? 7 : 5;
-                e.content.splice( startIndex , 0, 'var ' + items.join(',')+';\n' );
+                var startIndex = e.content.indexOf('{');
+                e.content.splice( ++startIndex , 0, 'var ' + items.join(',')+';\n' );
             }
             stack.removeListener('(iterationSeek)',seek );
             this.removeListener('(iterationDone)', done );
@@ -835,7 +836,8 @@ function getDescriptorOfExpression(it, classmodule)
             if ( desc && desc.type !=='*' && !(desc.referenceType ==='JSON' || desc.referenceType ==='Object') )
             {
                 var prevDesc = desc;
-                if( desc.notCheckType !== true ){
+                if( desc.notCheckType !== true )
+                {
                     desc = getClassPropertyDesc(it, module( getImportClassByType(classmodule, desc.type) ) , isstatic ? 'static' : 'proto', classmodule);
                 }
                 type = desc.type;
@@ -859,7 +861,7 @@ function getDescriptorOfExpression(it, classmodule)
                 {
                     if ( desc.id === 'const' )
                     {
-                        if( it.stack.parent().keyword() !=='statement' )error('"' + property.name.join('.') + '" constant is not can be modified', '', it.current);
+                        if( it.stack.parent().keyword() !=='statement' )error('"' + property.name.join('.') + '" is not writable', '', it.current);
 
                     }else if ( desc.id === 'function')
                     {
@@ -939,6 +941,13 @@ function checkRunning( classmodule, desc , value , operator )
         return '"' + item + '"';
     });
 
+    var isthrow = false;
+    if( desc.before[0] === 'throw' )
+    {
+        desc.before.shift();
+        isthrow=true;
+    }
+
     //前置运算符
     _operator = desc.before.length >0 ? desc.before.pop() : '';
 
@@ -971,10 +980,27 @@ function checkRunning( classmodule, desc , value , operator )
             {
                 props.push('[' + desc.param + ']');
             }
-            if( desc.super ){
-                method=globals[desc.super] ? desc.super+'.call' : desc.super+'.constructor.call';
+
+            if( desc.super )
+            {
+                method=globals[desc.super] ? desc.super+'.apply' : desc.super+'.constructor.apply';
                 props=[thisvrg];
-                if( desc.param )props.push( desc.param );
+                if( desc.param ){
+                    props.push( '[' + desc.param + ']' );
+                }
+
+            }
+
+            if( isthrow )
+            {
+                if( desc.super )
+                {
+                    method='throw '+method;
+                }else
+                {
+                    if (!desc.param)props.push('undefined');
+                    props.push('"throw"');
+                }
             }
             express.push(method + '(' + props.join(',')+')' );
 
@@ -1030,6 +1056,11 @@ function checkRunning( classmodule, desc , value , operator )
         if( desc.super ){
             if( !desc.expression && (operator==='=' || !operator) )props.push('undefined');
             props.push('true');
+        }
+        if( isthrow )
+        {
+            if( !desc.super )if( !desc.expression && (operator==='=' || !operator) )props.push('undefined');
+            props.push('"throw"');
         }
         express.push(method + '(' + props.join(',') + ')');
     }
@@ -1407,6 +1438,7 @@ function getClassPropertyDesc(it, refObj, name , classmodule )
             return globals.Object[name][prop];
         }
     }
+    if( classmodule.isDynamic )return {type:'*'};
     error('"' + it.current.value + '" does not exits', 'reference', it.current );
 }
 
@@ -1660,11 +1692,12 @@ function makeModule( stack )
                 }
 
                 //去掉函数名称
-                item.content().splice(1,1);
+                //item.content().splice(1,1);
 
                 //构造函数
                 if( item.name() === stack.name() && !isstatic )
                 {
+                    item.content().splice(1,1,{'type':'(string)','value':"constructor",'id':'identifier'});
                     classModule.constructor.value = toString( item , classModule );
                     continue;
                 }
@@ -1723,7 +1756,7 @@ function makeModule( stack )
 
     if( classModule.id !=='interface' && !isstatic )
     {
-        props = 'Object.defineProperty(this, "'+classModule.uid+'", {enumerable: false, configurable: false, writable: false, value: {'+props.join(',')+'}});'
+        props = '\nObject.defineProperty(this, "'+classModule.uid+'",{value:{'+props.join(',')+'}});\n';
         classModule.constructor.value = classModule.constructor.value.replace('####{props}####', props);
     }
     return classModule;
@@ -2086,7 +2119,6 @@ if( !config.path  )
         config.path = PATH.resolve( config.path,'../' );
     }
 }
-
 
 //返回绝对路径
 config.path = PATH.resolve( config.path );

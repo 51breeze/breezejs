@@ -56,7 +56,6 @@ Event.fix.hooks[ Event.READY ]=function (listener, dispatcher)
             dispatcher( event );
         }
     }
-
     var type = Event.type(Event.READY);
     doc.addEventListener ? doc.addEventListener( type, handle ) : doc.attachEvent(type, handle);
 
@@ -73,7 +72,7 @@ Event.fix.hooks[ Event.READY ]=function (listener, dispatcher)
                 try {
                     doc.documentElement.doScroll("left");
                 } catch(e) {
-                    setTimeout( doCheck, 1 );
+                    System.setTimeout( doCheck, 1 );
                     return;
                 }
                 handle();

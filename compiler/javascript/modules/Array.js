@@ -50,8 +50,8 @@ Array.prototype.map = $Array.prototype.map;
  */
 Array.prototype.forEach = function forEach(callback, thisArg)
 {
-    if (!System.isFunction(callback))System.throwError('type', callback + " is not a function");
-    if (this==null)System.throwError('reference','this is null or not defined');
+    if (!System.isFunction(callback))Internal.throwError('type', callback + " is not a function");
+    if (this==null)Internal.throwError('reference','this is null or not defined');
     var obj = System.Object(this);
     var len = obj.length >>> 0;
     var k = 0;
@@ -68,8 +68,8 @@ Array.prototype.forEach = function forEach(callback, thisArg)
  */
 Array.prototype.filter = function filter(callback, thisArg)
 {
-    if (typeof callback !== 'function')System.throwError('type', 'callback must be a function');
-    if (this==null)System.throwError('reference','this is null or not defined');
+    if (typeof callback !== 'function')Internal.throwError('type', 'callback must be a function');
+    if (this==null)Internal.throwError('reference','this is null or not defined');
     var items = new System.Array();
     var obj = System.Object(this);
     var len = obj.length >>> 0;
@@ -85,7 +85,7 @@ Array.prototype.filter = function filter(callback, thisArg)
  */
 Array.prototype.unique = function unique()
 {
-    if (this==null)System.throwError('reference','this is null or not defined');
+    if (this==null)Internal.throwError('reference','this is null or not defined');
     var obj = System.Object(this);
     var arr = Array.prototype.slice.call(obj,0);
     var i=0;
@@ -108,8 +108,8 @@ Array.prototype.unique = function unique()
  */
 Array.prototype.fill = function fill(value, start, end)
 {
-    if (this==null)System.throwError('reference','this is null or not defined');
-    if (!(System.is(this, System.Array) || System.isArray(this)))System.throwError('reference','this is not Array');
+    if (this==null)Internal.throwError('reference','this is null or not defined');
+    if (!(System.is(this, System.Array) || System.isArray(this)))Internal.throwError('reference','this is not Array');
     var len = this.length >>> 0;
     var relativeStart = start >>> 0;
     var k = relativeStart < 0 ? System.Math.max(len + relativeStart, 0) : System.Math.min(relativeStart, len);
@@ -130,8 +130,8 @@ Array.prototype.fill = function fill(value, start, end)
  */
 Array.prototype.find = function find(callback, thisArg)
 {
-    if (typeof callback !== 'function')System.throwError('type', 'callback must be a function');
-    if (this==null)System.throwError('reference','this is null or not defined');
+    if (typeof callback !== 'function')Internal.throwError('type', 'callback must be a function');
+    if (this==null)Internal.throwError('reference','this is null or not defined');
     var obj = System.Object(this);
     var len = obj.length >>> 0;
     var k = 0;

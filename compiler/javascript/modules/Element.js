@@ -261,9 +261,9 @@ function getStyleName( name )
  * @param mixed context  上下文
  * @returns []
  */
-var querySelector = typeof Sizzle === "function" ?  function querySelector(selector, context, results, seed) {
+var querySelector = typeof Sizzle === "function" ?  function(selector, context, results, seed) {
     return Sizzle( selector, context, results, seed);
-} : function querySelector(selector, context, results, seed )
+} : function(selector, context, results, seed )
 {
     if( !results || !System.isArray(results) )
     {
@@ -641,7 +641,7 @@ Element.prototype.property=function property(name, value )
 
     }else if( lower === 'style' )
     {
-        System.throwError('error', 'the style property names only use style method to operate in property');
+        Internal.throwError('error', 'the style property names only use style method to operate in property');
     }
     return access.call(this,'property',name,value);
 };
@@ -1497,7 +1497,7 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
     }
 
     if( index===undefined )
-        System.throwError('error','Invalid param the index');
+        Internal.throwError('error','Invalid param the index');
 
     var isElement= childElemnet && childElemnet.nodeType && typeof childElemnet.nodeName === 'string';
 
@@ -1512,12 +1512,12 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
     {
         if( !this.isHTMLElement() )
         {
-            System.throwError('error','invalid parent HTMLElement.');
+            Internal.throwError('error','invalid parent HTMLElement.');
         }
         try{
             var child=isElement ? childElemnet : createElement( childElemnet );
         }catch(e){
-            System.throwError('error','The childElemnet not is HTMLElement');
+            Internal.throwError('error','The childElemnet not is HTMLElement');
         }
         if( child.parentNode !== parent  )
         {

@@ -1,7 +1,7 @@
 /**
 * 全局函数
 * @type {Object}
-* @require System;
+* @require System,Internal;
 */
 System.isFinite = isFinite;
 System.decodeURI = decodeURI;
@@ -14,6 +14,11 @@ System.encodeURIComponent = encodeURIComponent;
 System.isNaN = isNaN;
 System.parseFloat = parseFloat;
 System.parseInt = parseInt;
+
+System.setTimeout = setTimeout || function(){};
+System.clearTimeout = clearTimeout || function(){};
+System.setInterval = setInterval || function(){};
+System.clearInterval = clearInterval || function(){};
 
 /**
  * 环境参数配置
@@ -114,7 +119,7 @@ System.instanceOf = function instanceOf(instanceObj, theClass)
         while (objClass)
         {
             if (objClass === theClass)return true;
-            objClass =objClass.extends;
+            objClass = Internal.$get(objClass,"extends");
         }
     }
     //如果不是一个函数直接返回false
@@ -152,11 +157,11 @@ System.is =function is(instanceObj, theClass)
                     var interfaceModule = impls[i];
                     while (interfaceModule) {
                         if (interfaceModule === theClass)return true;
-                        interfaceModule =interfaceModule.extends;
+                        interfaceModule = Internal.$get(interfaceModule,"extends");
                     }
                 }
             }
-            objClass =objClass.extends;
+            objClass =Internal.$get(objClass,"extends");
         }
     }
 
@@ -248,28 +253,6 @@ System.isScalar = function isScalar(val) {
 System.isNumber = function isNumber(val) {
     return typeof val === 'number';
 };
-
-/**
- * 抛出错误信息
- * @param type
- * @param msg
- */
-System.throwError = function throwError(type, msg, line, filename) {
-    System.log(type, msg, line, filename);
-    switch (type) {
-        case 'type' :
-            throw new System.TypeError(msg, line, filename);
-            break;
-        case 'reference':
-            throw new System.ReferenceError(msg, line, filename);
-            break;
-        case 'syntax':
-            throw new System.SyntaxError(msg, line, filename);
-            break;
-        default :
-            throw new System.Error(msg, line, filename);
-    }
-}
 
 /**
  * 判断是否为一个空值
@@ -536,11 +519,11 @@ var hasDescriptor = false;
 /**
  * @internal System.$get;
  */
-System.$get = function $get(target, propertyKey, receiver)
+Internal.$get = function $get(target, propertyKey, receiver)
 {
     if( !target )return undefined;
     var value = target[propertyKey];
-    if( hasDescriptor && value instanceof System.Descriptor )
+    if( hasDescriptor && value instanceof Internal.Descriptor )
     {
         return value.get ? value.get.call(receiver || target) : value.value;
     }
@@ -550,12 +533,13 @@ System.$get = function $get(target, propertyKey, receiver)
 /**
  * @internal System.$set;
  */
-System.$set = function $set(target,propertyKey,value,receiver)
+Internal.$set = function $set(target,propertyKey,value,receiver)
 {
+    if( target===System )Internal.throwError('reference','"'+propertyKey+'" is not writable');
     var desc = target[propertyKey];
-    if( hasDescriptor && desc instanceof System.Descriptor )
+    if( hasDescriptor && desc instanceof Internal.Descriptor )
     {
-        if( desc.writable=== false )System.throwError('reference','"'+propertyKey+'" is not writable');
+        if( desc.writable=== false )Internal.throwError('reference','"'+propertyKey+'" is not writable');
         if( desc.set ){
             desc.set.call(receiver||target, value);
         }else {
@@ -569,4 +553,26 @@ System.$set = function $set(target,propertyKey,value,receiver)
         return false;
     }
     return true;
+}
+
+/**
+ * 抛出错误信息
+ * @param type
+ * @param msg
+ */
+Internal.throwError = function throwError(type, msg, line, filename) {
+    //System.log(type, msg, line, filename);
+    switch (type) {
+        case 'type' :
+            throw new System.TypeError(msg, line, filename);
+            break;
+        case 'reference':
+            throw new System.ReferenceError(msg, line, filename);
+            break;
+        case 'syntax':
+            throw new System.SyntaxError(msg, line, filename);
+            break;
+        default :
+            throw new System.Error(msg, line, filename);
+    }
 }

@@ -40,9 +40,10 @@ public class Main extends B implements IProsess {
           function Main(jj)
           {
 
-              var arr = new DataArray(5);
+             throw new TypeError('===========');
 
               EventDispatcher( document ).addEventListener( Event.READY , function (e) {
+
 
                   log( '=====ready=====');
 

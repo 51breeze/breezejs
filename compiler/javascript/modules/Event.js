@@ -10,7 +10,7 @@
 function Event( type, bubbles, cancelable )
 {
     if ( !(this instanceof Event) )return new Event(  type, bubbles,cancelable );
-    if( type && typeof type !=="string" )System.throwError('type','event type is not string');
+    if( type && typeof type !=="string" )Internal.throwError('type','event type is not string');
     this.type = type;
     this.bubbles = !(bubbles===false);
     this.cancelable = !(cancelable===false);
@@ -97,9 +97,9 @@ Event.prototype.stopImmediatePropagation = function stopImmediatePropagation()
 
 /**
  * map event name
- * @private Event.fix;
+ * @internal Event.fix;
  */
-Event.fix={
+Event.fix    =   {
     map:{},
     hooks:{},
     prefix:'',
@@ -116,15 +116,15 @@ Event.fix.map[ Event.READY ]='DOMContentLoaded';
  * @param type
  * @param flag
  * @returns {*}
- * @private Event.type;
+ * @internal Event.type;
  */
-Event.type = function(type, flag )
+Event.type = function type( eventType, flag )
 {
-    if( typeof type !== "string" )return type;
+    if( typeof eventType !== "string" )return eventType;
     if( flag===true )
     {
-        type= Event.fix.prefix==='on' ? type.replace(/^on/i,'') : type;
-        var lower =  type.toLowerCase();
+        eventType= Event.fix.prefix==='on' ? eventType.replace(/^on/i,'') : eventType;
+        var lower =  eventType.toLowerCase();
         for(var prop in Event.fix.map)
         {
             if( Event.fix.map[prop].toLowerCase() === lower )
@@ -132,15 +132,15 @@ Event.type = function(type, flag )
                 return prop;
             }
         }
-        return type;
+        return eventType;
     }
-    if( Event.fix.eventname[ type ]===true )return type;
-    return Event.fix.map[ type ] ? Event.fix.map[ type ] : Event.fix.prefix+type.toLowerCase();
+    if( Event.fix.eventname[ eventType ]===true )return eventType;
+    return Event.fix.map[ eventType ] ? Event.fix.map[ eventType ] : Event.fix.prefix+eventType.toLowerCase();
 };
 
 var eventModules=[];
 
-//@private Event.registerEvent;
+//@internal Event.registerEvent;
 Event.registerEvent = function registerEvent( callback )
 {
     eventModules.push( callback );
@@ -150,19 +150,19 @@ Event.registerEvent = function registerEvent( callback )
  * 根据原型事件创建一个Event
  * @param event
  * @returns {Event}
- * @private Event.create;
+ * @internal Event.create;
  */
 Event.create = function create( originalEvent )
 {
     originalEvent=originalEvent ? originalEvent : (typeof window === "object" ? window.event : null);
     var event=null;
     var i=0;
-    if( !originalEvent )System.throwError('type','Invalid event');
+    if( !originalEvent )Internal.throwError('type','Invalid event');
     var type = originalEvent.type;
     var target = originalEvent.srcElement || originalEvent.target;
     target = target && target.nodeType===3 ? target.parentNode : target;
     var currentTarget =  originalEvent.currentTarget || target;
-    if( typeof type !== "string" )System.throwError('type','Invalid event type');
+    if( typeof type !== "string" )Internal.throwError('type','Invalid event type');
     type = Event.type( type, true );
     while ( i<eventModules.length && !(event=eventModules[i++]( type, target, originalEvent )));
     if( !(event instanceof Event) )event = new Event( type );

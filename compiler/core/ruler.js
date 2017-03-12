@@ -848,8 +848,8 @@ syntax["debugger"]=function (e)
 syntax["throw"]=function (e)
 {
     e.prevented=true;
-    if( this.next.value !=='new' )this.error('Missing new operator');
     if( !(this.scope() instanceof Scope) )this.error('Unexpected identifier throw');
+    if( this.scope().keyword()!=='expression')this.add( new Stack('expression', '(*)' ) );
     this.add( this.current );
     this.step();
 }
