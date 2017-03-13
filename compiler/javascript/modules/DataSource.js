@@ -1,15 +1,15 @@
 /*
-* BreezeJS Http class.
+* BreezeJS DataSource class.
 * version: 1.0 Beta
 * Copyright © 2015 BreezeJS All rights reserved.
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
-* @require System,Object,Array,EventDispatcher,Http,HttpEvent,DataSourceEvent,Math;
+* @require System,Object,Array,DataArray,EventDispatcher,Http,HttpEvent,DataSourceEvent,Math;
 */
 function DataSource( options )
 {
     if( !(this instanceof DataSource) )return new DataSource(options);
-    EventDispatcher.call(this);
+    DataArray.call(this);
     this.__options__={
         'method': Http.METHOD.GET,
         'dataType':Http.TYPE.JSON,
@@ -42,35 +42,34 @@ function DataSource( options )
     this.__cached__={'queues':[],'lastSegments':null,'loadSegmented':new DataArray() };
 }
 System.DataSource=DataSource;
-DataSource.prototype = Object.create( EventDispatcher.prototype );
-DataSource.prototype.constructor=DataSource;
-DataSource.prototype.length=0;
-DataSource.prototype.indexOf=Array.prototype.indexOf;
-DataSource.prototype.splice=Array.prototype.splice;
-DataSource.prototype.slice=Array.prototype.slice;
-DataSource.prototype.concat=Array.prototype.concat;
-DataSource.prototype.forEach=Array.prototype.forEach;
+DataSource.prototype = Object.create( DataArray.prototype );
+//合并EventDispatcher原型的方法和属性
+Object.merge(DataSource.prototype, EventDispatcher.prototype);
+//@private
 DataSource.prototype.__isRemote__=false;
 DataSource.prototype.__cached__={};
 
 /**
+ * 是否为一个远程数据源
  * @returns {boolean}
  */
-DataSource.prototype.isRemote=function()
+DataSource.prototype.isRemote=function isRemote()
 {
     return this.__isRemote__;
 };
 
 /**
+ * 配置选项
  * @private
  */
 DataSource.prototype.__options__={};
 
 /**
+ * 设置数据选项
  * @param object options
  * @returns {*}
  */
-DataSource.prototype.options=function( options )
+DataSource.prototype.options=function options( options )
 {
     if( typeof options !== "undefined" )
     {
@@ -89,33 +88,32 @@ DataSource.prototype.options=function( options )
 DataSource.prototype.__source__=null;
 
 /**
- * 数据源
- * @returns {DataSource|window.Http}
+ * 设置获取数据源
+ * 允许是一个数据数组或者是一个远程请求源
+ * @param Array source | String url | Http httpObject
+ * @returns {DataSource|Http}
  */
 DataSource.prototype.source=function( source )
 {
-    if(  typeof source === "undefined"  )
-        return this.__source__;
+    if(  typeof source === "undefined"  )return this.__source__;
+    if( this.__source__ === source )return this;
 
-    if( this.__source__ === source )
-    {
-        return this;
-    }
-
+    //清空数据源
     if( source === null )
     {
         this.splice(0, this.length);
+        //移除数据加载侦听事件
         this.removeEventListener( DataSourceEvent.LOAD_START );
-        if (this.__source__ instanceof Http)
-            this.__source__.removeEventListener(HttpEvent.SUCCESS);
+        //移除加载远程数据侦听事件
+        if (this.__source__ instanceof Http)this.__source__.removeEventListener(HttpEvent.SUCCESS);
         return this;
     }
 
-    //本地数据源
-    if( System.isObject(source, true) )
+    //本地数据源数组
+    if( System.isArray(source) )
     {
-        var len = this.length;
-        this.splice(0, len, source);
+        this.splice(0, this.length);
+        meregItems(this,source);
         this.__source__=source;
         doOrderBy.call(this);
     }
@@ -128,7 +126,6 @@ DataSource.prototype.source=function( source )
             options.url = source;
             source = new Http(options);
         }
-
         if ( source instanceof Http )
         {
             this.__source__=source;
@@ -141,42 +138,42 @@ DataSource.prototype.source=function( source )
                 var totalProfile = options.responseProfile.total;
                 var dataProfile = options.responseProfile.data;
                 var stateProfile = options.responseProfile.code;
-
                 if( event.data[ stateProfile ] != options.successCode)
                 {
-                    throw new Error('加载数据失败');
+                    Internal.throwError('error','Loading data failed');
                 }
 
                 var data = event.data;
-                var total = data[totalProfile] >> 0;
-                if ( total > 0 ) {
-                    this.predicts( total );
+                if( ( dataProfile && typeof data[ dataProfile ] === 'undefined' ) || ( totalProfile && data[totalProfile] === 'undefined') )
+                {
+                    Internal.throwError('error','Response data fields is not correct.');
                 }
 
-                data = typeof data[dataProfile] !== 'undefined' ? data[dataProfile] : null;
+                data = dataProfile ? data[dataProfile] : data;
+
                 if( data )
                 {
+                    var total = totalProfile ? data[totalProfile] >> 0 : data.length >>0;
+                    if ( total > 0 )this.predicts( total );
                     var lastSegments = cached.lastSegments;
                     cached.loadSegmented.push( lastSegments );
                     cached.loadSegmented=cached.loadSegmented.sort(function(a,b){return a-b});
                     var offset = cached.loadSegmented.indexOf( lastSegments ) * this.preloadRows();
-                    this.splice( offset , 0, data);
-
+                    meregItems(this,data);
                     doOrderBy.call(this);
-
                     //没有可加载的数据，直接删除事件侦听
                     if ( !(data instanceof Array) || this.length >= this.predicts() )
                     {
                         this.__loadcomplete__=true;
                         this.removeEventListener(DataSourceEvent.LOAD_START);
                     }
-
                     //更新视图的数据
                     if( this.__fetched__ && this.__fetchCalled__ )
                     {
-                        this.fetch();
+                        this.select();
                     }
                 }
+
                 //调度完成事件
                 dispatch.call(this,DataSourceEvent.LOAD_COMPLETE,data, offset, event);
 
@@ -287,7 +284,8 @@ DataSource.prototype.grep=function()
  */
 DataSource.prototype.where=function( filter )
 {
-    if( typeof filter === "string" ) {
+    if( typeof filter === "string" )
+    {
         this.grep().filter( filter )
     }
     return this;
@@ -312,7 +310,7 @@ DataSource.prototype.currentPage=function( num )
             if( this.__currentPage__ !== num && !this.__fetched__)
             {
                 this.__currentPage__ = num;
-                this.fetch();
+                this.select();
             }
         }
         return this;
@@ -349,8 +347,8 @@ DataSource.prototype.__orderBy__={};
 /**
  * 对数据进行排序。只有数据源全部加载完成的情况下调用此方法才有效（本地数据源除外）。
  * @param column 数据字段
- * @param flag   是否清空之前排序的字段
  * @param type   排序类型
+ * @param flag   是否清空之前排序的字段
  */
 DataSource.prototype.orderBy=function(column,type,flag)
 {
@@ -371,24 +369,25 @@ DataSource.prototype.orderBy=function(column,type,flag)
                 this.splice(0,this.length);
                 this.__cached__.loadSegmented.splice(0,this.__cached__.loadSegmented.length);
                 this.__cached__.lastSegments=null;
+
             }else
             {
                 doOrderBy.call(this);
             }
-            !this.__fetchCalled__ || this.fetch();
+            !this.__fetchCalled__ || this.select();
         }
     }
     return this;
 };
 
 /**
- * 通过视图索引返回对应数据源的索引位置
- * @param index
+ * 当前页的索引值在当前数据源的位置
+ * @param index 位于当前页的索引值
  * @returns {number}
  */
-DataSource.prototype.viewIndex=function( index )
+DataSource.prototype.offsetAt=function(index)
 {
-    var index = parseInt(index);
+    var index = index>>0;
     if( isNaN(index) )return index;
     var start=( this.currentPage()-1 ) * this.rows();
     var offset = this.__cached__.loadSegmented.indexOf( this.segments() );
@@ -399,20 +398,6 @@ DataSource.prototype.viewIndex=function( index )
         return offset * preloadRows + index;
     }
     return NaN;
-};
-
-/**
- * 根据视图索引返回数据项
- * @param index
- * @returns {number}
- */
-DataSource.prototype.getItemByViewIndex=function( index )
-{
-    var index = this.viewIndex( index );
-    if( !isNaN(index) ) {
-        return this[index] || null;
-    }
-    return null;
 };
 
 DataSource.prototype.__increment__=0;
@@ -510,15 +495,15 @@ DataSource.prototype.remove=function( filter )
  * @param index
  * @returns {boolean}
  */
-DataSource.prototype.alter=function( data, filter )
+DataSource.prototype.update=function update(data, filter )
 {
     var result = this.grep().execute(filter);
     var flag=false;
-    var update=[];
+    var updateData=[];
     for(var i=0; i<result.length ; i++)
     {
         var d={};
-        update.push( d );
+        updateData.push( d );
         for( var c in data )
         {
             if( typeof result[i][c] !== "undefined" )
@@ -535,16 +520,15 @@ DataSource.prototype.alter=function( data, filter )
             }
         }
     }
-    doupdate.call(this,flag, DataSourceEvent.ALTER,  update.length >1 ? {'data':update} : update[0] );
+    doupdate.call(this,flag, DataSourceEvent.UPDATE,  updateData.length >1 ? {'data':updateData} : updateData[0] );
     return flag;
 };
-
 
 /**
  * 选择数据集
  * @returns {DataSource}
  */
-DataSource.prototype.fetch=function( filter )
+DataSource.prototype.select=function( filter )
 {
     var page = this.currentPage();
     var rows=this.rows(),start=( page-1 ) * rows;
@@ -567,13 +551,13 @@ DataSource.prototype.fetch=function( filter )
     }
 
     //发送数据
-    if( !waiting && this.hasEventListener(DataSourceEvent.FETCH) )
+    if( !waiting && this.hasEventListener(DataSourceEvent.SELECT) )
     {
         var result = this.grep().execute( filter );
         this.__fetched__= false;
         var end = Math.min( offset+rows, this.length );
         var data = result.slice( offset, end );
-        var event = new DataSourceEvent( DataSourceEvent.FETCH );
+        var event = new DataSourceEvent( DataSourceEvent.SELECT );
         event.data = data;
         this.dispatchEvent( event);
     }
@@ -585,7 +569,7 @@ DataSource.prototype.fetch=function( filter )
 /**
  * 调度事件
  */
-var dispatch=function(type,data,index,event)
+function dispatch(type,data,index,event)
 {
     if( this.hasEventListener(type) )
     {
@@ -601,20 +585,20 @@ var dispatch=function(type,data,index,event)
 /**
  * 修改、插入、删除后是否需要刷新当前渲染的数据
  */
-var doupdate=function(flag, type, result, index)
+function doupdate(flag, type, result, index)
 {
     if( flag && dispatch.call(this, type, result, index) )
     {
         var synch = this.options().synch;
         if( synch && synch.enable )dosynch.call(this, result, type,index,synch);
-        !this.__fetchCalled__ || this.fetch();
+        !this.__fetchCalled__ || this.select();
     }
 };
 
 /**
  * 向远程服务器开始加载数据
  */
-var doload = function ( segments )
+function doload( segments )
 {
     segments = typeof segments === "number" ? segments : this.segments();
     var cached = this.__cached__;
@@ -649,7 +633,7 @@ var lastSynch=null;
 /**
  * 同步数据
  */
-var dosynch = function( data, action, index, setting )
+function dosynch( data, action, index, setting )
 {
     var options = this.options();
     var primary = options.primary;
@@ -689,7 +673,7 @@ var dosynch = function( data, action, index, setting )
                         }
                     }
                     dispatch.call(this, DataSourceEvent.SYNCH_SUCCESS,result,index,event);
-                    !this.__fetchCalled__ || this.fetch();
+                    !this.__fetchCalled__ || this.select();
                 }
                 return;
             }
@@ -712,14 +696,13 @@ var dosynch = function( data, action, index, setting )
     param[ setting.actionProfile ] = action;
     param = System.serialize(param,'url');
     url = /\?/.test(url) ? url+'&'+param : url+'?'+param;
-
     lastSynch.send( url, data , setting.method );
 };
 
 /**
  * 预加载数据
  */
-var preloadData =function()
+function preloadData()
 {
     var cached = this.__cached__;
     var segments= this.segments();
@@ -758,7 +741,7 @@ var preloadData =function()
 /**
  * 对数据进行排序
  */
-var doOrderBy=function()
+function doOrderBy()
 {
     if( this.length > 0 && this.length >= this.predicts() )
     {
@@ -768,3 +751,24 @@ var doOrderBy=function()
     return false;
 };
 
+
+
+/**
+ * 合并数据
+ * @param target
+ * @param dataSource
+ */
+function meregItems(target, dataSource )
+{
+    var i=0;
+    var len = dataSource.length >> 0;
+    var b=target.length>>0;
+    for(;i<len;i++)
+    {
+        if( dataSource[i]!=null )
+        {
+            target[b++]=dataSource[i];
+        }
+    }
+    target.length = b;
+}

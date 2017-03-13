@@ -44,18 +44,34 @@ Object.merge =function merge()
     {
         target = {};
     }
+    var tToken;
+    var token;
+    //只有纯对象或者一个动态类才可以设置属性
+    if( target instanceof System.Class )
+    {
+        if( !target.constructor.prototype.dynamic )return target;
+        tToken = target.constructor.prototype.token;
+    }
 
     for ( ; i < length; i++ )
     {
         if ( (options = arguments[ i ]) != null )
         {
+            token=undefined;
+            if( options instanceof System.Class )
+            {
+                token = options.constructor.prototype.token;
+                //只有动态的类才可能有属性
+                if( !options.constructor.prototype.token.dynamic )continue;
+            }
             for ( name in options )
             {
-                src =  $get(target,name);
+                if ( token===name || tToken===name )continue;
                 copy = $get(options,name);
                 if ( target === copy )continue;
-                if ( deep && copy && ( System.isObject(copy,true) || ( copyIsArray = System.isArray(copy) ) ) )
+                if ( deep && copy && ( System.isObject(copy) || ( copyIsArray = System.isArray(copy) ) ) )
                 {
+                    src =  $get(target,name);
                     if ( copyIsArray )
                     {
                         copyIsArray = false;
@@ -64,7 +80,7 @@ Object.merge =function merge()
                     {
                         clone = src && System.isObject(src) ? src : {};
                     }
-                   $set(target, name ,Object.merge( deep, clone, copy ) )
+                    $set(target, name ,Object.merge( deep, clone, copy ) )
 
                 } else if ( typeof copy !== "undefined" )
                 {

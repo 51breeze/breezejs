@@ -244,7 +244,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
         this.plus('remove',column,{
             'template':'<a style="cursor:pointer;">删除</a>',
             'callback':function(event,option){
-                 var index =dataSource.viewIndex( this.property('data-index') );
+                 var index =dataSource.offsetAt( this.property('data-index') );
                  dataSource.remove('index('+index+')');
             },
             'eventType':MouseEvent.CLICK
@@ -264,7 +264,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
         this.plus('add',column,{
             'template':'<a style="cursor:pointer;">增加</a>',
             'callback':function(event,option){
-                 var index =dataSource.viewIndex( this.property('data-index') );
+                 var index =dataSource.offsetAt( this.property('data-index') );
                  var item = dataSource[index];
                  item = Utils.extend({},item);
                  dataSource.append( item, index+1);
@@ -361,7 +361,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
             'template':'<span>{value}</span>',
             'callback':function(event,option){
 
-                var index =source.viewIndex( this.property('data-index') );
+                var index =source.offsetAt( this.property('data-index') );
                 var item = source[index];
                 if( item )
                 {
@@ -373,7 +373,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
                             var value =  this.skinGroup().next('input').value();
                             var d={};
                             d[column] = value;
-                            source.alter(d,'index('+index+')');
+                            source.update(d,'index('+index+')');
                         },
                         'minHeight':38
                     });

@@ -92,6 +92,7 @@ function createFilter()
 /**
  * @returns {DataGrep}
  * @constructor
+ * @require Object,Math,DataArray
  */
 function DataGrep( dataItems )
 {
@@ -144,8 +145,8 @@ DataGrep.prototype.filter=function filter( filter )
         }).replace(/(not[\s]*)?(index)\(([\d\,\s]+)\)/ig,function(a,b,c,d)
         {
             var value = d.split(',');
-            var start = parseInt( value[0] ) || 0;
-            var end = parseInt( value[1] ) || start+1;
+            var start =value[0]>>0;
+            var end = Math.max(value[1]>>0,1);
             var flag = typeof b=== "undefined" ? '' : '!';
             return flag+"( arguments[1] >= "+start+" && arguments[1] < "+end+") ";
 
@@ -245,7 +246,7 @@ DataGrep.prototype.range=function(column, start, end, logic)
  */
 DataGrep.prototype.index=function(start, end, logic)
 {
-    if(  start >= 0 || end > 0 )
+    if( start >= 0 || end > 0 )
     {
         end =  parseInt(end) || 1 ;
         start =  parseInt(start) || 0;

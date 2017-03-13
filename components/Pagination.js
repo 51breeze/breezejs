@@ -128,7 +128,7 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
             this.__dataSource__ = dataSource;
             dataSource.rows( this.rows() );
             var initialized = false;
-            dataSource.addEventListener(DataSourceEvent.FETCH,function(event)
+            dataSource.addEventListener(DataSourceEvent.SELECT,function(event)
             {
                 var totalPages = this.totalPages();
                 var currentPages = this.currentPage();

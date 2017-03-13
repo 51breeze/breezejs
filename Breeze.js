@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-define('Breeze',['EventDispatcher','DataArray','./events/BreezeEvent','./events/PropertyEvent','./events/StyleEvent','./events/ScrollEvent','./events/ElementEvent'],
+define('Breeze',['EventDispatcher','compiler/javascript/modules/DataArray','./events/BreezeEvent','./events/PropertyEvent','./events/StyleEvent','./compiler/javascript/modules/ScrollEvent','./events/ElementEvent'],
     function(EventDispatcher,DataArray,BreezeEvent,PropertyEvent,StyleEvent,ScrollEvent,ElementEvent)
     {
         "use strict";

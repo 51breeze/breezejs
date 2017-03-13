@@ -3,7 +3,7 @@
  * @param HTMLElement|EventDispatcher target 需要代理事件的目标对象
  * @returns {EventDispatcher}
  * @constructor
- * @require System,Object,Event
+ * @require System,Object,Event,Internal
  */
 function EventDispatcher( target )
 {
@@ -14,17 +14,13 @@ function EventDispatcher( target )
         {
             Internal.throwError('type', 'target is not "EventDispatcher"');
         }
-        this.target = target;
+        this.__proxyTarget__ = target;
     }
 };
 System.EventDispatcher=EventDispatcher;
 EventDispatcher.prototype=Object.create( Object.prototype );
 EventDispatcher.prototype.constructor=EventDispatcher;
-
-//@public EventDispatcher.prototype.target non-writable non-enumerable;
-EventDispatcher.prototype.target=null;
-
-//@private EventDispatcher.prototype.__events__ non-writable non-enumerable;
+EventDispatcher.prototype.__proxyTarget__=null;
 EventDispatcher.prototype.__events__=null;
 
 /**
@@ -32,9 +28,9 @@ EventDispatcher.prototype.__events__=null;
  * @param type
  * @returns {boolean}
  */
-EventDispatcher.prototype.hasEventListener=function( type )
+EventDispatcher.prototype.hasEventListener=function hasEventListener( type )
 {
-    var target = this.target || this;
+    var target = this.__proxyTarget__ || this;
     var events;
     var len = target.length >> 0;
     if( len > 0 ){
@@ -70,8 +66,8 @@ EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,pri
     if( typeof type !== 'string' )Internal.throwError('type','Invalid event type.')
     if( typeof callback !== 'function' )throwError('type','Invalid callback function.')
     var listener=new Listener(type,callback,useCapture,priority,reference,this);
-    var target = this.target || this;
-    var len = target.length >>> 0;
+    var target = this.__proxyTarget__ || this;
+    var len = target.length >> 0;
     if( len > 0 ){
         while(len>0 && target[--len]){
             addEventListener(target[len], listener);
@@ -90,8 +86,8 @@ EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,pri
  */
 EventDispatcher.prototype.removeEventListener=function(type,listener)
 {
-    var target= this.target || this;
-    var len = target.length >>> 0;
+    var target= this.__proxyTarget__ || this;
+    var len = target.length >> 0;
     if( len > 0 ){
         while(len>0 && target[--len] )removeEventListener( target[len], type, listener, this);
         return true;
@@ -106,9 +102,9 @@ EventDispatcher.prototype.removeEventListener=function(type,listener)
  */
 EventDispatcher.prototype.dispatchEvent=function( event )
 {
-    if( !(event instanceof Event) )throwError('type','invalid event.');
-    var target = this.target || this;
-    var len = target.length >>> 0;
+    if( !(event instanceof Event) )Internal.throwError('type','invalid event.');
+    var target = this.__proxyTarget__ || this;
+    var len = target.length >> 0;
     if( len > 0 ){
         while(len>0 && target[--len] )
         {

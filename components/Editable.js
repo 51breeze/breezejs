@@ -79,7 +79,7 @@
                     case Editable.TEXTAREA :
                         options.skin='<textarea>{value}</textarea>';
                         break;
-                    case Editable.FETCH :
+                    case Editable.SELECT :
                         options.skin='<fetch><?foreach(dataGroup as index value){<option value="{index}">{value}</option>}?></fetch>';
                         break;
                     default :
@@ -96,7 +96,7 @@
     Editable.PASSWORD='password';
     Editable.CHECKBOX='checkbox';
     Editable.RADIO='radio';
-    Editable.FETCH='fetch';
+    Editable.SELECT='fetch';
 
     Editable.prototype=new EventDispatcher();
     Editable.prototype.constructor=Editable;

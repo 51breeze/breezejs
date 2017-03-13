@@ -42,7 +42,7 @@ DataArray.prototype.orderBy=function(column,type)
     }
     orderby = orderby.join("s=s==0?");
     orderby+="return s;";
-    Array.prototype.sort.call(this, new Function( orderby ) );
+    this.sort(new Function( orderby ));
     return this;
 };
 
@@ -63,7 +63,8 @@ DataArray.prototype.sum=function( callback )
             return typeof value === "number"  ?  value : 0;
         }
     }
-    var index=0,len=this.length;
+    var index=0,
+    len=this.length >> 0;
     for(;index<len;index++)
     {
         result+=callback.call(this,this[index]) || 0;

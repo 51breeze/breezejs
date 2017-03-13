@@ -7,7 +7,7 @@
  */
 
 
-define('components/DataRender',['./Template','../compiler/javascript/modules/DataSource','../events/DataSourceEvent','./Pagination'],
+define('components/DataRender',['./Template','../compiler/javascript/modules/DataSource','../compiler/javascript/modules/DataSourceEvent','./Pagination'],
 function(Template, DataSource, DataSourceEvent, Pagination)
 {
     "use strict";
@@ -41,7 +41,7 @@ function(Template, DataSource, DataSourceEvent, Pagination)
         if( !(this.__dataSource__ instanceof DataSource) )
         {
             this.__dataSource__ = new DataSource()
-            .addEventListener(DataSourceEvent.FETCH,function(event)
+            .addEventListener(DataSourceEvent.SELECT,function(event)
             {
                 var data = event.data;
                 var view = this.view();

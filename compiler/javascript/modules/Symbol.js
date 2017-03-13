@@ -4,17 +4,25 @@
  * Copyright © 2015 BreezeJS All rights reserved.
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
- * @require System
+ * @require System,Internal
  */
-
 var tables={};
-var key_name = '@@symbol('+System.uid()+')';
-var key_uid  = '@@symbol('+System.uid()+')';
-var toPrimitive = '@@symbol(toPrimitive)';
+var hash={};
+var prefix ='@@_S_y_mb_oL';
+var prefixLen =  prefix.length;
+Internal.SYMBOL_KEY_NAME = prefix+'(SYMBOL_KEY_NAME)';
+Internal.SYMBOL_KEY_VALUE= prefix+'(SYMBOL_KEY_VALUE)';
+
+Internal.isSymbolPropertyName = function isSymbolPropertyName( propName )
+{
+    if( propName==null )return false;
+    return propName[0]==='@' && propName[0].substr && propName[0].substr(0,prefixLen) === prefix+'(';
+}
+
 var factor = (function () {
     return function Symbol( name ){
-        this[key_name] = name || ''
-        this[key_uid]  = System.uid();
+        this[Internal.SYMBOL_KEY_NAME] = name || '';
+        this[Internal.SYMBOL_KEY_VALUE]= prefix+'('+System.uid()+')';
     };
 }());
 
@@ -28,8 +36,8 @@ function Symbol( name ){
     return new factor(name);
 }
 System.Symbol = Symbol;
+Symbol.prototype.constructor = Symbol;
 factor.prototype = Symbol.prototype;
-factor.prototype.constructor = Symbol;
 
 /**
  * 返回Symbol的原始值
@@ -37,7 +45,7 @@ factor.prototype.constructor = Symbol;
  */
 Symbol.prototype.toString=function toString()
 {
-    return 'symbol('+this[key_name]+')';
+    return 'symbol('+this[Internal.SYMBOL_KEY_NAME]+')';
 }
 
 /**
@@ -46,17 +54,7 @@ Symbol.prototype.toString=function toString()
  */
 Symbol.prototype.valueOf=function valueOf()
 {
-    return 'symbol('+this[key_name]+')';
-}
-
-/**
- * 返回 Symbol 的uid
- * @returns {*}
- * @internal Symbol.prototype.@@symbol(toPrimitive);
- */
-Symbol.prototype[toPrimitive] = function()
-{
-    return '@@symbol('+this[key_uid]+')';
+    return 'symbol('+this[Internal.SYMBOL_KEY_NAME]+')';
 }
 
 /**
@@ -67,7 +65,9 @@ Symbol.prototype[toPrimitive] = function()
 Symbol["for"] = function( name )
 {
     if( tables[name] )return tables[name];
-    return tables[name] = Symbol( name );
+    tables[name] = Symbol( name );
+    hash[ tables[name][Internal.SYMBOL_KEY_VALUE] ]=name;
+    return obj;
 }
 
 /**
@@ -78,9 +78,9 @@ Symbol["for"] = function( name )
  */
 Symbol.keyFor=function keyFor( symbol )
 {
-    for( var i in tables )
+    if( symbol instanceof Symbol )
     {
-        if( tables[i]===symbol )return i;
+        return hash[ symbol[Internal.SYMBOL_KEY_VALUE] ];
     }
     return undefined;
 }

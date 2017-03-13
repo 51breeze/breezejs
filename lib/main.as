@@ -40,8 +40,6 @@ public class Main extends B implements IProsess {
           function Main(jj)
           {
 
-             throw new TypeError('===========');
-
               EventDispatcher( document ).addEventListener( Event.READY , function (e) {
 
 

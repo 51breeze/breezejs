@@ -22,7 +22,7 @@ System.Event = Event;
  */
 Event.SUBMIT='submit';
 Event.RESIZE='resize';
-Event.FETCH='fetch';
+Event.SELECT='fetch';
 Event.UNLOAD='unload';
 Event.LOAD='load';
 Event.RESET='reset';

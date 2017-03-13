@@ -221,7 +221,7 @@ define([],function()
 
     BreezeEvent.SUBMIT='submit';
     BreezeEvent.RESIZE='resize';
-    BreezeEvent.FETCH='fetch';
+    BreezeEvent.SELECT='fetch';
     BreezeEvent.UNLOAD='unload';
     BreezeEvent.LOAD='load';
     BreezeEvent.RESET='reset';
