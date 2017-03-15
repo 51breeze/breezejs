@@ -9,6 +9,7 @@ header('Content-Type:text/javascript');
 echo 'jsonp([{"jjj":"111"}], "'.$_GET['k'].'");';
 exit;*/
 
+error_reporting(0);
 
 
 $data =  array();
@@ -23,6 +24,8 @@ if( $_SERVER['REQUEST_METHOD'] == 'POST' )
 
 $offset = intval($_GET['offset']);
 $rows   = intval($_GET['rows']);
+
+$rows = max(20, $rows);
 
 
 for( $i=0; $i< $total; $i++ )
@@ -51,6 +54,7 @@ $data=array_slice($data,$offset,$rows);
 
 
 header("Content-type: application/json; charset=utf-8");
+header("Access-Control-Allow-Origin: *");
 echo json_encode(array('code'=>0,'data'=>$data,'msg'=>'ok','total'=>$total ));
 
 ?>

@@ -9,11 +9,11 @@
 
 function DataArray()
 {
-    if( !System.instanceOf(this,DataArray) )
-    {
-        return Array.apply( new DataArray(), Array.prototype.slice.call(arguments,0) );
+    if( !System.instanceOf(this,DataArray) ){
+        return Array.apply( Object.create( DataArray.prototype ), Array.prototype.slice.call(arguments,0) );
     }
-    return Array.apply(this, Array.prototype.slice.call(arguments,0) );
+    Array.apply(this, Array.prototype.slice.call(arguments,0) );
+    return this;
 }
 System.DataArray=DataArray;
 DataArray.DESC='desc';
@@ -29,7 +29,7 @@ DataArray.prototype.constructor = DataArray;
  */
 DataArray.prototype.orderBy=function(column,type)
 {
-    var field=column,orderby=['var a=arguments[0],b=arguments[1],s=0;'];
+    var field=column,orderby=['var a=arguments[0],b=arguments[1],s=0,cp=arguments[2];'];
     if( typeof column !== "object" )
     {
         field={};
@@ -38,11 +38,14 @@ DataArray.prototype.orderBy=function(column,type)
     for(var c in field )
     {
          type = DataArray.DESC === field[c].toLowerCase() ?  DataArray.DESC :  DataArray.ASC;
-         orderby.push( type===DataArray.DESC ? "System.compare(b['"+c+"'],a['"+c+"']):s;" : "System.compare(a['"+c+"'],b['"+c+"']):s;");
+         orderby.push( type===DataArray.DESC ? "cp(b['"+c+"'],a['"+c+"']):s;" : "cp(a['"+c+"'],b['"+c+"']):s;");
     }
     orderby = orderby.join("s=s==0?");
     orderby+="return s;";
-    this.sort(new Function( orderby ));
+    var fn = new Function( orderby );
+    this.sort(function (a,b) {
+        return fn(a,b,System.compare);
+    });
     return this;
 };
 
@@ -55,19 +58,12 @@ DataArray.prototype.orderBy=function(column,type)
 DataArray.prototype.sum=function( callback )
 {
     var result = 0;
-    if( typeof callback !== "function" )
-    {
-        callback = function( value )
-        {
-            value = typeof value === "string" ? parseInt(  value ) || 0 : value;
-            return typeof value === "number"  ?  value : 0;
-        }
-    }
+    if( typeof callback !== "function" )callback = function( value ){return System.isNaN(value) ? 0 : value>>0;}
     var index=0,
     len=this.length >> 0;
     for(;index<len;index++)
     {
-        result+=callback.call(this,this[index]) || 0;
+        result+=callback.call(this,this[index])>>0;
     }
     return result;
 };

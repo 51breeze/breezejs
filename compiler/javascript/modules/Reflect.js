@@ -305,7 +305,7 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
     }
 
     //原型链上的属性不可设置
-    if( target.constructor && target.constructor.prototype && $has.call(target.constructor.prototype, propertyKey) )
+    if( Object.hasProtoInherit(target,propertyKey) )
     {
         Internal.throwError('reference', '"' + propertyKey + '" is not wirtable.');
     }

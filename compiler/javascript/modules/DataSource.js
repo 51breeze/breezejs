@@ -4,11 +4,11 @@
 * Copyright © 2015 BreezeJS All rights reserved.
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
-* @require System,Object,Array,DataArray,EventDispatcher,Http,HttpEvent,DataSourceEvent,Math;
+* @require System,Object,Array,DataArray,EventDispatcher,Http,HttpEvent,DataSourceEvent,Math,DataGrep;
 */
 function DataSource( options )
 {
-    if( !(this instanceof DataSource) )return new DataSource(options);
+    if( !System.instanceOf(this,DataSource) )return new DataSource(options);
     DataArray.call(this);
     this.__options__={
         'method': Http.METHOD.GET,
@@ -110,12 +110,11 @@ DataSource.prototype.source=function( source )
     }
 
     //本地数据源数组
-    if( System.isArray(source) )
+    if( System.instanceOf(source, Array ) )
     {
         this.splice(0, this.length);
         meregItems(this,source);
         this.__source__=source;
-        doOrderBy.call(this);
     }
     //远程数据源
     else
@@ -524,6 +523,10 @@ DataSource.prototype.update=function update(data, filter )
     return flag;
 };
 
+DataSource.prototype.__fetched__=false;
+DataSource.prototype.__fetchCalled__=false;
+DataSource.prototype.__lastWaiting__=false;
+
 /**
  * 选择数据集
  * @returns {DataSource}
@@ -539,10 +542,8 @@ DataSource.prototype.select=function( filter )
     var offset  = index * preloadRows + (start % preloadRows);
     this.__fetched__ = true;
     this.__fetchCalled__=true;
-    var waiting = !this.isRemote() || offset < 0 || (this.length<1 && !this.__loadcomplete__) ||
-        (this.length < offset+rows && this.totalPages()>page);
-    if( this.__lastWaiting__!= waiting && this.isRemote()
-        && this.hasEventListener(DataSourceEvent.WAITING) )
+    var waiting = !this.isRemote() || offset < 0 || (this.length<1 && !this.__loadcomplete__) || (this.length < offset+rows && this.totalPages()>page);
+    if( this.__lastWaiting__!= waiting && this.isRemote() && this.hasEventListener(DataSourceEvent.WAITING) )
     {
         this.__lastWaiting__= waiting;
         var event = new DataSourceEvent(DataSourceEvent.WAITING);
@@ -615,14 +616,14 @@ function doload( segments )
     var options = this.options();
     var rows = this.preloadRows();
     var offset = segments * rows;
-    var param = Breeze.extend({},options.param,{orderby:this.orderBy()});
+    var param = Object.merge({},options.param,{orderby:this.orderBy()});
     param[ options.requestProfile.offset ]=offset;
     param[ options.requestProfile.rows ]=rows;
 
     if( dispatch.call(this,DataSourceEvent.LOAD_START) )
     {
         cached.lastSegments = segments;
-        source.send( options.url,param ,options.method );
+        source.send(options.url,param ,options.method );
         return true;
     }
     return false;
@@ -638,7 +639,7 @@ function dosynch( data, action, index, setting )
     var options = this.options();
     var primary = options.primary;
     var url = setting.url || this.options().url;
-    action = action.match(/append|remove|alter/i)[0].toLowerCase();
+    action = action.match(/append|remove|update/i)[0].toLowerCase();
 
     url = url[action] || url;
     if( typeof url !== "string" )
@@ -646,9 +647,7 @@ function dosynch( data, action, index, setting )
         throw new Error('invalid url');
     }
 
-    lastSynch = new Http();
-    lastSynch.addEventListener( [HttpEvent.SUCCESS,HttpEvent.ERROR,HttpEvent.TIMEOUT] , function(event){
-
+    var handle = function(event){
         var error='service error.';
         var status = 504;
         if( event.type === HttpEvent.SUCCESS)
@@ -665,7 +664,7 @@ function dosynch( data, action, index, setting )
                     {
                         data[0][primary] = result;
 
-                    }else if( Breeze.isObject(result) )
+                    }else if( System.isObject(result) )
                     {
                         for(var i=0; i<data.length; i++) if( result[ data[i][primary] ] )
                         {
@@ -689,9 +688,12 @@ function dosynch( data, action, index, setting )
         e.status =status;
         e.error= error;
         this.dispatchEvent( e );
+    }
 
-    },false,0, this);
-
+    lastSynch = new Http();
+    lastSynch.addEventListener( HttpEvent.SUCCESS, handle ,false,0, this);
+    lastSynch.addEventListener( HttpEvent.ERROR,   handle ,false,0, this);
+    lastSynch.addEventListener( HttpEvent.TIMEOUT, handle ,false,0, this);
     var param  = setting.param || {};
     param[ setting.actionProfile ] = action;
     param = System.serialize(param,'url');

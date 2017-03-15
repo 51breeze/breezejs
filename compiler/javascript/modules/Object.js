@@ -281,6 +281,23 @@ Object.prototype.values=function()
  * 获取可枚举的属性
  * @param state
  * @returns {Array}
+ * @internal Object.hasProtoInherit
+ */
+Object.hasProtoInherit = function hasProtoInherit(obj,name) {
+
+    if( obj==null )false;
+    while (  ( obj = Object.getPrototypeOf(obj) ) )
+    {
+        if( $hasOwnProperty.call(obj,name) )return true;
+    }
+    return false;
+}
+
+
+/**
+ * 获取可枚举的属性
+ * @param state
+ * @returns {Array}
  * @internal Object.prototype.getEnumerableProperties
  */
 Object.prototype.getEnumerableProperties=function getEnumerableProperties( state )
@@ -301,7 +318,7 @@ Object.prototype.getEnumerableProperties=function getEnumerableProperties( state
         }
         for(prop in this)
         {
-            if( prop !== token && $propertyIsEnumerable.call(this,prop) && $hasOwnProperty.call(this,prop) )
+            if( prop !== token && $propertyIsEnumerable.call(this,prop) && $hasOwnProperty.call(this,prop) && !Object.hasProtoInherit(this,prop) )
             {
                 if( !(proto && $hasOwnProperty.call(proto, prop) && proto[prop].id==='dynamic' && proto[prop].enumerable === false) )
                 {

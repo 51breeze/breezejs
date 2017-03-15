@@ -42,7 +42,6 @@ const cg = ['non-writable','non-enumerable','non-configurable'];
  */
 function describe( str, name )
 {
-
     var result = str.match(/@(require|public|private|protected|internal)\s+([^\r\n\;]*)/ig );
     var desc={"requirements":[],'describe':{"static":{},"proto":{}}};
     for( var i in result )
@@ -54,7 +53,7 @@ function describe( str, name )
         switch ( prefix )
         {
             case 'require' :
-                desc.requirements = desc.requirements.concat( val.split(',') );
+                desc.requirements = desc.requirements.concat( val.replace(/\s+/g,'').split(',') );
             break;
             case 'internal' :
             case 'public' :
@@ -89,6 +88,7 @@ function describe( str, name )
             break;
         }
     }
+    utils.unique(desc.requirements);
     return desc;
 }
 
@@ -147,7 +147,7 @@ function include(contents, name , filepath, fix )
         contents.push('System.' + name + '=$' + name + ';\n');
         return true;
     }
-    throw new Error(name+' does exists');
+    throw new Error(name+' does exists ('+filepath+')');
 }
 
 /**
@@ -226,7 +226,7 @@ function combine( config , code, requirements )
     /**
      * 引用全局对象模块
      */
-    var requires = ['System','Class','Interface'].concat( globals.slice(0) );
+    var requires = ['System','Class','Interface','Iterator'].concat( globals.slice(0) );
     if( requirements )
     {
         for ( var p in requirements )

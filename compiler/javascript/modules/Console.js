@@ -13,7 +13,9 @@ function Console(){ if(this instanceof Console)Internal.throwError('syntax','is 
 function toString(items)
 {
     var str=[];
-    for(var i=0; i<items.length; i++)if(items[i]!=null)str.push( Object.prototype.valueOf.call(items[i]) );
+    for(var i=0; i<items.length; i++)if(items[i]!=null){
+        str.push( items[i].valueOf ? items[i].valueOf() : Object.prototype.valueOf.call(items[i]) );
+    }
     return str.join(' ');
 }
 if( !$console )

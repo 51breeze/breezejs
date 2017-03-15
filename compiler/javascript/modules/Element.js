@@ -495,7 +495,7 @@ function cloneNode(nodeElement , deep )
  */
 function Element(selector, context)
 {
-    if( !(this instanceof Element) )
+    if( !System.instanceOf(this,Element) )
     {
         return new Element( selector, context );
     }

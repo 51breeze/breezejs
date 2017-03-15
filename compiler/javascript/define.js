@@ -197,6 +197,8 @@ System.getQualifiedClassName = function getQualifiedClassName(value)
 {
     if( value==null )return 'Object';
     if( value===System )return 'System';
+    if( value===JSON )return 'JSON';
+    if( value===Reflect )return 'Reflect';
     if( value instanceof Class )return getFullname(value.constructor.prototype);
     var type = typeof value;
     if( type==='number' || type==='boolean')return System.ucfirst(type);

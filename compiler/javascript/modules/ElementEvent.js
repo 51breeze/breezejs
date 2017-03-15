@@ -8,7 +8,7 @@
  */
 function ElementEvent( type, bubbles,cancelable )
 {
-    if( !(this instanceof ElementEvent) )return new ElementEvent(type, bubbles,cancelable);
+    if( !System.instanceOf(this,ElementEvent) )return new ElementEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
 };

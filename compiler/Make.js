@@ -1792,7 +1792,12 @@ function getPropertyDescription( stack )
     // 组合接口
     var list = {'static':{},'proto':{},'import':{},'constructor':{}};
     var define = stack.parent().scope().define();
-    for ( var j in define )list['import'][j]=define[j].fullclassname;
+    for ( var j in define ){
+        list['import'][j]=define[j].fullclassname;
+        if( globals.hasOwnProperty(j) ){
+            requirements[j]=true;
+        }
+    }
 
     for ( ; i< len ; i++ )
     {

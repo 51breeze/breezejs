@@ -4,7 +4,7 @@
 * Copyright © 2015 BreezeJS All rights reserved.
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
-* @require Function, RegExp,DataSource,Object
+* @require Function,RegExp,DataSource,Object
 */
 
 /**
@@ -92,19 +92,19 @@ function createFilter()
 /**
  * @returns {DataGrep}
  * @constructor
- * @require Object,Math,DataArray
+ * @require Object,Math,DataArray,Array,Function
  */
 function DataGrep( dataItems )
 {
-    if( !(this instanceof DataGrep) )return new DataGrep( dataList );
-    if( !System.isObject( dataItems ) )Internal.throwError('error','Invalid data list');
+    if( !(System.instanceOf(this,DataGrep)) )return new DataGrep( dataItems );
+    if( !System.instanceOf( dataItems, Array ) )Internal.throwError('error','Invalid data list');
     this.dataItems=dataItems;
 }
 
+System.DataGrep=DataGrep;
 DataGrep.prototype = Object.create( Object.prototype );
 
 /**
- * @internal DataGrep.prototype.dataItems;
  * @type {Array}
  */
 DataGrep.prototype.dataItems=null;
@@ -159,7 +159,7 @@ DataGrep.prototype.filter=function filter( filter )
                 e= e.replace(/(%)?([^%]*?)(%)?/,function(a,b,c,d){
                     return typeof b==='undefined' ? '^'+c : typeof d==='undefined' ? c+'$' : c;
                 });
-                e = flag+"new System.RegExp('"+e+"').test("+refvalue+")";
+                e = flag+"new RegExp('"+e+"').test("+refvalue+")";
 
             }else if( /in/i.test(d) )
             {
@@ -176,7 +176,7 @@ DataGrep.prototype.filter=function filter( filter )
         {
             return b.toLowerCase()=='or' ? ' || ' : ' && ';
         });
-        this.__filter__=new Function('try{ return !!('+filter+') }catch(e){ Internal.throwError("error","syntax error is in grep:'+old+'");}');
+        this.__filter__=new Function('try{ return !!('+filter+') }catch(e){ throw new SyntaxError("is not grep:'+old+'");}');
 
     }else if( filter === null )
     {
@@ -231,8 +231,8 @@ DataGrep.prototype.range=function(column, start, end, logic)
     if(  start >= 0 || end > 0 )
     {
         strainer.call(this,column,start+','+end,'range',logic);
-        return this;
     }
+    return this;
 };
 
 
@@ -242,7 +242,7 @@ DataGrep.prototype.range=function(column, start, end, logic)
  * @param start
  * @param end
  * @param logic
- * @returns {*}
+ * @returns {DataGrep}
  */
 DataGrep.prototype.index=function(start, end, logic)
 {
@@ -251,8 +251,8 @@ DataGrep.prototype.index=function(start, end, logic)
         end =  parseInt(end) || 1 ;
         start =  parseInt(start) || 0;
         strainer.call(this,'index',start+','+start+end,'index',logic);
-        return this;
     }
+    return this;
 };
 
 /**

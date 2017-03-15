@@ -19,21 +19,12 @@ Iterator.prototype.cursor = -1;
 Iterator.prototype.constructor = Iterator;
 
 /**
- * 获取对象可枚举的属性
- * @returns {Array}
- */
-Iterator.prototype.getEnumerableProperties=function getEnumerableProperties()
-{
-    return Object.prototype.getEnumerableProperties.call(this.target || this);
-}
-
-/**
  * 将指针向前移动一个位置并返回当前元素
- * @returns {*}
+ * @returns object{key:'keyname',value:'value'} | false;
  */
 Iterator.prototype.seek=function seek()
 {
-    if( this.items===null )this.items = this.getEnumerableProperties();
+    if( this.items===null )this.items =Object.prototype.getEnumerableProperties.call(this.target || []);
     if( this.items.length <= this.cursor+1 )return false;
     return this.items[ ++this.cursor ];
 }

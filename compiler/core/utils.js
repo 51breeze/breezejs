@@ -434,6 +434,21 @@ function merge()
 utils.merge = merge;
 
 
+function unique( arr )
+{
+    if (arr==null || !(arr instanceof Array) ) return [];
+    var i=0;
+    var b;
+    var len = arr.length >> 0;
+    for(;i<len;i++)
+    {
+        b = i+1;
+        for (;b<len;b++)if(arr[i]===arr[b])arr.splice(b, 1);
+    }
+    return arr;
+};
+utils.unique=unique;
+
 
 /**
  * 判断是否为一个恒定的值

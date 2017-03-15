@@ -13,12 +13,12 @@ function ScrollEvent( type, bubbles,cancelable ){
 };
 System.ScrollEvent =ScrollEvent;
 ScrollEvent.prototype=Object.create( PropertyEvent.prototype );
-ScrollEvent.prototype.constructor=StyleEvent;
+ScrollEvent.prototype.constructor=ScrollEvent;
 ScrollEvent.CHANGE='scrollChange';
 
 //属性事件
 Event.registerEvent(function ( type , target, originalEvent )
 {
     if( originalEvent instanceof ScrollEvent )return originalEvent;
-    if( type === ScrollEvent.CHANGE )return new ScrollEvent( StyleEvent.CHANGE );
+    if( type === ScrollEvent.CHANGE )return new ScrollEvent( ScrollEvent.CHANGE );
 });

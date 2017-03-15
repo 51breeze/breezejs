@@ -2153,7 +2153,7 @@ Ruler.prototype.move=function()
                 this.skip = true;
             }
             //单行注释
-            else if( ( n= /\/\//.exec( this.input ) ) )
+            else if( ( n= /^[\t\s]*\/\//.exec( this.input ) ) )
             {
                 this.input = this.input.substr(0, n.index);
             }
@@ -2246,8 +2246,7 @@ Ruler.prototype.seek=function( flag )
             this.hasListener('(newline)') && this.dispatcher( new Event('(newline)', {__proxyTarget__:o, ruler:this}) );
             return this.seek( flag );
 
-        } else
-        {
+        } else {
             var s = this.input.slice(this.cursor);
             while (s.charAt(0) === " ") {
                 this.cursor++;
@@ -2477,7 +2476,10 @@ Ruler.prototype.identifier=function(s)
         case "'":
             var i=1;
             while ( i<s.length && !( v === s.charAt(i) && s.charAt(i-1) !=='\\') )i++;
-            if( v !== s.charAt(i) )this.error('Missing identifier '+v );
+            if( v !== s.charAt(i) ){
+               // console.log( s );
+                this.error('Missing identifier '+v );
+            }
             return describe( v==='`' ? '(template)' : '(string)', s.substr(0,i+1), v );
         case '/':
 

@@ -1,6 +1,7 @@
 /**
  * JSON 对象构造器
  * @constructor
+ * @require Object, Array
  */
 function JSON(){ if(this instanceof JSON)Internal.throwError('JSON is not constructor.'); };
 System.JSON=JSON;
@@ -19,11 +20,15 @@ JSON.stringify = function(value)
         var tmp = [];
         if (typeof value.toJSON === 'function') {
             return JSON.stringify( value.toJSON() );
-        } else if ( System.isArray(value) ) {
+        } else if ( System.instanceOf(value, Array) ){
             for (var i = 0; i < value.length; i++)tmp.push( JSON.stringify( value[i] ) );
             return '['+tmp.join(',')+']';
-        } else if ( System.isObject(value,true) ) {
-            var items = getEnumerableProperties.call(value);
+        }else if( System.isObject(value) )
+        {
+            for (var b in value )tmp.push( JSON.stringify(b)+':'+JSON.stringify(value[b]) );
+            return '{'+tmp.join(',')+'}';
+        }else {
+            var items = Object.prototype.getEnumerableProperties.call(value);
             for( var i =0; i<items.length; i++ )tmp.push( JSON.stringify(items[i].key)+':'+JSON.stringify(items[i].value) );
             return '{' + tmp.join(', ') + '}';
         }

@@ -12,116 +12,49 @@
  +------------------------------------------------------------------------------
  */
 
-
 //类
 package
 {
 
-import lib.EventDispatcher;
-import com.B;
-import lib.IProsess;
-import lib.IProt;
-import com.Abs;
-import com.D;
-import com.Dispatcher;
-import com.DataArray;
+import DataArray;
 
-public class Main extends B implements IProsess {
-
+public class Main
+{
         static public var name:String = '3999 yyy fsss 666' ;
         public var names:String = '399999' ;
         public const uuu:String = 'yhhh' ;
-      //  static public var name:String = '5' ;
-
         public var iu:Number= 5;
-
         public var dd:Class = Array;
-
-          function Main(jj)
-          {
-
-              EventDispatcher( document ).addEventListener( Event.READY , function (e) {
-
-
-                  log( '=====ready=====');
-
-                  Element('#container').addEventListener( MouseEvent.CLICK, function (e)
-                  {
-                      log( '==========style =====event=====');
-
-                      //   log( e.property, e.oldValue, e.newValue );
-
-                      this.style('backgroundColor','rgba(255,0,0,0.6)');
-                      this.style('border','solid #ff0000 1px');
-                      this.width( 400 );
-                      this.height( 300 );
-                      this.bottom(0);
-
-                     // log( this.height(), this.width() );
-
-                  });
-
-                  Element('#list').addEventListener( MouseEvent.CLICK, function (e) {
-
-                      this.current( e.currentTarget );
-                      //e.stopPropagation();
-
-                      log( '==========%s=====', this.property('id') );
-
-                  });
-
-
-
-              });
-
-          }
-
-        function ddcc(e)
+        function Main(jj)
         {
-        }
+            EventDispatcher(document).addEventListener(Event.READY,function (e)
+            {
 
-        private var _home:String='ooooo';
+                log('========ready=====');
 
-        function get home(){
+                var data = new DataArray();
+                data[0] = {id:2,name:'yejun',time:120};
+                data[1] = {id:2,name:'zhangSang',time:100};
+                data[5] = {id:3,name:'LiShing',time:300};
+              //  data.orderBy( {'id':DataArray.DESC,'time':DataArray.DESC});
 
 
-            System.log( this is IProsess , ' the is getter home');
-            return this._home;
+                var dataSource = new DataSource();
+                dataSource.source( 'http://breezejs.com/json.php' );
 
-        }
+                //log( dataSource.length , dataSource.select() );
+               // var d = dataSource.select('id>2');
 
-        function tests(a:Number=666 ,...avg):Main
-        {
+               var d=dataSource.grep().execute('id=2');
 
-            var  bb=666;
-            var tests;
-            if( true ){
-                //const bb=888;
-                const yy = 666;
-                var i=9;
-                if( a )
+
+                for(var i in d )
                 {
-                    //return [];
+                    log( i,'==>>', d[i].id , '===>>', d[i].name );
                 }
 
-                System.log( '===%s',Main );
-            }
-            System.log(a, avg  , i, bb);
-            return this;
+
+            });
         }
-
-        //private var bb:String=null;
-
-        override protected function cre(str:String):String{
-
-            log( this.bb ,'====this cre====');
-            return this.bb;
-        }
-
-
-        function database(name:String='123',type:Number=666):String{
-            return '';
-        }
-    
-    }
+}
 }

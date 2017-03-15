@@ -9,7 +9,7 @@
  */
 function Event( type, bubbles, cancelable )
 {
-    if ( !(this instanceof Event) )return new Event(  type, bubbles,cancelable );
+    if ( !System.instanceOf(this,Event) )return new Event(  type, bubbles,cancelable );
     if( type && typeof type !=="string" )Internal.throwError('type','event type is not string');
     this.type = type;
     this.bubbles = !(bubbles===false);
@@ -60,6 +60,12 @@ Event.prototype.button = false;
 Event.prototype.ctrlKey = false;
 Event.prototype.shiftKey = false;
 Event.prototype.metaKey = false;
+Event.prototype.toString=function toString(){
+    return '[object Event]';
+}
+Event.prototype.valueOf=function valueOf(){
+    return '[object Event]';
+}
 
 /**
  * 阻止事件的默认行为

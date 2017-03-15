@@ -8,12 +8,12 @@
  */
 function DataSourceEvent(type, bubbles,cancelable)
 {
-    if( !(this instanceof DataSourceEvent) )return new DataSourceEvent(type, bubbles,cancelable);
+    if( !System.instanceOf(this,DataSourceEvent) )return new DataSourceEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
 }
 System.DataSourceEvent=DataSourceEvent;
-DataSourceEvent.prototype=new Event();
+DataSourceEvent.prototype= Object.create(Event.prototype);
 DataSourceEvent.prototype.constructor=DataSourceEvent;
 DataSourceEvent.prototype.index=NaN;
 DataSourceEvent.prototype.data=null;

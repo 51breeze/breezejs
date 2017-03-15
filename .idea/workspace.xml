@@ -2,36 +2,39 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="013723df-740c-4cf5-b05e-cf938a968d79" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/compiler/javascript/modules/KeyFrame.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Motions.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/compiler/javascript/modules/StyleSheet.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/compiler/javascript/modules/TimeLineEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Template.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/compiler/javascript/modules/TemplateEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Variable.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Breeze.js" afterPath="$PROJECT_DIR$/Breeze.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Element.js" afterPath="$PROJECT_DIR$/Element.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Array.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Array.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Variable.js" afterPath="$PROJECT_DIR$/Variable.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/Make.js" afterPath="$PROJECT_DIR$/compiler/Make.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/core/ruler.js" afterPath="$PROJECT_DIR$/compiler/core/ruler.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/core/utils.js" afterPath="$PROJECT_DIR$/compiler/core/utils.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/descriptions/globals.js" afterPath="$PROJECT_DIR$/compiler/descriptions/globals.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/combine.js" afterPath="$PROJECT_DIR$/compiler/javascript/combine.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/define.js" afterPath="$PROJECT_DIR$/compiler/javascript/define.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Console.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Console.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/DataArray.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/DataArray.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/DataGrep.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/DataGrep.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/DataSource.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/DataSource.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/DataSourceEvent.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/DataSourceEvent.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Element.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Element.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/ElementEvent.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/ElementEvent.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Event.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Event.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/EventDispatcher.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/EventDispatcher.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Http.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Http.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/HttpEvent.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/HttpEvent.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Iterator.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Iterator.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/JSON.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/JSON.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Object.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Object.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Symbol.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Symbol.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/components/DataGrid.js" afterPath="$PROJECT_DIR$/components/DataGrid.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/components/DataRender.js" afterPath="$PROJECT_DIR$/components/DataRender.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/components/Editable.js" afterPath="$PROJECT_DIR$/components/Editable.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/components/Pagination.js" afterPath="$PROJECT_DIR$/components/Pagination.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/events/BreezeEvent.js" afterPath="$PROJECT_DIR$/events/BreezeEvent.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Main.as" afterPath="$PROJECT_DIR$/lib/Main.as" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Reflect.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Reflect.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/ScrollEvent.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/ScrollEvent.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compiler/javascript/modules/System.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/System.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/json.php" afterPath="$PROJECT_DIR$/json.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/cache/mainjson" afterPath="$PROJECT_DIR$/lib/cache/mainjson" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/main.as" afterPath="$PROJECT_DIR$/lib/main.as" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/view/index.html" afterPath="$PROJECT_DIR$/lib/view/index.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/testjs.js" afterPath="$PROJECT_DIR$/testjs.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/Animation.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Animation.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/DataArray.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/DataArray.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/Timeline.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Timeline.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/Tween.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/Tween.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/events/DataSourceEvent.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/DataSourceEvent.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/events/ScrollEvent.js" afterPath="$PROJECT_DIR$/compiler/javascript/modules/ScrollEvent.js" />
     </list>
     <ignored path="breezejs.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -60,53 +63,388 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="EcmaScript.js" pinned="false" current-in-tab="false">
-        <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
+      <file leaf-file-name="main.as" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/main.as">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="297">
-              <caret line="94" column="0" selection-start-line="94" selection-start-column="0" selection-end-line="94" selection-end-column="0" />
+            <state relative-caret-position="806">
+              <caret line="59" column="1" selection-start-line="59" selection-start-column="1" selection-end-line="59" selection-end-column="1" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="DataGrep.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/DataGrep.js">
+      <file leaf-file-name="Console.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Console.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-837">
-              <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
+            <state relative-caret-position="334">
+              <caret line="18" column="25" selection-start-line="18" selection-start-column="25" selection-end-line="18" selection-end-column="25" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TouchEvent.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/events/TouchEvent.js">
+      <file leaf-file-name="Object.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Object.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-4278">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding>
-                <element signature="n#!!doc" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="TemplateEvent.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/events/TemplateEvent.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+            <state relative-caret-position="9052">
+              <caret line="292" column="17" selection-start-line="292" selection-start-column="17" selection-end-line="292" selection-end-column="17" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="DataRender.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/components/DataRender.js">
+      <file leaf-file-name="Main-min.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="403">
-              <caret line="13" column="0" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
+            <state relative-caret-position="537">
+              <caret line="4724" column="0" selection-start-line="4724" selection-start-column="0" selection-end-line="4724" selection-end-column="0" />
+              <folding>
+                <marker date="1489590612201" expanded="true" signature="209:435" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="209:70123" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="1024:21507" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="1269:1343" ph="/*...*/" />
+                <marker date="1489590612201" expanded="true" signature="1663:1901" ph="{&quot;BROWSER_IE&quot;: 'IE'...}" />
+                <marker date="1489590612201" expanded="true" signature="1904:1924" ph="/** 获取环境变量的参数 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="1941:3777" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="2010:2815" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="2928:2975" ph="/** 获取当前运行平台 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="3244:3773" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="3380:3767" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="3794:3857" ph="/** 返回对象类型的字符串表示形式 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="3903:4117" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="4119:4218" ph="/** 检查实例对象是否属于指定的类型(不会检查接口类型) ...*/" />
+                <marker date="1489590612201" expanded="true" signature="4282:5186" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="4517:4736" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="4610:4730" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="5188:5285" ph="/** 检查实例对象是否属于指定的类型(检查接口类型) ...*/" />
+                <marker date="1489590612201" expanded="true" signature="5332:6765" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="5567:6314" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="5659:6308" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="5812:6241" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="5934:6227" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="6032:6209" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="6767:6918" ph="/** 判断是否为一个可遍历的对象 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="6965:7249" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="7251:7346" ph="/** 检查所有传入的值定义 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="7513:7567" ph="/** 判断是否为数组 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="7607:7795" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="7798:7852" ph="/** 判断是否为函数 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="7898:8036" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="8038:8094" ph="/** 判断是否为布尔类型 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="8179:8234" ph="/** 判断是否为字符串 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="8317:8377" ph="/** 判断是否为一个标量 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="8529:8585" ph="/** 判断是否为数字类型 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="8669:8756" ph="/** 判断是否为一个空值 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="8801:8999" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="8881:8979" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="9001:9058" ph="/** 去掉指定字符两边的空白 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="9193:9280" ph="/** 返回一组指定范围值的数组 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="9327:9508" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="9510:9569" ph="/** 将字符串的首字母转换为大写 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="9704:9763" ph="/** 将字符串的首字母转换为小写 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="9898:9962" ph="/** 格式化输出 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="9997:10589" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="10108:10571" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="10167:10527" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="10268:10516" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="10592:10677" ph="/** 复制字符串到指定的次数 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="10720:10848" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="10851:10982" ph="/** 比较两个两个字符串的值。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="11023:11311" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="11130:11172" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="11314:11378" ph="/** 格式化输出 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="11415:12371" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="11490:12353" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="11557:12347" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="11592:12293" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="11703:12277" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="11745:11889" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="11915:12061" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="12087:12186" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="12372:12546" ph="/** 把一个对象序列化为一个字符串 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="12606:13398" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="12874:12949" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="12976:13051" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="13110:13368" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="13400:13462" ph="/** 将一个已序列化的字符串反序列化为一个对象 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="13508:14332" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="13643:13713" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="13762:13853" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="13906:14311" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="13994:14251" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="14079:14182" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="14257:14305" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="14360:17227" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="16826:17210" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="17032:17168" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="17249:17286" ph="/** 全局唯一值 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="17315:17379" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="17381:17398" ph="/**@private ...*/" />
+                <marker date="1489590612201" expanded="true" signature="17427:17454" ph="/** 获取属性 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="17511:17757" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="17653:17737" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="17759:17786" ph="/** 设置属性 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="17847:18667" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="18047:18315" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="18177:18240" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="18245:18288" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="18324:18610" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="18457:18546" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="18550:18604" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="18619:18648" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="18669:18715" ph="/** 抛出错误信息 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="18785:19252" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="18850:19250" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="19332:20153" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="19411:19892" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="19709:19751" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="19910:20017" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="20030:20149" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="20051:20143" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="20155:20233" ph="/** 描述符构造器 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="20262:21397" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="20502:20665" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="21050:21378" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="21554:33066" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="21556:21669" ph="/** 对象类构造器 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="21695:21819" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="21917:22086" ph="/** 合并其它参数到指定的 target 对象中 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="22118:24139" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="22326:22406" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="22435:22476" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="22551:22579" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="22682:22808" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="22844:24118" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="22904:24112" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="22997:23180" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="23229:24102" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="23507:23968" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="23614:23753" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="23779:23874" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="24025:24088" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="24141:24228" ph="/** @internal Internal[&quot;Object.setPrototypeOf&quot;] ...*/" />
+                <marker date="1489590612201" expanded="true" signature="24327:24373" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="24375:24392" ph="/** 定义属性描述 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="24442:24507" ph="/** 获取对象的原型 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="24569:24625" ph="/** 生成一个对象 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="24671:24753" ph="/** 指示 Object 类的实例是否在指定为参数的对象的原型链中 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="24862:25328" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="24907:25277" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="25030:25271" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="25200:25261" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="25330:25460" ph="/** 表示对象本身是否已经定义了指定的属性。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="25568:26453" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="25613:26407" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="25737:26295" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="25881:26048" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="26081:26285" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="26219:26271" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="26455:26624" ph="/** 表示指定的属性是否存在、是否可枚举。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="26769:27703" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="26946:27100" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="27147:27683" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="27228:27655" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="27303:27620" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="27705:27899" ph="/** 设置循环操作动态属性的可用性。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="27992:28880" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="28037:28860" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="28192:28832" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="28351:28822" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="28531:28650" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="28671:28729" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="28882:28926" ph="/** 返回对象可枚举的属性的键名 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="28960:29042" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="29044:29086" ph="/** 返回对象可枚举的属性值 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="29122:29203" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="29205:29308" ph="/** 获取可枚举的属性 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="29381:29562" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="29478:29542" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="29565:29686" ph="/** 获取可枚举的属性 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="29782:31094" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="29965:30942" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="30008:30182" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="30217:30936" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="30390:30926" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="30542:30912" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="30578:30894" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="31095:31155" ph="/** 获取指定对象的原型 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="31197:31408" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="31268:31406" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="31477:31494" ph="/** 生成一个对象 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="31529:32388" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="31576:32382" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="31687:32375" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="31726:31836" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="31956:32341" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="32058:32327" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="32225:32309" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="32390:32408" ph="/** 定义属性的描述 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="32474:33062" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="32547:33059" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="32603:32986" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="32675:32902" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="33129:34129" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="33131:33211" ph="/** 类对象构造器 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="33369:33693" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="33468:33641" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="33528:33589" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="33695:33742" ph="/** 返回指定对象的字符串表示形式。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="33779:34104" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="33878:34051" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="33938:33999" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="34178:34972" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="34180:34233" ph="/** 接口构造函数 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="34447:34658" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="34550:34606" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="34660:34707" ph="/** 返回指定对象的字符串表示形式。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="34757:34969" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="34860:34916" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="35021:36846" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="35023:35091" ph="/** 迭代构造器 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="35120:35282" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="35521:35607" ph="/** 将指针向前移动一个位置并返回当前元素 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="35648:35866" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="35868:35906" ph="/** 返回当前指针位置的元素 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="35953:36030" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="36032:36095" ph="/** 返回上一个指针位置的元素 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="36136:36218" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="36220:36285" ph="/** 返回下一个指针位置的元素。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="36326:36425" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="36427:36492" ph="/** 将指针移到到指定的位置并返回当前位置的元素 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="36541:36697" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="36699:36737" ph="/** 重置指针 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="36780:36843" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="36919:42528" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="36921:37012" ph="/** 数组构造器 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="37036:37554" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="37085:37177" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="37232:37522" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="37307:37409" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="38393:38525" ph="/** 循环对象中的每一个属性，只有纯对象或者是一个数组才会执行。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="38588:38974" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="38976:39081" ph="/** 方法使用指定的函数测试所有元素，并创建一个包含所有通过测试的元素的新数组。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="39142:39588" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="39590:39632" ph="/** 返回一个唯一元素的数组 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="39676:40027" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="39924:40009" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="40030:40136" ph="/** 将一个数组的所有元素从开始索引填充到具有静态值的结束索引 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="40193:40823" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="40759:40804" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="40826:40928" ph="/** 返回数组中满足提供的测试函数的第一个元素的值。否则返回 undefined。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="40985:41439" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="41316:41425" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="41381:41419" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="41441:41478" ph="/** 返回一个数组 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="41506:42222" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="41568:42220" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="41995:42196" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="42021:42169" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="42225:42292" ph="/** 返回指定元素的索引位置 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="42325:42526" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="42389:42523" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="42595:43790" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="42597:42677" ph="/** 函数构造器 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="42698:42777" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="43034:43084" ph="/** 绑定一个对象到返回的函数中 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="43169:43788" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="43228:43785" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="43484:43499" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="43533:43679" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="43965:44528" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="43967:44073" ph="/** 错误消息构造函数 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="44117:44221" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="44583:45002" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="44585:44697" ph="/** 引用错误构造器 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="44750:44833" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="45070:45451" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="45072:45183" ph="/** 类型错误构造器 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="45231:45309" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="45519:45918" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="45521:45633" ph="/** 语法错误构造器 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="45683:45763" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="45986:47619" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="45988:46051" ph="/** JSON 对象构造器 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="46520:47615" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="46753:47548" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="46825:46889" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="46933:47076" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="47118:47264" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="47269:47542" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="47697:60307" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="47699:47852" ph="/** Reflect是一个内置的对象，提供可拦截的JavaScript操作的方法。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="48061:48202" ph="/** 静态方法 Reflect.apply() 通过指定的参数列表发起对目标(target)函数的调用 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="48272:48774" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="48776:48934" ph="/** Reflect.construct() 方法的行为有点像 new 操作符 构造函数 ， 相当于运行 new target(...args). ...*/" />
+                <marker date="1489590612201" expanded="true" signature="48999:51206" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="49140:49401" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="49602:49713" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="49722:51021" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="49763:51015" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="51026:51180" ph="//..." />
+                <marker date="1489590612201" expanded="true" signature="51208:51348" ph="/** 静态方法 Reflect.deleteProperty() 允许用于删除属性。它很像 delete operator ，但它是一个函数。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="51417:52357" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="51509:52280" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="51804:52252" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="51959:52180" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="52359:52464" ph="/** 静态方法 Reflect.has() 作用与 in 操作符 相同。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="52511:53638" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="52610:53602" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="52720:53555" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="52945:53165" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="53099:53151" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="53201:53353" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="53462:53545" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="53640:53716" ph="/** 获取目标公开的属性值 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="53783:56162" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="53942:56005" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="54207:55955" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="54679:54744" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="54787:55586" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="54935:55572" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="55054:55228" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="55287:55374" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="55380:55555" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="55695:55944" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="55766:55850" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="56048:56111" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="56164:56256" ph="/** 设置目标公开的属性值 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="56331:59523" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="56500:59152" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="56764:59048" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="59741:60285" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="59986:60090" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="60139:60243" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="60399:62353" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="61061:61230" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="61097:61227" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="61310:61423" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="62261:62326" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="62397:66413" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="63047:63091" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="63122:63167" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="63435:63479" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="63515:63541" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="63950:66410" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="64112:64847" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="65008:65242" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="65056:65154" ph="..." />
+                <marker date="1489590612201" expanded="true" signature="66468:68349" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="67842:67888" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="68411:70123" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="68413:68558" ph="/**  事件对象,处理指定类型的事件分发。 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="68603:68897" ph="{...}" />
+                <marker date="1489590612201" expanded="true" signature="68921:68958" ph="/** 一组事件名的常量 ...*/" />
+                <marker date="1489590612201" expanded="true" signature="69379:69412" ph="/** 事件原型 ...*/" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Http.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Http.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="442">
+              <caret line="237" column="29" selection-start-line="237" selection-start-column="29" selection-end-line="237" selection-end-column="29" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -114,11 +452,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Editable.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/components/Editable.js">
+      <file leaf-file-name="Element.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Element.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1867">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+            <state relative-caret-position="-8029">
+              <caret line="251" column="37" selection-start-line="251" selection-start-column="37" selection-end-line="251" selection-end-column="37" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -126,35 +464,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Layout.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/components/Layout.js">
+      <file leaf-file-name="HttpEvent.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/HttpEvent.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-3216">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding>
-                <element signature="n#!!doc" expanded="true" />
-              </folding>
+            <state relative-caret-position="155">
+              <caret line="17" column="29" selection-start-line="17" selection-start-column="29" selection-end-line="17" selection-end-column="29" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Pagination.js" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/components/Pagination.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="341">
-              <caret line="347" column="29" selection-start-line="347" selection-start-column="29" selection-end-line="347" selection-end-column="29" />
-              <folding>
-                <element signature="n#!!doc" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DataSource.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="DataSource.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/DataSource.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-868">
-              <caret line="128" column="37" selection-start-line="128" selection-start-column="37" selection-end-line="128" selection-end-column="37" />
+            <state relative-caret-position="607">
+              <caret line="596" column="2" selection-start-line="596" selection-start-column="2" selection-end-line="596" selection-end-column="2" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -162,14 +486,22 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="require.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/require.js">
+      <file leaf-file-name="json.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/json.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding>
-                <element signature="n#!!doc" expanded="true" />
-              </folding>
+            <state relative-caret-position="337">
+              <caret line="21" column="1" selection-start-line="21" selection-start-column="1" selection-end-line="21" selection-end-column="1" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Event.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Event.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="248">
+              <caret line="62" column="0" selection-start-line="62" selection-start-column="0" selection-end-line="67" selection-end-column="1" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -199,56 +531,56 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/SyntaxError.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/StyleEvent.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/ReferenceError.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/RangeError.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/PropertyEvent.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/MouseEvent.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/KeyboardEvent.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/HttpEvent.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/EvalError.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/ElementEvent.js" />
-        <option value="$PROJECT_DIR$/lib/com/DataArray.as" />
-        <option value="$PROJECT_DIR$/compiler/javascript/fix/Array-ie-9.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/Http.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/JSON.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/Reflect.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/Event.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/fix/Function-ie-9.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Window.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/fix/Console-ie-9.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/Console.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Function.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/fix/Object-ie-9.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/fix/Event-ie-9.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/fix/System-ie-8.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/System.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/combine.js" />
-        <option value="$PROJECT_DIR$/compiler/core/ruler.js" />
-        <option value="$PROJECT_DIR$/compiler/core/utils.js" />
-        <option value="$PROJECT_DIR$/lib/Main-min.js" />
-        <option value="$PROJECT_DIR$/compiler/make.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/define.js" />
-        <option value="$PROJECT_DIR$/lib/main.as" />
-        <option value="$PROJECT_DIR$/testjs.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Symbol.js" />
         <option value="$PROJECT_DIR$/DataArray.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/DataGrep.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/DataArray.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Array.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/Object.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/EventDispatcher.js" />
         <option value="$PROJECT_DIR$/events/DataSourceEvent.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/ScrollEvent.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/DataSourceEvent.js" />
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/Element.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/StyleSheet.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Animation.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/TimeLineEvent.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Motions.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/KeyFrame.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Timeline.js" />
+        <option value="$PROJECT_DIR$/compiler/core/view.js" />
+        <option value="$PROJECT_DIR$/lib/index.as" />
+        <option value="$PROJECT_DIR$/lib/view/index.html" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/Iterator.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/define.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/JSON.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/ScrollEvent.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/Element.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/ElementEvent.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/DataSourceEvent.js" />
+        <option value="$PROJECT_DIR$/index.html" />
+        <option value="$PROJECT_DIR$/compiler/make.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/Object.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/Reflect.js" />
+        <option value="$PROJECT_DIR$/testjs.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/System.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/DataArray.js" />
+        <option value="$PROJECT_DIR$/compiler/core/utils.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/combine.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/DataGrep.js" />
+        <option value="$PROJECT_DIR$/Variable.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/TemplateEvent.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/Template.js" />
+        <option value="$PROJECT_DIR$/compiler/descriptions/globals.js" />
+        <option value="$PROJECT_DIR$/compiler/core/ruler.js" />
+        <option value="$PROJECT_DIR$/lib/Main-min.js" />
+        <option value="$PROJECT_DIR$/json.php" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/Event.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/HttpEvent.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/Http.js" />
+        <option value="$PROJECT_DIR$/compiler/javascript/modules/Console.js" />
+        <option value="$PROJECT_DIR$/lib/main.as" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/DataSource.js" />
       </list>
     </option>
@@ -314,7 +646,6 @@
     </navigator>
     <panes>
       <pane id="Scratches" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -343,21 +674,7 @@
               <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="events" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="breezejs" />
-              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="components" />
+              <option name="myItemId" value="lib" />
               <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
             </PATH_ELEMENT>
           </PATH>
@@ -417,6 +734,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -451,19 +769,19 @@
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
   </component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="E:\webroot\breezejs\compiler\javascript\modules" />
-      <recent name="E:\webroot\breezejs\compiler\javascript\fix" />
-      <recent name="E:\webroot\breezejs\compiler\modules" />
-      <recent name="E:\webroot\breezejs\compiler\lib\core" />
-      <recent name="E:\webroot\breezejs\compiler\lib\modules\client" />
-    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\webroot\breezejs\compiler\view" />
       <recent name="E:\webroot\breezejs\compiler\javascript\modules" />
       <recent name="E:\webroot\breezejs\compiler\javascript" />
       <recent name="E:\webroot\breezejs\compiler\modules\javascript" />
       <recent name="E:\webroot\breezejs\compiler\modules" />
-      <recent name="E:\webroot\breezejs" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\webroot\breezejs\compiler\javascript\modules" />
+      <recent name="E:\webroot\breezejs\lib" />
+      <recent name="E:\webroot\breezejs\compiler\javascript\fix" />
+      <recent name="E:\webroot\breezejs\compiler\modules" />
+      <recent name="E:\webroot\breezejs\compiler\lib\core" />
     </key>
   </component>
   <component name="RunManager">
@@ -619,14 +937,8 @@
       <workItem from="1489123691138" duration="37457000" />
       <workItem from="1489204259101" duration="36979000" />
       <workItem from="1489285364446" duration="46656000" />
-      <workItem from="1489392140080" duration="19073000" />
-    </task>
-    <task id="LOCAL-00209" summary="1.1">
-      <created>1481990984311</created>
-      <option name="number" value="00209" />
-      <option name="presentableId" value="LOCAL-00209" />
-      <option name="project" value="LOCAL" />
-      <updated>1481990984311</updated>
+      <workItem from="1489392140080" duration="19731000" />
+      <workItem from="1489552305776" duration="33335000" />
     </task>
     <task id="LOCAL-00210" summary="1.1">
       <created>1482073630408</created>
@@ -964,11 +1276,18 @@
       <option name="project" value="LOCAL" />
       <updated>1489335386239</updated>
     </task>
-    <option name="localTasksCounter" value="258" />
+    <task id="LOCAL-00258" summary="1.1.1">
+      <created>1489413821317</created>
+      <option name="number" value="00258" />
+      <option name="presentableId" value="LOCAL-00258" />
+      <option name="project" value="LOCAL" />
+      <updated>1489413821317</updated>
+    </task>
+    <option name="localTasksCounter" value="259" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2183198000" />
+    <option name="totallyTimeSpent" value="2217191000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -983,14 +1302,13 @@
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21375267" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19936034" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32899022" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32899022" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32790446" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.24972856" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" x="1230" y="281" width="749" height="596" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.52551574" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" x="1167" y="229" width="723" height="484" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -999,6 +1317,7 @@
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32899022" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
@@ -1040,335 +1359,10 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/TypeError.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="465">
-          <caret line="15" column="42" selection-start-line="15" selection-start-column="42" selection-end-line="15" selection-end-column="42" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/ElementEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="124">
-          <caret line="4" column="20" selection-start-line="4" selection-start-column="20" selection-end-line="4" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/fix/Array-ie-9.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="403">
-          <caret line="16" column="32" selection-start-line="16" selection-start-column="32" selection-end-line="16" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/fix/Function-ie-9.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="620">
-          <caret line="20" column="21" selection-start-line="20" selection-start-column="21" selection-end-line="20" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Event.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="145" column="34" selection-start-line="145" selection-start-column="34" selection-end-line="145" selection-end-column="34" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/URIError.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="186">
-          <caret line="6" column="24" selection-start-line="6" selection-start-column="24" selection-end-line="6" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Window.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="93">
-          <caret line="3" column="29" selection-start-line="3" selection-start-column="29" selection-end-line="3" selection-end-column="29" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Reflect.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="630">
-          <caret line="217" column="24" selection-start-line="217" selection-start-column="24" selection-end-line="217" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/fix/Console-ie-9.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="403">
-          <caret line="13" column="47" selection-start-line="13" selection-start-column="47" selection-end-line="13" selection-end-column="47" />
-          <folding>
-            <marker date="1489328029104" expanded="true" signature="1119:1217" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Console.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="520">
-          <caret line="54" column="25" selection-start-line="54" selection-start-column="25" selection-end-line="54" selection-end-column="25" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Function.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="434">
-          <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/fix/Object-ie-9.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="427">
-          <caret line="31" column="30" selection-start-line="31" selection-start-column="30" selection-end-line="31" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/fix/Event-ie-9.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="706">
-          <caret line="78" column="13" selection-start-line="78" selection-start-column="13" selection-end-line="78" selection-end-column="13" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/fix/System-ie-8.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1643">
-          <caret line="53" column="16" selection-start-line="53" selection-start-column="16" selection-end-line="53" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/core/utils.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5549">
-          <caret line="179" column="9" selection-start-line="179" selection-start-column="9" selection-end-line="179" selection-end-column="9" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/combine.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="8618">
-          <caret line="278" column="34" selection-start-line="278" selection-start-column="34" selection-end-line="278" selection-end-column="34" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/core/ruler.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="26350">
-          <caret line="850" column="69" selection-start-line="850" selection-start-column="69" selection-end-line="850" selection-end-column="69" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/make.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="33015">
-          <caret line="1065" column="5" selection-start-line="1065" selection-start-column="5" selection-end-line="1065" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="226765">
-          <caret line="7315" column="81" selection-start-line="7315" selection-start-column="81" selection-end-line="7315" selection-end-column="81" />
-          <folding>
-            <marker date="1489405924170" expanded="true" signature="120432:120530" ph="..." />
-            <marker date="1489405924170" expanded="true" signature="216471:216507" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/define.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="459">
-          <caret line="167" column="16" selection-start-line="167" selection-start-column="16" selection-end-line="167" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/main.as">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="551">
-          <caret line="53" column="72" selection-start-line="53" selection-start-column="72" selection-end-line="53" selection-end-column="72" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/testjs.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="310">
-          <caret line="10" column="30" selection-start-line="10" selection-start-column="30" selection-end-line="10" selection-end-column="30" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Symbol.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="899">
-          <caret line="29" column="11" selection-start-line="29" selection-start-column="11" selection-end-line="29" selection-end-column="11" />
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/DataArray.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="520">
-          <caret line="23" column="3" selection-start-line="23" selection-start-column="3" selection-end-line="23" selection-end-column="3" />
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Array.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="589">
-          <caret line="28" column="27" selection-start-line="28" selection-start-column="27" selection-end-line="28" selection-end-column="27" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/System.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3744">
-          <caret line="552" column="21" selection-start-line="552" selection-start-column="21" selection-end-line="552" selection-end-column="21" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Object.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="279">
-          <caret line="66" column="35" selection-start-line="66" selection-start-column="35" selection-end-line="66" selection-end-column="35" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/EventDispatcher.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2604">
-          <caret line="18" column="2" selection-start-line="18" selection-start-column="2" selection-end-line="18" selection-end-column="2" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/StyleEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="23" selection-end-column="3" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/ScrollEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="551">
-          <caret line="18" column="6" selection-start-line="18" selection-start-column="6" selection-end-line="18" selection-end-column="6" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/MouseEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-968">
-          <caret line="5" column="29" selection-start-line="5" selection-start-column="29" selection-end-line="5" selection-end-column="29" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/PropertyEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="675">
-          <caret line="36" column="5" selection-start-line="26" selection-start-column="4" selection-end-line="36" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/DataSourceEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1488">
-          <caret line="48" column="3" selection-start-line="48" selection-start-column="3" selection-end-line="48" selection-end-column="3" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/StyleSheet.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="706">
-          <caret line="95" column="0" selection-start-line="95" selection-start-column="0" selection-end-line="95" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Animation.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2814">
-          <caret line="199" column="14" selection-start-line="199" selection-start-column="14" selection-end-line="199" selection-end-column="14" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Element.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="297">
-          <caret line="1704" column="0" selection-start-line="1704" selection-start-column="0" selection-end-line="1704" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Motions.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="589">
-          <caret line="19" column="1" selection-start-line="19" selection-start-column="1" selection-end-line="19" selection-end-column="1" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/KeyFrame.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="155">
-          <caret line="5" column="3" selection-start-line="5" selection-start-column="3" selection-end-line="5" selection-end-column="3" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/TimeLineEvent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="403">
-          <caret line="13" column="1" selection-start-line="13" selection-start-column="1" selection-end-line="13" selection-end-column="1" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Timeline.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="465">
           <caret line="15" column="98" selection-start-line="15" selection-start-column="98" selection-end-line="15" selection-end-column="98" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="297">
-          <caret line="94" column="0" selection-start-line="94" selection-start-column="0" selection-end-line="94" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1392,30 +1386,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/DataSource.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-868">
-          <caret line="128" column="37" selection-start-line="128" selection-start-column="37" selection-end-line="128" selection-end-column="37" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/DataGrep.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-837">
-          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/events/TouchEvent.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-4278">
+        <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <element signature="n#!!doc" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1428,40 +1404,725 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/components/DataRender.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="403">
-          <caret line="13" column="0" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/components/Editable.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1867">
+        <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <element signature="n#!!doc" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/components/Layout.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3216">
+        <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="n#!!doc" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/view/View.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="31">
+          <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/index.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="644">
+          <caret line="26" column="4" selection-start-line="26" selection-start-column="4" selection-end-line="26" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/view/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="399">
+          <caret line="17" column="22" selection-start-line="17" selection-start-column="22" selection-end-line="17" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/define.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="334">
+          <caret line="211" column="16" selection-start-line="211" selection-start-column="16" selection-end-line="211" selection-end-column="16" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/JSON.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="806">
+          <caret line="26" column="9" selection-start-line="26" selection-start-column="9" selection-end-line="26" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/ScrollEvent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="706">
+          <caret line="23" column="3" selection-start-line="23" selection-start-column="3" selection-end-line="23" selection-end-column="3" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="682">
+          <caret line="22" column="0" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Error.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/ElementEvent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="341">
+          <caret line="11" column="6" selection-start-line="11" selection-start-column="6" selection-end-line="11" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Document.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="403">
+          <caret line="13" column="0" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/lib/EventDispatcher.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="310">
+          <caret line="67" column="33" selection-start-line="67" selection-start-column="17" selection-end-line="67" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/DataSourceEvent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="427">
+          <caret line="19" column="40" selection-start-line="19" selection-start-column="40" selection-end-line="19" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Iterator.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="403">
+          <caret line="13" column="15" selection-start-line="13" selection-start-column="7" selection-end-line="13" selection-end-column="15" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/make.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="535">
+          <caret line="304" column="18" selection-start-line="304" selection-start-column="18" selection-end-line="304" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="297">
+          <caret line="147" column="0" selection-start-line="147" selection-start-column="0" selection-end-line="147" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Reflect.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="613">
+          <caret line="313" column="0" selection-start-line="313" selection-start-column="0" selection-end-line="313" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/System.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="583">
+          <caret line="558" column="15" selection-start-line="558" selection-start-column="15" selection-end-line="558" selection-end-column="15" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/testjs.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="31">
+          <caret line="1" column="79" selection-start-line="1" selection-start-column="79" selection-end-line="1" selection-end-column="79" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/DataArray.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2046">
+          <caret line="66" column="5" selection-start-line="66" selection-start-column="5" selection-end-line="66" selection-end-column="5" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Array.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="86" column="0" selection-start-line="86" selection-start-column="0" selection-end-line="100" selection-end-column="2" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/combine.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="297">
+          <caret line="90" column="36" selection-start-line="90" selection-start-column="36" selection-end-line="90" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/DataGrep.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="473">
+          <caret line="217" column="18" selection-start-line="217" selection-start-column="18" selection-end-line="217" selection-end-column="18" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/Template.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-6331">
+          <caret line="14" column="30" selection-start-line="14" selection-start-column="30" selection-end-line="14" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Variable.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2294">
+          <caret line="74" column="3" selection-start-line="74" selection-start-column="3" selection-end-line="74" selection-end-column="3" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Variable.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="558">
+          <caret line="18" column="14" selection-start-line="18" selection-start-column="14" selection-end-line="18" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/TouchEvent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1264">
+          <caret line="44" column="3" selection-start-line="32" selection-start-column="0" selection-end-line="44" selection-end-column="3" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/TemplateEvent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="465">
+          <caret line="15" column="38" selection-start-line="15" selection-start-column="38" selection-end-line="15" selection-end-column="38" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Template.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="5518">
+          <caret line="241" column="0" selection-start-line="241" selection-start-column="0" selection-end-line="241" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/DataRender.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1726">
+          <caret line="29" column="0" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/components/Pagination.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="341">
-          <caret line="347" column="29" selection-start-line="347" selection-start-column="29" selection-end-line="347" selection-end-column="29" />
+        <state relative-caret-position="217">
+          <caret line="58" column="0" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/descriptions/globals.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="365">
+          <caret line="324" column="9" selection-start-line="324" selection-start-column="5" selection-end-line="324" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/core/utils.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="297">
+          <caret line="323" column="9" selection-start-line="323" selection-start-column="9" selection-end-line="323" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/core/ruler.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="483">
+          <caret line="2158" column="13" selection-start-line="2158" selection-start-column="13" selection-end-line="2158" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/Main-min.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="537">
+          <caret line="4724" column="0" selection-start-line="4724" selection-start-column="0" selection-end-line="4724" selection-end-column="0" />
+          <folding>
+            <marker date="1489590612201" expanded="true" signature="209:435" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="209:70123" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="1024:21507" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="1269:1343" ph="/*...*/" />
+            <marker date="1489590612201" expanded="true" signature="1663:1901" ph="{&quot;BROWSER_IE&quot;: 'IE'...}" />
+            <marker date="1489590612201" expanded="true" signature="1904:1924" ph="/** 获取环境变量的参数 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="1941:3777" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="2010:2815" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="2928:2975" ph="/** 获取当前运行平台 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="3244:3773" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="3380:3767" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="3794:3857" ph="/** 返回对象类型的字符串表示形式 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="3903:4117" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="4119:4218" ph="/** 检查实例对象是否属于指定的类型(不会检查接口类型) ...*/" />
+            <marker date="1489590612201" expanded="true" signature="4282:5186" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="4517:4736" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="4610:4730" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="5188:5285" ph="/** 检查实例对象是否属于指定的类型(检查接口类型) ...*/" />
+            <marker date="1489590612201" expanded="true" signature="5332:6765" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="5567:6314" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="5659:6308" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="5812:6241" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="5934:6227" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="6032:6209" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="6767:6918" ph="/** 判断是否为一个可遍历的对象 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="6965:7249" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="7251:7346" ph="/** 检查所有传入的值定义 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="7513:7567" ph="/** 判断是否为数组 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="7607:7795" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="7798:7852" ph="/** 判断是否为函数 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="7898:8036" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="8038:8094" ph="/** 判断是否为布尔类型 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="8179:8234" ph="/** 判断是否为字符串 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="8317:8377" ph="/** 判断是否为一个标量 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="8529:8585" ph="/** 判断是否为数字类型 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="8669:8756" ph="/** 判断是否为一个空值 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="8801:8999" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="8881:8979" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="9001:9058" ph="/** 去掉指定字符两边的空白 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="9193:9280" ph="/** 返回一组指定范围值的数组 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="9327:9508" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="9510:9569" ph="/** 将字符串的首字母转换为大写 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="9704:9763" ph="/** 将字符串的首字母转换为小写 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="9898:9962" ph="/** 格式化输出 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="9997:10589" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="10108:10571" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="10167:10527" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="10268:10516" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="10592:10677" ph="/** 复制字符串到指定的次数 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="10720:10848" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="10851:10982" ph="/** 比较两个两个字符串的值。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="11023:11311" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="11130:11172" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="11314:11378" ph="/** 格式化输出 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="11415:12371" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="11490:12353" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="11557:12347" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="11592:12293" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="11703:12277" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="11745:11889" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="11915:12061" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="12087:12186" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="12372:12546" ph="/** 把一个对象序列化为一个字符串 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="12606:13398" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="12874:12949" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="12976:13051" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="13110:13368" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="13400:13462" ph="/** 将一个已序列化的字符串反序列化为一个对象 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="13508:14332" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="13643:13713" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="13762:13853" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="13906:14311" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="13994:14251" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="14079:14182" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="14257:14305" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="14360:17227" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="16826:17210" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="17032:17168" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="17249:17286" ph="/** 全局唯一值 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="17315:17379" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="17381:17398" ph="/**@private ...*/" />
+            <marker date="1489590612201" expanded="true" signature="17427:17454" ph="/** 获取属性 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="17511:17757" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="17653:17737" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="17759:17786" ph="/** 设置属性 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="17847:18667" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="18047:18315" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="18177:18240" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="18245:18288" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="18324:18610" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="18457:18546" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="18550:18604" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="18619:18648" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="18669:18715" ph="/** 抛出错误信息 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="18785:19252" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="18850:19250" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="19332:20153" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="19411:19892" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="19709:19751" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="19910:20017" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="20030:20149" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="20051:20143" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="20155:20233" ph="/** 描述符构造器 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="20262:21397" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="20502:20665" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="21050:21378" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="21554:33066" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="21556:21669" ph="/** 对象类构造器 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="21695:21819" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="21917:22086" ph="/** 合并其它参数到指定的 target 对象中 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="22118:24139" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="22326:22406" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="22435:22476" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="22551:22579" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="22682:22808" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="22844:24118" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="22904:24112" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="22997:23180" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="23229:24102" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="23507:23968" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="23614:23753" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="23779:23874" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="24025:24088" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="24141:24228" ph="/** @internal Internal[&quot;Object.setPrototypeOf&quot;] ...*/" />
+            <marker date="1489590612201" expanded="true" signature="24327:24373" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="24375:24392" ph="/** 定义属性描述 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="24442:24507" ph="/** 获取对象的原型 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="24569:24625" ph="/** 生成一个对象 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="24671:24753" ph="/** 指示 Object 类的实例是否在指定为参数的对象的原型链中 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="24862:25328" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="24907:25277" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="25030:25271" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="25200:25261" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="25330:25460" ph="/** 表示对象本身是否已经定义了指定的属性。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="25568:26453" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="25613:26407" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="25737:26295" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="25881:26048" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="26081:26285" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="26219:26271" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="26455:26624" ph="/** 表示指定的属性是否存在、是否可枚举。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="26769:27703" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="26946:27100" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="27147:27683" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="27228:27655" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="27303:27620" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="27705:27899" ph="/** 设置循环操作动态属性的可用性。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="27992:28880" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="28037:28860" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="28192:28832" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="28351:28822" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="28531:28650" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="28671:28729" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="28882:28926" ph="/** 返回对象可枚举的属性的键名 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="28960:29042" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="29044:29086" ph="/** 返回对象可枚举的属性值 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="29122:29203" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="29205:29308" ph="/** 获取可枚举的属性 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="29381:29562" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="29478:29542" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="29565:29686" ph="/** 获取可枚举的属性 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="29782:31094" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="29965:30942" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="30008:30182" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="30217:30936" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="30390:30926" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="30542:30912" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="30578:30894" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="31095:31155" ph="/** 获取指定对象的原型 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="31197:31408" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="31268:31406" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="31477:31494" ph="/** 生成一个对象 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="31529:32388" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="31576:32382" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="31687:32375" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="31726:31836" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="31956:32341" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="32058:32327" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="32225:32309" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="32390:32408" ph="/** 定义属性的描述 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="32474:33062" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="32547:33059" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="32603:32986" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="32675:32902" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="33129:34129" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="33131:33211" ph="/** 类对象构造器 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="33369:33693" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="33468:33641" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="33528:33589" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="33695:33742" ph="/** 返回指定对象的字符串表示形式。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="33779:34104" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="33878:34051" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="33938:33999" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="34178:34972" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="34180:34233" ph="/** 接口构造函数 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="34447:34658" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="34550:34606" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="34660:34707" ph="/** 返回指定对象的字符串表示形式。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="34757:34969" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="34860:34916" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="35021:36846" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="35023:35091" ph="/** 迭代构造器 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="35120:35282" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="35521:35607" ph="/** 将指针向前移动一个位置并返回当前元素 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="35648:35866" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="35868:35906" ph="/** 返回当前指针位置的元素 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="35953:36030" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="36032:36095" ph="/** 返回上一个指针位置的元素 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="36136:36218" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="36220:36285" ph="/** 返回下一个指针位置的元素。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="36326:36425" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="36427:36492" ph="/** 将指针移到到指定的位置并返回当前位置的元素 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="36541:36697" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="36699:36737" ph="/** 重置指针 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="36780:36843" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="36919:42528" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="36921:37012" ph="/** 数组构造器 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="37036:37554" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="37085:37177" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="37232:37522" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="37307:37409" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="38393:38525" ph="/** 循环对象中的每一个属性，只有纯对象或者是一个数组才会执行。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="38588:38974" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="38976:39081" ph="/** 方法使用指定的函数测试所有元素，并创建一个包含所有通过测试的元素的新数组。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="39142:39588" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="39590:39632" ph="/** 返回一个唯一元素的数组 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="39676:40027" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="39924:40009" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="40030:40136" ph="/** 将一个数组的所有元素从开始索引填充到具有静态值的结束索引 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="40193:40823" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="40759:40804" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="40826:40928" ph="/** 返回数组中满足提供的测试函数的第一个元素的值。否则返回 undefined。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="40985:41439" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="41316:41425" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="41381:41419" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="41441:41478" ph="/** 返回一个数组 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="41506:42222" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="41568:42220" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="41995:42196" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="42021:42169" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="42225:42292" ph="/** 返回指定元素的索引位置 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="42325:42526" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="42389:42523" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="42595:43790" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="42597:42677" ph="/** 函数构造器 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="42698:42777" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="43034:43084" ph="/** 绑定一个对象到返回的函数中 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="43169:43788" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="43228:43785" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="43484:43499" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="43533:43679" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="43965:44528" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="43967:44073" ph="/** 错误消息构造函数 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="44117:44221" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="44583:45002" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="44585:44697" ph="/** 引用错误构造器 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="44750:44833" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="45070:45451" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="45072:45183" ph="/** 类型错误构造器 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="45231:45309" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="45519:45918" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="45521:45633" ph="/** 语法错误构造器 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="45683:45763" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="45986:47619" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="45988:46051" ph="/** JSON 对象构造器 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="46520:47615" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="46753:47548" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="46825:46889" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="46933:47076" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="47118:47264" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="47269:47542" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="47697:60307" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="47699:47852" ph="/** Reflect是一个内置的对象，提供可拦截的JavaScript操作的方法。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="48061:48202" ph="/** 静态方法 Reflect.apply() 通过指定的参数列表发起对目标(target)函数的调用 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="48272:48774" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="48776:48934" ph="/** Reflect.construct() 方法的行为有点像 new 操作符 构造函数 ， 相当于运行 new target(...args). ...*/" />
+            <marker date="1489590612201" expanded="true" signature="48999:51206" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="49140:49401" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="49602:49713" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="49722:51021" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="49763:51015" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="51026:51180" ph="//..." />
+            <marker date="1489590612201" expanded="true" signature="51208:51348" ph="/** 静态方法 Reflect.deleteProperty() 允许用于删除属性。它很像 delete operator ，但它是一个函数。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="51417:52357" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="51509:52280" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="51804:52252" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="51959:52180" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="52359:52464" ph="/** 静态方法 Reflect.has() 作用与 in 操作符 相同。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="52511:53638" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="52610:53602" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="52720:53555" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="52945:53165" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="53099:53151" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="53201:53353" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="53462:53545" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="53640:53716" ph="/** 获取目标公开的属性值 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="53783:56162" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="53942:56005" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="54207:55955" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="54679:54744" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="54787:55586" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="54935:55572" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="55054:55228" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="55287:55374" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="55380:55555" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="55695:55944" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="55766:55850" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="56048:56111" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="56164:56256" ph="/** 设置目标公开的属性值 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="56331:59523" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="56500:59152" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="56764:59048" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="59741:60285" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="59986:60090" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="60139:60243" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="60399:62353" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="61061:61230" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="61097:61227" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="61310:61423" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="62261:62326" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="62397:66413" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="63047:63091" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="63122:63167" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="63435:63479" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="63515:63541" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="63950:66410" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="64112:64847" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="65008:65242" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="65056:65154" ph="..." />
+            <marker date="1489590612201" expanded="true" signature="66468:68349" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="67842:67888" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="68411:70123" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="68413:68558" ph="/**  事件对象,处理指定类型的事件分发。 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="68603:68897" ph="{...}" />
+            <marker date="1489590612201" expanded="true" signature="68921:68958" ph="/** 一组事件名的常量 ...*/" />
+            <marker date="1489590612201" expanded="true" signature="69379:69412" ph="/** 事件原型 ...*/" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Element.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-8029">
+          <caret line="251" column="37" selection-start-line="251" selection-start-column="37" selection-end-line="251" selection-end-column="37" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Event.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="248">
+          <caret line="62" column="0" selection-start-line="62" selection-start-column="0" selection-end-line="67" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/HttpEvent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="155">
+          <caret line="17" column="29" selection-start-line="17" selection-start-column="29" selection-end-line="17" selection-end-column="29" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Object.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="9052">
+          <caret line="292" column="17" selection-start-line="292" selection-start-column="17" selection-end-line="292" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Http.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="442">
+          <caret line="237" column="29" selection-start-line="237" selection-start-column="29" selection-end-line="237" selection-end-column="29" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/json.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="337">
+          <caret line="21" column="1" selection-start-line="21" selection-start-column="1" selection-end-line="21" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Console.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="334">
+          <caret line="18" column="25" selection-start-line="18" selection-start-column="25" selection-end-line="18" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/main.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="806">
+          <caret line="59" column="1" selection-start-line="59" selection-start-column="1" selection-end-line="59" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/DataSource.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="607">
+          <caret line="596" column="2" selection-start-line="596" selection-start-column="2" selection-end-line="596" selection-end-column="2" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>

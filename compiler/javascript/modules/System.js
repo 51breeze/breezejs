@@ -356,10 +356,10 @@ System.repeat = function repeat(str, num) {
  * @returns {*}
  */
 System.compare = function compare(a, b) {
+
     var c = System.parseFloat(a), d = System.parseFloat(b);
     if (System.isNaN(c) && System.isNaN(d)) {
         return a.localeCompare(b);
-
     } else if (!System.isNaN(c) && !System.isNaN(d)) {
         return c > d ? 1 : (c < d ? -1 : 0);
     }
@@ -517,9 +517,10 @@ System.uid = function uid()
 var hasDescriptor = false;
 
 /**
- * @internal System.$get;
+ * 获取属性
+ * @private
  */
-Internal.$get = function $get(target, propertyKey, receiver)
+Internal.$get = function(target, propertyKey, receiver)
 {
     if( !target )return undefined;
     var value = target[propertyKey];
@@ -531,9 +532,10 @@ Internal.$get = function $get(target, propertyKey, receiver)
 }
 
 /**
- * @internal System.$set;
+ * 设置属性
+ * @private
  */
-Internal.$set = function $set(target,propertyKey,value,receiver)
+Internal.$set = function(target,propertyKey,value,receiver)
 {
     if( target===System )Internal.throwError('reference','"'+propertyKey+'" is not writable');
     var desc = target[propertyKey];
@@ -548,7 +550,12 @@ Internal.$set = function $set(target,propertyKey,value,receiver)
         return true;
     }
     try {
-        target[ propertyKey ] = value;
+        if( typeof target.length === "number" && !System.isNaN( propertyKey ) && System.instanceOf(target, System.Array) )
+        {
+           System.Array.prototype.splice.call(target,propertyKey>>0,0,value);
+        }else{
+            target[ propertyKey ] = value;
+        }
     }catch (e){
         return false;
     }

@@ -4,7 +4,7 @@
 * Copyright © 2015 BreezeJS All rights reserved.
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
-* @require System,Object,EventDispatcher,JSON,HttpEvent,Math,Window
+* @require System,Object,EventDispatcher,JSON,HttpEvent,Math,Window,Event
 */
 
 var isSupported=false;
@@ -67,7 +67,7 @@ function dispatchEvent(type, data, status, xhr)
 function done(event)
 {
     var xhr = event.currentTarget;
-    var options = $get(this,"__options__");
+    var options = this.__options__;
     if (xhr.readyState !== 4)return;
     var match, result = null, headers = {};
     dispatchEvent.call(this, HttpEvent.DONE, null, 4, xhr);
@@ -80,7 +80,7 @@ function done(event)
             headers[match[1].toLowerCase()] = match[2];
         }
     }
-    Object.defineProperty(this,'__responseHeaders__',{value:headers});
+    this.__responseHeaders__=headers;
     if (xhr.status >= 200 && xhr.status < 300)
     {
         result = xhr.responseXML;
@@ -106,7 +106,7 @@ function Http( options )
 {
     if( !isSupported )throw new Error('Http the client does not support');
     if ( !(this instanceof Http) )return new Http(options);
-    Object.defineProperty(this,'__options__',{'value':Object.merge(true, setting, options)});
+    this.__options__=Object.merge(true, setting, options);
     EventDispatcher.call(this);
 }
 System.Http=Http;
@@ -157,6 +157,8 @@ Http.METHOD = {
  */
 Http.prototype = Object.create( EventDispatcher.prototype );
 Http.prototype.constructor = Http;
+Http.prototype.__options__={};
+Http.prototype.__xhr__=null;
 
 /**
  * 取消请求
@@ -207,13 +209,14 @@ Http.prototype.send = function send(url, data, method)
         } else
         {
             xhr = new XHR("Microsoft.XMLHTTP");
-            EventDispatcher(xhr).addEventListener(Event.LOAD, done, false, 0, this);
-            data = System.serialize(data, 'url') || null;
+            EventDispatcher(xhr).addEventListener( Event.LOAD, done, false, 0, this);
+            data = data!=null ? System.serialize(data, 'url') : null;
             if (method === Http.METHOD.GET && data)
             {
                 if (data != '')url += /\?/.test(url) ? '&' + data : '?' + data;
                 data = null;
             }
+            
             xhr.open(method, url, async);
 
             //如果请求方法为post
@@ -230,7 +233,7 @@ Http.prototype.send = function send(url, data, method)
                     var name;
                     for (name in options.header)
                     {
-                        xhr.setRequestHeader(name, options.header[name]);
+                        xhr.setRequestHeader(name.replace(/\B([A-Z])\B/g,'-$1'), options.header[name]);
                     }
                 } catch (e){}
             }
@@ -243,7 +246,8 @@ Http.prototype.send = function send(url, data, method)
             xhr.send(data);
         }
 
-    } catch (e) {
+    } catch (e)
+    {
         throw new Error('Http the client does not support');
     }
 
@@ -359,7 +363,7 @@ ScriptRequest.prototype.abort = function ()
  * 脚本请求后的响应回调函数
  * @param data 响应的数据集
  * @param key 向服务器请求时的 key。 此 key 是通知每个请求对象做出反应的唯一编号。
- * @public Http.JSONP_CALLBACK non-writable non-enumerable
+ * @public
  */
 Http.JSONP_CALLBACK = function JSONP_CALLBACK(data, key)
 {
@@ -378,4 +382,8 @@ Http.JSONP_CALLBACK = function JSONP_CALLBACK(data, key)
             target.dispatchEvent(event);
         }
     }
+}
+if( typeof window !=="undefined" )
+{
+   window.JSONP_CALLBACK=Http.JSONP_CALLBACK;
 }
