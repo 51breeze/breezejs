@@ -16,12 +16,14 @@ System.HttpEvent=HttpEvent;
 HttpEvent.prototype=Object.create( Event.prototype );
 HttpEvent.prototype.data=null;
 HttpEvent.prototype.url=null;
-HttpEvent.LOADING = 'httpLoading';
+HttpEvent.prototype.loaded = 0;
+HttpEvent.prototype.total = 0;
+HttpEvent.LOAD_START = 'httpLoadStart';
 HttpEvent.SUCCESS = 'httpSuccess';
+HttpEvent.PROGRESS = 'httpProgress';
 HttpEvent.ERROR   = 'httpError';
 HttpEvent.CANCELED  = 'httpCanceled';
 HttpEvent.TIMEOUT = 'httpTimeout';
-HttpEvent.DONE    = 'httpDone';
 HttpEvent.prototype.toString=function toString(){
     return '[object HttpEvent]';
 }

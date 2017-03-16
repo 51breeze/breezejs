@@ -36,30 +36,6 @@ if( typeof window !=="undefined" )
 }
 
 /**
- * 调度相关事件
- * @param type
- * @param data
- * @param status
- * @param xhr
- */
-function dispatchEvent(type, data, status, xhr)
-{
-    if (this.hasEventListener(type))
-    {
-        var event = new HttpEvent(type);
-        event.data = data || null;
-        event.status = status || 0;
-        event.url = xhr.__url__ || null;
-        this.dispatchEvent(event);
-    }
-    if (xhr && xhr.__timeoutTimer__)
-    {
-        clearTimeout(xhr.__timeoutTimer__);
-        xhr.__timeoutTimer__ = null;
-    }
-};
-
-/**
  * @private
  * 完成请求
  * @param event
@@ -70,8 +46,11 @@ function done(event)
     var options = this.__options__;
     if (xhr.readyState !== 4)return;
     var match, result = null, headers = {};
-    dispatchEvent.call(this, HttpEvent.DONE, null, 4, xhr);
-
+    if (xhr && xhr.__timeoutTimer__)
+    {
+        System.clearTimeout(xhr.__timeoutTimer__);
+        xhr.__timeoutTimer__ = null;
+    }
     //获取响应头信息
     if( typeof xhr.getAllResponseHeaders === "function" )
     {
@@ -93,8 +72,50 @@ function done(event)
             }
         }
     }
-    dispatchEvent.call(this,  HttpEvent.SUCCESS , result, xhr.status, xhr);
+    var d =  xhr.__event__;
+    if( d )
+    {
+        d.removeEventListener(Event.LOAD, done);
+        d.removeEventListener(Event.LOAD_START, loadStart);
+        d.removeEventListener(Event.PROGRESS, progress);
+        d.removeEventListener(Event.ERROR, error);
+    }
+    var e = new HttpEvent( HttpEvent.SUCCESS );
+    e.originalEvent = event;
+    e.data = result;
+    e.status = xhr.status;
+    e.url = xhr.__url__;
+    this.dispatchEvent(e);
+    xhr.__done__=true;
 };
+
+function loadStart(event)
+{
+    var e = new HttpEvent(HttpEvent.LOAD_START);
+    var xhr = event.currentTarget;
+    e.url = xhr.__url__;
+    e.originalEvent = event;
+    this.dispatchEvent(e);
+}
+
+function progress(event)
+{
+    var e = new HttpEvent(HttpEvent.PROGRESS);
+    var xhr = event.currentTarget;
+    e.url = xhr.__url__;
+    e.originalEvent = event;
+    e.loaded = event.loaded;
+    e.total = event.total;
+    this.dispatchEvent(e);
+}
+
+function error() {
+    var e = new HttpEvent(HttpEvent.ERROR);
+    var xhr = event.currentTarget;
+    e.url = xhr.__url__;
+    e.originalEvent = event;
+    this.dispatchEvent(e);
+}
 
 /**
  * HTTP 请求类
@@ -160,89 +181,127 @@ Http.prototype.constructor = Http;
 Http.prototype.__options__={};
 Http.prototype.__xhr__=null;
 
+//ajax 实例对象池
+var pool=[];
+
 /**
  * 取消请求
  * @returns {Boolean}
  */
 Http.prototype.abort = function abort()
 {
-    var xhr = this.__xhr__;
+    var xhr;
+    for(var i in pool )if( pool[i].__target__=== this )xhr = pool[i];
     if (xhr) {
         if( typeof xhr === "function" )xhr.abort();
-        dispatchEvent.call(this, HttpEvent.CANCELED, null, -1);
+        var event = new HttpEvent(HttpEvent.CANCELED);
+        event.data = null;
+        event.status = -1;
+        event.url = xhr.__url__;
+        this.dispatchEvent(event);
+        xhr.__done__=true;
         return true;
     }
     return false;
 };
 
 /**
+ * 获取一个ajax实例对象
+ * @param target
+ * @returns {*}
+ */
+function getInstance( target )
+{
+    var obj=null;
+    var index=0;
+    do{
+        obj = pool[index];
+        if( !obj )
+        {
+            obj=new XHR("Microsoft.XMLHTTP");
+            obj.__done__=true;
+            obj.__event__ = EventDispatcher(obj);
+            pool[index]=obj;
+        }
+        index++;
+    }while( !(obj && obj.__done__) );
+    obj.__target__ = target;
+    var d =  obj.__event__;
+    d.addEventListener(Event.LOAD,done,false,0,target);
+    if( target.hasEventListener(HttpEvent.LOAD_START) )d.addEventListener(Event.LOAD_START, loadStart, false, 0, target);
+    if( target.hasEventListener(HttpEvent.PROGRESS) )d.addEventListener(Event.PROGRESS,progress, false, 0, target);
+    if( target.hasEventListener(HttpEvent.ERROR) )d.addEventListener(Event.ERROR,error, false, 0, target);
+    return obj;
+}
+
+/**
  * 发送请求
  * @param data
  * @returns {boolean}
  */
-Http.prototype.send = function send(url, data, method)
+Http.prototype.load = function load(url, data, method)
 {
     if (typeof url !== "string")Internal.throwError('error','Invalid url');
-    if ( this.__xhr__ )return true;
     var options = this.__options__;
     var async = !!options.async;
     var method = method || options.method;
-    var self = this;
+    var xhr;
     if (typeof method === 'string')
     {
         method = method.toUpperCase();
-        if (!(method in Http.METHOD)) {
-            throw new Error('Invalid method for ' + method);
-        }
+        if (!(method in Http.METHOD))throw new Error('Invalid method for ' + method);
     }
 
-    try {
-        var xhr;
+    try{
         if (options.dataType.toLowerCase() === 'jsonp')
         {
             xhr = new ScriptRequest( async );
             xhr.addEventListener(HttpEvent.SUCCESS, function (event) {
-                dispatchEvent.call(this, event.type, event.data || null, 4, xhr);
+                if (xhr.__timeoutTimer__)
+                {
+                    System.clearTimeout(xhr.__timeoutTimer__);
+                    xhr.__timeoutTimer__ = null;
+                }
+                this.dispatchEvent(event);
             }, false, 0, this);
+            xhr.__url__ = url;
             xhr.send(url, data, method);
 
         } else
         {
-            xhr = new XHR("Microsoft.XMLHTTP");
-            EventDispatcher(xhr).addEventListener( Event.LOAD, done, false, 0, this);
-            data = data!=null ? System.serialize(data, 'url') : null;
-            if (method === Http.METHOD.GET && data)
-            {
+            xhr = getInstance(this);
+            data = data != null ? System.serialize(data, 'url') : null;
+            if (method === Http.METHOD.GET && data) {
                 if (data != '')url += /\?/.test(url) ? '&' + data : '?' + data;
                 data = null;
             }
-            
             xhr.open(method, url, async);
-
-            //如果请求方法为post
-            if (method === Http.METHOD.POST)
-            {
-                options.header.contentType = "application/x-www-form-urlencoded";
-            }
 
             //设置请求头
             if (typeof xhr.setRequestHeader === 'function')
             {
+                //如果请求方法为post
+                if (method === Http.METHOD.POST)
+                {
+                    options.header.contentType = "application/x-www-form-urlencoded";
+                }
                 if (!/charset/i.test(options.header.contentType))options.header.contentType += ';' + options.charset;
                 try {
                     var name;
-                    for (name in options.header)
-                    {
-                        xhr.setRequestHeader(name.replace(/\B([A-Z])\B/g,'-$1'), options.header[name]);
+                    for (name in options.header) {
+                        xhr.setRequestHeader(name, options.header[name]);
                     }
-                } catch (e){}
+                } catch (e) {
+                }
             }
 
             //设置可以接收的内容类型
             if (xhr.overrideMimeType && options.header.Accept)
             {
-                xhr.overrideMimeType(options.header.Accept)
+                xhr.overrideMimeType(options.header.Accept);
             }
+            xhr.__done__=false;
+            xhr.__url__ = url;
             xhr.send(data);
         }
 
@@ -251,16 +310,25 @@ Http.prototype.send = function send(url, data, method)
         throw new Error('Http the client does not support');
     }
 
-    this.__xhr__={value: xhr};
-    xhr.__url__ = url;
-
     //设置请求超时
-    xhr.__timeoutTimer__ = setTimeout((function (xhr) {
+    xhr.__timeoutTimer__ = System.setTimeout((function (xhr,url,self) {
         return function () {
             xhr.abort();
-            dispatchEvent.call(self, HttpEvent.TIMEOUT, null, 0, xhr);
+            if(self.hasEventListener(HttpEvent.TIMEOUT))
+            {
+                var event = new HttpEvent(HttpEvent.TIMEOUT);
+                event.data =null;
+                event.status = 408;
+                event.url = url
+                self.dispatchEvent(event);
+            }
+            if (xhr.__timeoutTimer__)
+            {
+                System.clearTimeout(xhr.__timeoutTimer__);
+                xhr.__timeoutTimer__ = null;
+            }
         }
-    })(xhr), options.timeout * 1000);
+    })(xhr,url,this), options.timeout * 1000);
     return true;
 };
 
@@ -314,6 +382,10 @@ function ScriptRequest( async )
 
 ScriptRequest.prototype = new EventDispatcher();
 ScriptRequest.prototype.constructor = ScriptRequest;
+ScriptRequest.prototype.__key__ = null;
+ScriptRequest.prototype.__target__ = null;
+ScriptRequest.prototype.__async__ = null;
+ScriptRequest.prototype.__sended__ = false;
 
 /**
  * 开始请求数据
@@ -321,23 +393,16 @@ ScriptRequest.prototype.constructor = ScriptRequest;
  * @param data
  * @param async
  */
-ScriptRequest.prototype.send = function send(url, data, method)
+ScriptRequest.prototype.send = function send(url, data)
 {
-    if (this.__sended__)
-        return false;
-
+    if (this.__sended__)return false;
     this.__sended__ = true;
-    if (typeof url !== 'string')
-    {
-        throw new Error('Invalid url.');
-    }
-
+    if (typeof url !== 'string')throw new Error('Invalid url.');
     var param = [];
-    !data || param.push( System.serialize(data, 'url') );
+    if(data!=null)param.push( System.serialize(data, 'url') );
     param.push('k=' + this.__key__ );
     param = param.join('&');
     url += !/\?/.test(url) ? '?' + param : '&' + param;
-
     var target = this.__target__;
     if( this.__async__ )target.setAttribute('async', 'async');
     target.setAttribute('src', url);

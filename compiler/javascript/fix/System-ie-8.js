@@ -13,13 +13,6 @@ if (System.env.platform(System.env.BROWSER_IE) && System.env.version(8, '<='))
         }
         return val;
     };
-    (function(f){
-        System.setTimeout =f(System.setTimeout);
-        System.setInterval =f(System.setInterval);
-    })(function(f){return function(c,t){
-        var a=[].slice.call(arguments,2);
-        return f(function(){c.apply(this,a)},t)}
-    });
 }
 
 /**

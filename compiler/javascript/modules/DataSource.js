@@ -6,45 +6,38 @@
 * https://github.com/51breeze/breezejs
 * @require System,Object,Array,DataArray,EventDispatcher,Http,HttpEvent,DataSourceEvent,Math,DataGrep;
 */
-function DataSource( options )
+function DataSource()
 {
-    if( !System.instanceOf(this,DataSource) )return new DataSource(options);
+    if( !System.instanceOf(this,DataSource) )return new DataSource();
     DataArray.call(this);
     this.__options__={
         'method': Http.METHOD.GET,
         'dataType':Http.TYPE.JSON,
         'param':{},
         'primary':'id',
-        'synch':{
-            'enable':false,
-            'asynch':false,
-            'param':{},
-            'method': Http.METHOD.POST,
-            'actionProfile':'action',
-            'url':null
-        },
         'url':null,
         //服务器响应后的json对象
         'responseProfile':{
             'data':'data',     //数据集
             'total':'total',   //数据总数
-            'code': 'code',     //状态码
-            'error': 'error'    //错误消息
+            'code': 'code',    //状态码
+            'error': 'error',  //错误消息
+            "successCode" : 0  //成功时的状态码
         },
         //向服务器请求时需要添加的参数
         'requestProfile':{
             'offset':'offset', //数据偏移量
-            'rows'  :'rows'  //每次获取取多少行数据
+            'rows'  :'rows'    //每次获取取多少行数据
         },
-        "successCode" : 0 //成功时的状态值
     };
-    this.options( options );
     this.__cached__={'queues':[],'lastSegments':null,'loadSegmented':new DataArray() };
 }
 System.DataSource=DataSource;
 DataSource.prototype = Object.create( DataArray.prototype );
+
 //合并EventDispatcher原型的方法和属性
 Object.merge(DataSource.prototype, EventDispatcher.prototype);
+
 //@private
 DataSource.prototype.__isRemote__=false;
 DataSource.prototype.__cached__={};
@@ -65,18 +58,15 @@ DataSource.prototype.isRemote=function isRemote()
 DataSource.prototype.__options__={};
 
 /**
- * 设置数据选项
+ * 获取或者设置数据选项
  * @param object options
  * @returns {*}
  */
 DataSource.prototype.options=function options( options )
 {
-    if( typeof options !== "undefined" )
+    if( System.isObject(options) )
     {
-        if( System.isObject(options) )
-        {
-            this.__options__ = Object.merge(true,this.__options__, options);
-        }
+        this.__options__ = Object.merge(true,this.__options__, options);
         return this;
     }
     return this.__options__;
@@ -110,7 +100,7 @@ DataSource.prototype.source=function( source )
     }
 
     //本地数据源数组
-    if( System.instanceOf(source, Array ) )
+    if( System.instanceOf(source, Array) )
     {
         this.splice(0, this.length);
         meregItems(this,source);
@@ -123,63 +113,83 @@ DataSource.prototype.source=function( source )
         if( typeof source === 'string' )
         {
             options.url = source;
-            source = new Http(options);
+            source = new Http( options );
         }
+        
         if ( source instanceof Http )
         {
             this.__source__=source;
             this.__isRemote__=true;
             var cached = this.__cached__;
-
             //请求远程数据源侦听器
             source.addEventListener( HttpEvent.SUCCESS, function (event)
             {
                 var totalProfile = options.responseProfile.total;
                 var dataProfile = options.responseProfile.data;
                 var stateProfile = options.responseProfile.code;
-                if( event.data[ stateProfile ] != options.successCode)
+                if( event.data[ stateProfile ] != options.responseProfile.successCode )
                 {
-                    Internal.throwError('error','Loading data failed');
+                    Internal.throwError('error','Loading data failed '+event.data[ options.responseProfile.error ]);
                 }
 
                 var data = event.data;
-                if( ( dataProfile && typeof data[ dataProfile ] === 'undefined' ) || ( totalProfile && data[totalProfile] === 'undefined') )
+                var total= 0;
+                if( !System.isArray( data ) )
                 {
-                    Internal.throwError('error','Response data fields is not correct.');
+                    if(  ( dataProfile && typeof data[ dataProfile ] === 'undefined' ) || ( totalProfile && data[totalProfile] === 'undefined') )
+                    {
+                        Internal.throwError('error','Response data profile fields is not correct.');
+                    }
+                    data = data[dataProfile];
+                    total = totalProfile ? data[totalProfile] >> 0 : data.length >>0;
+
+                }else
+                {
+                    total = data.length >>0;
                 }
 
-                data = dataProfile ? data[dataProfile] : data;
+                //必须是返回一个数组
+                if( !System.isArray(data) ) Internal.throwError('error','Response data set must be an array');
 
-                if( data )
+                //高度单次已加载完成事件
+                if( this.hasEventListener(DataSourceEvent.LOAD_COMPLETE) )
                 {
-                    var total = totalProfile ? data[totalProfile] >> 0 : data.length >>0;
-                    if ( total > 0 )this.predicts( total );
+                    var e = new DataSourceEvent( DataSourceEvent.LOAD_COMPLETE );
+                    e.originalEvent=event;
+                    e.data=data;
+                    this.dispatchEvent( e );
+                }
+
+                //当前获取到数据的长度
+                var len = data.length >> 0;
+
+                //先标记为没有数据可加载了
+                this.__endData__=true;
+
+                //如果当前有数据返回
+                if( len > 0 )
+                {
+                    //总数据量
+                    this.predicts( total );
+
+                    //合并数据项
+                    meregItems(this,data);
+
                     var lastSegments = cached.lastSegments;
                     cached.loadSegmented.push( lastSegments );
                     cached.loadSegmented=cached.loadSegmented.sort(function(a,b){return a-b});
-                    var offset = cached.loadSegmented.indexOf( lastSegments ) * this.preloadRows();
-                    meregItems(this,data);
-                    doOrderBy.call(this);
-                    //没有可加载的数据，直接删除事件侦听
-                    if ( !(data instanceof Array) || this.length >= this.predicts() )
+
+                    //还有数据需要加载
+                    if( len == this.rows() || (this.length < total && total > len) )
                     {
-                        this.__loadcomplete__=true;
-                        this.removeEventListener(DataSourceEvent.LOAD_START);
-                    }
-                    //更新视图的数据
-                    if( this.__fetched__ && this.__fetchCalled__ )
-                    {
-                        this.select();
+                        this.__endData__=false;
+
+                        //继续载数据
+                        preloadData.call(this);
                     }
                 }
 
-                //调度完成事件
-                dispatch.call(this,DataSourceEvent.LOAD_COMPLETE,data, offset, event);
-
-                //预加载数据
-                preloadData.call(this);
-
-            }, false,0,this);
+            }, false,0);
         }
     }
     return this;
@@ -230,7 +240,7 @@ DataSource.prototype.rows=function( rows )
 DataSource.prototype.__preloadRows__= 100;
 
 /**
- * 每页显示数据行数
+ * 预加载数据行数
  * @param number rows
  * @returns {DataSource}
  */
@@ -399,8 +409,6 @@ DataSource.prototype.offsetAt=function(index)
     return NaN;
 };
 
-DataSource.prototype.__increment__=0;
-
 /**
  * 添加数据项到指定的索引位置
  * @param item
@@ -409,118 +417,109 @@ DataSource.prototype.__increment__=0;
  */
 DataSource.prototype.append=function(item,index)
 {
-    if( item )
+    var e = new DataSourceEvent( DataSourceEvent.APPEND );
+    index = typeof index === 'number' ? index : this.length;
+    index = index < 0 ? index + this.length+1 : index;
+    index = System.Math.min( this.length, System.Math.max( index, 0 ) );
+    e.index = index;
+    e.newValue = item;
+    if( this.dispatchEvent( e ) )
     {
-        var primary = this.options().primary;
-        var increment= this.__increment__;
-        if( primary  )
+        var callback = e.callback || function(){return true;}
+        if( callback(item, index) )
         {
-            if( (!this.isRemote() || !this.__loadcomplete__) || increment==0 )
-            {
-                this.forEach(function(item){
-                    if( typeof item[primary] === "undefined" )
-                        throw new Error('primary field not exists.');
-                    increment=Math.max(item[primary],increment);
-                });
-            }
-
-            if( item instanceof Array )
-            {
-                for(var i=0; i<item.length; i++)
-                {
-                    increment++;
-                    item[i][primary] = increment;
-                }
-                this.__increment__=increment;
-            }else
-            {
-                increment++;
-                item[primary] = increment;
-                this.__increment__=increment;
-            }
+            this.splice(index,0,item);
+            e = new DataSourceEvent( DataSourceEvent.CHANGED );
+            e.index = index;
+            e.newValue=item;
+            this.dispatchEvent( e );
         }
-
-        var oldlen= this.length;
-        index = typeof index === 'number' ? index : this.length;
-        index = index < 0 ? index + this.length+1 : index;
-        index = Math.min( this.length, Math.max( index, 0 ) );
-        this.splice(index,0,item);
-        if( this.isRemote() && this.__predicts__>0 )
-        {
-            this.__predicts__ +=(this.length - oldlen);
-        }
-        doupdate.call(this,true,DataSourceEvent.APPEND,item,index);
+        return true;
     }
-    return this;
+    return false;
 };
 
 /**
  * 移除指定索引下的数据项
- * @param index
+ * @param filter
  * @returns {boolean}
  */
 DataSource.prototype.remove=function( filter )
 {
     var index;
     var result = this.grep().execute( filter );
-    var synch = this.synchronize();
-    var primary = synch.primary;
-    var d = [];
-    for(var i=0; i<result.length ; i++)
+    var e = new DataSourceEvent( DataSourceEvent.REMOVE );
+    e.filter = filter;
+    e.data=result;
+    if( this.dispatchEvent( e ) )
     {
-        index = this.indexOf( result[i] );
-        if( index >=0 && index < this.length )
+        var callback = e.callback || function(){return true;}
+        for (var i = 0; i < result.length; i++)
         {
-            if( typeof result[i][primary] === "undefined" )
+            index = this.indexOf(result[i]);
+            if (index >= 0)
             {
-                throw new Error('data primary not exists. '+primary)
+                if( callback(result[i], index, i ) )
+                {
+                    this.splice(index, 1);
+                    e = new DataSourceEvent( DataSourceEvent.CHANGED );
+                    e.filter = filter;
+                    e.index = index;
+                    e.oldValue=result[i];
+                    this.dispatchEvent( e );
+                }
             }
-            d.push( result[i][primary] );
-            this.splice(index,1);
-
-        }else
-        {
-            throw new Error('index invalid');
         }
+        return true;
     }
-    result={};
-    result[primary] = d.join(',');
-    doupdate.call(this,d.length > 0,DataSourceEvent.REMOVE,result);
-    return this;
+    return false;
 };
 
 /**
  * 修改数据
- * @param index
+ * @param values 数据列对象 {'column':'newValue'}
+ * @param filter  过滤器字符串 id = 2
  * @returns {boolean}
  */
-DataSource.prototype.update=function update(data, filter )
+DataSource.prototype.update=function update( value, filter)
 {
     var result = this.grep().execute(filter);
-    var flag=false;
-    var updateData=[];
-    for(var i=0; i<result.length ; i++)
+    var e = new DataSourceEvent( DataSourceEvent.UPDATE );
+    var oldValue;
+    e.filter = filter;
+    e.data=result;
+    e.newValue=value;
+    if( this.dispatchEvent( e ) )
     {
-        var d={};
-        updateData.push( d );
-        for( var c in data )
+        var callback = e.callback || function(item, newValue)
         {
-            if( typeof result[i][c] !== "undefined" )
+            var flag = false;
+            for(var c in newValue)
             {
-                if( result[i][c] != data[c] )
+                if ( typeof item[c] !== "undefined" && item[c] != newValue[c] )
                 {
-                    result[i][c] = data[c];
-                    d[c] = data[c];
                     flag=true;
+                    item[c] = newValue[c];
                 }
-            }else
+            }
+            return flag;
+        }
+        for (var i = 0; i < result.length; i++)
+        {
+            oldValue = Object.merge({}, result[i] );
+            if( callback( result[i], value, i ) )
             {
-                throw new Error('unknown column this '+c );
+                e = new DataSourceEvent( DataSourceEvent.CHANGED );
+                e.filter = filter;
+                e.data   = result[i];
+                e.newValue=value;
+                e.oldValue=oldValue;
+                this.dispatchEvent( e );
             }
         }
+        return true;
     }
-    doupdate.call(this,flag, DataSourceEvent.UPDATE,  updateData.length >1 ? {'data':updateData} : updateData[0] );
-    return flag;
+    return false;
 };
 
 DataSource.prototype.__fetched__=false;
@@ -542,7 +541,7 @@ DataSource.prototype.select=function( filter )
     var offset  = index * preloadRows + (start % preloadRows);
     this.__fetched__ = true;
     this.__fetchCalled__=true;
-    var waiting = !this.isRemote() || offset < 0 || (this.length<1 && !this.__loadcomplete__) || (this.length < offset+rows && this.totalPages()>page);
+    var waiting = !this.isRemote() || offset < 0 || (this.length<1 && !this.__endData__) || (this.length < offset+rows && this.totalPages()>page);
     if( this.__lastWaiting__!= waiting && this.isRemote() && this.hasEventListener(DataSourceEvent.WAITING) )
     {
         this.__lastWaiting__= waiting;
@@ -550,6 +549,8 @@ DataSource.prototype.select=function( filter )
         event.waiting=waiting;
         this.dispatchEvent(event);
     }
+
+
 
     //发送数据
     if( !waiting && this.hasEventListener(DataSourceEvent.SELECT) )
@@ -563,6 +564,7 @@ DataSource.prototype.select=function( filter )
         this.dispatchEvent( event);
     }
     preloadData.call(this);
+
     return this;
 };
 
@@ -577,23 +579,10 @@ function dispatch(type,data,index,event)
         var e = new DataSourceEvent(type);
         e.originalEvent=event || null;
         e.data=data || null;
-        e.index = index || NaN;
+        e.index = index >> 0;
         return this.dispatchEvent( e );
     }
     return true;
-};
-
-/**
- * 修改、插入、删除后是否需要刷新当前渲染的数据
- */
-function doupdate(flag, type, result, index)
-{
-    if( flag && dispatch.call(this, type, result, index) )
-    {
-        var synch = this.options().synch;
-        if( synch && synch.enable )dosynch.call(this, result, type,index,synch);
-        !this.__fetchCalled__ || this.select();
-    }
 };
 
 /**
@@ -708,13 +697,13 @@ function preloadData()
 {
     var cached = this.__cached__;
     var segments= this.segments();
-    if( this.isRemote() && this.length <= this.predicts() )
+    if( this.isRemote() && !this.__endData__ )
     {
         var queue = cached.queues;
         var num = this.preloadPages();
         var c = this.currentPage();
         var p = 0;
-        var indexOf = queue.indexOf || DataArray.prototype.indexOf;
+        var indexOf = Array.prototype.indexOf;
         var t = Math.floor( this.predicts() / this.preloadRows() );
         cached.loadSegmented.indexOf(segments)>=0 || queue.push( segments );
 

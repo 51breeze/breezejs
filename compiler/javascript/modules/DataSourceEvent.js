@@ -15,8 +15,12 @@ function DataSourceEvent(type, bubbles,cancelable)
 System.DataSourceEvent=DataSourceEvent;
 DataSourceEvent.prototype= Object.create(Event.prototype);
 DataSourceEvent.prototype.constructor=DataSourceEvent;
+DataSourceEvent.prototype.callback=null;
 DataSourceEvent.prototype.index=NaN;
 DataSourceEvent.prototype.data=null;
+DataSourceEvent.prototype.oldValue=null;
+DataSourceEvent.prototype.newValue=null;
+DataSourceEvent.prototype.filter='';
 DataSourceEvent.prototype.waiting=false;
 DataSourceEvent.APPEND='dataSourceAppend';
 DataSourceEvent.REMOVE='dataSourceRemove';

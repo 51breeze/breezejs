@@ -14,11 +14,15 @@ System.encodeURIComponent = encodeURIComponent;
 System.isNaN = isNaN;
 System.parseFloat = parseFloat;
 System.parseInt = parseInt;
-
-System.setTimeout = setTimeout || function(){};
-System.clearTimeout = clearTimeout || function(){};
-System.setInterval = setInterval || function(){};
-System.clearInterval = clearInterval || function(){};
+(function(f){
+    System.setTimeout =f(setTimeout);
+    System.setInterval =f(setInterval);
+    System.clearTimeout = f(clearTimeout);
+    System.clearInterval = f(clearInterval);
+})(function(f){return function(c,t){
+    var a=[].slice.call(arguments,2);
+    return f(function(){c.apply(this,a)},t)}
+});
 
 /**
  * 环境参数配置
