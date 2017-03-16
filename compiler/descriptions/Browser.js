@@ -175,7 +175,8 @@ var descriptor = {
             "ERROR":{'id':'const','type':'String'},
             "CANCELED":{'id':'const','type':'String'},
             "TIMEOUT":{'id':'const','type':'String'},
-            "DONE":{'id':'const','type':'String'},
+            "LOAD_START":{'id':'const','type':'String'},
+            "PROGRESS":{'id':'const','type':'String'},
         },
         'proto':{
             "data":{'id':'const','type':'Object'},

@@ -40,32 +40,19 @@ public class Main
 
 
                 var dataSource = new DataSource();
-               // dataSource.source( 'http://breezejs.com/json.php' );
+               dataSource.source( 'http://breezejs.com/json.php' );
 
                 //log( dataSource.length , dataSource.select() );
-              //  var d = dataSource.select('id>2');
+               var d = dataSource.select('id>2');
 
                //var d=dataSource.grep().execute('id=2');
 
-                var t = new Http();
-
-                t.addEventListener(HttpEvent.SUCCESS,function (e) {
-                     log( e.url );
-                });
-
-                t.addEventListener(HttpEvent.LOAD_START,function (e) {
-                    log( e.type , e.url );
-                });
-
-                t.load('http://breezejs.com/json.php','ii=66');
-                t.load('http://breezejs.com/json.php?1','');
-                t.load('http://breezejs.com/json.php?2','');
 
 
-               /* for(var i in d )
+             for(var i in d )
              {
-             log( i,'==>>', d[i].id , '===>>', d[i].name );
-             }*/
+                  log( i,'==>>', d[i].id , '===>>', d[i].name );
+             }
 
 
             });

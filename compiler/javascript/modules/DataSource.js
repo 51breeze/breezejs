@@ -550,8 +550,6 @@ DataSource.prototype.select=function( filter )
         this.dispatchEvent(event);
     }
 
-
-
     //发送数据
     if( !waiting && this.hasEventListener(DataSourceEvent.SELECT) )
     {
@@ -564,7 +562,6 @@ DataSource.prototype.select=function( filter )
         this.dispatchEvent( event);
     }
     preloadData.call(this);
-
     return this;
 };
 
