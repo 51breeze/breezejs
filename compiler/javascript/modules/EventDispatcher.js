@@ -68,6 +68,7 @@ EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,pri
     var listener=new Listener(type,callback,useCapture,priority,reference,this);
     var target = this.__proxyTarget__ || this;
     var len = target.length >> 0;
+
     if( len > 0 ){
         while(len>0 && target[--len]){
             addEventListener(target[len], listener);
@@ -141,9 +142,8 @@ function addEventListener(target, listener )
     events = events[ type ] || ( events[ type ]=[] );
 
     //如果不是 EventDispatcher 则在第一个事件中添加事件代理。
-    if( events.length===0 && !System.instanceOf(target, EventDispatcher) )
+    if( events.length===0 && !(target instanceof Object) )
     {
-
         if( Object.prototype.hasOwnProperty.call(Event.fix.hooks,type) )
         {
             Event.fix.hooks[ type ].call(target, listener, dispatchEvent);
@@ -220,14 +220,15 @@ function removeEventListener(target, type, listener , dispatcher )
  */
 function dispatchEvent( e, currentTarget )
 {
-    if( !(e instanceof Event) ){
+    if( !(e instanceof Event) )
+    {
         e = Event.create( e );
         if(currentTarget)e.currentTarget = currentTarget;
     }
     if( !e || !e.currentTarget )throw new Error('invalid event target')
     var target = e.currentTarget;
     var events = target.__events__;
-    if( !Object.prototype.hasOwnProperty.call(events, e.type) )return true;
+    if( !events || !Object.prototype.hasOwnProperty.call(events, e.type) )return true;
     events = events[e.type];
     var length= 0,listener,thisArg;
     while( length < events.length )

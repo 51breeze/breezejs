@@ -15,22 +15,19 @@ function DataSourceEvent(type, bubbles,cancelable)
 System.DataSourceEvent=DataSourceEvent;
 DataSourceEvent.prototype= Object.create(Event.prototype);
 DataSourceEvent.prototype.constructor=DataSourceEvent;
-DataSourceEvent.prototype.callback=null;
+DataSourceEvent.prototype.invoke=null;
 DataSourceEvent.prototype.index=NaN;
 DataSourceEvent.prototype.data=null;
 DataSourceEvent.prototype.oldValue=null;
 DataSourceEvent.prototype.newValue=null;
-DataSourceEvent.prototype.filter='';
+DataSourceEvent.prototype.segments = NaN;
+DataSourceEvent.prototype.offset = NaN;
 DataSourceEvent.prototype.waiting=false;
+
 DataSourceEvent.APPEND='dataSourceAppend';
 DataSourceEvent.REMOVE='dataSourceRemove';
 DataSourceEvent.UPDATE='dataSourceUpdate';
 DataSourceEvent.SELECT = 'dataSourceSelect';
-DataSourceEvent.LOAD_START='dataSourceLoadStart';
-DataSourceEvent.LOAD_COMPLETE='dataSourceLoadComplete';
-DataSourceEvent.WAITING='dataSourceWaiting';
-DataSourceEvent.SYNCH_SUCCESS='dataSourceSynchSuccess';
-DataSourceEvent.SYNCH_FAILED='dataSourceSynchfailed';
 DataSourceEvent.CHANGED='dataSourceChanged';
 
 //属性事件
@@ -42,11 +39,6 @@ Event.registerEvent(function ( type , target, originalEvent )
         case DataSourceEvent.REMOVE :
         case DataSourceEvent.UPDATE :
         case DataSourceEvent.SELECT :
-        case DataSourceEvent.LOAD_START :
-        case DataSourceEvent.LOAD_COMPLETE :
-        case DataSourceEvent.WAITING :
-        case DataSourceEvent.SYNCH_SUCCESS :
-        case DataSourceEvent.SYNCH_FAILED :
         case DataSourceEvent.CHANGED :
             return new DataSourceEvent( type );
     }

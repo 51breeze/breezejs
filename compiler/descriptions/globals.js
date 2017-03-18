@@ -430,6 +430,7 @@ var descriptor = {
             'parseInt':{type:'Number',id:'function',param:['*']},
             'unescape':{type:'String',id:'function',param:['String']},
             'uneval':{type:'String',id:'function',param:['*']},
+            'setTimeout':{type:'Number',id:'function',param:['Function','Number']},
         }
     },
 };

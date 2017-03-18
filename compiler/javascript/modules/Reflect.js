@@ -208,6 +208,9 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
                 {
                     return $get(target, propertyKey, receiver );
                 }
+
+                //内置对象以__开头的为私有属性外部不可访问
+                if( propertyKey[0]==='_' && propertyKey[1]==='_')return undefined;
                 return $get((objClass||Object).prototype,propertyKey,receiver);
             }
 
@@ -215,10 +218,9 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
         return undefined;
     }
     //非对象的引用
-    if( target == null )
-    {
-        Internal.throwError('reference', 'non-object');
-    }
+    if( target == null )Internal.throwError('reference', 'non-object');
+    //内置对象以__开头的为私有属性外部不可访问
+    if( propertyKey[0]==='_' && propertyKey[1]==='_')return undefined;
     return $get(target, propertyKey, receiver );
 }
 
@@ -302,6 +304,11 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
     if( target == null || typeof target !== "object" )
     {
         Internal.throwError('reference', 'non-object');
+    }
+
+    if( propertyKey[0]==='_' && propertyKey[1]==='_')
+    {
+        Internal.throwError('reference', '"' + propertyKey + '" inaccessible.');
     }
 
     //原型链上的属性不可设置

@@ -8,7 +8,7 @@
  */
 var tables={};
 var hash={};
-var prefix ='@@_S_y_mb_oL';
+var prefix ='@@symbol';
 var prefixLen =  prefix.length;
 Internal.SYMBOL_KEY_NAME = prefix+'(SYMBOL_KEY_NAME)';
 Internal.SYMBOL_KEY_VALUE= prefix+'(SYMBOL_KEY_VALUE)';
@@ -16,7 +16,7 @@ Internal.SYMBOL_KEY_VALUE= prefix+'(SYMBOL_KEY_VALUE)';
 Internal.isSymbolPropertyName = function isSymbolPropertyName( propName )
 {
     if( propName==null )return false;
-    return propName[0]==='@' && propName[0].substr && propName[0].substr(0,prefixLen) === prefix+'(';
+    return propName[0]==='@' && propName[0].substr && propName[0].substr(0,prefixLen+1) === prefix+'(';
 }
 
 var factor = (function () {
@@ -45,7 +45,7 @@ factor.prototype = Symbol.prototype;
  */
 Symbol.prototype.toString=function toString()
 {
-    return 'symbol('+this[Internal.SYMBOL_KEY_NAME]+')';
+    return this[Internal.SYMBOL_KEY_VALUE];
 }
 
 /**

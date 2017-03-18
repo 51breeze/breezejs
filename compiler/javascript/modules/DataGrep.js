@@ -60,13 +60,13 @@ function createFilter()
                 var flag = item.operational === 'notlike' ? '!' : '';
                 if( item.type === 'right' )
                 {
-                    command.push(flag+"new System.RegExp('^'+"+value+" ).test("+refvalue+")");
+                    command.push(flag+"new RegExp('^'+"+value+" ).test("+refvalue+")");
                 }else if( item.type === 'left' )
                 {
-                    command.push(flag+"new System.RegExp("+value+"+'$' ).test("+refvalue+")");
+                    command.push(flag+"new RegExp("+value+"+'$' ).test("+refvalue+")");
                 }else
                 {
-                    command.push(flag+"new System.RegExp( "+value+" ).test("+refvalue+")");
+                    command.push(flag+"new RegExp( "+value+" ).test("+refvalue+")");
                 }
 
             }else if( item.operational=='range' || item.operational=='notrange')
@@ -119,8 +119,6 @@ DataGrep.prototype.constructor=DataGrep;
  * @type {number}
  */
 DataGrep.prototype.length=0;
-
-
 DataGrep.prototype.__filter__=null;
 
 /**

@@ -9,12 +9,11 @@
 function DataSource()
 {
     if( !System.instanceOf(this,DataSource) )return new DataSource();
-    DataArray.call(this);
+    EventDispatcher.call(this);
     this.__options__={
         'method': Http.METHOD.GET,
         'dataType':Http.TYPE.JSON,
         'param':{},
-        'primary':'id',
         'url':null,
         //服务器响应后的json对象
         'responseProfile':{
@@ -30,17 +29,16 @@ function DataSource()
             'rows'  :'rows'    //每次获取取多少行数据
         },
     };
-    this.__cached__={'queues':[],'lastSegments':null,'loadSegmented':new DataArray() };
+    this.__items__=new Array();
+    this.__cached__={'queues':new Array(),'lastSegments':null,"loadSegments":new Array() };
 }
 System.DataSource=DataSource;
-DataSource.prototype = Object.create( DataArray.prototype );
-
-//合并EventDispatcher原型的方法和属性
-Object.merge(DataSource.prototype, EventDispatcher.prototype);
+DataSource.prototype = Object.create( EventDispatcher.prototype );
 
 //@private
 DataSource.prototype.__isRemote__=false;
 DataSource.prototype.__cached__={};
+DataSource.prototype.__items__=[];
 
 /**
  * 是否为一个远程数据源
@@ -62,14 +60,10 @@ DataSource.prototype.__options__={};
  * @param object options
  * @returns {*}
  */
-DataSource.prototype.options=function options( options )
+DataSource.prototype.options=function options( opt )
 {
-    if( System.isObject(options) )
-    {
-        this.__options__ = Object.merge(true,this.__options__, options);
-        return this;
-    }
-    return this.__options__;
+    if( System.isObject(opt) )this.__options__ = Object.merge(true,this.__options__, opt);
+    return this;
 };
 
 /**
@@ -81,137 +75,48 @@ DataSource.prototype.__source__=null;
  * 设置获取数据源
  * 允许是一个数据数组或者是一个远程请求源
  * @param Array source | String url | Http httpObject
- * @returns {DataSource|Http}
+ * @returns {DataSource}
  */
-DataSource.prototype.source=function( source )
+DataSource.prototype.source=function source( resource )
 {
-    if(  typeof source === "undefined"  )return this.__source__;
-    if( this.__source__ === source )return this;
+    if( this.__source__ === resource || typeof resource === "undefined" )return this;
 
     //清空数据源
-    if( source === null )
+    if( resource === null )
     {
-        this.splice(0, this.length);
-        //移除数据加载侦听事件
-        this.removeEventListener( DataSourceEvent.LOAD_START );
+        this.__items__.splice(0, this.__items__.length);
+        this.__cached__.lastSegments=null;
+        this.__cached__.loadSegments=new Array();
+        this.__nowNotification__=false;
         //移除加载远程数据侦听事件
-        if (this.__source__ instanceof Http)this.__source__.removeEventListener(HttpEvent.SUCCESS);
+        if (this.__source__ instanceof Http)this.__source__.removeEventListener(HttpEvent.SUCCESS,success);
         return this;
     }
 
     //本地数据源数组
-    if( System.instanceOf(source, Array) )
+    if( System.instanceOf(resource, Array) )
     {
-        this.splice(0, this.length);
-        meregItems(this,source);
-        this.__source__=source;
+        Array.prototype.splice.apply(this.__items__,[0, this.count()].concat( resource.slice(0) ) );
+        this.__source__=resource;
     }
     //远程数据源
     else
     {
-        var options = this.options();
-        if( typeof source === 'string' )
+        var options = this.__options__;
+        if( typeof resource === 'string' )
         {
-            options.url = source;
-            source = new Http( options );
+            options.url = resource;
+            resource = new Http( options );
         }
-        
-        if ( source instanceof Http )
+        if ( resource instanceof Http )
         {
-            this.__source__=source;
+            this.__source__=resource;
             this.__isRemote__=true;
-            var cached = this.__cached__;
             //请求远程数据源侦听器
-            source.addEventListener( HttpEvent.SUCCESS, function (event)
-            {
-                var totalProfile = options.responseProfile.total;
-                var dataProfile = options.responseProfile.data;
-                var stateProfile = options.responseProfile.code;
-                if( event.data[ stateProfile ] != options.responseProfile.successCode )
-                {
-                    Internal.throwError('error','Loading data failed '+event.data[ options.responseProfile.error ]);
-                }
-
-                var data = event.data;
-                var total= 0;
-                if( !System.isArray( data ) )
-                {
-                    if(  ( dataProfile && typeof data[ dataProfile ] === 'undefined' ) || ( totalProfile && data[totalProfile] === 'undefined') )
-                    {
-                        Internal.throwError('error','Response data profile fields is not correct.');
-                    }
-                    data = data[dataProfile];
-                    total = totalProfile ? data[totalProfile] >> 0 : data.length >>0;
-
-                }else
-                {
-                    total = data.length >>0;
-                }
-
-                //必须是返回一个数组
-                if( !System.isArray(data) ) Internal.throwError('error','Response data set must be an array');
-
-                //高度单次已加载完成事件
-                if( this.hasEventListener(DataSourceEvent.LOAD_COMPLETE) )
-                {
-                    var e = new DataSourceEvent( DataSourceEvent.LOAD_COMPLETE );
-                    e.originalEvent=event;
-                    e.data=data;
-                    this.dispatchEvent( e );
-                }
-
-                //当前获取到数据的长度
-                var len = data.length >> 0;
-
-                //先标记为没有数据可加载了
-                this.__endData__=true;
-
-                //如果当前有数据返回
-                if( len > 0 )
-                {
-                    //总数据量
-                    this.predicts( total );
-
-                    //合并数据项
-                    meregItems(this,data);
-
-                    var lastSegments = cached.lastSegments;
-                    cached.loadSegmented.push( lastSegments );
-                    cached.loadSegmented=cached.loadSegmented.sort(function(a,b){return a-b});
-
-                    //还有数据需要加载
-                    if( len == this.rows() || (this.length < total && total > len) )
-                    {
-                        this.__endData__=false;
-
-                        //继续载数据
-                        preloadData.call(this);
-                    }
-                }
-
-            }, false,0);
+            resource.addEventListener( HttpEvent.SUCCESS, success , false,0, this);
         }
     }
     return this;
-};
-
-/**
- * @private
- */
-DataSource.prototype.__preloadPages__=1;
-
-/**
- * 预加载分页数
- * @param num
- * @returns {*}
- */
-DataSource.prototype.preloadPages=function(num)
-{
-    if( num >= 0 ) {
-        this.__preloadPages__ = num;
-        return this;
-    }
-    return this.__preloadPages__;
 };
 
 /**
@@ -228,49 +133,70 @@ DataSource.prototype.rows=function( rows )
 {
     if( rows >= 0 ) {
         this.__rows__ = rows;
-        this.__preloadRows__ = Math.max(this.__preloadRows__,rows);
         return this;
     }
     return this.__rows__;
 };
 
+
 /**
  * @private
  */
-DataSource.prototype.__preloadRows__= 100;
+DataSource.prototype.__segments__ = 1;
 
 /**
- * 预加载数据行数
- * @param number rows
- * @returns {DataSource}
+ * 获取设置当前分页数
+ * @param num
+ * @returns {*}
  */
-DataSource.prototype.preloadRows=function( preloadRows )
+DataSource.prototype.segments=function segments()
 {
-    if( preloadRows > 0 )
-    {
-        this.__preloadRows__ = Math.max(preloadRows, this.__rows__ );
-        return this;
-    }
-    return this.__preloadRows__;
+    return this.__segments__;
+};
+
+/**
+ * 总分页数
+ * @return number
+ */
+DataSource.prototype.totalSegment=function totalSegment()
+{
+    return this.count() >0 ? Math.max( Math.ceil( this.count() / this.rows() ) , 1) : NaN ;
 };
 
 /**
  * @private
  */
-DataSource.prototype.__predicts__= 0;
+DataSource.prototype.__bufferSegment__= 3;
 
 /**
- * 预计总数
+ * 最大缓冲几个分页数据。有效值为1-10
+ * @param Number num
+ * @returns {DataSource}
+ */
+DataSource.prototype.bufferSegment=function bufferSegment( num )
+{
+    if( num > 0 )
+    {
+        this.__bufferSegment__ = Math.min(10, Math.max(num, 1) );
+        return this;
+    }
+    return this.__bufferSegment__;
+};
+
+
+/**
+ * @private
+ */
+DataSource.prototype.__count__= 0;
+
+/**
+ * 获取数据源的总数
  * @param number num
  * @returns {DataSource}
  */
-DataSource.prototype.predicts=function( num )
+DataSource.prototype.count=function count()
 {
-    if( num >= 0 ) {
-        this.__predicts__ = num;
-        return this;
-    }
-    return Math.max(this.__predicts__ ,this.length);
+    return Math.max(this.__count__ , this.__items__.length );
 };
 
 /**
@@ -282,70 +208,22 @@ DataSource.prototype.__grep__=null;
  * 获取检索对象
  * @returns {*|DataGrep}
  */
-DataSource.prototype.grep=function()
+DataSource.prototype.grep=function grep()
 {
-    return this.__grep__ || ( this.__grep__=new DataGrep( this ) );
+    return this.__grep__ || ( this.__grep__=new DataGrep( this.__items__ ) );
 };
 
 /**
  * 从指定条件中查询
  * @param condition
  */
-DataSource.prototype.where=function( filter )
+DataSource.prototype.where=function where( filter )
 {
     if( typeof filter === "string" )
     {
-        this.grep().filter( filter )
+        this.grep().filter( filter );
     }
     return this;
-};
-
-/**
- * @private
- */
-DataSource.prototype.__currentPage__ = 1;
-
-/**
- * 获取设置当前分页数
- * @param num
- * @returns {*}
- */
-DataSource.prototype.currentPage=function( num )
-{
-    if( typeof num !== 'undefined' )
-    {
-        if( num > 0 )
-        {
-            if( this.__currentPage__ !== num && !this.__fetched__)
-            {
-                this.__currentPage__ = num;
-                this.select();
-            }
-        }
-        return this;
-    }
-    var c =  Math.max(this.__currentPage__,1);
-    return Math.min( c  , this.totalPages() || c  );
-};
-
-/**
- * 根据当前加载的页码，计算当前向服务器请求的段数
- * @returns {number}
- */
-DataSource.prototype.segments=function( page )
-{
-    page = Math.max( (page || this.__currentPage__) , 1 );
-    page = Math.min( page, this.totalPages() || page);
-    return Math.floor( (page-1) * this.rows() / this.preloadRows() );
-};
-
-/**
- * 总分页数
- * @return number
- */
-DataSource.prototype.totalPages=function()
-{
-    return this.predicts() >0 ? Math.max( Math.ceil( this.predicts() / this.rows() ) , 1) : NaN ;
 };
 
 /**
@@ -357,34 +235,19 @@ DataSource.prototype.__orderBy__={};
  * 对数据进行排序。只有数据源全部加载完成的情况下调用此方法才有效（本地数据源除外）。
  * @param column 数据字段
  * @param type   排序类型
- * @param flag   是否清空之前排序的字段
  */
-DataSource.prototype.orderBy=function(column,type,flag)
+DataSource.prototype.orderBy=function(column,type)
 {
-    if( typeof type === "undefined" )
+    var t = typeof column;
+    if( t === "object" )
     {
-        return  typeof column === "undefined" ? this.__orderBy__ : this.__orderBy__[column] || null;
+        this.__orderBy__= column;
 
-    }else if( typeof column === "string" )
+    }else if( t === "string" )
     {
-        type = type || DataArray.ASC;
-
-        if(flag)this.__orderBy__={};
-        if( this.__orderBy__[ column ] !==type )
-        {
-            this.__orderBy__[ column ]=type;
-            if( this.length > 0 && this.length < this.predicts() )
-            {
-                this.splice(0,this.length);
-                this.__cached__.loadSegmented.splice(0,this.__cached__.loadSegmented.length);
-                this.__cached__.lastSegments=null;
-
-            }else
-            {
-                doOrderBy.call(this);
-            }
-            !this.__fetchCalled__ || this.select();
-        }
+        this.__orderBy__[ column ] = type || DataArray.ASC;
+    }else{
+        return this.__orderBy__;
     }
     return this;
 };
@@ -394,19 +257,11 @@ DataSource.prototype.orderBy=function(column,type,flag)
  * @param index 位于当前页的索引值
  * @returns {number}
  */
-DataSource.prototype.offsetAt=function(index)
+DataSource.prototype.offsetAt=function( index )
 {
     var index = index>>0;
     if( isNaN(index) )return index;
-    var start=( this.currentPage()-1 ) * this.rows();
-    var offset = this.__cached__.loadSegmented.indexOf( this.segments() );
-    if( offset>=0 )
-    {
-        var preloadRows=this.preloadRows();
-        index += ( start % preloadRows );
-        return offset * preloadRows + index;
-    }
-    return NaN;
+    return ( this.segments()-1 ) * this.rows() + index;
 };
 
 /**
@@ -418,17 +273,17 @@ DataSource.prototype.offsetAt=function(index)
 DataSource.prototype.append=function(item,index)
 {
     var e = new DataSourceEvent( DataSourceEvent.APPEND );
-    index = typeof index === 'number' ? index : this.length;
-    index = index < 0 ? index + this.length+1 : index;
-    index = System.Math.min( this.length, System.Math.max( index, 0 ) );
+    index = typeof index === 'number' ? index : this.count();
+    index = index < 0 ? index + this.count()+1 : index;
+    index = System.Math.min( this.count(), System.Math.max( index, 0 ) );
     e.index = index;
     e.newValue = item;
     if( this.dispatchEvent( e ) )
     {
-        var callback = e.callback || function(){return true;}
+        var callback = e.invoke || function(){return true;}
         if( callback(item, index) )
         {
-            this.splice(index,0,item);
+            Array.prototype.splice.call(this.__items__, index,0,item)
             e = new DataSourceEvent( DataSourceEvent.CHANGED );
             e.index = index;
             e.newValue=item;
@@ -444,26 +299,24 @@ DataSource.prototype.append=function(item,index)
  * @param filter
  * @returns {boolean}
  */
-DataSource.prototype.remove=function( filter )
+DataSource.prototype.remove=function()
 {
     var index;
-    var result = this.grep().execute( filter );
+    var result = this.grep().execute();
     var e = new DataSourceEvent( DataSourceEvent.REMOVE );
-    e.filter = filter;
     e.data=result;
     if( this.dispatchEvent( e ) )
     {
-        var callback = e.callback || function(){return true;}
+        var callback = e.invoke || function(){return true;}
         for (var i = 0; i < result.length; i++)
         {
-            index = this.indexOf(result[i]);
+            index = Array.prototype.indexOf.call(result,result[i]);
             if (index >= 0)
             {
                 if( callback(result[i], index, i ) )
                 {
-                    this.splice(index, 1);
+                    Array.prototype.splice.call(this.__items__,index, 1);
                     e = new DataSourceEvent( DataSourceEvent.CHANGED );
-                    e.filter = filter;
                     e.index = index;
                     e.oldValue=result[i];
                     this.dispatchEvent( e );
@@ -478,20 +331,18 @@ DataSource.prototype.remove=function( filter )
 /**
  * 修改数据
  * @param values 数据列对象 {'column':'newValue'}
- * @param filter  过滤器字符串 id = 2
  * @returns {boolean}
  */
-DataSource.prototype.update=function update( value, filter)
+DataSource.prototype.update=function update( value )
 {
     var result = this.grep().execute(filter);
     var e = new DataSourceEvent( DataSourceEvent.UPDATE );
     var oldValue;
-    e.filter = filter;
     e.data=result;
     e.newValue=value;
     if( this.dispatchEvent( e ) )
     {
-        var callback = e.callback || function(item, newValue)
+        var callback = e.invoke || function(item, newValue)
         {
             var flag = false;
             for(var c in newValue)
@@ -510,7 +361,6 @@ DataSource.prototype.update=function update( value, filter)
             if( callback( result[i], value, i ) )
             {
                 e = new DataSourceEvent( DataSourceEvent.CHANGED );
-                e.filter = filter;
                 e.data   = result[i];
                 e.newValue=value;
                 e.oldValue=oldValue;
@@ -522,241 +372,179 @@ DataSource.prototype.update=function update( value, filter)
     return false;
 };
 
-DataSource.prototype.__fetched__=false;
-DataSource.prototype.__fetchCalled__=false;
-DataSource.prototype.__lastWaiting__=false;
+DataSource.prototype.__loading__=false;
+DataSource.prototype.__end__=false;
+DataSource.prototype.__nowNotification__=false;
 
 /**
  * 选择数据集
  * @returns {DataSource}
  */
-DataSource.prototype.select=function( filter )
+DataSource.prototype.select=function select( segments )
 {
-    var page = this.currentPage();
-    var rows=this.rows(),start=( page-1 ) * rows;
-    var preloadRows=  this.preloadRows();
-    var segments= this.segments();
+    //如果有有未通知的数据则返回
+    if( this.__nowNotification__ )return this;
+    var total = this.totalSegment();
+    segments = segments > 0 ? segments : this.segments();
+    segments = Math.min( segments , isNaN(total)?segments:total );
+    this.__segments__ = segments;
+    var rows  = this.rows();
+    var start=( segments-1 ) * rows;
     var cached = this.__cached__;
-    var index = cached.loadSegmented.indexOf( segments );
-    var offset  = index * preloadRows + (start % preloadRows);
-    this.__fetched__ = true;
-    this.__fetchCalled__=true;
-    var waiting = !this.isRemote() || offset < 0 || (this.length<1 && !this.__endData__) || (this.length < offset+rows && this.totalPages()>page);
-    if( this.__lastWaiting__!= waiting && this.isRemote() && this.hasEventListener(DataSourceEvent.WAITING) )
+    var index = this.isRemote() ? cached.loadSegments.indexOf(segments) : segments-1;
+    //数据准备好后需要立即通知
+    this.__nowNotification__ =  true;
+    //需要等待加载数据
+    if( this.isRemote() && index < 0 )
     {
-        this.__lastWaiting__= waiting;
-        var event = new DataSourceEvent(DataSourceEvent.WAITING);
-        event.waiting=waiting;
-        this.dispatchEvent(event);
-    }
-
-    //发送数据
-    if( !waiting && this.hasEventListener(DataSourceEvent.SELECT) )
-    {
-        var result = this.grep().execute( filter );
-        this.__fetched__= false;
-        var end = Math.min( offset+rows, this.length );
-        var data = result.slice( offset, end );
         var event = new DataSourceEvent( DataSourceEvent.SELECT );
-        event.data = data;
-        this.dispatchEvent( event);
+        event.segments = segments;
+        event.offset = start;
+        event.data=null;
+        event.waiting = true;
+        this.dispatchEvent(event);
+
+    }else
+    {
+        notification.call(this,segments,index*rows,rows);
     }
-    preloadData.call(this);
+    //加载数据
+    if( this.isRemote() )doload.call(this);
     return this;
 };
 
 
 /**
- * 调度事件
+ * @private
+ * 数据加载成功时的回调
+ * @param event
  */
-function dispatch(type,data,index,event)
+function success(event)
 {
-    if( this.hasEventListener(type) )
+    var options = this.__options__;
+    var totalProfile = options.responseProfile.total;
+    var dataProfile = options.responseProfile.data;
+    var stateProfile = options.responseProfile.code;
+    if( event.data[ stateProfile ] != options.responseProfile.successCode )
     {
-        var e = new DataSourceEvent(type);
-        e.originalEvent=event || null;
-        e.data=data || null;
-        e.index = index >> 0;
-        return this.dispatchEvent( e );
+        Internal.throwError('error','Loading data failed '+event.data[ options.responseProfile.error ]);
     }
-    return true;
-};
+    var data = event.data;
+    var total= 0;
+    if( !System.isArray( data ) )
+    {
+        if(  ( dataProfile && typeof data[ dataProfile ] === 'undefined' ) || ( totalProfile && data[totalProfile] === 'undefined') )
+        {
+            Internal.throwError('error','Response data profile fields is not correct.');
+        }
+        total = totalProfile ? data[totalProfile] >> 0 : 0;
+        data = data[dataProfile];
+        if( total===0 )total = data.length >> 0;
+
+    }else
+    {
+        total = data.length >>0;
+    }
+
+    //必须是返回一个数组
+    if( !System.isArray(data) ) Internal.throwError('error','Response data set must be an array');
+
+    //当前获取到数据的长度
+    var len = data.length >> 0;
+
+    //先标记为没有数据可加载了
+    this.__end__=true;
+    this.__loading__=false;
+
+    //如果当前有数据返回
+    if( len > 0 )
+    {
+        //总数据量
+        this.__count__ = total;
+        var rows = this.rows();
+        var cached = this.__cached__;
+        //当前加载分页数的偏移量
+        var offset = Array.prototype.indexOf.call(cached.loadSegments, cached.lastSegments) * rows;
+        //合并数据项
+        Array.prototype.splice.apply(this.__items__, [offset, 0].concat( data ) );
+        //发送数据
+        if(this.__nowNotification__)notification.call(this, cached.lastSegments, offset, rows);
+        //还有数据需要加载
+        if( this.__items__.length < total && total > len )
+        {
+            this.__end__=false;
+            //继续载数据
+            doload.call(this);
+        }
+    }
+}
 
 /**
  * 向远程服务器开始加载数据
  */
-function doload( segments )
+function doload()
 {
-    segments = typeof segments === "number" ? segments : this.segments();
-    var cached = this.__cached__;
-    if( cached.lastSegments == segments || cached.loadSegmented.indexOf( segments )>=0 || !this.isRemote() )
-        return true;
-
-    var source =this.source();
-    if( source.loading() )
+    if( !this.isRemote() || this.__end__ || this.__loading__)return;
+    var page = this.segments();
+    var cached= this.__cached__;
+    var queue = cached.queues;
+    var rows = this.rows();
+    var buffer = this.bufferSegment();
+    if( cached.loadSegments.indexOf(page) < 0 )
     {
-        cached.queues.push(segments);
-        return false;
-    }
+        queue.unshift( page );
 
-    var options = this.options();
-    var rows = this.preloadRows();
-    var offset = segments * rows;
-    var param = Object.merge({},options.param,{orderby:this.orderBy()});
-    param[ options.requestProfile.offset ]=offset;
-    param[ options.requestProfile.rows ]=rows;
-
-    if( dispatch.call(this,DataSourceEvent.LOAD_START) )
+    }else if( queue.length === 0 )
     {
-        cached.lastSegments = segments;
-        source.send(options.url,param ,options.method );
-        return true;
-    }
-    return false;
-};
-
-var lastSynch=null;
-
-/**
- * 同步数据
- */
-function dosynch( data, action, index, setting )
-{
-    var options = this.options();
-    var primary = options.primary;
-    var url = setting.url || this.options().url;
-    action = action.match(/append|remove|update/i)[0].toLowerCase();
-
-    url = url[action] || url;
-    if( typeof url !== "string" )
-    {
-        throw new Error('invalid url');
-    }
-
-    var handle = function(event){
-        var error='service error.';
-        var status = 504;
-        if( event.type === HttpEvent.SUCCESS)
+        var p = 1;
+        var t = this.totalSegment();
+        while( buffer > p )
         {
-            var result = event.data;
-            code = result[ options.responseProfile.code ];
-            if( options.successCode == code )
-            {
-                result = result[ options.responseProfile.data ];
-                if( action == 'append' && result && primary)
-                {
-                    data = data instanceof Array ? data : [data];
-                    if( data.length<1 && ( typeof result === "string" || typeof result === "number" ) )
-                    {
-                        data[0][primary] = result;
-
-                    }else if( System.isObject(result) )
-                    {
-                        for(var i=0; i<data.length; i++) if( result[ data[i][primary] ] )
-                        {
-                            data[i][primary]=result[ data[i][primary] ];
-                        }
-                    }
-                    dispatch.call(this, DataSourceEvent.SYNCH_SUCCESS,result,index,event);
-                    !this.__fetchCalled__ || this.select();
-                }
-                return;
-            }
-            error = result[ options.responseProfile.error ];
-
-        } else if( event.type === HttpEvent.TIMEOUT)
-        {
-            error='timeOut';
-            status = 403;
-        }
-        var e = new DataSourceEvent( DataSourceEvent.SYNCH_FAILED );
-        e.originalEvent=event;
-        e.status =status;
-        e.error= error;
-        this.dispatchEvent( e );
-    }
-
-    lastSynch = new Http();
-    lastSynch.addEventListener( HttpEvent.SUCCESS, handle ,false,0, this);
-    lastSynch.addEventListener( HttpEvent.ERROR,   handle ,false,0, this);
-    lastSynch.addEventListener( HttpEvent.TIMEOUT, handle ,false,0, this);
-    var param  = setting.param || {};
-    param[ setting.actionProfile ] = action;
-    param = System.serialize(param,'url');
-    url = /\?/.test(url) ? url+'&'+param : url+'?'+param;
-    lastSynch.send( url, data , setting.method );
-};
-
-/**
- * 预加载数据
- */
-function preloadData()
-{
-    var cached = this.__cached__;
-    var segments= this.segments();
-    if( this.isRemote() && !this.__endData__ )
-    {
-        var queue = cached.queues;
-        var num = this.preloadPages();
-        var c = this.currentPage();
-        var p = 0;
-        var indexOf = Array.prototype.indexOf;
-        var t = Math.floor( this.predicts() / this.preloadRows() );
-        cached.loadSegmented.indexOf(segments)>=0 || queue.push( segments );
-
-        while( num > p )
-        {
-            ++p;
-            var next = this.segments( c+p ) ;
-            var prev = this.segments( c-p );
-            if( next != cached.lastSegments && segments != next && next <= t && indexOf.call(queue,next) < 0  )
+            var next = page+p;
+            var prev = page-p;
+            if( next != cached.lastSegments && cached.loadSegments.indexOf(next) < 0 && next <= t )
             {
                 queue.push( next );
             }
-            if( prev != cached.lastSegments && segments != prev && prev >=0 && indexOf.call(queue,prev) < 0 )
+            if( prev != cached.lastSegments && prev > 0 && cached.loadSegments.indexOf(prev) < 0 )
             {
                 queue.push( prev );
             }
+            p++;
         }
-        var flag=true;
-        while( queue.length > 0 && flag )
-        {
-            flag = doload.call(this, queue.shift() );
-        }
+    }
+    if( queue.length > 0 )
+    {
+        page = queue.shift();
+        cached.lastSegments=page;
+        cached.loadSegments.push( page );
+        if( cached.loadSegments.length > 1)cached.loadSegments.sort(function (a,b) {return a-b;});
+        var start = ( page - 1 ) * rows;
+        var source = this.__source__;
+        var options= this.__options__;
+        var param = Object.merge({}, options.param, {orderby: this.orderBy()});
+        param[options.requestProfile.offset] = start;
+        param[options.requestProfile.rows] = rows;
+        source.load(options.url, param, options.method);
+        this.__loading__=true;
     }
 };
 
 /**
- * 对数据进行排序
+ * 发送数据通知
+ * @private
  */
-function doOrderBy()
+function notification(segments , start, rows )
 {
-    if( this.length > 0 && this.length >= this.predicts() )
-    {
-        DataArray.prototype.orderBy.call(this,this.orderBy() );
-        return true;
-    }
-    return false;
-};
-
-
-
-/**
- * 合并数据
- * @param target
- * @param dataSource
- */
-function meregItems(target, dataSource )
-{
-    var i=0;
-    var len = dataSource.length >> 0;
-    var b=target.length>>0;
-    for(;i<len;i++)
-    {
-        if( dataSource[i]!=null )
-        {
-            target[b++]=dataSource[i];
-        }
-    }
-    target.length = b;
+    if( !this.__nowNotification__ )return;
+    var result = this.grep().execute();
+    var end = Math.min(start + rows, this.count() );
+    var data  = result.slice(start, end);
+    var event = new DataSourceEvent(DataSourceEvent.SELECT);
+    event.segments = segments;
+    event.offset = start;
+    event.data = data;
+    event.waiting = false;
+    this.__nowNotification__ = false;
+    this.dispatchEvent(event);
 }

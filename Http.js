@@ -126,15 +126,6 @@ define('Http',['EventDispatcher','events/HttpEvent'],function(EventDispatcher,Ht
     };
 
     /**
-     * 当前Http 是否有正请求的任务
-     * @returns {boolean}
-     */
-    Http.prototype.loading=function()
-    {
-       return (this.__xhrs__ && this.__xhrs__.length>0);
-    };
-
-    /**
      * 发送请求
      * @param data
      * @returns {boolean}

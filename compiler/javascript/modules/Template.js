@@ -1,31 +1,4 @@
-var getTemplateContent=function( source )
-{
-    var template,container;
-    template = container = source;
-    if( typeof source === 'string' )
-    {
-        source= System.trim( source );
-        if( source.charAt(0) !== '<' )
-        {
-            container = Element( source )[0] || '';
-            template=null;
-        }
-
-    }else if( container instanceof Element )
-    {
-        container=container[0];
-        template=null;
-    }
-
-    if( typeof container !== "string" )
-    {
-        var elem = Element(container);
-        template = elem.nodeName() === 'noscript' ? elem.html() : elem.value();
-    }
-    if( typeof template !== 'string' )Internal.throwError('error','Invalid template.')
-    return System.trim( template );
-},
-jscodeReg = /^\s*(if|foreach|for|else|do|switch|case|break|var|function|while|{|})(.*)?/,
+var jscodeReg = /^\s*(if|foreach|for|else|do|switch|case|break|var|function|while|{|})(.*)?/,
 funReg = /^([\w\.]+)\s*\(/,
 foreachReg  = /(\w+)\s+as\s+(\w+)(\s+(\w+))?/i,
 replace = function( code , flag )
@@ -117,15 +90,11 @@ var _options={
  * @param target
  * @returns {Template}
  * @constructor
- * @require RegExp,Object,EventDispatcher,Internal.Variable
+ * @require RegExp,Object,EventDispatcher,Element,TemplateEvent
  */
 function Template( options )
 {
-    if( !(this instanceof Template) )
-    {
-       return new Template( view, options );
-    }
-
+    if( !(this instanceof Template) )return new Template( options );
     if( typeof options !=="undefined" && System.isObject(options) )
     {
         var o = Object.merge({}, _options,options);
@@ -142,47 +111,35 @@ Template.prototype.__viewport__=null;
 Template.prototype.__split__=  new RegExp(_options.left+'(.*?)'+_options.right+'|'+_options.shortLeft+'(.*?)'+_options.shortRight,'gi');
 
 /**
- * @param viewport
- * @returns {Component|Breeze}
+ * @param container
+ * @param context
+ * @returns {Template|Element}
  * @public
  */
-Template.prototype.viewport=function( viewport , context )
+Template.prototype.viewport=function viewport( container , context )
 {
-    if( typeof viewport === "undefined" )
+    if( typeof container === "undefined" )
         return this.__viewport__;
-    if( viewport === this.__viewport__ )
-        return this;
-    if( !(viewport instanceof Element) )
-        viewport = new Element( viewport , context );
-    if( viewport.length > 0 )
+    if( !(container instanceof Element) )container = new Element( container , context );
+    if( container.length > 0 )
     {
-        this.__viewport__=viewport;
+        this.__viewport__=container;
         return this;
     }
     throw new Error('Invalid viewport');
 };
 
+
 /**
- * 获取此模板的作用域
- * @returns {*}
+ * 设置变量数据
+ * @param name
+ * @param value
+ * @returns {Template}
  */
-Template.prototype.variable=function(name,value)
+Template.prototype.variable=function variable(name,value)
 {
-    if( name instanceof Variable )
-    {
-        this.__variable__=name;
-        return this;
-    }
-
-    if (this.__variable__ === null)
-    {
-        this.__variable__ = new Variable();
-    }
-
-    if( typeof name === "undefined" )
-    {
-        return this.__variable__;
-    }
+    if (this.__variable__ === null)this.__variable__ = new Variable();
+    if( name == null )return this.__variable__;
     this.__variable__.set(name, value);
     return this;
 };
@@ -190,52 +147,137 @@ Template.prototype.variable=function(name,value)
 /**
  * @private
  */
-Template.prototype.__view__=null;
+Template.prototype.__view__='<p>No view</p>';
 
 /**
  * 获取设置要渲染的视图
  * @param view
  * @returns {*}
  */
-Template.prototype.view=function( view )
+Template.prototype.view=function view( html )
 {
-    if( typeof view !== "undefined" )
-        this.__view__= getTemplateContent( view );
+    var t = typeof html;
+    if( t !== "undefined" )
+    {
+        if( t !== "string" )Internal.throwError('type','view is not string');
+        this.__view__= html ;
+    }
     return this.__view__;
 };
 
 /**
- * 渲染模板视图
+ * 解析模板视图并返回
  * @param template
  * @param data
  * @param flag
  * @returns {*}
  */
-Template.prototype.display=function( view, flag )
+Template.prototype.fetch=function fetch( view )
 {
-    flag = !!flag;
     var event = new TemplateEvent( TemplateEvent.START );
-    event.template =  this.view( view );
-    event.variable = this.variable();
+    event.template = this.view( view );
     event.viewport = this.viewport();
-    if(typeof event.template !== "string" )throw new Error('invalid view');
-    if( !this.hasEventListener( TemplateEvent.START ) || this.dispatchEvent( event ) )
+    if( this.dispatchEvent( event ) )
     {
-        event.html=make.call(this, event.template , event.variable );
+        event.html = make.call(this, event.template , this.variable() );
         event.type = TemplateEvent.DONE;
-        if( this.hasEventListener( TemplateEvent.DONE ) && !this.dispatchEvent( event ) )
-        {
-            return false;
-        }
-        if( !flag && event.viewport instanceof Element )
-        {
-            event.viewport.html( event.html );
-            event.type=TemplateEvent.REFRESH;
-            if( !this.hasEventListener(TemplateEvent.REFRESH) || this.dispatchEvent( event ) )
-                return true;
-        }
+        this.dispatchEvent( event );
         return event.html;
     }
-    return false;
+}
+
+/**
+ * 解析模板视图并添加到视口容器中
+ * @param template
+ * @param data
+ * @param flag
+ * @returns {*}
+ */
+Template.prototype.display=function display( view )
+{
+    var html = this.fetch( view );
+    var viewport = this.viewport();
+    viewport.html( html );
+    var event = new TemplateEvent( TemplateEvent.REFRESH );
+    event.viewport = viewport;
+    return this.dispatchEvent( event );
 };
+
+/**
+ * 模板变量构造器
+ * @param data
+ * @constructor
+ */
+function Variable()
+{
+    if( !(this instanceof Variable) )return new Variable();
+    this.__data__ = {};
+}
+Variable.prototype.constructor = Variable;
+Variable.prototype.__data__={};
+
+/**
+ *设置变量
+ * @param name
+ * @param val
+ * @returns {Variable}
+ */
+Variable.prototype.set=function(name,val)
+{
+    var t = typeof name;
+    if( t === 'string' )
+    {
+        this.__data__[name]=val;
+        return this;
+    }
+    throw new Error('param undefined for val');
+};
+
+/**
+ * 获取数据
+ * @param name
+ * @returns {*}
+ */
+Variable.prototype.get=function(name)
+{
+    return typeof name === 'undefined' ? this.__data__ : this.__data__[name];
+};
+
+/**
+ * 删除变量
+ * @param name
+ * @returns {*}
+ */
+Variable.prototype.remove=function(name)
+{
+    var val=this.__data__;
+    if( typeof name === "string" )
+    {
+        if( typeof this.__data__[name] !== "undefined" )
+        {
+            val=this.__data__[name];
+            delete this.__data__[name];
+            return val;
+        }
+        return false;
+    }
+    return val;
+};
+
+/**
+ * 判断是否一个对象
+ * @param val
+ * @returns {boolean}
+ */
+Variable.prototype.isObject=function(val)
+{
+    return System.isObject(val);
+};
+
+/**
+ * 发生错误时的返回值
+ * @returns {string}
+ */
+Variable.prototype.error=function(){return '';};
+
 System.Template=Template;

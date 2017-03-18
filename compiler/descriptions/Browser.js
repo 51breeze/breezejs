@@ -183,6 +183,28 @@ var descriptor = {
             "url":{'id':'const','type':'String'},
         }
     },
+    'DataSourceEvent':{
+        'id':'class', 'type':'DataSourceEvent','inherit':'Event',
+        'static':{
+            "APPEND":{'id':'const','type':'String'},
+            "REMOVE":{'id':'const','type':'String'},
+            "UPDATE":{'id':'const','type':'String'},
+            "SELECT":{'id':'const','type':'String'},
+            "FETCH":{'id':'const','type':'String'},
+            "CHANGED":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "data":{'id':'const','type':'Object'},
+            "index":{'id':'const','type':'Number'},
+            "oldValue":{'id':'const','type':'Object'},
+            "newValue":{'id':'const','type':'Object'},
+            "currentPage":{'id':'const','type':'Number'},
+            "totalPage":{'id':'const','type':'Number'},
+            "rows":{'id':'const','type':'Number'},
+            "offset":{'id':'const','type':'Number'},
+            "waiting":{'id':'const','type':'Boolean'},
+        }
+    },
     'StyleEvent':{
         'id':'class', 'type':'StyleEvent','inherit':'PropertyEvent',
         'static':{
@@ -214,6 +236,42 @@ var descriptor = {
         'proto':{
             "parent":{'id':'const','type':'Object'},
             "child":{'id':'const','type':'Object'},
+        }
+    },
+    'TemplateEvent':{
+        'id':'class', 'type':'TemplateEvent','inherit':'Event',
+        'static':{
+            "START":{'id':'const','type':'String'},
+            "DONE":{'id':'const','type':'String'},
+            "REFRESH":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "template":{'id':'const','type':'String'},
+            "viewport":{'id':'const','type':'Element'},
+            "html":{'id':'const','type':'String'},
+        }
+    },
+    'Template': {
+        'type': 'Template',
+        'id': 'class',
+        'inherit':'EventDispatcher',
+        'proto': {
+            'viewport': {type: 'Object', 'id': 'function',param:['Object']},
+            'variable': {type: 'Object', 'id': 'function',param:['String']},
+            'view': {type: 'String', 'id': 'function',param:[]},
+            'fetch': {type: 'String', 'id': 'function',param:[]},
+            'display': {type: 'String', 'id': 'function',param:[]},
+        }
+    },
+    'DataRender': {
+        'type': 'DataRender',
+        'id': 'class',
+        'inherit':'Template',
+        'proto': {
+            'dataSource': {type: 'DataSource', 'id': 'function',param:[]},
+            'source': {type: 'DataRender', 'id': 'function',param:['Object']},
+            'dataProfile': {type: 'Object', 'id': 'function',param:[]},
+            'display': {type: 'Boolean', 'id': 'function',param:[]},
         }
     },
 };

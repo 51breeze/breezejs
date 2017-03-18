@@ -13,7 +13,7 @@ error_reporting(0);
 
 
 $data =  array();
-$total = 10;
+$total = 300;
 
 if( $_SERVER['REQUEST_METHOD'] == 'POST' )
 {

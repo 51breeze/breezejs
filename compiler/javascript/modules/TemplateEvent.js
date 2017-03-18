@@ -7,13 +7,12 @@
  * @require Event,Object;
  */
 function TemplateEvent(type, bubbles,cancelable  ){
-    if( !(this instanceof TouchEvent) )return new TemplateEvent(type, bubbles,cancelable);
+    if( !(this instanceof TemplateEvent) )return new TemplateEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
 }
 TemplateEvent.prototype= Object.create(Event.prototype);
 TemplateEvent.prototype.template=null;
-TemplateEvent.prototype.variable=null;
 TemplateEvent.prototype.viewport=null;
 TemplateEvent.prototype.html='';
 TemplateEvent.prototype.constructor=TemplateEvent;
