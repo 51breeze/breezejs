@@ -306,11 +306,10 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
         Internal.throwError('reference', 'non-object');
     }
 
-    if( propertyKey[0]==='_' && propertyKey[1]==='_')
+    if( typeof propertyKey=== "string" && propertyKey[0]==='_' && propertyKey[1]==='_')
     {
         Internal.throwError('reference', '"' + propertyKey + '" inaccessible.');
     }
-
     //原型链上的属性不可设置
     if( Object.hasProtoInherit(target,propertyKey) )
     {

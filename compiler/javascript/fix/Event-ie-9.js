@@ -29,6 +29,40 @@ var getReadyState=function( target )
     return readyState;
 }
 
+Event.fix.hooks[ Event.LOAD ]=function (listener, dispatcher)
+{
+    if( this.addEventListener )
+    {
+        this.addEventListener( Event.type(Event.LOAD) ,dispatcher);
+
+    }else if( this.attachEvent )
+    {
+        this.attachEvent( Event.type(Event.LOAD) ,dispatcher);
+
+    }else if( typeof this.onreadystatechange !== "undefined" )
+    {
+        this.onreadystatechange=function()
+        {
+            if( this.readyState === 4 )
+            {
+                if( this.status === 200 )
+                {
+                    var event = new Event(Event.LOAD);
+                    event.currentTarget = this;
+                    event.target = this;
+                    dispatcher(event);
+                }else
+                {
+                    var event = new Event(Event.ERROR);
+                    event.currentTarget = this;
+                    event.target = this;
+                    dispatcher(event);
+                }
+            }
+        }
+    }
+}
+
 Event.fix.hooks[ Event.READY ]=function (listener, dispatcher)
 {
     var target=this;

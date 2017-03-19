@@ -30,7 +30,7 @@ var setting = {
 if( typeof window !=="undefined" )
 {
     XHR = window.XMLHttpRequest || window.ActiveXObject;
-    isSupported= typeof XHR === "function";
+    isSupported= !!XHR;
     localUrl = window.location.href;
     localUrlParts = patternUrl.exec( localUrl.toLowerCase() ) || [];
 }

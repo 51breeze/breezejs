@@ -138,21 +138,7 @@ function access(callback, name, newValue)
 /**
  * @private
  */
-function removeChild(parent,child, flag )
-{
-    if( child && parent.hasChildNodes() && child.parentNode === parent )
-    {
-        var result=parent.removeChild( child );
-        flag===false || dispatchElementEvent.call(this,parent,child,ElementEvent.REMOVE);
-        return !!result;
-    }
-    return false;
-}
-
-/**
- * @private
- */
-function getChildNodes(elem, selector, flag)
+function $getChildNodes(elem, selector, flag)
 {
     var ret=[],isfn=System.isFunction(selector);
     if( elem.hasChildNodes() )
@@ -172,22 +158,19 @@ function getChildNodes(elem, selector, flag)
 /**
  * @private
  */
-function dispatchElementEvent(parent, child , type )
+function $dispatchEvent(thisArg, type, parent, child, result )
 {
-    if( this instanceof EventDispatcher && this.hasEventListener( type )  )
-    {
-        var event=new ElementEvent( type );
-        event.parent=parent;
-        event.child=child;
-        return this.dispatchEvent( event );
-    }
-    return true;
+    var event=new ElementEvent( type );
+    event.parent=parent;
+    event.child=child;
+    event.result=!!result;
+    return thisArg.dispatchEvent( event );
 }
 
 /**
  *  @private
  */
-function doMake( elems )
+function $doMake(elems )
 {
     var r = this.__reverts__ || (this.__reverts__ = []);
     r.push( this.splice(0,this.length, elems ) );
@@ -198,7 +181,7 @@ function doMake( elems )
 /**
  *  @private
  */
-function doRecursion(propName,strainer, deep )
+function $doRecursion(propName, strainer, deep )
 {
     var currentItem,ret=[];
     var s = typeof strainer === "string" ? function(){return querySelector(strainer, null , null, [this]).length > 0 } :
@@ -241,7 +224,7 @@ function isSelector( selector )
  * @param name
  * @returns {string}
  */
-function getStyleName( name )
+function $getStyleName(name )
 {
     if( typeof name !=='string' )
         return name;
@@ -318,7 +301,7 @@ var singleTagRegex=/^<(\w+)(.*?)\/\s*>$/
  * @param html 一个html字符串
  * @returns {Node}
  */
-function createElement(html )
+function $createElement(html )
 {
     if(System.isString(html) )
     {
@@ -333,7 +316,7 @@ function createElement(html )
             }else if( html.charAt(0) === "<" && ( match=singleTagRegex.exec(html) ) )
             {
                 var elem = document.createElement( match[1] );
-                var attr =matchAttr( html );
+                var attr =$matchAttr( html );
                 var isset = typeof elem.setAttribute === "function";
                 for(var prop in attr )
                 {
@@ -372,7 +355,7 @@ function createElement(html )
         }
 
     }else if (Element.prototype.isNodeElement.call(html) )
-        return  html.parentNode ?cloneNode(html,true) : html;
+        return  html.parentNode ?$cloneNode(html,true) : html;
     throw new Error('createElement param invalid')
 };
 
@@ -384,7 +367,7 @@ var lrQuoteExp = /^[\'\"]|[\'\"]$/g;
  * @param strAttr
  * @return {}
  */
-function matchAttr(strAttr)
+function $matchAttr(strAttr)
 {
     if( typeof strAttr === "string" && /[\S]*/.test(strAttr) )
     {
@@ -417,7 +400,7 @@ function matchAttr(strAttr)
  * 以小写的形式返回元素的节点名
  * @returns {string}
  */
-function getNodeName(elem )
+function $getNodeName(elem )
 {
     return elem && typeof elem.nodeName=== "string" && elem.nodeName!='' ? elem.nodeName.toLowerCase() : '';
 };
@@ -430,7 +413,7 @@ function getNodeName(elem )
  * @param oSource 引用对象
  * @returns {*}
  */
-function mergeAttributes(target, oSource)
+function $mergeAttributes(target, oSource)
 {
     var iselem=Element.prototype.isNodeElement.call( target );
     if( System.isObject(oSource,true) )
@@ -459,7 +442,7 @@ function mergeAttributes(target, oSource)
  * 判断元素是否有Style
  * @returns {boolean}
  */
-function hasStyle(elem )
+function $hasStyle(elem )
 {
     return !( !elem || !elem.nodeType || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style );
 };
@@ -470,7 +453,7 @@ function hasStyle(elem )
  * @param nodeElement
  * @returns {Node}
  */
-function cloneNode(nodeElement , deep )
+function $cloneNode(nodeElement , deep )
 {
     if( nodeElement.cloneNode )
     {
@@ -480,7 +463,7 @@ function cloneNode(nodeElement , deep )
     if( typeof nodeElement.nodeName==='string' )
     {
         var node = document.createElement( nodeElement.nodeName  );
-        if( node )mergeAttributes(node,nodeElement);
+        if( node )$mergeAttributes(node,nodeElement);
         return node;
     }
     return null;
@@ -516,7 +499,7 @@ function Element(selector, context)
             result = selector.slice(0);
 
         } else if (typeof selector === "string") {
-            result = selector.charAt(0) === '<' && selector.charAt(selector.length - 1) === '>' ? createElement(selector) : querySelector(selector, context);
+            result = selector.charAt(0) === '<' && selector.charAt(selector.length - 1) === '>' ? $createElement(selector) : querySelector(selector, context);
         }
         else if (Element.prototype.isNodeElement.call(selector)) {
             result = selector;
@@ -725,7 +708,7 @@ var rgbToHex = function (value)
 accessor['style']= {
     get:function(name){
         var getter = fix.cssHooks[name] && typeof fix.cssHooks[name].get === "function" ? fix.cssHooks[name].get : null;
-        var currentStyle = hasStyle(this) ? (document.defaultView && document.defaultView.getComputedStyle ?
+        var currentStyle = $hasStyle(this) ? (document.defaultView && document.defaultView.getComputedStyle ?
             document.defaultView.getComputedStyle(this, null) : this.currentStyle || this.style) : {};
         return getter ? getter.call(this, currentStyle, name) : currentStyle[name];
     }
@@ -767,12 +750,12 @@ accessor['style']= {
                     fix.cssHooks[name].set.call(elem, obj, value);
                     return System.serialize(obj, 'style');
                 }
-                return getStyleName(name) + ':' + value;
+                return $getStyleName(name) + ':' + value;
             });
         }
 
         try {
-            var orgname = getStyleName(name);
+            var orgname = $getStyleName(name);
             if ( !fix.cssHooks[name] || typeof fix.cssHooks[name].set !== "function"
                 || !fix.cssHooks[name].set.call(this, this.style, value, orgname) )
             {
@@ -1243,7 +1226,7 @@ Element.prototype.find=function find(selector )
     this.forEach(function(elem){
         ret = ret.concat.apply(ret,querySelector(selector, elem ) );
     });
-    return doMake.call( this, ret );
+    return $doMake.call( this, ret );
 };
 
 /**
@@ -1253,7 +1236,7 @@ Element.prototype.find=function find(selector )
  */
 Element.prototype.parent=function parent(selector )
 {
-    return doMake.call( this, Array.prototype.unique.call( doRecursion.call(this,'parentNode',selector ) ) );
+    return $doMake.call( this, Array.prototype.unique.call( $doRecursion.call(this,'parentNode',selector ) ) );
 };
 
 /**
@@ -1264,7 +1247,7 @@ Element.prototype.parent=function parent(selector )
  */
 Element.prototype.parents=function parents(selector )
 {
-    return doMake.call( this, Array.prototype.unique.call( doRecursion.call(this,'parentNode',selector, true ) ) );
+    return $doMake.call( this, Array.prototype.unique.call( $doRecursion.call(this,'parentNode',selector, true ) ) );
 };
 
 /**
@@ -1274,7 +1257,7 @@ Element.prototype.parents=function parents(selector )
  */
 Element.prototype.prevAll=function prevAll(selector )
 {
-    return doMake.call( this, doRecursion.call(this,'previousSibling', selector, true ) );
+    return $doMake.call( this, $doRecursion.call(this,'previousSibling', selector, true ) );
 };
 
 /**
@@ -1284,7 +1267,7 @@ Element.prototype.prevAll=function prevAll(selector )
  */
 Element.prototype.prev=function prev(selector )
 {
-    return doMake.call( this, doRecursion.call(this,'previousSibling', selector ) );
+    return $doMake.call( this, $doRecursion.call(this,'previousSibling', selector ) );
 };
 
 /**
@@ -1294,7 +1277,7 @@ Element.prototype.prev=function prev(selector )
  */
 Element.prototype.nextAll=function nextAll(selector )
 {
-    return doMake.call( this, doRecursion.call(this,'nextSibling', selector , true ) );
+    return $doMake.call( this, $doRecursion.call(this,'nextSibling', selector , true ) );
 };
 
 /**
@@ -1304,7 +1287,7 @@ Element.prototype.nextAll=function nextAll(selector )
  */
 Element.prototype.next=function next(selector )
 {
-    return doMake.call( this, doRecursion.call(this,'nextSibling', selector ) );
+    return $doMake.call( this, $doRecursion.call(this,'nextSibling', selector ) );
 };
 
 /**
@@ -1314,8 +1297,8 @@ Element.prototype.next=function next(selector )
  */
 Element.prototype.siblings=function siblings(selector )
 {
-    var results=[].concat( doRecursion.call(this,'previousSibling',selector,true) , doRecursion.call(this,'nextSibling',selector, true) );
-    return doMake.call( this, results );
+    var results=[].concat( $doRecursion.call(this,'previousSibling',selector,true) , $doRecursion.call(this,'nextSibling',selector, true) );
+    return $doMake.call( this, results );
 };
 
 /**
@@ -1340,7 +1323,7 @@ Element.prototype.children=function children(selector )
                 this.concat.call( results, querySelector(selector,element,null,child) );
         }
     });
-    return doMake.call( this, Array.prototype.unique.call(results) );
+    return $doMake.call( this, Array.prototype.unique.call(results) );
 };
 
 //========================操作元素===========================
@@ -1355,7 +1338,7 @@ Element.prototype.wrap=function wrap(element )
     var is=System.isFunction( element );
     return this.forEach(function(elem)
     {
-        var wrap=createElement( is ? element.call(this,elem) : element );
+        var wrap=$createElement( is ? element.call(this,elem) : element );
         this.current( elem.parentNode ).addChildAt( wrap , elem );
         this.current( wrap ).addChildAt( elem ,-1);
     });
@@ -1372,7 +1355,7 @@ Element.prototype.unwrap=function unwrap(selector )
     var is= typeof selector === "undefined";
     return this.forEach(function(elem)
     {
-        var parent= is ?  elem.parentNode : doRecursion.call(this,'parentNode',selector )[0];
+        var parent= is ?  elem.parentNode : $doRecursion.call(this,'parentNode',selector )[0];
         if( parent && parent.ownerDocument && Element.prototype.contains.call( parent.ownerDocument.body, parent ) )
         {
             var children=parent.hasChildNodes() ? parent.childNodes : [];
@@ -1413,7 +1396,7 @@ Element.prototype.html=function html( htmlObject )
                     htmlObject=elem.outerHTML;
                 }else
                 {
-                    var cloneElem=cloneNode( elem, true);
+                    var cloneElem=$cloneNode( elem, true);
                     if( cloneElem )
                     {
                         htmlObject=document.createElement( 'div' ).appendChild( cloneElem ).innerHTML;
@@ -1427,9 +1410,9 @@ Element.prototype.html=function html( htmlObject )
         {
             var nodes=elem.childNodes;
             var len=nodes.length,b=0;
-            for( ; b < len ; b++ ) if( nodes[b] )
+            for( ;b < len ; b++ )if(nodes[b])
             {
-                removeChild.call(this,elem, nodes[b] , false );
+                this.removeChildAt( nodes[b] );
             }
         }
 
@@ -1438,24 +1421,24 @@ Element.prototype.html=function html( htmlObject )
             htmlObject = System.trim( htmlObject );
             try{
                 elem.innerHTML = htmlObject;
-                dispatchElementEvent.call(this,elem,htmlObject,ElementEvent.ADD)
+                $dispatchEvent(this,ElementEvent.ADD,elem,htmlObject);
             }catch(e)
             {
-                var nodename = getNodeName( elem );
+                var nodename = $getNodeName( elem );
                 if( !new RegExp("^<"+nodename).exec(htmlObject) )
                 {
                     htmlObject= System.sprintf('<%s>%s</%s>',nodename,htmlObject,nodename);
                 }
-                var child= createElement( htmlObject );
+                var child= $createElement( htmlObject );
                 var deep =  nodename === 'tr' ? 2 : 1,d=0;
                 while( d < deep && child.firstChild )
                 {
                     d++;
                     child=child.firstChild;
                 }
-                mergeAttributes(child, elem);
+                $mergeAttributes(child, elem);
                 elem.parentNode.replaceChild(child,  elem );
-                dispatchElementEvent.call(this,elem.parentNode,child,ElementEvent.ADD);
+                $dispatchEvent(this,ElementEvent.ADD,elem.parentNode,child);
             }
 
         }else
@@ -1515,7 +1498,7 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
             Internal.throwError('error','invalid parent HTMLElement.');
         }
         try{
-            var child=isElement ? childElemnet : createElement( childElemnet );
+            var child=isElement ? childElemnet : $createElement( childElemnet );
         }catch(e){
             Internal.throwError('error','The childElemnet not is HTMLElement');
         }
@@ -1527,7 +1510,7 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
             !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
             refChild && (refChild=index.nextSibling);
             parent.insertBefore( child , refChild || null );
-            dispatchElementEvent.call(this,parent,child,ElementEvent.ADD )
+            $dispatchEvent(this,ElementEvent.ADD,parent,child)
         }
         if( isElement ) return this;
     })
@@ -1548,11 +1531,11 @@ Element.prototype.getChildAt=function getChildAt( index )
         {
             if( typeof index === 'function' )
             {
-                child=getChildNodes.call(this, parent ,index ,true)[0];
+                child=$getChildNodes.call(this, parent ,index ,true)[0];
 
             }else if( typeof index === 'number' )
             {
-                childNodes=getChildNodes.call(this,parent);
+                childNodes=$getChildNodes.call(this,parent);
                 index=index < 0 ? index+childNodes.length : index;
                 child=index >= 0 && index < childNodes.length ? childNodes[index] : null;
             }
@@ -1577,7 +1560,7 @@ Element.prototype.getChildIndex=function getChildIndex( childElemnet )
     var parent = this.current();
     if( childElemnet.parentNode===parent )
     {
-        return this.indexOf.call( getChildNodes(parent), childElemnet );
+        return this.indexOf.call( $getChildNodes(parent), childElemnet );
     }
     return -1;
 };
@@ -1625,7 +1608,10 @@ Element.prototype.removeChildAt=function removeChildAt(index)
     return this.forEach(function(parent)
     {
         var child= is ? index : this.getChildAt( index );
-        if( child.parentNode === parent )parent.removeChild(child);
+        if( child.parentNode === parent )
+        {
+            $dispatchEvent(this, ElementEvent.REMOVE, parent, child, parent.removeChild(child) );
+        }
         if( is )return this;
     });
 };
@@ -1762,7 +1748,7 @@ Element.prototype.isDocument=function isDocument()
 Element.prototype.isFrame=function isFrame()
 {
     var elem  = this instanceof Element ? this.current() : this;
-    var nodename =getNodeName(elem);
+    var nodename =$getNodeName(elem);
     return (nodename === 'iframe' || nodename==='frame');
 };
 
@@ -1790,11 +1776,11 @@ fix.cssHooks.userSelect={
 
     get: function( style )
     {
-        return style[ getStyleName('userSelect') ] || '';
+        return style[ $getStyleName('userSelect') ] || '';
     },
     set: function( style, value )
     {
-        style[ getStyleName('userSelect') ] = value;
+        style[ $getStyleName('userSelect') ] = value;
         style['-moz-user-fetch'] = value;
         style['-webkit-touch-callout'] = value;
         style['-khtml-user-fetch'] = value;
@@ -1901,7 +1887,7 @@ fix.cssHooks.radialGradient=fix.cssHooks.linearGradient={
 
         }else
         {
-            value= System.sprintf('%s(%s)', getStyleName( name ) , value ) ;
+            value= System.sprintf('%s(%s)', $getStyleName( name ) , value ) ;
         }
         style[ prop ] = value ;
         return true;
@@ -1922,6 +1908,6 @@ fix.cssHooks.height={
 Element.fix = fix;
 
 //@internal Element.createElement;
-Element.createElement = createElement;
+Element.createElement = $createElement;
 
 System.Element = Element;

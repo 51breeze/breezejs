@@ -27,7 +27,7 @@ function DataSource()
         'requestProfile':{
             'offset':'offset', //数据偏移量
             'rows'  :'rows'    //每次获取取多少行数据
-        },
+        }
     };
     this.__items__=new Array();
     this.__cached__={'queues':new Array(),'lastSegments':null,"loadSegments":new Array() };
@@ -392,6 +392,7 @@ DataSource.prototype.select=function select( segments )
     var start=( segments-1 ) * rows;
     var cached = this.__cached__;
     var index = this.isRemote() ? cached.loadSegments.indexOf(segments) : segments-1;
+
     //数据准备好后需要立即通知
     this.__nowNotification__ =  true;
     //需要等待加载数据

@@ -1,6 +1,6 @@
 /**
  * 本地模块对象
- * @require System,Array,Reflect,Object,Class,Interface,Internal.$get,Internal.$set;
+ * @require System,Array,Reflect,Object,Class,JSON,Interface,Internal.$get,Internal.$set;
  */
 var modules={};
 

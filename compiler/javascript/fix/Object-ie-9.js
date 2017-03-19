@@ -6,7 +6,7 @@
 if( !Object.getPrototypeOf )
 {
     Object.getPrototypeOf = function getPrototypeOf(obj) {
-        if (!obj)return null;
+        if (obj==null)return null;
         return obj.__proto__ ? obj.__proto__ : (obj.constructor ? obj.constructor.prototype : null);
     }
 }

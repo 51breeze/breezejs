@@ -41,14 +41,11 @@ public class Main
                 rd.dataProfile('datas');
                 rd.view('<?foreach(datas as key item){?><li>key:{key} value:{item.id} >> {item.name} </li><?}?>');
                 rd.viewport('#container');
-                //rd.source('http://breezejs.com/json.php');
-                rd.source(data);
+                rd.source('http://breezejs.com/json.php');
+               // rd.source(data);
                 rd.dataSource().rows(30);
                 rd.dataSource().select(3);
                 rd.display();
-                
-
-
 
             });
         }

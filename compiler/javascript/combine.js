@@ -94,17 +94,25 @@ function describe( str, name )
 
 const descriptions={};
 const mapname={'window':'Window','document':'Document','console':'Console'};
+const libContents=[];
 
 /**
  * 获取指定的文件模块
  * @param filepath
  */
-function include(contents, name , filepath, fix )
+function include(contents, name , filepath, fix, libs )
 {
     name = mapname[name] || name;
     if( loaded[name] === true )return;
     loaded[name]=true;
     filepath = filepath ? filepath : rootPath + '/modules/' + name + '.js';
+
+    //加载的模块有依赖的库
+    if( libs && libs[name] )
+    {
+        libContents.push( utils.getContents( rootPath+'/lib/'+libs[name]) );
+    }
+
     if( utils.isFileExists(filepath) )
     {
         var str = utils.getContents( filepath );
@@ -114,7 +122,7 @@ function include(contents, name , filepath, fix )
             if( val === 'System' || val === 'system' )return 'System';
             if( val==='Internal' || val==='internal' )return 'Internal';
             if( val.substr(0,9) === 'Internal.')return val;
-            if(val.charAt(0)!=='$')include(contents,val, null, fix);
+            if(val.charAt(0)!=='$')include(contents,val, null, fix,libs);
             return 'System.'+val;
         });
 
@@ -134,7 +142,8 @@ function include(contents, name , filepath, fix )
             if(!descriptions[name].static)descriptions[name].static={};
             utils.merge( descriptions[name].static, desc.describe.static);
         }
-        if( !isEmpty( desc.describe.proto ) ){
+        if( !isEmpty( desc.describe.proto ) )
+        {
             if( !descriptions[name] )descriptions[name]={};
             if(!descriptions[name].proto)descriptions[name].proto={};
             utils.merge( descriptions[name].proto, desc.describe.proto);
@@ -234,28 +243,21 @@ function combine( config , code, requirements )
             if( requirements[p]===true && requires.indexOf( p ) < 0 )requires.push( p );
         }
     }
-    for(var prop in requires)include(contents, requires[prop] , null, fix );
+    for(var prop in requires)include(contents, requires[prop] , null, fix , libs);
 
     /**
      * 模块定义器
      */
-    include(contents,'define' , rootPath+'/define.js', fix );
+    include(contents,'define' , rootPath+'/define.js', fix , libs);
 
     /**
      * 模块描述
      */
     contents.unshift('var descriptions = '+JSON.stringify(descriptions)+';\n');
-    contents=parseInternal(contents.join(''), descriptions);
+    contents=parseInternal( contents.join(''), descriptions );
 
-    /**
-     * 加载库文件
-     */
-    var libCode=[];
-    for ( var p in libs )if( requires.indexOf( p ) >= 0 )
-    {
-        libCode.push( utils.getContents(rootPath+'/lib/'+ libs[p] ) );
-    }
-    contents=libCode.join(';\n')+contents;
+    //合并依赖库
+    contents=libContents.join(';\n')+contents;
 
     /**
      * 内置系统对象

@@ -286,8 +286,10 @@ Object.prototype.values=function()
 Object.hasProtoInherit = function hasProtoInherit(obj,name) {
 
     if( obj==null )false;
-    while (  ( obj = Object.getPrototypeOf(obj) ) )
+    var lastObj = obj;
+    while (  ( obj = Object.getPrototypeOf(obj) ) && obj !== lastObj )
     {
+        lastObj = obj;
         if( $hasOwnProperty.call(obj,name) )return true;
     }
     return false;

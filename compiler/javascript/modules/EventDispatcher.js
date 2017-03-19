@@ -8,9 +8,9 @@
 function EventDispatcher( target )
 {
     if( !(this instanceof EventDispatcher) )return new EventDispatcher( target );
-    if( target )
+    if( target != null )
     {
-        if( typeof target !=='object' || !(  System.typeOf( target.addEventListener ) === "function" || System.typeOf( target.attachEvent )=== "function" ) )
+        if( !(target.addEventListener || target.attachEvent || typeof target.onreadystatechange !== "undefined") )
         {
             Internal.throwError('type', 'target is not "EventDispatcher"');
         }

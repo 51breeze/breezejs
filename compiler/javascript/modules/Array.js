@@ -17,11 +17,13 @@ function Array(length)
         if( typeof length === 'number' && arguments.length===1 )
         {
             this.length = length >> 0;
-            return $Array.call(this, this.length );
+            $Array.call(this, this.length );
+            return this;
         }
         return Array.prototype.splice.apply(this, [0,0].concat( Array.prototype.slice.call(arguments,0)));
     }
-    return $Array.call(this);
+    $Array.call(this);
+    return this;
 };
 System.Array = Array;
 Array.prototype = Object.create( Object.prototype );
