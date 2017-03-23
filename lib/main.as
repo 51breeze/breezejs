@@ -43,8 +43,8 @@ public class Main
                 rd.viewport('#container');
                 rd.source('http://breezejs.com/json.php');
                // rd.source(data);
-                rd.dataSource().rows(30);
-                rd.dataSource().select(3);
+              //  rd.dataSource().rows(30);
+              //  rd.dataSource().select(3);
                 rd.display();
 
             });

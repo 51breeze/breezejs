@@ -123,8 +123,10 @@ System.instanceOf = function instanceOf(instanceObj, theClass)
         while (objClass)
         {
             if (objClass === theClass)return true;
+            if( !(objClass instanceof System.Class) )break;
             objClass = Internal.$get(objClass,"extends");
         }
+        if( objClass.prototype )instanceObj = objClass.prototype;
     }
     //如果不是一个函数直接返回false
     if (typeof theClass !== "function")return false;

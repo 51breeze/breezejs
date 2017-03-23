@@ -26,7 +26,7 @@ function DataSource()
         //向服务器请求时需要添加的参数
         'requestProfile':{
             'offset':'offset', //数据偏移量
-            'rows'  :'rows'    //每次获取取多少行数据
+            'rows'  :'rows' //每次获取取多少行数据
         }
     };
     this.__items__=new Array();
@@ -87,7 +87,7 @@ DataSource.prototype.source=function source( resource )
         this.__items__.splice(0, this.__items__.length);
         this.__cached__.lastSegments=null;
         this.__cached__.loadSegments=new Array();
-        this.__nowNotification__=false;
+        this.__nowNotify__=false;
         //移除加载远程数据侦听事件
         if (this.__source__ instanceof Http)this.__source__.removeEventListener(HttpEvent.SUCCESS,success);
         return this;
@@ -125,7 +125,7 @@ DataSource.prototype.source=function source( resource )
 DataSource.prototype.__rows__= 20;
 
 /**
- * 每页显示数据行数
+ * 每页需要显示数据的行数
  * @param number rows
  * @returns {DataSource}
  */
@@ -142,62 +142,77 @@ DataSource.prototype.rows=function( rows )
 /**
  * @private
  */
-DataSource.prototype.__segments__ = 1;
+DataSource.prototype.__current__ = 1;
 
 /**
- * 获取设置当前分页数
+ * 获取当前分页数
  * @param num
  * @returns {*}
  */
-DataSource.prototype.segments=function segments()
+DataSource.prototype.current=function current()
 {
-    return this.__segments__;
+    return this.__current__;
 };
 
 /**
- * 总分页数
+ * 获取总分页数。
+ * 如果是一个远程数据源需要等到请求响应后才能得到正确的结果,否则返回 NaN
  * @return number
  */
-DataSource.prototype.totalSegment=function totalSegment()
+DataSource.prototype.total=function total()
 {
-    return this.count() >0 ? Math.max( Math.ceil( this.count() / this.rows() ) , 1) : NaN ;
+    return this.calculate() > 0 ? Math.max( Math.ceil( this.calculate() / this.rows() ) , 1) : NaN;
 };
 
 /**
  * @private
  */
-DataSource.prototype.__bufferSegment__= 3;
+DataSource.prototype.__buffer__= 3;
 
 /**
  * 最大缓冲几个分页数据。有效值为1-10
  * @param Number num
  * @returns {DataSource}
  */
-DataSource.prototype.bufferSegment=function bufferSegment( num )
+DataSource.prototype.maxBuffer=function maxBuffer(num )
 {
     if( num > 0 )
     {
-        this.__bufferSegment__ = Math.min(10, Math.max(num, 1) );
+        this.__buffer__ = Math.min(10, num);
         return this;
     }
-    return this.__bufferSegment__;
+    return this.__buffer__;
 };
 
-
 /**
- * @private
- */
-DataSource.prototype.__count__= 0;
-
-/**
- * 获取数据源的总数
+ * 获取实际数据源的总数
+ * 如果是一个远程数据源，每请求成功后都会更新这个值。
+ * 是否需要向远程数据源加载数据这个值非常关键。 if( 分段数 * 行数 < 总数 )do load...
  * @param number num
  * @returns {DataSource}
  */
 DataSource.prototype.count=function count()
 {
-    return Math.max(this.__count__ , this.__items__.length );
+    return this.__items__.length;
 };
+
+/**
+ * @private
+ */
+DataSource.prototype.__calculate__= 0;
+
+/**
+ * 预计数据源的总数
+ * 如果是一个远程数据源，每请求成功后都会更新这个值。
+ * 是否需要向远程数据源加载数据这个值非常关键。 if( 分段数 * 行数 < 预计总数 )do load...
+ * @param number num
+ * @returns {DataSource}
+ */
+DataSource.prototype.calculate=function calculate()
+{
+    return Math.max( this.__calculate__ , this.count() );
+}
+
 
 /**
  * @private
@@ -205,7 +220,7 @@ DataSource.prototype.count=function count()
 DataSource.prototype.__grep__=null;
 
 /**
- * 获取检索对象
+ * 获取数据检索对象
  * @returns {*|DataGrep}
  */
 DataSource.prototype.grep=function grep()
@@ -214,14 +229,15 @@ DataSource.prototype.grep=function grep()
 };
 
 /**
- * 从指定条件中查询
+ * 设置筛选数据的条件
  * @param condition
+ * @returns {DataSource}
  */
-DataSource.prototype.where=function where( filter )
+DataSource.prototype.filter=function filter( condition )
 {
-    if( typeof filter === "string" )
+    if( typeof condition === "string" )
     {
-        this.grep().filter( filter );
+        this.grep().filter( condition );
     }
     return this;
 };
@@ -232,23 +248,23 @@ DataSource.prototype.where=function where( filter )
 DataSource.prototype.__orderBy__={};
 
 /**
- * 对数据进行排序。只有数据源全部加载完成的情况下调用此方法才有效（本地数据源除外）。
+ * 对数据进行排序。
+ * 只有数据源全部加载完成的情况下调用此方法才有效（本地数据源除外）。
  * @param column 数据字段
  * @param type   排序类型
  */
 DataSource.prototype.orderBy=function(column,type)
 {
     var t = typeof column;
+    if( t === "undefined" )return this.__orderBy__;
     if( t === "object" )
     {
         this.__orderBy__= column;
-
     }else if( t === "string" )
     {
         this.__orderBy__[ column ] = type || DataArray.ASC;
-    }else{
-        return this.__orderBy__;
     }
+    DataArray.prototype.orderBy.call(this.__items__, this.__orderBy__);
     return this;
 };
 
@@ -261,7 +277,7 @@ DataSource.prototype.offsetAt=function( index )
 {
     var index = index>>0;
     if( isNaN(index) )return index;
-    return ( this.segments()-1 ) * this.rows() + index;
+    return ( this.current()-1 ) * this.rows() + index;
 };
 
 /**
@@ -272,134 +288,172 @@ DataSource.prototype.offsetAt=function( index )
  */
 DataSource.prototype.append=function(item,index)
 {
-    var e = new DataSourceEvent( DataSourceEvent.APPEND );
     index = typeof index === 'number' ? index : this.count();
     index = index < 0 ? index + this.count()+1 : index;
-    index = System.Math.min( this.count(), System.Math.max( index, 0 ) );
-    e.index = index;
-    e.newValue = item;
-    if( this.dispatchEvent( e ) )
+    index = Math.min( this.count(), Math.max( index, 0 ) );
+    item = System.instanceOf(item, Array) ? item : [item];
+    var ret = [];
+    var e;
+    for(var i=0;i<item.length;i++)
     {
-        var callback = e.invoke || function(){return true;}
-        if( callback(item, index) )
+        e = new DataSourceEvent( DataSourceEvent.CHANGED );
+        e.index = index+i;
+        e.newValue=item[i];
+        if( this.dispatchEvent( e ) )
         {
-            Array.prototype.splice.call(this.__items__, index,0,item)
-            e = new DataSourceEvent( DataSourceEvent.CHANGED );
-            e.index = index;
-            e.newValue=item;
-            this.dispatchEvent( e );
+            Array.prototype.splice.call(this.__items__, index+i, 0, item[i]);
+            ret.push( item[i] );
         }
-        return true;
     }
-    return false;
+    e = new DataSourceEvent( DataSourceEvent.APPEND );
+    e.index = index;
+    e.data  = ret;
+    this.dispatchEvent( e );
+    return ret.length;
 };
 
 /**
  * 移除指定索引下的数据项
- * @param filter
+ * @param condition
  * @returns {boolean}
  */
-DataSource.prototype.remove=function()
+DataSource.prototype.remove=function( condition )
 {
     var index;
-    var result = this.grep().execute();
-    var e = new DataSourceEvent( DataSourceEvent.REMOVE );
-    e.data=result;
-    if( this.dispatchEvent( e ) )
+    var result = this.grep().execute( condition );
+    var e;
+    var data=[];
+    for (var i = 0; i < result.length; i++)
     {
-        var callback = e.invoke || function(){return true;}
-        for (var i = 0; i < result.length; i++)
+        index = Array.prototype.indexOf.call(result,result[i]);
+        if (index >= 0)
         {
-            index = Array.prototype.indexOf.call(result,result[i]);
-            if (index >= 0)
+            e = new DataSourceEvent( DataSourceEvent.CHANGED );
+            e.index = index;
+            e.oldValue=result[i];
+            if( this.dispatchEvent( e ) )
             {
-                if( callback(result[i], index, i ) )
-                {
-                    Array.prototype.splice.call(this.__items__,index, 1);
-                    e = new DataSourceEvent( DataSourceEvent.CHANGED );
-                    e.index = index;
-                    e.oldValue=result[i];
-                    this.dispatchEvent( e );
-                }
+                data.push( Array.prototype.splice.call(this.__items__, index, 1) );
             }
         }
-        return true;
     }
-    return false;
+    if( data.length > 0 )
+    {
+        e = new DataSourceEvent(DataSourceEvent.REMOVE);
+        e.condition = condition;
+        e.data = data;
+        this.dispatchEvent(e);
+    }
+    return data.length;
 };
 
 /**
  * 修改数据
- * @param values 数据列对象 {'column':'newValue'}
+ * @param value 数据列对象 {'column':'newValue'}
+ * @param condition
  * @returns {boolean}
  */
-DataSource.prototype.update=function update( value )
+DataSource.prototype.update=function update( value, condition)
 {
-    var result = this.grep().execute(filter);
-    var e = new DataSourceEvent( DataSourceEvent.UPDATE );
-    var oldValue;
-    e.data=result;
-    e.newValue=value;
-    if( this.dispatchEvent( e ) )
+    var result = this.grep().execute( condition );
+    var data=[];
+    var flag=false;
+    var e;
+    for (var i = 0; i < result.length; i++)
     {
-        var callback = e.invoke || function(item, newValue)
+        flag=false;
+        var newValue = Object.merge({}, result[i] );
+        for(var c in value)
         {
-            var flag = false;
-            for(var c in newValue)
+            if ( typeof newValue[c] !== "undefined" && newValue[c] != value[c] )
             {
-                if ( typeof item[c] !== "undefined" && item[c] != newValue[c] )
-                {
-                    flag=true;
-                    item[c] = newValue[c];
-                }
-            }
-            return flag;
-        }
-        for (var i = 0; i < result.length; i++)
-        {
-            oldValue = Object.merge({}, result[i] );
-            if( callback( result[i], value, i ) )
-            {
-                e = new DataSourceEvent( DataSourceEvent.CHANGED );
-                e.data   = result[i];
-                e.newValue=value;
-                e.oldValue=oldValue;
-                this.dispatchEvent( e );
+                newValue[c] = value[c];
+                flag=true;
             }
         }
-        return true;
+        if( flag )
+        {
+            e = new DataSourceEvent(DataSourceEvent.CHANGED);
+            e.newValue = newValue;
+            e.oldValue = result[i];
+            if( this.dispatchEvent(e) )
+            {
+                Object.merge(result[i], newValue);
+                data.push( result[i] );
+            }
+        }
     }
-    return false;
+    e = new DataSourceEvent( DataSourceEvent.UPDATE );
+    e.data=data;
+    e.condition = condition;
+    e.newValue=value;
+    this.dispatchEvent( e );
+    return data.length;
 };
+
+/**
+ * 获取指定索引的元素
+ * @param index
+ * @returns {*}
+ */
+DataSource.prototype.itemByIndex=function itemByIndex( index )
+{
+    if( typeof index !== 'number' || index < 0 || index >= this.count() )return null;
+    return this.__items__[index] || null;
+}
+
+/**
+ * 获取指定元素的索引
+ * 如果不存在则返回 -1
+ * @param item
+ * @returns {Object}
+ */
+DataSource.prototype.indexByItem=function indexByItem( item )
+{
+    return this.__items__.indexOf(item);
+}
+
+/**
+ * 获取指定索引范围的元素
+ * @param start 开始索引
+ * @param end   结束索引
+ * @returns {Array}
+ */
+DataSource.prototype.range=function range( start, end )
+{
+    return this.__items__.slice(start, end);
+}
 
 DataSource.prototype.__loading__=false;
 DataSource.prototype.__end__=false;
-DataSource.prototype.__nowNotification__=false;
+DataSource.prototype.__nowNotify__=false;
 
 /**
  * 选择数据集
+ * @param Number segments 选择数据的段数, 默认是1
  * @returns {DataSource}
  */
-DataSource.prototype.select=function select( segments )
+DataSource.prototype.select=function select(page )
 {
     //如果有有未通知的数据则返回
-    if( this.__nowNotification__ )return this;
-    var total = this.totalSegment();
-    segments = segments > 0 ? segments : this.segments();
-    segments = Math.min( segments , isNaN(total)?segments:total );
-    this.__segments__ = segments;
+    if( this.__nowNotify__ )return this;
+    var total = this.total();
+    page = page > 0 ? page : this.current();
+    page = Math.min( page , isNaN(total)?page:total );
+    this.__current__ = page;
     var rows  = this.rows();
-    var start=( segments-1 ) * rows;
+    var start=( page-1 ) * rows;
     var cached = this.__cached__;
-    var index = this.isRemote() ? cached.loadSegments.indexOf(segments) : segments-1;
+    var index = !this.__end__ && this.isRemote() ? cached.loadSegments.indexOf(page) : page-1;
 
     //数据准备好后需要立即通知
-    this.__nowNotification__ =  true;
+    this.__nowNotify__ =  true;
+
     //需要等待加载数据
     if( this.isRemote() && index < 0 )
     {
         var event = new DataSourceEvent( DataSourceEvent.SELECT );
-        event.segments = segments;
+        event.current = page;
         event.offset = start;
         event.data=null;
         event.waiting = true;
@@ -407,7 +461,7 @@ DataSource.prototype.select=function select( segments )
 
     }else
     {
-        notification.call(this,segments,index*rows,rows);
+        nowNotify.call(this,page,index*rows,rows);
     }
     //加载数据
     if( this.isRemote() )doload.call(this);
@@ -455,13 +509,15 @@ function success(event)
 
     //先标记为没有数据可加载了
     this.__end__=true;
+
+    //标没有在加载
     this.__loading__=false;
 
     //如果当前有数据返回
     if( len > 0 )
     {
-        //总数据量
-        this.__count__ = total;
+        //预计总数据量
+        this.__calculate__ = total;
         var rows = this.rows();
         var cached = this.__cached__;
         //当前加载分页数的偏移量
@@ -469,7 +525,7 @@ function success(event)
         //合并数据项
         Array.prototype.splice.apply(this.__items__, [offset, 0].concat( data ) );
         //发送数据
-        if(this.__nowNotification__)notification.call(this, cached.lastSegments, offset, rows);
+        if(this.__nowNotify__)nowNotify.call(this, cached.lastSegments, offset, rows);
         //还有数据需要加载
         if( this.__items__.length < total && total > len )
         {
@@ -486,11 +542,11 @@ function success(event)
 function doload()
 {
     if( !this.isRemote() || this.__end__ || this.__loading__)return;
-    var page = this.segments();
+    var page = this.current();
     var cached= this.__cached__;
     var queue = cached.queues;
     var rows = this.rows();
-    var buffer = this.bufferSegment();
+    var buffer = this.maxBuffer();
     if( cached.loadSegments.indexOf(page) < 0 )
     {
         queue.unshift( page );
@@ -498,7 +554,7 @@ function doload()
     }else if( queue.length === 0 )
     {
         var p = 1;
-        var t = this.totalSegment();
+        var t = this.total();
         while( buffer > p )
         {
             var next = page+p;
@@ -523,7 +579,7 @@ function doload()
         var start = ( page - 1 ) * rows;
         var source = this.__source__;
         var options= this.__options__;
-        var param = Object.merge({}, options.param, {orderby: this.orderBy()});
+        var param = Object.merge({}, options.param);
         param[options.requestProfile.offset] = start;
         param[options.requestProfile.rows] = rows;
         source.load(options.url, param, options.method);
@@ -535,17 +591,17 @@ function doload()
  * 发送数据通知
  * @private
  */
-function notification(segments , start, rows )
+function nowNotify(current, start, rows )
 {
-    if( !this.__nowNotification__ )return;
+    if( this.__nowNotify__!==true )return;
     var result = this.grep().execute();
     var end = Math.min(start + rows, this.count() );
     var data  = result.slice(start, end);
     var event = new DataSourceEvent(DataSourceEvent.SELECT);
-    event.segments = segments;
+    event.current = current;
     event.offset = start;
     event.data = data;
     event.waiting = false;
-    this.__nowNotification__ = false;
+    this.__nowNotify__ = false;
     this.dispatchEvent(event);
 }

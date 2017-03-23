@@ -123,19 +123,22 @@ DataGrep.prototype.__filter__=null;
 
 /**
  * 获取设置过滤器
- * @param filter
+ * @param condition
  * @returns {*}
  */
-DataGrep.prototype.filter=function filter( filter )
+DataGrep.prototype.filter=function filter( condition )
 {
-    if( typeof filter === "undefined" )
+    if( typeof condition === "undefined" )
     {
         this.__filter__ = createFilter.call(this);
 
-    }else if ( typeof filter === 'string' && filter!='' )
+    }else if( typeof condition === 'function' )
     {
-        var old = filter;
-        filter = filter.replace(/(\w+)\s*([\>\<\=\!])/g,function(a,b,c)
+        this.__filter__ = condition;
+    }else if ( typeof condition === 'string' && condition!='' )
+    {
+        var old = condition;
+        condition = condition.replace(/(\w+)\s*([\>\<\=\!])/g,function(a, b, c)
         {
             c = c.length==1 && c=='=' ? '==' : c;
             return "arguments[0]['"+b+"']" + c;
@@ -174,9 +177,9 @@ DataGrep.prototype.filter=function filter( filter )
         {
             return b.toLowerCase()=='or' ? ' || ' : ' && ';
         });
-        this.__filter__=new Function('try{ return !!('+filter+') }catch(e){ throw new SyntaxError("is not grep:'+old+'");}');
+        this.__filter__=new Function('try{ return !!('+condition+') }catch(e){ throw new SyntaxError("is not grep:'+old+'");}');
 
-    }else if( filter === null )
+    }else if( condition === null )
     {
         this.__filter__=null;
     }
