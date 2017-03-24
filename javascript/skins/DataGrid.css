@@ -1,0 +1,19 @@
+.data-grid-skin
+{
+    border:0px;
+    cellpadding:0px;
+    cellspacing:0px;
+    border-collapse:collapsed;
+    border-spacing:0;
+    user-select:none;
+}
+.data-grid-skin > tbody > tr > td,.data-grid-skin > thead > tr th
+{
+    border:solid 1px #999999;
+    padding:0px 2px;
+}
+.data-grid-skin > thead > tr th
+{
+    background-color:#cccccc;
+    textAlign:center;
+}

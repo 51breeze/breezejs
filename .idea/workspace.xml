@@ -2,131 +2,90 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="013723df-740c-4cf5-b05e-cf938a968d79" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Bindable.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Breeze.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/ColorThemes.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Dictionary.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Element.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/EventDispatcher.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Fix-ie.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Http.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/LICENSE.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Variable.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/Make.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/core/globals.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/core/ruler.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/core/utils.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/descriptions/Browser.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/descriptions/globals.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/combine.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/define.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/fix/Array-ie-9.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/fix/Console-ie-9.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/fix/Event-ie-9.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/fix/Function-ie-9.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/fix/Object-ie-9.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/fix/System-ie-8.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/lib/Sizzle.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Animation.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Array.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Class.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Console.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/DataArray.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/DataGrep.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/DataRender.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/DataSource.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/DataSourceEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Document.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Element.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/ElementEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Error.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/EvalError.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Event.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/EventDispatcher.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Function.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Http.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/HttpEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Interface.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Iterator.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/JSON.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/KeyFrame.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/KeyboardEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Motions.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/MouseEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Object.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/PropertyEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/RangeError.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/ReferenceError.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Reflect.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/ScrollEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/StyleEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/StyleSheet.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Symbol.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/SyntaxError.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/System.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Template.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/TemplateEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/TimeLineEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Timeline.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/TouchDragEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/TouchEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/TouchPinchEvent.js.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/TouchSwipeEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Tween.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/TypeError.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/URIError.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/compiler/javascript/modules/Window.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/components/Component.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/components/DataGrid.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/components/DataRender.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/components/Editable.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/components/Layout.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/components/Modality.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/components/Pagination.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/components/Popup.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/components/Selection.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/components/SkinComponent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/components/SkinGroup.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/components/SkinObject.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/components/Template.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/events/BreezeEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/events/ElementEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/events/HttpEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/events/KeyboardEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/events/ModalityEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/events/MouseEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/events/PaginationEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/events/PopupEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/events/PropertyEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/events/SelectionEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/events/StyleEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/events/TemplateEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/events/TouchEvent.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/index.html" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/json.php" afterPath="" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/descriptions/browser.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/descriptions/globals.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/combine.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/components/Component.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/components/DataGrid.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/components/DataRender.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/components/Editable.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/components/Layout.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/components/Modality.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/components/Pagination.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/components/Popup.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/components/Selection.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/components/SkinComponent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/components/SkinGroup.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/components/SkinObject.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/components/Template.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/define.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/fix/Array-ie-9.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/fix/Console-ie-9.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/fix/Event-ie-9.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/fix/Function-ie-9.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/fix/Object-ie-9.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/fix/System-ie-8.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/lib/Sizzle.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Animation.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Array.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Bindable.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Class.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/ColorThemes.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Console.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/DataArray.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/DataGrep.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/DataRender.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/DataSource.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/DataSourceEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Dictionary.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Document.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Element.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/ElementEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Error.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/EvalError.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Event.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/EventDispatcher.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Function.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Http.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/HttpEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Interface.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Iterator.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/JSON.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/KeyFrame.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/KeyboardEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Motions.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/MouseEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Object.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/PropertyEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/RangeError.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/ReferenceError.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Reflect.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/ScrollEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/StyleEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/StyleSheet.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Symbol.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/SyntaxError.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/System.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Template.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/TemplateEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/TimeLineEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Timeline.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/TouchDragEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/TouchEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/TouchPinchEvent.js.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/TouchSwipeEvent.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Tween.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/TypeError.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/URIError.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/modules/Window.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/skins/DataGrid.css" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/javascript/skins/DataGridSkin.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/lib/globals.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/lib/ruler.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/lib/utils.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/make.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/package.json" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/lib/Main.as" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/cache/com_bjson" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/cache/com_djson" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/cache/lib_eventdispatcherjson" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/cache/mainjson" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/cache/testjson" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/com/Abs.as" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/com/B.as" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/com/D.as" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/com/DataArray.as" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/com/dispatcher.as" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/lib/EventDispatcher.as" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/lib/IProsess.as" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/lib/IProt.as" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/main.as" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/view/index.html" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/main.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/require-min.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/require.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/sizzle.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/testjs.js" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="breezejs.iws" />
@@ -156,11 +115,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="make.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="make.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/make.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="248">
-              <caret line="8" column="17" selection-start-line="8" selection-start-column="17" selection-end-line="8" selection-end-column="17" />
+            <state relative-caret-position="413">
+              <caret line="2134" column="19" selection-start-line="2134" selection-start-column="19" selection-end-line="2134" selection-end-column="19" />
               <folding />
             </state>
           </provider>
@@ -196,7 +155,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="combine.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="combine.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/javascript/combine.js">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="310">
@@ -301,9 +260,9 @@
         <option value="$PROJECT_DIR$/compiler/test.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/combine.js" />
         <option value="$PROJECT_DIR$/compiler/make.js" />
-        <option value="$PROJECT_DIR$/make.js" />
         <option value="$PROJECT_DIR$/package.json" />
         <option value="$PROJECT_DIR$/javascript/combine.js" />
+        <option value="$PROJECT_DIR$/make.js" />
       </list>
     </option>
   </component>
@@ -631,14 +590,7 @@
       <workItem from="1490234107444" duration="1216000" />
       <workItem from="1490270961419" duration="14265000" />
       <workItem from="1490322510318" duration="24301000" />
-      <workItem from="1490366104731" duration="140000" />
-    </task>
-    <task id="LOCAL-00216" summary="1.1">
-      <created>1483290265350</created>
-      <option name="number" value="00216" />
-      <option name="presentableId" value="LOCAL-00216" />
-      <option name="project" value="LOCAL" />
-      <updated>1483290265381</updated>
+      <workItem from="1490366104731" duration="279000" />
     </task>
     <task id="LOCAL-00217" summary="1.1">
       <created>1483368235128</created>
@@ -976,11 +928,18 @@
       <option name="project" value="LOCAL" />
       <updated>1490285557369</updated>
     </task>
-    <option name="localTasksCounter" value="265" />
+    <task id="LOCAL-00265" summary="1.1.2">
+      <created>1490366286407</created>
+      <option name="number" value="00265" />
+      <option name="presentableId" value="LOCAL-00265" />
+      <option name="project" value="LOCAL" />
+      <updated>1490366286407</updated>
+    </task>
+    <option name="localTasksCounter" value="266" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2360771000" />
+    <option name="totallyTimeSpent" value="2360910000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1043,7 +1002,8 @@
     <MESSAGE value="New changelist" />
     <MESSAGE value="1.1" />
     <MESSAGE value="1.1.1" />
-    <option name="LAST_COMMIT_MESSAGE" value="1.1.1" />
+    <MESSAGE value="1.1.2" />
+    <option name="LAST_COMMIT_MESSAGE" value="1.1.2" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1114,14 +1074,6 @@
     <entry file="file://$PROJECT_DIR$/compiler/javascript/combine.js" />
     <entry file="file://$PROJECT_DIR$/compiler/make.js" />
     <entry file="file://$PROJECT_DIR$/compiler/javascript/components/DataGrid.js" />
-    <entry file="file://$PROJECT_DIR$/make.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="248">
-          <caret line="8" column="17" selection-start-line="8" selection-start-column="17" selection-end-line="8" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/globals.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="372">
@@ -1166,6 +1118,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="310">
           <caret line="40" column="5" selection-start-line="40" selection-start-column="5" selection-end-line="40" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/make.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="413">
+          <caret line="2134" column="19" selection-start-line="2134" selection-start-column="19" selection-end-line="2134" selection-end-column="19" />
           <folding />
         </state>
       </provider>
