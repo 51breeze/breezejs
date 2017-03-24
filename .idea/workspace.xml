@@ -56,8 +56,18 @@
       <file leaf-file-name="README.md" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/README.md">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="644">
-              <caret line="30" column="5" selection-start-line="30" selection-start-column="5" selection-end-line="30" selection-end-column="5" />
+            <state relative-caret-position="372">
+              <caret line="12" column="3" selection-start-line="12" selection-start-column="3" selection-end-line="12" selection-end-column="3" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="main.as" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../www/lib/main.as">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="155">
+              <caret line="20" column="17" selection-start-line="20" selection-start-column="17" selection-end-line="20" selection-end-column="17" />
               <folding />
             </state>
           </provider>
@@ -140,7 +150,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/compiler/javascript/modules/KeyFrame.js" />
         <option value="$PROJECT_DIR$/compiler/javascript/modules/Timeline.js" />
         <option value="$PROJECT_DIR$/compiler/core/view.js" />
         <option value="$PROJECT_DIR$/lib/index.as" />
@@ -190,6 +199,7 @@
         <option value="$PROJECT_DIR$/package.json" />
         <option value="$PROJECT_DIR$/javascript/combine.js" />
         <option value="$PROJECT_DIR$/make.js" />
+        <option value="$PROJECT_DIR$/../www/lib/main.as" />
         <option value="$PROJECT_DIR$/README.md" />
       </list>
     </option>
@@ -269,6 +279,20 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="breezejs" />
+              <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="lib" />
               <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
             </PATH_ELEMENT>
           </PATH>
@@ -537,14 +561,7 @@
       <workItem from="1490234107444" duration="1216000" />
       <workItem from="1490270961419" duration="14265000" />
       <workItem from="1490322510318" duration="24301000" />
-      <workItem from="1490366104731" duration="4393000" />
-    </task>
-    <task id="LOCAL-00224" summary="1.1">
-      <created>1484408338159</created>
-      <option name="number" value="00224" />
-      <option name="presentableId" value="LOCAL-00224" />
-      <option name="project" value="LOCAL" />
-      <updated>1484408338178</updated>
+      <workItem from="1490366104731" duration="4694000" />
     </task>
     <task id="LOCAL-00225" summary="1.1">
       <created>1484558793154</created>
@@ -882,11 +899,18 @@
       <option name="project" value="LOCAL" />
       <updated>1490370229295</updated>
     </task>
-    <option name="localTasksCounter" value="273" />
+    <task id="LOCAL-00273" summary="1.1.2">
+      <created>1490370559271</created>
+      <option name="number" value="00273" />
+      <option name="presentableId" value="LOCAL-00273" />
+      <option name="project" value="LOCAL" />
+      <updated>1490370559271</updated>
+    </task>
+    <option name="localTasksCounter" value="274" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2365024000" />
+    <option name="totallyTimeSpent" value="2365325000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -963,7 +987,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/EventDispatcher.js" />
     <entry file="file://$PROJECT_DIR$/json.php" />
     <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Event.js" />
     <entry file="file://$PROJECT_DIR$/compiler/javascript/modules/Variable.js" />
@@ -1080,10 +1103,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../www/lib/main.as">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="155">
+          <caret line="20" column="17" selection-start-line="20" selection-start-column="17" selection-end-line="20" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="644">
-          <caret line="30" column="5" selection-start-line="30" selection-start-column="5" selection-end-line="30" selection-end-column="5" />
+        <state relative-caret-position="372">
+          <caret line="12" column="3" selection-start-line="12" selection-start-column="3" selection-end-line="12" selection-end-column="3" />
           <folding />
         </state>
       </provider>
