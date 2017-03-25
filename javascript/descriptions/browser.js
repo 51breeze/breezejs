@@ -134,6 +134,39 @@ var descriptor = {
             'property': {type: 'String', 'id': 'function',param:[]},
         }
     },
+    'StyleEvent':{
+        'id':'class', 'type':'StyleEvent','inherit':'PropertyEvent',
+        'static':{
+            "CHANGE":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "property":{'id':'const','type':'String'},
+            "newValue":{'id':'const','type':'Object'},
+            "oldValue":{'id':'const','type':'Object'},
+        }
+    },
+    'PropertyEvent':{
+        'id':'class', 'type':'PropertyEvent','inherit':'Event',
+        'static':{
+            "CHANGE":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "property":{'id':'const','type':'String'},
+            "newValue":{'id':'const','type':'Object'},
+            "oldValue":{'id':'const','type':'Object'},
+        }
+    },
+    'ElementEvent':{
+        'id':'class', 'type':'ElementEvent','inherit':'Event',
+        'static':{
+            "ADD":{'id':'const','type':'String'},
+            "REMOVE":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "parent":{'id':'const','type':'Object'},
+            "child":{'id':'const','type':'Object'},
+        }
+    },
     'MouseEvent':{
         'id':'class', 'type':'MouseEvent','inherit':'Event',
         'static':{
@@ -168,6 +201,133 @@ var descriptor = {
             "keycode":{'id':'const','type':'Number'},
         }
     },
+    'ScrollEvent':{
+        'id':'class', 'type':'ScrollEvent','inherit':'PropertyEvent',
+    },
+
+    'TouchEvent':{
+        'id':'class', 'type':'TouchEvent','inherit':'MouseEvent',
+        'static':{
+            "TOUCH_START":{'id':'const','type':'String'},
+            "TOUCH_MOVE":{'id':'const','type':'String'},
+            "TOUCH_END":{'id':'const','type':'String'},
+            "TOUCH_CANCEL":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "pageX":{'id':'const','type':'Number'},
+            "pageY":{'id':'const','type':'Number'},
+            "offsetX":{'id':'const','type':'Number'},
+            "offsetY":{'id':'const','type':'Number'},
+            "screenX":{'id':'const','type':'Number'},
+            "screenY":{'id':'const','type':'Number'},
+        }
+    },
+
+    'TouchDragEvent':{
+        'id':'class', 'type':'TouchDragEvent','inherit':'TouchEvent',
+        'static':{
+            "TOUCH_DRAG_START":{'id':'const','type':'String'},
+            "TOUCH_DRAG_MOVE":{'id':'const','type':'String'},
+            "TOUCH_DRAG_END":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "startX":{'id':'const','type':'Number'},
+            "startY":{'id':'const','type':'Number'},
+            "moveX":{'id':'const','type':'Number'},
+            "moveY":{'id':'const','type':'Number'},
+            "lastMoveX":{'id':'const','type':'Number'},
+            "lastMoveY":{'id':'const','type':'Number'},
+            "startDate":{'id':'const','type':'Number'},
+            "moveDate":{'id':'const','type':'Number'},
+            "velocity":{'id':'const','type':'Number'},
+            "held":{'id':'const','type':'Number'},
+        }
+    },
+
+    'TouchPinchEvent':{
+        'id':'class', 'type':'TouchPinchEvent','inherit':'TouchEvent',
+        'static':{
+            "TOUCH_PINCH_START":{'id':'const','type':'String'},
+            "TOUCH_PINCH_MOVE":{'id':'const','type':'String'},
+            "TOUCH_PINCH_END":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "startX":{'id':'const','type':'Number'},
+            "startY":{'id':'const','type':'Number'},
+            "moveX":{'id':'const','type':'Number'},
+            "moveY":{'id':'const','type':'Number'},
+            "scale":{'id':'const','type':'Number'},
+            "previousScale":{'id':'const','type':'Number'},
+            "moveDistance":{'id':'const','type':'Number'},
+            "startDistance":{'id':'const','type':'Number'},
+        }
+    },
+    'TouchSwipeEvent':{
+        'id':'class', 'type':'TouchSwipeEvent','inherit':'TouchEvent',
+        'static':{
+            "TOUCH_SWIPE_START":{'id':'const','type':'String'},
+            "TOUCH_SWIPE_MOVE":{'id':'const','type':'String'},
+            "TOUCH_SWIPE_END":{'id':'const','type':'String'},
+        },
+        'proto':{
+            "startX":{'id':'const','type':'Number'},
+            "startY":{'id':'const','type':'Number'},
+            "moveX":{'id':'const','type':'Number'},
+            "moveY":{'id':'const','type':'Number'},
+            "lastMoveX":{'id':'const','type':'Number'},
+            "lastMoveY":{'id':'const','type':'Number'},
+            "startDate":{'id':'const','type':'Number'},
+            "moveDate":{'id':'const','type':'Number'},
+            "velocity":{'id':'const','type':'Number'},
+            "vDistance":{'id':'const','type':'Number'},
+            "hDistance":{'id':'const','type':'Number'},
+            "swiped":{'id':'const','type':'Number'},
+        }
+    },
+    'DataArray':{
+        'id':'class',
+        'type':'DataArray',
+        'inherit':'Array',
+        'static':{
+            'DESC': {type: 'Number', id: 'const',value:'desc'},
+            'ASC': {type: 'Number', id: 'const',value:'asc'},
+        },
+        'proto':{
+            'orderBy':{'type':'DataArray','id':'function','param':['String','*']},
+            'sum':{'type':'Number','id':'function','param':[]},
+        },
+    },
+    'DataGrep':{
+        'id':'class',
+        'type':'DataSource',
+        'inherit':'DataArray',
+        'proto':{
+            'filter':{'type':'Function','id':'function','param':[]},
+            'clean':{'type':'DataSource','id':'function','param':[]},
+            'execute':{'type':'Array','id':'function','param':['*']},
+            'range':{'type':'DataGrep','id':'function','param':['String', 'Number', 'Number', '*']},
+            'index':{'type':'DataGrep','id':'function','param':['Number', 'Number', '*']},
+            'eq':{'type':'DataGrep','id':'function','param':['String','Object','*']},
+            'not':{'type':'DataGrep','id':'function','param':['String','Object','*']},
+            'gt':{'type':'DataGrep','id':'function','param':['String','Object','*']},
+            'lt':{'type':'DataGrep','id':'function','param':['String','Object','*']},
+            'egt':{'type':'DataGrep','id':'function','param':['String','Object','*']},
+            'elt':{'type':'DataGrep','id':'function','param':['String','Object','*']},
+            'like':{'type':'DataGrep','id':'function','param':['String','String','Object','*']},
+            'notLike':{'type':'DataGrep','id':'function','param':['String','String','Object','*']},
+        },
+    },
+    'Http':{
+        'id':'class',
+        'type':'Http',
+        'inherit':'EventDispatcher',
+        'proto':{
+            'abort':{'type':'Boolean','id':'function','param':[]},
+            'send':{'type':'Boolean','id':'function','param':['String', 'Object', 'Object']},
+            'setRequestHeader':{'type':'Http','id':'function','param':['String', 'Object']},
+            'getResponseHeader':{'type':'String','id':'function','param':['String']},
+        },
+    },
     'HttpEvent':{
         'id':'class', 'type':'HttpEvent','inherit':'Event',
         'static':{
@@ -183,6 +343,29 @@ var descriptor = {
             "url":{'id':'const','type':'String'},
         }
     },
+    'DataSource':{
+        'id':'class',
+        'type':'DataSource',
+        'inherit':'EventDispatcher',
+        'proto':{
+            'isRemote':{'type':'Boolean','id':'function','param':[]},
+            'options':{'type':'DataSource','id':'function','param':['Object']},
+            'source':{'type':'DataSource','id':'function','param':['*']},
+            'rows':{'type':'Number','id':'function','param':[]},
+            'maxBuffer':{'type':'Number','id':'function','param':['Number']},
+            'total':{'type':'Number','id':'function','param':[]},
+            'count':{'type':'Number','id':'function','param':[]},
+            'calculate':{'type':'Number','id':'function','param':[]},
+            'grep':{'type':'DataGrep','id':'function','param':[]},
+            'filter':{'type':'DataSource','id':'function','param':['Object']},
+            'current':{'type':'Number','id':'function','param':[]},
+            'offsetAt':{'type':'Number','id':'function','param':['Number']},
+            'append':{'type':'DataSource','id':'function','param':['Object']},
+            'remove':{'type':'DataSource','id':'function','param':[]},
+            'update':{'type':'Boolean','id':'function','param':['Object']},
+            'select':{'type':'DataSource','id':'function','param':[]},
+        },
+    },
     'DataSourceEvent':{
         'id':'class', 'type':'DataSourceEvent','inherit':'Event',
         'static':{
@@ -190,7 +373,6 @@ var descriptor = {
             "REMOVE":{'id':'const','type':'String'},
             "UPDATE":{'id':'const','type':'String'},
             "SELECT":{'id':'const','type':'String'},
-            "FETCH":{'id':'const','type':'String'},
             "CHANGED":{'id':'const','type':'String'},
         },
         'proto':{
@@ -198,44 +380,22 @@ var descriptor = {
             "index":{'id':'const','type':'Number'},
             "oldValue":{'id':'const','type':'Object'},
             "newValue":{'id':'const','type':'Object'},
-            "currentPage":{'id':'const','type':'Number'},
-            "totalPage":{'id':'const','type':'Number'},
-            "rows":{'id':'const','type':'Number'},
+            "current":{'id':'const','type':'Number'},
+            "condition":{'id':'const','type':'Object'},
             "offset":{'id':'const','type':'Number'},
             "waiting":{'id':'const','type':'Boolean'},
         }
     },
-    'StyleEvent':{
-        'id':'class', 'type':'StyleEvent','inherit':'PropertyEvent',
-        'static':{
-            "CHANGE":{'id':'const','type':'String'},
-        },
-        'proto':{
-            "property":{'id':'const','type':'String'},
-            "newValue":{'id':'const','type':'Object'},
-            "oldValue":{'id':'const','type':'Object'},
-        }
-    },
-    'PropertyEvent':{
-        'id':'class', 'type':'PropertyEvent','inherit':'Event',
-        'static':{
-            "CHANGE":{'id':'const','type':'String'},
-        },
-        'proto':{
-            "property":{'id':'const','type':'String'},
-            "newValue":{'id':'const','type':'Object'},
-            "oldValue":{'id':'const','type':'Object'},
-        }
-    },
-    'ElementEvent':{
-        'id':'class', 'type':'ElementEvent','inherit':'Event',
-        'static':{
-            "ADD":{'id':'const','type':'String'},
-            "REMOVE":{'id':'const','type':'String'},
-        },
-        'proto':{
-            "parent":{'id':'const','type':'Object'},
-            "child":{'id':'const','type':'Object'},
+    'Template': {
+        'type': 'Template',
+        'id': 'class',
+        'inherit':'EventDispatcher',
+        'proto': {
+            'viewport': {type: 'Object', 'id': 'function',param:['Object']},
+            'variable': {type: 'Object', 'id': 'function',param:['String']},
+            'view': {type: 'String', 'id': 'function',param:[]},
+            'fetch': {type: 'String', 'id': 'function',param:[]},
+            'display': {type: 'String', 'id': 'function',param:[]},
         }
     },
     'TemplateEvent':{
@@ -249,18 +409,6 @@ var descriptor = {
             "template":{'id':'const','type':'String'},
             "viewport":{'id':'const','type':'Element'},
             "html":{'id':'const','type':'String'},
-        }
-    },
-    'Template': {
-        'type': 'Template',
-        'id': 'class',
-        'inherit':'EventDispatcher',
-        'proto': {
-            'viewport': {type: 'Object', 'id': 'function',param:['Object']},
-            'variable': {type: 'Object', 'id': 'function',param:['String']},
-            'view': {type: 'String', 'id': 'function',param:[]},
-            'fetch': {type: 'String', 'id': 'function',param:[]},
-            'display': {type: 'String', 'id': 'function',param:[]},
         }
     },
     'DataRender': {

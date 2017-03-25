@@ -4,17 +4,17 @@
 * Copyright © 2015 BreezeJS All rights reserved.
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
-* @require Event,Object;
+* @require MouseEvent,Object;
 */
 function TouchEvent(type, bubbles, cancelable)
 {
     if( !(this instanceof TouchEvent) )return new TouchEvent(type, bubbles,cancelable);
-    Event.call(this, type, bubbles,cancelable );
+    MouseEvent.call(this, type, bubbles,cancelable );
     return this;
 };
 System.TouchEvent=TouchEvent;
 TouchEvent.prototype.constructor=TouchEvent ;
-TouchEvent.prototype=Object.create( Event.prototype );
+TouchEvent.prototype=Object.create( MouseEvent.prototype );
 TouchEvent.TOUCH_START='touchStart';
 TouchEvent.TOUCH_MOVE='touchMove';
 TouchEvent.TOUCH_END='touchEnd';
@@ -30,7 +30,6 @@ TouchEvent.setting = {
     }
 };
 
-
 //触摸拖动事件
 Event.registerEvent(function ( type ,target, originalEvent ) {
     switch ( type ){
@@ -39,6 +38,16 @@ Event.registerEvent(function ( type ,target, originalEvent ) {
         case TouchEvent.TOUCH_END :
         case TouchEvent.TOUCH_CANCEL :
             var event =new TouchEvent( type );
+            var touches=originalEvent.targetTouches;
+            if(touches && touches.length > 0)
+            {
+                event.pageX = touches[0].pageX;
+                event.pageY = touches[0].pageY;
+                event.offsetX = originalEvent.clientX;
+                event.offsetY = originalEvent.clientY;
+                event.screenX= originalEvent.screenX;
+                event.screenY= originalEvent.screenY;
+            }
             event.originalEvent = originalEvent;
             return event;
     }

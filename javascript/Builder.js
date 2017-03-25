@@ -116,7 +116,7 @@ function describe( str, name )
 
 const descriptions={};
 const mapname={'window':'Window','document':'Document','console':'Console'};
-const libContents=[];
+const vendorContents=[];
 
 /**
  * 获取指定的文件模块
@@ -129,10 +129,10 @@ function include(contents, name , filepath, fix, libs )
     loaded[name]=true;
     filepath = filepath ? filepath : rootPath + '/modules/' + name + '.js';
 
-    //加载的模块有依赖的库
+    //加载的模块有依赖的第三方库
     if( libs && libs[name] )
     {
-        libContents.push( utils.getContents( rootPath+'/lib/'+libs[name]) );
+        vendorContents.push( utils.getContents( rootPath+'/vendor/'+libs[name]) );
     }
 
     if( utils.isFileExists(filepath) )
@@ -141,8 +141,8 @@ function include(contents, name , filepath, fix, libs )
         var desc = describe( str, name);
         if( desc.requirements.indexOf('System') < 0 )desc.requirements.unshift('System');
         var map = desc.requirements.map(function (val) {
-            if( val === 'System' || val === 'system' )return 'System';
-            if( val==='Internal' || val==='internal' )return 'Internal';
+            if( val === 'System' )return 'System';
+            if( val==='Internal' )return 'Internal';
             if( val.substr(0,9) === 'Internal.')return val;
             if(val.charAt(0)!=='$')include(contents,val, null, fix,libs);
             return 'System.'+val;
@@ -159,6 +159,7 @@ function include(contents, name , filepath, fix, libs )
         }
         module.push('\n}('+map.join(',')+'));\n');
         str = module.join('');
+
         if( !isEmpty( desc.describe.static ) ){
             if( !descriptions[name] )descriptions[name]={};
             if(!descriptions[name].static)descriptions[name].static={};
@@ -170,6 +171,7 @@ function include(contents, name , filepath, fix, libs )
             if(!descriptions[name].proto)descriptions[name].proto={};
             utils.merge( descriptions[name].proto, desc.describe.proto);
         }
+
         contents.push( str );
         return true;
 
@@ -240,7 +242,7 @@ function combine( config , code, requirements )
     var fix = polyfill( config );
 
     /**
-     * 需要支持的库文件
+     * 需要支持的第三方库文件
      */
     var libs={};
     for(var prop in library)
@@ -270,7 +272,7 @@ function combine( config , code, requirements )
     /**
      * 模块定义器
      */
-    include(contents,'define' , rootPath+'/define.js', fix , libs);
+    include(contents,'Define' , rootPath+'/Define.js', fix , libs);
 
     /**
      * 模块描述
@@ -279,7 +281,7 @@ function combine( config , code, requirements )
     contents=parseInternal( contents.join(''), descriptions );
 
     //合并依赖库
-    contents=libContents.join(';\n')+contents;
+    contents=vendorContents.join(';\n')+contents;
 
     /**
      * 内置系统对象
