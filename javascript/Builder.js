@@ -237,7 +237,7 @@ const library={
  * @param config
  * @returns {string}
  */
-function combine( config , code, requirements )
+function builder(config , code, requirements )
 {
     var fix = polyfill( config );
 
@@ -269,15 +269,13 @@ function combine( config , code, requirements )
     }
     for(var prop in requires)include(contents, requires[prop] , null, fix , libs);
 
-    /**
-     * 模块定义器
-     */
-    include(contents,'Define' , rootPath+'/Define.js', fix , libs);
+    //模块定义器
+    include(contents, 'define' , rootPath+'/define.js', fix , libs);
 
-    /**
-     * 模块描述
-     */
-    contents.unshift('var descriptions = '+JSON.stringify(descriptions)+';\n');
+     //模块描述
+    //contents.unshift('var descriptions = '+JSON.stringify(descriptions)+';\n');
+
+    //解析内部访问权限
     contents=parseInternal( contents.join(''), descriptions );
 
     //合并依赖库
@@ -292,25 +290,23 @@ function combine( config , code, requirements )
     });
 
     return [
-        '(function(System,undefined){\n',
-        '"use strict";\n',
+        '(function(System,Internal,undefined){',
+        '"use strict";',
         //系统全局模块域
-        '(function(System,$'+globals.join(',$')+'){\n',
-        'var Internal={};\n',
+        '(function(System,$'+globals.join(',$')+'){',
          contents,
-        '}(System,' + g.join(',') + '));\n',
+        '}(System,' + g.join(',') + '));',
         //自定义模块域
-        '(function('+requires.join(',')+'){\n',
+        '(function('+requires.join(',')+'){',
         code,
-        'delete System.define;\n',
-        'var main=System.getDefinitionByName("'+config.main+'");\n',
-        'System.Reflect.construct(main);\n',
+        'var main=System.getDefinitionByName("'+config.main+'");',
+        'System.Reflect.construct(main);',
         '})('+requires.map(function (a){
             a = mapname[a] || a;
             if(a==='System')return a;
             return 'System.'+a;
-        }).join(',')+');\n',
-        '}({}));'
-    ].join('');
+        }).join(',')+');',
+        '}({},{}));'
+    ].join('\n');
 }
-module.exports = combine;
+module.exports = builder;

@@ -583,7 +583,7 @@ Internal.throwError = function throwError(type, msg, line, filename) {
 /**
  * 定义模块对象
  */
-(function (System,Internal,$get){
+;(function (System,Internal,$get){
 
     var modules={};
     function mathOperator( a, o, b)
@@ -825,12 +825,3 @@ Internal.throwError = function throwError(type, msg, line, filename) {
     }
 
 }(System,Internal,Internal.$get));
-
-
-
-
-
-
-
-
-
