@@ -227,16 +227,16 @@ function(EventDispatcher, TemplateEvent, Variable, Breeze )
     {
         flag = !!flag;
         var event = new TemplateEvent( TemplateEvent.START );
-        event.template =  this.view( view );
+        event.view =  this.view( view );
         event.variable = this.variable();
         event.viewport = this.viewport();
 
-        if(typeof event.template !== "string" )
+        if(typeof event.view !== "string" )
          throw new Error('invalid view');
 
         if( !this.hasEventListener( TemplateEvent.START ) || this.dispatchEvent( event ) )
         {
-            event.html=make.call(this, event.template , event.variable , this.__split__ );
+            event.html=make.call(this, event.view , event.variable , this.__split__ );
             event.type = TemplateEvent.DONE;
 
             if( this.hasEventListener( TemplateEvent.DONE ) && !this.dispatchEvent( event ) )

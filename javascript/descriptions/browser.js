@@ -386,8 +386,8 @@ var descriptor = {
             "waiting":{'id':'const','type':'Boolean'},
         }
     },
-    'Template': {
-        'type': 'Template',
+    'Render': {
+        'type': 'Render',
         'id': 'class',
         'inherit':'EventDispatcher',
         'proto': {
@@ -395,26 +395,27 @@ var descriptor = {
             'variable': {type: 'Object', 'id': 'function',param:['String']},
             'view': {type: 'String', 'id': 'function',param:[]},
             'fetch': {type: 'String', 'id': 'function',param:[]},
+            'setInvoke': {type: 'Render', 'id': 'function',param:['Function']},
             'display': {type: 'String', 'id': 'function',param:[]},
         }
     },
-    'TemplateEvent':{
-        'id':'class', 'type':'TemplateEvent','inherit':'Event',
+    'RenderEvent':{
+        'id':'class', 'type':'RenderEvent','inherit':'Event',
         'static':{
             "START":{'id':'const','type':'String'},
             "DONE":{'id':'const','type':'String'},
             "REFRESH":{'id':'const','type':'String'},
         },
         'proto':{
-            "template":{'id':'const','type':'String'},
+            "view":{'id':'const','type':'String'},
             "viewport":{'id':'const','type':'Element'},
             "html":{'id':'const','type':'String'},
         }
     },
-    'DataRender': {
-        'type': 'DataRender',
+    'DataGrid': {
+        'type': 'DataGrid',
         'id': 'class',
-        'inherit':'Template',
+        'inherit':'Render',
         'proto': {
             'dataSource': {type: 'DataSource', 'id': 'function',param:[]},
             'source': {type: 'DataRender', 'id': 'function',param:['Object']},

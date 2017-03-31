@@ -142,12 +142,12 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
                     if( this.skinGroup().validateSkin() )
                     {
                         skinObject.skins.links= this.skinGroup().getSkinGroup('container > '+SkinGroup.skinName('link') ).length;
-                        this.template().dispatchEvent( TemplateEvent.REFRESH );
+                        this.view().dispatchEvent( RenderEvent.REFRESH );
 
                     }else
                     {
                         skinObject.skins.links = Breeze.repeat(skinObject.skins.link,options.links );
-                        var tpl = this.template().viewport(this.skinGroup());
+                        var tpl = this.view().viewport(this.skinGroup());
                         var skin = options.themeSkin.replace(/\{(\w+)\}/g, function (all, name) { return skinObject.skins[name] || ''; });
                         tpl.render(skin);
                     }
@@ -166,13 +166,13 @@ define('components/Pagination',['./SkinComponent','./SkinGroup','../events/Pagin
     Pagination.prototype.__template__=null;
 
     /**
-     * @returns {*|Template}
+     * @returns {*|Render}
      */
-    Pagination.prototype.template=function()
+    Pagination.prototype.view=function()
     {
         if( this.__template__===null )
         {
-            this.__template__ = new Template().addEventListener( TemplateEvent.REFRESH ,function(event)
+            this.__template__ = new Render().addEventListener( RenderEvent.REFRESH ,function(event)
             {
                 var self = this;
                 var options =  this.options();

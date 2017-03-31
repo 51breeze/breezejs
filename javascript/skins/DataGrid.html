@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skin>
+    <style>
+        .data-grid-skin {
+            *border-collapse: collapse; /* IE7 and lower */
+            border-spacing: 0;
+            width: 100%;
+            border: solid #ccc 1px;
+            -moz-border-radius: 6px;
+            -webkit-border-radius: 6px;
+            border-radius: 6px;
+            -webkit-box-shadow: 0 1px 1px #ccc;
+            -moz-box-shadow: 0 1px 1px #ccc;
+            box-shadow: 0 1px 1px #ccc;
+        }
+        .data-grid-skin > tbody > tr:hover {
+            background: #fbf8e9;
+            -o-transition: all 0.1s ease-in-out;
+            -webkit-transition: all 0.1s ease-in-out;
+            -moz-transition: all 0.1s ease-in-out;
+            -ms-transition: all 0.1s ease-in-out;
+            transition: all 0.1s ease-in-out;
+        }
+        .data-grid-skin > tfoot > tr > td,
+        .data-grid-skin > tbody > tr > td,
+        .data-grid-skin > thead > tr > th {
+            border-left: 1px solid #ccc;
+            border-top: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+        .data-grid-skin > thead > tr > th {
+            background-color: #dce9f9;
+            background-image: -webkit-gradient(linear, left top, left bottom, from(#ebf3fc), to(#dce9f9));
+            background-image: -webkit-linear-gradient(top, #ebf3fc, #dce9f9);
+            background-image: -moz-linear-gradient(top, #ebf3fc, #dce9f9);
+            background-image: -ms-linear-gradient(top, #ebf3fc, #dce9f9);
+            background-image: -o-linear-gradient(top, #ebf3fc, #dce9f9);
+            background-image: linear-gradient(top, #ebf3fc, #dce9f9);
+            -webkit-box-shadow: 0 1px 0 rgba(255,255,255,.8) inset;
+            -moz-box-shadow:0 1px 0 rgba(255,255,255,.8) inset;
+            box-shadow: 0 1px 0 rgba(255,255,255,.8) inset;
+            border-top: none;
+            text-shadow: 0 1px 0 rgba(255,255,255,.5);
+        }
+
+        .data-grid-skin > tfoot > tr > td:first-child,
+        .data-grid-skin > tbody > tr > td:first-child,
+        .data-grid-skin > thead > tr > th:first-child {
+            border-left: none;
+        }
+        .data-grid-skin > thead > tr > th:first-child {
+            -moz-border-radius: 6px 0 0 0;
+            -webkit-border-radius: 6px 0 0 0;
+            border-radius: 6px 0 0 0;
+        }
+        .data-grid-skin > thead > tr > th:last-child {
+            -moz-border-radius: 0 6px 0 0;
+            -webkit-border-radius: 0 6px 0 0;
+            border-radius: 0 6px 0 0;
+        }
+
+        .data-grid-skin tr:last-child td:first-child {
+            -moz-border-radius: 0 0 0 6px;
+            -webkit-border-radius: 0 0 0 6px;
+            border-radius: 0 0 0 6px;
+        }
+        .data-grid-skin tr:last-child td:last-child {
+            -moz-border-radius: 0 0 6px 0;
+            -webkit-border-radius: 0 0 6px 0;
+            border-radius: 0 0 6px 0;
+        }
+    </style>
+
+    <![CDATA[
+
+        this.initize = function()
+        {
+             this.addChild();
+        }
+
+    ]]>
+
+    <table class="data-grid-skin" id="@container">
+        <thead id="@head">
+          <tr>
+              <:foreach name="columns" value="name" >
+                  <th>{$name}</th>
+              </:foreach>
+          </tr>
+        </thead>
+        <tbody id="@body">
+        <:foreach name="datalist" value="item">
+        <tr>
+            <:foreach name="item" value="val">
+                <td data-column="{$key}" >{$val}</td>
+            </:foreach>
+        </tr>
+        </:foreach>
+        </tbody>
+        <tfoot id="@foot"></tfoot>
+    </table>
+</skin>

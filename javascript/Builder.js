@@ -7,28 +7,6 @@ const rootPath =  utils.getResolvePath( __dirname );
  */
 const loaded = {};
 
-/*
- const xml = require('libxmljs');
-var xmlDoc = xml.parseXmlString( "<html><body id='body'>Hello</body></html>" );
-
-var title = new xml.Element( xmlDoc ,'title','the is title')
-
-title.attr({name:'yejun'})
-
-xmlDoc.root().addChild( title );
-
-//console.log( xmlDoc.root().childNodes()[1].attr('name').value() );
-
-
-console.log( xmlDoc.toString() )
-*/
-
-
-
-
-
-
-
 /**
  * 根据指定的版本加载对应的策略文件
  * @type {Array}
@@ -42,9 +20,9 @@ function polyfill( config )
         var is=true;
         var path = rootPath + '/fix/' + files[i];
         var info = utils.getFilenameByPath(path).split('-', 2);
-        if( config.compat && typeof config.compat === 'object' && config.compat.hasOwnProperty( info[1] ) )
+        if( config.compat_version && typeof config.compat_version === 'object' && config.compat_version.hasOwnProperty( info[1] ) )
         {
-            is = parseFloat( info[2] ) >= parseFloat( config.compat[ info[1] ] );
+            is = parseFloat( info[2] ) >= parseFloat( config.compat_version[ info[1] ] );
         }
         if(is){
             if( !(items[ info[0] ] instanceof Array) )items[ info[0] ]=[];
@@ -237,7 +215,7 @@ const library={
  * @param config
  * @returns {string}
  */
-function builder(config , code, requirements )
+function builder(config , code, requirements , skins )
 {
     var fix = polyfill( config );
 
@@ -247,11 +225,11 @@ function builder(config , code, requirements )
     var libs={};
     for(var prop in library)
     {
-        var is=config.compat==='*' || prop==='*';
+        var is=config.compat_version==='*' || prop==='*';
         var info = prop.split('-', 1);
-        if( !is && config.compat && typeof config.compat === 'object' && config.compat.hasOwnProperty( info[0] ) )
+        if( !is && config.compat_version && typeof config.compat_version === 'object' && config.compat_version.hasOwnProperty( info[0] ) )
         {
-            is = parseFloat( info[1] ) > parseFloat( config.compat[ info[0] ] );
+            is = parseFloat( info[1] ) > parseFloat( config.compat_version[ info[0] ] );
         }
         if(is)utils.merge(libs, library[prop] );
     }
@@ -298,6 +276,7 @@ function builder(config , code, requirements )
         '}(System,' + g.join(',') + '));',
         //自定义模块域
         '(function('+requires.join(',')+'){',
+        skins,
         code,
         'var main=System.getDefinitionByName("'+config.main+'");',
         'System.Reflect.construct(main);',

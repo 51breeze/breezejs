@@ -263,7 +263,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
 
     /**
      * 获取数据渲染器
-     * @returns {DataRender}
+     * @returns {DataGrid}
      */
     Selection.prototype.dataRender=function()
     {
@@ -312,7 +312,7 @@ function( SkinComponent ,DataRender,SkinGroup,SkinObject, BreezeEvent, TemplateE
     /**
      * 获取设置数据源
      * @public
-     * @returns {DataRender}
+     * @returns {DataGrid}
      */
     Selection.prototype.dataSource=function( source )
     {

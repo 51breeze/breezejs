@@ -32,14 +32,14 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
                 i = i.replace(/\s+/,'');
 
                 var td=tbody,th=thead;
-                if( plus['tbody'].template[ i ] )
+                if( plus['tbody'].view[ i ] )
                 {
-                    td = tbody.replace('{value}', plus['tbody'].template[ i ].join('\r\n') );
+                    td = tbody.replace('{value}', plus['tbody'].view[ i ].join('\r\n') );
                 }
 
-                if( plus['thead'] && plus['thead'].template[ i ] )
+                if( plus['thead'] && plus['thead'].view[ i ] )
                 {
-                    th = thead.replace('{value}', plus['thead'].template[ i ].join('\r\n') );
+                    th = thead.replace('{value}', plus['thead'].view[ i ].join('\r\n') );
                 }
 
                 var w= options.columnWidth[i] || options.columnWidth['*'] || 'auto';
@@ -106,10 +106,10 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
         {
             category = category || 'tbody';
             option = Utils.extend(defualt,option || {});
-            if( typeof option.template !== "string" )
+            if( typeof option.view !== "string" )
                throw new Error('invalid html template.');
 
-            option.template = option.template.replace(/(\<\s*(\w+))/ig, function (a, b, c) {
+            option.view = option.view.replace(/(\<\s*(\w+))/ig, function (a, b, c) {
 
                 var attr = ['data-action="'+ action +'"','data-column="{column}"'];
                 var tag = c.toLowerCase();
@@ -130,9 +130,9 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
                 return b +" "+attr.join(' ');
             });
 
-            var data = this.__plus__[category] || ( this.__plus__[category] = {'template': {}, 'option': {}} );
-            data.template[column] || ( data.template[column] = []);
-            data.template[column].push(option.template);
+            var data = this.__plus__[category] || ( this.__plus__[category] = {"view": {}, 'option': {}} );
+            data.view[column] || ( data.view[column] = []);
+            data.view[column].push(option.view);
             data.option[action] || (data.option[action]={});
             data.option[action][column] = option;
             return this;
@@ -225,7 +225,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
     {
         typeof option !== "function" || (option={'callback':option});
         this.plus('edit',column,{
-            'template':'<a style="cursor:pointer;">编辑</a>',
+            "view":'<a style="cursor:pointer;">编辑</a>',
             'callback':null,
             'eventType':MouseEvent.CLICK
         }, option );
@@ -242,7 +242,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
         typeof option !== "function" || (option={'callback':option});
         var dataSource=this.dataRender().dataSource();
         this.plus('remove',column,{
-            'template':'<a style="cursor:pointer;">删除</a>',
+            "view":'<a style="cursor:pointer;">删除</a>',
             'callback':function(event,option){
                  var index =dataSource.offsetAt( this.property('data-index') );
                  dataSource.remove('index('+index+')');
@@ -262,7 +262,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
         typeof option !== "function" || (option={'callback':option});
         var dataSource=this.dataRender().dataSource();
         this.plus('add',column,{
-            'template':'<a style="cursor:pointer;">增加</a>',
+            "view":'<a style="cursor:pointer;">增加</a>',
             'callback':function(event,option){
                  var index =dataSource.offsetAt( this.property('data-index') );
                  var item = dataSource[index];
@@ -315,7 +315,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
         var type = typeof option === "string" && option.toLowerCase()===DataArray.DESC  ? 'desc' : 'asc';
         dataSource.orderBy(column, type);
         this.plus('orderby',column,{
-            'template':'<span style="cursor:default;display:block;">{value}</span>',
+            "view":'<span style="cursor:default;display:block;">{value}</span>',
             'type':type,
             'callback':function(event,option)
             {
@@ -337,7 +337,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
     {
         this.plus('component',column,{
             'eventType':[MouseEvent.CLICK],
-            'template':'<input />',
+            "view":'<input />',
             'dataGroup':[],
             'property':{},
             'callback':null,
@@ -358,7 +358,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
         var source= this.dataSource();
         this.plus('editable',column,{
             'eventType':[MouseEvent.DBLCLICK],
-            'template':'<span>{value}</span>',
+            "view":'<span>{value}</span>',
             'callback':function(event,option){
 
                 var index =source.offsetAt( this.property('data-index') );
@@ -422,7 +422,7 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
         var dataRender = this.dataRender();
         if( skinGroup.validateSkin() )
         {
-            dataRender.dispatchEvent( new TemplateEvent( TemplateEvent.REFRESH ) );
+            dataRender.dispatchEvent( new RenderEvent( RenderEvent.REFRESH ) );
 
         }else
         {
@@ -574,17 +574,17 @@ define('components/DataGrid',['./SkinComponent'],function(window,undefined )
 
     /**
      * 获取数据渲染项
-     * @returns {DataRender}
+     * @returns {DataGrid}
      */
     DataGrid.prototype.dataRender=function()
     {
         if( this.__dataRender__===null )
         {
-            this.__dataRender__=new DataRender();
+            this.__dataRender__=new DataGrid();
             var plus = this.__plus__;
             var self = this;
 
-            this.__dataRender__.addEventListener(TemplateEvent.REFRESH, function (event)
+            this.__dataRender__.addEventListener(RenderEvent.REFRESH, function (event)
             {
                 Breeze('[data-action]', this.viewport() ).forEach(function (){
 

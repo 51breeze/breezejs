@@ -525,7 +525,6 @@ function success(event)
         //发送数据
         if(this.__nowNotify__ &&  Array.prototype.indexOf.call( cached.loadSegments, this.current() ) >=0 )
         {
-            console.log(  this.current() )
             nowNotify.call(this,this.current(), offset, rows);
         }
         //还有数据需要加载

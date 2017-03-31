@@ -7,7 +7,7 @@
  */
 function EventDispatcher( target )
 {
-    if( !(this instanceof EventDispatcher) )return new EventDispatcher( target );
+    if( !System.instanceOf(this,EventDispatcher) )return new EventDispatcher( target );
     if( target != null )
     {
         if( !(target.addEventListener || target.attachEvent || typeof target.onreadystatechange !== "undefined") )

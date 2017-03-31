@@ -64,14 +64,14 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
         }
 
         this.context = this[0];
-        this.__skin__={};
+        this.__skins__={};
         this.__skinObject__=null;
         this.__validated__=null;
     }
 
     SkinGroup.NAME='skin';
     SkinGroup.prototype=new Breeze();
-    SkinGroup.prototype.__skin__={};
+    SkinGroup.prototype.__skins__={};
     SkinGroup.prototype.__skinObject__=null;
     SkinGroup.prototype.__validated__=null;
     SkinGroup.prototype.constructor=SkinGroup;
@@ -272,15 +272,15 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
      */
     SkinGroup.prototype.getSkin=function( skinName )
     {
-        if( !this.__skin__[skinName] )
+        if( !this.__skins__[skinName] )
         {
             if( skinName === 'container' ) {
-                this.__skin__[skinName] = this[0];
+                this.__skins__[skinName] = this[0];
             }else {
-                this.__skin__[skinName] = getSkin(skinName, this.context );
+                this.__skins__[skinName] = getSkin(skinName, this.context );
             }
         }
-        return this.__skin__[skinName];
+        return this.__skins__[skinName];
     };
 
     /**
@@ -316,20 +316,20 @@ define('components/SkinGroup',['Breeze','./SkinObject'],function( Breeze, SkinOb
     SkinGroup.prototype.getSkinGroup=function( skinName , flag )
     {
         var key = 'group_'+skinName.replace(/\s+/,'');
-        if(  !this.__skin__[ key ] || flag===true )
+        if(  !this.__skins__[ key ] || flag===true )
         {
             skinName = skinName.replace(/(\w+)\s+?(\>?)\s+?(.*)/, function (all, a, b, c) {
                 return c === '' ? " return Breeze(this.getSkinAndValidate('" + a + "'))" : "Breeze('" + c + "',this.getSkinAndValidate('" + a + "'))";
             });
 
             try {
-                this.__skin__[key] = eval(skinName + ';');
+                this.__skins__[key] = eval(skinName + ';');
             }catch ( e )
             {
                 throw new Error('invalid skin name');
             }
         }
-        return this.__skin__[ key ].next(null);
+        return this.__skins__[ key ].next(null);
     };
     return SkinGroup;
 

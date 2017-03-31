@@ -4,19 +4,27 @@
  * @internal
  */
 var modules={};
-function define(name , descriptions , isInterface)
+var has = $Object.prototype.hasOwnProperty;
+function define(name , descriptions , isInterface )
 {
     if( typeof System[ name ] === "function" )return System[ name ];
     var classModule;
-    if( modules[ name ] && (modules[ name ] instanceof Class  || modules[ name ] instanceof Interface) )
+    var type = descriptions ? typeof descriptions : '';
+    if( has.call(modules,name) )
     {
         classModule = modules[ name ];
+
+    }else if( type === "function" )
+    {
+        classModule = modules[ name ] = descriptions;
+
     }else
     {
         if( isInterface )
         {
             classModule = modules[ name ] = new Interface();
             descriptions.constructor = null;
+            
         }else
         {
             classModule = modules[name] = new Class();
@@ -30,7 +38,7 @@ function define(name , descriptions , isInterface)
     }
 
     //如果是定义类或者接口
-    if( typeof descriptions === "object" )
+    if( type === "object" )
     {
         var construct = descriptions.constructor;
         for (var prop in descriptions )classModule[prop] = descriptions[prop];
@@ -257,7 +265,7 @@ System.getQualifiedClassName = function getQualifiedClassName(value)
     var str = (value.constructor || value).toString();
     str = str.substr(0, str.indexOf('(') );
     var name = str.substr(str.lastIndexOf(' ')+1);
-    if( !System[name] )Internal.throwError('reference', '"'+name+'" type does not exist');
+    if( !System[name] && !modules[name] )Internal.throwError('reference', '"'+name+'" type does not exist');
     return name;
 }
 /**
