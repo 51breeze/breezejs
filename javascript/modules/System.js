@@ -286,7 +286,7 @@ System.trim =function trim(str) {
  * @param step 每次的步增数，默认为1
  */
 System.range =function range(low, high, step) {
-    var obj = new System.Array();
+    var obj = [];
     if (!System.isNumber(step))step = 1;
     step = System.Math.max(step, 1);
     for (; low < high; low += step)obj.push(low);

@@ -13,13 +13,11 @@ function RenderEvent(type, bubbles, cancelable  ){
 }
 RenderEvent.prototype= Object.create(Event.prototype);
 RenderEvent.prototype.view=null;
-RenderEvent.prototype.viewport=null;
 RenderEvent.prototype.variable=null;
 RenderEvent.prototype.html='';
 RenderEvent.prototype.constructor=RenderEvent;
 RenderEvent.START='templateStart';
 RenderEvent.DONE='templateDone';
-RenderEvent.REFRESH='templateRefresh';
 System.RenderEvent=RenderEvent;
 
 //触摸拖动事件
@@ -29,7 +27,6 @@ Event.registerEvent(function ( type ,target, originalEvent )
     switch ( type ){
         case RenderEvent.START :
         case RenderEvent.DONE :
-        case RenderEvent.REFRESH :
             var event =new RenderEvent( type );
             event.originalEvent = originalEvent;
             return event;

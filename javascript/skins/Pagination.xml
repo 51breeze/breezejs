@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skin>
+  <ul id="@container">
+      <li class="first">{$first}</li>
+      <li class="prev">{$prev}</li>
+          <li template="repeat" min="1" max="6">
+              <a href="{:url($value+$offset)}">
+                  {$value+$offset}
+              </a>
+          </li>
+      <li class="next">{$next}</li>
+      <li class="last">{$last}</li>
+  </ul>
+</skin>

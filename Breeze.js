@@ -13,6 +13,8 @@ const config = {
     'compat_version': '*',      //要兼容的平台 {'ie':8,'chrome':32.5}
     'build_path':'../working',
     'project_path':'./',
+    'skin_file_suffix':'.html',
+    'project_file_suffix':'.as',
 };
 
 // 合并传入的参数

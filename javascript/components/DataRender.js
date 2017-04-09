@@ -47,7 +47,7 @@ function(Template, DataSource, DataSourceEvent, Pagination)
                 var view = this.view();
                 if( typeof view !== "string" )
                    throw new Error('invalid view');
-                this.variable( this.dataProfile(), data ).render( view );
+                this.variable( this.dataProfile(), data ).getRender( view );
 
             },false,0,this);
         }

@@ -641,7 +641,6 @@ Element.prototype.hasProperty=function hasProperty(prop )
     return typeof elem.hasAttributes === 'function' ? elem.hasAttributes( prop ) : !!elem[prop];
 };
 
-
 /**
  * 获取设置数据对象,支持带'.'操作
  * @param name

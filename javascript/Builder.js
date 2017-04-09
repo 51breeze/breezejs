@@ -105,7 +105,12 @@ function include(contents, name , filepath, fix, libs )
     name = mapname[name] || name;
     if( loaded[name] === true )return;
     loaded[name]=true;
-    filepath = filepath ? filepath : rootPath + '/modules/' + name + '.js';
+
+    if( !filepath )
+    {
+        filepath = rootPath + '/modules/' + name + '.js';
+        if( !utils.isFileExists(filepath) )filepath = rootPath + '/components/' + name + '.js';
+    }
 
     //加载的模块有依赖的第三方库
     if( libs && libs[name] )

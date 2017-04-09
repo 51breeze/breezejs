@@ -108,8 +108,8 @@ function make(template, variable)
 var _options={
     'left':"<\\?",
     'right':"\\?>",
-    'shortLeft':"\\{\\$",
-    'shortRight':"\\}"
+    'shortLeft':"\\{(?!=\\{)",
+    'shortRight':"\\}(?!=\\})"
 };
 
 /**
@@ -117,7 +117,7 @@ var _options={
  * @param target
  * @returns {Render}
  * @constructor
- * @require RegExp,Object,EventDispatcher,Element,RenderEvent
+ * @require RegExp,Object,EventDispatcher,RenderEvent
  */
 function Render( options )
 {
@@ -134,28 +134,7 @@ function Render( options )
 Render.prototype = Object.create(EventDispatcher.prototype);
 Render.prototype.constructor = Render;
 Render.prototype.__variable__=null;
-Render.prototype.__viewport__=null;
 Render.prototype.__split__=  new RegExp(_options.left+'(.*?)'+_options.right+'|'+_options.shortLeft+'(.*?)'+_options.shortRight,'gi');
-
-/**
- * @param container
- * @param context
- * @returns {Render|Element}
- * @public
- */
-Render.prototype.viewport=function viewport(container , context )
-{
-    if( typeof container === "undefined" )
-        return this.__viewport__;
-    if( !(container instanceof Element) )container = new Element( container , context );
-    if( container.length > 0 )
-    {
-        this.__viewport__=container;
-        return this;
-    }
-    throw new Error('Invalid viewport');
-};
-
 
 /**
  * 设置变量数据
@@ -208,31 +187,27 @@ Render.prototype.__view__='';
  * @param view
  * @returns {*}
  */
-Render.prototype.view=function view( html )
+Render.prototype.view=function view( val )
 {
-    var t =  typeof html;
+    var t =  typeof val;
     if( t !== "undefined" )
     {
-        if( t !== "string" )Internal.throwError('type','view is not string');
-        this.__view__= html ;
+        if( t !== "string" )throw new TypeError("Invalid view")
+        this.__view__= val ;
     }
     return this.__view__;
 };
 
 /**
- * 解析模板视图并返回
- * @param template
- * @param data
- * @param flag
+ * 解析模板视图并添加到视口容器中
+ * @param view
  * @returns {*}
  */
 Render.prototype.fetch=function fetch( view )
 {
     var event = new RenderEvent( RenderEvent.START );
-    event.view = Render.prototype.view.call(this, view);
-    event.viewport = this.viewport();
+    event.view = this.view(view);
     event.variable = this.variable();
-    event.variable.forEach = this.__invoke__;
     if( this.dispatchEvent( event ) )
     {
         event.html = make.call(this, event.view , event.variable );
@@ -240,23 +215,7 @@ Render.prototype.fetch=function fetch( view )
         this.dispatchEvent( event );
         return event.html;
     }
-}
-
-/**
- * 解析模板视图并添加到视口容器中
- * @param template
- * @param data
- * @param flag
- * @returns {*}
- */
-Render.prototype.display=function display(view )
-{
-    var html = this.fetch( view );
-    var viewport = this.viewport();
-    viewport.html( html );
-    var event = new RenderEvent( RenderEvent.REFRESH );
-    event.viewport = viewport;
-    return this.dispatchEvent( event );
+    return '';
 };
 
 /**

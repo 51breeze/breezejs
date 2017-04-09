@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skin>
+    <style>
+        .pagination{
+            width: 100%;
+            height: auto;
+        }
+
+        .pagination > li{
+            list-style: none;
+            display: inline-block;
+            width: auto;
+            height: auto;
+            margin: 0px 2px;
+            padding: 3px;
+        }
+
+        .pagination > li >a{
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+
+  <ul class="pagination">
+      <li class="first">
+          <a href="{url(first)}">第一页</a>
+      </li>
+      <li class="prev">
+          <a href="{url(prev)}">上一页</a>
+      </li>
+      <:foreach name="link" value="val">
+          <li class="link">
+              <a href="{url(val)}" >{val}</a>
+          </li>
+      </:foreach>
+      <li class="next">
+          <a href="{url(next)}">下一页</a>
+      </li>
+      <li class="last">
+          <a href="{url(last)}">最后页</a>
+      </li>
+  </ul>
+</skin>
