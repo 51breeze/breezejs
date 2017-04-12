@@ -155,8 +155,9 @@ Pagination.prototype.link=function link( num )
  * 初始化皮肤
  * @returns {String}
  */
-Pagination.prototype.skinInitializing=function skinInitializing()
+Pagination.prototype.skinInitializing=function skinInitializing( parentSkin )
 {
+    SkinComponent.prototype.skinInitializing.call(this, parentSkin );
     var render = this.getRender();
     var current = this.current();
     var totalPage = this.totalPage();
@@ -176,6 +177,9 @@ Pagination.prototype.skinInitializing=function skinInitializing()
     return render.fetch( this.getSkin().skinInitializing().toString() );
 }
 
+/**
+ * 皮肤初始化完成
+ */
 Pagination.prototype.skinInitialized=function skinInitialized()
 {
     if( !this.getViewport() )
@@ -183,6 +187,7 @@ Pagination.prototype.skinInitialized=function skinInitialized()
          var ele =  new Element('#'+this.getSkin().attr('id') );
          this.setViewport( new Element( ele[0].parentNode ) );
     }
+    return SkinComponent.prototype.skinInitialized.call(this);
 }
 
 /**

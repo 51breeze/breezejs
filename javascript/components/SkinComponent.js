@@ -32,9 +32,9 @@ SkinComponent.prototype.constructor=SkinComponent;
  * 初始化皮肤。此阶段为编译阶段将皮肤转化成html
  * 此函数无需要手动调用，皮肤在初始化时会自动调用
  */
-SkinComponent.prototype.skinInitializing=function skinInitializing()
+SkinComponent.prototype.skinInitializing=function skinInitializing( parentSkin )
 {
-    return this.getSkin().skinInitializing();
+    return this.getSkin().skinInitializing( parentSkin );
 }
 
 /**
@@ -43,43 +43,8 @@ SkinComponent.prototype.skinInitializing=function skinInitializing()
  */
 SkinComponent.prototype.skinInitialized=function skinInitialized()
 {
-    var e = new SkinEvent( SkinEvent.INITIALIZED );
-    this.getSkin().dispatchEvent( e );
+    return this.getSkin().skinInitialized();
 }
-
-/**
- * 获取/设置宽度
- * @param value
- * @returns {*}
- * @public
- */
-SkinComponent.prototype.width=function(value)
-{
-    /* var viewport = this.viewport();
-     if( typeof value === "number" )
-     {
-     viewport.width( value );
-     return this;
-     }
-     return viewport.width();*/
-};
-
-/**
- * 获取/设置高度
- * @param value
- * @returns {*}
- * @public
- */
-SkinComponent.prototype.height=function(value)
-{
-    /*var viewport = this.viewport();
-     if(  typeof value === "number" )
-     {
-     viewport.height( value );
-     return this;
-     }
-     return viewport.height();*/
-};
 
 /**
  * @private
@@ -94,7 +59,7 @@ SkinComponent.prototype.getSkin=function getSkin()
 {
     if( this.__skin__ === null )
     {
-        this.__skin__ = new System.Skin();
+        this.__skin__ = new Skin();
     }
     return this.__skin__;
 };
@@ -108,7 +73,7 @@ SkinComponent.prototype.setSkin=function setSkin( skinObj )
 {
     if( !System.is(skinObj,System.Skin) )
     {
-        throw new TypeError('is not an skin type');
+        throw new TypeError('is not an skin object');
     }
     this.__skin__ = skinObj;
     return this;
@@ -181,7 +146,8 @@ SkinComponent.prototype.display=function display()
 {
     var viewport = this.getViewport();
     if( !viewport )throw new TypeError('viewport not is null');
-    viewport.html( this.skinInitializing().toString() );
+    var skinContent = this.skinInitializing().toString();
+    viewport.html( skinContent );
     this.skinInitialized();
     return this;
 };

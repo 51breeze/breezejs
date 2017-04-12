@@ -16,6 +16,8 @@ function SkinEvent( type, bubbles,cancelable )
 System.SkinEvent = SkinEvent;
 SkinEvent.prototype=Object.create( Event.prototype );
 SkinEvent.prototype.viewport=null;
+SkinEvent.prototype.skinContent=null;
+SkinEvent.prototype.parent=null;
 SkinEvent.prototype.constructor=SkinEvent;
 SkinEvent.INITIALIZING='skinInitializing';
 SkinEvent.INITIALIZED='skinInitialized';
