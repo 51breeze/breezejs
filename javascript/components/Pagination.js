@@ -155,9 +155,9 @@ Pagination.prototype.link=function link( num )
  * 初始化皮肤
  * @returns {String}
  */
-Pagination.prototype.skinInitializing=function skinInitializing( parentSkin )
+Pagination.prototype.skinInitialize=function skinInitialize( event )
 {
-    SkinComponent.prototype.skinInitializing.call(this, parentSkin );
+    SkinComponent.prototype.skinInitialize.call(this, event);
     var render = this.getRender();
     var current = this.current();
     var totalPage = this.totalPage();
@@ -174,20 +174,24 @@ Pagination.prototype.skinInitializing=function skinInitializing( parentSkin )
     render.variable('next', Math.min(current+1,totalPage) );
     render.variable('last', totalPage );
     render.variable('link', offset>=0 ? System.range(1+offset, link+offset+1 , 1) : [1] );
-    return render.fetch( this.getSkin().skinInitializing().toString() );
+    return render.fetch( this.getSkin().toString() );
 }
 
 /**
- * 皮肤初始化完成
+ * 组件初始化完成
  */
-Pagination.prototype.skinInitialized=function skinInitialized()
+Pagination.prototype.initialized=function initialized()
 {
-    if( !this.getViewport() )
+    if( !SkinComponent.prototype.initialized.call(this) )
     {
-         var ele =  new Element('#'+this.getSkin().attr('id') );
-         this.setViewport( new Element( ele[0].parentNode ) );
+        if( !this.getViewport() )
+        {
+            var ele = new Element('#' + this.getSkin().attr('id'));
+            this.setViewport(new Element(ele[0].parentNode));
+        }
+        return false;
     }
-    return SkinComponent.prototype.skinInitialized.call(this);
+    return true;
 }
 
 /**

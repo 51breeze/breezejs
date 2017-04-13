@@ -1,104 +1,61 @@
 /**
  * 皮肤类
  * @constructor
- * @require Object,Class,TypeError,EventDispatcher,Render,Math
+ * @require Object,TypeError,Math,Component,SkinEvent
  */
 function Skin( skinObject )
 {
     if( skinObject+"" === "[object Object]")
     {
-        this.__name__ = skinObject.name;
-        this.__attr__ = skinObject.attr;
-        this.__children__ = skinObject.children;
-        this.__parent__ = null;
+        this.__skin__=skinObject;
     }
-    this.__attr__.id = System.uid();
-    if( this.__name__ === 'skin' )this.__name__='div';
-    if( this.__attr__.nodename && typeof this.__attr__.nodename === "string" )this.__name__=this.__attr__.nodename;
-    EventDispatcher.call(this);
+    this.__skin__.attr.id = System.uid();
+    if( this.__skin__.name === 'skin' )this.__skin__.name='div';
+    if( this.__skin__.attr.nodename && typeof this.__skin__.attr.nodename === "string" )
+    {
+        this.__skin__.name=this.__skin__.attr.nodename;
+        delete this.__skin__.attr.nodename;
+    }
+    Component.call(this);
 }
 
-Skin.prototype = Object.create( EventDispatcher.prototype );
+Skin.prototype = Object.create( Component.prototype );
 Skin.prototype.constructor = Skin;
-Skin.prototype.__name__= 'div';
-Skin.prototype.__attr__= {};
-Skin.prototype.__children__= [];
-Skin.prototype.__parent__= null;
+Skin.prototype.__skin__= {
+    "name": 'div',
+    "attr": {},
+    "children": []
+};
 
 /**
- * 初始化皮肤。此阶段为编译阶段将皮肤转化成html
- * 此函数无需要手动调用，皮肤在初始化时会自动调用
+ * @inherit
+ * @returns {boolean}
  */
-Skin.prototype.skinInitializing=function skinInitializing( parentSkin )
+Skin.prototype.initialized=function initialized()
 {
-    if( parentSkin )this.__parent__=parentSkin;
-    return this;
-}
+    if( !Component.prototype.initialized.call(this) )
+    {
+        __initialized(this.__skin__.children, this);
+        return false;
+    }
+    return true;
+};
 
 /**
  * @private
  */
-Skin.prototype.__skinInitialized__=false;
-
-/**
- * 初始化完成。此阶段为皮肤已经完成准备工作并已添加到document中
- * 此函数无需要手动调用，皮肤在初始化完成后会自动调用
- */
-Skin.prototype.skinInitialized=function skinInitialized()
+function __initialized(children, parent)
 {
-    if( this.__skinInitialized__ === false )
+    for ( var i in children )
     {
-        var children = __getSkinChildren( this.__children__ );
-        var num = 0;
-        if (children.length > 0)
+        if ( System.is(children[i], Component ) )
         {
-            for (var i in children)
-            {
-                num++;
-                if( children[i].skinInitialized() )num--;
-            }
-        }
-        if (num === 0)
+            children[i].initialized();
+        }else if( children[i]+"" === '[object Object]')
         {
-            this.__skinInitialized__ = true;
-            if( this.parent() ){
-
-                if( typeof this.parent().skinInitialized !== "function"  )
-                {
-                    console.log( this.parent() )
-
-                }
-
-                this.parent().skinInitialized();
-            }
+            __initialized( children[i].children, parent);
         }
     }
-    return this.__skinInitialized__;
-}
-
-/**
- * @param children
- * @returns {Array}
- * @private
- */
-function __getSkinChildren( children )
-{
-    var list=[];
-    if (children.length > 0)
-    {
-        for ( var i in children )
-        {
-            if (children[i].skinInitialized && typeof children[i].skinInitialized === "function")
-            {
-                list.push( children[i] );
-
-            }else if( children[i]+"" === '[object Object]')
-            {
-                list = list.concat( __getSkinChildren( children[i].children ) );
-            }
-        }
-    }
-    return list;
 }
 
 /**
@@ -113,20 +70,12 @@ Skin.prototype.attr = function attr(name, val)
     {
         if( typeof val !== "undefined" )
         {
-            this.__attr__[name]=val;
+            this.__skin__.attr[name]=val;
             return this;
         }
-        return this.__attr__[name];
+        return this.__skin__.attr[name];
     }
-    return this.__attr__;
-}
-
-/**
- * @returns {null}
- */
-Skin.prototype.parent=function parent()
-{
-    return this.__parent__;
+    return this.__skin__.attr;
 }
 
 /**
@@ -136,7 +85,7 @@ Skin.prototype.parent=function parent()
  */
 Skin.prototype.getChildById = function getChildById( id )
 {
-    var children = this.__children__;
+    var children = this.__skin__.children;
     if( Object.prototype.hasOwnProperty.call(this,id) )
     {
         return this[id];
@@ -158,7 +107,7 @@ Skin.prototype.getChildById = function getChildById( id )
  */
 Skin.prototype.getChildByName = function getChildByName( name )
 {
-    var children = this.__children__;
+    var children =  this.__skin__.children;
     for( var i in children )
     {
         if( children[i].name === name )
@@ -176,7 +125,7 @@ Skin.prototype.getChildByName = function getChildByName( name )
  */
 Skin.prototype.getChildAllByName = function getChildAllByName( name )
 {
-    var children = this.__children__;
+    var children =  this.__skin__.children;
     var items=[];
     for( var i in children )
     {
@@ -204,10 +153,11 @@ Skin.prototype.addChild = function addChild( child )
  */
 Skin.prototype.addChildAt = function addChildAt( child , index )
 {
-   var len = this.__children__.length;
+   var children = this.__skin__.children;
+   var len =  children.length;
    index = Math.min(len, Math.max( index < 0 ? len+index : index , 0) );
    if( !System.instanceOf(child, Skin) )throw new Error("Invalid child");
-   this.__children__.splice(index,0,child);
+    children.splice(index,0,child);
    return child;
 }
 
@@ -217,7 +167,7 @@ Skin.prototype.addChildAt = function addChildAt( child , index )
  */
 Skin.prototype.removeChild = function removeChild( child )
 {
-    return this.removeChildAt( this.__children__.indexOf( child ) );
+    return this.removeChildAt(this.__skin__.children.indexOf( child ) );
 }
 
 /**
@@ -226,16 +176,17 @@ Skin.prototype.removeChild = function removeChild( child )
  */
 Skin.prototype.removeChildAt = function removeChildAt( index )
 {
-    if( System.isNaN(index) || (index < 0 || index >= this.__children__.length) )
+    var children = this.__skin__.children;
+    if( System.isNaN(index) || (index < 0 || index >= children.length) )
     {
         throw new Error("Invalid index");
     }
-    var child = this.__children__[index];
+    var child = children[index];
     if( !child || child.name==null )
     {
          throw new Error("is not exists of child element");
     }
-    this.__children__.splice(index,1);
+    children.splice(index,1);
     return child;
 }
 
@@ -244,7 +195,7 @@ Skin.prototype.removeChildAt = function removeChildAt( index )
  */
 Skin.prototype.toString=function toString()
 {
-    return __toString( this, false, this );
+    return __toString(this.__skin__, this );
 }
 
 /**
@@ -303,44 +254,33 @@ var template_syntax={
 }
 
 //private
-function __toString( skin , is_object, skinObj )
+function __toString(skin, parent)
 {
-    if( typeof skin === "string" )return skin;
-    var tag;
-    var children;
-    var attr;
+    var tag = skin.name;
+    var attr = skin.attr;
+    var children = skin.children;
     var content='';
-    if( is_object )
-    {
-        tag = skin.name;
-        children = skin.children;
-        attr = skin.attr;
-
-    }else
-    {
-        tag = skin.__name__;
-        children = skin.__children__;
-        attr = skin.__attr__;
-    }
-
     for(var c in children )
     {
         var child = children[c];
-        if( child.skinInitializing && typeof child.skinInitializing === "function" )
+        if( System.is(child, Component) )
         {
-            var val = child.skinInitializing( skinObj );
-            content += val.toString();
+            var event = new SkinEvent( SkinEvent.INITIALIZING );
+            event.viewport = skin;
+            event.parent = parent;
+            event.skinContent=null;
+            child.dispatchEvent( event );
+            content += ( event.skinContent !== null ? event.skinContent : child ).toString();
 
         }else if( child+"" === "[object Object]" )
         {
-            content += __toString( child , true , skinObj );
+            content += __toString(child , parent );
 
         }else if( child )
         {
             content+=child;
         }
     }
-
     var temp = tag.indexOf(':');
     if( temp>=0 )
     {

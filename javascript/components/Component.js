@@ -28,21 +28,27 @@ Component.prototype.constructor=Component;
 Component.prototype.componentProfile='component';
 Component.prototype.initializeMethod=[];
 Component.prototype.initializeCompleted=false;
-Component.prototype.__viewport__=null;
 Component.NAME='component';
 
 /**
- * overwrite method
- * initialized 组件中的方法初始完成
- * @protected
+ * 组件初始完成
+ * @returns {boolean}
  */
-Component.prototype.initialized=function(){};
+Component.prototype.__initialized__=false;
+Component.prototype.initialized=function(){
+    var ret = this.__initialized__;
+    if( ret===false ){
+        this.__initialized__=true;
+    }
+    return ret;
+};
 
 /**
- * overwrite method
- * initializing 组件中的方法初始进行中
- * @protected
+ * 组件初始化进行中
+ * @returns {Component}
  */
-Component.prototype.initializing=function(){};
+Component.prototype.initializing=function(){
+    return this;
+};
 
-System.Component = Component ;
+System.Component = Component;

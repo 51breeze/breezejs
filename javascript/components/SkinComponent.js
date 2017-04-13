@@ -19,31 +19,47 @@ function SkinComponent( viewport )
 {
     if( !(this instanceof SkinComponent) )return new SkinComponent(viewport);
     Component.call(this);
-    if( viewport )
-    {
-        this.setViewport(viewport);
-    }
+    if( viewport )this.setViewport(viewport);
+    //将组件应用在皮肤类中时会触发此事件
+    this.addEventListener( SkinEvent.INITIALIZING , function (e) {
+        e.skinContent = this.skinInitialize( e );
+    });
 }
 
 SkinComponent.prototype= Object.create( Component.prototype );
 SkinComponent.prototype.constructor=SkinComponent;
 
 /**
- * 初始化皮肤。此阶段为编译阶段将皮肤转化成html
+ * 初始化皮肤。
+ * 此阶段为编译阶段将皮肤转化成html
  * 此函数无需要手动调用，皮肤在初始化时会自动调用
  */
-SkinComponent.prototype.skinInitializing=function skinInitializing( parentSkin )
+SkinComponent.prototype.skinInitialize=function skinInitialize( event )
 {
-    return this.getSkin().skinInitializing( parentSkin );
+    return this.getSkin().initializing();
 }
 
 /**
- * 初始化完成。此阶段为皮肤已经完成准备工作并已添加到document中
- * 此函数无需要手动调用，皮肤在初始化完成后会自动调用
+ * 组件初始化进行中
+ * @returns {Component}
  */
-SkinComponent.prototype.skinInitialized=function skinInitialized()
+SkinComponent.prototype.initializing=function initializing()
 {
-    return this.getSkin().skinInitialized();
+    return this;
+}
+
+/**
+ * 组件初始完成
+ * @returns {boolean}
+ */
+SkinComponent.prototype.initialized=function initialized()
+{
+    if( !Component.prototype.initialized.call(this) )
+    {
+        this.getSkin().initialized();
+        return false;
+    }
+    return true;
 }
 
 /**
@@ -144,11 +160,11 @@ SkinComponent.prototype.variable=function variable(name, value)
  */
 SkinComponent.prototype.display=function display()
 {
+    this.initializing();
     var viewport = this.getViewport();
     if( !viewport )throw new TypeError('viewport not is null');
-    var skinContent = this.skinInitializing().toString();
-    viewport.html( skinContent );
-    this.skinInitialized();
+    viewport.html( this.skinInitialize().toString() );
+    this.initialized();
     return this;
 };
 

@@ -140,9 +140,9 @@ DataGrid.prototype.dataProfile=function dataProfile(profile )
  * 初始化皮肤使用渲染器
  * @returns {*}
  */
-DataGrid.prototype.skinInitializing=function skinInitializing()
+DataGrid.prototype.skinInitialize=function skinInitialize()
 {
-    return this.getRender().fetch( this.getSkin().skinInitializing().toString() );
+    return this.getRender().fetch( this.getSkin().toString() );
 }
 
 /**
