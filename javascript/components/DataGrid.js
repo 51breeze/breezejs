@@ -4,7 +4,7 @@
 * Copyright © 2015 BreezeJS All rights reserved.
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
-* @require Object,DataSource,DataSourceEvent,SkinComponent,PaginationEvent
+* @require Object,DataSource,DataSourceEvent,SkinComponent,PaginationEvent,Element
 */
 
 /**
@@ -39,16 +39,10 @@ DataGrid.prototype.dataSource=function dataSource()
         {
             if( !event.waiting )
             {
-                var columns = self.columns();
-                if( event.data && event.data[0] && !columns )
-                {
-                    columns=Object.prototype.keys.call( event.data[0] );
-                    self.__columns__ = columns;
-                }
-
-                self.variable( self.columnProfile(), columns );
                 self.variable( self.dataProfile(), event.data );
-                SkinComponent.prototype.display.call( self );
+                var body = self.getSkin().body;
+                body.buildMode( System.Skin.BUILD_CHILDREN_MODE );
+                Element('#'+body.attr('id') ).html( self.getRender().fetch( body.toString() )  );
                 var pagination = self.getSkin().pagination;
                 pagination.rows( this.rows() );
                 pagination.totalRows( this.calculate() )
@@ -140,9 +134,10 @@ DataGrid.prototype.dataProfile=function dataProfile(profile )
  * 初始化皮肤使用渲染器
  * @returns {*}
  */
-DataGrid.prototype.skinInitialize=function skinInitialize()
+DataGrid.prototype.skinInstaller=function skinInstaller( event )
 {
-    return this.getRender().fetch( this.getSkin().toString() );
+    this.getSkin().body.buildMode( System.Skin.BUILD_CONTAINER_MODE );
+    return this.getRender().fetch( SkinComponent.prototype.skinInstaller.call(this, event ) );
 }
 
 /**
@@ -151,14 +146,16 @@ DataGrid.prototype.skinInitialize=function skinInitialize()
  */
 DataGrid.prototype.display=function display()
 {
-    this.dataSource().select();
+    this.variable( this.columnProfile(), this.columns() );
+    SkinComponent.prototype.display.call( this );
     if( this.getSkin().pagination )
     {
-        var self= this;
         this.getSkin().pagination.addEventListener( PaginationEvent.CHANGE, function (e) {
-            self.dataSource().select( e.newValue );
-        });
+            this.dataSource().select( e.newValue );
+        },false,0,this);
+        this.getSkin().pagination.display();
     }
+    this.dataSource().select();
     return this;
 };
 

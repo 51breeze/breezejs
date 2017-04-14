@@ -48,7 +48,7 @@ function __initialized(children, parent)
 {
     for ( var i in children )
     {
-        if ( System.is(children[i], Component ) )
+        if ( System.is(children[i], Component) )
         {
             children[i].initialized();
         }else if( children[i]+"" === '[object Object]')
@@ -76,6 +76,42 @@ Skin.prototype.attr = function attr(name, val)
         return this.__skin__.attr[name];
     }
     return this.__skin__.attr;
+}
+
+//不构建
+Skin.BUILD_CLOSE_MODE = 0;
+
+//构建主容器
+Skin.BUILD_CONTAINER_MODE = 1;
+
+//构建子级
+Skin.BUILD_CHILDREN_MODE = 2;
+
+//构建全部
+Skin.BUILD_ALL_MODE = 3;
+
+/**
+ * @private
+ */
+Skin.prototype.__buildMode__ = Skin.BUILD_ALL_MODE;
+
+/**
+ * 指示如何构建皮肤,默认为所有
+ * @param mode
+ * @returns {number|*}
+ */
+Skin.prototype.buildMode =function buildMode( mode )
+{
+   if( typeof mode === "number" )
+   {
+       if( (mode | Skin.BUILD_ALL_MODE) !== Skin.BUILD_ALL_MODE )
+       {
+           throw new Error('Invalid build mode');
+       }
+       this.__buildMode__=mode;
+       return this;
+   }
+   return this.__buildMode__;
 }
 
 /**
@@ -195,7 +231,12 @@ Skin.prototype.removeChildAt = function removeChildAt( index )
  */
 Skin.prototype.toString=function toString()
 {
-    return __toString(this.__skin__, this );
+    var event = new SkinEvent( SkinEvent.INITIALIZED );
+    event.viewport = null;
+    event.parent = this;
+    event.skinContent= __toString(this.__skin__, this , this.buildMode() );
+    this.dispatchEvent( event );
+    return event.skinContent;
 }
 
 /**
@@ -254,31 +295,34 @@ var template_syntax={
 }
 
 //private
-function __toString(skin, parent)
+function __toString(skin, parent, mode )
 {
+    if( mode === Skin.BUILD_CLOSE_MODE )return '';
     var tag = skin.name;
     var attr = skin.attr;
     var children = skin.children;
     var content='';
-    for(var c in children )
+    if( (mode & Skin.BUILD_CHILDREN_MODE) === Skin.BUILD_CHILDREN_MODE )
     {
-        var child = children[c];
-        if( System.is(child, Component) )
+        for (var c in children)
         {
-            var event = new SkinEvent( SkinEvent.INITIALIZING );
-            event.viewport = skin;
-            event.parent = parent;
-            event.skinContent=null;
-            child.dispatchEvent( event );
-            content += ( event.skinContent !== null ? event.skinContent : child ).toString();
+            var child = children[c];
+            if (System.is(child, Component))
+            {
+                var event = new SkinEvent(SkinEvent.INITIALIZING);
+                event.viewport = skin;
+                event.parent = parent;
+                event.skinContent = null;
+                child.dispatchEvent(event);
+                content += ( event.skinContent !== null ? event.skinContent : child ).toString();
 
-        }else if( child+"" === "[object Object]" )
-        {
-            content += __toString(child , parent );
+            } else if (child + "" === "[object Object]")
+            {
+                content += __toString(child, parent, Skin.BUILD_ALL_MODE );
 
-        }else if( child )
-        {
-            content+=child;
+            } else if (child) {
+                content += child;
+            }
         }
     }
     var temp = tag.indexOf(':');
@@ -292,13 +336,16 @@ function __toString(skin, parent)
         return syntax[tag](attr,content);
     }
     if( tag==='text' )return content;
-    var str='<'+tag;
-    for(var p in attr )
+    if( (mode & Skin.BUILD_CONTAINER_MODE) === Skin.BUILD_CONTAINER_MODE )
     {
-        str+=" "+p+'="'+attr[p]+'"';
+        var str = '<' + tag;
+        for (var p in attr) {
+            str += " " + p + '="' + attr[p] + '"';
+        }
+        str += '>' + content + '</' + tag + '>';
+        content = str;
     }
-    str+='>'+content+'</'+tag+'>';
-    return str;
+    return content;
 }
 
 System.Skin=Skin;

@@ -170,10 +170,10 @@ function $dispatchEvent(thisArg, type, parent, child, result )
 /**
  *  @private
  */
-function $doMake(elems )
+function $doMake( elems )
 {
     var r = this.__reverts__ || (this.__reverts__ = []);
-    r.push( this.splice(0,this.length, elems ) );
+    r.push( Array.prototype.splice.apply(this, [0,this.length].concat(elems) ) );
     this.current(null);
     return this;
 }
@@ -194,8 +194,12 @@ function $doRecursion(propName, strainer, deep )
             currentItem=elem;
             do{
                 currentItem = currentItem[propName];
-                if( currentItem && s.call(currentItem) )ret = ret.concat( currentItem );
-            } while (deep && currentItem)
+                if( currentItem && s.call(currentItem) )
+                {
+                    ret = ret.concat( currentItem );
+                    if( !deep )return false;
+                }
+            } while ( currentItem )
         }
     });
     return ret;
@@ -521,7 +525,6 @@ Element.prototype.length=0;
 Element.prototype.slice= Array.prototype.slice;
 Element.prototype.concat=Array.prototype.concat;
 Element.prototype.indexOf= Array.prototype.indexOf;
-Element.prototype.splice= Array.prototype.splice;
 
 /**
  * 遍历元素

@@ -22,10 +22,9 @@ function SkinComponent( viewport )
     if( viewport )this.setViewport(viewport);
     //将组件应用在皮肤类中时会触发此事件
     this.addEventListener( SkinEvent.INITIALIZING , function (e) {
-        e.skinContent = this.skinInitialize( e );
+        e.skinContent = this.skinInstaller( e );
     });
 }
-
 SkinComponent.prototype= Object.create( Component.prototype );
 SkinComponent.prototype.constructor=SkinComponent;
 
@@ -34,9 +33,9 @@ SkinComponent.prototype.constructor=SkinComponent;
  * 此阶段为编译阶段将皮肤转化成html
  * 此函数无需要手动调用，皮肤在初始化时会自动调用
  */
-SkinComponent.prototype.skinInitialize=function skinInitialize( event )
+SkinComponent.prototype.skinInstaller=function skinInstaller( event )
 {
-    return this.getSkin().initializing();
+    return this.getSkin().initializing( event ).toString();
 }
 
 /**
@@ -57,6 +56,10 @@ SkinComponent.prototype.initialized=function initialized()
     if( !Component.prototype.initialized.call(this) )
     {
         this.getSkin().initialized();
+        if( !this.getViewport() )
+        {
+            this.setViewport( new Element('#' + this.getSkin().attr('id') ).parent() );
+        }
         return false;
     }
     return true;
@@ -116,7 +119,7 @@ SkinComponent.prototype.getViewport=function getViewport()
  */
 SkinComponent.prototype.setViewport=function setViewport( viewport )
 {
-    if( !System.is(viewport,Element) )
+    if( !System.is(viewport,Element) || viewport.length < 1 )
     {
         throw new TypeError('Invalid viewport');
     }
@@ -163,7 +166,7 @@ SkinComponent.prototype.display=function display()
     this.initializing();
     var viewport = this.getViewport();
     if( !viewport )throw new TypeError('viewport not is null');
-    viewport.html( this.skinInitialize().toString() );
+    viewport.html( this.skinInstaller() );
     this.initialized();
     return this;
 };

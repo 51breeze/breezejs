@@ -155,9 +155,9 @@ Pagination.prototype.link=function link( num )
  * 初始化皮肤
  * @returns {String}
  */
-Pagination.prototype.skinInitialize=function skinInitialize( event )
+Pagination.prototype.skinInstaller=function skinInstaller( event )
 {
-    SkinComponent.prototype.skinInitialize.call(this, event);
+    SkinComponent.prototype.skinInstaller.call(this, event);
     var render = this.getRender();
     var current = this.current();
     var totalPage = this.totalPage();
@@ -178,23 +178,6 @@ Pagination.prototype.skinInitialize=function skinInitialize( event )
 }
 
 /**
- * 组件初始化完成
- */
-Pagination.prototype.initialized=function initialized()
-{
-    if( !SkinComponent.prototype.initialized.call(this) )
-    {
-        if( !this.getViewport() )
-        {
-            var ele = new Element('#' + this.getSkin().attr('id'));
-            this.setViewport(new Element(ele[0].parentNode));
-        }
-        return false;
-    }
-    return true;
-}
-
-/**
  * 渲染显示皮肤
  * @returns {Pagination}
  */
@@ -205,6 +188,7 @@ Pagination.prototype.display=function display()
     {
         var elem = new Element('li a', this.getViewport().current() );
         var self = this;
+        console.log('===pagination display==')
         elem.addEventListener( MouseEvent.CLICK, function (e) {
             e.preventDefault();
             this.current( e.target )
