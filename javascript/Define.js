@@ -1,6 +1,6 @@
 /**
  * 定义模块对象
- * @require System,Internal,Class,Interface,Reflect,Object,JSON,Array,Internal.$get
+ * @require System,Internal,Class,Interface,Reflect,Object,JSON,Array,Internal.$get,TypeError
  * @internal
  */
 var modules={};
@@ -96,6 +96,7 @@ function mathOperator( a, o, b)
  */
 function toMessage(thisArg, properties, classModule, error, info , method )
 {
+    console.log( error );
     var items = System.isArray(properties) ? Array.prototype.map.call(properties,function (item) {
         if( typeof item === "string" )return item;
         return System.getQualifiedClassName( item );

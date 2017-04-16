@@ -488,6 +488,7 @@ function Element(selector, context)
     }
     if( context )
     {
+        context=System.instanceOf(context,Element) ? context[0] : context;
         this.context = context;
     }
     var result=[];
@@ -501,11 +502,9 @@ function Element(selector, context)
 
         } else if (selector instanceof Element) {
             result = selector.slice(0);
-
         } else if (typeof selector === "string") {
             result = selector.charAt(0) === '<' && selector.charAt(selector.length - 1) === '>' ? $createElement(selector) : querySelector(selector, context);
-        }
-        else if (Element.prototype.isNodeElement.call(selector)) {
+        } else if (Element.prototype.isNodeElement.call(selector)) {
             result = selector;
         }
     }

@@ -42,7 +42,6 @@ Reflect.construct=function construct(theClass, args, newTarget)
 
     }else if( typeof theClass !== "function" )
     {
-        console.log( theClass )
         Internal.throwError('type','is not function');
     }
     args = System.isArray(args) ? args : [];

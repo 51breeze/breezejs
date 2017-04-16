@@ -58,6 +58,17 @@ Pagination.prototype.url=function url( callback )
    return this.__url__ || getUrl;
 };
 
+Pagination.prototype.__attrName__='data-page';
+Pagination.prototype.indexAttrName=function indexAttrName( name )
+{
+    if( name )
+    {
+        if(typeof name === "string")this.__attrName__ = name;
+        return this;
+    }
+    return this.__attrName__;
+}
+
 /**
  * 设置总分页数
  * @param number totalPage
@@ -65,40 +76,40 @@ Pagination.prototype.url=function url( callback )
  */
 Pagination.prototype.totalPage=function totalPage()
 {
-    return this.totalRows() >0 ? Math.ceil( this.totalRows() / this.rows() ) : 1;
+    return this.totalSize() >0 ? Math.ceil( this.totalSize() / this.pageSize() ) : 1;
 };
 
 /**
  * @private
  */
-Pagination.prototype.__totalRows__=0;
+Pagination.prototype.__totalSize__=0;
 
 /**
  * 设置获取总分页数
  * @param number totalPage
  * @returns {*}
  */
-Pagination.prototype.totalRows=function totalRows( num )
+Pagination.prototype.totalSize=function totalRows( num )
 {
-    if( typeof num === "undefined"  )return this.__totalRows__;
-    this.__totalRows__ = num >> 0;
+    if( typeof num === "undefined"  )return this.__totalSize__;
+    this.__totalSize__ = num >> 0;
     return this;
 };
 
 /**
  * @private
  */
-Pagination.prototype.__rows__=20;
+Pagination.prototype.__pageSize__=20;
 
 /**
  * 每页显示多少行数据
  * @param number totalPage
  * @returns {*}
  */
-Pagination.prototype.rows=function rows( num )
+Pagination.prototype.pageSize=function pageSize( num )
 {
-    if( typeof num === "undefined" )return this.__rows__;
-    this.__rows__ = num >> 0;
+    if( typeof num === "undefined" )return this.__pageSize__;
+    this.__pageSize__ = num >> 0;
     return this;
 };
 
@@ -107,7 +118,7 @@ Pagination.prototype.rows=function rows( num )
  */
 Pagination.prototype.offset=function offset()
 {
-    return (this.current() - 1) * this.rows();
+    return (this.current() - 1) * this.pageSize();
 };
 
 /**
@@ -124,11 +135,14 @@ Pagination.prototype.current=function current( num )
 {
     if( typeof num === "undefined" )return this.__current__;
     num >>= 0;
+    num =Math.min( Math.max(1, num ), this.totalPage() );
     if( num !== this.__current__ )
     {
+        var old = this.__current__;
         this.__current__ = num;
-        var event = new PaginationEvent(PaginationEvent.CHANGED);
-        event.current= num;
+        var event = new PaginationEvent( PaginationEvent.CHANGE );
+        event.oldValue = old;
+        event.newValue = num;
         this.dispatchEvent( event );
     }
     return this;
@@ -157,7 +171,6 @@ Pagination.prototype.link=function link( num )
  */
 Pagination.prototype.skinInstaller=function skinInstaller( event )
 {
-    SkinComponent.prototype.skinInstaller.call(this, event);
     var render = this.getRender();
     var current = this.current();
     var totalPage = this.totalPage();
@@ -165,7 +178,7 @@ Pagination.prototype.skinInstaller=function skinInstaller( event )
     var offset =  Math.max( current - Math.ceil( link / 2 ), 0 );
     offset = offset+link > totalPage ? offset-( offset+link - totalPage ) : offset;
     render.variable('totalPage', totalPage );
-    render.variable('rows', this.rows() );
+    render.variable('rows', this.pageSize() );
     render.variable('offset', this.offset() );
     render.variable('url', this.url() );
     render.variable('current', current );
@@ -174,7 +187,21 @@ Pagination.prototype.skinInstaller=function skinInstaller( event )
     render.variable('next', Math.min(current+1,totalPage) );
     render.variable('last', totalPage );
     render.variable('link', offset>=0 ? System.range(1+offset, link+offset+1 , 1) : [1] );
-    return render.fetch( this.getSkin().toString() );
+    return render.fetch( SkinComponent.prototype.skinInstaller.call(this, event) );
+}
+
+Pagination.prototype.initializing=function initializing()
+{
+    if( SkinComponent.prototype.initializing.call(this) )
+    {
+        this.getViewport().addEventListener( MouseEvent.MOUSE_WHEEL , function (e) {
+            var page = this.current();
+            this.current( e.wheelDelta > 0 ? page+1 : page-1 );
+        },false,0,this);
+        return true;
+    }
+    return false;
+
 }
 
 /**
@@ -184,25 +211,17 @@ Pagination.prototype.skinInstaller=function skinInstaller( event )
 Pagination.prototype.display=function display()
 {
     SkinComponent.prototype.display.call(this);
-    if( this.getViewport() )
-    {
-        var elem = new Element('li a', this.getViewport().current() );
-        var self = this;
-        console.log('===pagination display==')
-        elem.addEventListener( MouseEvent.CLICK, function (e) {
-            e.preventDefault();
-            this.current( e.target )
-            var page = this.property('data-page') >> 0;
-            var old = self.current();
-            if( old !== page )
-            {
-                var event = new PaginationEvent( PaginationEvent.CHANGE );
-                event.oldValue = old;
-                event.newValue = page;
-                self.dispatchEvent( event );
-            }
-        });
-    }
+    var elem = new Element('a', this.getViewport() );
+    var self = this;
+    elem.addEventListener( MouseEvent.CLICK, function (e) {
+        e.preventDefault();
+        this.current( e.target )
+        var page = this.property( self.indexAttrName() ) >> 0;
+        if( page > 0 )
+        {
+            self.current( page );
+        }
+    })
     return this;
 }
 

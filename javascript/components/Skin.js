@@ -28,37 +28,6 @@ Skin.prototype.__skin__= {
 };
 
 /**
- * @inherit
- * @returns {boolean}
- */
-Skin.prototype.initialized=function initialized()
-{
-    if( !Component.prototype.initialized.call(this) )
-    {
-        __initialized(this.__skin__.children, this);
-        return false;
-    }
-    return true;
-};
-
-/**
- * @private
- */
-function __initialized(children, parent)
-{
-    for ( var i in children )
-    {
-        if ( System.is(children[i], Component) )
-        {
-            children[i].initialized();
-        }else if( children[i]+"" === '[object Object]')
-        {
-            __initialized( children[i].children, parent);
-        }
-    }
-}
-
-/**
  * 皮肤属性
  * @param name
  * @param val
@@ -231,12 +200,7 @@ Skin.prototype.removeChildAt = function removeChildAt( index )
  */
 Skin.prototype.toString=function toString()
 {
-    var event = new SkinEvent( SkinEvent.INITIALIZED );
-    event.viewport = null;
-    event.parent = this;
-    event.skinContent= __toString(this.__skin__, this , this.buildMode() );
-    this.dispatchEvent( event );
-    return event.skinContent;
+    return __toString(this.__skin__, this , this.buildMode() );
 }
 
 /**
@@ -309,9 +273,9 @@ function __toString(skin, parent, mode )
             var child = children[c];
             if (System.is(child, Component))
             {
-                var event = new SkinEvent(SkinEvent.INITIALIZING);
+                var event = new SkinEvent(SkinEvent.INSTALLING);
                 event.viewport = skin;
-                event.parent = parent;
+                event.hostComponent = parent;
                 event.skinContent = null;
                 child.dispatchEvent(event);
                 content += ( event.skinContent !== null ? event.skinContent : child ).toString();
@@ -320,7 +284,8 @@ function __toString(skin, parent, mode )
             {
                 content += __toString(child, parent, Skin.BUILD_ALL_MODE );
 
-            } else if (child) {
+            } else if (child)
+            {
                 content += child;
             }
         }

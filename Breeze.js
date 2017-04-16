@@ -15,6 +15,7 @@ const config = {
     'project_path':'./',
     'skin_file_suffix':'.html',
     'project_file_suffix':'.as',
+    'browser':'enable',
 };
 
 // 合并传入的参数

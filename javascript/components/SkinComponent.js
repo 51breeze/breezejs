@@ -13,29 +13,73 @@
  * @param SkinGroup skinGroup
  * @returns {Component}
  * @constructor
- * @require Component,Element,Render,TypeError,Skin,SkinEvent
+ * @require Component,Element,Render,TypeError,Skin,SkinEvent,ComponentEvent
  */
 function SkinComponent( viewport )
 {
     if( !(this instanceof SkinComponent) )return new SkinComponent(viewport);
     Component.call(this);
     if( viewport )this.setViewport(viewport);
-    //将组件应用在皮肤类中时会触发此事件
-    this.addEventListener( SkinEvent.INITIALIZING , function (e) {
+
+    //将组件应用在皮肤类中,并且当host component在安装皮肤时会触发此事件
+    //因此，构建在皮肤中的组件都会有一个宿主对象,那就是皮肤
+    this.addEventListener( SkinEvent.INSTALLING , function (e)
+    {
+        this.hostComponent( e.hostComponent );
         e.skinContent = this.skinInstaller( e );
     });
 }
+
 SkinComponent.prototype= Object.create( Component.prototype );
 SkinComponent.prototype.constructor=SkinComponent;
 
 /**
- * 初始化皮肤。
+ * @inherit
+ * @param host
+ * @returns {Component}
+ */
+SkinComponent.prototype.hostComponent=function hostComponent( host )
+{
+    var oldHost = Component.prototype.hostComponent.call(this);
+    if( host )
+    {
+        if (oldHost !== host)
+        {
+            Component.prototype.hostComponent.call(this, host);
+            if (oldHost)oldHost.removeEventListener(ComponentEvent.INITIALIZED, this.display);
+            //当宿主对象初始化完成后显示此组件
+            host.addEventListener(ComponentEvent.INITIALIZED, this.display, false, 0, this);
+        }
+        return this;
+    }
+    return oldHost;
+}
+
+/**
+ * 安装皮肤。
  * 此阶段为编译阶段将皮肤转化成html
  * 此函数无需要手动调用，皮肤在初始化时会自动调用
  */
 SkinComponent.prototype.skinInstaller=function skinInstaller( event )
 {
-    return this.getSkin().initializing( event ).toString();
+    if( !event )
+    {
+        event = new SkinEvent( SkinEvent.INSTALLING );
+        event.viewport = this.getViewport();
+        event.hostComponent = this;
+        event.skinContent = this.getSkin();
+        event.skinContent.dispatchEvent( event );
+        return event.skinContent.toString();
+
+    }else if( event.viewport && !this.getViewport() )
+    {
+        //获取视图ID
+        //这是从皮肤视图中来调用的皮肤安装器，这个阶段还没有添加到文档中，所以只能先获取一个占位视口。
+        //需要等待宿主对象初始化完成后，调用display方法后再创建一个可用的视口元素。
+        if(!event.viewport.attr.id)event.viewport.attr.id = System.uid();
+        this.setViewport( '#'+event.viewport.attr.id );
+    }
+    return this.getSkin().toString();
 }
 
 /**
@@ -44,7 +88,19 @@ SkinComponent.prototype.skinInstaller=function skinInstaller( event )
  */
 SkinComponent.prototype.initializing=function initializing()
 {
-    return this;
+    if( Component.prototype.initializing.call(this) )
+    {
+        this.getSkin().hostComponent( this ).initializing();
+        var viewport = this.getViewport();
+        if (typeof viewport === "string")
+        {
+            viewport = new Element(viewport);
+            this.setViewport( viewport );
+        }
+        if ( !viewport || viewport.length<1 )throw new TypeError('viewport is null or undefined');
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -56,10 +112,6 @@ SkinComponent.prototype.initialized=function initialized()
     if( !Component.prototype.initialized.call(this) )
     {
         this.getSkin().initialized();
-        if( !this.getViewport() )
-        {
-            this.setViewport( new Element('#' + this.getSkin().attr('id') ).parent() );
-        }
         return false;
     }
     return true;
@@ -119,10 +171,6 @@ SkinComponent.prototype.getViewport=function getViewport()
  */
 SkinComponent.prototype.setViewport=function setViewport( viewport )
 {
-    if( !System.is(viewport,Element) || viewport.length < 1 )
-    {
-        throw new TypeError('Invalid viewport');
-    }
     this.__viewport__=viewport;
     return this;
 };
@@ -164,9 +212,7 @@ SkinComponent.prototype.variable=function variable(name, value)
 SkinComponent.prototype.display=function display()
 {
     this.initializing();
-    var viewport = this.getViewport();
-    if( !viewport )throw new TypeError('viewport not is null');
-    viewport.html( this.skinInstaller() );
+    this.getViewport().html( this.skinInstaller() );
     this.initialized();
     return this;
 };

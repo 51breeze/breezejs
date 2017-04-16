@@ -412,10 +412,55 @@ var descriptor = {
             "html":{'id':'const','type':'String'},
         }
     },
+    'Component': {
+        'type': 'Component',
+        'id': 'class',
+        'inherit':'EventDispatcher',
+        'proto': {
+            'dataSource': {type: 'DataSource', 'id': 'function',param:[]},
+            'source': {type: 'DataRender', 'id': 'function',param:['Object']},
+            'dataProfile': {type: 'Object', 'id': 'function',param:[]},
+            'display': {type: 'Boolean', 'id': 'function',param:[]},
+        }
+    },
+    'Skin': {
+        'type': 'Skin',
+        'id': 'class',
+        'inherit':'Component',
+        'proto': {
+            'dataSource': {type: 'DataSource', 'id': 'function',param:[]},
+            'source': {type: 'DataRender', 'id': 'function',param:['Object']},
+            'dataProfile': {type: 'Object', 'id': 'function',param:[]},
+            'display': {type: 'Boolean', 'id': 'function',param:[]},
+        }
+    },
+    'SkinComponent': {
+        'type': 'SkinComponent',
+        'id': 'class',
+        'inherit':'Component',
+        'proto': {
+            'dataSource': {type: 'DataSource', 'id': 'function',param:[]},
+            'source': {type: 'DataRender', 'id': 'function',param:['Object']},
+            'dataProfile': {type: 'Object', 'id': 'function',param:[]},
+            'display': {type: 'Boolean', 'id': 'function',param:[]},
+        }
+    },
+
     'DataGrid': {
         'type': 'DataGrid',
         'id': 'class',
-        'inherit':'Render',
+        'inherit':'SkinComponent',
+        'proto': {
+            'dataSource': {type: 'DataSource', 'id': 'function',param:[]},
+            'source': {type: 'DataRender', 'id': 'function',param:['Object']},
+            'dataProfile': {type: 'Object', 'id': 'function',param:[]},
+            'display': {type: 'Boolean', 'id': 'function',param:[]},
+        }
+    },
+    'Pagination': {
+        'type': 'Pagination',
+        'id': 'class',
+        'inherit':'SkinComponent',
         'proto': {
             'dataSource': {type: 'DataSource', 'id': 'function',param:[]},
             'source': {type: 'DataRender', 'id': 'function',param:['Object']},

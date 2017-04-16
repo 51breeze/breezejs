@@ -4,7 +4,7 @@
 * Copyright © 2015 BreezeJS All rights reserved.
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
-* @require Object,DataSource,DataSourceEvent,SkinComponent,PaginationEvent,Element
+* @require Object,DataSource,DataSourceEvent,SkinComponent,PaginationEvent,Element,Skin
 */
 
 /**
@@ -41,12 +41,15 @@ DataGrid.prototype.dataSource=function dataSource()
             {
                 self.variable( self.dataProfile(), event.data );
                 var body = self.getSkin().body;
-                body.buildMode( System.Skin.BUILD_CHILDREN_MODE );
+                body.buildMode( Skin.BUILD_CHILDREN_MODE );
                 Element('#'+body.attr('id') ).html( self.getRender().fetch( body.toString() )  );
                 var pagination = self.getSkin().pagination;
-                pagination.rows( this.rows() );
-                pagination.totalRows( this.calculate() )
-                pagination.display();
+                if( pagination )
+                {
+                    pagination.pageSize( this.pageSize() );
+                    pagination.totalSize( this.totalSize() )
+                    pagination.display();
+                }
             }
         });
     }
@@ -137,7 +140,29 @@ DataGrid.prototype.dataProfile=function dataProfile(profile )
 DataGrid.prototype.skinInstaller=function skinInstaller( event )
 {
     this.getSkin().body.buildMode( System.Skin.BUILD_CONTAINER_MODE );
-    return this.getRender().fetch( SkinComponent.prototype.skinInstaller.call(this, event ) );
+    var skin = SkinComponent.prototype.skinInstaller.call(this, event )
+    return this.getRender().fetch( skin.toString() );
+}
+
+/**
+ * @inherit
+ * @returns {boolean}
+ */
+DataGrid.prototype.initializing=function initializing()
+{
+    if( SkinComponent.prototype.initializing.call(this) )
+    {
+        this.variable( this.columnProfile(), this.columns() );
+        var pagination = this.getSkin().pagination;
+        if ( pagination )
+        {
+            pagination.addEventListener(PaginationEvent.CHANGE, function (e){
+                this.dataSource().select(e.newValue);
+            }, false, 0, this);
+        }
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -146,15 +171,7 @@ DataGrid.prototype.skinInstaller=function skinInstaller( event )
  */
 DataGrid.prototype.display=function display()
 {
-    this.variable( this.columnProfile(), this.columns() );
     SkinComponent.prototype.display.call( this );
-    if( this.getSkin().pagination )
-    {
-        this.getSkin().pagination.addEventListener( PaginationEvent.CHANGE, function (e) {
-            this.dataSource().select( e.newValue );
-        },false,0,this);
-        this.getSkin().pagination.display();
-    }
     this.dataSource().select();
     return this;
 };

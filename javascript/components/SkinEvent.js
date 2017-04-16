@@ -17,18 +17,16 @@ System.SkinEvent = SkinEvent;
 SkinEvent.prototype=Object.create( Event.prototype );
 SkinEvent.prototype.constructor=SkinEvent;
 SkinEvent.prototype.viewport=null;
-SkinEvent.prototype.parent=null;
+SkinEvent.prototype.hostComponent=null;
 SkinEvent.prototype.skinContent=null;
-SkinEvent.INITIALIZING='skinInitializing';
-SkinEvent.INITIALIZED='skinInitialized';
+SkinEvent.INSTALLING='skinInstalling';
 
 //鼠标事件
 Event.registerEvent(function ( type , target, originalEvent )
 {
     if( originalEvent instanceof SkinEvent )return originalEvent;
     switch (type){
-        case SkinEvent.INITIALIZING :
-        case SkinEvent.INITIALIZED :
+        case SkinEvent.INSTALLING :
            return new SkinEvent(type);
     }
 });

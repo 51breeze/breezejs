@@ -189,10 +189,9 @@ Render.prototype.__view__='';
  */
 Render.prototype.view=function view( val )
 {
-    var t =  typeof val;
-    if( t !== "undefined" )
+    if( val )
     {
-        if( t !== "string" )throw new TypeError("Invalid view")
+        if( typeof val !== "string" )throw new TypeError("Invalid view")
         this.__view__= val ;
     }
     return this.__view__;

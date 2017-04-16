@@ -122,20 +122,20 @@ DataSource.prototype.source=function source( resource )
 /**
  * @private
  */
-DataSource.prototype.__rows__= 20;
+DataSource.prototype.__pageSize__= 20;
 
 /**
  * 每页需要显示数据的行数
  * @param number rows
  * @returns {DataSource}
  */
-DataSource.prototype.rows=function( rows )
+DataSource.prototype.pageSize=function pageSize( size )
 {
-    if( rows >= 0 ) {
-        this.__rows__ = rows;
+    if( size >= 0 ) {
+        this.__pageSize__ = size;
         return this;
     }
-    return this.__rows__;
+    return this.__pageSize__;
 };
 
 
@@ -159,9 +159,9 @@ DataSource.prototype.current=function current()
  * 如果是一个远程数据源需要等到请求响应后才能得到正确的结果,否则返回 NaN
  * @return number
  */
-DataSource.prototype.total=function total()
+DataSource.prototype.totalPage=function totalPage()
 {
-    return this.calculate() > 0 ? Math.max( Math.ceil( this.calculate() / this.rows() ) , 1) : NaN;
+    return this.totalSize() > 0 ? Math.max( Math.ceil( this.totalSize() / this.pageSize() ) , 1) : NaN;
 };
 
 /**
@@ -199,7 +199,7 @@ DataSource.prototype.count=function count()
 /**
  * @private
  */
-DataSource.prototype.__calculate__= 0;
+DataSource.prototype.__totalSize__= 0;
 
 /**
  * 预计数据源的总数
@@ -208,9 +208,9 @@ DataSource.prototype.__calculate__= 0;
  * @param number num
  * @returns {DataSource}
  */
-DataSource.prototype.calculate=function calculate()
+DataSource.prototype.totalSize=function totalSize()
 {
-    return Math.max( this.__calculate__ , this.count() );
+    return Math.max( this.__totalSize__ , this.count() );
 }
 
 
@@ -277,7 +277,7 @@ DataSource.prototype.offsetAt=function( index )
 {
     var index = index>>0;
     if( isNaN(index) )return index;
-    return ( this.current()-1 ) * this.rows() + index;
+    return ( this.current()-1 ) * this.pageSize() + index;
 };
 
 /**
@@ -435,11 +435,11 @@ DataSource.prototype.__nowNotify__=false;
  */
 DataSource.prototype.select=function select( page )
 {
-    var total = this.total();
+    var total = this.totalPage();
     page = page > 0 ? page : this.current();
     page = Math.min( page , isNaN(total)?page:total );
     this.__current__ = page;
-    var rows  = this.rows();
+    var rows  = this.pageSize();
     var start=( page-1 ) * rows;
     var cached = this.__cached__;
     var index = !this.__end__ && this.isRemote() ? cached.loadSegments.indexOf(page) : page-1;
@@ -515,8 +515,8 @@ function success(event)
     if( len > 0 )
     {
         //预计总数据量
-        this.__calculate__ = total;
-        var rows = this.rows();
+        this.__totalSize__ = total;
+        var rows = this.pageSize();
         var cached = this.__cached__;
         //当前加载分页数的偏移量
         var offset = Array.prototype.indexOf.call(cached.loadSegments, cached.lastSegments) * rows;
@@ -551,7 +551,7 @@ function doload()
     var page = this.current();
     var cached= this.__cached__;
     var queue = cached.queues;
-    var rows = this.rows();
+    var rows = this.pageSize();
     var buffer = this.maxBuffer();
     if( isload( cached, page ) )
     {
@@ -560,7 +560,7 @@ function doload()
     }else if( queue.length === 0 )
     {
         var p = 1;
-        var t = this.total();
+        var t = this.totalPage();
         while( buffer > p )
         {
             var next = page+p;
