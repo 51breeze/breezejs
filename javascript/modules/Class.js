@@ -5,9 +5,10 @@
  * @require System,Object;
  */
 function Class(){};
+Class.valueOf=Class.toString=function () {return '[object Class]'};
 Class.prototype = Object.create( Object.prototype );
 Class.prototype.constructor = Class;
-Class.prototype.valueOf=function()
+Class.prototype.valueOf=function valueOf()
 {
     if(this==null)return this===null ? 'null' : 'undefined';
     if( this instanceof Class )
@@ -25,7 +26,7 @@ Class.prototype.valueOf=function()
  * 返回指定对象的字符串表示形式。
  * @returns {String}
  */
-Class.prototype.toString=function()
+Class.prototype.toString=function toString()
 {
     if(this==null)return this===null ? 'null' : 'undefined';
     if( this instanceof Class )

@@ -411,6 +411,11 @@ var descriptor = {
             "viewport":{'id':'const','type':'Element'},
             "html":{'id':'const','type':'String'},
         }
+    }, 'ComponentEvent':{
+        'id':'class', 'type':'ComponentEvent','inherit':'Event',
+        'static':{
+            "INITIALIZED":{'id':'const','type':'String'},
+        },
     },
     'Component': {
         'type': 'Component',
