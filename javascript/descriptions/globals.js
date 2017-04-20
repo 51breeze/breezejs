@@ -62,6 +62,7 @@ var descriptor = {
             'preventExtensions': {'type': 'Object', 'id': 'function', param: []},
             'seal': {'type': 'Object', 'id': 'function', param: []},
             'setPrototypeOf': {'type': 'Object', 'id': 'function', param: []},
+            'merge': {'type': 'Object', 'id': 'function', param: []},
         },
         'proto':{
             'constructor':{'type': 'Function', 'id': 'var'},
@@ -347,6 +348,7 @@ var descriptor = {
             'isNumber': {type: 'Boolean', id: 'function', param: ['Object']},
             'isEmpty': {type: 'Boolean', id: 'function', param: ['Object','*']},
             'trim': {type: 'String', id: 'function', param: ['String']},
+            'uid': {type: 'String', id: 'function', param: []},
             //系统全局方法
             'decodeURI':{type:'String',id:'function',param:['String']},
             'decodeURIComponent':{type:'String',id:'function',param:['String']},

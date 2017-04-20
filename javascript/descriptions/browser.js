@@ -132,6 +132,7 @@ var descriptor = {
         'proto': {
             'forEach': {type: '*', 'id': 'function',param:['Function']},
             'property': {type: 'String', 'id': 'function',param:[]},
+            'html': {type: 'String', 'id': 'function',param:['String']},
         }
     },
     'StyleEvent':{
@@ -321,6 +322,10 @@ var descriptor = {
         'id':'class',
         'type':'Http',
         'inherit':'EventDispatcher',
+        'static':{
+            'METHOD':{'id':'const','type':'*'},
+            'TYPE':{'id':'const','type':'*'},
+        },
         'proto':{
             'abort':{'type':'Boolean','id':'function','param':[]},
             'send':{'type':'Boolean','id':'function','param':['String', 'Object', 'Object']},
@@ -416,6 +421,11 @@ var descriptor = {
         'static':{
             "INITIALIZED":{'id':'const','type':'String'},
         },
+    }, 'SkinEvent':{
+        'id':'class', 'type':'SkinEvent','inherit':'Event',
+        'static':{
+            "INSTALLING":{'id':'const','type':'String'},
+        },
     },
     'Component': {
         'type': 'Component',
@@ -431,12 +441,15 @@ var descriptor = {
     'Skin': {
         'type': 'Skin',
         'id': 'class',
-        'inherit':'Component',
+        'inherit':'EventDispatcher',
         'proto': {
-            'dataSource': {type: 'DataSource', 'id': 'function',param:[]},
-            'source': {type: 'DataRender', 'id': 'function',param:['Object']},
-            'dataProfile': {type: 'Object', 'id': 'function',param:[]},
-            'display': {type: 'Boolean', 'id': 'function',param:[]},
+            'getChildById': {type: '*', 'id': 'function',param:['String']},
+        },
+        'static':{
+            'BUILD_CONTAINER_MODE':{'id':'const','type':'String'},
+            'BUILD_CLOSE_MODE':{'id':'const','type':'String'},
+            'BUILD_CHILDREN_MODE':{'id':'const','type':'String'},
+            'BUILD_ALL_MODE':{'id':'const','type':'String'},
         }
     },
     'SkinComponent': {

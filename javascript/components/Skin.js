@@ -1,7 +1,7 @@
 /**
  * 皮肤类
  * @constructor
- * @require Object,TypeError,Math,Component,SkinEvent
+ * @require Object,TypeError,Math,EventDispatcher,SkinEvent
  */
 function Skin( skinObject )
 {
@@ -16,10 +16,10 @@ function Skin( skinObject )
         this.__skin__.name=this.__skin__.attr.nodename;
         delete this.__skin__.attr.nodename;
     }
-    Component.call(this);
+    EventDispatcher.call(this);
 }
 
-Skin.prototype = Object.create( Component.prototype );
+Skin.prototype = Object.create( EventDispatcher.prototype );
 Skin.prototype.constructor = Skin;
 Skin.prototype.__skin__= {
     "name": 'div',
@@ -271,7 +271,7 @@ function __toString(skin, parent, mode )
         for (var c in children)
         {
             var child = children[c];
-            if (System.is(child, Component))
+            if (System.is(child, EventDispatcher))
             {
                 var event = new SkinEvent(SkinEvent.INSTALLING);
                 event.viewport = skin;
