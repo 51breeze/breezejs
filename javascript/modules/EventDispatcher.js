@@ -3,7 +3,7 @@
  * @param HTMLElement|EventDispatcher target 需要代理事件的目标对象
  * @returns {EventDispatcher}
  * @constructor
- * @require System,Object,Event,Internal
+ * @require System,Object,Event,Internal,Reflect
  */
 function EventDispatcher( target )
 {
@@ -64,11 +64,10 @@ EventDispatcher.prototype.hasEventListener=function hasEventListener( type )
 EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,priority,reference)
 {
     if( typeof type !== 'string' )Internal.throwError('type','Invalid event type.')
-    if( typeof callback !== 'function' )throwError('type','Invalid callback function.')
+    if( typeof callback !== 'function' )Internal.throwError('type','Invalid callback function.')
     var listener=new Listener(type,callback,useCapture,priority,reference,this);
     var target = this.__proxyTarget__ || this;
     var len = target.length >> 0;
-
     if( len > 0 ){
         while(len>0 && target[--len]){
             addEventListener(target[len], listener);
@@ -103,7 +102,7 @@ EventDispatcher.prototype.removeEventListener=function(type,listener)
  */
 EventDispatcher.prototype.dispatchEvent=function( event )
 {
-    if( !(event instanceof Event) )Internal.throwError('type','invalid event.');
+    if( !System.is(event,Event) )Internal.throwError('type','Invalid event.');
     var target = this.__proxyTarget__ || this;
     var len = target.length >> 0;
     if( len > 0 ){
@@ -220,7 +219,7 @@ function removeEventListener(target, type, listener , dispatcher )
  */
 function dispatchEvent( e, currentTarget )
 {
-    if( !(e instanceof Event) )
+    if( !System.is(e,Event) )
     {
         e = Event.create( e );
         if(currentTarget)e.currentTarget = currentTarget;

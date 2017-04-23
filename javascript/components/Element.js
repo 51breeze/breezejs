@@ -424,7 +424,7 @@ function $mergeAttributes(target, oSource)
     {
         for (var key in oSource)if (oSource[key] && oSource[key] != '')
         {
-            iselem ? target.setAttribute(key, oSource[key]) : target[key] = oSource[key];
+            iselem ? accessor['property'].set.call( target, key,  oSource[key] ) : target[key] = oSource[key];
         }
 
     }else
@@ -435,7 +435,7 @@ function $mergeAttributes(target, oSource)
             item=oSource.attributes.item(i++);
             if( item.nodeValue && item.nodeValue !='' )
             {
-                iselem ? target.setAttribute(item.nodeName, item.nodeValue) : target[item.nodeName] = item.nodeValue;
+                iselem ?  accessor['property'].set.call( target, item.nodeName, item.nodeValue ) : target[item.nodeName] = item.nodeValue;
             }
         }
     }

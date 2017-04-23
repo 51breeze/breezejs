@@ -200,7 +200,7 @@ Render.prototype.view=function view( val )
 /**
  * 解析模板视图并添加到视口容器中
  * @param view
- * @returns {*}
+ * @returns {String}
  */
 Render.prototype.fetch=function fetch( view )
 {

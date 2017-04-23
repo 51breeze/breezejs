@@ -81,26 +81,15 @@ DataSource.prototype.source=function source( resource )
 {
     if( this.__source__ === resource || typeof resource === "undefined" )return this;
 
-    //清空数据源
-    if( resource === null )
-    {
-        this.__items__.splice(0, this.__items__.length);
-        this.__cached__.lastSegments=null;
-        this.__cached__.loadSegments=new Array();
-        this.__nowNotify__=false;
-        //移除加载远程数据侦听事件
-        if (this.__source__ instanceof Http)this.__source__.removeEventListener(HttpEvent.SUCCESS,success);
-        return this;
-    }
-
     //本地数据源数组
     if( System.instanceOf(resource, Array) )
     {
-        Array.prototype.splice.apply(this.__items__,[0, this.count()].concat( resource.slice(0) ) );
-        this.__source__=resource;
+        this.__items__ =  resource.slice(0);
+        this.__source__=  resource;
+        this.__isRemote__=false;
     }
     //远程数据源
-    else
+    else if( resource )
     {
         var options = this.__options__;
         if( typeof resource === 'string' )
@@ -116,6 +105,19 @@ DataSource.prototype.source=function source( resource )
             resource.addEventListener( HttpEvent.SUCCESS, success , false,0, this);
         }
     }
+
+    //清空数据源
+    if( resource === null )
+    {
+        this.__items__.splice(0, this.__items__.length);
+        this.__cached__.lastSegments=null;
+        this.__cached__.loadSegments=new Array();
+        this.__nowNotify__=false;
+        return this;
+    }
+
+    //移除加载远程数据侦听事件
+    if ( !this.__isRemote__ && System.is(this.__source__,Http) )this.__source__.removeEventListener(HttpEvent.SUCCESS,success);
     return this;
 };
 
@@ -131,7 +133,8 @@ DataSource.prototype.__pageSize__= 20;
  */
 DataSource.prototype.pageSize=function pageSize( size )
 {
-    if( size >= 0 ) {
+    if( size >= 0 )
+    {
         this.__pageSize__ = size;
         return this;
     }
@@ -191,7 +194,7 @@ DataSource.prototype.maxBuffer=function maxBuffer(num )
  * @param number num
  * @returns {DataSource}
  */
-DataSource.prototype.count=function count()
+DataSource.prototype.realSize=function realSize()
 {
     return this.__items__.length;
 };
@@ -210,7 +213,7 @@ DataSource.prototype.__totalSize__= 0;
  */
 DataSource.prototype.totalSize=function totalSize()
 {
-    return Math.max( this.__totalSize__ , this.count() );
+    return Math.max( this.__totalSize__ , this.realSize() );
 }
 
 
@@ -288,9 +291,9 @@ DataSource.prototype.offsetAt=function( index )
  */
 DataSource.prototype.append=function(item,index)
 {
-    index = typeof index === 'number' ? index : this.count();
-    index = index < 0 ? index + this.count()+1 : index;
-    index = Math.min( this.count(), Math.max( index, 0 ) );
+    index = typeof index === 'number' ? index : this.realSize();
+    index = index < 0 ? index + this.realSize()+1 : index;
+    index = Math.min( this.realSize(), Math.max( index, 0 ) );
     item = System.instanceOf(item, Array) ? item : [item];
     var ret = [];
     var e;
@@ -398,7 +401,7 @@ DataSource.prototype.update=function update( value, condition)
  */
 DataSource.prototype.itemByIndex=function itemByIndex( index )
 {
-    if( typeof index !== 'number' || index < 0 || index >= this.count() )return null;
+    if( typeof index !== 'number' || index < 0 || index >= this.realSize() )return null;
     return this.__items__[index] || null;
 }
 
@@ -604,7 +607,7 @@ function nowNotify(current, start, rows )
 {
     if( this.__nowNotify__!==true )return;
     var result = this.grep().execute();
-    var end = Math.min(start + rows, this.count() );
+    var end = Math.min(start + rows, this.realSize() );
     var data  = result.slice(start, end);
     var event = new DataSourceEvent(DataSourceEvent.SELECT);
     event.current = current;

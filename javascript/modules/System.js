@@ -125,7 +125,7 @@ System.instanceOf = function instanceOf(instanceObj, theClass)
     }
     //如果不是一个函数直接返回false
     if (typeof theClass !== "function")return false;
-    if( instanceObj instanceof theClass )return true;
+    if( Object(instanceObj) instanceof theClass )return true;
     if( theClass === System.Object )return instanceObj instanceof $Object;
     if( theClass === System.Array )return  instanceObj instanceof $Array;
     if( theClass === System.String )return instanceObj instanceof $String;
@@ -168,7 +168,8 @@ System.is=function is(instanceObj, theClass)
 
     //如果不是一个函数直接返回false
     if (typeof theClass !== "function")return false;
-    if( instanceObj instanceof theClass )return true;
+    if( Object(instanceObj) instanceof theClass )return true;
+    if( theClass === System.Function )return (instanceObj+'').indexOf('function')===0;
     if( theClass === System.Object )return instanceObj instanceof $Object;
     if( theClass === System.Array )return  instanceObj instanceof $Array;
     if( theClass === System.String )return instanceObj instanceof $String;
@@ -518,7 +519,7 @@ System.uid =function uid()
  */
 Internal.$get = function(target, propertyKey, receiver)
 {
-    if( !target )return undefined;
+    if( target==null )return undefined;
     var value = target[propertyKey];
     if( Internal.Descriptor && value instanceof Internal.Descriptor )
     {
@@ -534,6 +535,7 @@ Internal.$get = function(target, propertyKey, receiver)
 Internal.$set = function(target,propertyKey,value,receiver)
 {
     if( target===System )Internal.throwError('reference','"'+propertyKey+'" is not writable');
+    if( target == null )Internal.throwError('reference','target object is null or undfined');
     var desc = target[propertyKey];
     if( Internal.Descriptor && desc instanceof Internal.Descriptor )
     {

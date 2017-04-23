@@ -140,6 +140,7 @@ DataGrid.prototype.dataProfile=function dataProfile(profile )
 DataGrid.prototype.skinInstaller=function skinInstaller( event )
 {
     this.getSkin().body.buildMode( System.Skin.BUILD_CONTAINER_MODE );
+    
     var skin = SkinComponent.prototype.skinInstaller.call(this, event )
     return this.getRender().fetch( skin.toString() );
 }

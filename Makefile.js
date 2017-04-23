@@ -150,7 +150,14 @@ function parseMetaType( stack , config, project, syntax )
             var skinModules = makeSkin( metatype.param.source , config );
             skinContents = skinContents.concat( skinModules.skins );
             styleContents = styleContents.concat( skinModules.styles );
-            Utils.merge(requirements, skinModules.requirements );
+
+            //加载需要的组件
+            for( var prop in skinModules.requirements )
+            {
+                loadModuleDescription( syntax , prop , config , project );
+            }
+
+            //自定义的组件
             if( skinModules.scripts.length > 0 )
             {
                 for( var i in skinModules.scripts )
@@ -432,6 +439,8 @@ function make( config )
  */
 function loadFragmentModuleDescription( syntax, fragmentModule, config , project )
 {
+    if( !fragmentModule.content )return null;
+
     //解析代码语法
     var scope = makeCodeDescription( fragmentModule.content, config, false );
 
@@ -442,14 +451,17 @@ function loadFragmentModuleDescription( syntax, fragmentModule, config , project
         Utils.error('模块内部代码不能声明包');
         process.exit();
     }
-    _package.__name__ = fragmentModule.package;
+
+    var pkg = fragmentModule.classname;
+    var index = pkg.lastIndexOf('.');
+    _package.__name__ =  pkg.substring(0, index );
     
     if( scope.name() )
     {
         Utils.error('模块内部代码不能声明类');
         process.exit();
     }
-    scope.__name__ = fragmentModule.classname;
+    scope.__name__ = pkg.substr(index+1);
     var inherit = fragmentModule.extends || '';
     if( inherit )
     {
@@ -461,11 +473,14 @@ function loadFragmentModuleDescription( syntax, fragmentModule, config , project
         scope.__extends__ = classname;
         if( _package.scope().define(classname) )classname=inherit;
         _package.scope().define(classname,{'type':'('+classname+')','id':'class','fullclassname':inherit,'classname':classname });
+        scope.scope().define('super', {'type':'('+classname+')','id':'class','fullclassname':inherit,'classname':classname } );
+
     }
 
     //需要编译的模块
     var module = makeModules[syntax] || (makeModules[syntax]=[]);
     module.push( scope );
+    scope.isFragmentModule = true;
 
     //获取模块的描述
     var description = getPropertyDescription( scope );
@@ -479,6 +494,7 @@ function loadFragmentModuleDescription( syntax, fragmentModule, config , project
         loadModuleDescription(syntax, description.import[i], config, project );
     }
 
+    description.isFragmentModule = true;
     define(syntax, description.fullclassname, description );
     return description;
 }

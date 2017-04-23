@@ -224,7 +224,7 @@ function getInstance( target )
             pool[index]=obj;
         }
         index++;
-    }while( !(obj && obj.__done__) );
+    }while( !(obj && obj.__done__) && index < 10 );
     obj.__target__ = target;
     var d =  obj.__event__;
     d.addEventListener(Event.LOAD,done,false,0,target);

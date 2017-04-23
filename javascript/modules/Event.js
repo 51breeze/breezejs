@@ -9,7 +9,7 @@
  */
 function Event( type, bubbles, cancelable )
 {
-    if ( !System.instanceOf(this,Event) )return new Event(  type, bubbles,cancelable );
+   // if ( !System.is(this,Event) )return new Event(  type, bubbles,cancelable );
     if( type && typeof type !=="string" )Internal.throwError('type','event type is not string');
     this.type = type;
     this.bubbles = !(bubbles===false);

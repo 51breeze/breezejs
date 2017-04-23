@@ -349,6 +349,8 @@ var descriptor = {
             'isEmpty': {type: 'Boolean', id: 'function', param: ['Object','*']},
             'trim': {type: 'String', id: 'function', param: ['String']},
             'uid': {type: 'String', id: 'function', param: []},
+            'range': {type: 'Array', id: 'function', param: ['Number','Number']},
+
             //系统全局方法
             'decodeURI':{type:'String',id:'function',param:['String']},
             'decodeURIComponent':{type:'String',id:'function',param:['String']},

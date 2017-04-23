@@ -96,8 +96,8 @@ function mathOperator( a, o, b)
  */
 function toMessage(thisArg, properties, classModule, error, info , method )
 {
-    console.log( error );
-    var items = System.isArray(properties) ? Array.prototype.map.call(properties,function (item) {
+   // console.log( error );
+   /* var items = System.isArray(properties) ? Array.prototype.map.call(properties,function (item) {
         if( typeof item === "string" )return item;
         return System.getQualifiedClassName( item );
     }) : [properties];
@@ -108,7 +108,8 @@ function toMessage(thisArg, properties, classModule, error, info , method )
         if( method === 'new' || method==='delete')msg=method+' '+msg;
     }
     msg+=items.join('.')+'('+classModule.filename + ':' + info + ')\n';
-    throw new Error(msg);
+    */
+    throw error ;
 }
 
 /**
@@ -132,17 +133,11 @@ function makeMethods(method, classModule)
 {
     switch ( method )
     {
-        case 'get' : return function(info, thisArg, property, operator, issuper)
+        case 'get' : return function(info, thisArg, property, operator, receiver)
         {
             try{
                 if( property==null )return thisArg;
-                var receiver = undefined;
-                if( issuper===true ){
-                    receiver=thisArg;
-                    thisArg = $get(classModule,"extends");
-                }
                 var value=Reflect.get(thisArg, property, receiver, classModule);
-                if( arguments[arguments.length-1]==='throw' )throw new System.Error(value);
                 var ret = value;
                 switch ( operator ){
                     case ';++':
@@ -167,20 +162,15 @@ function makeMethods(method, classModule)
                 toMessage(thisArg, property, classModule, error, info,'get');
             }
         }
-        case 'set' : return function(info, thisArg, property,value, operator, issuper)
+        case 'set' : return function(info, thisArg, property,value, operator, receiver)
         {
             try{
                 if( property == null )return value;
-                var receiver=undefined;
-                if( issuper===true ){
-                    receiver=thisArg;
-                    thisArg = $get(classModule,"extends");
-                }
                 if( operator && operator !=='=' )
                 {
-                    value = mathOperator( Reflect.get(thisArg, property, receiver, classModule), operator, value);
+                    value = mathOperator( Reflect.get(thisArg, property, receiver, classModule ), operator, value);
                 }
-                Reflect.set(thisArg, property, value, receiver, classModule);
+                Reflect.set(thisArg, property, value, receiver, classModule );
                 return value;
             }catch(error){
                 toMessage(thisArg, property, classModule, error, info,'set');
@@ -203,22 +193,15 @@ function makeMethods(method, classModule)
                 toMessage(theClass, [], classModule, error, info,'new');
             }
         }
-        case 'apply' : return function(info,thisArg, property, argumentsList,issuper)
+        case 'apply' : return function(info,thisArg, property, argumentsList, receiver )
         {
             try{
-                var receiver=undefined;
-                if( issuper === true ){
-                    receiver=thisArg;
-                    thisArg = $get(classModule,"extends");
-                }
-                var ret;
-                if( property ) {
-                    ret= Reflect.apply( Reflect.get(thisArg, property, receiver, classModule), receiver || thisArg, argumentsList );
+                if( property )
+                {
+                    return Reflect.apply( Reflect.get(thisArg, property, receiver, classModule ), receiver || thisArg, argumentsList );
                 }else{
-                    ret= Reflect.apply(thisArg, receiver, argumentsList);
+                    return Reflect.apply(thisArg, receiver, argumentsList);
                 }
-                if( arguments[arguments.length-1]==='throw' )throw new System.Error( ret );
-                return ret;
             }catch(error){
                 toMessage(thisArg, property, classModule, error, info, 'call');
             }
@@ -228,7 +211,7 @@ function makeMethods(method, classModule)
             if( value == null && type === System.Object )return value;
             if ( !System.is(value, type) )
             {
-                toMessage(null, [], classModule, 'TypeError Specify the type of value do not match. must is "' + getQualifiedClassName(type) + '"', info, 'Type');
+                toMessage(null, [], classModule, 'TypeError Specify the type of value do not match. must is "' + System.getQualifiedClassName(type) + '"', info, 'Type');
             }
             return value;
         }

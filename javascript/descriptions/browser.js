@@ -356,11 +356,11 @@ var descriptor = {
             'isRemote':{'type':'Boolean','id':'function','param':[]},
             'options':{'type':'DataSource','id':'function','param':['Object']},
             'source':{'type':'DataSource','id':'function','param':['*']},
-            'rows':{'type':'Number','id':'function','param':[]},
+            'pageSize':{'type':'Number','id':'function','param':[]},
             'maxBuffer':{'type':'Number','id':'function','param':['Number']},
-            'total':{'type':'Number','id':'function','param':[]},
-            'count':{'type':'Number','id':'function','param':[]},
-            'calculate':{'type':'Number','id':'function','param':[]},
+            'totalPage':{'type':'Number','id':'function','param':[]},
+            'realSize':{'type':'Number','id':'function','param':[]},
+            'totalSize':{'type':'Number','id':'function','param':[]},
             'grep':{'type':'DataGrep','id':'function','param':[]},
             'filter':{'type':'DataSource','id':'function','param':['Object']},
             'current':{'type':'Number','id':'function','param':[]},
@@ -426,6 +426,11 @@ var descriptor = {
         'static':{
             "INSTALLING":{'id':'const','type':'String'},
         },
+        'proto':{
+            "viewport":{'id':'var','type':'Object'},
+            "hostComponent":{'id':'var','type':'Component'},
+            "skinContent":{'id':'var','type':'Object'},
+        }
     },
     'Component': {
         'type': 'Component',

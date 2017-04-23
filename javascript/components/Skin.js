@@ -1,7 +1,7 @@
 /**
  * 皮肤类
  * @constructor
- * @require Object,TypeError,Math,EventDispatcher,SkinEvent
+ * @require Object,TypeError,Math,EventDispatcher,SkinEvent,Reflect
  */
 function Skin( skinObject )
 {
@@ -235,7 +235,7 @@ var template_syntax={
         },
         'case': function (attr, content) {
             content = '<? case "' + attr.condition + '": ?>'+content;
-            if( attr.break )content+='\nbreak;';
+            if( attr["break"] )content+='\nbreak;';
             return content;
         },
         'default': function (attr, content) {
@@ -254,7 +254,7 @@ var template_syntax={
             return '<? code{ ?>'+content+' <? } ?>';
         },'script': function (attr, content) {
             return '<? code{ ?>'+content+' <? } ?>';
-        },
+        }
     }
 }
 
@@ -277,8 +277,9 @@ function __toString(skin, parent, mode )
                 event.viewport = skin;
                 event.hostComponent = parent;
                 event.skinContent = null;
-                child.dispatchEvent(event);
-                content += ( event.skinContent !== null ? event.skinContent : child ).toString();
+                Reflect.apply( Reflect.get(child,"dispatchEvent"),child, [event] );
+                var skinObj = event.skinContent===null ? child : event.skinContent;
+                content += skinObj.toString();
 
             } else if (child + "" === "[object Object]")
             {
