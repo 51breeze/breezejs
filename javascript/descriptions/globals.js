@@ -326,6 +326,7 @@ var descriptor = {
                     'version':{type: 'Number', id: 'function', param: ['...']},
                 }
             },
+            'alert': {type: 'void', id: 'function', param: ['...']},
             'log': {type: 'void', id: 'function', param: ['...']},
             'error': {type: 'void', id: 'function', param: ['...']},
             'info': {type: 'void', id: 'function', param: ['...']},

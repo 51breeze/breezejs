@@ -133,6 +133,8 @@ var descriptor = {
             'forEach': {type: '*', 'id': 'function',param:['Function']},
             'property': {type: 'String', 'id': 'function',param:[]},
             'html': {type: 'String', 'id': 'function',param:['String']},
+            'length': {type: 'Number', 'id': 'const'},
+            'slice': {type: 'Number', 'id': 'function', param:['Number'] },
         }
     },
     'StyleEvent':{

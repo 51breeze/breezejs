@@ -42,14 +42,14 @@ if( typeof window !=="undefined" )
  */
 function done(event)
 {
-    var xhr = event.currentTarget;
+    var xhr = this.__xhr__;
     var options = this.__options__;
     if (xhr.readyState !== 4)return;
     var match, result = null, headers = {};
-    if (xhr && xhr.__timeoutTimer__)
+    if (xhr && this.__timeoutTimer__ )
     {
-        System.clearTimeout(xhr.__timeoutTimer__);
-        xhr.__timeoutTimer__ = null;
+        System.clearTimeout(this.__timeoutTimer__);
+        this.__timeoutTimer__ = null;
     }
     //获取响应头信息
     if( typeof xhr.getAllResponseHeaders === "function" )
@@ -59,7 +59,10 @@ function done(event)
             headers[match[1].toLowerCase()] = match[2];
         }
     }
+
+    this.__loading__=false;
     this.__responseHeaders__=headers;
+
     if (xhr.status >= 200 && xhr.status < 300)
     {
         result = xhr.responseXML;
@@ -72,21 +75,13 @@ function done(event)
             }
         }
     }
-    var d =  xhr.__event__;
-    if( d )
-    {
-        d.removeEventListener(Event.LOAD, done);
-        d.removeEventListener(Event.LOAD_START, loadStart);
-        d.removeEventListener(Event.PROGRESS, progress);
-        d.removeEventListener(Event.ERROR, error);
-    }
+
     var e = new HttpEvent( HttpEvent.SUCCESS );
     e.originalEvent = event;
     e.data = result;
     e.status = xhr.status;
-    e.url = xhr.__url__;
+    e.url = this.__url__;
     this.dispatchEvent(e);
-    xhr.__done__=true;
 };
 
 function loadStart(event)
@@ -128,7 +123,24 @@ function Http( options )
     if( !isSupported )throw new Error('Http the client does not support');
     if ( !(this instanceof Http) )return new Http(options);
     this.__options__=Object.merge(true, setting, options);
-    EventDispatcher.call(this);
+    var xhr;
+    if( window.XMLHttpRequest )
+    {
+        xhr = new window.XMLHttpRequest();
+        EventDispatcher.call(this, xhr );
+        this.addEventListener(Event.LOAD,done);
+
+    }else
+    {
+        EventDispatcher.call(this);
+        xhr = new window.ActiveXObject("Microsoft.XMLHTTP");
+        var self= this;
+        xhr.onreadystatechange=function()
+        {
+            if( xhr.readyState === 4 )done.call(self);
+        }
+    }
+    this.__xhr__ = xhr;
 }
 System.Http=Http;
 
@@ -180,9 +192,8 @@ Http.prototype = Object.create( EventDispatcher.prototype );
 Http.prototype.constructor = Http;
 Http.prototype.__options__={};
 Http.prototype.__xhr__=null;
+Http.prototype.__loading__=false;
 
-//ajax 实例对象池
-var pool=[];
 
 /**
  * 取消请求
@@ -190,49 +201,19 @@ var pool=[];
  */
 Http.prototype.abort = function abort()
 {
-    var xhr;
-    for(var i in pool )if( pool[i].__target__=== this )xhr = pool[i];
-    if (xhr) {
-        if( typeof xhr === "function" )xhr.abort();
+    var xhr = this.__xhr__;
+    if (xhr)
+    {
+        try{xhr.abort();}catch(e){}
         var event = new HttpEvent(HttpEvent.CANCELED);
         event.data = null;
         event.status = -1;
-        event.url = xhr.__url__;
+        event.url = this.__url__;
         this.dispatchEvent(event);
-        xhr.__done__=true;
         return true;
     }
     return false;
 };
-
-/**
- * 获取一个ajax实例对象
- * @param target
- * @returns {*}
- */
-function getInstance( target )
-{
-    var obj=null;
-    var index=0;
-    do{
-        obj = pool[index];
-        if( !obj )
-        {
-            obj=new XHR("Microsoft.XMLHTTP");
-            obj.__done__=true;
-            obj.__event__ = EventDispatcher(obj);
-            pool[index]=obj;
-        }
-        index++;
-    }while( !(obj && obj.__done__) && index < 10 );
-    obj.__target__ = target;
-    var d =  obj.__event__;
-    d.addEventListener(Event.LOAD,done,false,0,target);
-    if( target.hasEventListener(HttpEvent.LOAD_START) )d.addEventListener(Event.LOAD_START, loadStart, false, 0, target);
-    if( target.hasEventListener(HttpEvent.PROGRESS) )d.addEventListener(Event.PROGRESS,progress, false, 0, target);
-    if( target.hasEventListener(HttpEvent.ERROR) )d.addEventListener(Event.ERROR,error, false, 0, target);
-    return obj;
-}
 
 /**
  * 发送请求
@@ -242,6 +223,8 @@ function getInstance( target )
 Http.prototype.load = function load(url, data, method)
 {
     if (typeof url !== "string")Internal.throwError('error','Invalid url');
+    if( this.__loading__ ===true )return false;
+
     var options = this.__options__;
     var async = !!options.async;
     var method = method || options.method;
@@ -251,69 +234,70 @@ Http.prototype.load = function load(url, data, method)
         method = method.toUpperCase();
         if (!(method in Http.METHOD))throw new Error('Invalid method for ' + method);
     }
-
+    this.__url__ = url;
+    this.__loading__=true;
     try{
+
         if (options.dataType.toLowerCase() === 'jsonp')
         {
             xhr = new ScriptRequest( async );
-            xhr.addEventListener(HttpEvent.SUCCESS, function (event) {
-                if (xhr.__timeoutTimer__)
+            xhr.addEventListener(HttpEvent.SUCCESS, function (event)
+            {
+                if ( this.__timeoutTimer__)
                 {
-                    System.clearTimeout(xhr.__timeoutTimer__);
-                    xhr.__timeoutTimer__ = null;
+                    System.clearTimeout( this.__timeoutTimer__ );
+                    this.__timeoutTimer__ = null;
                 }
+                event.url=this.__url__;
                 this.dispatchEvent(event);
             }, false, 0, this);
-            xhr.__url__ = url;
             xhr.send(url, data, method);
 
         } else
         {
-            xhr = getInstance(this);
+            xhr = this.__xhr__;
             data = data != null ? System.serialize(data, 'url') : null;
-            if (method === Http.METHOD.GET && data) {
+            if (method === Http.METHOD.GET && data)
+            {
                 if (data != '')url += /\?/.test(url) ? '&' + data : '?' + data;
                 data = null;
             }
             xhr.open(method, url, async);
 
-            //设置请求头
-            if (typeof xhr.setRequestHeader === 'function')
+            //设置请求头 如果请求方法为post
+            if( method === Http.METHOD.POST )
             {
-                //如果请求方法为post
-                if (method === Http.METHOD.POST)
-                {
-                    options.header.contentType = "application/x-www-form-urlencoded";
-                }
-                if (!/charset/i.test(options.header.contentType))options.header.contentType += ';' + options.charset;
-                try {
-                    var name;
-                    for (name in options.header) {
-                        xhr.setRequestHeader(name, options.header[name]);
-                    }
-                } catch (e) {
-                }
+                options.header.contentType = "application/x-www-form-urlencoded";
             }
 
-            //设置可以接收的内容类型
-            if (xhr.overrideMimeType && options.header.Accept)
+            //设置编码
+            if ( !/charset/i.test(options.header.contentType) )options.header.contentType += ';' + options.charset;
+
+            try
             {
-                xhr.overrideMimeType(options.header.Accept);
-            }
-            xhr.__done__=false;
-            xhr.__url__ = url;
+                var name;
+                for (name in options.header)
+                {
+                    xhr.setRequestHeader(name, options.header[name]);
+                }
+            } catch (e) {}
+
+            //设置可以接收的内容类型
+            try {
+                xhr.overrideMimeType( options.header.Accept );
+            }catch(e){}
             xhr.send(data);
         }
 
     } catch (e)
     {
-        throw new Error('Http the client does not support');
+        throw new Error('Http the client does not support('+e.message+')');
     }
 
     //设置请求超时
-    xhr.__timeoutTimer__ = System.setTimeout((function (xhr,url,self) {
+    this.__timeoutTimer__ = System.setTimeout((function (url,self) {
         return function () {
-            xhr.abort();
+            self.abort();
             if(self.hasEventListener(HttpEvent.TIMEOUT))
             {
                 var event = new HttpEvent(HttpEvent.TIMEOUT);
@@ -322,13 +306,13 @@ Http.prototype.load = function load(url, data, method)
                 event.url = url
                 self.dispatchEvent(event);
             }
-            if (xhr.__timeoutTimer__)
+            if (self.__timeoutTimer__)
             {
-                System.clearTimeout(xhr.__timeoutTimer__);
-                xhr.__timeoutTimer__ = null;
+                System.clearTimeout(self.__timeoutTimer__);
+                self.__timeoutTimer__ = null;
             }
         }
-    })(xhr,url,this), options.timeout * 1000);
+    })(url,this), options.timeout * 1000);
     return true;
 };
 
@@ -340,7 +324,7 @@ Http.prototype.load = function load(url, data, method)
  */
 Http.prototype.setRequestHeader = function setRequestHeader(name, value) {
     var options = this.__options__;
-    if (typeof value !== "undefined" && !this.__xhr__ )
+    if (typeof value !== "undefined" )
     {
         options.header[name] = value;
     }
@@ -368,7 +352,8 @@ var queues = [];
  */
 function ScriptRequest( async )
 {
-    if (!(this instanceof ScriptRequest)) {
+    if (!(this instanceof ScriptRequest))
+    {
         return new ScriptRequest();
     }
     var target = document.createElement('script');

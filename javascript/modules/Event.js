@@ -77,7 +77,14 @@ Event.prototype.preventDefault = function preventDefault()
     if( this.cancelable===true )
     {
         this.defaultPrevented = true;
-        if ( this.originalEvent )this.originalEvent.preventDefault ? this.originalEvent.preventDefault() : this.originalEvent.returnValue = false
+        if ( this.originalEvent )
+        {
+            if( this.originalEvent.preventDefault ){
+                this.originalEvent.preventDefault();
+            }else{
+                this.originalEvent.returnValue = false;
+            }
+        }
     }
 };
 
@@ -177,8 +184,8 @@ Event.create = function create( originalEvent )
     event.type=type;
     event.target=target;
     event.currentTarget = currentTarget;
-    event.bubbles = !!originalEvent.bubbles;
-    event.cancelable = !!originalEvent.cancelable;
+    event.bubbles = originalEvent.bubbles !== false;
+    event.cancelable = originalEvent.cancelable !== false;
     event.originalEvent = originalEvent;
     event.timeStamp = originalEvent.timeStamp;
     event.relatedTarget= originalEvent.relatedTarget;

@@ -143,12 +143,18 @@ function addEventListener(target, listener )
     //如果不是 EventDispatcher 则在第一个事件中添加事件代理。
     if( events.length===0 && !(target instanceof Object) )
     {
+        //自定义事件处理
         if( Object.prototype.hasOwnProperty.call(Event.fix.hooks,type) )
         {
             Event.fix.hooks[ type ].call(target, listener, dispatchEvent);
+
         }else {
             type = Event.type(type);
-            target.addEventListener ? target.addEventListener(type, dispatchEvent, listener.useCapture) : target.attachEvent(type,function(e){dispatchEvent(e,target)});
+            try {
+                target.addEventListener ? target.addEventListener(type, dispatchEvent, listener.useCapture) : target.attachEvent(type, function (e) {
+                    dispatchEvent(e, target)
+                });
+            }catch (e) {}
         }
     }
 
