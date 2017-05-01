@@ -439,10 +439,8 @@ var descriptor = {
         'id': 'class',
         'inherit':'EventDispatcher',
         'proto': {
-            'dataSource': {type: 'DataSource', 'id': 'function',param:[]},
-            'source': {type: 'DataRender', 'id': 'function',param:['Object']},
-            'dataProfile': {type: 'Object', 'id': 'function',param:[]},
-            'display': {type: 'Boolean', 'id': 'function',param:[]},
+            'hostComponent': {type: 'Component', 'id': 'function',param:[]},
+            //'display': {type: 'Boolean', 'id': 'function',param:[]},
         }
     },
     'Skin': {

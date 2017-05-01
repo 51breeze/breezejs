@@ -10,13 +10,18 @@ function Skin( skinObject )
         this.__skin__=skinObject;
     }
     this.__skin__.attr.id = System.uid();
-    if( this.__skin__.name === 'skin' )this.__skin__.name='div';
-    if( this.__skin__.attr.nodename && typeof this.__skin__.attr.nodename === "string" )
-    {
-        this.__skin__.name=this.__skin__.attr.nodename;
-        delete this.__skin__.attr.nodename;
-    }
+    this.__buildMode__ = Skin.BUILD_ALL_MODE;
     EventDispatcher.call(this);
+}
+
+Skin.toString = function toString()
+{
+   return "[class Skin]";
+}
+
+Skin.valueOf = function valueOf()
+{
+    return "[class Skin]";
 }
 
 Skin.prototype = Object.create( EventDispatcher.prototype );
@@ -91,9 +96,10 @@ Skin.prototype.buildMode =function buildMode( mode )
 Skin.prototype.getChildById = function getChildById( id )
 {
     var children = this.__skin__.children;
-    if( Object.prototype.hasOwnProperty.call(this,id) )
+    if( this instanceof System.Class )
     {
-        return this[id];
+        var val = Reflect.get(this,id);
+        if( val )return val;
     }
     for( var i in children )
     {
@@ -148,7 +154,7 @@ Skin.prototype.getChildAllByName = function getChildAllByName( name )
  */
 Skin.prototype.addChild = function addChild( child )
 {
-    return this.addChildAt(child,-1);
+    return Reflect.apply( Reflect.get(this,"addChildAt"), this, [child] );
 }
 
 /**
@@ -160,9 +166,9 @@ Skin.prototype.addChildAt = function addChildAt( child , index )
 {
    var children = this.__skin__.children;
    var len =  children.length;
-   index = Math.min(len, Math.max( index < 0 ? len+index : index , 0) );
-   if( !System.instanceOf(child, Skin) )throw new Error("Invalid child");
-    children.splice(index,0,child);
+   index = Math.min(len, Math.max( index < 0 ? len+index+1 : index , 0) );
+   if( !System.instanceOf(child, Skin) )throw new Error("Invalid skin child");
+   children.splice(index,0,child);
    return child;
 }
 
@@ -200,7 +206,7 @@ Skin.prototype.removeChildAt = function removeChildAt( index )
  */
 Skin.prototype.toString=function toString()
 {
-    return __toString(this.__skin__, this , this.buildMode() );
+    return __toString(this.__skin__, this, Reflect.apply( Reflect.get(this,"buildMode"), this ) );
 }
 
 /**
@@ -279,8 +285,8 @@ function __toString(skin, parent, mode )
                 event.skinContent = null;
                 Reflect.apply( Reflect.get(child,"dispatchEvent"),child, [event] );
                 var skinObj = event.skinContent===null ? child : event.skinContent;
-                content += skinObj.toString();
-
+                content += Reflect.apply( Reflect.get(skinObj,"toString"), skinObj );
+                
             } else if (child + "" === "[object Object]")
             {
                 content += __toString(child, parent, Skin.BUILD_ALL_MODE );

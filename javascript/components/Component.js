@@ -18,16 +18,10 @@
  */
 function Component()
 {
-    if( !System.is(this,Component) )return new Component();
     EventDispatcher.call(this);
 }
-
 Component.prototype= Object.create(EventDispatcher.prototype);
 Component.prototype.constructor=Component;
-Component.prototype.componentProfile='component';
-Component.prototype.initializeMethod=[];
-Component.prototype.initializeCompleted=false;
-Component.NAME='component';
 
 /**
  * 组件初始完成
@@ -61,14 +55,14 @@ Component.prototype.__hostComponent__=null;
 
 /**
  * 宿主组件对象
- * @param component
- * @returns {null|Component}
+ * @param host
+ * @returns {Component}
  */
-Component.prototype.hostComponent = function hostComponent( host )
+Component.prototype.hostComponent=function( host )
 {
-    if( host )
+    if( host != null )
     {
-        if( !System.is(host,Component) )throw new TypeError('is not host component');
+        if( !System.is(host,Component) )throw new TypeError('host is not Component');
         this.__hostComponent__ = host;
         return this;
     }

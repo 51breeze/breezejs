@@ -57,6 +57,7 @@ function getType( type )
 function createDescription( stack )
 {
     var desc = {};
+    desc.__stack__ = stack;
     desc['id'] =stack.keyword();
     desc['type'] = getType( stack.type() );
     desc['privilege'] =stack.qualifier();
@@ -133,6 +134,21 @@ function metaTypeToString( stack , type )
     return str.join('');
 }
 
+function defineProp(proto, name, value, qualifier, type)
+{
+    if( proto.hasOwnProperty(name) )
+    {
+        throw new Error('');
+    }
+    proto[name]={
+        'id':'const',
+        'type':'('+type+')' ,
+        'privilege':qualifier,
+        'static':false,
+        'value':value,
+    };
+}
+
 /**
  * 解析元类型模块
  * @param stack
@@ -148,7 +164,27 @@ function parseMetaType( stack , config, project, syntax )
         case 'Skin' :
             var source = metatype.param.source;
             var skinModules = makeSkin( metatype.param.source , config );
-            skinContents = skinContents.concat( skinModules.skins );
+            for( var skinName in skinModules )
+            {
+                var imports=[];
+                var skinObj = skinModules[ skinName ];
+
+                //皮肤中使用了组件
+                for (var i in skinObj.components)
+                {
+                    var component=skinObj.components[i];
+                    //requirements[ component.extends ]=true;
+                    imports.push( 'import '+ component.fullclassname +';\n');
+                    component.import = 'import '+component.extends+';\n';
+                    loadFragmentModuleDescription(syntax, component, config, project);
+                }
+
+                skinObj.import = imports.join('');
+                loadFragmentModuleDescription(syntax, skinObj, config, project);
+                // skinContents.push( skinObj.style.join("\n") );
+            }
+
+            /*skinContents = skinContents.concat( skinModules.skins );
             styleContents = styleContents.concat( skinModules.styles );
 
             //加载需要的组件
@@ -164,7 +200,7 @@ function parseMetaType( stack , config, project, syntax )
                 {
                     loadFragmentModuleDescription(syntax, skinModules.scripts[i], config, project );
                 }
-            }
+            }*/
             return 'Internal.define("'+source+'")';
         break;
     }
@@ -257,11 +293,10 @@ function getPropertyDescription( stack , config , project , syntax )
 }
 
 //构建代码描述
-function makeCodeDescription( content ,config, strict )
+function makeCodeDescription( content ,config )
 {
     //获取代码描述
     var R= new Ruler( content, config );
-     R.strict( !!strict );
 
     //侦听块级域
     if( config.blockScope==='enable' )
@@ -275,7 +310,7 @@ function makeCodeDescription( content ,config, strict )
     var scope = R.start();
     if( !(scope.content()[0] instanceof Ruler.SCOPE)  )
     {
-        throw new Error('Fatal error in '+sourcefile);
+        throw new Error('Fatal error');
     }
     scope = scope.content()[0].content()[0];
     if( !(scope instanceof Ruler.SCOPE) || !( scope.keyword() === 'class' || scope.keyword() === 'interface') )
@@ -296,17 +331,16 @@ function loadModuleDescription( syntax , file , config , project )
     var sourcefile = filepath(file, config.project_path ).replace(/\\/g,'/');
 
     //获取对应的包和类名
-    var fullclassname = PATH.relative( project.path, sourcefile ).replace(/\\/g,'/').replace(/\//g,'.');
+    var fullclassname = PATH.relative( config.project_path, sourcefile ).replace(/\\/g,'/').replace(/\//g,'.');
+
+    //如果已加载
+    if( define(syntax, fullclassname) )return;
 
     sourcefile+=config.suffix;
     if( !fs.existsSync(sourcefile) ){
         if( globals.hasOwnProperty(file) )return;
-        console.log( globals[file] )
         throw new Error('is not found '+sourcefile);
     }
-
-    //如果已加载
-    if( define(syntax, fullclassname) )return;
 
     //先占个位
     define(syntax, fullclassname, {} );
@@ -321,7 +355,7 @@ function loadModuleDescription( syntax , file , config , project )
     Utils.info('Checking file '+sourcefile+'...');
 
     //解析代码语法
-    var scope = makeCodeDescription(fs.readFileSync( sourcefile , 'utf-8'), config, true );
+    var scope = makeCodeDescription(fs.readFileSync( sourcefile , 'utf-8'), config );
 
     //需要编译的模块
     var module = makeModules[syntax] || (makeModules[syntax]=[]);
@@ -431,51 +465,40 @@ function make( config )
     }
 }
 
-
-
 /**
  * 加载并解析模块的描述信息
  * @returns
  */
 function loadFragmentModuleDescription( syntax, fragmentModule, config , project )
 {
-    if( !fragmentModule.content )return null;
-
     //解析代码语法
-    var scope = makeCodeDescription( fragmentModule.content, config, false );
-
-    var _package = scope.parent();
-
-    if( _package.name() )
-    {
-        Utils.error('模块内部代码不能声明包');
-        process.exit();
-    }
-
-    var pkg = fragmentModule.classname;
-    var index = pkg.lastIndexOf('.');
-    _package.__name__ =  pkg.substring(0, index );
-    
-    if( scope.name() )
-    {
-        Utils.error('模块内部代码不能声明类');
-        process.exit();
-    }
-    scope.__name__ = pkg.substr(index+1);
+    var scope;
     var inherit = fragmentModule.extends || '';
+
+    var content = ['package', fragmentModule.package ,'{'];
+    if( fragmentModule.import )
+    {
+        content.push( fragmentModule.import );
+    }
+    content.push( 'class')
+    content.push( fragmentModule.classname );
+
     if( inherit )
     {
-        var classname = inherit;
-        if( classname.lastIndexOf('.') )
-        {
-            classname = classname.substr( classname.lastIndexOf('.')+1 );
-        }
-        scope.__extends__ = classname;
-        if( _package.scope().define(classname) )classname=inherit;
-        _package.scope().define(classname,{'type':'('+classname+')','id':'class','fullclassname':inherit,'classname':classname });
-        scope.scope().define('super', {'type':'('+classname+')','id':'class','fullclassname':inherit,'classname':classname } );
-
+        content.push('extends');
+        content.push(inherit);
     }
+    content.push('{');
+    if( fragmentModule.constructor )
+    {
+        var param = fragmentModule.constructor.param;
+        var body = fragmentModule.constructor.body;
+        var constructor=['function', fragmentModule.classname,'(',param,')','{',body,'}'];
+        content.push( constructor.join(' ') );
+    }
+    content.push( fragmentModule.script.join('\n') );
+    content.push( '}}' );
+    scope = makeCodeDescription( content.join(' '), config);
 
     //需要编译的模块
     var module = makeModules[syntax] || (makeModules[syntax]=[]);
@@ -484,19 +507,26 @@ function loadFragmentModuleDescription( syntax, fragmentModule, config , project
 
     //获取模块的描述
     var description = getPropertyDescription( scope );
+    description.isFragmentModule = true;
     description.uid= new Date().getTime();
     description.filename = fragmentModule.filepath.replace(/\\/g,'/');
     scope.filename=description.filename;
+    if( fragmentModule.originScript )
+    {
+        description.constructor.__stack__.called=true;
+        description.constructor.__stack__.addListener('(iterationDone)', function (e) {
+            //e.stopPropagation = true;
+            e.content.splice(e.content.length - 1, 0, fragmentModule.originScript);
+        }, -1000);
+    }
 
     //加载导入模块的描述
     for(var i in description.import )
     {
         loadModuleDescription(syntax, description.import[i], config, project );
     }
-
-    description.isFragmentModule = true;
     define(syntax, description.fullclassname, description );
-    return description;
+    return scope;
 }
 
 module.exports = make;

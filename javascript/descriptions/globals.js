@@ -178,7 +178,7 @@ var descriptor = {
         'id':'object', 'type':'Reflect',
         'static':{
             'apply':{'id':'function','type':'*','param':['Function','...']},
-            'construct':{'id':'function','type':'*','param':['Function','...']},
+            'construct':{'id':'function','type':'*','param':['Class','...']},
             'defineProperty':{'id':'function','type':'Object','param':['Object','String','Object']},
             'deleteProperty':{'id':'function','type':'Boolean','param':['Object','String']},
             'has':{'id':'function','type':'Boolean','param':[]},
