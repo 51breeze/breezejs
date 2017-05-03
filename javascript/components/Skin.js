@@ -1,17 +1,39 @@
+
 /**
  * 皮肤类
  * @constructor
- * @require Object,TypeError,Math,EventDispatcher,SkinEvent,Reflect
+ * @require Object,TypeError,Math,Component,SkinEvent,Reflect,Symbol
  */
+
+
+/**
+ * @private
+ */
+var skinSymbol = Symbol('skin');
+function property( name, value )
+{
+    if( name === true )
+    {
+        this[ skinSymbol ]=value;
+        return value;
+    }
+    var data = this[ skinSymbol ];
+    if( !data )return undefined;
+    return value==null ? data[ name ] || null : data[ name ]=value;
+}
+
 function Skin( skinObject )
 {
-    if( skinObject+"" === "[object Object]")
-    {
-        this.__skin__=skinObject;
-    }
-    this.__skin__.attr.id = System.uid();
-    this.__buildMode__ = Skin.BUILD_ALL_MODE;
-    EventDispatcher.call(this);
+    skinObject = skinObject || {
+        "name": 'div',
+        "attr": {},
+        "children":[]
+    };
+    property.call(this, true,{
+       'data':{'mode':Skin.BUILD_ALL_MODE},
+       'skinObject':skinObject
+    });
+    Component.call(this);
 }
 
 Skin.toString = function toString()
@@ -24,13 +46,8 @@ Skin.valueOf = function valueOf()
     return "[class Skin]";
 }
 
-Skin.prototype = Object.create( EventDispatcher.prototype );
+Skin.prototype = Object.create( Component.prototype );
 Skin.prototype.constructor = Skin;
-Skin.prototype.__skin__= {
-    "name": 'div',
-    "attr": {},
-    "children": []
-};
 
 /**
  * 皮肤属性
@@ -40,16 +57,17 @@ Skin.prototype.__skin__= {
  */
 Skin.prototype.attr = function attr(name, val)
 {
+    var skinObject = property.call(this,'skinObject');
     if( typeof name === "string" )
     {
         if( typeof val !== "undefined" )
         {
-            this.__skin__.attr[name]=val;
+            skinObject.attr[name]=val;
             return this;
         }
-        return this.__skin__.attr[name];
+        return skinObject.attr[name];
     }
-    return this.__skin__.attr;
+    return skinObject.attr;
 }
 
 //不构建
@@ -65,27 +83,23 @@ Skin.BUILD_CHILDREN_MODE = 2;
 Skin.BUILD_ALL_MODE = 3;
 
 /**
- * @private
- */
-Skin.prototype.__buildMode__ = Skin.BUILD_ALL_MODE;
-
-/**
  * 指示如何构建皮肤,默认为所有
  * @param mode
  * @returns {number|*}
  */
 Skin.prototype.buildMode =function buildMode( mode )
 {
-   if( typeof mode === "number" )
-   {
+    var data = property.call(this,'data');
+    if( typeof mode === "number" )
+    {
        if( (mode | Skin.BUILD_ALL_MODE) !== Skin.BUILD_ALL_MODE )
        {
            throw new Error('Invalid build mode');
        }
-       this.__buildMode__=mode;
+       data.mode=mode;
        return this;
-   }
-   return this.__buildMode__;
+    }
+    return data.mode;
 }
 
 /**
@@ -95,16 +109,21 @@ Skin.prototype.buildMode =function buildMode( mode )
  */
 Skin.prototype.getChildById = function getChildById( id )
 {
-    var children = this.__skin__.children;
     if( this instanceof System.Class )
     {
-        var val = Reflect.get(this,id);
-        if( val )return val;
+       var child =Reflect.get(this, id );
+       if( child )return child;
     }
+    var skinObject = property.call(this,'skinObject');
+    var children = skinObject.children;
     for( var i in children )
     {
         if( children[i].attr.id === id )
         {
+            if( !System.is(children[i], Skin) )
+            {
+                children[i] = new Skin( children[i] );
+            }
             return children[i];
         }
     }
@@ -118,10 +137,11 @@ Skin.prototype.getChildById = function getChildById( id )
  */
 Skin.prototype.getChildByName = function getChildByName( name )
 {
-    var children =  this.__skin__.children;
+    var skinObject = property.call(this,'skinObject');
+    var children = skinObject.children;
     for( var i in children )
     {
-        if( children[i].name === name )
+        if( children[i].attr.name === name )
         {
             return children[i];
         }
@@ -136,11 +156,12 @@ Skin.prototype.getChildByName = function getChildByName( name )
  */
 Skin.prototype.getChildAllByName = function getChildAllByName( name )
 {
-    var children =  this.__skin__.children;
+    var skinObject = property.call(this,'skinObject');
+    var children = skinObject.children;
     var items=[];
     for( var i in children )
     {
-        if( children[i].name === name )
+        if( children[i].attr.name === name )
         {
             items.push( children[i] );
         }
@@ -154,7 +175,11 @@ Skin.prototype.getChildAllByName = function getChildAllByName( name )
  */
 Skin.prototype.addChild = function addChild( child )
 {
-    return Reflect.apply( Reflect.get(this,"addChildAt"), this, [child] );
+    var skinObject = property.call(this,'skinObject');
+    var children = skinObject.children;
+    if( !System.is(child, Skin) )throw new Error('child is not Skin');
+    children.push( child );
+    return this;
 }
 
 /**
@@ -164,10 +189,12 @@ Skin.prototype.addChild = function addChild( child )
  */
 Skin.prototype.addChildAt = function addChildAt( child , index )
 {
-   var children = this.__skin__.children;
+   var skinObject = property.call(this,'skinObject');
+   var children = skinObject.children;
    var len =  children.length;
+   if( typeof index !== "number" )throw new Error("Invalid index");
    index = Math.min(len, Math.max( index < 0 ? len+index+1 : index , 0) );
-   if( !System.instanceOf(child, Skin) )throw new Error("Invalid skin child");
+   if( !System.instanceOf(child, Skin) )throw new Error("child is not Skin");
    children.splice(index,0,child);
    return child;
 }
@@ -178,7 +205,14 @@ Skin.prototype.addChildAt = function addChildAt( child , index )
  */
 Skin.prototype.removeChild = function removeChild( child )
 {
-    return this.removeChildAt(this.__skin__.children.indexOf( child ) );
+    var skinObject = property.call(this,'skinObject');
+    var children = skinObject.children;
+    var index  = children.indexOf( child );
+    if( index<0 )
+    {
+        throw new Error("child is not exists");
+    }
+    return children.splice(index,1);
 }
 
 /**
@@ -187,18 +221,15 @@ Skin.prototype.removeChild = function removeChild( child )
  */
 Skin.prototype.removeChildAt = function removeChildAt( index )
 {
-    var children = this.__skin__.children;
-    if( System.isNaN(index) || (index < 0 || index >= children.length) )
+    var skinObject = property.call(this,'skinObject');
+    var children = skinObject.children;
+    var len = children.length;
+    index = index < 0 ? index+len : index;
+    if( index >= len || index < 0 )
     {
-        throw new Error("Invalid index");
+        throw new Error("index out of range");
     }
-    var child = children[index];
-    if( !child || child.name==null )
-    {
-         throw new Error("is not exists of child element");
-    }
-    children.splice(index,1);
-    return child;
+    return children.splice( index , 1);
 }
 
 /**
@@ -206,7 +237,9 @@ Skin.prototype.removeChildAt = function removeChildAt( index )
  */
 Skin.prototype.toString=function toString()
 {
-    return __toString(this.__skin__, this, Reflect.apply( Reflect.get(this,"buildMode"), this ) );
+    var data = property.call(this,'data');
+    var skinObject = property.call(this,'skinObject');
+    return __toString(skinObject, this, data.mode );
 }
 
 /**
@@ -268,9 +301,9 @@ var template_syntax={
 function __toString(skin, parent, mode )
 {
     if( mode === Skin.BUILD_CLOSE_MODE )return '';
-    var tag = skin.name;
-    var attr = skin.attr;
-    var children = skin.children;
+    var tag = skin.name || 'div';
+    var attr = skin.attr || {};
+    var children = skin.children || [];
     var content='';
     if( (mode & Skin.BUILD_CHILDREN_MODE) === Skin.BUILD_CHILDREN_MODE )
     {
@@ -282,10 +315,10 @@ function __toString(skin, parent, mode )
                 var event = new SkinEvent(SkinEvent.INSTALLING);
                 event.viewport = skin;
                 event.hostComponent = parent;
-                event.skinContent = null;
+                event.skinContent = child;
                 Reflect.apply( Reflect.get(child,"dispatchEvent"),child, [event] );
-                var skinObj = event.skinContent===null ? child : event.skinContent;
-                content += Reflect.apply( Reflect.get(skinObj,"toString"), skinObj );
+                child = event.skinContent;
+                content += Reflect.apply( Reflect.get(child,"toString"), child );
                 
             } else if (child + "" === "[object Object]")
             {

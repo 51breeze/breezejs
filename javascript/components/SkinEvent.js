@@ -20,6 +20,7 @@ SkinEvent.prototype.viewport=null;
 SkinEvent.prototype.hostComponent=null;
 SkinEvent.prototype.skinContent=null;
 SkinEvent.INSTALLING='skinInstalling';
+SkinEvent.INSTALLED='skinInstalled';
 
 //鼠标事件
 Event.registerEvent(function ( type , target, originalEvent )
@@ -27,6 +28,8 @@ Event.registerEvent(function ( type , target, originalEvent )
     if( originalEvent instanceof SkinEvent )return originalEvent;
     switch (type){
         case SkinEvent.INSTALLING :
+           return new SkinEvent(type);
+        case SkinEvent.INSTALLED :
            return new SkinEvent(type);
     }
 });

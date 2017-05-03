@@ -427,6 +427,7 @@ var descriptor = {
         'id':'class', 'type':'SkinEvent','inherit':'Event',
         'static':{
             "INSTALLING":{'id':'const','type':'String'},
+            "INSTALLED":{'id':'const','type':'String'},
         },
         'proto':{
             "viewport":{'id':'var','type':'Object'},

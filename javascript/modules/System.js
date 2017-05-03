@@ -566,7 +566,6 @@ Internal.$set = function(target,propertyKey,value,receiver)
  * @param msg
  */
 Internal.throwError = function throwError(type, msg, line, filename) {
-    console.log(type, msg, line, filename);
     switch (type) {
         case 'type' :
             throw new System.TypeError(msg, line, filename);

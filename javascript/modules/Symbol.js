@@ -16,7 +16,7 @@ Internal.SYMBOL_KEY_VALUE= prefix+'(SYMBOL_KEY_VALUE)';
 Internal.isSymbolPropertyName = function isSymbolPropertyName( propName )
 {
     if( propName==null )return false;
-    return propName[0]==='@' && propName[0].substr && propName[0].substr(0,prefixLen+1) === prefix+'(';
+    return propName[0]==='@' && propName[0].substr(0,prefixLen+1) === prefix+'(';
 }
 
 var factor = (function () {
@@ -32,7 +32,7 @@ var factor = (function () {
  * @constructor
  */
 function Symbol( name ){
-    if(this instanceof Symbol )Internal.throwError('type','is not constructor');
+    if(this instanceof Symbol)Internal.throwError('type','is not constructor');
     return new factor(name);
 }
 System.Symbol = Symbol;
@@ -67,7 +67,7 @@ Symbol["for"] = function( name )
     if( tables[name] )return tables[name];
     tables[name] = Symbol( name );
     hash[ tables[name][Internal.SYMBOL_KEY_VALUE] ]=name;
-    return obj;
+    return tables[name];
 }
 
 /**

@@ -2,13 +2,13 @@
  * Reflect是一个内置的对象，提供可拦截的JavaScript操作的方法。
  * 方法与代理处理程序相同。反射不是一个函数对象，因此它不可构造。
  * @constructor
- * @require Class,Object,Internal.$get,Internal.$set
+ * @require Class,Object,Internal.$get,Internal.$set, ReferenceError, TypeError, SyntaxError, Error
  */
 var $rConstruct =$Reflect && $Reflect.construct;
 var $has = $Object.prototype.hasOwnProperty;
 var $apply = $Function.prototype.apply;
 
-function Reflect(){if(this instanceof Reflect)throwError('Reflect is not constructor.');}
+function Reflect(){ if(this instanceof Reflect)throw new SyntaxError('Reflect is not constructor.'); }
 System.Reflect=Reflect;
 /**
  * 静态方法 Reflect.apply() 通过指定的参数列表发起对目标(target)函数的调用
@@ -51,13 +51,19 @@ Reflect.construct=function construct(theClass, args, newTarget )
     if( theClass === newTarget )newTarget=undefined;
     if( theClass instanceof Class && theClass.constructor.prototype === theClass)
     {
-        if( $get(theClass,"isAbstract") )Internal.throwError('type','Abstract class cannot be instantiated');
+        if( $get(theClass,"isAbstract") )
+        {
+            throw new TypeError('Abstract class cannot be instantiated');
+        }
         theClass = $get(theClass,"constructor");
-        if( typeof theClass !== "function" )Internal.throwError('type','is not constructor');
+        if( typeof theClass !== "function" )
+        {
+            throw new TypeError('is not constructor');
+        }
 
     }else if( typeof theClass !== "function" )
     {
-        Internal.throwError('type','is not function');
+        throw new TypeError('is not function');
     }
     args = System.isArray(args) ? args : [];
     var instanceObj;
@@ -175,7 +181,10 @@ Reflect.has=function has(target, propertyKey)
 Reflect.get=function(target, propertyKey, receiver , classScope )
 {
     if( propertyKey==null )return target;
-    if( target == null )Internal.throwError('reference','target object is null or undfined');
+    if( target == null )
+    {
+        throw new ReferenceError('"Reflect.get" target object is null or undfined');
+    }
     if( target instanceof Class )
     {
         var objClass = target.constructor.prototype;
@@ -200,18 +209,24 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
             if( desc && has )
             {
                desc = $get(desc,propertyKey);
-               if( $get(desc,"qualifier") !== 'private' || classScope === objClass )
+               if( ( $get(desc,"qualifier") !== 'private' || classScope === objClass ) )
                {
                    //是否有访问的权限
                    if (!checkPrivilege(desc, objClass, classScope )  )
                    {
-                       if (classScope)Internal.throwError('reference', '"' + propertyKey + '" inaccessible');
+                       if (classScope)
+                       {
+                           throw new ReferenceError('"' + propertyKey + '" inaccessible');
+                       }
                        return undefined;
                    }
                    //访问器
-                   if (desc.get) {
+                   if( desc.get )
+                   {
                        return desc.get.call(receiver || target);
-                   } else {
+
+                   }else if( !desc.set )
+                   {
                        if (isstatic)return $get(desc, "value");
                        return hasProp ? $get(refObj, propertyKey) : $get(desc, "value");
                    }
@@ -227,6 +242,10 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
                 objClass=null;
             }
         }
+
+    }else if( System.typeOf(target) === "function" )
+    {
+        target = receiver && receiver !== target ? target.prototype : target;
     }
 
     //内置对象以__开头的为私有属性外部不可访问
@@ -252,7 +271,9 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
 Reflect.set=function(target, propertyKey, value , receiver , classScope )
 {
     if( propertyKey==null )return false;
-    if( target == null )Internal.throwError('reference','target object is null or undfined');
+    if( target == null ){
+        throw new ReferenceError('"Reflect.set" target object is null or undfined');
+    }
     if( target instanceof Class )
     {
         var objClass = target.constructor.prototype;
@@ -271,7 +292,9 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
                 //是否有访问的权限
                 if( !checkPrivilege(desc, objClass, classScope) )
                 {
-                    if(classScope)Internal.throwError('reference', '"' + propertyKey + '" inaccessible.');
+                    if(classScope){
+                        throw new ReferenceError( '"' + propertyKey + '" inaccessible.');
+                    }
                     return false;
                 }
 
@@ -280,18 +303,18 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
                 {
                     desc.set.call(receiver || target, value);
                     return true
-                }
 
-                //不可写操作
-                if (desc.writable === false)
+                }else if( !$has.call(desc,"get") )
                 {
-                    Internal.throwError('reference', '"' + propertyKey + '" is not writable');
-                }
-
-                if( isstatic )
-                {
-                    $set(desc,"value", value);
-                    return true;
+                    //不可写操作
+                    if (desc.writable === false) {
+                        throw new ReferenceError('"' + propertyKey + '" is not writable');
+                    }
+                    if (isstatic)
+                    {
+                        $set(desc, "value", value);
+                        return true;
+                    }
                 }
             }
 
@@ -307,7 +330,10 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
             {
                 if( !isstatic )
                 {
-                    if( propertyKey === token || propertyKey==='constructor')Internal.throwError('syntax', '"' + propertyKey + '" is not configurable.');
+                    if( propertyKey === token || propertyKey==='constructor')
+                    {
+                        throw new SyntaxError('"' + propertyKey + '" is not configurable.');
+                    }
                     $set(target,propertyKey,value);
                     return true;
                 }
@@ -327,13 +353,13 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
     //内置对象以__开头的为私有属性外部不可访问
     if( propertyKey[0]==='_' && propertyKey[1]==='_' )
     {
-        Internal.throwError('reference', '"' + propertyKey + '" inaccessible.');
+        throw new ReferenceError('"' + propertyKey + '" inaccessible.');
     }
 
     //原型链上的属性或者函数上的属性不可设置
     if( typeof target === "function" || typeof target[propertyKey] === "function" )
     {
-        Internal.throwError('reference', '"' + propertyKey + '" is not wirtable.');
+        throw new ReferenceError('"' + propertyKey + '" is not wirtable.');
     }
     return $set(target,propertyKey,value,receiver);
 }

@@ -14,8 +14,10 @@ function ComponentEvent( type, bubbles,cancelable )
 };
 ComponentEvent.prototype= Object.create(Event.prototype);
 ComponentEvent.prototype.constructor=ComponentEvent;
+ComponentEvent.prototype.hostComponent = null;
 ComponentEvent.INITIALIZING='componentInitializing';
 ComponentEvent.INITIALIZED='componentInitialized';
+ComponentEvent.INSTALLING='componentInstalling';
 System.ComponentEvent = ComponentEvent;
 
 //鼠标事件
@@ -25,6 +27,7 @@ Event.registerEvent(function ( type , target, originalEvent )
     switch (type){
         case ComponentEvent.INITIALIZING :
         case ComponentEvent.INITIALIZED :
+        case ComponentEvent.INSTALLING :
             return new ComponentEvent(type);
     }
 });
