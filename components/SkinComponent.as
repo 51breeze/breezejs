@@ -169,6 +169,7 @@ import breeze.components.Component;
          */
         public function set viewport(obj:Object):void
         {
+            log( obj );
             this.__viewport__ = obj;
         };
 

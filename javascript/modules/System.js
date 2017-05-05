@@ -14,12 +14,18 @@ System.parseInt = parseInt;
 (function(f){
     System.setTimeout =f(setTimeout);
     System.setInterval =f(setInterval);
-    System.clearTimeout = f(clearTimeout);
-    System.clearInterval = f(clearInterval);
 })(function(f){return function(c,t){
     var a=[].slice.call(arguments,2);
-    return f(function(){c.apply(this,a)},t)}
+    return f( function(){ c.apply(this,a) }, t ) };
 });
+
+System.clearTimeout = function(id){
+    return clearTimeout( id );
+}
+
+System.clearInterval = function(id){
+    return clearInterval( id );
+}
 
 /**
  * 环境参数配置

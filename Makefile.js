@@ -299,7 +299,7 @@ function makeCodeDescription( content ,config )
  * 加载并解析模块的描述信息
  * @returns
  */
-function loadModuleDescription( syntax , file , config , project )
+function loadModuleDescription( syntax , file , config , project , resource )
 {
     //获取源文件的路径
     var sourcefile = filepath(file, config.project_path ).replace(/\\/g,'/');
@@ -313,6 +313,7 @@ function loadModuleDescription( syntax , file , config , project )
     sourcefile+=config.suffix;
     if( !fs.existsSync(sourcefile) ){
         if( globals.hasOwnProperty(file) )return;
+        Utils.error(resource);
         throw new Error('is not found '+sourcefile);
     }
 
@@ -342,9 +343,9 @@ function loadModuleDescription( syntax , file , config , project )
     scope.filename = description.filename;
 
     //加载导入模块的描述
-    for(var i in description.import )
+    for (var i in description.import)
     {
-        loadModuleDescription(syntax, description.import[i], config, project );
+        loadModuleDescription(syntax, description.import[i], config, project, description.filename );
     }
     define(syntax, description.fullclassname, description );
     return description;
@@ -461,10 +462,11 @@ function loadFragmentModuleDescription( syntax, fragmentModule, config , project
     scope.filename=description.filename;
 
     //加载导入模块的描述
-    for(var i in description.import )
+    for (var i in description.import)
     {
-        loadModuleDescription(syntax, description.import[i], config, project );
+        loadModuleDescription(syntax, description.import[i], config, project, scope.filename );
     }
+
     define(syntax, description.fullclassname, description );
     return scope;
 }

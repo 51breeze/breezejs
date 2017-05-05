@@ -46,11 +46,10 @@ function done(event)
     var options = this.__options__;
     if (xhr.readyState !== 4)return;
     var match, result = null, headers = {};
-    if (xhr && this.__timeoutTimer__ )
-    {
-        System.clearTimeout(this.__timeoutTimer__);
-        this.__timeoutTimer__ = null;
-    }
+
+    System.clearTimeout(this.__timeoutTimer__);
+    this.__timeoutTimer__ = null;
+
     //获取响应头信息
     if( typeof xhr.getAllResponseHeaders === "function" )
     {
@@ -62,7 +61,6 @@ function done(event)
 
     this.__loading__=false;
     this.__responseHeaders__=headers;
-
     if (xhr.status >= 200 && xhr.status < 300)
     {
         result = xhr.responseXML;
@@ -140,6 +138,7 @@ function Http( options )
             if( xhr.readyState === 4 )done.call(self);
         }
     }
+    this.__setHeader__=false;
     this.__xhr__ = xhr;
 }
 System.Http=Http;
@@ -193,7 +192,7 @@ Http.prototype.constructor = Http;
 Http.prototype.__options__={};
 Http.prototype.__xhr__=null;
 Http.prototype.__loading__=false;
-
+Http.prototype.__setHeader__=false;
 
 /**
  * 取消请求
@@ -263,29 +262,29 @@ Http.prototype.load = function load(url, data, method)
                 data = null;
             }
             xhr.open(method, url, async);
-
-            //设置请求头 如果请求方法为post
-            if( method === Http.METHOD.POST )
+            if( this.__setHeader__ === false )
             {
-                options.header.contentType = "application/x-www-form-urlencoded";
-            }
-
-            //设置编码
-            if ( !/charset/i.test(options.header.contentType) )options.header.contentType += ';' + options.charset;
-
-            try
-            {
-                var name;
-                for (name in options.header)
-                {
-                    xhr.setRequestHeader(name, options.header[name]);
+                //设置请求头 如果请求方法为post
+                if (method === Http.METHOD.POST) {
+                    options.header.contentType = "application/x-www-form-urlencoded";
                 }
-            } catch (e) {}
 
-            //设置可以接收的内容类型
-            try {
-                xhr.overrideMimeType( options.header.Accept );
-            }catch(e){}
+                //设置编码
+                if (!/charset/i.test(options.header.contentType))options.header.contentType += ';' + options.charset;
+
+                try {
+                    var name;
+                    for (name in options.header) {
+                        xhr.setRequestHeader(name, options.header[name]);
+                    }
+                } catch (e) {}
+
+                //设置可以接收的内容类型
+                try {
+                    xhr.overrideMimeType(options.header.Accept);
+                } catch (e) {}
+            }
+            this.__setHeader__=true;
             xhr.send(data);
         }
 

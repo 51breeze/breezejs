@@ -449,7 +449,9 @@ var descriptor = {
         'id': 'class',
         'inherit':'EventDispatcher',
         'proto': {
-            'getChildById': {type: '*', 'id': 'function',param:['String']},
+            'getChildById': {type: 'Object', 'id': 'function',param:['String']},
+            'buildMode': {type: '*', 'id': 'function',param:['*']},
+            'attr': {type: 'Object', 'id': 'function',param:['*','*']},
         },
         'static':{
             'BUILD_CONTAINER_MODE':{'id':'const','type':'String'},

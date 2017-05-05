@@ -96,20 +96,16 @@ function mathOperator( a, o, b)
  */
 function toMessage(thisArg, properties, classModule, error, info , method )
 {
-   // console.log( error );
-   /* var items = System.isArray(properties) ? Array.prototype.map.call(properties,function (item) {
+    var items = System.isArray(properties) ? Array.prototype.map.call(properties,function (item) {
         if( typeof item === "string" )return item;
         return System.getQualifiedClassName( item );
     }) : [properties];
+
     if(thisArg)items.unshift( System.getQualifiedClassName( thisArg ) );
-    var msg = (typeof error === "string" ? error : error.message)+'\n';
-    if( error instanceof System.Error ){
-        msg = error.type + ' '+error.message+'\n';
-        if( method === 'new' || method==='delete')msg=method+' '+msg;
-    }
-    msg+=items.join('.')+'('+classModule.filename + ':' + info + ')\n';
-    */
-    throw error ;
+
+    var msg = (typeof error === "string" ? error : error.message);
+    msg+=' '+items.join('.')+'('+classModule.filename + ':' + info + ')\n';
+    throw new Error( msg );
 }
 
 /**
@@ -208,10 +204,10 @@ function makeMethods(method, classModule)
         }
         case 'check' : return function (info, type, value)
         {
-            if( value == null && type === System.Object )return value;
+            if( value == null || type === System.Object )return value;
             if ( !System.is(value, type) )
             {
-                toMessage(null, [], classModule, 'TypeError Specify the type of value do not match. must is "' + System.getQualifiedClassName(type) + '"', info, 'Type');
+                toMessage(null, [], classModule, 'Specify the type of value do not match. must is "' + System.getQualifiedClassName(type) + '"', info, 'Type');
             }
             return value;
         }

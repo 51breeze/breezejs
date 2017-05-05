@@ -13,6 +13,7 @@ function DataSource()
     this.__options__={
         'method': Http.METHOD.GET,
         'dataType':Http.TYPE.JSON,
+        'timeout':30,
         'param':{},
         'url':null,
         //服务器响应后的json对象
@@ -117,7 +118,9 @@ DataSource.prototype.source=function source( resource )
     }
 
     //移除加载远程数据侦听事件
-    if ( !this.__isRemote__ && System.is(this.__source__,Http) )this.__source__.removeEventListener(HttpEvent.SUCCESS,success);
+    if ( !this.__isRemote__ && System.is(this.__source__,Http) ){
+        this.__source__.removeEventListener(HttpEvent.SUCCESS,success);
+    }
     return this;
 };
 
@@ -450,8 +453,10 @@ DataSource.prototype.select=function select( page )
     //数据准备好后需要立即通知
     this.__nowNotify__ =  true;
 
+    var waiting = index < 0 || ( this.__items__.length < (index*rows+rows) );
+
     //需要等待加载数据
-    if( this.isRemote() && index < 0 )
+    if( this.isRemote() && waiting && !this.__end__ )
     {
         var event = new DataSourceEvent( DataSourceEvent.SELECT );
         event.current = page;
@@ -523,13 +528,16 @@ function success(event)
         var cached = this.__cached__;
         //当前加载分页数的偏移量
         var offset = Array.prototype.indexOf.call(cached.loadSegments, cached.lastSegments) * rows;
+
         //合并数据项
         Array.prototype.splice.apply(this.__items__, [offset, 0].concat( data ) );
+
         //发送数据
         if(this.__nowNotify__ &&  Array.prototype.indexOf.call( cached.loadSegments, this.current() ) >=0 )
         {
             nowNotify.call(this,this.current(), offset, rows);
         }
+
         //还有数据需要加载
         if( this.__items__.length < total && total > len )
         {

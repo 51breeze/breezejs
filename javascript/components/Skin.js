@@ -109,11 +109,6 @@ Skin.prototype.buildMode =function buildMode( mode )
  */
 Skin.prototype.getChildById = function getChildById( id )
 {
-    if( this instanceof System.Class )
-    {
-       var child =Reflect.get(this, id );
-       if( child )return child;
-    }
     var skinObject = property.call(this,'skinObject');
     var children = skinObject.children;
     for( var i in children )
@@ -310,23 +305,13 @@ function __toString(skin, parent, mode )
         for (var c in children)
         {
             var child = children[c];
-            if (System.is(child, EventDispatcher))
-            {
-                var event = new SkinEvent(SkinEvent.INSTALLING);
-                event.viewport = skin;
-                event.hostComponent = parent;
-                event.skinContent = child;
-                Reflect.apply( Reflect.get(child,"dispatchEvent"),child, [event] );
-                child = event.skinContent;
-                content += Reflect.apply( Reflect.get(child,"toString"), child );
-                
-            } else if (child + "" === "[object Object]")
+            if (child + "" === "[object Object]")
             {
                 content += __toString(child, parent, Skin.BUILD_ALL_MODE );
 
             } else if (child)
             {
-                content += child;
+                content += child.toString();
             }
         }
     }
