@@ -135,6 +135,9 @@ var descriptor = {
             'html': {type: 'String', 'id': 'function',param:['String']},
             'length': {type: 'Number', 'id': 'const'},
             'slice': {type: 'Number', 'id': 'function', param:['Number'] },
+            'style': {type: 'Element', 'id': 'function', param:[] },
+            'width': {type: '*', 'id': 'function', param:[] },
+            'height': {type: '*', 'id': 'function', param:[] },
         }
     },
     'StyleEvent':{

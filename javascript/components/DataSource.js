@@ -512,6 +512,7 @@ function success(event)
 
     //当前获取到数据的长度
     var len = data.length >> 0;
+    total = Math.max( total, len );
 
     //先标记为没有数据可加载了
     this.__end__=true;
@@ -519,33 +520,30 @@ function success(event)
     //标没有在加载
     this.__loading__=false;
 
-    //如果当前有数据返回
-    if( len > 0 )
+    //预计总数据量
+    this.__totalSize__ = total;
+    var rows = this.pageSize();
+    var cached = this.__cached__;
+    //当前加载分页数的偏移量
+    var offset = Array.prototype.indexOf.call(cached.loadSegments, cached.lastSegments) * rows;
+
+    //合并数据项
+    Array.prototype.splice.apply(this.__items__, [offset, 0].concat( data ) );
+
+    //发送数据
+    if(this.__nowNotify__ &&  Array.prototype.indexOf.call( cached.loadSegments, this.current() ) >=0 )
     {
-        //预计总数据量
-        this.__totalSize__ = total;
-        var rows = this.pageSize();
-        var cached = this.__cached__;
-        //当前加载分页数的偏移量
-        var offset = Array.prototype.indexOf.call(cached.loadSegments, cached.lastSegments) * rows;
-
-        //合并数据项
-        Array.prototype.splice.apply(this.__items__, [offset, 0].concat( data ) );
-
-        //发送数据
-        if(this.__nowNotify__ &&  Array.prototype.indexOf.call( cached.loadSegments, this.current() ) >=0 )
-        {
-            nowNotify.call(this,this.current(), offset, rows);
-        }
-
-        //还有数据需要加载
-        if( this.__items__.length < total && total > len )
-        {
-            this.__end__=false;
-            //继续载数据
-            doload.call(this);
-        }
+        nowNotify.call(this,this.current(), offset, rows);
     }
+
+    //还有数据需要加载
+    if( this.__items__.length < total )
+    {
+        this.__end__=false;
+        //继续载数据
+        doload.call(this);
+    }
+
 }
 
 function isload( cached, page )

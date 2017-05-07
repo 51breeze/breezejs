@@ -238,7 +238,9 @@ function $getStyleName(name )
     name=name.replace( /^-ms-/, "ms-" ).replace( fix.cssCamelRegex, fix.cssCamelCase );
     name = name.replace( fix.cssUpperRegex, "-$1" ).toLowerCase();
     if( fix.cssPrefix[name] === true )
-        return fix.cssPrefix+name;
+    {
+        return fix.cssPrefixName + name;
+    }
     return name;
 };
 

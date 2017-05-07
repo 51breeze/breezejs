@@ -292,7 +292,10 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
                 //是否有访问的权限
                 if( !checkPrivilege(desc, objClass, classScope) )
                 {
-                    if(classScope){
+                    if(classScope)
+                    {
+                        console.log( objClass,  classModule );
+
                         throw new ReferenceError( '"' + propertyKey + '" inaccessible.');
                     }
                     return false;
@@ -387,10 +390,22 @@ function checkPrivilege(descriptor,referenceModule, classModule  )
 
             }else if( qualifier === 'protected' )
             {
-                return $get(referenceModule,"extends") === classModule || $get(classModule,"extends") === referenceModule;
+               return checkInheritOf( referenceModule, classModule ) || checkInheritOf( classModule, referenceModule );
             }
             return false;
         }
     }
     return true;
+}
+
+function checkInheritOf( child, parent )
+{
+    while ( child = $get(child,"extends") )
+    {
+        if( child===parent )
+        {
+            return true;
+        }
+    }
+    return false;
 }

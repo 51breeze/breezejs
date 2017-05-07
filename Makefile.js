@@ -4,6 +4,7 @@ const Ruler = require('./lib/ruler.js');
 const Utils = require('./lib/utils.js');
 const makeSkin = require('./lib/skin.js');
 const globals=require('./javascript/descriptions/globals.js');
+const uglify = require('uglify-js');
 var  descriptions={};
 var  makeModules={};
 var  skinContents=[];
@@ -165,7 +166,7 @@ function parseMetaType( stack , config, project, syntax )
         case 'Skin' :
             var source = metatype.param.source;
             var modules = makeSkin( metatype.param.source , config );
-            styleContents.push( modules.styleContents.join("\n") );
+            styleContents = styleContents.concat( modules.styleContents);
             modules = modules.moduleContents;
             for( var index in modules )
             {
@@ -366,19 +367,72 @@ const builder={
          var fullclassname = PATH.relative( config.project.path, bootstrap ).replace(/\\/g,'/').replace(/\//g,'.');
          config.main = fullclassname;
          var jsSyntax = require('./lib/javascript.js');
-         var content = jsSyntax(config, makeModules['javascript'], descriptions['javascript'], project, skinContents, styleContents );
+         var script = jsSyntax(config, makeModules['javascript'], descriptions['javascript'], project );
          var filename;
-         if( content.js )
+
+         if( styleContents.length > 0  )
+         {
+             var less = require('less');
+             var themes = require('./ColorThemes.js');
+             var lessPath = PATH.resolve(config.root_path, './style/');
+             var options =  {
+                 paths: [ lessPath ],
+                 globalVars:themes.default,
+                 compress: false
+             };
+
+             var cssContnets=[];
+             var i = 0;
+             var style =  styleContents.map(function (e) {
+                 return "\n@import 'mixins.less';\n" +e;
+             })
+             style.unshift( "\n@import 'main.less';\n" );
+             var len = style.length;
+
+             for( ; i<len; i++ )
+             {
+                 (function (str, css, i ) {
+
+                     less.render(str, options, function (err, output) {
+                         if (err) {
+                             Utils.error(err.message);
+                             Utils.error(err.extract.join('\n'));
+                             css.splice(i, 0, '');
+                         } else {
+                             css.splice(i, 0, output.css);
+                         }
+                     });
+
+                 })(style[i], cssContnets , i )
+             }
+
+             var id = setInterval(function () {
+                 if( cssContnets.length === len )
+                 {
+                     clearInterval(id);
+                     var str = cssContnets.join('\n');
+                     if( config.minify ==='on' )
+                     {
+                         str = uglify.minify(str, {mangle: true, fromString: true}).code;
+                     }
+                     filename = PATH.resolve(Utils.getBuildPath(config, 'build.webroot.static.css'), config.bootstrap + '.css');
+                     fs.writeFileSync(filename, str );
+                 }
+             },1);
+
+         }
+
+         if( script )
          {
              filename = PATH.resolve(Utils.getBuildPath(config, 'build.webroot.static.js'), config.bootstrap + '.js');
-             fs.writeFileSync(filename, content.js);
-         }
-         if( content.css )
-         {
-             filename = PATH.resolve(Utils.getBuildPath(config, 'build.webroot.static.css'), config.bootstrap + '.css');
-             fs.writeFileSync(filename, content.css);
+             if( config.minify ==='on' )
+             {
+                 script = uglify.minify(script, {mangle: true, fromString: true}).code;
+             }
+             fs.writeFileSync(filename, script );
          }
      },
+
      'php':function(config,project){
 
      }
