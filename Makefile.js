@@ -242,7 +242,7 @@ function getPropertyDescription( stack , config , project , syntax )
 
     list['inherit'] = stack.extends() ? stack.extends() : null;
     list['package']=stack.parent().name();
-    list['type']=stack.name();
+    list['type']=stack.fullclassname();
     list['nonglobal']=true;
     list['fullclassname']= stack.fullclassname();
     list['classname']=stack.name();

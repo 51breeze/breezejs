@@ -1513,7 +1513,7 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
             !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
             refChild && (refChild=index.nextSibling);
             parent.insertBefore( child , refChild || null );
-            $dispatchEvent(this,ElementEvent.ADD,parent,child)
+            $dispatchEvent(this,ElementEvent.ADD,parent,child);
         }
         if( isElement ) return this;
     })
@@ -1755,7 +1755,6 @@ Element.prototype.isFrame=function isFrame()
     return (nodename === 'iframe' || nodename==='frame');
 };
 
-
 // fix style name add prefix
 if( System.env.platform( System.env.BROWSER_FIREFOX ) && System.env.version(4) )
 {
@@ -1840,8 +1839,8 @@ fix.cssHooks.radialGradient=fix.cssHooks.linearGradient={
                     color.push("to("+item[0]+")");
             }
 
-            var width= Element.getSize(this,'width');
-            var height=  Element.getSize(this,'height');
+            var width= fix.getsizeval.call(this,'Width');
+            var height= fix.getsizeval.call(this,'Height');
             if(name==='radialGradient')
             {
                 position = position.split(/\,/,2);
