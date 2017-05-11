@@ -4,7 +4,7 @@
  * Copyright © 2015 BreezeJS All rights reserved.
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
- * @require System,Object,Array,EventDispatcher,Document,Window,StyleEvent,PropertyEvent,ScrollEvent,ElementEvent,Math
+ * @require System,Object,Array,EventDispatcher,Document,Window,StyleEvent,PropertyEvent,ScrollEvent,ElementEvent,Math,TypeError,Error,SyntaxError,ReferenceError
  */
 var fix={
     attrMap:{
@@ -628,7 +628,7 @@ Element.prototype.property=function property(name, value )
 
     }else if( lower === 'style' )
     {
-        Internal.throwError('error', 'the style property names only use style method to operate in property');
+        throw new Error( 'the style property names only use style method to operate in property' );
     }
     return access.call(this,'property',name,value);
 };
@@ -1482,9 +1482,7 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
         return this;
     }
 
-    if( index===undefined )
-        Internal.throwError('error','Invalid param the index');
-
+    if( index==null )throw new Error('Invalid param the index');
     var isElement= childElemnet && childElemnet.nodeType && typeof childElemnet.nodeName === 'string';
 
     //如果没有父级元素则设置上下文为父级元素
@@ -1498,12 +1496,12 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
     {
         if( !this.isHTMLElement() )
         {
-            Internal.throwError('error','invalid parent HTMLElement.');
+            throw new Error('invalid parent HTMLElement.');
         }
         try{
             var child=isElement ? childElemnet : $createElement( childElemnet );
         }catch(e){
-            Internal.throwError('error','The childElemnet not is HTMLElement');
+            throw new Error('The childElemnet not is HTMLElement');
         }
         if( child.parentNode !== parent  )
         {

@@ -3,25 +3,43 @@
  * @param HTMLElement|EventDispatcher target 需要代理事件的目标对象
  * @returns {EventDispatcher}
  * @constructor
- * @require System,Object,Event,Internal,Reflect
+ * @require System,Object,Event,Internal,Reflect,Symbol
  */
+
+var eventSymbol = Symbol('event');
+function storage(target, name, value )
+{
+    if( name === true )
+    {
+        target[ eventSymbol ]=value;
+        return value;
+    }
+    var data = target[ eventSymbol ];
+    if( !data )
+    {
+        data={};
+        target[ eventSymbol ]=data;
+    }
+    if( typeof value !== "undefined" )
+    {
+        data[ name ]=value;
+    }
+    return name==null ? data : data[ name ];
+}
+
 function EventDispatcher( target )
 {
     if( !System.instanceOf(this,EventDispatcher) )return new EventDispatcher( target );
-    if( target != null )
+    if( target != null && !(target.addEventListener || target.attachEvent || typeof target.onreadystatechange !== "undefined") )
     {
-        if( !(target.addEventListener || target.attachEvent || typeof target.onreadystatechange !== "undefined") )
-        {
-            Internal.throwError('type', 'target is not "EventDispatcher"');
-        }
-        this.__proxyTarget__ = target;
+        throw new TypeError('target is not event object');
     }
+    storage(this, true, {target:target||this, events:{}});
 };
+
 System.EventDispatcher=EventDispatcher;
 EventDispatcher.prototype=Object.create( Object.prototype );
 EventDispatcher.prototype.constructor=EventDispatcher;
-EventDispatcher.prototype.__proxyTarget__=null;
-EventDispatcher.prototype.__events__=null;
 
 /**
  * 判断是否有指定类型的侦听器
@@ -30,13 +48,14 @@ EventDispatcher.prototype.__events__=null;
  */
 EventDispatcher.prototype.hasEventListener=function hasEventListener( type )
 {
-    var target = this.__proxyTarget__ || this;
+    var target =  storage(this,'target');
     var events;
     var len = target.length >> 0;
-    if( len > 0 ){
+    if( len > 0 )
+    {
         while(len>0 && target[len--] )
         {
-            events =  target[len].__events__;
+            events =  storage(target[len],'events');
             if( events && Object.prototype.hasOwnProperty.call(events,type) )
             {
                 events =events[type];
@@ -45,11 +64,10 @@ EventDispatcher.prototype.hasEventListener=function hasEventListener( type )
         }
         return false;
     }
-    events = target.__events__;
+    events =  storage(target,'events');
     if( events && Object.prototype.hasOwnProperty.call(events,type) )
     {
-        events =events[type];
-        return events && events.length > 0;
+        return events[type].length > 0;
     }
     return false;
 };
@@ -63,14 +81,16 @@ EventDispatcher.prototype.hasEventListener=function hasEventListener( type )
  */
 EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,priority,reference)
 {
-    if( typeof type !== 'string' )Internal.throwError('type','Invalid event type.')
-    if( typeof callback !== 'function' )Internal.throwError('type','Invalid callback function.')
+    if( typeof type !== 'string' )throw new TypeError('Invalid event type');
+    if( typeof callback !== 'function' )throw new TypeError('Invalid callback function');
     var listener=new Listener(type,callback,useCapture,priority,reference,this);
-    var target = this.__proxyTarget__ || this;
+    var target = storage(this,'target');
     var len = target.length >> 0;
-    if( len > 0 ){
-        while(len>0 && target[--len]){
-            addEventListener(target[len], listener);
+    if( len > 0 )
+    {
+        while(len>0 && target[--len] )
+        {
+            addEventListener( target[len], listener );
         }
         return this;
     }
@@ -86,7 +106,7 @@ EventDispatcher.prototype.addEventListener=function(type,callback,useCapture,pri
  */
 EventDispatcher.prototype.removeEventListener=function(type,listener)
 {
-    var target= this.__proxyTarget__ || this;
+    var target = storage(this,'target');
     var len = target.length >> 0;
     if( len > 0 ){
         while(len>0 && target[--len] )removeEventListener( target[len], type, listener, this);
@@ -102,8 +122,8 @@ EventDispatcher.prototype.removeEventListener=function(type,listener)
  */
 EventDispatcher.prototype.dispatchEvent=function( event )
 {
-    if( !System.is(event,Event) )Internal.throwError('type','Invalid event.');
-    var target = this.__proxyTarget__ || this;
+    if( !System.is(event,Event) )throw new TypeError('Invalid event');
+    var target = storage(this,'target');
     var len = target.length >> 0;
     if( len > 0 ){
         while(len>0 && target[--len] )
@@ -125,23 +145,18 @@ EventDispatcher.prototype.dispatchEvent=function( event )
  */
 function addEventListener(target, listener )
 {
-    if( target==null )Internal.throwError('reference','this is null or not defined');
+    if( target==null )throw new ReferenceError('this is null or not define');
 
     //获取事件数据集
     var type = listener.type;
-    var events = target.__events__;
+    var data = storage(target);
+    var events = data.events || (data.events={});
 
-    //如果没有则定义
-    if( !events )
-    {
-        events = {};
-        target.__events__=events;
-    }
     //获取指定事件类型的引用
     events = events[ type ] || ( events[ type ]=[] );
 
     //如果不是 EventDispatcher 则在第一个事件中添加事件代理。
-    if( events.length===0 && !(target instanceof Object) )
+    if( events.length===0 && !System.is(target,EventDispatcher) )
     {
         //自定义事件处理
         if( Object.prototype.hasOwnProperty.call(Event.fix.hooks,type) )
@@ -179,11 +194,11 @@ function addEventListener(target, listener )
  */
 function removeEventListener(target, type, listener , dispatcher )
 {
-    if( target==null )Internal.throwError('reference','this is null or not defined');
+    if( target==null )throw new ReferenceError('this is null or not define');
 
     //获取事件数据集
-    var events = target.__events__;
-    if( !Object.prototype.hasOwnProperty.call(events,type) )
+    var events =storage(target,'events');
+    if( !events || !Object.prototype.hasOwnProperty.call(events,type) )
     {
         return false;
     }
@@ -201,14 +216,15 @@ function removeEventListener(target, type, listener , dispatcher )
         }
     }
 
-    //如果是元素并且也没有侦听器就删除
-    if( events.length < 1 && !(target instanceof EventDispatcher)  )
+    //如果是元素并且没有侦听器就删除
+    if( events.length < 1 && !System.is(target,EventDispatcher)  )
     {
         var eventType= Event.type( type );
         if( target.removeEventListener )
         {
             target.removeEventListener(eventType,dispatchEvent,false);
             target.removeEventListener(eventType,dispatchEvent,true);
+
         }else if( target.detachEvent )
         {
             target.detachEvent(eventType,dispatchEvent);
@@ -230,9 +246,9 @@ function dispatchEvent( e, currentTarget )
         e = Event.create( e );
         if(currentTarget)e.currentTarget = currentTarget;
     }
-    if( !e || !e.currentTarget )throw new Error('invalid event target')
+    if( !e || !e.currentTarget )throw new Error('invalid event target');
     var target = e.currentTarget;
-    var events = target.__events__;
+    var events = storage(target,'events');
     if( !events || !Object.prototype.hasOwnProperty.call(events, e.type) )return true;
     events = events[e.type];
     var length= 0,listener,thisArg;

@@ -2,7 +2,7 @@
  * Reflect是一个内置的对象，提供可拦截的JavaScript操作的方法。
  * 方法与代理处理程序相同。反射不是一个函数对象，因此它不可构造。
  * @constructor
- * @require Class,Object,Internal.$get,Internal.$set, ReferenceError, TypeError, SyntaxError, Error
+ * @require Class,Object,Internal.$get,Internal.$set
  */
 var $rConstruct =$Reflect && $Reflect.construct;
 var $has = $Object.prototype.hasOwnProperty;
@@ -294,8 +294,6 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
                 {
                     if(classScope)
                     {
-                        console.log( objClass,  classModule );
-
                         throw new ReferenceError( '"' + propertyKey + '" inaccessible.');
                     }
                     return false;

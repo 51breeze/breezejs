@@ -11,6 +11,7 @@ System.encodeURIComponent = encodeURIComponent;
 System.isNaN = isNaN;
 System.parseFloat = parseFloat;
 System.parseInt = parseInt;
+
 (function(f){
     System.setTimeout =f(setTimeout);
     System.setInterval =f(setInterval);
@@ -22,7 +23,6 @@ System.parseInt = parseInt;
 System.clearTimeout = function(id){
     return clearTimeout( id );
 }
-
 System.clearInterval = function(id){
     return clearInterval( id );
 }
@@ -318,29 +318,6 @@ System.lcfirst =  function lcfirst(str) {
     return typeof str === "string" ? str.charAt(0).toLowerCase() + str.substr(1) : str;
 };
 
-/**
- * 格式化输出
- * @format
- * @param [...]
- * @returns {string}
- */
-System.format = function format() {
-    var str = '', i = 1, len = arguments.length, param;
-    if (len > 0 && typeof arguments[0] === "string") {
-        str = arguments[0];
-        for (; i < len; i++) {
-            param = arguments[i];
-            str = str.replace(/%(s|d|f)/, function (all, method) {
-                if (method === 'd') {
-                    return System.parseInt(param);
-                } else if (method === 'f') return System.parseFloat(param);
-                return System.Object.prototype.valueOf.call(param);
-            })
-        }
-        str.replace(/%(s|d|f)/g, '');
-    }
-    return str;
-};
 
 /**
  * 复制字符串到指定的次数
@@ -540,12 +517,12 @@ Internal.$get = function(target, propertyKey, receiver)
  */
 Internal.$set = function(target,propertyKey,value,receiver)
 {
-    if( target===System )Internal.throwError('reference','"'+propertyKey+'" is not writable');
-    if( target == null )Internal.throwError('reference','target object is null or undfined');
+    if( target===System )throw new ReferenceError( '"'+propertyKey+'" is not writable' );
+    if( target == null )throw new ReferenceError('target object is null or undfined');
     var desc = target[propertyKey];
     if( Internal.Descriptor && desc instanceof Internal.Descriptor )
     {
-        if( desc.writable=== false )Internal.throwError('reference','"'+propertyKey+'" is not writable');
+        if( desc.writable=== false )throw new ReferenceError('"'+propertyKey+'" is not writable');
         if( desc.set ){
             desc.set.call(receiver||target, value);
         }else {
