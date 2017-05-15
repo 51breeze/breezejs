@@ -138,6 +138,7 @@ var descriptor = {
             'style': {type: 'Element', 'id': 'function', param:[] },
             'width': {type: '*', 'id': 'function', param:[] },
             'height': {type: '*', 'id': 'function', param:[] },
+            'current': {type: 'Object', 'id': 'function', param:[] },
         }
     },
     'StyleEvent':{
@@ -450,11 +451,14 @@ var descriptor = {
     'Skin': {
         'type': 'Skin',
         'id': 'class',
-        'inherit':'EventDispatcher',
+        'inherit':'Element',
         'proto': {
             'getChildById': {type: 'Object', 'id': 'function',param:['String']},
             'buildMode': {type: '*', 'id': 'function',param:['*']},
             'attr': {type: 'Object', 'id': 'function',param:['*','*']},
+            'initializing': {type: 'Object', 'id': 'function',param:['Object']},
+            'initialized': {type: 'Object', 'id': 'function',param:['Object']},
+            'render': {type: 'Render', 'id': 'function',param:[]},
         },
         'static':{
             'BUILD_CONTAINER_MODE':{'id':'const','type':'String'},

@@ -19,8 +19,11 @@ SkinEvent.prototype.constructor=SkinEvent;
 SkinEvent.prototype.viewport=null;
 SkinEvent.prototype.hostComponent=null;
 SkinEvent.prototype.skinContent=null;
+SkinEvent.prototype.parent=null;
+
 SkinEvent.INSTALLING='skinInstalling';
-SkinEvent.INSTALLED='skinInstalled';
+SkinEvent.ADD='skinAdded';
+SkinEvent.REMOVE='skinRemoved';
 
 //鼠标事件
 Event.registerEvent(function ( type , target, originalEvent )

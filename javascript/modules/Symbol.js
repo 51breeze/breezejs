@@ -6,17 +6,20 @@
  * https://github.com/51breeze/breezejs
  * @require System,Internal
  */
+System.Symbol = $Symbol || (function()
+{
+
 var tables={};
 var hash={};
 var prefix ='@@symbol';
 var prefixLen =  prefix.length;
 Internal.SYMBOL_KEY_NAME = prefix+'(SYMBOL_KEY_NAME)';
 Internal.SYMBOL_KEY_VALUE= prefix+'(SYMBOL_KEY_VALUE)';
-
 Internal.isSymbolPropertyName = function isSymbolPropertyName( propName )
 {
     if( propName==null )return false;
-    return propName[0]==='@' && propName[0].substr(0,prefixLen+1) === prefix+'(';
+    propName=propName.toString();
+    return propName.substr(0,prefixLen) === prefix+'(' && propName.substr(-1)===')';
 }
 
 var factor = (function () {
@@ -31,11 +34,14 @@ var factor = (function () {
  * @param name
  * @constructor
  */
-function Symbol( name ){
-    if(this instanceof Symbol)Internal.throwError('type','is not constructor');
+function Symbol( name )
+{
+    if(this instanceof Symbol)
+    {
+        throw new TypeError('is not constructor');
+    }
     return new factor(name);
 }
-System.Symbol = Symbol;
 Symbol.prototype.constructor = Symbol;
 factor.prototype = Symbol.prototype;
 
@@ -54,7 +60,7 @@ Symbol.prototype.toString=function toString()
  */
 Symbol.prototype.valueOf=function valueOf()
 {
-    return 'symbol('+this[Internal.SYMBOL_KEY_NAME]+')';
+    throw new TypeError ("can't convert symbol to string");
 }
 
 /**
@@ -84,3 +90,5 @@ Symbol.keyFor=function keyFor( symbol )
     }
     return undefined;
 }
+return Symbol;
+}());

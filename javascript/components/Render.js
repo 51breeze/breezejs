@@ -238,6 +238,11 @@ Variable.prototype.__data__={};
  */
 Variable.prototype.set=function(name,val)
 {
+    if( name===true )
+    {
+        this.__data__=val || {};
+        return this;
+    }
     var t = typeof name;
     if( t === 'string' )
     {

@@ -277,6 +277,131 @@ System.isEmpty =function isEmpty(val, flag) {
     }
     return false;
 };
+
+/**
+ * 判断是否为一个表单元素
+ * @returns {boolean}
+ */
+System.isForm=function isForm(elem, exclude)
+{
+    if( elem )
+    {
+        var nodename = getNodeName(elem);
+        switch ( nodename )
+        {
+            case 'select'   :
+            case 'input'    :
+            case 'textarea' :
+            case 'button'   :
+              return exclude && typeof exclude === 'string' ? exclude.toLowerCase() !== nodename : true;
+        }
+    }
+    return false;
+};
+
+/**
+ * @private
+ * @type {boolean}
+ */
+var ishtmlobject = typeof HTMLElement==='object';
+
+/**
+ * 判断是否为一个HtmlElement类型元素,document 不属性于 HtmlElement
+ * @returns {boolean}
+ */
+System.isHTMLElement=function isHTMLElement( elem )
+{
+    if( !elem )return false;
+    return ishtmlobject ? elem instanceof HTMLElement : ( elem.nodeType === 1 && typeof elem.nodeName === "string" );
+};
+
+/**
+ * 判断是否为一个节点类型元素
+ * document window 不属于节点类型元素
+ * @returns {boolean}
+ */
+var hasNode= typeof Node !== "undefined";
+System.isNodeElement=function isNodeElement( elem )
+{
+    if( !elem ) return false;
+    return hasNode ? elem instanceof Node : !!( elem.nodeType && typeof elem.nodeName === "string" && (typeof elem.tagName === "string" || elem.nodeType===9) );
+};
+
+/**
+ * 判断是否为一个html容器元素。
+ * HTMLElement和document属于Html容器
+ * @param element
+ * @returns {boolean|*|boolean}
+ */
+System.isHTMLContainer=function isHTMLContainer( elem )
+{
+    return elem && ( System.isHTMLElement(elem) || System.isDocument(elem) );
+};
+
+/**
+ * 判断是否为一个事件元素
+ * @param element
+ * @returns {boolean}
+ */
+System.isEventElement=function isEventElement( elem )
+{
+    return elem && ( typeof elem.addEventListener === "function" || typeof elem.attachEvent=== "function" || typeof elem.onreadystatechange !== "undefined" );
+};
+
+/**
+ * 判断是否为窗口对象
+ * @param obj
+ * @returns {boolean}
+ */
+System.isWindow=function isWindow( elem )
+{
+    return elem && elem === System.getWindow(elem);
+};
+
+/**
+ * 决断是否为文档对象
+ * @returns {*|boolean}
+ */
+System.isDocument=function isDocument( elem )
+{
+    return elem && elem.nodeType===9;
+};
+
+/**
+ * 判断是否为一个框架元素
+ * @returns {boolean}
+ */
+System.isFrame=function isFrame( elem )
+{
+    var nodename = getNodeName(elem);
+    return (nodename === 'iframe' || nodename === 'frame');
+}
+
+
+/**
+ * 获取元素所在的窗口对象
+ * @param elem
+ * @returns {window|null}
+ */
+System.getWindow=function getWindow( elem )
+{
+    if( elem )
+    {
+        elem = elem.ownerDocument || elem;
+        return elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || window || null;
+    }
+    return null;
+}
+
+/**
+ * 以小写的形式返回元素的节点名
+ * @returns {string}
+ */
+System.getNodeName = function getNodeName( elem )
+{
+    return elem && elem.nodeName && typeof elem.nodeName=== "string" ? elem.nodeName.toLowerCase() : '';
+};
+
 /**
  * 去掉指定字符两边的空白
  * @param str
@@ -497,6 +622,38 @@ System.uid =function uid()
 }
 
 /**
+ * 给一个指定的对象管理一组数据
+ * @param target
+ * @param name
+ * @param value
+ * @returns {*}
+ */
+System.storage=function storage(target, name , value)
+{
+    if( target==null )throw new TypeError('target can not is null or undefined');
+    if( typeof name !== "string" )throw new TypeError('name can only is string');
+    var namespace = name.split('.');
+    var i = 0, len = namespace.length-1;
+    while( i<len )
+    {
+        name = namespace[i++];
+        target= target[ name ] || (target[ name ] = {});
+    }
+    name = namespace[ len ];
+    if( value !== undefined )
+    {
+        return target[name] = value;
+
+    }else if( value === undefined )
+    {
+        var val = target[ name ];
+        delete target[ name ];
+        return val;
+    }
+    return target[name];
+}
+
+/**
  * 获取属性
  * @private
  */
@@ -561,5 +718,28 @@ Internal.throwError = function throwError(type, msg, line, filename) {
             break;
         default :
             throw new System.Error(msg, line, filename);
+    }
+}
+
+Internal.createSymbolStorage=function(symbol)
+{
+    return function(target, name, value )
+    {
+        if( name === true )
+        {
+            target[ symbol ]=value;
+            return value;
+        }
+        var data = target[ symbol ];
+        if( !data )
+        {
+            data={};
+            target[ symbol ]=data;
+        }
+        if( typeof value !== "undefined" )
+        {
+            data[ name ]=value;
+        }
+        return name==null ? data : data[ name ];
     }
 }

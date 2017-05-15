@@ -23,7 +23,7 @@ if( !Object.create  )
         var $has = $Object.prototype.hasOwnProperty;
         return function (O, P) {
             if (typeof O != 'object'){
-                Internal.throwError('type', 'Object prototype may only be an Object or null');
+                throw new TypeError('Object prototype may only be an Object or null');
             }
             F.prototype = O;
             var obj = new F();
@@ -57,11 +57,14 @@ if( (!Object.defineProperty || __ie8__) && Internal.Descriptor )
         {
             if (obj[prop] instanceof Internal.Descriptor)
             {
-                if (obj[prop].configurable === false)Internal.throwError('type', '"' + prop + '" property is not configurable');
+                if (obj[prop].configurable === false)
+                {
+                    throw new TypeError('"' + prop + '" property is not configurable');
+                }
                 Internal.Descriptor.call(obj[prop], desc);
                 return;
             }
-            if (typeof desc.value === "undefined")desc.value = obj[prop];
+            if( typeof desc.value === "undefined" )desc.value = obj[prop];
         }
         obj[prop] = new Internal.Descriptor(desc);
         return;

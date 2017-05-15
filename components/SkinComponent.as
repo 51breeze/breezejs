@@ -147,7 +147,6 @@ import breeze.components.Component;
         public function set skin(skinObj:Skin):void
         {
             this.__skin__ = skinObj;
-            
         };
 
         /**
@@ -169,7 +168,6 @@ import breeze.components.Component;
          */
         public function set viewport(obj:Object):void
         {
-            log( obj );
             this.__viewport__ = obj;
         };
 

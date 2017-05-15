@@ -4,7 +4,7 @@
  * Copyright © 2015 BreezeJS All rights reserved.
  * Released under the MIT license
  * https://github.com/51breeze/breezejs
- * @require System,Object,Array,EventDispatcher,Document,Window,StyleEvent,PropertyEvent,ScrollEvent,ElementEvent,Math,TypeError,Error,SyntaxError,ReferenceError
+ * @require System,Object,Array,EventDispatcher,Document,Window,StyleEvent,PropertyEvent,ScrollEvent,ElementEvent,Math,TypeError,Error,SyntaxError,ReferenceError,Symbol
  */
 var fix={
     attrMap:{
@@ -68,7 +68,7 @@ var fix={
     ,fnHooks:{}
     ,getsizeval:function( prop )
     {
-        if ( Element.prototype.isWindow.call(this) )
+        if ( System.isWindow(this) )
         {
             return Math.max(
                 this['inner'+prop] || 0,
@@ -77,7 +77,7 @@ var fix={
                 this.document.documentElement['client'+prop] || 0
             );
 
-        } else if (Element.prototype.isDocument.call(this) )
+        } else if ( System.isDocument.call(this) )
         {
             return Math.max(
                     this.body['scroll'+prop] || 0,
@@ -111,8 +111,8 @@ function access(callback, name, newValue)
         getter = typeof fix.fnHooks[callback].get === "function" ? fix.fnHooks[callback].get : getter ;
         setter = typeof fix.fnHooks[callback].set === "function" ? fix.fnHooks[callback].set : setter ;
     }
-    if( !write )return getter.call(this.current(),name,this);
-    return this.forEach(function(elem)
+    if( !write )return getter.call( Element.prototype.current.call(this),name,this);
+    return Element.prototype.forEach.call(this,function(elem)
     {
         var oldValue= getter.call(elem,name,this);
         if( oldValue !== newValue )
@@ -164,7 +164,7 @@ function $dispatchEvent(thisArg, type, parent, child, result )
     event.parent=parent;
     event.child=child;
     event.result=!!result;
-    return thisArg.dispatchEvent( event );
+    return EventDispatcher.prototype.dispatchEvent.call(thisArg, event );
 }
 
 /**
@@ -174,7 +174,7 @@ function $doMake( elems )
 {
     var r = this.__reverts__ || (this.__reverts__ = []);
     r.push( Array.prototype.splice.apply(this, [0,this.length].concat(elems) ) );
-    this.current(null);
+    Element.prototype.current.call(this,null);
     return this;
 }
 
@@ -186,8 +186,7 @@ function $doRecursion(propName, strainer, deep )
     var currentItem,ret=[];
     var s = typeof strainer === "string" ? function(){return querySelector(strainer, null , null, [this]).length > 0 } :
         typeof strainer === "undefined" ? function(){return this.nodeType===1} : strainer ;
-
-    this.forEach(function(elem)
+    Element.prototype.forEach.call(this,function(elem)
     {
         if( elem && elem.nodeType )
         {
@@ -204,8 +203,6 @@ function $doRecursion(propName, strainer, deep )
     });
     return ret;
 }
-
-
 
 /**
  * @private
@@ -259,7 +256,7 @@ var querySelector = typeof Sizzle === "function" ?  function(selector, context, 
         //如果选择器不是一个字符串
         if (typeof selector !== "string")
         {
-            results = Element.prototype.isNodeElement.call(selector) || Element.prototype.isWindow(selector) ? [selector] : [];
+            results = System.isNodeElement(selector) || System.isWindow(selector) ? [selector] : [];
         }else
         {
             var has = false;
@@ -360,7 +357,7 @@ function $createElement(html )
             return div.parentNode.removeChild( div );
         }
 
-    }else if (Element.prototype.isNodeElement.call(html) )
+    }else if (System.isNodeElement(html) )
         return  html.parentNode ?$cloneNode(html,true) : html;
     throw new Error('createElement param invalid')
 };
@@ -421,7 +418,7 @@ function $getNodeName(elem )
  */
 function $mergeAttributes(target, oSource)
 {
-    var iselem=Element.prototype.isNodeElement.call( target );
+    var iselem=System.isNodeElement( target );
     if( System.isObject(oSource,true) )
     {
         for (var key in oSource)if (oSource[key] && oSource[key] != '')
@@ -475,6 +472,8 @@ function $cloneNode(nodeElement , deep )
     return null;
 };
 
+var storage=Internal.createSymbolStorage( Symbol('element') );
+
 /**
  * Element class
  * @param selector
@@ -488,43 +487,48 @@ function Element(selector, context)
     {
         return new Element( selector, context );
     }
+
     if( context )
     {
         context=System.instanceOf(context,Element) ? context[0] : context;
-        this.context = context;
     }
+
+    storage(this,true,{
+        'context':context,
+        'forEachCurrentItem':null,
+        'forEachCurrentIndex':NaN,
+    });
+
     var result=[];
     if( selector )
     {
         if (System.isArray(selector))
         {
             result = Array.prototype.filter.call(selector, function (elem) {
-                return Element.prototype.isNodeElement.call(elem) || Element.prototype.isWindow.call(elem);
+                return System.isNodeElement(elem) || System.isWindow(elem);
             });
 
-        } else if (selector instanceof Element) {
+        } else if (selector instanceof Element)
+        {
             result = selector.slice(0);
-        } else if (typeof selector === "string") {
+        } else if (typeof selector === "string")
+        {
             result = selector.charAt(0) === '<' && selector.charAt(selector.length - 1) === '>' ? $createElement(selector) : querySelector(selector, context);
-        } else if (Element.prototype.isNodeElement.call(selector)) {
+        } else if ( System.isNodeElement(selector) )
+        {
             result = selector;
         }
     }
     Array.prototype.splice.apply(this,[0,0].concat(result) );
     EventDispatcher.call(this);
-    this.forEachCurrentItem = null;
-    this.forEachCurrentIndex = NaN;
 }
+
 Element.prototype= Object.create( EventDispatcher.prototype );
 Element.prototype.constructor = Element;
-Element.prototype.context = undefined;
-//@private Element.prototype.forEachCurrentItem
-Element.prototype.forEachCurrentItem=undefined;
-//@private Element.prototype.forEachCurrentIndex
-Element.prototype.forEachCurrentIndex=NaN;
-Element.prototype.length=0;
-Element.prototype.slice= Array.prototype.slice;
-Element.prototype.concat=Array.prototype.concat;
+Element.prototype.length = 0;
+Element.prototype.slice  = Array.prototype.slice;
+Element.prototype.splice = Array.prototype.splice;
+Element.prototype.concat = Array.prototype.concat;
 Element.prototype.indexOf= Array.prototype.indexOf;
 
 /**
@@ -537,26 +541,26 @@ Element.prototype.forEach=function forEach(callback , refObject )
 {
     var result;
     refObject=refObject || this;
-    var current = this.forEachCurrentItem;
+    var current = storage(this,'forEachCurrentItem');
     if( current  )
     {
-        result=callback.call( refObject ,current,this.forEachCurrentIndex );
+        result=callback.call( refObject ,current, storage(this,'forEachCurrentIndex') );
     }else
     {
-        var items=this.slice(0),
+        var items=Element.prototype.slice.call(this,0),
             index = 0,
             len=items.length;
         for( ; index < len ; index++ )
         {
             current = items[ index ];
-           this.forEachCurrentItem=current;
-           this.forEachCurrentIndex=index;
+            storage(this,'forEachCurrentItem',current);
+            storage(this,'forEachCurrentIndex',index);
             result=callback.call( refObject ,current,index);
             if( result !== undefined )
                 break;
         }
-        this.forEachCurrentItem=null;
-        this.forEachCurrentIndex=NaN;
+        storage(this,'forEachCurrentItem',null);
+        storage(this,'forEachCurrentIndex',NaN);
     }
     return typeof result === 'undefined' ? this : result;
 };
@@ -570,22 +574,23 @@ Element.prototype.forEach=function forEach(callback , refObject )
  */
 Element.prototype.current=function current( elem )
 {
-    if( elem == null )return this.forEachCurrentItem || this[0];
+    if( elem == null )return storage(this,'forEachCurrentItem') || this[0];
     if( typeof elem=== "string" )
     {
         elem=querySelector(elem, this.context || document );
-        this.forEachCurrentItem=(elem && elem.length > 0 ? elem[0] : null);
-        this.forEachCurrentIndex=NaN;
+        elem = elem && elem.length > 0 ? elem[0] : null;
+        storage(this,'forEachCurrentItem',elem);
+        storage(this,'forEachCurrentIndex',NaN);
+        return elem;
 
-    }else if(  Element.prototype.isNodeElement.call(elem) || Element.prototype.isWindow.call(elem) )
+    }else if( System.isNodeElement(elem) || System.isWindow(elem) )
     {
-       this.forEachCurrentItem=elem;
-       this.forEachCurrentIndex=NaN;
-
+        storage(this,'forEachCurrentItem',elem);
+        storage(this,'forEachCurrentIndex',NaN);
     }else
     {
-        this.forEachCurrentItem=null;
-        this.forEachCurrentIndex=NaN;
+        storage(this,'forEachCurrentItem',null);
+        storage(this,'forEachCurrentIndex',NaN);
     }
     return this;
 };
@@ -616,7 +621,7 @@ Element.prototype.property=function property(name, value )
     var lower=name.toLowerCase();
     if( lower==='innerhtml' || lower==='html' )
     {
-        return this.html(value);
+        return Element.prototype.html.call(this,value);
 
     }else if( lower==='value' || lower==='text' )
     {
@@ -624,7 +629,7 @@ Element.prototype.property=function property(name, value )
 
     }else if( lower === 'classname' && typeof value === "string" )
     {
-        this.addClass(value);
+        Element.prototype.addClass.call(this,value);
 
     }else if( lower === 'style' )
     {
@@ -640,7 +645,7 @@ Element.prototype.property=function property(name, value )
  */
 Element.prototype.hasProperty=function hasProperty(prop )
 {
-    var elem = this.current();
+    var elem = Element.prototype.current.call(this);
     if( !elem )return false;
     return typeof elem.hasAttributes === 'function' ? elem.hasAttributes( prop ) : !!elem[prop];
 };
@@ -653,40 +658,18 @@ Element.prototype.hasProperty=function hasProperty(prop )
  */
 Element.prototype.data=function data(name, value )
 {
-    var write = typeof value !== "undefined";
     var type =  typeof name;
-    return this.forEach(function(target)
+    return Element.prototype.forEach.call(this,function(target)
     {
         if( type === "object" )
         {
-            target.__data__ = name;
+            storage(target, true, name );
 
         }else if( type === 'string' )
         {
-            target = target.__data__ || (target.__data__={});
-            var namespace = name.split('.');
-            var i = 0, len = namespace.length-1;
-            while( i<len )
-            {
-                name = namespace[i++];
-                target= target[ name ] || (target[ name ] = {});
-            }
-            name = namespace[ len++ ];
-            if( !write )
-            {
-                return target[ name ] || null;
-            }
-
-            if( value !== null )
-            {
-                target[name] = value;
-
-            }else if(  typeof target[ name ] !== 'undefined' )
-            {
-                delete target[ name ];
-            }
+            System.storage( storage(target), name, value );
         }
-    })
+    });
 };
 
 var rgbregex = /\s*rgba\(\s*(\d+)\,\s*(\d+)\,\s*(\d+)/i;
@@ -796,9 +779,9 @@ Element.prototype.style=function style(name, value )
  */
 Element.prototype.show=function show()
 {
-    return this.forEach(function(){
-        var type = this.data('display') || 'block';
-        this.style('display', type );
+    return Element.prototype.forEach.call(this,function(){
+        var type = Element.prototype.data.call(this,'display') || 'block';
+        Element.prototype.style.call(this,'display', type );
     })
 };
 
@@ -808,10 +791,10 @@ Element.prototype.show=function show()
  */
 Element.prototype.hide=function hide()
 {
-    return this.forEach(function(){
-        var d = this.style('display');
-        this.data('display', System.isEmpty( d ) ? 'block' : d );
-        this.style('display', 'none' )
+    return Element.prototype.forEach.call(this,function(){
+        var d = Element.prototype.style.call(this,'display');
+        Element.prototype.data.call(this,'display', System.isEmpty( d ) ? 'block' : d );
+        Element.prototype.style.call(this,'display', 'none' )
     })
 };
 
@@ -866,7 +849,7 @@ Element.prototype.value=function value( val )
  */
 Element.prototype.hasClass=function hasClass(className )
 {
-    var elem = this.current();
+    var elem = Element.prototype.current.call(this);
     if( !elem )return false;
     var value=elem['className'] || '';
     return value === '' || !value ? false : typeof className==='string' ? new RegExp('(\\s|^)' + className + '(\\s|$)').test( value ) : true ;
@@ -883,9 +866,9 @@ Element.prototype.addClass=function addClass(className )
     if( typeof className !== "string" )
         throw new Error('invaild class name');
     className = System.trim( className );
-    this.forEach(function(elem){
+    Element.prototype.forEach.call(this,function(elem){
 
-        if( !this.hasClass( className ) )
+        if( !Element.prototype.hasClass.call(this, className ) )
         {
             var oldClass=System.trim( elem['className'] );
             var old = oldClass;
@@ -894,7 +877,7 @@ Element.prototype.addClass=function addClass(className )
             var newValue = System.trim( oldClass.join(' ') );
             elem['className'] = newValue;
 
-            if( this.hasEventListener(StyleEvent.CHANGE) )
+            if( Element.prototype.hasEventListener.call(this,StyleEvent.CHANGE) )
             {
                 var event = new StyleEvent( StyleEvent.CHANGE );
                 event.property = 'class';
@@ -915,7 +898,7 @@ Element.prototype.addClass=function addClass(className )
 Element.prototype.removeClass=function removeClass(className )
 {
     var all = typeof className !== 'string';
-    return this.forEach(function(elem){
+    return Element.prototype.forEach.call(this,function(elem){
         var newValue='';
         var old=elem['className'] || '';
         if( !all )
@@ -926,7 +909,7 @@ Element.prototype.removeClass=function removeClass(className )
         newValue === '' ? elem.removeAttribute('class') : elem['className'] = System.trim(newValue);
         try {
             elem.offsetWidth = elem.offsetWidth;
-            if( this.hasEventListener(StyleEvent.CHANGE) )
+            if( Element.prototype.hasEventListener.call(this,StyleEvent.CHANGE) )
             {
                 var event = new StyleEvent( StyleEvent.CHANGE );
                 event.property = 'class';
@@ -965,7 +948,7 @@ accessor['scroll']={
     get:function(prop){
         var e = this.defaultView || this.parentWindow || this;
         var p= 'scroll'+prop;
-        return Element.prototype.isWindow.call( e ) ? e[ prop.toLowerCase()==='top'?'pageYOffset':'pageXOffset'] || e.document.documentElement[p] || e.document.body[p] : e[p] ;
+        return System.isWindow( e ) ? e[ prop.toLowerCase()==='top'?'pageYOffset':'pageXOffset'] || e.document.documentElement[p] || e.document.body[p] : e[p] ;
     },
     set:function(prop,newValue,obj){
         var e = this.defaultView || this.parentWindow || this;
@@ -980,7 +963,7 @@ accessor['scroll']={
             e['scroll'+prop] = newValue;
         }
 
-        if( this.hasEventListener( ScrollEvent.CHANGE ) ){
+        if( Element.prototype.hasEventListener.call(this, ScrollEvent.CHANGE ) ){
 
             var event = new ScrollEvent( ScrollEvent.CHANGE );
             event.property = prop.toLowerCase();
@@ -1035,26 +1018,26 @@ Element.prototype.scrollHeight=function scrollHeight()
 Element.prototype.getBoundingRect=function getBoundingRect( force )
 {
     var value={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0,'width':0,'height':0};
-    var elem= this.current();
-    if( this.isWindow() )
+    var elem= Element.prototype.current.call(this);
+    if( System.isWindow(elem) )
     {
         value.left = elem.screenLeft || elem.screenX;
         value.top = elem.screenTop || elem.screenY;
-        value.width = this.width();
-        value.height = this.height();
+        value.width = Element.prototype.width.call(this);
+        value.height = Element.prototype.height.call(this);
         value.right = value.width + value.left;
         value.bottom = value.height + value.top;
         return value;
     }
 
-    if( !this.isNodeElement() )
+    if( !System.isNodeElement( elem ) )
         throw new Error('invalid elem. elem not is NodeElement');
 
     var doc =  elem.ownerDocument || elem, docElem=doc.documentElement;
-    this.current( Element.prototype.getWindow.call(doc) );
-    var scrollTop = this.scrollTop();
-    var scrollLeft = this.scrollLeft();
-    this.current( elem );
+    Element.prototype.current.call(this, System.getWindow( doc ) );
+    var scrollTop = Element.prototype.scrollTop.call(this);
+    var scrollLeft = Element.prototype.scrollLeft.call(this);
+    Element.prototype.current.call(this, elem );
 
     if( "getBoundingClientRect" in document.documentElement )
     {
@@ -1083,7 +1066,7 @@ Element.prototype.getBoundingRect=function getBoundingRect( force )
     }
 
     //始终相对浏览器窗口的位置
-    if( this.style('position') === 'fixed' || force===true )
+    if( Element.prototype.style.call(this,'position') === 'fixed' || force===true )
     {
         value.top -= scrollTop;
         value.left -= scrollLeft;
@@ -1165,11 +1148,11 @@ Element.prototype.bottom=function bottom(val )
  */
 function point(left, top, local )
 {
-    var old = this.forEachCurrentItem;
-    var target = this.current();
-    this.current( target.parentNode );
-    var offset=this.getBoundingRect();
-    this.current( old );
+    var old =  storage(this,'forEachCurrentItem');
+    var target = Element.prototype.current.call(this);
+    Element.prototype.current.call(this, target.parentNode );
+    var offset=Element.prototype.getBoundingRect.call(this);
+    Element.prototype.current.call(this, old );
     left = left || 0;
     top = top || 0;
     return local===true ? {left:offset.left+left,top:offset.top+top} : {left:left-offset.left, top:top-offset.top};
@@ -1213,7 +1196,7 @@ Element.prototype.revert=function revert(step)
         step = step || -1;
         step= step < 0 ? step+len : step;
         step=step >= len ? 0 : step;
-        this.splice(0,this.length, reverts.splice(step, len-step).shift() );
+        Element.prototype.splice.call(this,0,this.length, reverts.splice(step, len-step).shift() );
     }
     return this;
 };
@@ -1226,7 +1209,7 @@ Element.prototype.revert=function revert(step)
 Element.prototype.find=function find(selector )
 {
     var ret=[];
-    this.forEach(function(elem){
+    Element.prototype.forEach.call(this,function(elem){
         ret = ret.concat.apply(ret,querySelector(selector, elem ) );
     });
     return $doMake.call( this, ret );
@@ -1309,7 +1292,7 @@ Element.prototype.siblings=function siblings(selector )
  * @param selector 如果是 * 返回包括文本节点的所有元素。不指定返回所有HTMLElement元素。
  * @returns {Element}
  */
-Element.prototype.children=function children(selector )
+Element.prototype.children=function children( selector )
 {
     if( typeof selector === 'undefined' )
     {
@@ -1317,13 +1300,13 @@ Element.prototype.children=function children(selector )
     }
     var is=typeof selector === "function";
     var results=[];
-    this.forEach(function(element)
+    Element.prototype.forEach.call(this,function(element)
     {
-        if( !this.isFrame() && element.hasChildNodes() )
+        if( !System.isFrame(element) && element.hasChildNodes() )
         {
-            var child = this.slice.call( element.childNodes );
-            results =  is ? this.concat.call( results, Array.prototype.filter.call(child, selector ) ) :
-                this.concat.call( results, querySelector(selector,element,null,child) );
+            var child = Element.prototype.slice.call( element.childNodes );
+            results =  is ? Element.prototype.concat.call( results, Array.prototype.filter.call(child, selector ) ) :
+                Element.prototype.concat.call( results, querySelector(selector,element,null,child) );
         }
     });
     return $doMake.call( this, Array.prototype.unique.call(results) );
@@ -1339,11 +1322,11 @@ Element.prototype.children=function children(selector )
 Element.prototype.wrap=function wrap(element )
 {
     var is=System.isFunction( element );
-    return this.forEach(function(elem)
+    return Element.prototype.forEach.call(this,function(elem)
     {
         var wrap=$createElement( is ? element.call(this,elem) : element );
-        this.current( elem.parentNode ).addChildAt( wrap , elem );
-        this.current( wrap ).addChildAt( elem ,-1);
+        Element.prototype.current.call(this, elem.parentNode ).addChildAt( wrap , elem );
+        Element.prototype.current.call(this, wrap ).addChildAt( elem ,-1);
     });
 };
 
@@ -1356,7 +1339,7 @@ Element.prototype.wrap=function wrap(element )
 Element.prototype.unwrap=function unwrap(selector )
 {
     var is= typeof selector === "undefined";
-    return this.forEach(function(elem)
+    return Element.prototype.forEach.call(this,function(elem)
     {
         var parent= is ?  elem.parentNode : $doRecursion.call(this,'parentNode',selector )[0];
         if( parent && parent.ownerDocument && Element.prototype.contains.call( parent.ownerDocument.body, parent ) )
@@ -1364,13 +1347,13 @@ Element.prototype.unwrap=function unwrap(selector )
             var children=parent.hasChildNodes() ? parent.childNodes : [];
             if( parent.parentNode )
             {
-                this.current( parent.parentNode );
+                Element.prototype.current.call(this, parent.parentNode );
                 var len=children.length,i=0;
                 while( i<len ){
-                    if( children[i] )this.addChildAt( children[ i ], parent );
+                    if( children[i] )Element.prototype.addChildAt.call(this, children[ i ], parent );
                     i++;
                 }
-                this.removeChildAt( parent );
+                Element.prototype.removeChildAt.call(this, parent );
             }
         }
     });
@@ -1387,7 +1370,7 @@ Element.prototype.html=function html( htmlObject )
     var outer = htmlObject === true;
     var write= !outer && typeof htmlObject !== "undefined";
     if( !write && this.length < 1 ) return '';
-    return this.forEach(function(elem)
+    return Element.prototype.forEach.call(this,function(elem)
     {
         if( !write )
         {
@@ -1415,7 +1398,7 @@ Element.prototype.html=function html( htmlObject )
             var len=nodes.length,b=0;
             for( ;b < len ; b++ )if(nodes[b])
             {
-                this.removeChildAt( nodes[b] );
+                Element.prototype.removeChildAt.call(this, nodes[b]);
             }
         }
 
@@ -1446,7 +1429,7 @@ Element.prototype.html=function html( htmlObject )
 
         }else
         {
-            this.addChild(htmlObject);
+            Element.prototype.addChild.call(this,htmlObject);
             return true;
         }
     });
@@ -1460,7 +1443,7 @@ Element.prototype.html=function html( htmlObject )
  */
 Element.prototype.addChild=function addChild(childElemnet )
 {
-    return this.addChildAt( childElemnet,-1);
+    return Element.prototype.addChildAt.call(this, childElemnet,-1);
 };
 
 /**
@@ -1474,10 +1457,10 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
 {
     if( childElemnet instanceof Element )
     {
-        childElemnet=childElemnet.slice(0);
+        childElemnet= Element.prototype.slice(childElemnet,0);
         for( var c=0; c<childElemnet.length; c++)
         {
-            this.addChildAt( childElemnet[c], index );
+            Element.prototype.addChildAt.call(this, childElemnet[c], index );
         }
         return this;
     }
@@ -1486,15 +1469,15 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
     var isElement= childElemnet && childElemnet.nodeType && typeof childElemnet.nodeName === 'string';
 
     //如果没有父级元素则设置上下文为父级元素
-    if( this.length === 0 && !this.current() )
+    if( this.length === 0 && !Element.prototype.current.call(this) )
     {
         var context = $get(this,"context");
-        this.current( context === document ? document.body : context );
+        Element.prototype.current.call(this, context === document ? document.body : context );
     }
 
-    return this.forEach(function(parent)
+    return Element.prototype.forEach.call(this,function(parent)
     {
-        if( !this.isHTMLElement() )
+        if( !System.isHTMLElement( parent ) )
         {
             throw new Error('invalid parent HTMLElement.');
         }
@@ -1505,10 +1488,10 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
         }
         if( child.parentNode !== parent  )
         {
-            if( child.parentNode )this.removeChildAt( child );
-            this.current(parent);
+            if( child.parentNode )Element.prototype.removeChildAt.call(this, child );
+            Element.prototype.current.call(this, parent);
             var refChild=index && index.parentNode && index.parentNode===parent ? index : null;
-            !refChild && ( refChild=this.getChildAt( typeof index==='number' ? index : index ) );
+            !refChild && ( refChild=Element.prototype.getChildAt.call(this, typeof index==='number' ? index : index ) );
             refChild && (refChild=index.nextSibling);
             parent.insertBefore( child , refChild || null );
             $dispatchEvent(this,ElementEvent.ADD,parent,child);
@@ -1525,7 +1508,7 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
  */
 Element.prototype.getChildAt=function getChildAt( index )
 {
-    return this.forEach(function(parent)
+    return Element.prototype.forEach.call(this,function(parent)
     {
         var childNodes,child=null;
         if( parent.hasChildNodes() )
@@ -1552,20 +1535,19 @@ Element.prototype.getChildAt=function getChildAt( index )
  */
 Element.prototype.getChildIndex=function getChildIndex( childElemnet )
 {
+    var parent = Element.prototype.current.call(this);
+    if( !parent || !parent.hasChildNodes() )return -1;
+    var children = $getChildNodes(parent);
     if( typeof childElemnet==='string' )
     {
-        childElemnet= querySelector( childElemnet, null, null, this.slice(0) )[0];
-        if( !childElemnet )return -1;
-        this.current( childElemnet.parentNode );
+        childElemnet =  querySelector(childElemnet,null,null,children)
     }
-    var parent = this.current();
-    if( childElemnet.parentNode===parent )
+    if( childElemnet.parentNode === parent )
     {
-        return this.indexOf.call( $getChildNodes(parent), childElemnet );
+        return Array.prototype.indexOf.call( $getChildNodes(parent), childElemnet);
     }
     return -1;
 };
-
 
 /**
  * 移除指定的子级元素
@@ -1576,17 +1558,17 @@ Element.prototype.removeChild=function removeChild( childElemnet )
 {
     if( typeof childElemnet==='string' )
     {
-        this.forEach(function(elem)
+        Element.prototype.forEach.call(this,function(elem)
         {
             var children=querySelector(childElemnet,elem), b=0,len=children.length;
             for( ; b<len ; b++)if( children[b] && children[b].nodeType===1 && children[b].parentNode )
             {
-                this.removeChildAt( children[b] );
+                Element.prototype.removeChildAt.call(this, children[b] );
             }
         })
     }else
     {
-        this.removeChildAt( childElemnet );
+        Element.prototype.removeChildAt.call(this, childElemnet );
     }
     return this;
 };
@@ -1602,13 +1584,13 @@ Element.prototype.removeChildAt=function removeChildAt(index)
     var is=false;
     if( typeof index === "object" && index.parentNode )
     {
-        this.current( index.parentNode );
+        Element.prototype.current.call(this, index.parentNode );
         is=true;
     }else if( !System.isNumber( index ) )
         throw new Error('Invalid param the index. in removeChildAt');
-    return this.forEach(function(parent)
+    return Element.prototype.forEach.call(this,function(parent)
     {
-        var child= is ? index : this.getChildAt( index );
+        var child= is ? index : Element.prototype.getChildAt.call(this, index );
         if( child.parentNode === parent )
         {
             $dispatchEvent(this, ElementEvent.REMOVE, parent, child, parent.removeChild(child) );
@@ -1624,134 +1606,14 @@ Element.prototype.removeChildAt=function removeChildAt(index)
  */
 Element.prototype.contains=function contains( child )
 {
-    var parent = this instanceof Element ? this.current() : this;
-    if( isNodeElement(child) )
+    var parent = this instanceof Element ? Element.prototype.current.call(this) : this;
+    if( System.isNodeElement(child) )
     {
         if('contains' in parent)return parent.contains( child ) && parent !== child;
         return !!(parent.compareDocumentPosition(child) & 16) && parent !== child ;
     }
     return querySelector( child, parent ).length > 0;
 }
-
-/**
- * 获取元素所在的窗口对象
- * @param elem
- * @returns {window|null}
- */
-Element.prototype.getWindow=function getWindow()
-{
-    var elem = this instanceof Element ? this.current() : this;
-    var ret = null;
-    if( elem ) {
-        elem = elem.ownerDocument || elem;
-        ret = elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow;
-    }
-    return ret ? ret : window || null;
-}
-
-//form elements
-var formPatternReg=/select|input|textarea|button/i;
-
-/**
- * 判断是否为一个表单元素
- * @returns {boolean}
- */
-Element.prototype.isForm=function isForm(exclude)
-{
-    var elem  = this instanceof Element ? this.current() : this;
-    if( elem && typeof elem.nodeName ==='string' )
-    {
-        var ret=formPatternReg.test( elem.nodeName );
-        return ret && typeof exclude === 'string' ? exclude.toLowerCase() !== this.nodeName() : ret;
-    }
-    return false;
-};
-
-/**
- * @private
- * @type {boolean}
- */
-var ishtmlobject = typeof HTMLElement==='object';
-
-/**
- * 判断是否为一个HtmlElement类型元素,document 不属性于 HtmlElement
- * @returns {boolean}
- */
-Element.prototype.isHTMLElement=function isHTMLElement()
-{
-    var elem  = this instanceof Element ? this.current() : this;
-    if( typeof elem !== "object" )return false;
-    return ishtmlobject ? elem instanceof HTMLElement : ( elem.nodeType === 1 && typeof elem.nodeName === "string" );
-};
-
-/**
- * 判断是否为一个节点类型元素
- * document window 不属于节点类型元素
- * @returns {boolean}
- */
-Element.prototype.isNodeElement=function isNodeElement()
-{
-    var elem  = this instanceof Element ? this.current() : this;
-    if( typeof elem !== "object" ) return false;
-    return typeof Node !== "undefined" ? elem instanceof Node :
-        !!( elem.nodeType && typeof elem.nodeName === "string" && (typeof elem.tagName === "string" || elem.nodeType===9) );
-};
-
-/**
- * 判断是否为一个html容器元素。
- * HTMLElement和document属于Html容器
- * @param element
- * @returns {boolean|*|boolean}
- */
-Element.prototype.isHTMLContainer=function isHTMLContainer()
-{
-    var elem  = this instanceof Element ? this.current() : this;
-    if( typeof elem !== "object" ) return false;
-    return Element.prototype.isHTMLElement.call(elem) || Element.prototype.isDocument.call(elem);
-};
-
-/**
- * 判断是否为一个事件元素
- * @param element
- * @returns {boolean}
- */
-Element.prototype.isEventElement=function isEventElement()
-{
-    var elem  = this instanceof Element ? this.current() : this;
-    return (elem && ( typeof elem.addEventListener === "function" || typeof elem.attachEvent=== "function" ) );
-};
-
-/**
- * 判断是否为窗口对象
- * @param obj
- * @returns {boolean}
- */
-Element.prototype.isWindow=function isWindow()
-{
-    var elem  = this instanceof Element ? this.current() : this;
-    return ( elem && elem === Element.prototype.getWindow.call(elem) );
-};
-
-/**
- * 决断是否为文档对象
- * @returns {*|boolean}
- */
-Element.prototype.isDocument=function isDocument()
-{
-    var elem  = this instanceof Element ? this.current() : this;
-    return elem && elem.nodeType===9;
-};
-
-/**
- * 判断是否为一个框架元素
- * @returns {boolean}
- */
-Element.prototype.isFrame=function isFrame()
-{
-    var elem  = this instanceof Element ? this.current() : this;
-    var nodename =$getNodeName(elem);
-    return (nodename === 'iframe' || nodename==='frame');
-};
 
 // fix style name add prefix
 if( System.env.platform( System.env.BROWSER_FIREFOX ) && System.env.version(4) )
@@ -1793,12 +1655,12 @@ fix.cssHooks.radialGradient=fix.cssHooks.linearGradient={
 
     get: function( style, name )
     {
-        return  Element.storage(this,name) || '';
+        return storage(this, name ) || '';
     },
     set: function( style, value, name )
     {
         value = System.trim(value);
-        //Element.storage(this,name,value);
+        storage(this, name , value);
         if( ( System.env.platform(System.env.BROWSER_SAFARI) && System.env.version(5.1,'<') )  ||
             ( System.env.platform(System.env.BROWSER_CHROME) && System.env.version(10,'<') ) )
         {

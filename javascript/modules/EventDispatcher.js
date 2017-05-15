@@ -6,27 +6,7 @@
  * @require System,Object,Event,Internal,Reflect,Symbol
  */
 
-var eventSymbol = Symbol('event');
-function storage(target, name, value )
-{
-    if( name === true )
-    {
-        target[ eventSymbol ]=value;
-        return value;
-    }
-    var data = target[ eventSymbol ];
-    if( !data )
-    {
-        data={};
-        target[ eventSymbol ]=data;
-    }
-    if( typeof value !== "undefined" )
-    {
-        data[ name ]=value;
-    }
-    return name==null ? data : data[ name ];
-}
-
+var storage=Internal.createSymbolStorage( Symbol('event') );
 function EventDispatcher( target )
 {
     if( !System.instanceOf(this,EventDispatcher) )return new EventDispatcher( target );
