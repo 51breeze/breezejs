@@ -147,8 +147,10 @@ function $getChildNodes(elem, selector, flag)
         while( index < len )
         {
             node=elem.childNodes.item(index);
-            if( ( isfn && selector.call(this,node,index) ) || ( !isfn && (selector==='*' || node.nodeType===1) )  )
-                ret.push( node );
+            if( ( isfn && selector.call(this,node,index) ) || ( !isfn && (selector==='*' || node) ) )
+            {
+                ret.push(node);
+            }
             if( flag===true && ret.length >0 )break;
             ++index;
         }
@@ -279,7 +281,7 @@ var querySelector = typeof Sizzle === "function" ?  function(selector, context, 
             if(has)context.removeAttribute('id');
         }
     }
-    if( System.isArray(seed) )
+    if( seed && System.isArray(seed) )
     {
         var i=0;
         var ret=[];
@@ -523,6 +525,7 @@ function Element(selector, context)
     EventDispatcher.call(this);
 }
 
+Element.querySelector=querySelector;
 Element.prototype= Object.create( EventDispatcher.prototype );
 Element.prototype.constructor = Element;
 Element.prototype.length = 0;
@@ -581,8 +584,6 @@ Element.prototype.current=function current( elem )
         elem = elem && elem.length > 0 ? elem[0] : null;
         storage(this,'forEachCurrentItem',elem);
         storage(this,'forEachCurrentIndex',NaN);
-        return elem;
-
     }else if( System.isNodeElement(elem) || System.isWindow(elem) )
     {
         storage(this,'forEachCurrentItem',elem);
@@ -1398,7 +1399,7 @@ Element.prototype.html=function html( htmlObject )
             var len=nodes.length,b=0;
             for( ;b < len ; b++ )if(nodes[b])
             {
-                Element.prototype.removeChildAt.call(this, nodes[b]);
+                Element.prototype.removeChild.call(this, nodes[b] );
             }
         }
 
@@ -1407,7 +1408,6 @@ Element.prototype.html=function html( htmlObject )
             htmlObject = System.trim( htmlObject );
             try{
                 elem.innerHTML = htmlObject;
-                $dispatchEvent(this,ElementEvent.ADD,elem,htmlObject);
             }catch(e)
             {
                 var nodename = $getNodeName( elem );
@@ -1424,7 +1424,6 @@ Element.prototype.html=function html( htmlObject )
                 }
                 $mergeAttributes(child, elem);
                 elem.parentNode.replaceChild(child,  elem );
-                $dispatchEvent(this,ElementEvent.ADD,elem.parentNode,child);
             }
 
         }else
@@ -1441,7 +1440,7 @@ Element.prototype.html=function html( htmlObject )
  * @param childElemnet
  * @returns {Element}
  */
-Element.prototype.addChild=function addChild(childElemnet )
+Element.prototype.addChild=function addChild(childElemnet)
 {
     return Element.prototype.addChildAt.call(this, childElemnet,-1);
 };
@@ -1453,51 +1452,24 @@ Element.prototype.addChild=function addChild(childElemnet )
  * @param index | refChild | fn(node,index,parent)  要添加到的索引位置
  * @returns {Element}
  */
-Element.prototype.addChildAt=function addChildAt(childElemnet, index)
+Element.prototype.addChildAt=function addChildAt( childElemnet, index )
 {
-    if( childElemnet instanceof Element )
+     if( System.isNaN(index) )throw new Error('Invalid param the index in addChildAt');
+     if( !System.isNodeElement( childElemnet )  )
+     {
+         throw new TypeError('is not Element in addChildAt');
+     }
+    var parent = Element.prototype.current.call(this);
+    if( !System.isHTMLElement( parent ) )
     {
-        childElemnet= Element.prototype.slice(childElemnet,0);
-        for( var c=0; c<childElemnet.length; c++)
-        {
-            Element.prototype.addChildAt.call(this, childElemnet[c], index );
-        }
-        return this;
+        throw new Error('parent is null of child elemnet in addChildAt');
     }
-
-    if( index==null )throw new Error('Invalid param the index');
-    var isElement= childElemnet && childElemnet.nodeType && typeof childElemnet.nodeName === 'string';
-
-    //如果没有父级元素则设置上下文为父级元素
-    if( this.length === 0 && !Element.prototype.current.call(this) )
-    {
-        var context = $get(this,"context");
-        Element.prototype.current.call(this, context === document ? document.body : context );
-    }
-
-    return Element.prototype.forEach.call(this,function(parent)
-    {
-        if( !System.isHTMLElement( parent ) )
-        {
-            throw new Error('invalid parent HTMLElement.');
-        }
-        try{
-            var child=isElement ? childElemnet : $createElement( childElemnet );
-        }catch(e){
-            throw new Error('The childElemnet not is HTMLElement');
-        }
-        if( child.parentNode !== parent  )
-        {
-            if( child.parentNode )Element.prototype.removeChildAt.call(this, child );
-            Element.prototype.current.call(this, parent);
-            var refChild=index && index.parentNode && index.parentNode===parent ? index : null;
-            !refChild && ( refChild=Element.prototype.getChildAt.call(this, typeof index==='number' ? index : index ) );
-            refChild && (refChild=index.nextSibling);
-            parent.insertBefore( child , refChild || null );
-            $dispatchEvent(this,ElementEvent.ADD,parent,child);
-        }
-        if( isElement ) return this;
-    })
+    var refChild=index===-1 ? null : Element.prototype.getChildAt.call(this,index);
+    if( childElemnet.parentNode )Element.prototype.removeChild.call(this, childElemnet );
+    refChild && (refChild=index.nextSibling);
+    parent.insertBefore( childElemnet , refChild || null );
+    $dispatchEvent( EventDispatcher( childElemnet ) ,ElementEvent.ADD, parent, childElemnet );
+    return childElemnet;
 };
 
 /**
@@ -1508,24 +1480,20 @@ Element.prototype.addChildAt=function addChildAt(childElemnet, index)
  */
 Element.prototype.getChildAt=function getChildAt( index )
 {
-    return Element.prototype.forEach.call(this,function(parent)
+    var parent = Element.prototype.current.call(this);
+    if( !parent || !parent.hasChildNodes() )return null;
+    var childNodes,child=null;
+    if( typeof index === 'function' )
     {
-        var childNodes,child=null;
-        if( parent.hasChildNodes() )
-        {
-            if( typeof index === 'function' )
-            {
-                child=$getChildNodes.call(this, parent ,index ,true)[0];
+        child=$getChildNodes.call(this, parent ,index ,true)[0];
 
-            }else if( typeof index === 'number' )
-            {
-                childNodes=$getChildNodes.call(this,parent);
-                index=index < 0 ? index+childNodes.length : index;
-                child=index >= 0 && index < childNodes.length ? childNodes[index] : null;
-            }
-        }
-        return child;
-    })
+    }else if( typeof index === 'number' )
+    {
+        childNodes=$getChildNodes.call(this,parent);
+        index=index < 0 ? index+childNodes.length : index;
+        child=index >= 0 && index < childNodes.length ? childNodes[index] : null;
+    }
+    return child;
 };
 
 /**
@@ -1540,11 +1508,11 @@ Element.prototype.getChildIndex=function getChildIndex( childElemnet )
     var children = $getChildNodes(parent);
     if( typeof childElemnet==='string' )
     {
-        childElemnet =  querySelector(childElemnet,null,null,children)
+        childElemnet = querySelector(childElemnet,null,null,children);
     }
     if( childElemnet.parentNode === parent )
     {
-        return Array.prototype.indexOf.call( $getChildNodes(parent), childElemnet);
+        return Array.prototype.indexOf.call( children, childElemnet);
     }
     return -1;
 };
@@ -1556,21 +1524,17 @@ Element.prototype.getChildIndex=function getChildIndex( childElemnet )
  */
 Element.prototype.removeChild=function removeChild( childElemnet )
 {
-    if( typeof childElemnet==='string' )
+    if( !System.isNodeElement(childElemnet) )
     {
-        Element.prototype.forEach.call(this,function(elem)
-        {
-            var children=querySelector(childElemnet,elem), b=0,len=children.length;
-            for( ; b<len ; b++)if( children[b] && children[b].nodeType===1 && children[b].parentNode )
-            {
-                Element.prototype.removeChildAt.call(this, children[b] );
-            }
-        })
-    }else
-    {
-        Element.prototype.removeChildAt.call(this, childElemnet );
+        throw new TypeError('is not HTMLElement in removeChild');
     }
-    return this;
+    var parent = childElemnet.parentNode;
+    if( !parent )
+    {
+        throw new TypeError('parentNode is null of child elemnet');
+    }
+    $dispatchEvent( EventDispatcher( childElemnet ) , ElementEvent.REMOVE, parent, childElemnet , parent.removeChild( childElemnet ) );
+    return childElemnet;
 };
 
 /**
@@ -1579,24 +1543,19 @@ Element.prototype.removeChild=function removeChild( childElemnet )
  *        也可以是一个回调函数过滤要删除的子节点元素。
  * @returns {Element}
  */
-Element.prototype.removeChildAt=function removeChildAt(index)
+Element.prototype.removeChildAt=function removeChildAt( index )
 {
-    var is=false;
-    if( typeof index === "object" && index.parentNode )
+    var parent = Element.prototype.current.call(this);
+    var child= Element.prototype.getChildAt.call(this, index );
+    if( !child )
     {
-        Element.prototype.current.call(this, index.parentNode );
-        is=true;
-    }else if( !System.isNumber( index ) )
-        throw new Error('Invalid param the index. in removeChildAt');
-    return Element.prototype.forEach.call(this,function(parent)
+        throw new Error('not found child. in removeChildAt');
+    }
+    if( child.parentNode === parent )
     {
-        var child= is ? index : Element.prototype.getChildAt.call(this, index );
-        if( child.parentNode === parent )
-        {
-            $dispatchEvent(this, ElementEvent.REMOVE, parent, child, parent.removeChild(child) );
-        }
-        if( is )return this;
-    });
+        return Element.prototype.removeChild.call(this, child );
+    }
+    return null;
 };
 
 /**
@@ -1606,7 +1565,7 @@ Element.prototype.removeChildAt=function removeChildAt(index)
  */
 Element.prototype.contains=function contains( child )
 {
-    var parent = this instanceof Element ? Element.prototype.current.call(this) : this;
+    var parent = Element.prototype.current.call(this);
     if( System.isNodeElement(child) )
     {
         if('contains' in parent)return parent.contains( child ) && parent !== child;

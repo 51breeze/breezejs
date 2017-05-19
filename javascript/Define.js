@@ -80,7 +80,7 @@ function mathOperator( a, o, b)
         case '>>=' :return a>>=b;
         case '>>>=' :return a>>>=b;
         default :
-            Internal.throwError('syntax','Invalid operator "'+o+'"' );
+            throw new SyntaxError( 'Invalid operator "'+o+'"'  );
     }
 }
 
@@ -205,7 +205,7 @@ function makeMethods(method, classModule)
         case 'check' : return function (info, type, value)
         {
             if( value == null || type === System.Object )return value;
-            if ( !System.is(value, type) )
+            if ( type && !System.is(value, type) )
             {
                 toMessage(null, [], classModule, 'Specify the type of value do not match. must is "' + System.getQualifiedClassName(type) + '"', info, 'Type');
             }
@@ -224,7 +224,7 @@ System.getDefinitionByName = function getDefinitionByName(name) {
     if( Object.prototype.hasOwnProperty.call(modules,name) )return modules[name];
     if(Object.prototype.hasOwnProperty.call(System, name))return System[name];
     for (var i in modules)if (i === name)return modules[i];
-    Internal.throwError('type', '"' + name + '" is not define');
+    throw new TypeError('"' + name + '" is not define');
 }
 
 /**
@@ -245,7 +245,9 @@ System.getQualifiedClassName = function getQualifiedClassName(value)
     var str = (value.constructor || value).toString();
     str = str.substr(0, str.indexOf('(') );
     var name = str.substr(str.lastIndexOf(' ')+1);
-    if( !System[name] && !modules[name] )Internal.throwError('reference', '"'+name+'" type does not exist');
+    if( name && !System[name] && !modules[name] ){
+        throw new ReferenceError( '"'+name+'" type does not exist' );
+    }
     return name;
 }
 /**

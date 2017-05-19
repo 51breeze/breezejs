@@ -129,6 +129,9 @@ var descriptor = {
         'type': 'Element',
         'id': 'class',
         'inherit':'EventDispatcher',
+        'static':{
+          'querySelector':{type: 'Array', 'id': 'function', param:['String'] }
+        },
         'proto': {
             'forEach': {type: '*', 'id': 'function',param:['Function']},
             'property': {type: 'String', 'id': 'function',param:[]},
@@ -140,6 +143,7 @@ var descriptor = {
             'height': {type: '*', 'id': 'function', param:[] },
             'current': {type: 'Object', 'id': 'function', param:[] },
         }
+
     },
     'StyleEvent':{
         'id':'class', 'type':'StyleEvent','inherit':'PropertyEvent',
@@ -457,7 +461,8 @@ var descriptor = {
             'buildMode': {type: '*', 'id': 'function',param:['*']},
             'attr': {type: 'Object', 'id': 'function',param:['*','*']},
             'initializing': {type: 'Object', 'id': 'function',param:['Object']},
-            'initialized': {type: 'Object', 'id': 'function',param:['Object']},
+            'initialized': {type: 'Object', 'id': 'function',param:[]},
+            'createChildren': {type: 'void', 'id': 'function',param:['Object']},
             'render': {type: 'Render', 'id': 'function',param:[]},
         },
         'static':{

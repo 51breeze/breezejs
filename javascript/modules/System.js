@@ -324,7 +324,13 @@ var hasNode= typeof Node !== "undefined";
 System.isNodeElement=function isNodeElement( elem )
 {
     if( !elem ) return false;
-    return hasNode ? elem instanceof Node : !!( elem.nodeType && typeof elem.nodeName === "string" && (typeof elem.tagName === "string" || elem.nodeType===9) );
+    return hasNode ? elem instanceof Node : elem.nodeType && typeof elem.nodeName === "string" && typeof elem.tagName === "string";
+};
+
+System.isNode=function isNode( elem )
+{
+    if( !elem ) return false;
+    return hasNode ? elem instanceof Node : elem.nodeType && typeof elem.nodeName === "string" && (typeof elem.tagName === "string" || elem.nodeType===9);
 };
 
 /**

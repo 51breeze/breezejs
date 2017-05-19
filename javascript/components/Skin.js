@@ -10,6 +10,14 @@
  */
 var storage=Internal.createSymbolStorage( Symbol('skin') );
 var has = $Object.prototype.hasOwnProperty;
+function container(target)
+{
+    if( !target[0] )
+    {
+        Element.prototype.splice.call(target,0,0, Element.querySelector( '#'+storage(target,'attr').id )[0] );
+    }
+    if( !System.isHTMLElement( target[0] ) )throw new ReferenceError('container element is null');
+}
 
 function Skin( skinObject )
 {
@@ -113,39 +121,6 @@ Skin.prototype.children=function children()
 }
 
 /**
- * 获取指定索引处的子级元素
- * @param index
- * @returns {null}
- */
-Skin.prototype.getChildAt=function getChildAt( index )
-{
-    var children = storage(this,'children');
-    if( typeof index === "number" )
-    {
-        return children[index] || null;
-    }
-    throw new TypeError('Invalid index');
-}
-
-/**
- * 根据子级皮肤返回索引
- * @param child
- * @returns {Number}
- */
-Skin.prototype.getChildIndex=function getChildIndex( child )
-{
-    var children = storage(this,'children');
-    for( var i in children )
-    {
-        if( children[i] === child )
-        {
-            return i;
-        }
-    }
-    return -1;
-}
-
-/**
  * 根据id获取子级元素
  * @param id
  * @returns {*}
@@ -157,68 +132,39 @@ Skin.prototype.getChildById = function getChildById( id )
     {
         return data[id];
     }
-    for( var i in children )
-    {
-        if( (children[i] instanceof Skin && children[i].attr('id') === id) || (children[i].attr && children[i].attr.id===id) )
-        {
-            return children[i];
-        }
-    }
     return null;
 }
 
 /**
- * 获取指定名称的元素只返回第一个
- * @param name
- * @returns {*}
+ * 获取指定索引处的子级元素
+ * @param index
+ * @returns {Element}
  */
-Skin.prototype.getChildByName = function getChildByName( name )
+Skin.prototype.getChildAt=function getChildAt( index )
 {
-    var children = storage(this,'children');
-    for( var i in children )
-    {
-        if( children[i] instanceof Skin && children[i].name() === name )
-        {
-            return children[i];
-        }
-    }
-    return null;
+    container(this);
+    return Element.prototype.getChildAt.call(this, index );
 }
 
 /**
- * 获取所有指定名称的元素
- * @param name
- * @returns {Array}
+ * 根据子级皮肤返回索引
+ * @param child
+ * @returns {Number}
  */
-Skin.prototype.getChildAllByName = function getChildAllByName( name )
+Skin.prototype.getChildIndex=function getChildIndex( child )
 {
-    var children = storage(this,'children');
-    var items=[];
-    for( var i in children )
-    {
-        if( children[i] instanceof Skin && children[i].name() === name )
-        {
-            items.push( children[i] );
-        }
-    }
-    return items;
+    container(this);
+    return Element.prototype.getChildIndex.call(this, child );
 }
 
 /**
  * 添加一个子级元素
  * @param child
  */
-Skin.prototype.addChild = function addChild( child )
+Skin.prototype.addChild = function addChild( childElement )
 {
-    var children =  storage(this,'children');
-    if( !System.is(child, Skin) )throw new Error('is not Skin');
-    if( storage(child,'parent') )throw new Error("child skin is added");
-    children.push( child );
-    storage(child,'parent', this);
-    var event = new SkinEvent( SkinEvent.ADD );
-    event.parent = this;
-    child.dispatchEvent( event );
-    return this;
+    container(this);
+    return Element.prototype.addChildAt.call(this, childElement , -1);
 }
 
 /**
@@ -226,58 +172,30 @@ Skin.prototype.addChild = function addChild( child )
  * @param child
  * @param index
  */
-Skin.prototype.addChildAt = function addChildAt( child , index )
+Skin.prototype.addChildAt = function addChildAt( childElement , index )
 {
-   var skinObject = storage(this,'skinObject');
-   var children = skinObject.children;
-   var len =  children.length;
-   if( typeof index !== "number" )throw new Error("Invalid index");
-   index = Math.min(len, Math.max( index < 0 ? len+index+1 : index , 0) );
-   if( !System.instanceOf(child, Skin) )throw new Error("is not Skin");
-   if( storage(child,'parent') )throw new Error("child skin is added");
-   children.splice(index,0,child);
-    storage(child,'parent', this);
-    var event = new SkinEvent( SkinEvent.ADD );
-    event.parent = this;
-    child.dispatchEvent( event );
-    return child;
+    container(this);
+    return Element.prototype.addChildAt.call(this, childElement , index);
 }
 
 /**
  * 移除指定的子级元素
- * @param child
+ * @param Element
  */
-Skin.prototype.removeChild = function removeChild( child )
+Skin.prototype.removeChild = function removeChild( childElement )
 {
-    var skinObject = storage(this,'skinObject');
-    var children = skinObject.children;
-    var index  = children.indexOf( child );
-    if( index<0 )throw new Error("child is not exists");
-    children.splice(index,1);
-    storage(child,'parent', null);
-    var event = new SkinEvent( SkinEvent.REMOVE );
-    event.parent = this;
-    child.dispatchEvent( event );
-    return child;
+    container(this);
+    return Element.prototype.removeChild.call(this, childElement );
 }
 
 /**
  * 移除指定索引的子级元素
- * @param index
+ * @param Element
  */
 Skin.prototype.removeChildAt = function removeChildAt( index )
 {
-    var skinObject = storage(this,'skinObject');
-    var children = skinObject.children;
-    var len = children.length;
-    index = index < 0 ? index+len : index;
-    if( index >= len || index < 0 )throw new Error("index out of range");
-    var child = children.splice( index , 1);
-    storage(child,'parent', null);
-    var event = new SkinEvent( SkinEvent.REMOVE );
-    event.parent = this;
-    child.dispatchEvent( event );
-    return child;
+    container(this);
+    return Element.prototype.removeChildAt.call(this, index );
 }
 
 /**
@@ -286,11 +204,7 @@ Skin.prototype.removeChildAt = function removeChildAt( index )
  */
 Skin.prototype.html = function html( childElement )
 {
-     if( !this[0] )
-     {
-         Element.prototype.splice.call(this,0,0,Element.prototype.current.call(this, '#'+storage(this,'attr').id ) );
-     }
-     if( !System.isHTMLElement( this[0] ) )throw new ReferenceError('container element is null');
+     container(this);
      Element.prototype.html.call(this, childElement );
 }
 
@@ -307,6 +221,14 @@ Skin.prototype.initializing = function initializing( host )
  * @param viewport
  */
 Skin.prototype.initialized = function initialized( viewport )
+{
+};
+
+/**
+ * 创建一组子级元素
+ * 当前皮肤被添加到视图中后会自动调用，无需要手动调用
+ */
+Skin.prototype.createChildren = function createChildren()
 {
 };
 
