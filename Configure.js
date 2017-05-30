@@ -1,4 +1,8 @@
 const config={
+    //皮肤文件的后缀
+    //'skin_file_suffix':'.xml',
+    //工程文件的后缀
+   // 'project_file_suffix':'.as',
     //构建输出的目录结构
     "build": {
         "path": "./",
@@ -74,8 +78,6 @@ const config={
                 "child": {
                     'skin': {
                         "path": "./",
-                        "syntax": "xml",
-                        "suffix": ".html",
                         "name": "skins",
                     },
                 },
