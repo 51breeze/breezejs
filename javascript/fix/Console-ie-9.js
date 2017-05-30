@@ -1,4 +1,5 @@
-if(!$console){
+if(!window.console)
+{
     (function (System)
     {
         var __container__ = null;
@@ -11,6 +12,7 @@ if(!$console){
                 container.width('100%');
                 container.height(200);
                 container.style('position', 'absolute');
+                container.style('background', '#ffffff');
                 container.style('left', '0px');
                 container.style('bottom', '0px');
                 container.style('overflow', 'auto');
@@ -23,13 +25,16 @@ if(!$console){
             }
             return __container__;
         }
+
         System.Console.log=function log()
         {
             var container = panel();
             if (container) {
-                container.addChild('<p style="line-height: 12px; font-size:12px;color:#333333; font-family: Arial; padding: 5px 0px;margin: 0px;">' + System.Array.prototype.slice.call(arguments, 0).join(' ') + '</p>');
+               var p = Element.createElement('<p style="line-height: 12px; font-size:12px;color:#333333; font-family: Arial; padding: 5px 0px;margin: 0px;">' + System.Array.prototype.slice.call(arguments, 0).join(' ') + '</p>')
+                container.addChild( p );
             }
         }
+
         System.Console.info=function info()
         {
             System.console.log.apply(this, arguments);

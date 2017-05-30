@@ -452,7 +452,6 @@ DataSource.prototype.select=function select( page )
 
     //数据准备好后需要立即通知
     this.__nowNotify__ =  true;
-
     var waiting = index < 0 || ( this.__items__.length < (index*rows+rows) );
 
     //需要等待加载数据
@@ -464,7 +463,6 @@ DataSource.prototype.select=function select( page )
         event.data=null;
         event.waiting = true;
         this.dispatchEvent(event);
-
     }else
     {
         nowNotify.call(this,page,index*rows,rows);
@@ -488,7 +486,7 @@ function success(event)
     var stateProfile = options.responseProfile.code;
     if( event.data[ stateProfile ] != options.responseProfile.successCode )
     {
-        Internal.throwError('error','Loading data failed '+event.data[ options.responseProfile.error ]);
+        throw new Error('Loading data failed '+event.data[ options.responseProfile.error ]);
     }
     var data = event.data;
     var total= 0;
@@ -496,7 +494,7 @@ function success(event)
     {
         if(  ( dataProfile && typeof data[ dataProfile ] === 'undefined' ) || ( totalProfile && data[totalProfile] === 'undefined') )
         {
-            Internal.throwError('error','Response data profile fields is not correct.');
+            throw new Error('Response data profile fields is not correct.');
         }
         total = totalProfile ? data[totalProfile] >> 0 : 0;
         data = data[dataProfile];
@@ -508,7 +506,7 @@ function success(event)
     }
 
     //必须是返回一个数组
-    if( !System.isArray(data) ) Internal.throwError('error','Response data set must be an array');
+    if( !System.isArray(data) )throw new Error('Response data set must be an array');
 
     //当前获取到数据的长度
     var len = data.length >> 0;
@@ -585,7 +583,6 @@ function doload()
             p++;
         }
     }
-
     if( !this.__loading__ && queue.length > 0 )
     {
         page = queue.shift();

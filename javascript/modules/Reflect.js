@@ -185,6 +185,13 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
     {
         throw new ReferenceError('"Reflect.get" target object is null or undfined');
     }
+
+    //动态属性
+    if( !System.isNaN(propertyKey) )
+    {
+        return $get(target, propertyKey, receiver );
+    }
+
     if( target instanceof Class )
     {
         var objClass = target.constructor.prototype;
@@ -224,7 +231,6 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
                    if( desc.get )
                    {
                        return desc.get.call(receiver || target);
-
                    }else if( !desc.set )
                    {
                        if (isstatic)return $get(desc, "value");
@@ -240,6 +246,7 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
                 receiver = target;
                 target = objClass.prototype;
                 objClass=null;
+                break;
             }
         }
 
@@ -249,15 +256,7 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
     }
 
     //内置对象以__开头的为私有属性外部不可访问
-    if( propertyKey[0]==='_' && propertyKey[1]==='_')return undefined;
-    if( $has.call(target,propertyKey) )
-    {
-        receiver = receiver || target;
-        if( $has.call( receiver,  propertyKey ) )
-        {
-            return $get(receiver, propertyKey);
-        }
-    }
+    if( propertyKey.charAt(0)==='_' && propertyKey.charAt(1)==='_' )return undefined;
     return $get(target, propertyKey, receiver );
 }
 

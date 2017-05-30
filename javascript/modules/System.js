@@ -88,6 +88,8 @@ System.env = {
                 return result > value;
             case '>=' :
                 return result >= value;
+            case '<=' :
+                return result <= value;
             case '<' :
                 return result < value;
             default:
@@ -168,10 +170,12 @@ System.is=function is(instanceObj, theClass)
                     }
                 }
             }
+            if( !(objClass instanceof System.Class) )break;
             objClass =Internal.$get(objClass,"extends");
         }
+        if( objClass.prototype )instanceObj = objClass.prototype;
     }
-
+    
     //如果不是一个函数直接返回false
     if (typeof theClass !== "function")return false;
     if( Object(instanceObj) instanceof theClass )return true;
@@ -324,7 +328,8 @@ var hasNode= typeof Node !== "undefined";
 System.isNodeElement=function isNodeElement( elem )
 {
     if( !elem ) return false;
-    return hasNode ? elem instanceof Node : elem.nodeType && typeof elem.nodeName === "string" && typeof elem.tagName === "string";
+    return hasNode ? elem instanceof Node : elem.nodeType && typeof elem.nodeName === "string" &&
+    (typeof elem.tagName === "string" || elem.nodeName==="#document-fragment");
 };
 
 System.isNode=function isNode( elem )

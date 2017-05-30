@@ -128,7 +128,7 @@ function access(callback, name, newValue)
                 event.property = event.property || name;
                 event.newValue = event.newValue || newValue;
                 event.oldValue = event.oldValue || oldValue;
-                this.dispatchEvent( event );
+                EventDispatcher.prototype.dispatchEvent.call(this, event);
             }
         }
 
@@ -310,7 +310,7 @@ function $createElement(html )
 {
     if(System.isString(html) )
     {
-        html=System.trim( html );
+        html=System.trim( html ).replace(/[\r\n]+/g,'');
         if( html !== '' )
         {
             var match;
@@ -335,16 +335,40 @@ function $createElement(html )
                     }
                 }
                 return elem;
-
-            }else if( tableChildRegex.exec(html) )
-            {
-                html="<table>"+ html +"</table>";
             }
 
-            var div = document.createElement( "div");
-            div.innerHTML =  html;
-            var len=div.childNodes.length;
+            var div = document.createElement("div");
+            var result = html.match(/^\<(tr|th|td|tbody|thead|tfoot)/);
+            if(  result )
+            {
+                var level = 1;
+                switch( result[1] )
+                {
+                    case 'td':
+                        html='<table><tbody><tr>'+html+'</tr></tbody></table>';
+                        level = 3;
+                        break;
+                    case 'th':
+                        html='<table><thead><tr>'+html+'</tr></thead></table>';
+                        level = 3;
+                        break;
+                    case 'tr' :
+                        html='<table><tbody>'+html+'</tbody></table>';
+                        level = 2;
+                        break;
+                    default :
+                        html ='<table>'+html+'</table>';
+                        level = 1;
+                }
+                div.innerHTML = html;
+                for (var i = 0; i < level; i++)div = div.childNodes.item(0);
 
+            }else
+            {
+                div.innerHTML =  html;
+            }
+
+            var len=div.childNodes.length;
             if(  len > 1 )
             {
                 var fragment= document.createDocumentFragment();
@@ -498,7 +522,7 @@ function Element(selector, context)
     storage(this,true,{
         'context':context,
         'forEachCurrentItem':null,
-        'forEachCurrentIndex':NaN,
+        'forEachCurrentIndex':NaN
     });
 
     var result=[];
@@ -521,6 +545,7 @@ function Element(selector, context)
             result = selector;
         }
     }
+    this.length = 0;
     Array.prototype.splice.apply(this,[0,0].concat(result) );
     EventDispatcher.call(this);
 }
@@ -618,6 +643,15 @@ accessor['property']={
  */
 Element.prototype.property=function property(name, value )
 {
+    if( name+"" === "[object Object]")
+    {
+        for(var i in name )
+        {
+            Element.prototype.property.call(this,i, name[i]);
+        }
+        return this;
+    }
+
     name =  fix.attrMap[name] || name;
     var lower=name.toLowerCase();
     if( lower==='innerhtml' || lower==='html' )
@@ -1371,6 +1405,19 @@ Element.prototype.html=function html( htmlObject )
     var outer = htmlObject === true;
     var write= !outer && typeof htmlObject !== "undefined";
     if( !write && this.length < 1 ) return '';
+    var is = false;
+    if( write && htmlObject )
+    {
+        if( typeof htmlObject === "string" )
+        {
+            htmlObject = System.trim( htmlObject ).replace(/[\r\n\t]+/g,'');
+
+        }else if( System.instanceOf(htmlObject,Element) )
+        {
+            htmlObject = Element.prototype.current.call(htmlObject);
+            is = true;
+        }
+    }
     return Element.prototype.forEach.call(this,function(elem)
     {
         if( !write )
@@ -1393,47 +1440,36 @@ Element.prototype.html=function html( htmlObject )
             return htmlObject;
         }
 
-        if( elem.hasChildNodes() )
+        //清空所有的子节点
+        while( elem.hasChildNodes() )
         {
-            var nodes=elem.childNodes;
-            var len=nodes.length,b=0;
-            for( ;b < len ; b++ )if(nodes[b])
-            {
-                Element.prototype.removeChild.call(this, nodes[b] );
-            }
+            Element.prototype.removeChild.call(this, elem.childNodes.item(0) );
         }
-
-        if( typeof htmlObject === "string" )
+        if( htmlObject )
         {
-            htmlObject = System.trim( htmlObject );
-            try{
-                elem.innerHTML = htmlObject;
-            }catch(e)
+            if(is)return Element.prototype.addChild.call(this, htmlObject);
+            try
             {
-                var nodename = $getNodeName( elem );
-                if( !new RegExp("^<"+nodename).exec(htmlObject) )
-                {
-                    htmlObject= System.sprintf('<%s>%s</%s>',nodename,htmlObject,nodename);
+                elem.innerHTML = htmlObject;
+            } catch (e)
+            {
+                var nodename = $getNodeName(elem);
+                if (!new RegExp("^<" + nodename).exec(htmlObject)) {
+                    htmlObject = System.sprintf('<%s>%s</%s>', nodename, htmlObject, nodename);
                 }
-                var child= $createElement( htmlObject );
-                var deep =  nodename === 'tr' ? 2 : 1,d=0;
-                while( d < deep && child.firstChild )
+                var child = $createElement(htmlObject);
+                var deep = nodename === 'tr' ? 2 : 1, d = 0;
+                while (d < deep && child.firstChild)
                 {
                     d++;
-                    child=child.firstChild;
+                    child = child.firstChild;
                 }
                 $mergeAttributes(child, elem);
-                elem.parentNode.replaceChild(child,  elem );
+                elem.parentNode.replaceChild(child, elem);
             }
-
-        }else
-        {
-            Element.prototype.addChild.call(this,htmlObject);
-            return true;
         }
     });
 };
-
 
 /**
  * 添加子级元素（所有已匹配的元素）
@@ -1455,15 +1491,19 @@ Element.prototype.addChild=function addChild(childElemnet)
 Element.prototype.addChildAt=function addChildAt( childElemnet, index )
 {
      if( System.isNaN(index) )throw new Error('Invalid param the index in addChildAt');
-     if( !System.isNodeElement( childElemnet )  )
+     if( System.instanceOf(childElemnet,Element) )
+     {
+         childElemnet =  Element.prototype.current.call(childElemnet);
+     }
+     if( !System.isNodeElement( childElemnet ) )
      {
          throw new TypeError('is not Element in addChildAt');
      }
-    var parent = Element.prototype.current.call(this);
-    if( !System.isHTMLElement( parent ) )
-    {
+     var parent = Element.prototype.current.call(this);
+     if( !System.isHTMLElement( parent ) )
+     {
         throw new Error('parent is null of child elemnet in addChildAt');
-    }
+     }
     var refChild=index===-1 ? null : Element.prototype.getChildAt.call(this,index);
     if( childElemnet.parentNode )Element.prototype.removeChild.call(this, childElemnet );
     refChild && (refChild=index.nextSibling);

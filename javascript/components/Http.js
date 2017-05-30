@@ -79,6 +79,7 @@ function done(event)
     e.data = result;
     e.status = xhr.status;
     e.url = this.__url__;
+    e.param = this.__param__;
     this.dispatchEvent(e);
 };
 
@@ -121,7 +122,7 @@ function Http( options )
     if( !isSupported )throw new Error('Http the client does not support');
     if ( !(this instanceof Http) )return new Http(options);
     this.__options__=Object.merge(true, setting, options);
-    var xhr;
+    var xhr=null;
     if( window.XMLHttpRequest )
     {
         xhr = new window.XMLHttpRequest();
@@ -132,10 +133,9 @@ function Http( options )
     {
         EventDispatcher.call(this);
         xhr = new window.ActiveXObject("Microsoft.XMLHTTP");
-        var self= this;
-        xhr.onreadystatechange=function()
-        {
-            if( xhr.readyState === 4 )done.call(self);
+        var self = this;
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4)done.call(self);
         }
     }
     this.__setHeader__=false;
@@ -221,7 +221,7 @@ Http.prototype.abort = function abort()
  */
 Http.prototype.load = function load(url, data, method)
 {
-    if (typeof url !== "string")Internal.throwError('error','Invalid url');
+    if (typeof url !== "string")throw new Error('Invalid url');
     if( this.__loading__ ===true )return false;
 
     var options = this.__options__;
@@ -234,6 +234,7 @@ Http.prototype.load = function load(url, data, method)
         if (!(method in Http.METHOD))throw new Error('Invalid method for ' + method);
     }
     this.__url__ = url;
+    this.__param__ = data;
     this.__loading__=true;
     try{
 
@@ -255,12 +256,22 @@ Http.prototype.load = function load(url, data, method)
         } else
         {
             xhr = this.__xhr__;
+            if( !window.XMLHttpRequest )
+            {
+                xhr = this.__xhr__ = new window.ActiveXObject("Microsoft.XMLHTTP");
+                var self= this;
+                xhr.onreadystatechange=function()
+                {
+                    if( xhr.readyState === 4 )done.call(self);
+                }
+            }
             data = data != null ? System.serialize(data, 'url') : null;
             if (method === Http.METHOD.GET && data)
             {
                 if (data != '')url += /\?/.test(url) ? '&' + data : '?' + data;
                 data = null;
             }
+            this.__url__ = url;
             xhr.open(method, url, async);
             if( this.__setHeader__ === false )
             {

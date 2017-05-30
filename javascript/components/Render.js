@@ -1,4 +1,4 @@
-var syntax_regexp = /^\s*(if|foreach|for|else|do|switch|case|break|var|function|while|code|{|})(.*)?/,
+var syntax_regexp = /^\s*(if|foreach|for|else|do|switch|case|default|break|var|function|while|code|{|})(.*)?/,
 call_regexp = /^([\w\.]+)\s*\(/,
 foreach_regexp  = /(\w+)\s+as\s+(\w+)(\s+(\w+))?/i;
 
@@ -85,11 +85,18 @@ function make(template, variable)
                         case 'foreach' :
                             code +=  foreach( matchSyntax[2] );
                             break;
+                        case 'switch' :
+                        case 'case' :
+                        case 'default' :
+                        case 'break' :
+                            code += matchSyntax[1]+(matchSyntax[2] ? matchSyntax[2] : '');
+                            code+='\n';
+                            break;
                         case 'code' :
                             begin_code = true;
                             break;
                         default :
-                            code += escape( matchSyntax[1] );
+                            code += escape( matchSyntax[1]  );
                             code+='\n';
                     }
                 }
@@ -99,6 +106,9 @@ function make(template, variable)
     }
     code += '___code___+="'+escape( template.substr(cursor, template.length - cursor) )+'";\n';
     code += 'return ___code___;';
+
+    console.log( code );
+
     return new Function( code ).call( variable , template );
 };
 

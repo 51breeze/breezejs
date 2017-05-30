@@ -142,6 +142,8 @@ var descriptor = {
             'width': {type: '*', 'id': 'function', param:[] },
             'height': {type: '*', 'id': 'function', param:[] },
             'current': {type: 'Object', 'id': 'function', param:[] },
+            'addChild': {type: 'Object', 'id': 'function', param:[] },
+            'addChildAt': {type: 'Object', 'id': 'function', param:[] },
         }
 
     },
@@ -462,7 +464,7 @@ var descriptor = {
             'attr': {type: 'Object', 'id': 'function',param:['*','*']},
             'initializing': {type: 'Object', 'id': 'function',param:['Object']},
             'initialized': {type: 'Object', 'id': 'function',param:[]},
-            'createChildren': {type: 'void', 'id': 'function',param:['Object']},
+            'createChildren': {type: 'void', 'id': 'function',param:[]},
             'render': {type: 'Render', 'id': 'function',param:[]},
         },
         'static':{

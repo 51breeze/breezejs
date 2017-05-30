@@ -3,7 +3,7 @@
  * 控制台
  * @require System,Object
  */
-function Console(){ if(this instanceof Console)Internal.throwError('syntax','is not constructor')};
+function Console(){ if(this instanceof Console)throw new SyntaxError('is not constructor')};
 
 /**
  * @private
