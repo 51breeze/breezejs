@@ -106,9 +106,6 @@ function make(template, variable)
     }
     code += '___code___+="'+escape( template.substr(cursor, template.length - cursor) )+'";\n';
     code += 'return ___code___;';
-
-    console.log( code );
-
     return new Function( code ).call( variable , template );
 };
 

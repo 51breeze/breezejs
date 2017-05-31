@@ -10,9 +10,9 @@ var storage=Internal.createSymbolStorage( Symbol('event') );
 function EventDispatcher( target )
 {
     if( !System.instanceOf(this,EventDispatcher) )return new EventDispatcher( target );
-    if( target != null && !(target.addEventListener || target.attachEvent || typeof target.onreadystatechange !== "undefined") )
+    if( target != null && !( System.isEventElement(target) || System.is(target, EventDispatcher) ) )
     {
-        throw new TypeError('target is not event object');
+        target = null;
     }
     storage(this, true, {target:target||this, events:{}});
 };
