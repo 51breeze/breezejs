@@ -27,11 +27,17 @@ Event.registerEvent(function ( type , target, originalEvent )
     switch ( type ){
         case PropertyEvent.CHANGE :
         case PropertyEvent.COMMIT :
+            if( originalEvent instanceof  Event )return originalEvent;
             var event =new PropertyEvent( type );
-            if( typeof originalEvent.propertyName === "string" )
+            var property = typeof originalEvent.propertyName === "string" ? originalEvent.propertyName : null;
+            if( !property && System.isForm(target,'button') )
             {
-                event.property = originalEvent.propertyName;
-                event.newValue = target[ event.property ];
+                property = 'value';
+            }
+            if( property )
+            {
+                event.property = property;
+                event.newValue = target[property];
             }
             return event;
     }

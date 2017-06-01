@@ -345,6 +345,18 @@ var descriptor = {
             'getResponseHeader':{'type':'String','id':'function','param':['String']},
         },
     },
+    'Bindable':{
+        'id':'class',
+        'type':'Bindable',
+        'inherit':'EventDispatcher',
+        'static':{},
+        'proto':{
+            'bind':{'type':'Bindable','id':'function','param':['Object','String','*']},
+            'unbind':{'type':'Bindable','id':'function','param':['Object']},
+            'property':{'type':'Bindable','id':'function','param':['String', 'Object']},
+            'hasProperty':{'type':'Boolean','id':'function','param':['String']},
+        },
+    },
     'HttpEvent':{
         'id':'class', 'type':'HttpEvent','inherit':'Event',
         'static':{

@@ -290,7 +290,7 @@ System.isForm=function isForm(elem, exclude)
 {
     if( elem )
     {
-        var nodename = getNodeName(elem);
+        var nodename = System.getNodeName(elem);
         switch ( nodename )
         {
             case 'select'   :

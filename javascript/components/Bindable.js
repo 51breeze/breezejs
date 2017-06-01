@@ -28,18 +28,14 @@ function commit(property,newValue )
             if( properties )
             {
                 var custom=properties[property] || properties['*'];
-                if( System.isFunction( custom ) )
+                if( custom && System.isFunction( custom ) )
                 {
                     custom.call(object,property,newValue);
 
                 }else if( property in properties || '*' in properties )
                 {
                     var prop = typeof custom === "string" ? custom : property;
-                    if( object instanceof Bindable )
-                    {
-                        object.commitProperty(prop,newValue);
-
-                    }else if( object instanceof Element )
+                    if( object instanceof Bindable ||  object instanceof Element )
                     {
                         object.property(prop,newValue);
 
@@ -58,61 +54,18 @@ function commit(property,newValue )
 };
 
 /**
- * 绑定属性变更事件
- * @private
- * @param Bindable bindable
- */
- function bindEvent( e )
- {
-     this.property(e.property, e.newValue);
- }
-
-/**
  * 数据双向绑定器
- * @param propertyObject  一个数据对象, 可以是空。 如果此对象是一个单一的对象则会把此对象上的所有属性继承到绑定器上。
+ * @param proxyObject  一个数据对象, 可以是空。 如果此对象是一个单一的对象则会把此对象上的所有属性继承到绑定器上。
  * 如果是一个DOM元素则会监听当前元素的属性变更并传送到被绑定的对象中。
  * @constructor
  * @require Object,EventDispatcher,PropertyEvent,Symbol,Dictionary,Element
  */
-function Bindable( object )
+function Bindable( proxyObject )
 {
-    if( object instanceof Bindable )
-        return object;
-
-    if( System.isNodeElement(object) )
-    {
-        var bindable =  storage(object,Bindable.NAME);
-        if( bindable && bindable instanceof Bindable )
-           return bindable;
-    }
-
     if( !(this instanceof Bindable) )
-        return new Bindable( object );
-
-    var data = {};
-    if( System.isNodeElement(object) )
-    {
-        storage(object,Bindable.NAME,this);
-    }
-
-    EventDispatcher.call(this , object || null );
-    if( System.isObject(object, true) )
-    {
-        data = object;
-        for( var key in object )
-        {
-            if( object[key] instanceof Bindable )
-            {
-                object[key].removeEventListener(PropertyEvent.CHANGE, bindEvent ).addEventListener(PropertyEvent.CHANGE, bindEvent,false,0 ,this);
-            }
-        }
-
-    }else if( typeof object === "string" )
-    {
-         data[object]=null;
-    }
-
-    storage(this,true, {dataitem:data,subscriber:new Dictionary()});
+        return new Bindable( proxyObject );
+    EventDispatcher.call(this , proxyObject );
+    storage(this,true,{"proxyObject":proxyObject,"data":{},"subscriber":new Dictionary()});
     this.addEventListener(PropertyEvent.CHANGE,function(event){
         commit.call(this,event.property, event.newValue);
     });
@@ -124,35 +77,17 @@ Bindable.prototype.constructor=Bindable;
 
 /**
  * 指定对象到当前绑定器。
- * @public
- * @param object targetObject 数据对象，允许是一个 DOM元素、EventDispatcher、Object。
- * 如果是 Object 则表示为单向绑定，否则都为双向绑定。
- * @param string property 需要绑定的属性名,允是一个*代表绑定所有属性, 默认为 value
- * @param function|string callback 如果是函数发生变更时调用，如果是一个属性名发生变更时赋值
+ * @param object targetObject 数据对象，允许是一个 DOM元素、EventDispatcher、Object。如果是 Object 则表示为单向绑定，否则都为双向绑定。
+ * @param string eventType 需要绑定的属性名,允是一个*代表绑定所有属性, 默认为 value
+ * @param function|string propertyName 如果是函数发生变更时调用，如果是一个属性名发生变更时赋值
  * @returns {Bindable}
  */
-Bindable.prototype.bind=function(target, property, callback)
+Bindable.prototype.bind=function(target, eventType, propertyName )
 {
-    property =  property || 'value';
+    eventType =  eventType || 'value';
     var subscriber = storage(this,'subscriber');
-    var data = subscriber.get(target);
-    if( !data )
-    {
-        data = subscriber.set(target,{});
-        var event = null;
-        if( System.isEventElement(target) )
-        {
-            event = new EventDispatcher(target);
-        } else if( System.is(target,EventDispatcher) )
-        {
-            event = target;
-        }
-        if( event )
-        {
-            event.removeEventListener(PropertyEvent.CHANGE, bindEvent).addEventListener(PropertyEvent.CHANGE, bindEvent, false, 0, this);
-        }
-    }
-    data[ property ]=callback;
+    var data = subscriber.get(target,{});
+    data[ eventType ]=propertyName;
     return this;
 };
 
@@ -187,17 +122,20 @@ Bindable.prototype.unbind=function(target,property)
  */
 Bindable.prototype.property=function(name,value)
 {
-    var dataitem = storage(this,'dataitem');
-    var old = dataitem[name];
-    if( typeof value !== 'undefined' && old !== value )
+    if( typeof name === "string" )
     {
-        dataitem[name]=value;
-        var ev = new PropertyEvent(PropertyEvent.CHANGE);
-        ev.property = name;
-        ev.newValue = value;
-        ev.oldValue = old;
-        this.dispatchEvent( ev );
-        return true;
+        var data = storage(this, 'data');
+        var old = data[name];
+        if (typeof value !== 'undefined' && old !== value)
+        {
+            data[name] = value;
+            var ev = new PropertyEvent(PropertyEvent.CHANGE);
+            ev.property = name;
+            ev.newValue = value;
+            ev.oldValue = old;
+            this.dispatchEvent(ev);
+            return true;
+        }
     }
     return false;
 };
