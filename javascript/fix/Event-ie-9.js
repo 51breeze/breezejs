@@ -3,8 +3,10 @@
  */
 if( System.env.platform('IE') && System.env.version(8) )
 {
+
 Event.fix.map[ Event.READY ] = 'readystatechange';
 Event.fix.prefix='on';
+
 (function () {
 
 /**

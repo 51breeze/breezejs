@@ -6,7 +6,7 @@
  * https://github.com/51breeze/breezejs
  */
 
-var storage=Internal.createSymbolStorage( Symbol('bind') );
+var storage=Internal.createSymbolStorage( Symbol('bindable') );
 
 /**
  * 提交属性到每个绑定的对象
@@ -14,39 +14,27 @@ var storage=Internal.createSymbolStorage( Symbol('bind') );
  * @param property
  * @param newValue
  */
-function commit(property,newValue )
+function commitProperties(event)
 {
-    var targets = storage(this,'subscriber').getAll();
-    var i,item,object,properties;
-    for( i in targets )
+    var property = Reflect.get(event,'property');
+    var binding = storage(this,'binding');
+    var hash = storage(this,'hash');
+    var bind =  binding[ property ];
+    if( bind )
     {
-        item=targets[i];
-        if( item.key && item.value )
+        var newValue = Reflect.get(event, 'newValue');
+        var oldValue = Reflect.get(event, 'oldValue');
+        if (typeof newValue !== "undefined" && newValue !== oldValue )
         {
-            object=item.key;
-            properties=item.value;
-            if( properties )
+            //相同的属性值不再提交
+            if ( hash[property] !== newValue)
             {
-                var custom=properties[property] || properties['*'];
-                if( custom && System.isFunction( custom ) )
+                hash[property] = newValue;
+                var i,item;
+                for( i in bind )
                 {
-                    custom.call(object,property,newValue);
-
-                }else if( property in properties || '*' in properties )
-                {
-                    var prop = typeof custom === "string" ? custom : property;
-                    if( object instanceof Bindable ||  object instanceof Element )
-                    {
-                        object.property(prop,newValue);
-
-                    }else if( System.isNodeElement(object) )
-                    {
-                         typeof object[ prop ] !== "undefined" ? object[ prop ] = newValue : object.setAttribute(prop,newValue);
-
-                    }else
-                    {
-                        object[ prop ] = newValue;
-                    }
+                    item=bind[i];
+                    setProperty(item.item.element, item.name, newValue );
                 }
             }
         }
@@ -54,40 +42,139 @@ function commit(property,newValue )
 };
 
 /**
- * 数据双向绑定器
- * @param proxyObject  一个数据对象, 可以是空。 如果此对象是一个单一的对象则会把此对象上的所有属性继承到绑定器上。
- * 如果是一个DOM元素则会监听当前元素的属性变更并传送到被绑定的对象中。
- * @constructor
- * @require Object,EventDispatcher,PropertyEvent,Symbol,Dictionary,Element
+ * 设置属性值
+ * @param object
+ * @param prop
+ * @param newValue
  */
-function Bindable( proxyObject )
+function setProperty(object, prop, newValue )
 {
-    if( !(this instanceof Bindable) )
-        return new Bindable( proxyObject );
-    EventDispatcher.call(this , proxyObject );
-    storage(this,true,{"proxyObject":proxyObject,"data":{},"subscriber":new Dictionary()});
-    this.addEventListener(PropertyEvent.CHANGE,function(event){
-        commit.call(this,event.property, event.newValue);
-    });
+    if( object instanceof Bindable )
+    {
+        Bindable.prototype.property.call(object,prop,newValue);
+
+    }else if( System.isNodeElement(object) )
+    {
+        if( typeof object[ prop ] !== "undefined"  )object[ prop ] = newValue;
+
+    }else if( object instanceof Element )
+    {
+        if( Element.prototype.hasProperty.call(object,prop) )Element.prototype.property.call(object,prop,newValue);
+    }else if( Reflect.has( object, prop) )
+    {
+        Reflect.set( object, prop, newValue );
+    }
 }
 
-Bindable.NAME='bindable';
+function getProperty(object, prop )
+{
+    if( object instanceof Bindable )
+    {
+        return Bindable.prototype.property.call(object,prop);
+
+    }else if( System.isNodeElement(object) )
+    {
+       return object[ prop ];
+
+    }else if( object instanceof Element )
+    {
+        return Element.prototype.property.call(object,prop);
+
+    }else if( Reflect.has( object, prop) )
+    {
+        return Reflect.get( object, prop );
+    }
+    return undefined;
+}
+
+/**
+ * 数据双向绑定器
+ * @param source 数据源对象。
+ * 如果是一个EventDispatcher对象，则该对象上的所有 PropertyEvent.CHANGE 事件都会反应到此绑定器中
+ * 如果是一个DOM元素则会监听当前元素的属性变更并反应到此绑定器中。
+ * @param type 监听的事件类型, 默认为 PropertyEvent.CHANGE
+ * @constructor
+ * @require Object,EventDispatcher,PropertyEvent,Symbol,Dictionary,Element,Reflect,Class
+ */
+function Bindable(source,properties)
+{
+    if( !(this instanceof Bindable) )
+        return new Bindable( source );
+    EventDispatcher.call(this , source );
+    if( typeof properties === "string" )
+    {
+        properties = [ properties ];
+    }
+    if( !System.isArray(properties) )
+    {
+        throw new TypeError('Invalid properties must is be String or Array. in Bindable');
+    }
+    storage(this,true,{"source":source,"properties":properties,"hash":{},"subscriber":new Dictionary(),"binding":{}});
+    this.addEventListener(PropertyEvent.CHANGE,commitProperties);
+}
 Bindable.prototype=  Object.create( EventDispatcher.prototype );
 Bindable.prototype.constructor=Bindable;
 
+
 /**
  * 指定对象到当前绑定器。
- * @param object targetObject 数据对象，允许是一个 DOM元素、EventDispatcher、Object。如果是 Object 则表示为单向绑定，否则都为双向绑定。
- * @param string eventType 需要绑定的属性名,允是一个*代表绑定所有属性, 默认为 value
- * @param function|string propertyName 如果是函数发生变更时调用，如果是一个属性名发生变更时赋值
+ * @param object target 需要绑定的数据对象。当绑定器中有属性变更时会更新对应属性名的值。
+ * @param string name 绑定的属性名。当绑定器变更的属性名与这个名称相同时则会把变更的值应用到绑定的数据对象上。
+ * 如果是一个*代表绑定所有属性, 默认为 value 属性名
+ * @param function|string property 如果是函数发生变更时调用，如果是一个字符串发生变更时将把此值作为属性名赋值给绑定的数据对象。
  * @returns {Bindable}
  */
-Bindable.prototype.bind=function(target, eventType, propertyName )
+Bindable.prototype.bind=function bind(target, property, name, flag)
 {
-    eventType =  eventType || 'value';
     var subscriber = storage(this,'subscriber');
-    var data = subscriber.get(target,{});
-    data[ eventType ]=propertyName;
+    var properties = storage(this,'properties');
+    var binding = storage(this,'binding');
+    var item = subscriber.get(target,{binding:{},dispatcher:null,handle:null,element:target});
+    var dispatch = flag !== false;
+    name = name || property;
+    if( typeof property !== "string" )
+    {
+        throw new TypeError("Invalid property must is be a String in Bindable.bind");
+    }
+    if( !(properties[0] ==='*' || properties.indexOf(name) >= 0) )
+    {
+        throw new TypeError("No binding source property name. in Bindable.bind");
+    }
+
+    //是否启用双向绑定
+    if( dispatch && item.handle === null )
+    {
+        //创建一个可派发事件的对象
+        if( !item.dispatcher )
+        {
+            dispatch = System.isEventElement(target) ? item.element = new Element(target) : target;
+            if( dispatch === target && !System.instanceOf(target, EventDispatcher) )dispatch = null;
+            if( dispatch )item.dispatcher = dispatch;
+        }
+
+        //如果是一个可派发事件的对象，才能启用双向绑定
+        if( item.dispatcher )
+        {
+            item.handle = function (event)
+            {
+                var property = Reflect.get(event,'property');
+                var newValue = Reflect.get(event,'newValue');
+                var oldValue = Reflect.get(event,'oldValue');
+                if( property && typeof newValue !== "undefined" && newValue!==oldValue && item.binding.hasOwnProperty(property) )
+                {
+                    this.property( item.binding[ property ] , newValue );
+                }
+            }
+            //如果目标对象的属性发生变化
+            Reflect.apply( Reflect.get(item.dispatcher,'addEventListener'), item.dispatcher, [PropertyEvent.CHANGE,item.handle,false,0,this]);
+        }
+    }
+
+    if( !item.binding[ property ] )
+    {
+        item.binding[property] = name;
+        ( binding[name] || (binding[name] = []) ).push({"name": property, "item": item});
+    }
     return this;
 };
 
@@ -98,21 +185,57 @@ Bindable.prototype.bind=function(target, eventType, propertyName )
  * @param string property 需要绑定的属性名
  * @returns {boolean}
  */
-Bindable.prototype.unbind=function(target,property)
+Bindable.prototype.unbind=function unbind(target,property)
 {
     var subscriber = storage(this,'subscriber');
+    var item=subscriber.get( target );
+    var binding = storage(this,'binding');
+    var bind;
     if( typeof property ==='string' )
     {
-        var data=subscriber.get( target );
-        if( data )
+        if( item )
         {
-            delete data[property];
-            return true;
+            if( item.binding.hasOwnProperty( property ) )
+            {
+                var name = item.binding[property];
+                if( binding[name] )
+                {
+                    removeItem(binding[name],item,property);
+                    delete item.binding[property];
+                    if( System.isEmpty(item.binding) )
+                    {
+                        item.dispatcher.removeEventListener(PropertyEvent.CHANGE,item.handle);
+                    }
+                    return true;
+                }
+            }
         }
         return false;
     }
+    if( item )
+    {
+        for( var p in binding )
+        {
+            bind = binding[ p ];
+            removeItem(bind,item);
+        }
+        item.dispatcher.removeEventListener(PropertyEvent.CHANGE,item.handle);
+    }
     return !!subscriber.remove( target );
 };
+
+function removeItem( bind ,item, name )
+{
+    var index=0;
+    for( ; index<bind.length; index++ )
+    {
+        if( bind[index].item === item && (!name || bind[index].name === name ) )
+        {
+            bind.splice(index--, 1);
+        }
+    }
+}
+
 
 /**
  * 提交属性的值到绑定器。
@@ -120,15 +243,18 @@ Bindable.prototype.unbind=function(target,property)
  * @param string name
  * @param void value
  */
-Bindable.prototype.property=function(name,value)
+Bindable.prototype.property=function property(name,value)
 {
     if( typeof name === "string" )
     {
-        var data = storage(this, 'data');
-        var old = data[name];
-        if (typeof value !== 'undefined' && old !== value)
+        var hash = storage(this,'hash');
+        var old = hash[name];
+        var source = storage(this, 'source');
+        if (typeof value !== 'undefined' && old !== value )
         {
-            data[name] = value;
+            //如果目标源属性没有定义
+            if( !this.hasProperty(name) )return false;
+            setProperty( source, name, value);
             var ev = new PropertyEvent(PropertyEvent.CHANGE);
             ev.property = name;
             ev.newValue = value;
@@ -136,6 +262,7 @@ Bindable.prototype.property=function(name,value)
             this.dispatchEvent(ev);
             return true;
         }
+        return typeof old === "undefined" ? getProperty( source, name ) : old;
     }
     return false;
 };
@@ -145,9 +272,13 @@ Bindable.prototype.property=function(name,value)
  * @param string name
  * @returns {boolean}
  */
-Bindable.prototype.hasProperty=function(name)
+Bindable.prototype.hasProperty=function hasProperty(name)
 {
-    var dataitem = storage(this,'dataitem');
-    return typeof dataitem[name] !== 'undefined';
+    var properties = storage(this,'properties');
+    if( properties[0] === '*' )
+    {
+        return Reflect.has(storage(this,'source'),name);
+    }
+    return properties.indexOf(name) >= 0;
 };
 System.Bindable = Bindable;

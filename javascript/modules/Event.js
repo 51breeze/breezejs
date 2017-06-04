@@ -172,14 +172,20 @@ Event.create = function create( originalEvent )
     originalEvent=originalEvent ? originalEvent : (typeof window === "object" ? window.event : null);
     var event=null;
     var i=0;
-    if( !originalEvent )Internal.throwError('type','Invalid event');
+    if( !originalEvent )throw new TypeError('Invalid event');
     var type = originalEvent.type;
     var target = originalEvent.srcElement || originalEvent.target;
     target = target && target.nodeType===3 ? target.parentNode : target;
     var currentTarget =  originalEvent.currentTarget || target;
-    if( typeof type !== "string" )Internal.throwError('type','Invalid event type');
-    type = Event.type( type, true );
-    while ( i<eventModules.length && !(event=eventModules[i++]( type, target, originalEvent )));
+    if( typeof type !== "string" )throw new TypeError('Invalid event type');
+    if( !System.instanceOf(originalEvent,Event) )
+    {
+        type = Event.type(type, true);
+        while (i < eventModules.length && !(event = eventModules[i++](type, target, originalEvent)));
+    }else
+    {
+        event = originalEvent;
+    }
     if( !(event instanceof Event) )event = new Event( type );
     event.type=type;
     event.target=target;

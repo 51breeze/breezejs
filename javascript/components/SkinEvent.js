@@ -24,15 +24,4 @@ SkinEvent.prototype.parent=null;
 SkinEvent.INSTALLING='skinInstalling';
 SkinEvent.ADD='skinAdded';
 SkinEvent.REMOVE='skinRemoved';
-
-//鼠标事件
-Event.registerEvent(function ( type , target, originalEvent )
-{
-    if( originalEvent instanceof SkinEvent )return originalEvent;
-    switch (type){
-        case SkinEvent.INSTALLING :
-           return new SkinEvent(type);
-        case SkinEvent.INSTALLED :
-           return new SkinEvent(type);
-    }
-});
+SkinEvent.CREATE_CHILDREN_COMPLETED='createChildrenCompleted';

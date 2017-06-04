@@ -164,9 +164,9 @@ var descriptor = {
             "CHANGE":{'id':'const','type':'String'},
         },
         'proto':{
-            "property":{'id':'const','type':'String'},
-            "newValue":{'id':'const','type':'Object'},
-            "oldValue":{'id':'const','type':'Object'},
+            "property":{'id':'var','type':'String'},
+            "newValue":{'id':'var','type':'Object'},
+            "oldValue":{'id':'var','type':'Object'},
         }
     },
     'ElementEvent':{
@@ -450,6 +450,7 @@ var descriptor = {
         'static':{
             "INSTALLING":{'id':'const','type':'String'},
             "INSTALLED":{'id':'const','type':'String'},
+            "CREATE_CHILDREN_COMPLETED":{'id':'const','type':'String'},
         },
         'proto':{
             "viewport":{'id':'var','type':'Object'},

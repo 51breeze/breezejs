@@ -17,9 +17,11 @@ PropertyEvent.prototype.property=null;
 PropertyEvent.prototype.newValue=null;
 PropertyEvent.prototype.oldValue=null;
 PropertyEvent.prototype.constructor=PropertyEvent;
-PropertyEvent.CHANGE='propertyChange';
-PropertyEvent.COMMIT='propertyCommit';
+PropertyEvent.CHANGE='propertychange';
+PropertyEvent.COMMIT='propertycommit';
 Event.fix.map[ PropertyEvent.CHANGE ] = 'input';
+
+var hash = 'lastValue_'+(new Date().getTime())+ '_'+ Math.random() * 10000;
 
 //属性事件
 Event.registerEvent(function ( type , target, originalEvent )
@@ -30,6 +32,7 @@ Event.registerEvent(function ( type , target, originalEvent )
             if( originalEvent instanceof  Event )return originalEvent;
             var event =new PropertyEvent( type );
             var property = typeof originalEvent.propertyName === "string" ? originalEvent.propertyName : null;
+            if( property===hash)return null;
             if( !property && System.isForm(target,'button') )
             {
                 property = 'value';
@@ -37,7 +40,9 @@ Event.registerEvent(function ( type , target, originalEvent )
             if( property )
             {
                 event.property = property;
+                event.oldValue = target[hash] || undefined;
                 event.newValue = target[property];
+                target[hash]= event.newValue;
             }
             return event;
     }

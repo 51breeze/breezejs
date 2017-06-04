@@ -157,9 +157,9 @@ function defineProp(proto, name, value, qualifier, type)
  * @param config
  * @returns {string}
  */
-function parseMetaType( stack , config, project, syntax )
+function parseMetaType( describe, currentStack, metaTypeStack , config, project, syntax , list )
 {
-    var metatype = metaTypeToString( stack );
+    var metatype = metaTypeToString( metaTypeStack );
     metatype = Utils.executeMetaType(metatype);
     switch ( metatype.type )
     {
@@ -172,8 +172,46 @@ function parseMetaType( stack , config, project, syntax )
             {
                 loadFragmentModuleDescription(syntax, modules[ index ], config, project);
             }
-            return 'Internal.define("'+source+'")';
+            describe[ currentStack.name() ].value = 'Internal.define("'+source+'")';
         break;
+        case 'Bindable' :
+
+            var name = currentStack.name();
+            var item = describe[ name ];
+            if( item.id==='var' )
+            {
+                var private_var = currentStack.__name__ = name+'_'+Utils.uid();
+                describe[ private_var ]=item;
+                var privilege = item.privilege;
+                item.privilege = "private";
+
+                var setter = [
+                    'function(val){',
+                    'var old = Reflect.get(this,"'+private_var+'")',
+                    'if(old!==val){',
+                    'Reflect.set(this,"'+private_var+'",val)',
+                    'var event = new PropertyEvent(PropertyEvent.CHANGE)',
+                    'event.property = "'+name+'"',
+                    'event.oldValue = old',
+                    'event.newValue = val',
+                    'Reflect.apply(Reflect.get(this,"dispatchEvent"),this,[event])',
+                    '}',
+                    '}',
+                ];
+                var getter = [
+                    'function(val){',
+                    'return Reflect.get(this,"'+private_var+'")',
+                    '}',
+                ];
+                describe[ name ]={
+                    'id':'function', "privilege":privilege,"bindable":true,
+                    "value":{
+                        "set":{'id':'function', "privilege": privilege ,"value":setter.join(";\n")},
+                        "get":{'id':'function', "privilege": privilege ,"value":getter.join(";\n")}
+                    }
+                }
+            }
+            break;
     }
 }
 
@@ -189,7 +227,7 @@ function getPropertyDescription( stack , config , project , syntax )
     var isstatic = stack.static();
 
     // 组合接口
-    var list = {'static':{},'proto':{},'import':{},'constructor':{}};
+    var list = {'static':{},'proto':{},'import':{},'constructor':{}, 'attachContent':{}};
     var define = stack.parent().scope().define();
     for ( var j in define )
     {
@@ -233,7 +271,7 @@ function getPropertyDescription( stack , config , project , syntax )
             //为当前的成员绑定一个数据元
             if( prev && prev.keyword()==='metatype' )
             {
-                ref[ item.name() ].value = parseMetaType( prev , config , project , syntax );
+                parseMetaType( ref, item, prev , config , project , syntax , list );
                 prev=null;
             }
             prev = item;

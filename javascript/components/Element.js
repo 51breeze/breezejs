@@ -660,7 +660,7 @@ Element.prototype.property=function property(name, value )
 
     }else if( lower==='value' || lower==='text' )
     {
-        return this[lower]( value );
+        return Element.prototype[lower].call(this,value);
 
     }else if( lower === 'classname' && typeof value === "string" )
     {
@@ -678,11 +678,15 @@ Element.prototype.property=function property(name, value )
  * @param prop
  * @returns {boolean}
  */
-Element.prototype.hasProperty=function hasProperty(prop )
+Element.prototype.hasProperty=function hasProperty(prop)
 {
     var elem = Element.prototype.current.call(this);
     if( !elem )return false;
-    return typeof elem.hasAttributes === 'function' ? elem.hasAttributes( prop ) : !!elem[prop];
+    if( fix.attrtrue[prop] === true )
+    {
+        return typeof elem[prop] !== "undefined";
+    }
+    return typeof elem.hasAttribute === 'function' ? elem.hasAttribute( prop ) : typeof elem[prop] !== "undefined";
 };
 
 /**
@@ -859,9 +863,9 @@ Element.prototype.text=function text( value )
  * @private
  */
 accessor['value']= {
-    get:function(){ return this.hasAttribute('value') ? this.value : null }
+    get:function(){ return this.value || null }
     ,set:function(name,newValue){
-        this.hasAttribute('value') ? this.value=newValue : null ;
+        this.value=newValue ;
         return PropertyEvent.CHANGE;
     }
 };

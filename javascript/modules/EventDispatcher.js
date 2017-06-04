@@ -9,7 +9,11 @@
 var storage=Internal.createSymbolStorage( Symbol('event') );
 function EventDispatcher( target )
 {
-    if( !System.instanceOf(this,EventDispatcher) )return new EventDispatcher( target );
+    if( !System.instanceOf(this,EventDispatcher) )
+    {
+        if( target && System.instanceOf(target, EventDispatcher) )return target;
+        return new EventDispatcher( target );
+    }
     if( target != null && !( System.isEventElement(target) || System.is(target, EventDispatcher) ) )
     {
         target = null;

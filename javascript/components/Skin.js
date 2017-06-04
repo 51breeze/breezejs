@@ -2,7 +2,7 @@
 /**
  * 皮肤类
  * @constructor
- * @require Internal,Object,TypeError,Math,EventDispatcher,Reflect,Symbol,Render,Element
+ * @require Internal,Object,TypeError,Math,EventDispatcher,Reflect,Symbol,Render,Element,SkinEvent
  */
 
 /**
@@ -289,6 +289,8 @@ Skin.prototype.createChildren = function createChildren()
             child.createChildren();
         }
     }
+    //触发完成事件
+    EventDispatcher.prototype.dispatchEvent.call(this, new SkinEvent(SkinEvent.CREATE_CHILDREN_COMPLETED) );
 };
 
 /**
