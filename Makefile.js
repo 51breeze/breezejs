@@ -175,16 +175,16 @@ function parseMetaType( describe, currentStack, metaTypeStack , config, project,
             describe[ currentStack.name() ].value = 'Internal.define("'+source+'")';
         break;
         case 'Bindable' :
-
             var name = currentStack.name();
             var item = describe[ name ];
+            if( item.bindable===true )return;
             if( item.id==='var' )
             {
                 var private_var = currentStack.__name__ = name+'_'+Utils.uid();
-                describe[ private_var ]=item;
                 var privilege = item.privilege;
+                var type = item.type;
+                describe[ private_var ]=item;
                 item.privilege = "private";
-
                 var setter = [
                     'function(val){',
                     'var old = Reflect.get(this,"'+private_var+'")',
@@ -203,14 +203,15 @@ function parseMetaType( describe, currentStack, metaTypeStack , config, project,
                     'return Reflect.get(this,"'+private_var+'")',
                     '}',
                 ];
-                describe[ name ]={
-                    'id':'function', "privilege":privilege,"bindable":true,
+                item = describe[ name ]={
+                    'id':'function', "privilege":privilege,"bindable":true,"type":type,
                     "value":{
-                        "set":{'id':'function', "privilege": privilege ,"value":setter.join(";\n")},
-                        "get":{'id':'function', "privilege": privilege ,"value":getter.join(";\n")}
+                        "set":{'id':'function', "privilege": privilege,"type":type,"value":setter.join(";\n")},
+                        "get":{'id':'function', "privilege": privilege,"type":type,"value":getter.join(";\n")}
                     }
-                }
+               }
             }
+            item.bindable = true;
             break;
     }
 }
@@ -235,6 +236,7 @@ function getPropertyDescription( stack , config , project , syntax )
     }
 
     var prev = null;
+    var bindablelist = {};
     for ( ; i< len ; i++ )
     {
         item = data[i];
@@ -272,9 +274,21 @@ function getPropertyDescription( stack , config , project , syntax )
             if( prev && prev.keyword()==='metatype' )
             {
                 parseMetaType( ref, item, prev , config , project , syntax , list );
+                if( ref[ item.name() ].bindable ===true ){
+                    bindablelist[ item.name() ]=ref[ item.name() ];
+                }
                 prev=null;
             }
             prev = item;
+        }
+    }
+
+    //绑定器必须是一个可读可写的属性
+    for( var p in bindablelist )
+    {
+        if( !bindablelist[p].value.get || !bindablelist[p].value.set)
+        {
+            throw new TypeError('Property must be readable and writable of Binding for "'+p+'"');
         }
     }
 

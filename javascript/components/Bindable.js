@@ -118,10 +118,10 @@ Bindable.prototype.constructor=Bindable;
 
 /**
  * 指定对象到当前绑定器。
- * @param object target 需要绑定的数据对象。当绑定器中有属性变更时会更新对应属性名的值。
- * @param string name 绑定的属性名。当绑定器变更的属性名与这个名称相同时则会把变更的值应用到绑定的数据对象上。
- * 如果是一个*代表绑定所有属性, 默认为 value 属性名
- * @param function|string property 如果是函数发生变更时调用，如果是一个字符串发生变更时将把此值作为属性名赋值给绑定的数据对象。
+ * @param object target 绑定的目标对象。
+ * @param string property 绑定目标对象的属性名。当绑定器中有属性变更时会更新这个属性名的值。
+ * @param string name 绑定数据源中(source)的属性名。
+ * @param boolean flag 一个布尔值， 如果为 false 此目标对象的属性发生变化时不会通知到此绑定器，默认为 true 通知。
  * @returns {Bindable}
  */
 Bindable.prototype.bind=function bind(target, property, name, flag)
