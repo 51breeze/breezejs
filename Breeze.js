@@ -101,5 +101,7 @@ buildProject( config.build,config.build_path );
 //构建工程目录
 buildProject( config.project, config.project_path );
 
+config.project_skin_path = config.project.child.client.child.skin.path.replace(/\\/g,'/');
+
 //开始
 require('./Makefile.js')(config);

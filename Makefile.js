@@ -354,6 +354,8 @@ function makeCodeDescription( content ,config )
  */
 function loadModuleDescription( syntax , file , config , project , resource )
 {
+    var suffix=config.suffix;
+
     //获取源文件的路径
     var sourcefile = filepath(file, config.project_path ).replace(/\\/g,'/');
 
@@ -363,7 +365,7 @@ function loadModuleDescription( syntax , file , config , project , resource )
     //如果已加载
     if( define(syntax, fullclassname) )return;
 
-    sourcefile+=config.suffix;
+    sourcefile+=suffix;
     if( !fs.existsSync(sourcefile) ){
         if( globals.hasOwnProperty(file) )return;
         Utils.error(resource);

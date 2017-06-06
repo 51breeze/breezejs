@@ -15,13 +15,10 @@ function Skin( skinObject )
     skinObject = skinObject || {};
     var attr=skinObject.attr || {};
     var name = skinObject.name || 'div';
-    for (var p in skinObject.hash )
-    {
-       if( skinObject.hash[ p ]==='@+id' )skinObject.hash[ p ] = System.uid();
-    }
     storage(this, true,{
-        'mode':Skin.BUILD_ALL_MODE,
         'parent':null,
+        'hostComponent':null,
+        'validation':false,
         'attr': attr,
         'name': name,
         'hash': skinObject.hash || {},
@@ -31,70 +28,8 @@ function Skin( skinObject )
     Element.prototype.property.call(this,attr);
 }
 
-Skin.toString = function toString()
-{
-   return "[class Skin]";
-}
-
-Skin.valueOf = function valueOf()
-{
-    return "[class Skin]";
-}
-
-//不构建
-Skin.BUILD_CLOSE_MODE = 0;
-
-//构建主容器
-Skin.BUILD_CONTAINER_MODE = 1;
-
-//构建子级
-Skin.BUILD_CHILDREN_MODE = 2;
-
-//构建全部
-Skin.BUILD_ALL_MODE = 3;
-
 Skin.prototype = Object.create( Element.prototype );
 Skin.prototype.constructor = Skin;
-
-/**
- * 皮肤属性
- * @param name
- * @param val
- * @returns {*}
- */
-Skin.prototype.attr = function attr(name, val)
-{
-    var data = storage(this);
-    if( typeof name === "string" )
-    {
-        if( typeof val !== "undefined" )
-        {
-            data.attr[ name ]=val;
-            return this;
-        }
-        return data.attr[name];
-    }
-    return data.attr;
-}
-
-/**
- * 指示如何构建皮肤,默认为所有
- * @param mode
- * @returns {number|*}
- */
-Skin.prototype.buildMode =function buildMode( mode )
-{
-    if( typeof mode === "number" )
-    {
-       if( (mode | Skin.BUILD_ALL_MODE) !== Skin.BUILD_ALL_MODE )
-       {
-           throw new Error('Invalid build mode');
-       }
-       storage(this,'mode', mode);
-       return this;
-    }
-    return storage(this,'mode');
-}
 
 /**
  * 获取父级皮肤元素
@@ -139,7 +74,7 @@ Skin.prototype.getChildAt=function getChildAt( index )
 {
     var children = storage(this, 'children');
     index = index < 0 ? index+children.length : index;
-    var result = children[index] && System.instanceOf(children[index], Skin ) ? children[index] : null;
+    var result = children[index] && System.instanceOf(children[index],Skin) ? children[index] : null;
     if( result=== null )
     {
         throw new RangeError('index out of range');
@@ -244,18 +179,32 @@ Skin.prototype.html = function html( childElement )
 
 /**
  * 当组件准备生成皮肤之前会调用此方法，无需手动调用
- * @param host
  */
-Skin.prototype.initializing = function initializing( host )
+Skin.prototype.initializing = function initializing()
 {
 };
 
 /**
  * 当组件此生成皮肤结束并且将此皮肤添加到视图中后由系统调用此方法，无需手动调用
- * @param viewport
  */
 Skin.prototype.initialized = function initialized()
 {
+};
+
+/**
+ * 在初始化皮肤皮会先设置宿主组件
+ * @param host
+ * @returns {Object}
+ */
+Skin.prototype.hostComponent = function hostComponent(host)
+{
+    var _host = storage(this,'hostComponent');
+    if( host != null && _host===null );
+    {
+        storage(this,'hostComponent', host );
+        return this;
+    }
+    return _host;
 };
 
 /**
@@ -286,12 +235,37 @@ Skin.prototype.createChildren = function createChildren()
         {
             Element.prototype.addChildAt.call(this, child,-1);
             storage(child,'parent', this);
-            child.createChildren();
+            Reflect.apply( Reflect.get(child,"createChildren"), child );
         }
     }
     //触发完成事件
-    EventDispatcher.prototype.dispatchEvent.call(this, new SkinEvent(SkinEvent.CREATE_CHILDREN_COMPLETED) );
+    EventDispatcher.prototype.dispatchEvent.call(this, new SkinEvent('internal_create_children_completed') );
 };
+
+/**
+ * 一个验证器，用来标记此组件的属性，在初始化完成后续需要进行设置。
+ * @protected
+ */
+Skin.prototype.validation=function validation()
+{
+    storage(this,'validation', true);
+    return this;
+}
+
+/**
+ * 提交属性
+ * 此函数会在创建完子级后由皮肤组件调用，无需手动调用。
+ * 此阶段为元素已经建立。
+ * @returns Boolean
+ */
+Skin.prototype.commitProperties=function commitProperties()
+{
+    var validation = storage(this,'validation');
+    if( validation===true ){
+        storage(this,'validation', false);
+    }
+    return validation;
+}
 
 /**
  * 返回一个皮肤渲染器
@@ -317,10 +291,10 @@ Skin.prototype.render=function render( dataitem )
 /**
  * 将皮肤对象转字符串
  */
-Skin.prototype.toString=function toString( mode )
+Skin.prototype.toString=function toString()
 {
     var skinObject = storage(this);
-    var skin = __toString( skinObject ,  mode || skinObject.mode , skinObject.hash );
+    var skin = __toString( skinObject , skinObject.hash );
     var r =  storage(this,'render');
     return r ? r.fetch( skin ) : skin;
 }
@@ -362,51 +336,5 @@ function __toString(skin, hash )
     }
     str += '>' + content + '</' + tag + '>';
     return str;
-}
-
-//private
-var template_syntax={
-    'default': {
-        'foreach': function (attr, content) {
-            return '<? foreach(' + attr.name + ' as ' + (attr.key || 'key') + ' ' + (attr.value || 'item') + '){ ?>' + content + '<?}?>';
-        },
-        'if': function (attr, content) {
-            return '<? if(' + attr.condition + '){ ?>'+content+'<?}?>';
-        },
-        'elseif': function (attr, content) {
-            return '<? elseif(' + attr.condition + '){ ?>'+content+'<?}?>';
-        },
-        'else': function (attr, content) {
-            return '<? }else{ ?>'+content+'<?}?>';
-        },
-        'do': function (attr, content) {
-            return '<? do{ ?>'+content+'<?}?>';
-        },
-        'switch': function (attr, content) {
-            return '<? switch(' + attr.condition + '){ ?>'+content+'<?}?>';
-        },
-        'case': function (attr, content) {
-            content = '<? case "' + attr.condition + '": ?>'+content;
-            if( attr["break"] )content+='\nbreak;';
-            return content;
-        },
-        'default': function (attr, content) {
-            return '<? default: ?>'+content;
-        },
-        'break': function (attr, content) {
-            return '<? break; ?>'+content;
-        },
-        'end': function (attr, content) {
-            return content+='<?}?>';
-        },
-        'while': function (attr, content) {
-            return '<? while(' + attr.condition + '){ ?>'+content+'<?}?>';
-        },
-        'code': function (attr, content) {
-            return '<? code{ ?>'+content+' <? } ?>';
-        },'script': function (attr, content) {
-            return '<? code{ ?>'+content+' <? } ?>';
-        }
-    }
 }
 System.Skin=Skin;

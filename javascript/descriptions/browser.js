@@ -473,19 +473,14 @@ var descriptor = {
         'inherit':'Element',
         'proto': {
             'getChildById': {type: 'Object', 'id': 'function',param:['String']},
-            'buildMode': {type: '*', 'id': 'function',param:['*']},
-            'attr': {type: 'Object', 'id': 'function',param:['*','*']},
             'initializing': {type: 'Object', 'id': 'function',param:['Object']},
             'initialized': {type: 'Object', 'id': 'function',param:[]},
             'createChildren': {type: 'void', 'id': 'function',param:[]},
             'render': {type: 'Render', 'id': 'function',param:[]},
+            'hostComponent': {type: '*', 'id': 'function',param:['Object']},
+            'commitProperties': {type: '*', 'id': 'function',param:[]},
+            'validation': {type: '*', 'id': 'function',param:[]},
         },
-        'static':{
-            'BUILD_CONTAINER_MODE':{'id':'const','type':'String'},
-            'BUILD_CLOSE_MODE':{'id':'const','type':'String'},
-            'BUILD_CHILDREN_MODE':{'id':'const','type':'String'},
-            'BUILD_ALL_MODE':{'id':'const','type':'String'},
-        }
     },
     'SkinComponent': {
         'type': 'SkinComponent',
