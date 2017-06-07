@@ -15,6 +15,18 @@ function Skin( skinObject )
     skinObject = skinObject || {};
     var attr=skinObject.attr || {};
     var name = skinObject.name || 'div';
+    var hash = skinObject.hash;
+    if( hash )
+    {
+        for(var h in hash )
+        {
+           if( hash[h]==='@id' )
+           {
+               hash[h] = System.uid();
+               if( attr.id===h ) attr.id = hash[h];
+           }
+        }
+    }
     storage(this, true,{
         'parent':null,
         'hostComponent':null,
@@ -233,9 +245,13 @@ Skin.prototype.createChildren = function createChildren()
             }
         }else
         {
+            Reflect.apply( Reflect.get(child,"hostComponent") , child , [storage(this,'hostComponent')]);
+            Reflect.apply( Reflect.get(child,"initializing") , child);
             Element.prototype.addChildAt.call(this, child,-1);
             storage(child,'parent', this);
             Reflect.apply( Reflect.get(child,"createChildren"), child );
+            Reflect.apply( Reflect.get(child,"commitProperties") , child );
+            Reflect.apply( Reflect.get(child,"initialized") , child);
         }
     }
     //触发完成事件

@@ -316,7 +316,9 @@ function $createElement(html )
             var match;
             if( html.charAt(0) !== "<" && html.charAt( html.length - 1 ) !== ">" && html.length >=1 )
             {
-                return document.createElement( html );
+                try {
+                    return document.createElement(html);
+                }catch (e){}
 
             }else if( html.charAt(0) === "<" && ( match=singleTagRegex.exec(html) ) )
             {
