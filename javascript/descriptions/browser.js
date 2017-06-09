@@ -478,8 +478,7 @@ var descriptor = {
             'createChildren': {type: 'void', 'id': 'function',param:[]},
             'render': {type: 'Render', 'id': 'function',param:[]},
             'hostComponent': {type: '*', 'id': 'function',param:['Object']},
-            'commitProperties': {type: '*', 'id': 'function',param:[]},
-            'validation': {type: '*', 'id': 'function',param:[]},
+            'updateDisplayList': {type: 'void', 'id': 'function',param:[]},
         },
     },
     'SkinComponent': {

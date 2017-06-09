@@ -33,6 +33,7 @@ function Skin( skinObject )
         'validation':false,
         'attr': attr,
         'name': name,
+        'stateGroup':{},
         'hash': skinObject.hash || {},
         'children': skinObject.children || []
     });
@@ -194,6 +195,21 @@ Skin.prototype.html = function html( childElement )
  */
 Skin.prototype.initializing = function initializing()
 {
+    if( storage(this,'initializing_flag') !== true )
+    {
+        storage(this,'initializing_flag',true);
+        var children = storage(this, 'children');
+        var v;
+        for (var i in children) {
+            v = children[i]+"";
+            if( !(v === '[object Object]' || v===v) )
+            {
+                Reflect.apply(Reflect.get(children[i], "initializing"), children[i]);
+            }
+        }
+        return true;
+    }
+    return false;
 };
 
 /**
@@ -201,7 +217,72 @@ Skin.prototype.initializing = function initializing()
  */
 Skin.prototype.initialized = function initialized()
 {
+    if( storage(this,'initialized_flag') !== true )
+    {
+        storage(this,'initialized_flag',true);
+        var children = storage(this, 'children');
+        var v;
+        for (var i in children) {
+            v = children[i]+"";
+            if( !(v === '[object Object]' || v===v) )
+            {
+                Reflect.apply(Reflect.get(children[i], "initialized"), children[i]);
+            }
+        }
+        return false;
+    }
+    return true;
 };
+
+/**
+ * 设置状态对象
+ * 如果在每一个子皮肤中应用了当前状态，那么这些皮肤会随着状态的变化来决定是否显示在当前的视图中
+ * @param String name
+ * @param Array group
+ */
+Skin.prototype.stateGroup = function stateGroup(name,group)
+{
+    var data = storage(this,'stateGroup');
+    if( typeof name !== "string" )
+    {
+        throw new TypeError('Invalid param name in Skin.prototype.stateGroup');
+    }
+    if( group != null && !(System.instanceOf(group, System.Array) ) )
+    {
+        throw new TypeError('Invalid param group in Skin.prototype.stateGroup');
+    }
+    data[name] = group || [name];
+    return this;
+};
+
+/**
+ * 获取设置当前状态组名
+ * @returns {Skin}
+ */
+Skin.prototype.setCurrentState = function setCurrentState( name )
+{
+    if( typeof name !== "string" )
+    {
+        throw new TypeError('Invalid param name in Skin.prototype.currentState');
+    }
+    var currentState = storage(this,'currentState');
+    if( currentState !== name )
+    {
+        storage(this,'currentState', name);
+        EventDispatcher.prototype.dispatchEvent.call(this, new SkinEvent('internal_skin_state_changed') );
+        Reflect.apply( Reflect.get( this ,"updateDisplayList") , this );
+    }
+    return this;
+}
+
+/**
+ * 获取当前状态组名
+ * @returns {String}
+ */
+Skin.prototype.getCurrentState = function getCurrentState()
+{
+     return storage(this,'currentState') || null;
+}
 
 /**
  * 在初始化皮肤皮会先设置宿主组件
@@ -214,6 +295,16 @@ Skin.prototype.hostComponent = function hostComponent(host)
     if( host != null && _host===null );
     {
         storage(this,'hostComponent', host );
+        var children = storage(this,'children');
+        var v;
+        for (var i in children)
+        {
+            v = children[i]+"";
+            if( !(v === '[object Object]' || v===v) )
+            {
+                Reflect.apply( Reflect.get( children[i] ,"hostComponent") ,  children[i] , host );
+            }
+        }
         return this;
     }
     return _host;
@@ -243,15 +334,13 @@ Skin.prototype.createChildren = function createChildren()
             if( child ){
                 Element.prototype.addChildAt.call(this, Element.createElement( child ),-1 );
             }
+
         }else
         {
-            Reflect.apply( Reflect.get(child,"hostComponent") , child , [storage(this,'hostComponent')]);
-            Reflect.apply( Reflect.get(child,"initializing") , child);
+            Reflect.apply( Reflect.get(child,"createChildren"), child );
             Element.prototype.addChildAt.call(this, child,-1);
             storage(child,'parent', this);
-            Reflect.apply( Reflect.get(child,"createChildren"), child );
-            Reflect.apply( Reflect.get(child,"commitProperties") , child );
-            Reflect.apply( Reflect.get(child,"initialized") , child);
+            Reflect.apply( Reflect.get(child,"updateDisplayList") , child );
         }
     }
     //触发完成事件
@@ -259,28 +348,27 @@ Skin.prototype.createChildren = function createChildren()
 };
 
 /**
- * 一个验证器，用来标记此组件的属性，在初始化完成后续需要进行设置。
- * @protected
+ * 更新显示列表
  */
-Skin.prototype.validation=function validation()
+Skin.prototype.updateDisplayList=function updateDisplayList()
 {
-    storage(this,'validation', true);
-    return this;
-}
-
-/**
- * 提交属性
- * 此函数会在创建完子级后由皮肤组件调用，无需手动调用。
- * 此阶段为元素已经建立。
- * @returns Boolean
- */
-Skin.prototype.commitProperties=function commitProperties()
-{
-    var validation = storage(this,'validation');
-    if( validation===true ){
-        storage(this,'validation', false);
+    var currentState = storage(this,'currentState');
+    if( currentState )
+    {
+        var stateGroup = storage(this,'stateGroup');
+        if( !stateGroup || !System.instanceOf(stateGroup[currentState],System.Array) )
+        {
+            throw new ReferenceError('Stage group is not defined for "'+currentState+'"');
+        }
+        Element('[includein*=]', this).forEach(function () {
+            if( this.property('includein') !== currentState )
+            {
+                this.hide();
+            }else{
+                this.show();
+            }
+        });
     }
-    return validation;
 }
 
 /**
