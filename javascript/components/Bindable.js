@@ -20,22 +20,20 @@ function commitProperties(event)
     var binding = storage(this,'binding');
     var hash = storage(this,'hash');
     var bind =  binding[ property ];
+
     if( bind )
     {
         var newValue = Reflect.get(event, 'newValue');
-        var oldValue = Reflect.get(event, 'oldValue');
-        if (typeof newValue !== "undefined" && newValue !== oldValue )
+
+        //相同的属性值不再提交
+        if (typeof newValue !== "undefined" && newValue !== hash[property] )
         {
-            //相同的属性值不再提交
-            if ( hash[property] !== newValue)
+            hash[property] = newValue;
+            var i,item;
+            for( i in bind )
             {
-                hash[property] = newValue;
-                var i,item;
-                for( i in bind )
-                {
-                    item=bind[i];
-                    setProperty(item.item.element, item.name, newValue );
-                }
+                item=bind[i];
+                setProperty(item.item.element, item.name, newValue );
             }
         }
     }
@@ -174,6 +172,19 @@ Bindable.prototype.bind=function bind(target, property, name, flag)
     {
         item.binding[property] = name;
         ( binding[name] || (binding[name] = []) ).push({"name": property, "item": item});
+    }
+    var source = storage(this,'source');
+    if( source )
+    {
+        if( !Reflect.has(source, name) )
+        {
+            throw new TypeError("target source property is not exists for '"+name+"'");
+        }
+        var value = Reflect.get(source, name);
+        if( value )
+        {
+            setProperty(item.element, property, Reflect.get(source, name));
+        }
     }
     return this;
 };

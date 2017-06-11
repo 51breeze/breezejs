@@ -306,42 +306,42 @@ var singleTagRegex=/^<(\w+)(.*?)\/\s*>$/
  * @param html 一个html字符串
  * @returns {Node}
  */
-function $createElement(html )
+function $createElement(html , flag )
 {
     if(System.isString(html) )
     {
         html=System.trim( html ).replace(/[\r\n]+/g,'');
-        if( html !== '' )
+        if( html )
         {
-            var match;
-            if( html.charAt(0) !== "<" && html.charAt( html.length - 1 ) !== ">" && html.length >=1 )
+            if( flag !==true  )
             {
-                try {
-                    return document.createElement(html);
-                }catch (e){}
-
-            }else if( html.charAt(0) === "<" && ( match=singleTagRegex.exec(html) ) )
-            {
-                var elem = document.createElement( match[1] );
-                var attr =$matchAttr( html );
-                var isset = typeof elem.setAttribute === "function";
-                for(var prop in attr )
-                {
-                    if( isset )
-                    {
-                        elem.setAttribute( prop, attr[prop] );
-                    }else{
-                        var attrNode = document.createAttribute( prop );
-                        attrNode.nodeValue=attr[ prop ];
-                        elem.setAttributeNode( attrNode )
+                var match;
+                if (html.charAt(0) !== "<" && html.charAt(html.length - 1) !== ">" && html.length >= 1) {
+                    try {
+                        return document.createElement(html);
+                    } catch (e) {
                     }
+
+                } else if (html.charAt(0) === "<" && ( match = singleTagRegex.exec(html) )) {
+                    var elem = document.createElement(match[1]);
+                    var attr = $matchAttr(html);
+                    var isset = typeof elem.setAttribute === "function";
+                    for (var prop in attr) {
+                        if (isset) {
+                            elem.setAttribute(prop, attr[prop]);
+                        } else {
+                            var attrNode = document.createAttribute(prop);
+                            attrNode.nodeValue = attr[prop];
+                            elem.setAttributeNode(attrNode)
+                        }
+                    }
+                    return elem;
                 }
-                return elem;
             }
 
             var div = document.createElement("div");
             var result = html.match(/^\<(tr|th|td|tbody|thead|tfoot)/);
-            if(  result )
+            if( result )
             {
                 var level = 1;
                 switch( result[1] )

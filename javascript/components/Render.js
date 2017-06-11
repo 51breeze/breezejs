@@ -128,7 +128,10 @@ var _options={
  */
 function Render( options )
 {
-    if( !(this instanceof Render) )return new Render( options );
+    if( !(this instanceof Render) )
+    {
+        return new Render( options );
+    }
     if( typeof options !=="undefined" && System.isObject(options) )
     {
         var o = Object.merge({}, _options,options);
@@ -157,32 +160,13 @@ Render.prototype.variable=function variable(name, value)
         this.__variable__.__render__= this;
     }
     if( name == null )return this.__variable__;
-    this.__variable__.set(name, value);
-    return this;
-};
-
-/**
- * @private
- */
-Render.prototype.__invoke__=function(item, key, index)
-{
-   return item[key];
-}
-
-/**
- * 一个回调函数。
- * 在渲染每个数据项时调用这个函数来返回一个值
- * @param callback
- */
-Render.prototype.setInvoke=function setInvoke( callback )
-{
-    if( typeof callback !== "function" )
+    if( value != null )
     {
-        throw new System.TypeError('is not function');
+        this.__variable__.set(name, value);
+        return this;
     }
-    this.__invoke__=callback;
-    return this;
-}
+    return this.__variable__.get(name);
+};
 
 /**
  * @private
@@ -204,16 +188,26 @@ Render.prototype.view=function view( val )
     return this.__view__;
 };
 
+Render.prototype.template=function template( val )
+{
+    if( val )
+    {
+        if( typeof val !== "string" )throw new TypeError("Invalid view")
+        this.__view__= val ;
+    }
+    return this.__view__;
+};
+
 /**
  * 解析模板视图并添加到视口容器中
  * @param view
  * @returns {String}
  */
-Render.prototype.fetch=function fetch( view )
+Render.prototype.fetch=function fetch()
 {
     var event = new RenderEvent( RenderEvent.START );
-    event.view = this.view(view);
     event.variable = this.variable();
+    event.view = this.__view__;
     if( this.dispatchEvent( event ) )
     {
         event.html = make.call(this, event.view , event.variable );
@@ -223,6 +217,11 @@ Render.prototype.fetch=function fetch( view )
     }
     return '';
 };
+
+/*Render.prototype.toString=function toString()
+{
+    return Render.prototype.fetch.call(this);
+}*/
 
 /**
  * 模板变量构造器

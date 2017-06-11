@@ -19,13 +19,29 @@ var requirements={};
 function define(syntax, classname, module)
 {
     classname = classname.replace(/\s+/g,'');
-    var obj=descriptions[syntax] || (descriptions[syntax]={});
+    var obj=descriptions.hasOwnProperty(syntax) ? descriptions[syntax] : descriptions[syntax]={};
     if( typeof module === 'object' )
     {
         obj[ classname ] = module;
         return module;
     }
-    return obj[ classname ] || null;
+    return obj.hasOwnProperty(classname) ? obj[classname] : null;
+}
+
+/**
+ * 返回指定语法的类名描述信息包括全局类
+ * @param syntax
+ * @param classname
+ * @returns {boolean}
+ */
+function getDescriptionAndGlobals(syntax, classname)
+{
+    if( descriptions.hasOwnProperty(syntax) && descriptions[syntax].hasOwnProperty(classname) )
+    {
+        return descriptions[syntax][classname];
+    }
+    //全局类不分语法
+    return globals.hasOwnProperty( classname ) ? globals[classname] : null;
 }
 
 /**
@@ -165,7 +181,7 @@ function parseMetaType( describe, currentStack, metaTypeStack , config, project,
     {
         case 'Skin' :
             var source = metatype.param.source;
-            var modules = makeSkin( metatype.param.source , config );
+            var modules = makeSkin( metatype.param.source , config , project, syntax, loadModuleDescription );
             styleContents = styleContents.concat( modules.styleContents);
             modules = modules.moduleContents;
             for( var index in modules )
@@ -264,6 +280,11 @@ function getPropertyDescription( stack , config , project , syntax )
                 {
                     refObj.type = refObj.value[ item.accessor() ].type;
                 }
+                if( item.accessor()==='set' )
+                {
+                    refObj.paramType = refObj.value[ item.accessor() ].paramType;
+                    refObj.param = refObj.paramType;
+                }
 
             }else if( item.keyword() !== 'metatype' )
             {
@@ -352,9 +373,9 @@ function makeCodeDescription( content ,config )
  * 加载并解析模块的描述信息
  * @returns
  */
-function loadModuleDescription( syntax , file , config , project , resource )
+function loadModuleDescription( syntax , file , config , project , resource , suffix )
 {
-    var suffix=config.suffix;
+    suffix= suffix || config.suffix;
 
     //获取源文件的路径
     var sourcefile = filepath(file, config.project_path ).replace(/\\/g,'/');
@@ -362,8 +383,9 @@ function loadModuleDescription( syntax , file , config , project , resource )
     //获取对应的包和类名
     var fullclassname = PATH.relative( config.project_path, sourcefile ).replace(/\\/g,'/').replace(/\//g,'.');
 
-    //如果已加载
-    if( define(syntax, fullclassname) )return;
+    //如果已存在就返回
+    var description = getDescriptionAndGlobals(syntax, fullclassname);
+    if( description )return description;
 
     sourcefile+=suffix;
     if( !fs.existsSync(sourcefile) ){
@@ -392,7 +414,7 @@ function loadModuleDescription( syntax , file , config , project , resource )
     module.push( scope );
 
     //获取模块的描述
-    var description = getPropertyDescription( scope, config, project , syntax );
+    description = getPropertyDescription( scope, config, project , syntax );
     description.uid= id;
     description.filename = sourcefile.replace(/\\/g,'/');
     scope.filename = description.filename;
@@ -519,7 +541,7 @@ function make( config )
         for (p in build_project)
         {
             var project = build_project[p];
-            project_config = Utils.merge({},config, project.config || {});
+            project.config = project_config = Utils.merge({},config, project.config || {});
             if (typeof project_config.bootstrap === "string" && typeof project_config.syntax === "string")
             {
                 if (syntax_supported[project_config.syntax] !== true)
@@ -534,10 +556,9 @@ function make( config )
         for (p in build_project)
         {
             var project = build_project[p];
-            project_config = Utils.merge({},config, project.config || {});
-            if (typeof project_config.bootstrap === "string" && typeof project_config.syntax === "string")
+            if (typeof project.config.bootstrap === "string" && typeof project.config.syntax === "string")
             {
-                builder[project_config.syntax](project_config, project);
+                builder[ project.config.syntax ](project.config, project);
             }
         }
         Utils.info('Making done...');

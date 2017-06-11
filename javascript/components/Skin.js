@@ -320,27 +320,39 @@ Skin.prototype.createChildren = function createChildren()
     var children = skinObject.children;
     var hash = skinObject.hash;
     Element.prototype.html.call(this, '');
-    for (var c in children)
+    var len = children.length;
+    var c = 0;
+    for (;c<len;c++)
     {
         var child = children[c];
-        if( child+"" === '[object Object]' )
+        if( child instanceof Render )
+        {
+            child = child.fetch();
+            
+        }else if( child+"" === '[object Object]' )
         {
             child = __toString(child, hash );
         }
-        if( child+"" === child )
-        {
-            var r =  storage(this,'render');
-            child = r ? r.fetch( child ) : child;
-            if( child ){
-                Element.prototype.addChildAt.call(this, Element.createElement( child ),-1 );
-            }
 
-        }else
+        if( child )
         {
-            Reflect.apply( Reflect.get(child,"createChildren"), child );
-            Element.prototype.addChildAt.call(this, child,-1);
-            storage(child,'parent', this);
-            Reflect.apply( Reflect.get(child,"updateDisplayList") , child );
+            if (child + "" === child )
+            {
+                Element.prototype.addChildAt.call(this, Element.createElement(child, true), -1);
+            } else
+            {
+                if( System.instanceOf(child, Skin) )
+                {
+                    Reflect.apply( Reflect.get(child, "createChildren"), child);
+                    Element.prototype.addChildAt.call(this, child, -1);
+                    storage(child, 'parent', this);
+                    Reflect.apply(Reflect.get(child, "updateDisplayList"), child);
+
+                }else if( Reflect.has(child, "viewport") )
+                {
+                    Reflect.set(child, "viewport", this);
+                }
+            }
         }
     }
     //触发完成事件
@@ -371,26 +383,6 @@ Skin.prototype.updateDisplayList=function updateDisplayList()
     }
 }
 
-/**
- * 返回一个皮肤渲染器
- * 用来生成一些可变的皮肤
- * @param Object dataitem
- * @returns Render
- */
-Skin.prototype.render=function render( dataitem )
-{
-    var r = storage(this,'render');
-    if( !r )
-    {
-        r = new Render();
-        storage(this,'render', r );
-    }
-    if( dataitem+"" === "[object Object]" )
-    {
-        r.variable(true, dataitem);
-    }
-    return r;
-}
 
 /**
  * 将皮肤对象转字符串
@@ -399,8 +391,7 @@ Skin.prototype.toString=function toString()
 {
     var skinObject = storage(this);
     var skin = __toString( skinObject , skinObject.hash );
-    var r =  storage(this,'render');
-    return r ? r.fetch( skin ) : skin;
+    return skin;
 }
 
 /**

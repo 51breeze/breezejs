@@ -421,12 +421,27 @@ var descriptor = {
         'inherit':'EventDispatcher',
         'proto': {
             'viewport': {type: 'Object', 'id': 'function',param:['Object']},
-            'variable': {type: 'Object', 'id': 'function',param:['String']},
+            'variable': {type: 'Object', 'id': 'function',param:['Object']},
             'view': {type: 'String', 'id': 'function',param:[]},
+            'template': {type: 'String', 'id': 'function',param:['String']},
             'fetch': {type: 'String', 'id': 'function',param:[]},
             'setInvoke': {type: 'Render', 'id': 'function',param:['Function']},
             'display': {type: 'String', 'id': 'function',param:[]},
-        }
+        },
+        "xml":{
+            'foreach':{name:'String',value:"String"},
+            'if': {condition:'String'},
+            'elseif': {condition:'String'},
+            'else': {},
+            'switch': {condition:'String'},
+            'case': {condition:'String'},
+            'default': {},
+            'break':{},
+            'do': {},
+            'while':{condition:'String'},
+            'code':{},
+            'script':{},
+        },
     },
     'RenderEvent':{
         'id':'class', 'type':'RenderEvent','inherit':'Event',
@@ -471,6 +486,7 @@ var descriptor = {
         'type': 'Skin',
         'id': 'class',
         'inherit':'Element',
+        'ignorePropertyNotExists':true,
         'proto': {
             'getChildById': {type: 'Object', 'id': 'function',param:['String']},
             'initializing': {type: 'Object', 'id': 'function',param:['Object']},
