@@ -199,10 +199,9 @@ Skin.prototype.initializing = function initializing()
     {
         storage(this,'initializing_flag',true);
         var children = storage(this, 'children');
-        var v;
-        for (var i in children) {
-            v = children[i]+"";
-            if( !(v === '[object Object]' || v===v) )
+        for (var i in children)
+        {
+            if( System.instanceOf(children[i], Skin) )
             {
                 Reflect.apply(Reflect.get(children[i], "initializing"), children[i]);
             }
@@ -221,12 +220,11 @@ Skin.prototype.initialized = function initialized()
     {
         storage(this,'initialized_flag',true);
         var children = storage(this, 'children');
-        var v;
-        for (var i in children) {
-            v = children[i]+"";
-            if( !(v === '[object Object]' || v===v) )
+        for (var i in children)
+        {
+            if( System.instanceOf(children[i], Skin) )
             {
-                Reflect.apply(Reflect.get(children[i], "initialized"), children[i]);
+                Reflect.apply( Reflect.get(children[i], "initialized"), children[i] );
             }
         }
         return false;
@@ -259,30 +257,22 @@ Skin.prototype.stateGroup = function stateGroup(name,group)
  * 获取设置当前状态组名
  * @returns {Skin}
  */
-Skin.prototype.setCurrentState = function setCurrentState( name )
+Skin.prototype.currentState = function currentState( name )
 {
-    if( typeof name !== "string" )
+    var current = storage(this,'currentState');
+    if( typeof name === "string" )
     {
-        throw new TypeError('Invalid param name in Skin.prototype.currentState');
+        if( current !== name )
+        {
+            storage(this,'currentState', name);
+            EventDispatcher.prototype.dispatchEvent.call(this, new SkinEvent('internal_skin_state_changed') );
+            Reflect.apply( Reflect.get( this ,"updateDisplayList") , this );
+        }
+        return this;
     }
-    var currentState = storage(this,'currentState');
-    if( currentState !== name )
-    {
-        storage(this,'currentState', name);
-        EventDispatcher.prototype.dispatchEvent.call(this, new SkinEvent('internal_skin_state_changed') );
-        Reflect.apply( Reflect.get( this ,"updateDisplayList") , this );
-    }
-    return this;
+    return current;
 }
 
-/**
- * 获取当前状态组名
- * @returns {String}
- */
-Skin.prototype.getCurrentState = function getCurrentState()
-{
-     return storage(this,'currentState') || null;
-}
 
 /**
  * 在初始化皮肤皮会先设置宿主组件
@@ -296,11 +286,9 @@ Skin.prototype.hostComponent = function hostComponent(host)
     {
         storage(this,'hostComponent', host );
         var children = storage(this,'children');
-        var v;
         for (var i in children)
         {
-            v = children[i]+"";
-            if( !(v === '[object Object]' || v===v) )
+            if( System.instanceOf(children[i], Skin) )
             {
                 Reflect.apply( Reflect.get( children[i] ,"hostComponent") ,  children[i] , host );
             }
@@ -309,6 +297,56 @@ Skin.prototype.hostComponent = function hostComponent(host)
     }
     return _host;
 };
+
+/**
+ * 设置一个渲染器
+ * @param value
+ * @returns {Render}
+ */
+Skin.prototype.render=function render( value )
+{
+    var old = storage(this, 'render');
+    if( value != null )
+    {
+        if ( !System.instanceOf(value, Render) )
+        {
+            throw new TypeError('Invalid param type, must be a Render. in Skin.prototype.render');
+        }
+        storage(this, 'render', value);
+        return this;
+    }
+    if( !old )
+    {
+        old = new Render();
+        storage(this, 'render', old);
+    }
+    return old;
+}
+
+/**
+ * 设置一个皮肤模板
+ * @param value
+ * @returns {*}
+ */
+Skin.prototype.template=function template( value )
+{
+    var render = Skin.prototype.render.call(this);
+    var result = render.template( value );
+    return result === render ? this : result;
+}
+
+/**
+ * 为模板设置变量
+ * @param name
+ * @param value
+ * @returns {*}
+ */
+Skin.prototype.variable=function variable(name,value)
+{
+    var render = Skin.prototype.render.call(this);
+    var result = render.variable( name,value );
+    return result === render ? this : result;
+}
 
 /**
  * 创建一组子级元素
@@ -322,36 +360,40 @@ Skin.prototype.createChildren = function createChildren()
     Element.prototype.html.call(this, '');
     var len = children.length;
     var c = 0;
+    var child;
+    var render = storage(this, 'render');
+    if( render )
+    {
+        child = render.fetch();
+        if( child ) {
+            Element.prototype.addChildAt.call(this, Element.createElement(child, true), -1);
+        }
+    }
+
     for (;c<len;c++)
     {
-        var child = children[c];
-        if( child instanceof Render )
-        {
-            child = child.fetch();
-            
-        }else if( child+"" === '[object Object]' )
+        child = children[c];
+        if( child+"" === '[object Object]' )
         {
             child = __toString(child, hash );
+
+        }else if( System.instanceOf(child,Render) )
+        {
+            child = child.fetch();
         }
 
         if( child )
         {
-            if (child + "" === child )
+            if (child+"" === child )
             {
                 Element.prototype.addChildAt.call(this, Element.createElement(child, true), -1);
-            } else
-            {
-                if( System.instanceOf(child, Skin) )
-                {
-                    Reflect.apply( Reflect.get(child, "createChildren"), child);
-                    Element.prototype.addChildAt.call(this, child, -1);
-                    storage(child, 'parent', this);
-                    Reflect.apply(Reflect.get(child, "updateDisplayList"), child);
 
-                }else if( Reflect.has(child, "viewport") )
-                {
-                    Reflect.set(child, "viewport", this);
-                }
+            }else if( System.instanceOf(child,Skin) )
+            {
+                Reflect.apply( Reflect.get(child, "createChildren"), child);
+                Element.prototype.addChildAt.call(this, child, -1);
+                storage(child, 'parent', this);
+                Reflect.apply(Reflect.get(child, "updateDisplayList"), child);
             }
         }
     }
@@ -372,7 +414,8 @@ Skin.prototype.updateDisplayList=function updateDisplayList()
         {
             throw new ReferenceError('Stage group is not defined for "'+currentState+'"');
         }
-        Element('[includein*=]', this).forEach(function () {
+        Element('[includein*=]', this).forEach(function ()
+        {
             if( this.property('includein') !== currentState )
             {
                 this.hide();
@@ -389,9 +432,7 @@ Skin.prototype.updateDisplayList=function updateDisplayList()
  */
 Skin.prototype.toString=function toString()
 {
-    var skinObject = storage(this);
-    var skin = __toString( skinObject , skinObject.hash );
-    return skin;
+    return '[object Skin]';
 }
 
 /**

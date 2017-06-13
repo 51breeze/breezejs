@@ -532,6 +532,7 @@ function make( config )
         }
     }
     config.globals=globals;
+    config.$getDescriptionAndGlobals = getDescriptionAndGlobals;
 
     var build_project = config.project.child;
     var project_config;

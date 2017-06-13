@@ -171,57 +171,44 @@ Render.prototype.variable=function variable(name, value)
 /**
  * @private
  */
-Render.prototype.__view__='';
+Render.prototype.__template__='';
 
 /**
- * 获取设置要渲染的视图
+ * 获取设置要渲染的视图模板
  * @param view
  * @returns {*}
  */
-Render.prototype.view=function view( val )
-{
-    if( val )
-    {
-        if( typeof val !== "string" )throw new TypeError("Invalid view")
-        this.__view__= val ;
-    }
-    return this.__view__;
-};
-
 Render.prototype.template=function template( val )
 {
     if( val )
     {
-        if( typeof val !== "string" )throw new TypeError("Invalid view")
-        this.__view__= val ;
+        if( typeof val !== "string" )
+        {
+            throw new TypeError('Invalid param type, must be a String. in Render.prototype.template');
+        }
+        this.__template__= val ;
     }
-    return this.__view__;
+    return this.__template__;
 };
 
 /**
- * 解析模板视图并添加到视口容器中
+ * 解析模板为一个字符串
  * @param view
  * @returns {String}
  */
-Render.prototype.fetch=function fetch()
+Render.prototype.fetch=function fetch( view )
 {
-    var event = new RenderEvent( RenderEvent.START );
-    event.variable = this.variable();
-    event.view = this.__view__;
-    if( this.dispatchEvent( event ) )
+    if( typeof view === "string" )
     {
-        event.html = make.call(this, event.view , event.variable );
-        event.type = RenderEvent.DONE;
-        this.dispatchEvent( event );
-        return event.html;
+        return make.call(this, view , this.variable() );
     }
-    return '';
+    return make.call(this, this.__template__ , this.variable() );
 };
 
-/*Render.prototype.toString=function toString()
+Render.prototype.toString=function toString()
 {
-    return Render.prototype.fetch.call(this);
-}*/
+    return '[object Render]';
+};
 
 /**
  * 模板变量构造器
