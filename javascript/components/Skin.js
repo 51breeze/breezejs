@@ -265,8 +265,11 @@ Skin.prototype.currentState = function currentState( name )
         if( current !== name )
         {
             storage(this,'currentState', name);
-            EventDispatcher.prototype.dispatchEvent.call(this, new SkinEvent('internal_skin_state_changed') );
-            Reflect.apply( Reflect.get( this ,"updateDisplayList") , this );
+            if( storage(this,'initialized_flag') === true )
+            {
+                EventDispatcher.prototype.dispatchEvent.call(this, new SkinEvent('internal_skin_state_changed'));
+                Reflect.apply(Reflect.get(this, "updateDisplayList"), this);
+            }
         }
         return this;
     }
@@ -399,6 +402,7 @@ Skin.prototype.createChildren = function createChildren()
     }
     //触发完成事件
     EventDispatcher.prototype.dispatchEvent.call(this, new SkinEvent('internal_create_children_completed') );
+    Reflect.apply( Reflect.get(this, "updateDisplayList"), this);
 };
 
 /**

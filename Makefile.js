@@ -387,12 +387,26 @@ function loadModuleDescription( syntax , file , config , project , resource , su
     var description = getDescriptionAndGlobals(syntax, fullclassname);
     if( description )return description;
 
-    sourcefile+=suffix;
-    if( !fs.existsSync(sourcefile) ){
+    if( !fs.existsSync(sourcefile+suffix) )
+    {
         if( globals.hasOwnProperty(file) )return;
-        Utils.error(resource);
-        throw new Error('is not found '+sourcefile);
+        if( !fs.existsSync(sourcefile+config.skin_file_suffix) )
+        {
+            Utils.error(resource);
+            throw new Error('is not found '+sourcefile+suffix);
+        }
+
+        //加载皮肤
+        var modules = makeSkin( sourcefile , config , project, syntax, loadModuleDescription );
+        styleContents = styleContents.concat( modules.styleContents);
+        modules = modules.moduleContents;
+        for( var index in modules )
+        {
+            loadFragmentModuleDescription(syntax, modules[ index ], config, project);
+        }
+        return;
     }
+    sourcefile+=suffix;
 
     //先占个位
     define(syntax, fullclassname, {} );
