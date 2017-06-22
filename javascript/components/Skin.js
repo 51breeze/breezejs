@@ -2,7 +2,7 @@
 /**
  * 皮肤类
  * @constructor
- * @require Internal,Object,TypeError,Math,EventDispatcher,Reflect,Symbol,Render,Element,SkinEvent
+ * @require Internal,Object,TypeError,Math,EventDispatcher,Reflect,Symbol,Render,Element,SkinEvent,State
  */
 
 /**
@@ -195,20 +195,7 @@ Skin.prototype.html = function html( childElement )
  */
 Skin.prototype.initializing = function initializing()
 {
-    if( storage(this,'initializing_flag') !== true )
-    {
-        storage(this,'initializing_flag',true);
-        var children = storage(this, 'children');
-        for (var i in children)
-        {
-            if( System.instanceOf(children[i], Skin) )
-            {
-                Reflect.apply(Reflect.get(children[i], "initializing"), children[i]);
-            }
-        }
-        return true;
-    }
-    return false;
+    return !storage(this,'initialized_flag');
 };
 
 /**
@@ -216,20 +203,7 @@ Skin.prototype.initializing = function initializing()
  */
 Skin.prototype.initialized = function initialized()
 {
-    if( storage(this,'initialized_flag') !== true )
-    {
-        storage(this,'initialized_flag',true);
-        var children = storage(this, 'children');
-        for (var i in children)
-        {
-            if( System.instanceOf(children[i], Skin) )
-            {
-                Reflect.apply( Reflect.get(children[i], "initialized"), children[i] );
-            }
-        }
-        return false;
-    }
-    return true;
+    return !!storage(this,'initialized_flag');
 };
 
 /**
@@ -238,18 +212,30 @@ Skin.prototype.initialized = function initialized()
  * @param String name
  * @param Array group
  */
-Skin.prototype.stateGroup = function stateGroup(name,group)
+Skin.prototype.states=function states( value )
 {
-    var data = storage(this,'stateGroup');
-    if( typeof name !== "string" )
+    if( !(System.instanceOf(value, System.Array) ) )
     {
-        throw new TypeError('Invalid param name in Skin.prototype.stateGroup');
+        throw new TypeError('Invalid param group in Skin.prototype.states');
     }
-    if( group != null && !(System.instanceOf(group, System.Array) ) )
+    var len = value.length;
+    var i=0;
+    var stateGroup={};
+    storage(this,'stateGroup', stateGroup);
+    for(;i<len;i++)
     {
-        throw new TypeError('Invalid param group in Skin.prototype.stateGroup');
+        if( !(value[i] instanceof State) )
+        {
+            throw new TypeError('array element is not State. in Skin.prototype.states');
+        }
+        var name = value[i].name();
+        if( !name )throw new TypeError('name is not define in Skin.prototype.states');
+        if( has.call( stateGroup, name ) )
+        {
+            throw new TypeError('"'+name+'" has already been declared in Skin.prototype.states');
+        }
+        stateGroup[ name ] = value[i];
     }
-    data[name] = group || [name];
     return this;
 };
 
@@ -268,7 +254,7 @@ Skin.prototype.currentState = function currentState( name )
             if( storage(this,'initialized_flag') === true )
             {
                 EventDispatcher.prototype.dispatchEvent.call(this, new SkinEvent('internal_skin_state_changed'));
-                Reflect.apply(Reflect.get(this, "updateDisplayList"), this);
+                Reflect.apply( Reflect.get(this, "updateDisplayList"), this );
             }
         }
         return this;
@@ -288,15 +274,7 @@ Skin.prototype.hostComponent = function hostComponent(host)
     if( host != null && _host===null );
     {
         storage(this,'hostComponent', host );
-        var children = storage(this,'children');
-        for (var i in children)
-        {
-            if( System.instanceOf(children[i], Skin) )
-            {
-                Reflect.apply( Reflect.get( children[i] ,"hostComponent") ,  children[i] , host );
-            }
-        }
-        return this;
+        return host;
     }
     return _host;
 };
@@ -357,6 +335,12 @@ Skin.prototype.variable=function variable(name,value)
  */
 Skin.prototype.createChildren = function createChildren()
 {
+    var flag = storage(this,'initialized_flag');
+    if( flag !== true )
+    {
+        Reflect.apply( Reflect.get(this, "initializing"), this);
+    }
+
     var skinObject = storage(this);
     var children = skinObject.children;
     var hash = skinObject.hash;
@@ -396,14 +380,39 @@ Skin.prototype.createChildren = function createChildren()
                 Reflect.apply( Reflect.get(child, "createChildren"), child);
                 Element.prototype.addChildAt.call(this, child, -1);
                 storage(child, 'parent', this);
-                Reflect.apply(Reflect.get(child, "updateDisplayList"), child);
             }
         }
     }
     //触发完成事件
-    EventDispatcher.prototype.dispatchEvent.call(this, new SkinEvent('internal_create_children_completed') );
+    EventDispatcher.prototype.dispatchEvent.call(this, new SkinEvent( SkinEvent.CREATE_CHILDREN_COMPLETED ) );
     Reflect.apply( Reflect.get(this, "updateDisplayList"), this);
+
+    if( flag !== true )
+    {
+        Reflect.apply( Reflect.get(this, "initialized"), this);
+        storage(this,'initialized_flag', true);
+    }
 };
+
+/**
+ * @private
+ * @param stateGroup
+ * @param currentState
+ * @returns {*}
+ */
+function getCurrentState( stateGroup, currentState )
+{
+    if( !stateGroup )return null;
+    if( has.call(stateGroup,currentState ) )return stateGroup[currentState];
+    for( var p in stateGroup )
+    {
+        if( stateGroup[p].includeIn(currentState) )
+        {
+            return currentState;
+        }
+    }
+    return null;
+}
 
 /**
  * 更新显示列表
@@ -413,18 +422,25 @@ Skin.prototype.updateDisplayList=function updateDisplayList()
     var currentState = storage(this,'currentState');
     if( currentState )
     {
-        var stateGroup = storage(this,'stateGroup');
-        if( !stateGroup || !System.instanceOf(stateGroup[currentState],System.Array) )
+        var stateGroup = getCurrentState( storage(this,'stateGroup') , currentState );
+        if( !stateGroup )throw new ReferenceError('"'+currentState+'"'+' is not define');
+        var isGroup = typeof stateGroup !== "string";
+        Element('[includeIn],[excludeFrom]', this).forEach(function ()
         {
-            throw new ReferenceError('Stage group is not defined for "'+currentState+'"');
-        }
-        Element('[includein*=]', this).forEach(function ()
-        {
-            if( this.property('includein') !== currentState )
+            var includeIn = this.property('includeIn');
+            var include = isGroup ? stateGroup.includeIn(includeIn) : includeIn===currentState;
+            if( include )
             {
-                this.hide();
-            }else{
+                var excludeFrom = this.property('excludeFrom');
+                if( excludeFrom ) {
+                    include = !( isGroup ? stateGroup.includeIn(excludeFrom) : excludeFrom === currentState );
+                }
+            }
+            if( include )
+            {
                 this.show();
+            }else{
+                this.hide();
             }
         });
     }

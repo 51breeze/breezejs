@@ -255,12 +255,15 @@ System.getQualifiedClassName = function getQualifiedClassName(value)
  * @param value
  * @returns {string}
  */
-System.getQualifiedSuperclassName =function getQualifiedSuperclassName(value) {
+System.getQualifiedSuperclassName =function getQualifiedSuperclassName(value)
+{
     var classname = System.getQualifiedClassName(value)
-    if (classname) {
+    if (classname)
+    {
         var classModule = System.getDefinitionByName(classname);
         var parentModule = $get(classModule,"extends");
-        if (parentModule) {
+        if (parentModule)
+        {
             return parentModule.fullclassname;
         }
     }

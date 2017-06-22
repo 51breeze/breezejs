@@ -485,7 +485,7 @@ var descriptor = {
         'ignorePropertyNotExists':true,
         'proto': {
             'getChildById': {type: 'Object', 'id': 'function',param:['String']},
-            'initializing': {type: 'Object', 'id': 'function',param:['Object']},
+            'initializing': {type: 'Object', 'id': 'function',param:[]},
             'initialized': {type: 'Object', 'id': 'function',param:[]},
             'createChildren': {type: 'void', 'id': 'function',param:[]},
             'render': {type: 'Render', 'id': 'function',param:[]},
@@ -493,6 +493,8 @@ var descriptor = {
             'updateDisplayList': {type: 'void', 'id': 'function',param:[]},
             'variable': {type: 'Object', 'id': 'function',param:['Object']},
             'template': {type: 'String', 'id': 'function',param:['String']},
+            'states': {type: 'Skin', 'id': 'function',param:['Array']},
+            'currentState': {type: 'Skin', 'id': 'function',param:['String']},
         },
         "xml":{
             'foreach':{name:'String',value:"String"},
@@ -541,6 +543,15 @@ var descriptor = {
             'source': {type: 'DataRender', 'id': 'function',param:['Object']},
             'dataProfile': {type: 'Object', 'id': 'function',param:[]},
             'display': {type: 'Boolean', 'id': 'function',param:[]},
+        }
+    },'State': {
+        'type': 'State',
+        'id': 'class',
+        'inherit':'Object',
+        'proto': {
+            'stateGroup': {type: 'Array', 'id': 'function',param:['Array']},
+            'name': {type: 'String', 'id': 'function',param:['name']},
+            'includeIn': {type: 'Boolean', 'id': 'function',param:['String']},
         }
     },
 };

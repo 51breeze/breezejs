@@ -23,11 +23,14 @@ DataSourceEvent.prototype.newValue=null;
 DataSourceEvent.prototype.current = NaN;
 DataSourceEvent.prototype.offset = NaN;
 DataSourceEvent.prototype.waiting=false;
+DataSourceEvent.prototype.totalSize=NaN;
+DataSourceEvent.prototype.pageSize=NaN;
+DataSourceEvent.prototype.totalSize=NaN;
 
 DataSourceEvent.APPEND='dataSourceAppend';
 DataSourceEvent.REMOVE='dataSourceRemove';
 DataSourceEvent.UPDATE='dataSourceUpdate';
-DataSourceEvent.SELECT = 'dataSourceSelect';
+DataSourceEvent.SELECT ='dataSourceSelect';
 DataSourceEvent.CHANGED='dataSourceChanged';
 
 //属性事件

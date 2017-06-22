@@ -750,6 +750,7 @@ Internal.createSymbolStorage=function(symbol)
         if( typeof value !== "undefined" )
         {
             data[ name ]=value;
+            return value;
         }
         return name==null ? data : data[ name ];
     }

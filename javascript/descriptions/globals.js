@@ -351,6 +351,7 @@ var descriptor = {
             'trim': {type: 'String', id: 'function', param: ['String']},
             'uid': {type: 'String', id: 'function', param: []},
             'range': {type: 'Array', id: 'function', param: ['Number','Number']},
+            'getNodeName': {type: 'String', id: 'function', param: ['Object']},
 
             //系统全局方法
             'decodeURI':{type:'String',id:'function',param:['String']},

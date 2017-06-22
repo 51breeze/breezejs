@@ -276,6 +276,7 @@ function getPropertyDescription( stack , config , project , syntax )
                     refObj.value={};
                 }
                 refObj.value[ item.accessor() ] = createDescription( item );
+                refObj.isAccessor = true;
                 if( item.accessor()==='get' )
                 {
                     refObj.type = refObj.value[ item.accessor() ].type;
@@ -373,7 +374,7 @@ function makeCodeDescription( content ,config )
  * 加载并解析模块的描述信息
  * @returns
  */
-function loadModuleDescription( syntax , file , config , project , resource , suffix )
+function loadModuleDescription( syntax , file , config , project , resource , suffix , isComponent )
 {
     suffix= suffix || config.suffix;
 
@@ -389,22 +390,21 @@ function loadModuleDescription( syntax , file , config , project , resource , su
 
     if( !fs.existsSync(sourcefile+suffix) )
     {
-        if( globals.hasOwnProperty(file) )return;
-        if( !fs.existsSync(sourcefile+config.skin_file_suffix) )
+        if( isComponent===true || !fs.existsSync(sourcefile+config.skin_file_suffix) )
         {
             Utils.error(resource);
-            throw new Error('is not found '+sourcefile+suffix);
+            throw new Error('Not found '+sourcefile+suffix);
         }
 
         //加载皮肤
-        var modules = makeSkin( sourcefile , config , project, syntax, loadModuleDescription );
+        var modules = makeSkin( fullclassname , config , project, syntax, loadModuleDescription );
         styleContents = styleContents.concat( modules.styleContents);
         modules = modules.moduleContents;
         for( var index in modules )
         {
             loadFragmentModuleDescription(syntax, modules[ index ], config, project);
         }
-        return;
+        return define(syntax, fullclassname);
     }
     sourcefile+=suffix;
 

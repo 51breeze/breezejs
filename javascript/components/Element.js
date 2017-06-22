@@ -700,15 +700,22 @@ Element.prototype.hasProperty=function hasProperty(prop)
 Element.prototype.data=function data(name, value )
 {
     var type =  typeof name;
+    var write = typeof value !== "undefined";
+    var data;
     return Element.prototype.forEach.call(this,function(target)
     {
         if( type === "object" )
         {
-            storage(target, true, name );
+            storage(target,'data',name);
 
-        }else if( type === 'string' )
+        }else if( type === 'string' && write )
         {
-            System.storage( storage(target), name, value );
+            data = storage(target,'data') || storage(target,'data',{});
+            data[ name ]=value;
+        }else
+        {
+            data = storage(target,'data');
+            return type === 'string' && data ? data[name] : data || null;
         }
     });
 };
@@ -821,9 +828,8 @@ Element.prototype.style=function style(name, value )
 Element.prototype.show=function show()
 {
     return Element.prototype.forEach.call(this,function(){
-        var type = Element.prototype.data.call(this,'display') || 'block';
-        Element.prototype.style.call(this,'display', type );
-    })
+        Element.prototype.style.call(this,'display', '' );
+    });
 };
 
 /**
@@ -833,10 +839,8 @@ Element.prototype.show=function show()
 Element.prototype.hide=function hide()
 {
     return Element.prototype.forEach.call(this,function(){
-        var d = Element.prototype.style.call(this,'display');
-        Element.prototype.data.call(this,'display', System.isEmpty( d ) ? 'block' : d );
-        Element.prototype.style.call(this,'display', 'none' )
-    })
+        Element.prototype.style.call(this,'display', 'none' );
+    });
 };
 
 
@@ -1261,7 +1265,7 @@ Element.prototype.find=function find(selector )
  * @param selector
  * @returns {Element}
  */
-Element.prototype.parent=function parent(selector )
+Element.prototype.parent=function parent( selector )
 {
     return $doMake.call( this, Array.prototype.unique.call( $doRecursion.call(this,'parentNode',selector ) ) );
 };
