@@ -89,6 +89,11 @@ function make(template, variable)
                         case 'case' :
                         case 'default' :
                         case 'break' :
+                        case 'if' :
+                        case 'else' :
+                        case 'do' :
+                        case 'while' :
+                        case 'for' :
                             code += matchSyntax[1]+(matchSyntax[2] ? matchSyntax[2] : '');
                             code+='\n';
                             break;
@@ -96,7 +101,7 @@ function make(template, variable)
                             begin_code = true;
                             break;
                         default :
-                            code += escape( matchSyntax[1]  );
+                            code += escape( matchSyntax[1] );
                             code+='\n';
                     }
                 }

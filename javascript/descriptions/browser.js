@@ -498,6 +498,7 @@ var descriptor = {
         },
         "xml":{
             'foreach':{name:'String',value:"String"},
+            'for':{name:'String',step:"String", condition:"String"},
             'if': {condition:'String'},
             'elseif': {condition:'String'},
             'else': {},
@@ -509,6 +510,7 @@ var descriptor = {
             'while':{condition:'String'},
             'code':{},
             'script':{},
+            'attr':{},
         },
     },
     'SkinComponent': {

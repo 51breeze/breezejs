@@ -2,21 +2,43 @@
  * 迭代构造器
  * @param target
  * @constructor
- * @require Object
+ * @require Object,Symbol
  */
+
+var storage=Internal.createSymbolStorage( Symbol('iterator') );
+var has = $Object.prototype.hasOwnProperty;
 function Iterator( target )
 {
     if( System.is(target,Iterator) )return target;
-    if( !(this instanceof Iterator) ) return new Iterator(target);
-    this.target=target;
-    return this;
+    if( !(this instanceof Iterator) )return new Iterator(target);
+    storage(this,true,{
+        "target":target,
+        "items": Object.prototype.getEnumerableProperties.call( target || [] ),
+        "cursor":-1
+    });
 };
+
 System.Iterator=Iterator;
 Iterator.prototype = Object.create( Object.prototype );
-Iterator.prototype.items = null;
-Iterator.prototype.target = null;
-Iterator.prototype.cursor = -1;
 Iterator.prototype.constructor = Iterator;
+
+/**
+ * 返回当前的元素键名
+ * @returns {Iterator.key|*|string}
+ */
+Iterator.prototype.key = undefined;
+
+/**
+ * 返回当前的元素值
+ * @returns {*}
+ */
+Iterator.prototype.value = undefined;
+
+/**
+ * 返回当前指针位置的元素
+ * @returns {*}
+ */
+Iterator.prototype.current = undefined;
 
 /**
  * 将指针向前移动一个位置并返回当前元素
@@ -24,19 +46,21 @@ Iterator.prototype.constructor = Iterator;
  */
 Iterator.prototype.seek=function seek()
 {
-    if( this.items===null )this.items =Object.prototype.getEnumerableProperties.call(this.target || []);
-    if( this.items.length <= this.cursor+1 )return false;
-    return this.items[ ++this.cursor ];
-}
-
-/**
- * 返回当前指针位置的元素
- * @returns {*}
- */
-Iterator.prototype.current=function current()
-{
-    if(this.cursor<0)this.cursor=0;
-    return this.items[ this.cursor ];
+    var items = storage(this,"items");
+    var cursor = storage(this,"cursor");
+    storage(this,"cursor", ++cursor );
+    if( items.length <= cursor )
+    {
+        this.key = undefined;
+        this.value = undefined;
+        this.current = undefined;
+        return false;
+    }
+    var current = items[ cursor ];
+    this.current = current;
+    this.key = current.key;
+    this.value = current.value;
+    return current;
 }
 
 /**
@@ -46,8 +70,10 @@ Iterator.prototype.current=function current()
  */
 Iterator.prototype.prev=function prev()
 {
-    if( this.cursor < 1 )return false;
-    return this.items[ this.cursor-1 ];
+    var cursor = storage(this,"cursor");
+    if( cursor < 1 )return false;
+    var items = storage(this,"items");
+    return items[ cursor-1 ];
 }
 
 /**
@@ -57,8 +83,10 @@ Iterator.prototype.prev=function prev()
  */
 Iterator.prototype.next=function next()
 {
-    if( this.cursor >= this.items.length )return false;
-    return this.items[ this.cursor+1 ];
+    var cursor = storage(this,"cursor");
+    var items = storage(this,"items");
+    if( cursor >= items.length )return false;
+    return items[ cursor+1 ];
 }
 
 /**
@@ -69,9 +97,19 @@ Iterator.prototype.next=function next()
 Iterator.prototype.move=function move( cursor )
 {
     cursor=cursor >> 0;
-    if( cursor < 0 || cursor >= this.items.length )return false;
-    this.cursor = cursor;
-    return this.items[ this.cursor ];
+    var items = storage(this,"items");
+
+    if( cursor < 0 )
+    {
+        cursor = items.length+cursor;
+    }
+    if( cursor < 0 || cursor >= items.length )return false;
+    storage(this, "cursor", cursor);
+    var current = items[ cursor ];
+    this.current = current;
+    this.key = current.key;
+    this.value = current.value;
+    return current;
 }
 
 /**
@@ -80,7 +118,9 @@ Iterator.prototype.move=function move( cursor )
  */
 Iterator.prototype.reset=function reset()
 {
-    this.items=null;
-    this.cursor = -1;
+    this.key = undefined;
+    this.value = undefined;
+    this.current = undefined;
+    storage(this,"cursor", -1);
     return this;
 }

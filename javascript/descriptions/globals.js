@@ -165,12 +165,13 @@ var descriptor = {
     'Iterator':{
         'id':'class', 'type':'Iterator','inherit':'Object',
         'proto':{
-            'items':{'id':'const','type':'Array'},
             'current':{'id':'const','type':'Object'},
-            'prev':{'id':'const','type':'Object'},
-            'next':{'id':'const','type':'Object'},
+            'value':{'id':'const','type':'Object'},
+            'key':{'id':'const','type':'String'},
+            'prev':{'id':'function','type':'Object'},
+            'next':{'id':'function','type':'Object'},
             'seek':{'id':'function','type':'Boolean','param':[]},
-            'moveTo':{'id':'function','type':'Object','param':['Number']},
+            'move':{'id':'function','type':'Object','param':['Number']},
             'reset':{'id':'function','type':'Iterator','param':[]},
         }
     },

@@ -278,7 +278,6 @@ Object.prototype.getEnumerableProperties=function getEnumerableProperties( state
     var objClass = isClass ? this.constructor.prototype : null;
     var token;
     var proto;
-
     if( isClass && objClass)
     {
         //静态类没有可枚举的属性
@@ -287,9 +286,10 @@ Object.prototype.getEnumerableProperties=function getEnumerableProperties( state
         proto = $get(objClass,'proto');
     }
 
+    var isSymbol = Internal.isSymbolPropertyName;
     for( prop in this )
     {
-        if( prop !== token && $propertyIsEnumerable.call(this,prop) )
+        if( prop !== token && !( isSymbol && isSymbol(prop) ) && $propertyIsEnumerable.call(this,prop) )
         {
             //类中定义的属性成员不可枚举
             //动态类设置的属性可以枚举，但属性描述符enumerable=false时不可枚举
