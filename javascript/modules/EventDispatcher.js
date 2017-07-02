@@ -37,7 +37,7 @@ EventDispatcher.prototype.hasEventListener=function hasEventListener( type )
     var len = target.length >> 0;
     if( len > 0 )
     {
-        while(len>0 && target[len--] )
+        while(len>0 && target[--len] )
         {
             events =  storage(target[len],'events');
             if( events && Object.prototype.hasOwnProperty.call(events,type) )

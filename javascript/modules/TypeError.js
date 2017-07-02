@@ -8,8 +8,8 @@
  */
 function TypeError( message , line, filename )
 {
+    this.name='TypeError';
     Error.call(this, message , line, filename);
-    this.type='TypeError';
 };
 System.TypeError=TypeError;
 TypeError.prototype =Object.create( Error.prototype );

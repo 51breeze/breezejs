@@ -5,11 +5,13 @@ const Utils = require('./lib/utils.js');
 const makeSkin = require('./lib/skin.js');
 const globals=require('./javascript/descriptions/globals.js');
 const uglify = require('uglify-js');
+const loadModuleDescriptionQueues=[];
 var  descriptions={};
 var  makeModules={};
 var  skinContents=[];
 var  styleContents=[];
 var requirements={};
+
 
 /**
  * 全局模块

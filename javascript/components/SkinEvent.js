@@ -24,4 +24,4 @@ SkinEvent.prototype.parent=null;
 SkinEvent.INSTALLING='skinInstalling';
 SkinEvent.ADD='skinAdded';
 SkinEvent.REMOVE='skinRemoved';
-SkinEvent.CREATE_CHILDREN_COMPLETED='createChildrenCompleted';
+SkinEvent.CREATE_CHILDREN_COMPLETED='skinCreateChildrenCompleted';

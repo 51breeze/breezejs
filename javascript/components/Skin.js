@@ -2,7 +2,7 @@
 /**
  * 皮肤类
  * @constructor
- * @require Internal,Object,TypeError,Math,EventDispatcher,Reflect,Symbol,Render,Element,SkinEvent,State
+ * @require Internal,Object,TypeError,Math,EventDispatcher,Reflect,Symbol,Render,Element,SkinEvent,State,ElementEvent
  */
 
 /**
@@ -37,8 +37,9 @@ function Skin( skinObject )
         'hash': skinObject.hash || {},
         'children': skinObject.children || []
     });
-    Element.call(this, '<'+name+'/>');
-    Element.prototype.property.call(this,attr);
+
+    var str = System.serialize(attr,'attr');
+    Element.call(this, '<'+name+" "+str+'/>');
 }
 
 Skin.prototype = Object.create( Element.prototype );
@@ -90,7 +91,7 @@ Skin.prototype.getChildAt=function getChildAt( index )
     var result = children[index] && System.instanceOf(children[index],Skin) ? children[index] : null;
     if( result=== null )
     {
-        throw new RangeError('index out of range');
+        throw new RangeError('The index out of range');
     }
     return result;
 }
@@ -132,13 +133,19 @@ Skin.prototype.addChildAt = function addChildAt( childElement , index )
 {
     if( System.instanceOf( childElement, Skin ) )
     {
-        var childSkin = Skin.prototype.getChildAt(index);
-        Element.prototype.addChildAt.call(this, childElement.current() , Element.prototype.getChildIndex( childSkin.current() ) );
-        storage( this,'children' ).splice(index,0, childElement);
+        var children = storage( this,'children');
+        var indexAt = index < 0 ? index+children.length : index;
+        if( children.length > 0 )
+        {
+            var childSkin = Skin.prototype.getChildAt.call(this, index);
+            index = Element.prototype.getChildIndex.call(this, childSkin[0] );
+        }
+        Element.prototype.addChildAt.call(this, childElement[0], index );
+        children.splice(indexAt, 0, childElement);
         storage( childElement, 'parent', this);
         return childElement;
     }
-    throw new TypeError('is not child Skin');
+    throw new TypeError('The child is not skin element');
 }
 
 /**
@@ -148,7 +155,7 @@ Skin.prototype.addChildAt = function addChildAt( childElement , index )
  */
 Skin.prototype.removeChild = function removeChild( childElement )
 {
-    var index = Skin.prototype.getChildIndex(childElement);
+    var index = Skin.prototype.getChildIndex.call(this,childElement);
     if( index >= 0 )
     {
         Element.prototype.removeChild.call(this, childElement.current() );
@@ -156,7 +163,7 @@ Skin.prototype.removeChild = function removeChild( childElement )
         storage(childElement,'parent', null);
         return childElement;
     }
-    throw new ReferenceError('child skin does not exists');
+    throw new ReferenceError('The child skin does not exists');
 }
 
 /**
@@ -166,7 +173,7 @@ Skin.prototype.removeChild = function removeChild( childElement )
  */
 Skin.prototype.removeChildAt = function removeChildAt( index )
 {
-    var child=Skin.prototype.getChildAt(index);
+    var child=Skin.prototype.getChildAt.call(this,index);
     Element.prototype.removeChild.call(this, child.current() );
     storage(this,'children').splice(index,1);
     storage(child,'parent', null);
@@ -262,6 +269,20 @@ Skin.prototype.currentState = function currentState( name )
     return current;
 }
 
+/**
+ * 获取设置当前状态组名
+ * @returns {Skin}
+ */
+Skin.prototype.layout = function layout( layoutObject )
+{
+    var current = storage(this,'layout');
+    if( layoutObject != null && layoutObject !==current )
+    {
+        storage(this,'layout', layoutObject );
+        return layoutObject;
+    }
+    return current;
+}
 
 /**
  * 在初始化皮肤皮会先设置宿主组件
@@ -344,11 +365,13 @@ Skin.prototype.createChildren = function createChildren()
     var skinObject = storage(this);
     var children = skinObject.children;
     var hash = skinObject.hash;
-    Element.prototype.html.call(this, '');
     var len = children.length;
     var c = 0;
     var child;
     var render = storage(this, 'render');
+    var parent = storage(this, 'parent');
+
+    Element.prototype.html.call(this, '');
     if( render )
     {
         child = render.fetch();
@@ -377,12 +400,23 @@ Skin.prototype.createChildren = function createChildren()
 
             }else if( System.instanceOf(child,Skin) )
             {
+                storage(child, 'parent', this);
                 Reflect.apply( Reflect.get(child, "createChildren"), child);
                 Element.prototype.addChildAt.call(this, child, -1);
-                storage(child, 'parent', this);
+
             }
         }
     }
+
+    if( parent )
+    {
+        var e = new ElementEvent( ElementEvent.CHNAGED );
+        e.parent = parent[0];
+        e.child = this[0];
+        e.result = true;
+        EventDispatcher.prototype.dispatchEvent.call(parent, e);
+    }
+
     //触发完成事件
     EventDispatcher.prototype.dispatchEvent.call(this, new SkinEvent( SkinEvent.CREATE_CHILDREN_COMPLETED ) );
     Reflect.apply( Reflect.get(this, "updateDisplayList"), this);
@@ -444,8 +478,12 @@ Skin.prototype.updateDisplayList=function updateDisplayList()
             }
         });
     }
+    var layoutObject = storage(this,'layout');
+    if( layoutObject )
+    {
+        Internal["Layout.prototype.target"].call(layoutObject, this);
+    }
 }
-
 
 /**
  * 将皮肤对象转字符串

@@ -285,6 +285,7 @@ function builder(config , code, requirements , skins )
         code,
         'var main=System.getDefinitionByName("'+config.main+'");',
         'System.Reflect.construct(main);',
+        'System.globalEvent( Event.INITIALIZED );',
         '})('+requires.map(function (a){
             a = mapname[a] || a;
             if(a==='System')return a;

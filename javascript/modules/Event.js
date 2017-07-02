@@ -40,6 +40,7 @@ Event.BEFOREPASTE='beforepaste';
 Event.SELECTSTART='selectstart';
 Event.READY='ready';
 Event.SCROLL='scroll';
+Event.INITIALIZED='systemInitialized';
 
 /**
  * 事件原型

@@ -34,22 +34,30 @@ function define(name , descriptions , isInterface )
             classModule.newin = makeMethods('new', classModule);
             classModule.apply = makeMethods('apply', classModule);
             classModule.check = makeMethods('check', classModule);
+            classModule.throw = makeMethods('throw', classModule);
         }
     }
 
     //如果是定义类或者接口
     if( type === "object" )
     {
-        var construct = descriptions.constructor;
+        classModule.description = descriptions;
+        if( typeof description.constructor === "function" )
+        {
+            descriptions.constructor.prototype.constructor = classModule;
+        }
+
+       /* var construct = descriptions.constructor;
         for (var prop in descriptions )classModule[prop] = descriptions[prop];
         classModule.constructor=null;
         if( typeof construct === "function" )
         {
             classModule.constructor = construct;
+            //construct.prototype.constructor = classModule;
             construct.prototype = classModule;
             //开放原型继承
             //classModule.prototype = descriptions.constructor.prototype;
-        }
+        }*/
     }
     return classModule;
 }
@@ -100,12 +108,27 @@ function toMessage(thisArg, properties, classModule, error, info , method )
         if( typeof item === "string" )return item;
         return System.getQualifiedClassName( item );
     }) : [properties];
-
     if(thisArg)items.unshift( System.getQualifiedClassName( thisArg ) );
+    var msg =(typeof error === "string" ? error : error.message)
+    if( !(error instanceof System.Error) )
+    {
+        var name =error.toString();
+        var index = name.indexOf(':');
+        name = name.substr(0, index);
+        var stack = error.stack;
+        if( stack )
+        {
+            msg+="\n "+stack;
+        }
+        msg+="\n at "+items.join('.')
+        error = new (System[name] || System.Error)( msg , info , classModule.filename);
 
-    var msg = (typeof error === "string" ? error : error.message);
-    msg+=' '+items.join('.')+'('+classModule.filename + ':' + info + ')\n';
-    throw new Error( msg );
+    }else
+    {
+        msg+="\n at "+items.join('.')
+        error.message= msg+"("+classModule.filename+":"+info+")";
+    }
+    throw error;
 }
 
 /**
@@ -183,7 +206,6 @@ function makeMethods(method, classModule)
         case 'new' : return function(info, theClass, argumentsList )
         {
             try{
-                if( arguments[arguments.length-1]==='throw' )throw new System.Error( Reflect.construct(theClass, argumentsList) );
                 return Reflect.construct(theClass, argumentsList);
             }catch(error){
                 toMessage(theClass, [], classModule, error, info,'new');
@@ -210,6 +232,11 @@ function makeMethods(method, classModule)
                 toMessage(null, [], classModule, 'Specify the type of value do not match. must is "' + System.getQualifiedClassName(type) + '"', info, 'Type');
             }
             return value;
+        }
+        case 'throw' : return function(info, error )
+        {
+            var msg = error.message+' ('+classModule.filename + ':' + info + ')\n';
+            throw new Error( msg );
         }
     }
 }

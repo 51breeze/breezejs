@@ -7,8 +7,9 @@
  * @require Error,Object
  */
 function URIError( message , line, filename) {
+
+    this.name='URIError';
     Error.call(this, message , line, filename);
-    this.type='URIError';
 };
 System.URIError=URIError;
 URIError.prototype = Object.create( Error.prototype );

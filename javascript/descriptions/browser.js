@@ -139,8 +139,12 @@ var descriptor = {
             'length': {type: 'Number', 'id': 'const'},
             'slice': {type: 'Number', 'id': 'function', param:['Number'] },
             'style': {type: 'Element', 'id': 'function', param:[] },
-            'width': {type: '*', 'id': 'function', param:[] },
-            'height': {type: '*', 'id': 'function', param:[] },
+            'width': {type: 'Number', 'id': 'function', param:[] },
+            'height': {type: 'Number', 'id': 'function', param:[] },
+            'top': {type: 'Number', 'id': 'function', param:[] },
+            'right': {type: 'Number', 'id': 'function', param:[] },
+            'bottom': {type: 'Number', 'id': 'function', param:[] },
+            'left': {type: 'Number', 'id': 'function', param:[] },
             'current': {type: 'Object', 'id': 'function', param:[] },
             'addChild': {type: 'Object', 'id': 'function', param:[] },
             'addChildAt': {type: 'Object', 'id': 'function', param:[] },
@@ -174,10 +178,12 @@ var descriptor = {
         'static':{
             "ADD":{'id':'const','type':'String'},
             "REMOVE":{'id':'const','type':'String'},
+            "CHNAGED":{'id':'const','type':'String'},
         },
         'proto':{
             "parent":{'id':'const','type':'Object'},
             "child":{'id':'const','type':'Object'},
+            "type":{'id':'const','type':'String'},
         }
     },
     'MouseEvent':{
@@ -462,6 +468,7 @@ var descriptor = {
             "INSTALLING":{'id':'const','type':'String'},
             "INSTALLED":{'id':'const','type':'String'},
             "CREATE_CHILDREN_COMPLETED":{'id':'const','type':'String'},
+            "CONTENT_CHNAGED":{'id':'const','type':'String'},
         },
         'proto':{
             "viewport":{'id':'var','type':'Object'},
@@ -493,6 +500,7 @@ var descriptor = {
             'updateDisplayList': {type: 'void', 'id': 'function',param:[]},
             'variable': {type: 'Object', 'id': 'function',param:['Object']},
             'template': {type: 'String', 'id': 'function',param:['String']},
+            'layout': {type: 'void', 'id': 'function',param:['Object']},
             'states': {type: 'Skin', 'id': 'function',param:['Array']},
             'currentState': {type: 'Skin', 'id': 'function',param:['String']},
         },
@@ -513,15 +521,14 @@ var descriptor = {
             'attr':{},
         },
     },
-    'SkinComponent': {
-        'type': 'SkinComponent',
+    'Layout': {
+        'type': 'Layout',
         'id': 'class',
-        'inherit':'Component',
+        'inherit':'EventDispatcher',
         'proto': {
-            'dataSource': {type: 'DataSource', 'id': 'function',param:[]},
-            'source': {type: 'DataRender', 'id': 'function',param:['Object']},
-            'dataProfile': {type: 'Object', 'id': 'function',param:[]},
-            'display': {type: 'Boolean', 'id': 'function',param:[]},
+            "gap": {type: 'Number', 'id': 'function',param:[]},
+            "horizontalAlign": {type: 'String', 'id': 'function',param:[]},
+            "verticalAlign": {type: 'String', 'id': 'function',param:[]},
         }
     },
 

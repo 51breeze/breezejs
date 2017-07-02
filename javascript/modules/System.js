@@ -384,7 +384,7 @@ System.isDocument=function isDocument( elem )
  */
 System.isFrame=function isFrame( elem )
 {
-    var nodename = getNodeName(elem);
+    var nodename = System.getNodeName(elem);
     return (nodename === 'iframe' || nodename === 'frame');
 }
 
@@ -662,6 +662,35 @@ System.storage=function storage(target, name , value)
         return val;
     }
     return target[name];
+}
+
+var __globalEvent__=null;
+var __initialized__=false;
+System.globalEvent=function globalEvent( type, callback , ref )
+{
+    if( __globalEvent__===null )
+    {
+        __globalEvent__ = new System.EventDispatcher( typeof document !== "undefined" ? document : undefined );
+    }
+    if( typeof type !=="string" )
+    {
+        return __globalEvent__;
+    }
+    if( typeof callback === "function" )
+    {
+        if( __initialized__ )
+        {
+            callback.call( ref, new System.Event(type)  );
+        }else {
+            __globalEvent__.addEventListener(type, callback, false, 0, ref);
+        }
+
+    }else
+    {
+        __initialized__ = System.Event.INITIALIZED === type;
+        __globalEvent__.dispatchEvent( new System.Event(type) );
+    }
+    return __globalEvent__;
 }
 
 /**

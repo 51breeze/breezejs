@@ -8,16 +8,23 @@
  */
 function Error( message , line, filename )
 {
-    this.message = message;
+    message = message ||"";
+    var msg = [];
+    if( filename )msg.push( filename );
+    if( line )msg.push( line );
+    if( msg.length > 0 )
+    {
+        message+='('+ msg.join(':') +')';
+    }
+    this.message = this.name+": "+message;
     this.line=line;
-    this.filename = filename;
-    this.type='Error';
+    this.filename =filename;
 };
 System.Error=Error;
 Error.prototype =Object.create( Object.prototype );
 Error.prototype.constructor=Error;
 Error.prototype.line=null;
-Error.prototype.type='Error';
+Error.prototype.name='Error';
 Error.prototype.message=null;
 Error.prototype.filename=null;
 Error.prototype.toString=function ()

@@ -79,13 +79,13 @@ var descriptor = {
        }
     },
     'RegExp':{'id':'class', 'type':'RegExp'},
-    'Error':{'id':'class', 'type':'Error'},
-    'EvalError':{'id':'class', 'type':'EvalError'},
-    'RangeError':{'id':'class', 'type':'RangeError'},
-    'ReferenceError':{'id':'class', 'type':'ReferenceError'},
-    'SyntaxError':{'id':'class', 'type':'SyntaxError'},
-    'TypeError':{'id':'class', 'type':'TypeError'},
-    'URIError':{'id':'class', 'type':'URIError'},
+    'Error':{'id':'class', 'type':'Error','inherit':'Object'},
+    'EvalError':{'id':'class', 'type':'EvalError','inherit':'Error'},
+    'RangeError':{'id':'class', 'type':'RangeError','inherit':'Error'},
+    'ReferenceError':{'id':'class', 'type':'ReferenceError','inherit':'Error'},
+    'SyntaxError':{'id':'class', 'type':'SyntaxError','inherit':'Error'},
+    'TypeError':{'id':'class', 'type':'TypeError','inherit':'Error'},
+    'URIError':{'id':'class', 'type':'URIError','inherit':'Error'},
     'Function':{
         'id':'class', 'type':'Function','inherit':'Object',
         'proto':{

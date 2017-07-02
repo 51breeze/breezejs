@@ -536,13 +536,14 @@ function Element(selector, context)
                 return System.isNodeElement(elem) || System.isWindow(elem);
             });
 
-        } else if (selector instanceof Element)
+        } else if ( System.instanceOf(selector,Element) )
         {
-            result = selector.slice(0);
+            result = Element.prototype.slice.call( selector, 0);
+
         } else if (typeof selector === "string")
         {
             result = selector.charAt(0) === '<' && selector.charAt(selector.length - 1) === '>' ? $createElement(selector) : querySelector(selector, context);
-        } else if ( System.isNodeElement(selector) )
+        } else if ( System.isNodeElement(selector) || System.isWindow(selector) )
         {
             result = selector;
         }
@@ -757,7 +758,7 @@ accessor['style']= {
 
         //增量值
         if (increment) {
-            var inc = obj.style(name);
+            var inc =accessor.style.get.call(this,name);
             inc = System.parseFloat(inc) || 0;
             value = ( +( increment[1] + 1 ) * +increment[2] ) + inc;
             type = "number";
@@ -808,7 +809,7 @@ accessor['style']= {
  */
 Element.prototype.style=function style(name, value )
 {
-    if( typeof name === 'string' && /^(\s*[\w\-]+\s*\:[\w\-\s]+;)+$/.test(name)  )
+    if( typeof name === 'string' && name.indexOf(':')>0 )
     {
         value=name;
         name='cssText';
@@ -1124,26 +1125,20 @@ Element.prototype.getBoundingRect=function getBoundingRect( force )
 /**
  * @private
  */
+var position_hash={'absolute':true,'relative':true,'fixed':true};
 accessor['position']={
     get:function(prop,obj){
-        return obj.getBoundingRect()[ prop ];
+        return Element.prototype.getBoundingRect.call(obj)[ prop ];
     },
     set:function(prop,newValue,obj){
 
-       /* var elem = obj.current();
-        if( elem.parentNode )
+        var elem = Element.prototype.current.call(obj);
+        var val = accessor.style.get.call(elem,'position');
+        if( !position_hash[val] )
         {
-            obj.current( elem.parentNode )
-            if( obj.style('position')==='static' ){
-                obj.style('position','relative');
-            }
-            obj.current( elem );
-        }*/
-        if( obj.style('position')==='static' )
-        {
-            obj.style('position','absolute');
+            accessor.style.set.call(elem,'position','relative');
         }
-        return obj.style(prop,newValue>>0);
+        return Element.prototype.style.call(obj,prop,newValue>>0);
     }
 };
 
@@ -1350,8 +1345,8 @@ Element.prototype.children=function children( selector )
         if( !System.isFrame(element) && element.hasChildNodes() )
         {
             var child = Element.prototype.slice.call( element.childNodes );
-            results =  is ? Element.prototype.concat.call( results, Array.prototype.filter.call(child, selector ) ) :
-                Element.prototype.concat.call( results, querySelector(selector,element,null,child) );
+            results =  is ? Element.prototype.concat.apply( results, Array.prototype.filter.call(child, selector ) ) :
+                Element.prototype.concat.apply( results, querySelector(selector,element,null,child) );
         }
     });
     return $doMake.call( this, Array.prototype.unique.call(results) );
@@ -1387,7 +1382,7 @@ Element.prototype.unwrap=function unwrap(selector )
     return Element.prototype.forEach.call(this,function(elem)
     {
         var parent= is ?  elem.parentNode : $doRecursion.call(this,'parentNode',selector )[0];
-        if( parent && parent.ownerDocument && Element.prototype.contains.call( parent.ownerDocument.body, parent ) )
+        if( parent && parent.ownerDocument && Element.contains(parent, parent.ownerDocument.body) )
         {
             var children=parent.hasChildNodes() ? parent.childNodes : [];
             if( parent.parentNode )
@@ -1517,8 +1512,9 @@ Element.prototype.addChildAt=function addChildAt( childElemnet, index )
     var refChild=index===-1 ? null : Element.prototype.getChildAt.call(this,index);
     if( childElemnet.parentNode )Element.prototype.removeChild.call(this, childElemnet );
     refChild && (refChild=index.nextSibling);
-    parent.insertBefore( childElemnet , refChild || null );
-    $dispatchEvent( EventDispatcher( childElemnet ) ,ElementEvent.ADD, parent, childElemnet );
+    var result = parent.insertBefore( childElemnet , refChild || null );
+    $dispatchEvent( EventDispatcher( childElemnet ) ,ElementEvent.ADD, parent, childElemnet , result );
+    $dispatchEvent( EventDispatcher( parent ) , ElementEvent.CHNAGED, parent, childElemnet , result );
     return childElemnet;
 };
 
@@ -1583,7 +1579,9 @@ Element.prototype.removeChild=function removeChild( childElemnet )
     {
         throw new TypeError('parentNode is null of child elemnet');
     }
-    $dispatchEvent( EventDispatcher( childElemnet ) , ElementEvent.REMOVE, parent, childElemnet , parent.removeChild( childElemnet ) );
+    var result = parent.removeChild( childElemnet );
+    $dispatchEvent( EventDispatcher( childElemnet ) , ElementEvent.REMOVE, parent, childElemnet , result );
+    $dispatchEvent( EventDispatcher( parent ) , ElementEvent.CHNAGED, parent, childElemnet , result );
     return childElemnet;
 };
 
@@ -1599,7 +1597,7 @@ Element.prototype.removeChildAt=function removeChildAt( index )
     var child= Element.prototype.getChildAt.call(this, index );
     if( !child )
     {
-        throw new Error('not found child. in removeChildAt');
+        throw new Error('Not found child. in removeChildAt');
     }
     if( child.parentNode === parent )
     {
@@ -1613,16 +1611,31 @@ Element.prototype.removeChildAt=function removeChildAt( index )
  * @param child
  * @returns {boolean}
  */
-Element.prototype.contains=function contains( child )
+Element.contains=function contains( child , parent )
 {
-    var parent = Element.prototype.current.call(this);
-    if( System.isNodeElement(child) )
+    if( System.isNodeElement(child) && System.isNodeElement(parent) )
     {
         if('contains' in parent)return parent.contains( child ) && parent !== child;
         return !!(parent.compareDocumentPosition(child) & 16) && parent !== child ;
     }
     return querySelector( child, parent ).length > 0;
 }
+
+/**
+ * @private
+ * @type {boolean}
+ */
+var ishtmlobject = typeof HTMLElement==='object';
+
+/**
+ * 判断是否为一个HtmlElement类型元素,document 不属性于 HtmlElement
+ * @returns {boolean}
+ */
+Element.isHTMLElement=function isHTMLElement( elem )
+{
+    if( !elem )return false;
+    return ishtmlobject ? elem instanceof HTMLElement : ( elem.nodeType === 1 && typeof elem.nodeName === "string" );
+};
 
 // fix style name add prefix
 if( System.env.platform( System.env.BROWSER_FIREFOX ) && System.env.version(4) )

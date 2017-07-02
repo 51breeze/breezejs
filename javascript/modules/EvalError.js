@@ -7,8 +7,8 @@
  * @require System,Error,Object;
  */
 function EvalError( message , line, filename) {
+    this.name='EvalError';
     Error.call(this, message , line, filename);
-    this.type='EvalError';
 };
 System.EvalError = EvalError;
 EvalError.prototype = Object.create( Error.prototype );

@@ -15,7 +15,7 @@ Class.prototype.valueOf=function valueOf()
     {
         if( this.constructor.prototype === this )
         {
-            return '[Class: '+this.classname+']';
+            return '[class: '+this.classname+']';
         }
         return '[object '+this.classname+']';
     }
@@ -33,7 +33,7 @@ Class.prototype.toString=function toString()
     {
         if( this.constructor.prototype === this )
         {
-            return '[Class: '+this.classname+']';
+            return '[class: '+this.classname+']';
         }
         return '[object '+this.classname+']';
     }

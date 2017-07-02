@@ -78,7 +78,14 @@ Array.prototype.filter = function filter(callback, thisArg)
     var len = obj.length >> 0;
     var k = 0;
     thisArg = thisArg || this;
-    while (k<len)if( k in obj && callback.call(thisArg, obj[k++], k, obj) )items.push(obj[k]);
+    while (k<len)
+    {
+        if( k in obj && callback.call(thisArg, obj[k], k, obj) )
+        {
+            items.push(obj[k]);
+        }
+        k++;
+    }
     return items;
 }
 

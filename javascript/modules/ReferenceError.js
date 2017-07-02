@@ -8,8 +8,8 @@
  */
 function ReferenceError( message , line, filename )
 {
+    this.name='ReferenceError';
     Error.call(this, message , line, filename);
-    this.type='ReferenceError';
 };
 System.ReferenceError =ReferenceError;
 ReferenceError.prototype = Object.create( Error.prototype );
