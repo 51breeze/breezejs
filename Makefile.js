@@ -73,7 +73,7 @@ function getType( type )
  * @param stack
  * @returns {string}
  */
-function createDescription( stack )
+function createDescription( stack , owner )
 {
     var desc = {};
     desc.__stack__ = stack;
@@ -81,6 +81,7 @@ function createDescription( stack )
     desc['type'] = getType( stack.type() );
     desc['privilege'] =stack.qualifier();
     desc['static'] = !!stack.static();
+    desc['owner'] = owner;
     if( stack.final() )
     {
         desc['final'] =stack.final();
@@ -234,96 +235,83 @@ function parseMetaType( describe, currentStack, metaTypeStack , config, project,
     }
 }
 
-/**
- * 获取类的成员信息
- */
-function getPropertyDescription( stack , config , project , syntax )
+function mergeImportClass(target, scope)
 {
+    for (var i in scope)
+    {
+       if( scope[i].id==="class" )
+       {
+           target[i] = scope[i].fullclassname;
+       }
+    }
+}
+
+function getDeclareClassDescription( stack )
+{
+    var list = {'static':{},'proto':{},'import':{},'constructor':{},'attachContent':{} };
+    var isstatic = stack.static();
+    var type = stack.fullclassname();
+    var prev = null;
     var data = stack.content();
     var i = 0;
-    var item;
     var len = data.length;
-    var isstatic = stack.static();
+    var item;
 
-    // 组合接口
-    var list = {'static':{},'proto':{},'import':{},'constructor':{}, 'attachContent':{}};
-    var define = stack.parent().scope().define();
-    for ( var j in define )
-    {
-        list['import'][j]=define[j].fullclassname;
-    }
-
-    var prev = null;
-    var bindablelist = {};
-    for ( ; i< len ; i++ )
+    for (; i < len; i++)
     {
         item = data[i];
-        if( item instanceof Ruler.STACK )
+        if (item instanceof Ruler.STACK)
         {
-            var ref =  item.static() || isstatic ? list.static : list.proto;
+            var ref = item.static() || isstatic ? list.static : list.proto;
+
             //跳过构造函数
-            if( item.keyword() === 'function' && item.name() === stack.name() && !isstatic )
+            if (item.keyword() === 'function' && item.name() === stack.name() && !isstatic)
             {
-                list.constructor= createDescription(item);
+                list.constructor = createDescription(item);
                 continue;
             }
 
             //访问器
-            if( item instanceof Ruler.SCOPE && item.accessor() )
+            if (item instanceof Ruler.SCOPE && item.accessor())
             {
-                var refObj = ref[ item.name() ];
-                if( !refObj )
-                {
-                    ref[ item.name() ] = refObj = createDescription(item);
-                    refObj.value={};
+                var refObj = ref[item.name()];
+                if (!refObj) {
+                    ref[item.name()] = refObj = createDescription(item, type);
+                    refObj.value = {};
                 }
-                refObj.value[ item.accessor() ] = createDescription( item );
+                refObj.value[item.accessor()] = createDescription(item, type);
                 refObj.isAccessor = true;
-                if( item.accessor()==='get' )
-                {
-                    refObj.type = refObj.value[ item.accessor() ].type;
+                if (item.accessor() === 'get') {
+                    refObj.type = refObj.value[item.accessor()].type;
                 }
-                if( item.accessor()==='set' )
-                {
-                    refObj.paramType = refObj.value[ item.accessor() ].paramType;
+                if (item.accessor() === 'set') {
+                    refObj.paramType = refObj.value[item.accessor()].paramType;
                     refObj.param = refObj.paramType;
                 }
 
-            }else if( item.keyword() !== 'metatype' )
+            }else if (item.keyword() !== 'metatype')
             {
-                ref[ item.name() ] =  createDescription(item);
+                ref[item.name()] = createDescription(item, type);
             }
 
             //为当前的成员绑定一个数据元
-            if( prev && prev.keyword()==='metatype' )
+            if (prev && prev.keyword() === 'metatype')
             {
-                parseMetaType( ref, item, prev , config , project , syntax , list );
-                if( ref[ item.name() ].bindable ===true ){
-                    bindablelist[ item.name() ]=ref[ item.name() ];
-                }
-                prev=null;
+                parseMetaType(ref, item, prev, config, project, syntax, list);
+                prev = null;
             }
             prev = item;
         }
     }
 
-    //绑定器必须是一个可读可写的属性
-    for( var p in bindablelist )
-    {
-        if( !bindablelist[p].value.get || !bindablelist[p].value.set)
-        {
-            throw new TypeError('Property must be readable and writable of Binding for "'+p+'"');
-        }
-    }
-
     list['inherit'] = stack.extends() ? stack.extends() : null;
-    list['package']=stack.parent().name();
-    list['type']=stack.fullclassname();
-    list['nonglobal']=true;
-    list['fullclassname']= stack.fullclassname();
-    list['classname']=stack.name();
+    list['package'] = stack.parent().keyword()==="package" ? stack.parent().name() : "";
+    list['type'] = stack.fullclassname();
+    list['nonglobal'] = true;
+    list['fullclassname'] = stack.fullclassname();
+    list['classname'] = stack.name();
 
-    if( stack.keyword()==='interface' )
+    if (stack.keyword() === 'interface')
     {
         list['implements'] = [];
         list['isDynamic'] = false;
@@ -331,7 +319,7 @@ function getPropertyDescription( stack , config , project , syntax )
         list['isFinal'] = false;
         list['id'] = 'interface';
 
-    }else
+    } else
     {
         list['implements'] = stack.implements();
         list['isDynamic'] = stack.dynamic();
@@ -341,6 +329,89 @@ function getPropertyDescription( stack , config , project , syntax )
         list['id'] = 'class';
     }
     return list;
+}
+
+var root_block_declare=['class','interface','const','var','let','function','namespace'];
+
+/**
+ * 获取类的成员信息
+ */
+function getPropertyDescription( stack , config , project , syntax )
+{
+    var moduleClass = {'static':{},'proto':{},'import':{},'constructor':{},'attachContent':{},
+        "namespaces":{}, "use":{},"declare":{},"nonglobal":true,"type":'' };
+
+    var has = false;
+    var data = stack.content();
+    var i = 0;
+    var item;
+    var len = data.length;
+
+    for( ;i<len ;i++ )
+    {
+        item = data[i];
+        if( !(item instanceof Ruler.STACK) )
+        {
+            continue;
+        }
+
+        var id = item.keyword();
+        if( id ==="package" )
+        {
+            if( has )Utils.error("package cannot have more than one");
+            has = true;
+            var datalist = item.content();
+            var value;
+            for(var b=0; b< datalist.length; b++ )
+            {
+                value = datalist[b];
+                if( value instanceof Ruler.STACK )
+                {
+                    if (value.keyword() === "class" || value.keyword() === "interface")
+                    {
+                        Utils.merge(false, moduleClass, getDeclareClassDescription(value) );
+
+                    } else if ( value.keyword() === "namespace" )
+                    {
+                        if( moduleClass.namespaces.hasOwnProperty( value.name() ) )
+                        {
+                            Utils.error('"'+value.name()+'" is already been declared');
+                        }
+                        moduleClass.namespaces[ value.name() ] = createDescription( value );
+                        moduleClass.package = item.name();
+                        moduleClass.fullclassname =  moduleClass.package;
+                        moduleClass.classname =  moduleClass.package;
+                        moduleClass.id="namespace";
+                    }
+                }
+            }
+            mergeImportClass( moduleClass.import, item.scope().define() );
+
+        }else if( root_block_declare.indexOf(id) >= 0 )
+        {
+            if( moduleClass.declare.hasOwnProperty( item.name() ) )
+            {
+                Utils.error('"'+item.name()+'" is already been declared');
+            }
+
+            if( id ==="class" || id ==="interface" )
+            {
+                moduleClass.declare[ item.name() ] =  getDeclareClassDescription( item );
+
+            }else if( item.name() )
+            {
+                moduleClass.declare[ item.name() ] = createDescription(item);
+            }
+
+        }else
+        {
+            Utils.error('Unexpected expression');
+        }
+    }
+
+    //root block
+    mergeImportClass( moduleClass.import, stack.scope().define() );
+    return moduleClass;
 }
 
 //构建代码描述
@@ -359,18 +430,8 @@ function makeCodeDescription( content ,config )
 
     //解析代码语法
     var scope = R.start();
-    if( !(scope.content()[0] instanceof Ruler.SCOPE)  )
-    {
-        throw new Error('Fatal error');
-    }
-    scope = scope.content()[0].content()[0];
-    if( !(scope instanceof Ruler.SCOPE) || !( scope.keyword() === 'class' || scope.keyword() === 'interface') )
-    {
-        throw new Error('Fatal error in '+sourcefile);
-    }
     return scope;
 }
-
 
 /**
  * 加载并解析模块的描述信息
@@ -470,48 +531,29 @@ const builder={
              var options =  {
                  paths: [ lessPath ],
                  globalVars:themes.default,
-                 compress: false
+                 compress: config.minify ==='on' ,
              };
 
-             var cssContnets=[];
-             var i = 0;
-             var style =  styleContents.map(function (e) {
-                 return "\n@import 'mixins.less';\n" +e;
-             })
-             style.unshift( "\n@import 'main.less';\n" );
-             var len = style.length;
-
-             for( ; i<len; i++ )
-             {
-                 (function (str, css, i ) {
-
-                     less.render(str, options, function (err, output) {
-                         if (err) {
-                             Utils.error(err.message);
-                             Utils.error(err.extract.join('\n'));
-                             css.splice(i, 0, '');
-                         } else {
-                             css.splice(i, 0, output.css);
-                         }
+             var style = styleContents.map(function (e, i) {
+                 e.replace(/\B@(\w+)\s*:/gi,function (a, b , c) {
+                     e=e.replace( new RegExp('@'+b,"gi"),function (a){
+                         return '@'+b+i;
                      });
+                 });
+                 return e;
+             })
 
-                 })(style[i], cssContnets , i )
-             }
-
-             var id = setInterval(function () {
-                 if( cssContnets.length === len )
-                 {
-                     clearInterval(id);
-                     var str = cssContnets.join('\n');
-                     if( config.minify ==='on' )
-                     {
-                         str = uglify.minify(str, {mangle: true, fromString: true}).code;
-                     }
+             style.unshift( "\n@import 'mixins.less';\n" );
+             style.unshift( "\n@import 'main.less';\n" );
+             less.render( style.join("\n") , options, function (err, output) {
+                 if (err) {
+                     Utils.error(err.message);
+                     Utils.error(err.extract.join('\n'));
+                 } else {
                      filename = PATH.resolve(Utils.getBuildPath(config, 'build.webroot.static.css'), config.bootstrap + '.css');
-                     fs.writeFileSync(filename, str );
+                     fs.writeFileSync(filename, output.css );
                  }
-             },1);
-
+             });
          }
 
          if( script )

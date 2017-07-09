@@ -119,15 +119,15 @@ System.typeOf = function typeOf(instanceObj)
  */
 System.instanceOf = function instanceOf(instanceObj, theClass)
 {
-    if (theClass === System.Class)return instanceObj instanceof System.Class && instanceObj.constructor.prototype===instanceObj;
-    if ( instanceObj instanceof System.Class && instanceObj.constructor.prototype !== instanceObj )
+    if (theClass === System.Class)return instanceObj instanceof System.Class;
+    if ( instanceObj && instanceObj.constructor instanceof System.Class )
     {
-        var objClass = instanceObj.constructor.prototype;
+        var objClass = instanceObj.constructor;
         while (objClass)
         {
             if (objClass === theClass)return true;
             if( !(objClass instanceof System.Class) )break;
-            objClass = Internal.$get(objClass,"extends");
+            objClass = objClass["extends"];
         }
         if( objClass.prototype )instanceObj = objClass.prototype;
     }
@@ -149,10 +149,10 @@ System.instanceOf = function instanceOf(instanceObj, theClass)
  */
 System.is=function is(instanceObj, theClass)
 {
-    if( theClass === System.Class )return instanceObj instanceof System.Class && instanceObj.constructor.prototype===instanceObj;
-    if( instanceObj instanceof System.Class && instanceObj.constructor.prototype !== instanceObj )
+    if( theClass === System.Class )return instanceObj instanceof System.Class;
+    if( instanceObj && instanceObj.constructor instanceof System.Class  )
     {
-        var objClass =instanceObj.constructor.prototype;
+        var objClass =instanceObj.constructor;
         while (objClass)
         {
             if (objClass === theClass)return true;
@@ -166,12 +166,12 @@ System.is=function is(instanceObj, theClass)
                     var interfaceModule = impls[i];
                     while (interfaceModule) {
                         if (interfaceModule === theClass)return true;
-                        interfaceModule = Internal.$get(interfaceModule,"extends");
+                        interfaceModule =interfaceModule["extends"];
                     }
                 }
             }
             if( !(objClass instanceof System.Class) )break;
-            objClass =Internal.$get(objClass,"extends");
+            objClass =objClass["extends"];
         }
         if( objClass.prototype )instanceObj = objClass.prototype;
     }

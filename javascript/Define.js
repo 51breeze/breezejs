@@ -41,23 +41,16 @@ function define(name , descriptions , isInterface )
     //如果是定义类或者接口
     if( type === "object" )
     {
-        classModule.description = descriptions;
-        if( typeof description.constructor === "function" )
-        {
-            descriptions.constructor.prototype.constructor = classModule;
-        }
-
-       /* var construct = descriptions.constructor;
+        var constructor = descriptions.constructor;
         for (var prop in descriptions )classModule[prop] = descriptions[prop];
         classModule.constructor=null;
-        if( typeof construct === "function" )
+        if( typeof constructor === "function" )
         {
-            classModule.constructor = construct;
-            //construct.prototype.constructor = classModule;
-            construct.prototype = classModule;
+            classModule.constructor = constructor;
+            constructor.prototype.constructor = classModule;
             //开放原型继承
-            //classModule.prototype = descriptions.constructor.prototype;
-        }*/
+            classModule.prototype = constructor.prototype;
+        }
     }
     return classModule;
 }

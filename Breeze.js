@@ -16,6 +16,7 @@ const config = {
     'skin_file_suffix':'.html',
     'project_file_suffix':'.as',
     'browser':'enable',
+    'scene':'product',                //编译模试 product 生产， dev 开发
 };
 
 // 合并传入的参数
