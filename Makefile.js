@@ -246,9 +246,9 @@ function mergeImportClass(target, scope)
     }
 }
 
-function getDeclareClassDescription( stack )
+function getDeclareClassDescription( stack , isInternal )
 {
-    var list = {'static':{},'proto':{},'import':{},'constructor':{},'attachContent':{} };
+    var list = {'static':{},'proto':{},'import':{},'constructor':{},'attachContent':{} , 'isInternal': isInternal };
     var isstatic = stack.static();
     var type = stack.fullclassname();
     var prev = null;
@@ -331,15 +331,15 @@ function getDeclareClassDescription( stack )
     return list;
 }
 
-var root_block_declare=['class','interface','const','var','let','function','namespace'];
+var root_block_declared=['class','interface','const','var','let','function','namespace'];
 
 /**
  * 获取类的成员信息
  */
 function getPropertyDescription( stack , config , project , syntax )
 {
-    var moduleClass = {'static':{},'proto':{},'import':{},'constructor':{},'attachContent':{},
-        "namespaces":{}, "use":{},"declare":{},"nonglobal":true,"type":'' };
+    var moduleClass = {'static':{},'proto':{},'import':{},'constructor':{},'attachContent':{},"rootContent":[],
+        "namespaces":{}, "use":{},"declared":{},"nonglobal":true,"type":'' };
 
     var has = false;
     var data = stack.content();
@@ -379,28 +379,28 @@ function getPropertyDescription( stack , config , project , syntax )
                         }
                         moduleClass.namespaces[ value.name() ] = createDescription( value );
                         moduleClass.package = item.name();
-                        moduleClass.fullclassname =  moduleClass.package;
-                        moduleClass.classname =  moduleClass.package;
+                        moduleClass.fullclassname =  moduleClass.package ? moduleClass.package+"."+value.name() : value.name();
+                        moduleClass.classname = value.name();
                         moduleClass.id="namespace";
                     }
                 }
             }
             mergeImportClass( moduleClass.import, item.scope().define() );
 
-        }else if( root_block_declare.indexOf(id) >= 0 )
+        }else if( root_block_declared.indexOf(id) >= 0 )
         {
-            if( moduleClass.declare.hasOwnProperty( item.name() ) )
+            if( moduleClass.declared.hasOwnProperty( item.name() ) )
             {
                 Utils.error('"'+item.name()+'" is already been declared');
             }
 
             if( id ==="class" || id ==="interface" )
             {
-                moduleClass.declare[ item.name() ] =  getDeclareClassDescription( item );
+                moduleClass.declared[ item.name() ] =  getDeclareClassDescription( item , true );
 
             }else if( item.name() )
             {
-                moduleClass.declare[ item.name() ] = createDescription(item);
+                moduleClass.declared[ item.name() ] = createDescription(item);
             }
 
         }else
@@ -495,6 +495,19 @@ function loadModuleDescription( syntax , file , config , project , resource , su
     description.uid= id;
     description.filename = sourcefile.replace(/\\/g,'/');
     scope.filename = description.filename;
+    scope.description = description;
+
+    /*for( var p in description.declared )
+    {
+        if( description.declared[p].id==="class" )
+        {
+            var pkg = fullclassname.split('.').slice(0,-1);
+            description.declared[p].package = pkg.join('.');
+            pkg.push( description.declared[p].classname );
+            description.declared[p].fullclassname = pkg.join(".");
+            define(syntax, description.declared[p] , description );
+        }
+    }*/
 
     //加载导入模块的描述
     for (var i in description.import)
@@ -648,6 +661,7 @@ function loadFragmentModuleDescription( syntax, fragmentModule, config , project
     description.uid= new Date().getTime();
     description.filename = fragmentModule.filepath.replace(/\\/g,'/');
     scope.filename=description.filename;
+    scope.description=description;
 
     //加载导入模块的描述
     for (var i in description.import)
