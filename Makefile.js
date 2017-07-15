@@ -248,7 +248,7 @@ function mergeImportClass(target, scope)
 
 function getDeclareClassDescription( stack , isInternal )
 {
-    var list = {'static':{},'proto':{},'import':{},'constructor':{},'attachContent':{} , 'isInternal': isInternal };
+    var list = {'static':{},'proto':{},'import':{},'constructor':{},'attachContent':{} ,'use':{}, 'isInternal': isInternal };
     var isstatic = stack.static();
     var type = stack.fullclassname();
     var prev = null;
@@ -269,6 +269,11 @@ function getDeclareClassDescription( stack , isInternal )
             {
                 list.constructor = createDescription(item);
                 continue;
+
+            } else if ( item.keyword() === "use" )
+            {
+                moduleClass.use[ item.name() ] = 'namespace';
+                continue
             }
 
             //访问器
@@ -331,7 +336,36 @@ function getDeclareClassDescription( stack , isInternal )
     return list;
 }
 
-var root_block_declared=['class','interface','const','var','let','function','namespace'];
+
+function getNamespaceValue( stack, classModule )
+{
+    var express = stack.content().slice();
+    express.shift();
+    express = express[0].content()[0].content().slice();
+    express.splice(0, 2);
+    var scope = stack.getScopeOf();
+    var id = scope.keyword();
+    var ret;
+    if( id==="package" )
+    {
+        ret = classModule.package+":"+stack.name();
+
+    }else if( id==="class" )
+    {
+        ret = classModule.package+":"+classModule.classname+"/"+stack.qualifier()+":"+stack.name();
+
+    }else if( id==="function" )
+    {
+        ret = classModule.package+":"+classModule.classname+"/"+stack.qualifier()+":"+scope.name()+"/"+classModule.package+":"+stack.name();
+    }
+    if (express.length === 1)
+    {
+        ret = express[0].value.replace(/[\"\']/g,'');
+    }
+    return ret;
+}
+
+var root_block_declared=['class','interface','const','var','let','use','function','namespace'];
 
 /**
  * 获取类的成员信息
@@ -340,6 +374,10 @@ function getPropertyDescription( stack , config , project , syntax )
 {
     var moduleClass = {'static':{},'proto':{},'import':{},'constructor':{},'attachContent':{},"rootContent":[],
         "namespaces":{}, "use":{},"declared":{},"nonglobal":true,"type":'' };
+    moduleClass.fullclassname = stack.fullclassname;
+    var fullclassname = stack.fullclassname.split('.');
+    moduleClass.classname = fullclassname.pop();
+    moduleClass.package = fullclassname.join(".");
 
     var has = false;
     var data = stack.content();
@@ -380,8 +418,13 @@ function getPropertyDescription( stack , config , project , syntax )
                         moduleClass.namespaces[ value.name() ] = createDescription( value );
                         moduleClass.package = item.name();
                         moduleClass.fullclassname =  moduleClass.package ? moduleClass.package+"."+value.name() : value.name();
+                        moduleClass.namespaces[ value.name() ].value = getNamespaceValue( value, moduleClass);
                         moduleClass.classname = value.name();
                         moduleClass.id="namespace";
+                    }
+                    else if ( value.keyword() === "use" )
+                    {
+                        moduleClass.use[ value.name() ] = 'namespace';
                     }
                 }
             }
@@ -394,9 +437,22 @@ function getPropertyDescription( stack , config , project , syntax )
                 Utils.error('"'+item.name()+'" is already been declared');
             }
 
-            if( id ==="class" || id ==="interface" )
+            if ( id === "namespace" )
+            {
+                if( moduleClass.namespaces.hasOwnProperty( item.name() ) )
+                {
+                    Utils.error('"'+item.name()+'" is already been declared');
+                }
+                moduleClass.namespaces[ item.name() ] = createDescription( item );
+                moduleClass.namespaces[ item.name() ].value = getNamespaceValue( item, moduleClass);
+
+            }else if( id ==="class" || id ==="interface" )
             {
                 moduleClass.declared[ item.name() ] =  getDeclareClassDescription( item , true );
+
+            }else if ( id === "use" )
+            {
+                moduleClass.use[ item.name() ] = 'namespace';
 
             }else if( item.name() )
             {
@@ -489,6 +545,8 @@ function loadModuleDescription( syntax , file , config , project , resource , su
     //需要编译的模块
     var module = makeModules[syntax] || (makeModules[syntax]=[]);
     module.push( scope );
+
+    scope.fullclassname = fullclassname;
 
     //获取模块的描述
     description = getPropertyDescription( scope, config, project , syntax );
@@ -655,11 +713,20 @@ function loadFragmentModuleDescription( syntax, fragmentModule, config , project
     module.push( scope );
     scope.isFragmentModule = true;
 
+    var file = fragmentModule.filepath.replace( new RegExp( config.skin_file_suffix+"$" ),"").replace(/\\/g,'/');
+
+    //获取源文件的路径
+    var sourcefile = filepath(file, config.project_path ).replace(/\\/g,'/');
+
+    //获取对应的包和类名
+    var fullclassname = PATH.relative( config.project_path, sourcefile ).replace(/\\/g,'/').replace(/\//g,'.');
+    scope.fullclassname = fullclassname;
+
     //获取模块的描述
     var description = getPropertyDescription( scope );
     description.isFragmentModule = true;
     description.uid= new Date().getTime();
-    description.filename = fragmentModule.filepath.replace(/\\/g,'/');
+    description.filename = file;
     scope.filename=description.filename;
     scope.description=description;
 
