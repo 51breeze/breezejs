@@ -242,7 +242,7 @@ function builder(config , code, requirements , skins )
     /**
      * 引用全局对象模块
      */
-    var requires = ['System','Class','Interface','Iterator'].concat( globals.slice(0) );
+    var requires = ['System','Class','Namespace','Interface','Iterator'].concat( globals.slice(0) );
     if( requirements )
     {
         for ( var p in requirements )

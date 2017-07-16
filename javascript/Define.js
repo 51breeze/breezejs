@@ -10,7 +10,12 @@ function define(name , descriptions , isInterface )
     if( typeof System[ name ] === "function" )return System[ name ];
     var classModule;
     var type = descriptions ? typeof descriptions : '';
-    if( has.call(modules,name) )
+
+    if(  descriptions instanceof System.Namespace )
+    {
+        return modules[ name ] = descriptions;
+
+    }else if( has.call(modules,name) )
     {
         classModule = modules[ name ];
 
@@ -102,7 +107,7 @@ function toMessage(thisArg, properties, classModule, error, info , method )
         return System.getQualifiedClassName( item );
     }) : [properties];
     if(thisArg)items.unshift( System.getQualifiedClassName( thisArg ) );
-    var msg =(typeof error === "string" ? error : error.message)
+    var msg =(typeof error === "string" ? error : error.message);
     if( !(error instanceof System.Error) )
     {
         var name =error.toString();
@@ -113,12 +118,12 @@ function toMessage(thisArg, properties, classModule, error, info , method )
         {
             msg+="\n "+stack;
         }
-        msg+="\n at "+items.join('.')
+        msg+="\n at "+items.join('.');
         error = new (System[name] || System.Error)( msg , info , classModule.filename);
 
     }else
     {
-        msg+="\n at "+items.join('.')
+        msg+="\n at "+items.join('.');
         error.message= msg+"("+classModule.filename+":"+info+")";
     }
     throw error;
@@ -167,13 +172,13 @@ function makeMethods(method, classModule)
                     case '--;':
                         --ret;
                         Reflect.set(thisArg, property, ret , receiver, classModule);
-                        break;;
+                        break;
                 }
                 return ret;
             }catch(error){
                 toMessage(thisArg, property, classModule, error, info,'get');
             }
-        }
+        };
         case 'set' : return function(info, thisArg, property,value, operator, receiver)
         {
             try{
@@ -187,7 +192,7 @@ function makeMethods(method, classModule)
             }catch(error){
                 toMessage(thisArg, property, classModule, error, info,'set');
             }
-        }
+        };
         case 'delete' : return function(info, thisArg, property)
         {
             try{
@@ -195,7 +200,7 @@ function makeMethods(method, classModule)
             }catch(error){
                 toMessage(thisArg, property, classModule, error, info,'delete');
             }
-        }
+        };
         case 'new' : return function(info, theClass, argumentsList )
         {
             try{
@@ -203,7 +208,7 @@ function makeMethods(method, classModule)
             }catch(error){
                 toMessage(theClass, [], classModule, error, info,'new');
             }
-        }
+        };
         case 'apply' : return function(info,thisArg, property, argumentsList, receiver )
         {
             try{
@@ -216,7 +221,7 @@ function makeMethods(method, classModule)
             }catch(error){
                 toMessage(thisArg, property, classModule, error, info, 'call');
             }
-        }
+        };
         case 'check' : return function (info, type, value)
         {
             if( value == null || type === System.Object )return value;
@@ -225,7 +230,7 @@ function makeMethods(method, classModule)
                 toMessage(null, [], classModule, 'Specify the type of value do not match. must is "' + System.getQualifiedClassName(type) + '"', info, 'Type');
             }
             return value;
-        }
+        };
         case 'throw' : return function(info, error )
         {
             var msg = error.message+' ('+classModule.filename + ':' + info + ')\n';
@@ -245,7 +250,7 @@ System.getDefinitionByName = function getDefinitionByName(name) {
     if(Object.prototype.hasOwnProperty.call(System, name))return System[name];
     for (var i in modules)if (i === name)return modules[i];
     throw new TypeError('"' + name + '" is not define');
-}
+};
 
 /**
  * 返回对象的完全限定类名
@@ -269,7 +274,7 @@ System.getQualifiedClassName = function getQualifiedClassName(value)
         throw new ReferenceError( '"'+name+'" type does not exist' );
     }
     return name;
-}
+};
 /**
  * 获取指定实例对象的超类名称
  * @param value
@@ -277,7 +282,7 @@ System.getQualifiedClassName = function getQualifiedClassName(value)
  */
 System.getQualifiedSuperclassName =function getQualifiedSuperclassName(value)
 {
-    var classname = System.getQualifiedClassName(value)
+    var classname = System.getQualifiedClassName(value);
     if (classname)
     {
         var classModule = System.getDefinitionByName(classname);
@@ -288,4 +293,4 @@ System.getQualifiedSuperclassName =function getQualifiedSuperclassName(value)
         }
     }
     return null;
-}
+};

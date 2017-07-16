@@ -79,7 +79,7 @@ function createDescription( stack , owner )
     desc.__stack__ = stack;
     desc['id'] =stack.keyword();
     desc['type'] = getType( stack.type() );
-    desc['privilege'] =stack.qualifier();
+    desc['privilege'] =stack.qualifier() || "internal";
     desc['static'] = !!stack.static();
     desc['owner'] = owner;
     if( stack.final() )
@@ -248,7 +248,8 @@ function mergeImportClass(target, scope)
 
 function getDeclareClassDescription( stack , isInternal )
 {
-    var list = {'static':{},'proto':{},'import':{},'constructor':{},'attachContent':{} ,'use':{}, 'isInternal': isInternal };
+    var list = {'static':{},'proto':{},'import':{},'constructor':{},'attachContent':{} ,'use':{},'namespaces':{},
+        'isInternal': isInternal,"privilege":"internal" };
     var isstatic = stack.static();
     var type = stack.fullclassname();
     var prev = null;
@@ -256,6 +257,11 @@ function getDeclareClassDescription( stack , isInternal )
     var i = 0;
     var len = data.length;
     var item;
+
+    if( stack.qualifier() )
+    {
+        list.privilege = stack.qualifier();
+    }
 
     for (; i < len; i++)
     {
@@ -272,8 +278,8 @@ function getDeclareClassDescription( stack , isInternal )
 
             } else if ( item.keyword() === "use" )
             {
-                moduleClass.use[ item.name() ] = 'namespace';
-                continue
+                list.use[ item.name() ] = "namespace";
+                continue;
             }
 
             //访问器
@@ -373,7 +379,7 @@ var root_block_declared=['class','interface','const','var','let','use','function
 function getPropertyDescription( stack , config , project , syntax )
 {
     var moduleClass = {'static':{},'proto':{},'import':{},'constructor':{},'attachContent':{},"rootContent":[],
-        "namespaces":{}, "use":{},"declared":{},"nonglobal":true,"type":'' };
+        "namespaces":{}, "use":{},"declared":{},"nonglobal":true,"type":'' ,"privilege":"internal"};
     moduleClass.fullclassname = stack.fullclassname;
     var fullclassname = stack.fullclassname.split('.');
     moduleClass.classname = fullclassname.pop();
@@ -407,7 +413,7 @@ function getPropertyDescription( stack , config , project , syntax )
                 {
                     if (value.keyword() === "class" || value.keyword() === "interface")
                     {
-                        Utils.merge(false, moduleClass, getDeclareClassDescription(value) );
+                        Utils.merge(moduleClass, getDeclareClassDescription(value) );
 
                     } else if ( value.keyword() === "namespace" )
                     {
@@ -424,7 +430,7 @@ function getPropertyDescription( stack , config , project , syntax )
                     }
                     else if ( value.keyword() === "use" )
                     {
-                        moduleClass.use[ value.name() ] = 'namespace';
+                        moduleClass.use[ value.name() ] = "namespace";
                     }
                 }
             }
@@ -432,31 +438,32 @@ function getPropertyDescription( stack , config , project , syntax )
 
         }else if( root_block_declared.indexOf(id) >= 0 )
         {
-            if( moduleClass.declared.hasOwnProperty( item.name() ) )
+            if ( id === "use" )
             {
-                Utils.error('"'+item.name()+'" is already been declared');
-            }
+                moduleClass.use[ item.name() ] = "namespace";
 
-            if ( id === "namespace" )
+            }else
             {
-                if( moduleClass.namespaces.hasOwnProperty( item.name() ) )
-                {
-                    Utils.error('"'+item.name()+'" is already been declared');
+                if (moduleClass.declared.hasOwnProperty(item.name())) {
+                    Utils.error('"' + item.name() + '" is already been declared');
                 }
-                moduleClass.namespaces[ item.name() ] = createDescription( item );
-                moduleClass.namespaces[ item.name() ].value = getNamespaceValue( item, moduleClass);
 
-            }else if( id ==="class" || id ==="interface" )
-            {
-                moduleClass.declared[ item.name() ] =  getDeclareClassDescription( item , true );
+                if (id === "namespace")
+                {
+                    if (moduleClass.namespaces.hasOwnProperty(item.name()))
+                    {
+                        Utils.error('"' + item.name() + '" is already been declared');
+                    }
+                    moduleClass.namespaces[item.name()] = createDescription(item);
+                    moduleClass.namespaces[item.name()].value = getNamespaceValue(item, moduleClass);
 
-            }else if ( id === "use" )
-            {
-                moduleClass.use[ item.name() ] = 'namespace';
+                } else if (id === "class" || id === "interface")
+                {
+                    moduleClass.declared[item.name()] = getDeclareClassDescription(item, true);
 
-            }else if( item.name() )
-            {
-                moduleClass.declared[ item.name() ] = createDescription(item);
+                } else if (item.name()) {
+                    moduleClass.declared[item.name()] = createDescription(item);
+                }
             }
 
         }else
@@ -580,7 +587,7 @@ function loadModuleDescription( syntax , file , config , project , resource , su
 const syntax_supported={
     'php':true,
     'javascript':true
-}
+};
 
 //构建器
 const builder={
@@ -612,7 +619,7 @@ const builder={
                      });
                  });
                  return e;
-             })
+             });
 
              style.unshift( "\n@import 'mixins.less';\n" );
              style.unshift( "\n@import 'main.less';\n" );

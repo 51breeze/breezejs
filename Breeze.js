@@ -8,7 +8,7 @@ const config = {
     'suffix': '.as',            //需要编译文件的后缀
     'debug': 'on',              //是否需要开启调式
     'blockScope': 'enable',     //是否启用块级域
-    'reserved': ['let', 'of'],   //需要保护的关键字
+    'reserved': ['let', 'of','System',"Context"],   //需要保护的关键字
     'minify': 'off',            //是否需要压缩
     'compat_version': '*',      //要兼容的平台 {'ie':8,'chrome':32.5}
     'build_path':'../working',
@@ -16,8 +16,18 @@ const config = {
     'skin_file_suffix':'.html',
     'project_file_suffix':'.as',
     'browser':'enable',
+    'context':{
+        "namespace":"__$0__",
+        "reflect":"__$1__",
+        "package":"Context",
+    },
     'scene':'product',                //编译模试 product 生产， dev 开发
 };
+
+for (var c in config.context )
+{
+    config.reserved.push( config.context[c] );
+}
 
 // 合并传入的参数
 var arguments = process.argv.slice(0).splice(1);
