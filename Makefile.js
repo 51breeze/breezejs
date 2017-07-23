@@ -562,7 +562,7 @@ function loadModuleDescription( syntax , file , config , project , resource , su
     scope.filename = description.filename;
     scope.description = description;
 
-    /*for( var p in description.declared )
+    for( var p in description.declared )
     {
         if( description.declared[p].id==="class" )
         {
@@ -570,9 +570,9 @@ function loadModuleDescription( syntax , file , config , project , resource , su
             description.declared[p].package = pkg.join('.');
             pkg.push( description.declared[p].classname );
             description.declared[p].fullclassname = pkg.join(".");
-            define(syntax, description.declared[p] , description );
+            define(syntax, description.declared[p].fullclassname , description.declared[p] );
         }
-    }*/
+    }
 
     //加载导入模块的描述
     for (var i in description.import)

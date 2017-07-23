@@ -35,7 +35,7 @@ Reflect.apply=function apply( theClass, thisArgument, argumentsList )
     {
         return thisArgument ? theClass.call(thisArgument, argumentsList ) : theClass(argumentsList);
     }
-}
+};
 
 /**
  * Reflect.construct() 方法的行为有点像 new 操作符 构造函数 ， 相当于运行 new target(...args).
@@ -49,7 +49,7 @@ Reflect.construct=function construct(theClass, args, newTarget )
     if( theClass === newTarget )newTarget=undefined;
     if( theClass instanceof Class )
     {
-        if( theClass.isAbstract )
+        if( theClass.abstract )
         {
             throw new TypeError('Abstract class cannot be instantiated');
         }
@@ -91,7 +91,7 @@ Reflect.construct=function construct(theClass, args, newTarget )
     //if (Object.getPrototypeOf(instanceObj) !== theClass.prototype)$setPrototypeOf(instanceObj, theClass.prototype);
     //返回一个新的实例对象
     return instanceObj;
-}
+};
 
 /**
  * 静态方法 Reflect.deleteProperty() 允许用于删除属性。它很像 delete operator ，但它是一个函数。
@@ -127,7 +127,7 @@ Reflect.deleteProperty=function deleteProperty(target, propertyKey)
     }
     delete target[propertyKey];
     return !$has.call(target,propertyKey);
-}
+};
 
 /**
  * 静态方法 Reflect.has() 作用与 in 操作符 相同。
@@ -170,7 +170,7 @@ Reflect.has=function has(target, propertyKey)
         return false;
     }
     return propertyKey in target;
-}
+};
 
 /**
  * 获取目标公开的属性值
@@ -263,7 +263,7 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
     //内置对象以__开头的为私有属性外部不可访问
     if( propertyKey.charAt(0)==='_' && propertyKey.charAt(1)==='_' && propertyKey.slice(-2) ==='__' )return undefined;
     return $get(target, propertyKey, receiver );
-}
+};
 
 /**
  * 设置目标公开的属性值
@@ -371,7 +371,7 @@ Reflect.set=function(target, propertyKey, value , receiver , classScope )
         throw new ReferenceError('"' + propertyKey + '" is not wirtable.');
     }
     return $set(target,propertyKey,value,receiver);
-}
+};
 
 /**
  * 检查是否可访问

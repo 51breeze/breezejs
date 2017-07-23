@@ -1,6 +1,6 @@
 /**
- * 类对象构造器
- * @returns {Class}
+ * 命名空间构造器
+ * @returns {Function}
  * @constructor
  * @require System,Object;
  */
@@ -15,7 +15,7 @@ Namespace.prototype.__prefix__='';
 Namespace.prototype.__uri__='';
 Namespace.prototype.constructor = Namespace;
 Namespace.prototype.toString=function (){return '[object Namespace]'};
-Namespace.prototype.valueOf=function valueOf()
+Namespace.prototype.valueOf =function valueOf()
 {
     return this.__prefix__+this.__uri__;
 };

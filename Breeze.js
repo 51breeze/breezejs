@@ -17,8 +17,11 @@ const config = {
     'project_file_suffix':'.as',
     'browser':'enable',
     'context':{
-        "namespace":"__$0__",
-        "reflect":"__$1__",
+        "public":"_public",
+        "protected":"_protected",
+        "private":"_private",
+        "internal":"_internal",
+        "defineModuleMethod":"Internal.define",
         "package":"Context",
     },
     'scene':'product',                //编译模试 product 生产， dev 开发

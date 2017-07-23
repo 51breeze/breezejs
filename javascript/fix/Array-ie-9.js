@@ -7,8 +7,8 @@ if( !Array.prototype.map )
     Array.prototype.map=function map(callback, thisArg)
     {
         var T, A, k;
-        if (this == null)Internal.throwError('type',"this is null or not defined");
-        if (!System.isFunction(callback))Internal.throwError('type',callback + " is not a function");
+        if (this == null)throw new TypeError("this is null or not defined");
+        if (!System.isFunction(callback))throw new TypeError(callback + " is not a function");
         var O =  System.isObject(this) ? this : [];
         var len = O.length >>> 0;
         if (thisArg)T = thisArg;
@@ -25,8 +25,7 @@ if( !Array.prototype.map )
         }
         return A;
     }
-};
-
+}
 /**
  * 返回指定元素的索引位置
  * @param searchElement

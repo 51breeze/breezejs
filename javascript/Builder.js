@@ -216,6 +216,38 @@ const library={
 };
 
 /**
+ * 执行上下文
+ * @returns {Function}
+ */
+function Context( name )
+{
+    var current = function(name){
+        var c = current.children.hasOwnProperty(name) ? current.children : null;
+        if( !c )
+        {
+            c= current.children[name] = Context(name);
+            c.parent = current;
+            c.root = current.root || current;
+        }
+        return c;
+    };
+    current.label = name;
+    current.parent = null;
+    current.scope = {};
+    current.children={};
+    current.get=function( className , refContext )
+    {
+        refContext = refContext || current;
+        if( refContext.scope.hasOwnProperty(className) )
+        {
+            return refContext.scope[className];
+        }
+        return refContext.scope[className] = new Class();
+    };
+    return current;
+}
+
+/**
  * 合并代码
  * @param config
  * @returns {string}
