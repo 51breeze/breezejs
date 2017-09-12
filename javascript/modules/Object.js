@@ -8,12 +8,26 @@
 function Object( value )
 {
     if ( value != null )return $Object(value);
-    if( !(this instanceof Object) ) return new Object();
+    if( !(this instanceof Object) ) return {};
     return this;
-};
+}
 System.Object = Object;
 Object.prototype = new $Object();
 Object.prototype.constructor=Object;
+
+/**
+ * 定义属性描述
+ */
+Object.defineProperty = $Object.defineProperty;
+if( !Object.defineProperty || ( System.env.platform('IE') && System.env.version(8) ) )
+{
+    Object.defineProperty = function defineProperty(obj, prop, desc)
+    {
+        if( obj == null)throw new TypeError('target is non-object');
+        if( !desc.value )throw new TypeError('description invalid');
+        return obj[prop] = desc.value;
+    }
+}
 
 /**
  * 合并其它参数到指定的 target 对象中
@@ -44,34 +58,32 @@ Object.merge =function merge()
     {
         target = {};
     }
-    var tToken;
-    var token;
-    //只有纯对象或者一个动态类才可以设置属性
-    if( target instanceof System.Class )
+
+    //只有动态类对象允许合并属性
+    if( (target.constructor instanceof System.Class && target.constructor.__T__.dynamic !==true) || target instanceof System.Class )
     {
-        if( !target.constructor.prototype.dynamic )return target;
-        tToken = target.constructor.prototype.token;
+        return target;
     }
 
-    for ( ; i < length; i++ )
+    for ( ;i < length; i++ )
     {
         if ( (options = arguments[ i ]) != null )
         {
-            token=undefined;
-            if( options instanceof System.Class )
+            var token;
+            if( options instanceof System.Class )continue;
+            if( options.constructor instanceof System.Class )
             {
-                token = options.constructor.prototype.token;
-                //只有动态的类才可能有属性
-                if( !options.constructor.prototype.token.dynamic )continue;
+                if( options.constructor.__T__.dynamic !== true )continue;
+                token = options.constructor.__T__.uri[0];
             }
             for ( name in options )
             {
-                if ( token===name || tToken===name )continue;
-                copy = $get(options,name);
+                if( token===name || !$Object.prototype.hasOwnProperty.call(options,name) )continue;
+                copy = options[name];
                 if ( target === copy )continue;
                 if ( deep && copy && ( System.isObject(copy) || ( copyIsArray = System.isArray(copy) ) ) )
                 {
-                    src =  $get(target,name);
+                    src =  target[name];
                     if ( copyIsArray )
                     {
                         copyIsArray = false;
@@ -80,43 +92,48 @@ Object.merge =function merge()
                     {
                         clone = src && System.isObject(src) ? src : {};
                     }
-                    $set(target, name ,Object.merge( deep, clone, copy ) )
+                    target[name]=Object.merge( deep, clone, copy )
 
                 } else if ( typeof copy !== "undefined" )
                 {
-                    $set(target,name,copy);
+                    target[name]=copy;
                 }
             }
         }
     }
     return target;
-}
+};
 
 /**
- * @internal Object.setPrototypeOf
  * 设置对象的原型链
  * @returns {Object}
  */
 Object.setPrototypeOf = $Object.setPrototypeOf || function setPrototypeOf(obj, proto)
 {
+    if( obj == null )throw new TypeError("non-object");
+    if( obj instanceof System.Class || obj.constructor instanceof System.Class )
+    {
+        return false;
+    }
     obj.__proto__ = proto;
     return obj;
-}
-
-/**
- * 定义属性描述
- */
-Object.defineProperty = $Object.defineProperty;
+};
 
 /**
  * 获取对象的原型
- * @internal Object.getPrototypeOf
  */
-Object.getPrototypeOf = $Object.getPrototypeOf;
+Object.getPrototypeOf = $Object.getPrototypeOf || function getPrototypeOf(obj)
+{
+    if( obj == null )throw new TypeError("non-object");
+    if( obj instanceof System.Class || obj.constructor instanceof System.Class )
+    {
+        return null;
+    }
+    return obj.__proto__ ? obj.__proto__ : (obj.constructor ? obj.constructor.prototype : null);
+};
 
 /**
  * 生成一个对象
- * @internal Object.create
  */
 Object.create = $Object.create;
 
@@ -125,25 +142,7 @@ Object.create = $Object.create;
  * @param theClass
  * @returns {Boolean}
  */
-var $isPrototypeOf = $Object.prototype.isPrototypeOf;
-Object.prototype.isPrototypeOf = function( theClass )
-{
-    if( this instanceof System.Class )
-    {
-        var protoClass = this.constructor.prototype;
-        var objClass = theClass;
-        while ( objClass )
-        {
-            if (objClass === protoClass)return true;
-            objClass = $get(objClass,"extends");
-            if( !(objClass instanceof System.Class) )
-            {
-                return Object === protoClass;
-            }
-        }
-    }
-    return $isPrototypeOf.call( this, theClass);
-}
+Object.prototype.isPrototypeOf = $Object.prototype.isPrototypeOf;
 
 /**
  * 表示对象本身是否已经定义了指定的属性。
@@ -154,31 +153,15 @@ Object.prototype.isPrototypeOf = function( theClass )
 var $hasOwnProperty = $Object.prototype.hasOwnProperty;
 Object.prototype.hasOwnProperty = function( name )
 {
-    if( this instanceof System.Class )
+    if( this == null )throw new TypeError("non-object");
+    if( this instanceof  System.Class ) return false;
+    if( this.constructor instanceof System.Class )
     {
-        var objClass = this.constructor.prototype;
-        var isstatic = objClass === this;
-        var desc;
-        do {
-            desc = isstatic ? $get(objClass,"static") : $get(objClass,"proto");
-            if( $hasOwnProperty.call(desc,name) )
-            {
-                var qualifier = $get( $get(desc,name),"qualifier");
-                return typeof qualifier === "undefined" || qualifier === 'public';
-
-            }else if( !isstatic )
-            {
-                var refObj = $get(this,$get(objClass,"token"));
-                if( $hasOwnProperty.call(refObj,name) )
-                {
-                    return true;
-                }
-            }
-        }while( (objClass = $get(objClass,"extends") ) && objClass instanceof System.Class );
-        return false;
+        if( this.constructor.__T__.dynamic !==true )return false;
+        if(  this.constructor.__T__.uri[0] === name )return false;
     }
     return $hasOwnProperty.call(this,name);
-}
+};
 
 /**
  * 表示指定的属性是否存在、是否可枚举。
@@ -190,61 +173,17 @@ Object.prototype.hasOwnProperty = function( name )
 var $propertyIsEnumerable=$Object.prototype.propertyIsEnumerable;
 Object.prototype.propertyIsEnumerable = function propertyIsEnumerable( name )
 {
-    var isClass = this instanceof System.Class;
-    var objClass = isClass ? this.constructor.prototype : null;
-    if( isClass && objClass)
+    if( this == null )throw new TypeError("non-object");
+    if( this instanceof  System.Class ) return false;
+    if( this.constructor instanceof System.Class )
     {
-        //静态类没有可枚举的属性
-        if( this === objClass )return false;
-        //只有当前对象是一个动态类，才可能有枚举的属性
-        if( $get(objClass,"dynamic") !== true )return false;
-
-        //类的成员对象集
-        var proto = $get(objClass,'proto');
-
-        //如果有为动态类设置动态属性
-        if( proto && $hasOwnProperty.call(proto, name) && proto[name].id==='dynamic' )
-        {
-            return proto[name].enumerable !== false;
-        }
-        return false;
+        if( this.constructor.__T__.dynamic !==true )return false;
+        if(  this.constructor.__T__.uri[0] === name )return false;
     }
-
-    //prototype object of private
-    if( name.substr(0,2)==='__' && name.substr(-2)==='__' ) return false;
-
     //symbol property
-    if( Internal.isSymbolPropertyName && Internal.isSymbolPropertyName( name ) )
-    {
-        return false;
-    }
+    if( System.Symbol.isSymbolPropertyName && System.Symbol.isSymbolPropertyName(name) )return false;
     return $propertyIsEnumerable.call(this,name);
-}
-
-/**
- * 设置循环操作动态属性的可用性。
- * 该属性必须存在于目标对象上，原因是：该方法不检查目标对象的原型链。
- * @param name 对象的属性
- * @param isEnum  (default = true)
- * 如果设置为 false，则动态属性不会显示在 for..in 循环中，且方法 propertyIsEnumerable() 返回 false。
- */
-Object.prototype.setPropertyIsEnumerable = function setPropertyIsEnumerable( name, isEnum )
-{
-    if( this instanceof System.Class )
-    {
-        var objClass = this.constructor.prototype;
-        if( objClass && ( objClass === this || name === $get(objClass, "token") ) )
-        {
-           return false;
-        }
-    }
-    if( $hasOwnProperty.call(this, name) )
-    {
-        Object.defineProperty(this, name, {enumerable:isEnum !== false} );
-        return true;
-    }
-    return false;
-}
+};
 
 /**
  * 返回对象可枚举的属性的键名
@@ -253,7 +192,7 @@ Object.prototype.setPropertyIsEnumerable = function setPropertyIsEnumerable( nam
 Object.prototype.keys=function()
 {
     return Object.prototype.getEnumerableProperties.call(this,-1);
-}
+};
 
 /**
  * 返回对象可枚举的属性值
@@ -262,47 +201,39 @@ Object.prototype.keys=function()
 Object.prototype.values=function()
 {
     return Object.prototype.getEnumerableProperties.call(this,1);
-}
+};
 
 /**
  * 获取可枚举的属性
  * @param state
  * @returns {Array}
- * @internal Object.prototype.getEnumerableProperties
  */
 Object.prototype.getEnumerableProperties=function getEnumerableProperties( state )
 {
+    if( this == null )throw new TypeError("non-object");
+    if( this instanceof System.Class )return [];
+    var token;
+    if( this.constructor instanceof System.Class )
+    {
+        if( this.constructor.__T__.dynamic !==true )return [];
+        token = this.constructor.__T__.uri[0];
+    }
     var items=[];
     var prop;
-    var isClass = this instanceof System.Class;
-    var objClass = isClass ? this.constructor.prototype : null;
-    var token;
-    var proto;
-    if( isClass && objClass)
-    {
-        //静态类没有可枚举的属性
-        if( this === objClass )return items;
-        token = $get(objClass,'token');
-        proto = $get(objClass,'proto');
-    }
-
-    var isSymbol = Internal.isSymbolPropertyName;
     for( prop in this )
     {
-        if( prop !== token && !( isSymbol && isSymbol(prop) ) && $propertyIsEnumerable.call(this,prop) )
+        if( System.Symbol.isSymbolPropertyName && System.Symbol.isSymbolPropertyName(prop) )continue;
+        if( prop !== token && $propertyIsEnumerable.call(this,prop) )
         {
             //类中定义的属性成员不可枚举
             //动态类设置的属性可以枚举，但属性描述符enumerable=false时不可枚举
-            if( !(proto && $hasOwnProperty.call(proto, prop) && proto[prop].id==='dynamic' && proto[prop].enumerable === false) )
-            {
-                switch (state){
-                    case -1 : items.push(prop); break;
-                    case  1 : items.push( $get(this,prop) ); break;
-                    case  2 : items[prop] = $get(this,prop); break;
-                    default : items.push({key: prop, value: $get(this,prop)}); break;
-                }
+            switch (state){
+                case -1 : items.push(prop); break;
+                case  1 : items.push( this[prop] ); break;
+                case  2 : items[prop] = this[prop]; break;
+                default : items.push({key: prop, value: this[prop]});
             }
         }
     }
     return items;
-}
+};

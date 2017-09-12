@@ -24,7 +24,7 @@ const config = {
         "defineModuleMethod":"Internal.define",
         "package":"Context",
     },
-    'scene':'product',                //编译模试 product 生产， dev 开发
+    'mode':2, //1 标准模式（开发时使用） 2 性能模式（生产环境使用）
 };
 
 for (var c in config.context )

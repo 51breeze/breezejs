@@ -3,13 +3,13 @@
  * @param src
  * @param props
  * @constructor
- * @require Event,Math,Object;
+ * @require System,Event,Math,Object;
  */
 function MouseEvent( type, bubbles,cancelable  )
 {
     if( !(this instanceof MouseEvent) )return new MouseEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
-};
+}
 System.MouseEvent=MouseEvent;
 MouseEvent.prototype=Object.create( Event.prototype );
 MouseEvent.prototype.constructor=MouseEvent;

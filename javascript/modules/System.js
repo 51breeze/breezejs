@@ -9,10 +9,25 @@ System.decodeURIComponent = decodeURIComponent;
 System.encodeURI = encodeURI;
 System.encodeURIComponent = encodeURIComponent;
 System.isNaN = isNaN;
+System.Infinity = Infinity;
 System.parseFloat = parseFloat;
 System.parseInt = parseInt;
+System.Math = Math;
+System.String = String;
+System.Number = Number;
+System.Boolean  = Boolean;
+System.RegExp = RegExp;
+System.Date = Date;
+System.RegExp = RegExp;
+System.Error  = Error;
+System.TypeError  = TypeError;
+System.ReferenceError  = ReferenceError;
+System.SyntaxError = SyntaxError;
+System.alert=function(a){
+    window.alert(a);
+}
 
-(function(f){
+;(function(f){
     System.setTimeout =f(setTimeout);
     System.setInterval =f(setInterval);
 })(function(f){return function(c,t){
@@ -22,10 +37,10 @@ System.parseInt = parseInt;
 
 System.clearTimeout = function(id){
     return clearTimeout( id );
-}
+};
 System.clearInterval = function(id){
     return clearInterval( id );
-}
+};
 
 /**
  * 环境参数配置
@@ -68,7 +83,7 @@ System.env = {
     env.platform = function platform(name) {
         if (name != null)return name == _platform[0];
         return _platform[0];
-    }
+    };
 
     /**
      * 判断是否为指定的浏览器
@@ -106,10 +121,11 @@ System.env = {
  */
 System.typeOf = function typeOf(instanceObj)
 {
-    if (instanceObj instanceof System.Class && instanceObj.constructor.prototype===instanceObj )return 'class';
+    if (instanceObj instanceof System.Class )return 'class';
     if (instanceObj instanceof System.Interface)return 'interface';
+    if (instanceObj instanceof System.Namespace)return 'namespace';
     return typeof instanceObj;
-}
+};
 
 /**
  * 检查实例对象是否属于指定的类型(不会检查接口类型)
@@ -119,27 +135,19 @@ System.typeOf = function typeOf(instanceObj)
  */
 System.instanceOf = function instanceOf(instanceObj, theClass)
 {
+    if( instanceObj == null && theClass === System.Object )return true;
     if (theClass === System.Class)return instanceObj instanceof System.Class;
-    if ( instanceObj && instanceObj.constructor instanceof System.Class )
-    {
-        var objClass = instanceObj.constructor;
-        while (objClass)
-        {
-            if (objClass === theClass)return true;
-            if( !(objClass instanceof System.Class) )break;
-            objClass = objClass["extends"];
-        }
-        if( objClass.prototype )instanceObj = objClass.prototype;
-    }
+
     //如果不是一个函数直接返回false
-    if (typeof theClass !== "function")return false;
-    if( Object(instanceObj) instanceof theClass )return true;
-    if( theClass === System.Object )return instanceObj instanceof $Object;
-    if( theClass === System.Array )return  instanceObj instanceof $Array;
-    if( theClass === System.String )return instanceObj instanceof $String;
-    if( theClass === System.RegExp )return instanceObj instanceof $RegExp;
+    try {
+        if( theClass instanceof System.Class )theClass = theClass.constructor;
+        if ( Object(instanceObj) instanceof theClass)return true;
+        if (theClass === System.Array)return instanceObj instanceof $Array;
+        if (theClass === System.Object)return instanceObj instanceof $Object;
+    } catch (e) {
+    }
     return false;
-}
+};
 
 /**
  * 检查实例对象是否属于指定的类型(检查接口类型)
@@ -149,14 +157,15 @@ System.instanceOf = function instanceOf(instanceObj, theClass)
  */
 System.is=function is(instanceObj, theClass)
 {
+    if( instanceObj == null && theClass === System.Object )return true;
     if( theClass === System.Class )return instanceObj instanceof System.Class;
     if( instanceObj && instanceObj.constructor instanceof System.Class  )
     {
         var objClass =instanceObj.constructor;
-        while (objClass)
+        if (objClass === theClass)return true;
+        while ( objClass instanceof System.Class )
         {
-            if (objClass === theClass)return true;
-            var impls = objClass.implements;
+            var impls = objClass.__T__.implements;
             if (impls && impls.length > 0)
             {
                 var i = 0;
@@ -166,26 +175,17 @@ System.is=function is(instanceObj, theClass)
                     var interfaceModule = impls[i];
                     while (interfaceModule) {
                         if (interfaceModule === theClass)return true;
-                        interfaceModule =interfaceModule["extends"];
+                        interfaceModule =interfaceModule.__T__["extends"];
                     }
                 }
             }
-            if( !(objClass instanceof System.Class) )break;
-            objClass =objClass["extends"];
+            objClass =objClass.__T__["extends"] || System.Object;
+            if (objClass === theClass)return true;
         }
         if( objClass.prototype )instanceObj = objClass.prototype;
     }
-    
-    //如果不是一个函数直接返回false
-    if (typeof theClass !== "function")return false;
-    if( Object(instanceObj) instanceof theClass )return true;
-    if( theClass === System.Function )return (instanceObj+'').indexOf('function')===0;
-    if( theClass === System.Object )return instanceObj instanceof $Object;
-    if( theClass === System.Array )return  instanceObj instanceof $Array;
-    if( theClass === System.String )return instanceObj instanceof $String;
-    if( theClass === System.RegExp )return instanceObj instanceof $RegExp;
-    return false;
-}
+    return System.instanceOf(instanceObj, theClass);
+};
 
 /**
  * 判断是否为一个可遍历的对象
@@ -386,7 +386,7 @@ System.isFrame=function isFrame( elem )
 {
     var nodename = System.getNodeName(elem);
     return (nodename === 'iframe' || nodename === 'frame');
-}
+};
 
 
 /**
@@ -402,7 +402,7 @@ System.getWindow=function getWindow( elem )
         return elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || window || null;
     }
     return null;
-}
+};
 
 /**
  * 以小写的形式返回元素的节点名
@@ -420,7 +420,7 @@ System.getNodeName = function getNodeName( elem )
  */
 System.trim =function trim(str) {
     return typeof str === "string" ? str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '') : '';
-}
+};
 
 /**
  * 返回一组指定范围值的数组
@@ -434,7 +434,7 @@ System.range =function range(low, high, step) {
     step = System.Math.max(step, 1);
     for (; low < high; low += step)obj.push(low);
     return obj;
-}
+};
 
 /**
  * 将字符串的首字母转换为大写
@@ -517,7 +517,7 @@ System.sprintf = function sprintf() {
         }
     }
     return str;
-}
+};
 /**
  * 把一个对象序列化为一个字符串
  * @param object 要序列化的对象
@@ -617,8 +617,8 @@ function crc32(str, crc) {
         crc = ( crc >>> 8 ) ^ x;
     }
     return System.Math.abs(crc ^ (-1));
-};
-return crc32;
+}
+    return crc32;
 }());
 
 var __uid__=1;
@@ -630,7 +630,7 @@ var __uid__=1;
 System.uid =function uid()
 {
    return (__uid__++)+''+(System.Math.random() * 100000)>>>0;
-}
+};
 
 /**
  * 给一个指定的对象管理一组数据
@@ -662,104 +662,7 @@ System.storage=function storage(target, name , value)
         return val;
     }
     return target[name];
-}
-
-var __globalEvent__=null;
-var __initialized__=false;
-System.globalEvent=function globalEvent( type, callback , ref )
-{
-    if( __globalEvent__===null )
-    {
-        __globalEvent__ = new System.EventDispatcher( typeof document !== "undefined" ? document : undefined );
-    }
-    if( typeof type !=="string" )
-    {
-        return __globalEvent__;
-    }
-    if( typeof callback === "function" )
-    {
-        if( __initialized__ )
-        {
-            callback.call( ref, new System.Event(type)  );
-        }else {
-            __globalEvent__.addEventListener(type, callback, false, 0, ref);
-        }
-
-    }else
-    {
-        __initialized__ = System.Event.INITIALIZED === type;
-        __globalEvent__.dispatchEvent( new System.Event(type) );
-    }
-    return __globalEvent__;
-}
-
-/**
- * 获取属性
- * @private
- */
-Internal.$get = function(target, propertyKey, receiver)
-{
-    if( target==null )return undefined;
-    var value = target[propertyKey];
-    if( Internal.Descriptor && value instanceof Internal.Descriptor )
-    {
-        return value.get ? value.get.call(receiver || target) : value.value;
-    }
-    return value;
-}
-
-/**
- * 设置属性
- * @private
- */
-Internal.$set = function(target,propertyKey,value,receiver)
-{
-    if( target===System )throw new ReferenceError( '"'+propertyKey+'" is not writable' );
-    if( target == null )throw new ReferenceError('target object is null or undfined');
-    var desc = target[propertyKey];
-    if( Internal.Descriptor && desc instanceof Internal.Descriptor )
-    {
-        if( desc.writable=== false )throw new ReferenceError('"'+propertyKey+'" is not writable');
-        if( desc.set ){
-            desc.set.call(receiver||target, value);
-        }else {
-            desc.value = value;
-        }
-        return true;
-    }
-    try {
-        if( typeof target.length === "number" && !System.isNaN( propertyKey ) && System.instanceOf(target, System.Array) )
-        {
-           System.Array.prototype.splice.call(target,propertyKey>>0,0,value);
-        }else{
-            target[ propertyKey ] = value;
-        }
-    }catch (e){
-        return false;
-    }
-    return true;
-}
-
-/**
- * 抛出错误信息
- * @param type
- * @param msg
- */
-Internal.throwError = function throwError(type, msg, line, filename) {
-    switch (type) {
-        case 'type' :
-            throw new System.TypeError(msg, line, filename);
-            break;
-        case 'reference':
-            throw new System.ReferenceError(msg, line, filename);
-            break;
-        case 'syntax':
-            throw new System.SyntaxError(msg, line, filename);
-            break;
-        default :
-            throw new System.Error(msg, line, filename);
-    }
-}
+};
 
 Internal.createSymbolStorage=function(symbol)
 {
@@ -783,4 +686,4 @@ Internal.createSymbolStorage=function(symbol)
         }
         return name==null ? data : data[ name ];
     }
-}
+};

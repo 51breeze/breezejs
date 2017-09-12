@@ -1,5 +1,6 @@
 /**
  * Created by Administrator on 2017/6/17.
+ * @require System,Object,TypeError,ReferenceError
  */
 function State( name )
 {
@@ -22,7 +23,7 @@ State.prototype.name=function name( value )
         throw new TypeError('Invalid param in State.prototype.name');
     }
     this.__name__=value;
-}
+};
 
 State.prototype.stateGroup=function stateGroup( value )
 {
@@ -32,9 +33,9 @@ State.prototype.stateGroup=function stateGroup( value )
         throw new TypeError('Invalid param in State.prototype.stateGroup');
     }
     this.__stateGroup__=value;
-}
+};
 
 State.prototype.includeIn=function includeIn( value )
 {
     return value===this.name() || this.__stateGroup__.indexOf(value) >= 0;
-}
+};

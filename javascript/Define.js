@@ -1,133 +1,72 @@
 /**
  * 定义模块对象
- * @require System,Internal,Class,Interface,Reflect,Object,JSON,Array,Internal.$get,TypeError
+ * @require System,Internal,Class,Interface,Namespace,Reflect,Object,JSON,Array,TypeError,Error
  * @internal
  */
 var modules={};
 var has = $Object.prototype.hasOwnProperty;
-function define(name , descriptions , isInterface )
+var nsvalue={};
+var nslength = 1;
+function getValueOfNS( name )
 {
-    if( typeof System[ name ] === "function" )return System[ name ];
-    var classModule;
-    var type = descriptions ? typeof descriptions : '';
+    if( has.call(nsvalue,name) )return nsvalue[name];
+    return nsvalue[name] = '@ns:'+nslength++;
+}
 
-    if(  descriptions instanceof System.Namespace )
-    {
-        return modules[ name ] = descriptions;
+function getPackageName( name )
+{
+    var index = name.lastIndexOf(".");
+    return index > 0 ? name.substr(0, index) : '';
+}
 
-    }else if( has.call(modules,name) )
-    {
-        classModule = modules[ name ];
+function getContext( name )
+{
+    var key = '/'+getPackageName(name);
+    return modules.hasOwnProperty(key) ? modules[key] : modules[key]={};
+}
 
-    }else if( type === "function" )
-    {
-        classModule = modules[ name ] = descriptions;
+function getClassName(name)
+{
+    return name.substr( name.lastIndexOf(".")+1 );
+}
 
-    }else
+var fix = !$Array.prototype.map;
+function define(requires , callback )
+{
+    var name = requires[0];
+    var pn = getPackageName(name);
+    var context = getContext(name);
+    requires = Array.prototype.map.call( requires , function (item)
     {
-        if( isInterface )
+        if( System.hasOwnProperty( item ) )return System[item];
+        var ref =  null;
+        var prefix = item.substr(0,3);
+        if( prefix === "ns:" || prefix === "if:" )
         {
-            classModule = modules[ name ] = new Interface();
-            descriptions.constructor = null;
-            
+            item = item.substr(3);
+        }
+        var context=getContext( item );
+        var name = getClassName( item );
+        if (prefix === "ns:")
+        {
+            ref = context.hasOwnProperty(name) ? context[ name ] : context[ name ] = new Namespace();
+        } else if (prefix === "if:")
+        {
+            ref = context.hasOwnProperty(name) ? context[ name ] : context[ name ] = new Interface();
         }else
         {
-            classModule = modules[name] = new Class();
-            classModule.del = makeMethods('delete', classModule);
-            classModule.get = makeMethods('get', classModule);
-            classModule.set = makeMethods('set', classModule);
-            classModule.newin = makeMethods('new', classModule);
-            classModule.apply = makeMethods('apply', classModule);
-            classModule.check = makeMethods('check', classModule);
-            classModule.throw = makeMethods('throw', classModule);
+            ref = context.hasOwnProperty(name) ? context[ name ] : context[ name ] = new Class();
         }
-    }
-
-    //如果是定义类或者接口
-    if( type === "object" )
-    {
-        var constructor = descriptions.constructor;
-        for (var prop in descriptions )classModule[prop] = descriptions[prop];
-        classModule.constructor=null;
-        if( typeof constructor === "function" )
-        {
-            classModule.constructor = constructor;
-            constructor.prototype.constructor = classModule;
-            //开放原型继承
-            classModule.prototype = constructor.prototype;
-        }
-    }
-    return classModule;
+        return ref;
+    });
+    requires.push( getValueOfNS("public") );
+    requires.push( getValueOfNS(pn+":internal") );
+    requires.push( getValueOfNS(name+":protected") );
+    requires.push( getValueOfNS(name+":private") );
+    if(fix)requires = requires.slice(0);
+    return callback.apply( context, requires);
 }
 Internal.define = define;
-
-/**
- * 数学运算
- * @private
- * @param a
- * @param o
- * @param b
- * @returns {*}
- */
-function mathOperator( a, o, b)
-{
-    switch (o)
-    {
-        case '=' : return  b;
-        case '+=' : return a+=b;
-        case '-=' : return a-=b;
-        case '*=' : return a*=b;
-        case '/=' : return a/=b;
-        case '%=' : return a%=b;
-        case '^=' : return a^=b;
-        case '&=' : return a&=b;
-        case '|=' :return a|=b;
-        case '<<=' :return a<<=b;
-        case '>>=' :return a>>=b;
-        case '>>>=' :return a>>>=b;
-        default :
-            throw new SyntaxError( 'Invalid operator "'+o+'"'  );
-    }
-}
-
-/**
- * 转换错误消息
- * @private
- * @param thisArg
- * @param properties
- * @param classModule
- * @param error
- * @param info
- * @param method
- */
-function toMessage(thisArg, properties, classModule, error, info , method )
-{
-    var items = System.isArray(properties) ? Array.prototype.map.call(properties,function (item) {
-        if( typeof item === "string" )return item;
-        return System.getQualifiedClassName( item );
-    }) : [properties];
-    if(thisArg)items.unshift( System.getQualifiedClassName( thisArg ) );
-    var msg =(typeof error === "string" ? error : error.message);
-    if( !(error instanceof System.Error) )
-    {
-        var name =error.toString();
-        var index = name.indexOf(':');
-        name = name.substr(0, index);
-        var stack = error.stack;
-        if( stack )
-        {
-            msg+="\n "+stack;
-        }
-        msg+="\n at "+items.join('.');
-        error = new (System[name] || System.Error)( msg , info , classModule.filename);
-
-    }else
-    {
-        msg+="\n at "+items.join('.');
-        error.message= msg+"("+classModule.filename+":"+info+")";
-    }
-    throw error;
-}
 
 /**
  * 获取类的全名
@@ -136,107 +75,7 @@ function toMessage(thisArg, properties, classModule, error, info , method )
  * @returns {string}
  */
 function getFullname(classModule) {
-    return classModule.package ? classModule.package + '.' + classModule.classname : classModule.classname;
-}
-
-/**
- * 生成操作方法
- * @private
- * @param method
- * @param classModule
- * @returns {Function}
- */
-function makeMethods(method, classModule)
-{
-    switch ( method )
-    {
-        case 'get' : return function(info, thisArg, property, operator, receiver)
-        {
-            try{
-                if( property==null )return thisArg;
-                var value=Reflect.get(thisArg, property, receiver, classModule);
-                var ret = value;
-                switch ( operator ){
-                    case ';++':
-                        value++;
-                        Reflect.set(thisArg, property, value , receiver, classModule);
-                        break;
-                    case ';--':
-                        value--;
-                        Reflect.set(thisArg, property, value , receiver, classModule);
-                        break;
-                    case '++;':
-                        ++ret;
-                        Reflect.set(thisArg, property, ret , receiver, classModule);
-                        break;
-                    case '--;':
-                        --ret;
-                        Reflect.set(thisArg, property, ret , receiver, classModule);
-                        break;
-                }
-                return ret;
-            }catch(error){
-                toMessage(thisArg, property, classModule, error, info,'get');
-            }
-        };
-        case 'set' : return function(info, thisArg, property,value, operator, receiver)
-        {
-            try{
-                if( property == null )return value;
-                if( operator && operator !=='=' )
-                {
-                    value = mathOperator( Reflect.get(thisArg, property, receiver, classModule ), operator, value);
-                }
-                Reflect.set(thisArg, property, value, receiver, classModule );
-                return value;
-            }catch(error){
-                toMessage(thisArg, property, classModule, error, info,'set');
-            }
-        };
-        case 'delete' : return function(info, thisArg, property)
-        {
-            try{
-                return Reflect.deleteProperty(thisArg, property);
-            }catch(error){
-                toMessage(thisArg, property, classModule, error, info,'delete');
-            }
-        };
-        case 'new' : return function(info, theClass, argumentsList )
-        {
-            try{
-                return Reflect.construct(theClass, argumentsList);
-            }catch(error){
-                toMessage(theClass, [], classModule, error, info,'new');
-            }
-        };
-        case 'apply' : return function(info,thisArg, property, argumentsList, receiver )
-        {
-            try{
-                if( property )
-                {
-                    return Reflect.apply( Reflect.get(thisArg, property, receiver, classModule ), receiver || thisArg, argumentsList );
-                }else{
-                    return Reflect.apply(thisArg, receiver, argumentsList);
-                }
-            }catch(error){
-                toMessage(thisArg, property, classModule, error, info, 'call');
-            }
-        };
-        case 'check' : return function (info, type, value)
-        {
-            if( value == null || type === System.Object )return value;
-            if ( type && !System.is(value, type) )
-            {
-                toMessage(null, [], classModule, 'Specify the type of value do not match. must is "' + System.getQualifiedClassName(type) + '"', info, 'Type');
-            }
-            return value;
-        };
-        case 'throw' : return function(info, error )
-        {
-            var msg = error.message+' ('+classModule.filename + ':' + info + ')\n';
-            throw new Error( msg );
-        }
-    }
+    return classModule.__T__.package ? classModule.__T__.package + '.' + classModule.__T__.classname : classModule.__T__.classname;
 }
 
 /**
@@ -246,9 +85,10 @@ function makeMethods(method, classModule)
  */
 System.getDefinitionByName = function getDefinitionByName(name) {
 
-    if( Object.prototype.hasOwnProperty.call(modules,name) )return modules[name];
+    var context = getContext(name);
+    name = getClassName(name);
+    if( Object.prototype.hasOwnProperty.call(context,name) )return context[name];
     if(Object.prototype.hasOwnProperty.call(System, name))return System[name];
-    for (var i in modules)if (i === name)return modules[i];
     throw new TypeError('"' + name + '" is not define');
 };
 
@@ -264,13 +104,14 @@ System.getQualifiedClassName = function getQualifiedClassName(value)
     if( value===System )return 'System';
     if( value===JSON )return 'JSON';
     if( value===Reflect )return 'Reflect';
-    if( value instanceof Class )return getFullname(value.constructor.prototype);
+    if( value instanceof Class )return getFullname( value );
     var type = typeof value;
     if( type==='number' || type==='boolean')return System.ucfirst(type);
     var str = (value.constructor || value).toString();
     str = str.substr(0, str.indexOf('(') );
     var name = str.substr(str.lastIndexOf(' ')+1);
-    if( name && !System[name] && !modules[name] ){
+    if( name && !System[name] && !modules[name] )
+    {
         throw new ReferenceError( '"'+name+'" type does not exist' );
     }
     return name;
@@ -286,7 +127,7 @@ System.getQualifiedSuperclassName =function getQualifiedSuperclassName(value)
     if (classname)
     {
         var classModule = System.getDefinitionByName(classname);
-        var parentModule = $get(classModule,"extends");
+        var parentModule = classModule.__T__["extends"];
         if (parentModule)
         {
             return parentModule.fullclassname;

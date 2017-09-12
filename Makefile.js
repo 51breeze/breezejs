@@ -191,7 +191,7 @@ function parseMetaType( describe, currentStack, metaTypeStack , config, project,
             {
                 loadFragmentModuleDescription(syntax, modules[ index ], config, project);
             }
-            describe[ currentStack.name() ].value = 'Internal.define("'+source+'")';
+            describe[ currentStack.name() ].value = ' System.getDefinitionByName("'+source+'")';
         break;
         case 'Bindable' :
             var name = currentStack.name();
@@ -199,27 +199,27 @@ function parseMetaType( describe, currentStack, metaTypeStack , config, project,
             if( item.bindable===true )return;
             if( item.id==='var' )
             {
-                var private_var = currentStack.__name__ = name+'_'+Utils.uid();
+                var private_var = currentStack.__name__ = '@'+name;
                 var privilege = item.privilege;
                 var type = item.type;
                 describe[ private_var ]=item;
                 item.privilege = "private";
                 var setter = [
                     'function(val){',
-                    'var old = Reflect.get(this,"'+private_var+'")',
+                    'var old = this['+config.context.private+'].'+private_var,
                     'if(old!==val){',
-                    'Reflect.set(this,"'+private_var+'",val)',
+                    'this['+config.context.private+'].'+private_var+'=val',
                     'var event = new PropertyEvent(PropertyEvent.CHANGE)',
                     'event.property = "'+name+'"',
                     'event.oldValue = old',
                     'event.newValue = val',
-                    'Reflect.apply(Reflect.get(this,"dispatchEvent"),this,[event])',
+                    'this.dispatchEvent(event)',
                     '}',
                     '}',
                 ];
                 var getter = [
                     'function(val){',
-                    'return Reflect.get(this,"'+private_var+'")',
+                    'return this['+config.context.private+'].'+private_var,
                     '}',
                 ];
                 item = describe[ name ]={
@@ -269,6 +269,16 @@ function getDeclareClassDescription( stack , isInternal )
         if (item instanceof Ruler.STACK)
         {
             var ref = item.static() || isstatic ? list.static : list.proto;
+            var ns = item.qualifier() || 'internal';
+            if( "private,protected,public,internal".indexOf(ns) > -1 )
+            {
+                ns='';
+            }
+            if( ns )
+            {
+                ref = ref[ ns ] || (ref[ ns ]={});
+                list.use[ ns ] = "namespace";
+            }
 
             //跳过构造函数
             if (item.keyword() === 'function' && item.name() === stack.name() && !isstatic)
@@ -351,18 +361,14 @@ function getNamespaceValue( stack, classModule )
     express.splice(0, 2);
     var scope = stack.getScopeOf();
     var id = scope.keyword();
-    var ret;
-    if( id==="package" )
-    {
-        ret = classModule.package+":"+stack.name();
-
-    }else if( id==="class" )
+    var ret = classModule.package+':'+stack.name();
+    if( id==="class" )
     {
         ret = classModule.package+":"+classModule.classname+"/"+stack.qualifier()+":"+stack.name();
 
     }else if( id==="function" )
     {
-        ret = classModule.package+":"+classModule.classname+"/"+stack.qualifier()+":"+scope.name()+"/"+classModule.package+":"+stack.name();
+        ret = classModule.package+":"+classModule.classname+'/'+stack.qualifier()+":"+scope.name()+"/"+classModule.package+":"+stack.name();
     }
     if (express.length === 1)
     {
@@ -390,6 +396,7 @@ function getPropertyDescription( stack , config , project , syntax )
     var i = 0;
     var item;
     var len = data.length;
+    var count = 0;
 
     for( ;i<len ;i++ )
     {
@@ -427,6 +434,8 @@ function getPropertyDescription( stack , config , project , syntax )
                         moduleClass.namespaces[ value.name() ].value = getNamespaceValue( value, moduleClass);
                         moduleClass.classname = value.name();
                         moduleClass.id="namespace";
+                        count++;
+
                     }
                     else if ( value.keyword() === "use" )
                     {
@@ -461,7 +470,8 @@ function getPropertyDescription( stack , config , project , syntax )
                 {
                     moduleClass.declared[item.name()] = getDeclareClassDescription(item, true);
 
-                } else if (item.name()) {
+                } else if (item.name())
+                {
                     moduleClass.declared[item.name()] = createDescription(item);
                 }
             }
@@ -470,6 +480,11 @@ function getPropertyDescription( stack , config , project , syntax )
         {
             Utils.error('Unexpected expression');
         }
+    }
+
+    if( moduleClass.id==="namespace" && count > 1 )
+    {
+        throw new Error('The content of the namespace is defined not greater than one');
     }
 
     //root block
@@ -516,6 +531,7 @@ function loadModuleDescription( syntax , file , config , project , resource , su
 
     if( !fs.existsSync(sourcefile+suffix) )
     {
+        //是否为一个皮肤文件
         if( isComponent===true || !fs.existsSync(sourcefile+config.skin_file_suffix) )
         {
             Utils.error(resource);
@@ -577,7 +593,16 @@ function loadModuleDescription( syntax , file , config , project , resource , su
     //加载导入模块的描述
     for (var i in description.import)
     {
-        loadModuleDescription(syntax, description.import[i], config, project, description.filename );
+        var file =  description.import[i];
+        if( description.package && !globals.hasOwnProperty(file) && file.indexOf('.') < 0 )
+        {
+            if( !fs.existsSync(file+suffix) )
+            {
+                file = description.package +'.'+file;
+                description.import[i] = file;
+            }
+        }
+        loadModuleDescription(syntax, file, config, project, description.filename );
     }
     define(syntax, description.fullclassname, description );
     return description;

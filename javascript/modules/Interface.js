@@ -3,19 +3,16 @@
  * @constructor
  * @require Object;
  */
-function Interface(){};
+function Interface() {
+}
 System.Interface=Interface;
-Interface.prototype = Object.create( Object.prototype );
+Interface.prototype = Object.create( null );
 Interface.prototype.constructor = Interface;
 Interface.prototype.valueOf=function valueOf()
 {
     if(this==null)return this===null ? 'null' : 'undefined';
-    if( this instanceof Interface )
-    {
-        return '[Interface '+this.classname+']';
-    }
-    return Object.prototype.valueOf.call( this );
-}
+    return '[object '+this.__T__.classname+']';
+};
 
 /**
  * 返回指定对象的字符串表示形式。
@@ -24,9 +21,5 @@ Interface.prototype.valueOf=function valueOf()
 Interface.prototype.toString=function toString()
 {
     if(this==null)return this===null ? 'null' : 'undefined';
-    if( this instanceof Interface )
-    {
-        return '[Interface '+this.classname+']';
-    }
-    return Object.prototype.toString.call( this );
-}
+    return '[object Interface]';
+};

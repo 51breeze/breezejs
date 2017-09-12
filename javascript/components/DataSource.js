@@ -4,7 +4,7 @@
 * Copyright © 2015 BreezeJS All rights reserved.
 * Released under the MIT license
 * https://github.com/51breeze/breezejs
-* @require System,Object,Array,DataArray,EventDispatcher,Http,HttpEvent,DataSourceEvent,Math,DataGrep,PropertyEvent;
+* @require System,Object,Array,DataArray,EventDispatcher,Http,HttpEvent,DataSourceEvent,Math,DataGrep,PropertyEvent,Symbol;
 */
 var storage=Internal.createSymbolStorage( Symbol('DataSource') );
 var has = $Object.prototype.hasOwnProperty;
@@ -33,11 +33,11 @@ function DataSource()
                 'rows'  :'rows' //每次获取取多少行数据
             }
         }
-        ,"items":new Array()
+        ,"items":[]
         ,"cached":{
-            'queues':new Array()
+            'queues':[]
             ,'lastSegments':null
-            ,"loadSegments":new Array()
+            ,"loadSegments":[]
         }
         ,"isRemote":false
         ,"source":null
@@ -53,6 +53,7 @@ function DataSource()
 }
 System.DataSource=DataSource;
 DataSource.prototype = Object.create( EventDispatcher.prototype );
+Object.defineProperty( DataSource.prototype, 'constructor', {value:DataSource});
 
 /**
  * 是否为一个远程数据源
@@ -125,8 +126,8 @@ DataSource.prototype.source=function source( resource )
         var cached = storage(this,"cached");
         items.splice(0, items.length);
         cached.lastSegments=null;
-        cached.loadSegments=new Array();
-        cached.queues      =new Array();
+        cached.loadSegments=[];
+        cached.queues      =[];
         storage(this,"nowNotify",false);
         storage(this,"loadCompleted",false);
         return this;
@@ -164,8 +165,8 @@ DataSource.prototype.pageSize=function pageSize( size )
             var cached = storage(this,"cached");
             items.splice(0, items.length);
             cached.lastSegments=null;
-            cached.loadSegments=new Array();
-            cached.queues      =new Array();
+            cached.loadSegments=[];
+            cached.queues      =[];
             storage(this,"nowNotify",false);
             storage(this,"loadCompleted",false);
             this.select();
@@ -237,7 +238,7 @@ DataSource.prototype.__totalSize__= 0;
 DataSource.prototype.totalSize=function totalSize()
 {
     return Math.max( storage(this,"totalSize"), this.realSize() );
-}
+};
 
 /**
  * 获取数据检索对象
@@ -420,7 +421,7 @@ DataSource.prototype.itemByIndex=function itemByIndex( index )
 {
     if( typeof index !== 'number' || index < 0 || index >= this.realSize() )return null;
     return storage(this,'items')[index] || null;
-}
+};
 
 /**
  * 获取指定元素的索引
@@ -431,7 +432,7 @@ DataSource.prototype.itemByIndex=function itemByIndex( index )
 DataSource.prototype.indexByItem=function indexByItem( item )
 {
     return storage(this,'items').indexOf(item);
-}
+};
 
 /**
  * 获取指定索引范围的元素
@@ -442,7 +443,7 @@ DataSource.prototype.indexByItem=function indexByItem( item )
 DataSource.prototype.range=function range( start, end )
 {
     return storage(this,'items').slice(start, end);
-}
+};
 
 /**
  * 选择数据集
@@ -455,7 +456,6 @@ DataSource.prototype.select=function select( page )
     page = page > 0 ? page : this.current();
     page = Math.min( page , isNaN(total)?page:total );
     storage(this,'current', page );
-
     var rows  = this.pageSize();
     var start=( page-1 ) * rows;
     var cached = storage(this,'cached');
@@ -559,6 +559,7 @@ function success(event)
     if( items.length < total )
     {
         storage(this,'loadCompleted', false);
+
         //继续载数据
         doload.call(this);
     }
@@ -610,6 +611,7 @@ function doload()
 
     if( !loading && queue.length > 0 )
     {
+        storage(this,'loading', true);
         page = queue.shift();
         cached.lastSegments = page;
         cached.loadSegments.push(page);
@@ -623,10 +625,8 @@ function doload()
         param[options.requestProfile.offset] = start;
         param[options.requestProfile.rows] = rows;
         source.load(options.url, param, options.method);
-        storage(this,'loading', true);
     }
-};
-
+}
 /**
  * 发送数据通知
  * @private

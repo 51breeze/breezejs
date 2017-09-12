@@ -8,14 +8,13 @@
  */
 System.Symbol = $Symbol || (function()
 {
-
 var tables={};
 var hash={};
 var prefix ='@@symbol';
 var prefixLen =  prefix.length;
-Internal.SYMBOL_KEY_NAME = prefix+'(SYMBOL_KEY_NAME)';
-Internal.SYMBOL_KEY_VALUE= prefix+'(SYMBOL_KEY_VALUE)';
-Internal.isSymbolPropertyName = function isSymbolPropertyName( propName )
+var SYMBOL_KEY_NAME = prefix+'(SYMBOL_KEY_NAME)';
+var SYMBOL_KEY_VALUE= prefix+'(SYMBOL_KEY_VALUE)';
+function isSymbolPropertyName( propName )
 {
     if( propName==null )return false;
     propName=propName.toString();
@@ -24,8 +23,8 @@ Internal.isSymbolPropertyName = function isSymbolPropertyName( propName )
 
 var factor = (function () {
     return function Symbol( name ){
-        this[Internal.SYMBOL_KEY_NAME] = name || '';
-        this[Internal.SYMBOL_KEY_VALUE]= prefix+'('+System.uid()+')';
+        this[SYMBOL_KEY_NAME] = name || '';
+        this[SYMBOL_KEY_VALUE]= prefix+'('+System.uid()+')';
     };
 }());
 
@@ -51,8 +50,8 @@ factor.prototype = Symbol.prototype;
  */
 Symbol.prototype.toString=function toString()
 {
-    return this[Internal.SYMBOL_KEY_VALUE];
-}
+    return this[SYMBOL_KEY_VALUE];
+};
 
 /**
  * 返回Symbol的表示式
@@ -61,7 +60,7 @@ Symbol.prototype.toString=function toString()
 Symbol.prototype.valueOf=function valueOf()
 {
     throw new TypeError ("can't convert symbol to string");
-}
+};
 
 /**
  * 在注册表中生成一个指定名称的symbol。并返回symbol对象
@@ -72,9 +71,9 @@ Symbol["for"] = function( name )
 {
     if( tables[name] )return tables[name];
     tables[name] = Symbol( name );
-    hash[ tables[name][Internal.SYMBOL_KEY_VALUE] ]=name;
+    hash[ tables[name][SYMBOL_KEY_VALUE] ]=name;
     return tables[name];
-}
+};
 
 /**
  * 返回在注册表中的symbol名称
@@ -86,9 +85,10 @@ Symbol.keyFor=function keyFor( symbol )
 {
     if( symbol instanceof Symbol )
     {
-        return hash[ symbol[Internal.SYMBOL_KEY_VALUE] ];
+        return hash[ symbol[SYMBOL_KEY_VALUE] ];
     }
     return undefined;
-}
+};
+Symbol.isSymbolPropertyName = isSymbolPropertyName;
 return Symbol;
 }());

@@ -46,7 +46,6 @@ function done(event)
     var options = this.__options__;
     if (xhr.readyState !== 4)return;
     var match, result = null, headers = {};
-
     System.clearTimeout(this.__timeoutTimer__);
     this.__timeoutTimer__ = null;
 
@@ -73,7 +72,6 @@ function done(event)
             }
         }
     }
-
     var e = new HttpEvent( HttpEvent.SUCCESS );
     e.originalEvent = event;
     e.data = result;
@@ -81,8 +79,12 @@ function done(event)
     e.url = this.__url__;
     e.param = this.__param__;
     this.dispatchEvent(e);
-};
-
+    if( this.__queues__.length>0)
+    {
+        var queue = this.__queues__.shift();
+        this.load.apply(this, queue);
+    }
+}
 function loadStart(event)
 {
     var e = new HttpEvent(HttpEvent.LOAD_START);
@@ -111,6 +113,15 @@ function error() {
     this.dispatchEvent(e);
 }
 
+function getXHR( target )
+{
+    var xhr = window.XMLHttpRequest ? new window.XMLHttpRequest() : new window.ActiveXObject("Microsoft.XMLHTTP");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4)done.call( target );
+    };
+    return xhr;
+}
+
 /**
  * HTTP 请求类
  * @param options
@@ -122,7 +133,11 @@ function Http( options )
     if( !isSupported )throw new Error('Http the client does not support');
     if ( !(this instanceof Http) )return new Http(options);
     this.__options__=Object.merge(true, setting, options);
-    var xhr=null;
+    EventDispatcher.call(this);
+
+    this.__queues__=[];
+
+    /*var xhr=null;
     if( window.XMLHttpRequest )
     {
         xhr = new window.XMLHttpRequest();
@@ -137,11 +152,14 @@ function Http( options )
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4)done.call(self);
         }
-    }
+    }*/
     this.__setHeader__=false;
-    this.__xhr__ = xhr;
+    //this.__xhr__ = xhr;
 }
 System.Http=Http;
+
+
+
 
 /**
  * Difine constan Http accept type
@@ -183,6 +201,8 @@ Http.METHOD = {
     PUT: 'PUT'
 };
 
+Http.JSONP_CALLBACK_NAME = 'JSONP_CALLBACK';
+
 /**
  * 继承事件类
  * @type {Object|Function}
@@ -222,8 +242,12 @@ Http.prototype.abort = function abort()
 Http.prototype.load = function load(url, data, method)
 {
     if (typeof url !== "string")throw new Error('Invalid url');
-    if( this.__loading__ ===true )return false;
-
+    if( this.__loading__ ===true )
+    {
+        this.__queues__.push( [url, data, method] );
+        return false;
+    }
+    this.__loading__=true;
     var options = this.__options__;
     var async = !!options.async;
     var method = method || options.method;
@@ -235,7 +259,7 @@ Http.prototype.load = function load(url, data, method)
     }
     this.__url__ = url;
     this.__param__ = data;
-    this.__loading__=true;
+
     try{
 
         if (options.dataType.toLowerCase() === 'jsonp')
@@ -248,14 +272,18 @@ Http.prototype.load = function load(url, data, method)
                     System.clearTimeout( this.__timeoutTimer__ );
                     this.__timeoutTimer__ = null;
                 }
+                this.__loading__=false;
                 event.url=this.__url__;
                 this.dispatchEvent(event);
+
             }, false, 0, this);
             xhr.send(url, data, method);
 
         } else
         {
-            xhr = this.__xhr__;
+            xhr = this.__xhr__ = getXHR( this );
+
+           /*xhr =  this.__xhr__;
             if( !window.XMLHttpRequest )
             {
                 xhr = this.__xhr__ = new window.ActiveXObject("Microsoft.XMLHTTP");
@@ -264,7 +292,8 @@ Http.prototype.load = function load(url, data, method)
                 {
                     if( xhr.readyState === 4 )done.call(self);
                 }
-            }
+            }*/
+
             data = data != null ? System.serialize(data, 'url') : null;
             if (method === Http.METHOD.GET && data)
             {
@@ -313,7 +342,7 @@ Http.prototype.load = function load(url, data, method)
                 var event = new HttpEvent(HttpEvent.TIMEOUT);
                 event.data =null;
                 event.status = 408;
-                event.url = url
+                event.url = url;
                 self.dispatchEvent(event);
             }
             if (self.__timeoutTimer__)
@@ -375,7 +404,7 @@ function ScriptRequest( async )
     this.__async__ = !!async;
 }
 
-ScriptRequest.prototype = new EventDispatcher();
+ScriptRequest.prototype = Object.create(EventDispatcher.prototype);
 ScriptRequest.prototype.constructor = ScriptRequest;
 ScriptRequest.prototype.__key__ = null;
 ScriptRequest.prototype.__target__ = null;
@@ -442,7 +471,8 @@ Http.JSONP_CALLBACK = function JSONP_CALLBACK(data, key)
             target.dispatchEvent(event);
         }
     }
-}
+};
+
 if( typeof window !=="undefined" )
 {
    window.JSONP_CALLBACK=Http.JSONP_CALLBACK;

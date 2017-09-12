@@ -8,7 +8,7 @@ if( !$Function.prototype.bind )
 {
     Function.prototype.bind = function bind(thisArg)
     {
-        if (typeof this !== "function")Internal.throwError('type', "Function.prototype.bind - what is trying to be bound is not callable");
+        if (typeof this !== "function")throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
         var args = Array.prototype.slice.call(arguments, 1),
             fn = this,
             Nop = function () {

@@ -3,8 +3,9 @@
  * 控制台
  * @require System,Object
  */
-function Console(){ if(this instanceof Console)throw new SyntaxError('is not constructor')};
-
+function Console() {
+    if (this instanceof Console)throw new SyntaxError('is not constructor')
+}
 /**
  * @private
  * @param items
@@ -23,11 +24,12 @@ if( !$console )
     $console={};
     $console.trace=$console.warn=$console.error= $console.dir=$console.assert=$console.time=$console.timeEnd=$console.info=$console.log=function(){};
 }
+var $call = Function.prototype.call;
 Console.log=function log(){
-    $console.log( toString(arguments) );
+    $call.apply($console.log, [$console].concat( [].slice.call(arguments,0) ) );
 };
 Console.info =function info(){
-    $console.info( toString(arguments) );
+    $call.apply($console.info, [$console].concat( [].slice.call(arguments,0) ) );
 };
 Console.trace = function trace(){
     $console.trace( toString(arguments) );
@@ -43,13 +45,13 @@ Console.dir = function dir(){
 };
 Console.assert = function assert(){
     $console.assert();
-}
+};
 Console.time = function time(){
     $console.time();
-}
+};
 Console.timeEnd = function timeEnd(){
     $console.timeEnd();
-}
+};
 System.Console = Console;
 System.log =Console.log;
 System.info=Console.info;

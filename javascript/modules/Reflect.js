@@ -4,9 +4,120 @@
  * @constructor
  * @require Class,Object,Internal.$get,Internal.$set,Error,TypeError,ReferenceError,SyntaxError
  */
-var $rConstruct = $Reflect && $Reflect.construct;
+
 var $has = $Object.prototype.hasOwnProperty;
-var $apply = $Function.prototype.apply;
+var _construct = $Reflect ? $Reflect.construct : function (theClass,args)
+{
+    if( !System.isFunction( theClass ) )
+    {
+        throw new TypeError('is not function');
+    }
+    switch ( args.length )
+    {
+        case 0 :
+            return new theClass();
+        case 1 :
+            return new theClass(args[0]);
+        case 2 :
+            return new theClass(args[0], args[1]);
+        case 3 :
+            return new theClass(args[0], args[1], args[2]);
+        case 4 :
+            return new theClass(args[0], args[1], args[2], args[3]);
+        case 5 :
+            return new theClass(args[0], args[1], args[2], args[3], args[4]);
+        case 6 :
+            return new theClass(args[0], args[1], args[2], args[3], args[4], args[5]);
+        case 7 :
+            return new theClass(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+        case 8 :
+            return new theClass(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+        case 9 :
+            return new theClass(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]);
+        case 10:
+            return new theClass(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]);
+        default :
+            return Function('f,a', 'return new f(a[' + System.range(0, args.length).join('],a[') + ']);')(theClass, args);
+    }
+};
+
+var _apply = $Reflect ? $Reflect.apply : function(target, thisArgument, argumentsList)
+{
+    if( System.typeOf(target) !== "function" )
+    {
+        throw new TypeError('is not function');
+    }
+
+    try {
+        thisArgument = thisArgument === target ? undefined : thisArgument;
+        if (argumentsList != null) {
+            return target.apply(thisArgument === target ? undefined : thisArgument, argumentsList);
+        }
+        if (thisArgument != null) {
+            return target.call(thisArgument);
+        }
+        return target();
+    }catch (e)
+    {
+        alert( e.message );
+        throw new TypeError(e.message);
+    }
+};
+
+var getProtoDescByNs = function(name, proto, ns)
+{
+    var desc;
+    for(var i=0; i< ns.length; i++)
+    {
+        var n = ns[i].valueOf();
+        if( $has.call(proto, n ) &&  $has.call( proto[n].value, name) )
+        {
+            if( desc )
+            {
+                throw new System.ReferenceError('"'+name+'" inaccessible');
+            }
+            desc = proto[ n ];
+        }
+    }
+    return desc;
+};
+
+var description = function(scope, target, name , receiver , ns)
+{
+    var objClass = target.constructor;
+    //表示获取一个类中的属性或者方法（静态属性或者静态方法）
+    var isstatic = target instanceof Class;
+    var desc = null;
+    if( isstatic || objClass instanceof Class )
+    {
+        if( isstatic ) objClass = target;
+        //是否为调用超类中的方法
+        isstatic =  isstatic && receiver===target;
+        var proto = isstatic ? objClass.__T__.method : objClass.__T__.proto;
+        var uri = scope instanceof Class ? scope.__T__.uri : [ objClass.__T__.uri[3] ];
+        //默认命名空间
+        if( $has.call(proto,name) && System.Array.prototype.indexOf.call(uri, proto[ name ].ns ) >=0 )
+        {
+            desc = proto[ name ];
+        }
+        //自定义命名空间
+        if( ns && ns.length > 0 )
+        {
+            var descNs = getProtoDescByNs(name,proto,ns);
+            if( descNs && has.call(descNs.value, name) )
+            {
+                if( desc )
+                {
+                    throw new ReferenceError('"'+name+'" inaccessible');
+                }
+                desc = descNs.value[ name ];
+            }
+        }
+        return desc;
+    }
+    return null;
+};
+
 
 function Reflect(){ if(this instanceof Reflect)throw new SyntaxError('Reflect is not constructor.'); }
 System.Reflect=Reflect;
@@ -23,30 +134,17 @@ Reflect.apply=function apply( theClass, thisArgument, argumentsList )
     {
         theClass = theClass.constructor;
     }
-    if( System.typeOf(theClass) !== "function" )
-    {
-        throw new TypeError('is not function');
-    }
-    if( theClass===thisArgument )thisArgument=undefined;
-    if( argumentsList && System.isArray(argumentsList) )
-    {
-        return $apply.call( theClass, thisArgument, argumentsList );
-    }else
-    {
-        return thisArgument ? theClass.call(thisArgument, argumentsList ) : theClass(argumentsList);
-    }
+    return _apply(theClass, thisArgument, argumentsList || [] );
 };
 
 /**
  * Reflect.construct() 方法的行为有点像 new 操作符 构造函数 ， 相当于运行 new target(...args).
  * @param target
  * @param argumentsList
- * @param newTarget
  * @returns {*}
  */
-Reflect.construct=function construct(theClass, args, newTarget )
+Reflect.construct=function construct(theClass, args )
 {
-    if( theClass === newTarget )newTarget=undefined;
     if( theClass instanceof Class )
     {
         if( theClass.abstract )
@@ -54,43 +152,8 @@ Reflect.construct=function construct(theClass, args, newTarget )
             throw new TypeError('Abstract class cannot be instantiated');
         }
         theClass = theClass.constructor;
-        if( typeof theClass !== "function" )
-        {
-            throw new TypeError('is not constructor');
-        }
-
-    }else if( typeof theClass !== "function" )
-    {
-        throw new TypeError('is not function');
     }
-    args = System.isArray(args) ? args : [];
-    var instanceObj;
-    if( $rConstruct )
-    {
-        instanceObj = newTarget ? $rConstruct(theClass, args, newTarget) : $rConstruct(theClass, args);
-    }else
-    {
-        switch ( args.length )
-        {
-            case 0 :instanceObj = new theClass(); break;
-            case 1 :instanceObj = new theClass(args[0]);break;
-            case 2 :instanceObj = new theClass(args[0], args[1]);break;
-            case 3 :instanceObj = new theClass(args[0], args[1], args[2]);break;
-            case 4 :instanceObj = new theClass(args[0], args[1], args[2], args[3]);break;
-            case 5 :instanceObj = new theClass(args[0], args[1], args[2], args[3], args[4]);break;
-            case 6 :instanceObj = new theClass(args[0], args[1], args[2], args[3], args[4], args[5]);break;
-            case 7 :instanceObj = new theClass(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);break;
-            case 8 :instanceObj = new theClass(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);break;
-            case 9 :instanceObj = new theClass(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]);break;
-            case 10:instanceObj = new theClass(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]);break;
-            default :
-                instanceObj = Function('f,a', 'return new f(a[' + range(0, args.length).join('],a[') + ']);')(theClass, args);
-        }
-    }
-    //原型链引用
-    //if (Object.getPrototypeOf(instanceObj) !== theClass.prototype)$setPrototypeOf(instanceObj, theClass.prototype);
-    //返回一个新的实例对象
-    return instanceObj;
+    return _construct(theClass, args || []);
 };
 
 /**
@@ -106,27 +169,15 @@ Reflect.deleteProperty=function deleteProperty(target, propertyKey)
     if( target.constructor instanceof Class )
     {
         var objClass = target.constructor;
-        if( !objClass.dynamic )return false;
-        var token = objClass.token;
-        var obj = target[token];
-        if( obj && $has.call(obj,propertyKey) )
-        {
-            var protoDesc = objClass.proto;
-
-            //只有动态添加的属性或者是可配置的属性才可以删除
-            if( $has.call(protoDesc,propertyKey) )
-            {
-                var desc = protoDesc[propertyKey];
-                if( desc.configurable === false || desc.id !=='dynamic' )return false;
-                delete protoDesc[propertyKey];
-            }
-            delete obj[propertyKey];
-            return true;
-        }
-        return false;
+        var token = objClass.__T__.uri[0];
+        if( !objClass.__T__.dynamic || token === propertyKey )return false;
     }
-    delete target[propertyKey];
-    return !$has.call(target,propertyKey);
+    if( propertyKey != null && $has.call(target,propertyKey) )
+    {
+        delete target[propertyKey];
+        return true;
+    }
+    return false;
 };
 
 /**
@@ -135,40 +186,11 @@ Reflect.deleteProperty=function deleteProperty(target, propertyKey)
  * @param propertyKey
  * @returns {boolean}
  */
-Reflect.has=function has(target, propertyKey)
+Reflect.has=function has(target, propertyKey, ns)
 {
     if( propertyKey==null || target == null )return false;
-    var objClass = target.constructor;
-    var isstatic = target instanceof Class;
-    if( isstatic || objClass instanceof Class )
-    {
-        if( isstatic )objClass = target;
-        do {
-            var desc= isstatic ? objClass["static"] : objClass.proto;
-            var token = objClass.token;
-            //没有属性描述符默认为public
-            if( !$has.call(desc, propertyKey) )
-            {
-                desc=null;
-                //只有实例对象才有实例属性
-                if( !isstatic && $has.call(target[token],propertyKey) )
-                {
-                    return true;
-                }
-            }
-            if( desc )
-            {
-                var qualifier = desc[propertyKey].qualifier;
-                return !qualifier || qualifier === 'public';
-            }
-            objClass = objClass["extends"];
-            if( !(objClass instanceof Class) )
-            {
-                return propertyKey in (objClass||Object).prototype;
-            }
-        }while ( objClass );
-        return false;
-    }
+    var desc = description(this,target,propertyKey,undefined,ns);
+    if( desc )return !!desc;
     return propertyKey in target;
 };
 
@@ -178,91 +200,54 @@ Reflect.has=function has(target, propertyKey)
  * @param propertyKey
  * @returns {*}
  */
-Reflect.get=function(target, propertyKey, receiver , classScope )
+Reflect.get=function(target, propertyKey, receiver , ns)
 {
     if( propertyKey==null )return target;
-    if( target == null )
+    if( target == null )throw new ReferenceError('target is null or undefined');
+    receiver = receiver || target;
+    //是否静态原型
+    var isstatic = receiver instanceof Class;
+    var desc = description(this,target,propertyKey,receiver,ns);
+    if( !desc )
     {
-        throw new ReferenceError('"Reflect.get" target object is null or undfined');
-    }
-
-    //动态属性
-    if( !System.isNaN(propertyKey) )
-    {
-        return $get(target, propertyKey, receiver );
-    }
-
-    var objClass = target.constructor;
-    var isstatic = target instanceof Class;
-    if( isstatic || objClass instanceof Class )
-    {
-        if( isstatic ) objClass = target;
-
-        //表示获取一个类中的属性或者方法（静态属性或者静态方法）
-        isstatic = (!receiver || receiver===target) && isstatic;
-
-        while( objClass )
+        //如果是一个静态属性的引用报错
+        if( isstatic )
         {
-            var desc= isstatic ? objClass["static"] : objClass.proto;
-            var token = objClass.token;
-            //每个类的实例属性
-            var refObj = target[token];
-            //是否有成员类的描述信息, 默认public属性没有
-            var has = desc && $has.call( desc, propertyKey);
-            //是否有实例属性
-            var hasProp = refObj && $has.call(refObj, propertyKey);
-            //没有属性描述符默认为public  只有非静态的才有实例属性
-            if( !isstatic && !has && hasProp )
-            {
-                return refObj[propertyKey];
-            }
-
-            if( desc && has )
-            {
-               desc = desc[propertyKey];
-               if( ( desc.qualifier !== 'private' || classScope === objClass ) )
-               {
-                   //是否有访问的权限
-                   if (!checkPrivilege(desc, objClass, classScope )  )
-                   {
-                       if (classScope)
-                       {
-                           throw new ReferenceError('"' + propertyKey + '" inaccessible');
-                       }
-                       return undefined;
-                   }
-                   //访问器
-                   if( desc.get )
-                   {
-                       return desc.get.call(receiver || target);
-
-                   }else if( !desc.set )
-                   {
-                       if ( isstatic )return desc.value;
-                       return hasProp ? refObj[propertyKey] : desc.value;
-                   }
-               }
-            }
-            objClass = objClass["extends"];
-            if( !(objClass instanceof Class) )
-            {
-                //默认继承Object
-                if( !objClass )objClass=Object;
-                receiver = target;
-                target = objClass.prototype;
-                objClass=null;
-                break;
-            }
+            throw new ReferenceError( '"'+propertyKey+'" is not exist');
         }
 
-    }else if( System.typeOf(target) === "function" )
-    {
-        target = receiver && receiver !== target ? target.prototype : target;
+        //内置对象属性外部不可访问
+        if( propertyKey === '__proto__' )
+        {
+            return undefined;
+        }
+
+        if( System.isFunction(target) )
+        {
+            return $has.call(target,propertyKey) ? target[propertyKey] : target.prototype[propertyKey] || Object.prototype[propertyKey];
+        }
+        return Object.prototype[propertyKey] || target[propertyKey];
     }
 
-    //内置对象以__开头的为私有属性外部不可访问
-    if( propertyKey.charAt(0)==='_' && propertyKey.charAt(1)==='_' && propertyKey.slice(-2) ==='__' )return undefined;
-    return $get(target, propertyKey, receiver );
+    //一个访问器
+    var getter = desc.value && desc.value.get ? desc.value.get : desc.get;
+    if( getter )
+    {
+        return getter.call(isstatic ? undefined : receiver);
+    }
+
+    //是否为一个实例属性
+    if( !isstatic )
+    {
+        var objClass = target instanceof Class ? target : target.constructor;
+        var _private = objClass.__T__.uri[0];
+        if( $has.call(receiver,_private) && $has.call(receiver[_private],propertyKey) )
+        {
+            return receiver[_private][propertyKey];
+        }
+    }
+    //实例函数 或者 静态属性 或者 静态方法
+    return desc.value || desc;
 };
 
 /**
@@ -272,146 +257,62 @@ Reflect.get=function(target, propertyKey, receiver , classScope )
  * @param value
  * @returns {*}
  */
-Reflect.set=function(target, propertyKey, value , receiver , classScope )
+Reflect.set=function(target, propertyKey, value , receiver ,ns )
 {
-    if( propertyKey==null )return false;
-    if( target == null ){
-        throw new ReferenceError('"Reflect.set" target object is null or undfined');
-    }
-    var objClass = target.constructor;
-    var isstatic = target instanceof Class;
-    if( isstatic || objClass instanceof Class )
+    if( propertyKey==null )return target;
+    if( target == null )throw new ReferenceError('target is null or undefined');
+    receiver = receiver || target;
+    //是否静态原型
+    var isstatic = receiver instanceof Class;
+    var desc = description(this,target,propertyKey,receiver,ns);
+    if( !desc )
     {
-        if( isstatic )objClass = target;
-       isstatic = (!receiver || receiver===target) && objClass === target;
-
-        while(  objClass )
+        //如果是一个静态属性的引用报错
+        if( isstatic || propertyKey==='__proto__' || !$has.call(target,propertyKey) )
         {
-            var desc= isstatic ? objClass["static"] : objClass.proto;
-            var token = objClass.token;
-            var isdynamic = !!objClass.dynamic;
-
-            //实例属性
-            var refObj = target[token];
-            desc = $has.call(desc, propertyKey) ? desc[propertyKey] : null;
-            if( desc && (classScope === objClass || desc.qualifier !== 'private') )
-            {
-                //是否有访问的权限
-                if( !checkPrivilege(desc, objClass, classScope) )
-                {
-                    if(classScope)
-                    {
-                        throw new ReferenceError( '"' + propertyKey + '" inaccessible.');
-                    }
-                    return false;
-                }
-
-                //是否为一个访问器
-                if( $has.call(desc,"set") )
-                {
-                    desc.set.call(receiver || target, value);
-                    return true
-
-                }else if( !$has.call(desc,"get") )
-                {
-                    //不可写操作
-                    if (desc.writable === false)
-                    {
-                        throw new ReferenceError('"' + propertyKey + '" is not writable');
-                    }
-                    if (isstatic)
-                    {
-                        desc["value"]=value;
-                        return true;
-                    }
-                }
-            }
-
-            //默认公开的实例属性
-            if( !isstatic && refObj && $has.call( refObj ,propertyKey ) )
-            {
-                refObj[propertyKey]=value;
-                return true;
-            }
-
-            //动态对象可以动态添加属性
-            if( isdynamic === true )
-            {
-                if( !isstatic )
-                {
-                    if( propertyKey === token || propertyKey==='constructor')
-                    {
-                        throw new SyntaxError('"' + propertyKey + '" is not configurable.');
-                    }
-                    target[propertyKey]=value;
-                    return true;
-                }
-                return false;
-            }
-            objClass=objClass["extends"];
-            if( !(objClass instanceof Class) )
-            {
-                if( !objClass )objClass=Object;
-                receiver = target;
-                target = objClass.prototype;
-                objClass = null;
-            }
+            throw new ReferenceError( '"'+propertyKey+'" is not exist');
         }
+
+        var objClass = receiver.constructor;
+        var isClass =  objClass instanceof Class;
+
+        //设置一个动态属性
+        if( isClass && objClass.__T__.dynamic === true )
+        {
+            return receiver[propertyKey] = value;
+        }
+
+        //如果是一个类的引用
+        if( isClass )
+        {
+            throw new ReferenceError( '"'+propertyKey+'" is not exist');
+        }
+        return target[propertyKey]=value;
     }
 
-    //内置对象以__开头的为私有属性外部不可访问
-    if( propertyKey[0]==='_' && propertyKey[1]==='_' )
+    //一个访问器
+    var setter = desc.value && desc.value.set ? desc.value.set : desc.set;
+    if( setter )
     {
-        throw new ReferenceError('"' + propertyKey + '" inaccessible.');
+        return setter.call(isstatic ? undefined : receiver, value);
     }
 
-    //原型链上的属性或者函数上的属性不可设置
-    if( typeof target === "function" || typeof target[propertyKey] === "function" )
+    //如果在类中没有定义此属性或者是一个常量
+    if( !$has.call(desc, "value") || desc.writable !==true )
     {
-        throw new ReferenceError('"' + propertyKey + '" is not wirtable.');
+        throw new ReferenceError( '"'+propertyKey+'" is not writable');
     }
-    return $set(target,propertyKey,value,receiver);
+
+    //静态属性
+    if( isstatic )
+    {
+        return desc.value = value;
+    }
+    var objClass = target instanceof Class ? target : target.constructor;
+    var _private = objClass.__T__.uri[0];
+    if( $has.call(receiver,_private) && $has.call(receiver[_private],propertyKey) )
+    {
+        return receiver[_private][propertyKey]=value;
+    }
+    throw new ReferenceError( '"'+propertyKey+'" is not exist');
 };
-
-/**
- * 检查是否可访问
- * @private
- * @param descriptor
- * @param referenceModule
- * @param classModule
- * @returns {boolean}
- */
-function checkPrivilege(descriptor,referenceModule, classModule  )
-{
-    if( descriptor )
-    {
-        var qualifier = descriptor.qualifier;
-
-        //不是本类中的成员调用（本类中的所有成员可以相互调用）
-        if( (qualifier && qualifier !=='public') && referenceModule !== classModule )
-        {
-            if( qualifier === 'internal' )
-            {
-                return referenceModule["package"] === classModule["package"];
-
-            }else if( qualifier === 'protected' )
-            {
-               return checkInheritOf( referenceModule, classModule ) || checkInheritOf( classModule, referenceModule );
-            }
-            return false;
-        }
-    }
-    return true;
-}
-
-function checkInheritOf( child, parent )
-{
-    while ( child = child["extends"] )
-    {
-        if( child===parent )
-        {
-            return true;
-        }
-    }
-    return false;
-}

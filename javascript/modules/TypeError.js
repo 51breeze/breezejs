@@ -10,7 +10,7 @@ function TypeError( message , line, filename )
 {
     this.name='TypeError';
     Error.call(this, message , line, filename);
-};
-System.TypeError=TypeError;
+}
 TypeError.prototype =Object.create( Error.prototype );
 TypeError.prototype.constructor=TypeError;
+System.TypeError=TypeError;

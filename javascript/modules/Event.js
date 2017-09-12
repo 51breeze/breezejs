@@ -9,12 +9,11 @@
  */
 function Event( type, bubbles, cancelable )
 {
-   // if ( !System.is(this,Event) )return new Event(  type, bubbles,cancelable );
-    if( type && typeof type !=="string" )Internal.throwError('type','event type is not string');
+    if( type && typeof type !=="string" )throw new TypeError('event type is not string');
     this.type = type;
     this.bubbles = !(bubbles===false);
     this.cancelable = !(cancelable===false);
-};
+}
 System.Event = Event;
 /**
  * 一组事件名的常量
@@ -65,10 +64,10 @@ Event.prototype.shiftKey = false;
 Event.prototype.metaKey = false;
 Event.prototype.toString=function toString(){
     return '[object Event]';
-}
+};
 Event.prototype.valueOf=function valueOf(){
     return '[object Event]';
-}
+};
 
 /**
  * 阻止事件的默认行为
@@ -99,7 +98,7 @@ Event.prototype.stopPropagation = function stopPropagation()
         this.originalEvent.stopPropagation ? this.originalEvent.stopPropagation() :  this.originalEvent.cancelBubble=true;
     }
     this.propagationStopped = true;
-}
+};
 
 /**
  *  阻止向上冒泡事件，并停止执行当前事件类型的所有侦听器
@@ -109,7 +108,7 @@ Event.prototype.stopImmediatePropagation = function stopImmediatePropagation()
     if( this.originalEvent && this.originalEvent.stopImmediatePropagation )this.originalEvent.stopImmediatePropagation();
     this.stopPropagation();
     this.immediatePropagationStopped = true;
-}
+};
 
 /**
  * map event name
@@ -160,7 +159,7 @@ var eventModules=[];
 Event.registerEvent = function registerEvent( callback )
 {
     eventModules.push( callback );
-}
+};
 
 /*
  * 根据原型事件创建一个Event

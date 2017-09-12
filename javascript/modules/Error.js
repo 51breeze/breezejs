@@ -6,7 +6,7 @@
  * @constructor
  * @require Object
  */
-function Error( message , line, filename )
+function Error( message , filename, line )
 {
     message = message ||"";
     var msg = [];
@@ -16,12 +16,14 @@ function Error( message , line, filename )
     {
         message+='('+ msg.join(':') +')';
     }
-    this.message = this.name+": "+message;
-    this.line=line;
-    this.filename =filename;
-};
+    $Error.call(this, message , filename, line);
+    this.message = message;
+    this.line=line || 0;
+    this.filename =filename || '';
+    this.name="Error";
+}
 System.Error=Error;
-Error.prototype =Object.create( Object.prototype );
+Error.prototype =Object.create( $Error.prototype );
 Error.prototype.constructor=Error;
 Error.prototype.line=null;
 Error.prototype.name='Error';
@@ -30,4 +32,4 @@ Error.prototype.filename=null;
 Error.prototype.toString=function ()
 {
     return this.message;
-}
+};

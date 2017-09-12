@@ -33,10 +33,21 @@ if( !Array.prototype.map )
  */
 if ( !Array.prototype.indexOf )
 {
-    Array.prototype.indexOf = function indexOf(searchElement) {
-        var i = 0;
-        for (; i < this.length; i++)if (this[i] === searchElement)
-            return i;
+    Array.prototype.indexOf = function indexOf(searchElement, fromIndex)
+    {
+        if (this == null)throw new TypeError('"this" is null or not defined');
+        var obj = Object(this);
+        var len = obj.length >>> 0;
+        if (len === 0)return -1;
+        var n = +fromIndex || 0;
+        if ( System.Math.abs(n) === System.Infinity)n = 0;
+        if (n >= len)return -1;
+        var k = System.Math.max(n >= 0 ? n : len - System.Math.abs(n), 0);
+        while (k < len)
+        {
+            if (k in obj && obj[k] === searchElement)return k;
+            k++;
+        }
         return -1;
     };
 }

@@ -46,8 +46,7 @@ package breeze.components
         public function set pageUrl( callback:Function ):void
         {
               this.__url__ = callback;
-        };
-
+        }
         /**
          * 获取一个返回url地址的回调函数
          * @returns {Function}
@@ -55,8 +54,7 @@ package breeze.components
         public function get pageUrl():Function
         {
             return this.__url__;
-        };
-
+        }
         /**
          * @private
          */
@@ -78,8 +76,7 @@ package breeze.components
         public function get totalPage():Number
         {
             return this.totalSize > 0 ? Math.ceil( this.totalSize / this.pageSize ) : 1;
-        };
-
+        }
         /**
          * @private
          */
@@ -92,8 +89,7 @@ package breeze.components
         public function set totalSize( num:Number ):void
         {
             this.__totalSize__ = num;
-        };
-
+        }
         /**
          * 获取总数据
          * @returns {Number}
@@ -101,8 +97,7 @@ package breeze.components
         public function get totalSize():Number
         {
             return this.__totalSize__;
-        };
-
+        }
         /**
          * @private
          */
@@ -115,12 +110,11 @@ package breeze.components
         public function get pageSize():Number
         {
            return this.__pageSize__;
-        };
+        }
         public function set pageSize(num:Number):void
         {
             this.__pageSize__ = num;
-        };
-
+        }
         /**
          * 返回当前的偏移量
          * @returns {Number}
@@ -128,8 +122,7 @@ package breeze.components
         public function get offset():Number
         {
             return (this.current - 1) * this.pageSize;
-        };
-
+        }
         /**
          * @private
          */
@@ -142,8 +135,7 @@ package breeze.components
         public function get current():Number
         {
             return this.__current__;
-        };
-
+        }
         /**
          * 设置当前需要显示的分页
          * @param num
@@ -152,6 +144,9 @@ package breeze.components
         {
             num = Math.min( Math.max(1, num), this.totalPage );
             var current = this.__current__;
+
+            alert( num );
+
             if( num !== current )
             {
                 var old = current;
@@ -161,8 +156,7 @@ package breeze.components
                 event.newValue = num;
                 this.dispatchEvent(event);
             }
-        };
-
+        }
         /**
          * @private
          */

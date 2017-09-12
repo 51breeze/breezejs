@@ -4,7 +4,6 @@
  * @constructor
  * @require Object,Symbol
  */
-
 var storage=Internal.createSymbolStorage( Symbol('iterator') );
 var has = $Object.prototype.hasOwnProperty;
 function Iterator( target )
@@ -16,8 +15,7 @@ function Iterator( target )
         "items": Object.prototype.getEnumerableProperties.call( target || [] ),
         "cursor":-1
     });
-};
-
+}
 System.Iterator=Iterator;
 Iterator.prototype = Object.create( Object.prototype );
 Iterator.prototype.constructor = Iterator;
@@ -61,7 +59,7 @@ Iterator.prototype.seek=function seek()
     this.key = current.key;
     this.value = current.value;
     return current;
-}
+};
 
 /**
  * 返回上一个指针位置的元素
@@ -74,7 +72,7 @@ Iterator.prototype.prev=function prev()
     if( cursor < 1 )return false;
     var items = storage(this,"items");
     return items[ cursor-1 ];
-}
+};
 
 /**
  * 返回下一个指针位置的元素。
@@ -87,7 +85,7 @@ Iterator.prototype.next=function next()
     var items = storage(this,"items");
     if( cursor >= items.length )return false;
     return items[ cursor+1 ];
-}
+};
 
 /**
  * 将指针移到到指定的位置并返回当前位置的元素
@@ -110,7 +108,7 @@ Iterator.prototype.move=function move( cursor )
     this.key = current.key;
     this.value = current.value;
     return current;
-}
+};
 
 /**
  * 重置指针
@@ -123,4 +121,4 @@ Iterator.prototype.reset=function reset()
     this.current = undefined;
     storage(this,"cursor", -1);
     return this;
-}
+};

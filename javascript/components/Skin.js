@@ -53,7 +53,7 @@ Skin.prototype.constructor = Skin;
 Skin.prototype.parent=function parent()
 {
     return storage(this,'parent') || null;
-}
+};
 
 /**
  * 获取子级元素
@@ -62,7 +62,7 @@ Skin.prototype.parent=function parent()
 Skin.prototype.children=function children()
 {
     return storage(this,'children') || [];
-}
+};
 
 /**
  * 根据id获取子级元素
@@ -77,7 +77,7 @@ Skin.prototype.getChildById = function getChildById( id )
         return data[id];
     }
     return null;
-}
+};
 
 /**
  * 获取指定索引处的子级元素
@@ -94,7 +94,7 @@ Skin.prototype.getChildAt=function getChildAt( index )
         throw new RangeError('The index out of range');
     }
     return result;
-}
+};
 
 /**
  * 根据子级皮肤返回索引
@@ -112,7 +112,7 @@ Skin.prototype.getChildIndex=function getChildIndex( child )
          }
     }
     return -1;
-}
+};
 
 /**
  * 添加一个子级元素
@@ -121,7 +121,7 @@ Skin.prototype.getChildIndex=function getChildIndex( child )
 Skin.prototype.addChild = function addChild( childElement )
 {
     return Skin.prototype.addChildAt.call(this, childElement, -1 );
-}
+};
 
 /**
  * 在指定索引位置添加元素
@@ -146,7 +146,7 @@ Skin.prototype.addChildAt = function addChildAt( childElement , index )
         return childElement;
     }
     throw new TypeError('The child is not skin element');
-}
+};
 
 /**
  * 移除指定的子级元素
@@ -164,7 +164,7 @@ Skin.prototype.removeChild = function removeChild( childElement )
         return childElement;
     }
     throw new ReferenceError('The child skin does not exists');
-}
+};
 
 /**
  * 移除指定索引的子级元素
@@ -178,7 +178,7 @@ Skin.prototype.removeChildAt = function removeChildAt( index )
     storage(this,'children').splice(index,1);
     storage(child,'parent', null);
     return child;
-}
+};
 
 /**
  * 为当前的皮肤添加一组子级元素, 并清空当前已存在的子级元素
@@ -187,6 +187,7 @@ Skin.prototype.removeChildAt = function removeChildAt( index )
  */
 Skin.prototype.html = function html( childElement )
 {
+     if( childElement == null )return Element.prototype.html.call(this);
      if( !System.instanceOf(childElement,Skin) )
      {
          throw new TypeError('is not child Skin');
@@ -195,7 +196,7 @@ Skin.prototype.html = function html( childElement )
      storage(this,'children', [childElement] );
      storage(childElement,'parent', this );
      return childElement;
-}
+};
 
 /**
  * 当组件准备生成皮肤之前会调用此方法，无需手动调用
@@ -267,7 +268,7 @@ Skin.prototype.currentState = function currentState( name )
         return this;
     }
     return current;
-}
+};
 
 /**
  * 获取设置当前状态组名
@@ -282,7 +283,7 @@ Skin.prototype.layout = function layout( layoutObject )
         return layoutObject;
     }
     return current;
-}
+};
 
 /**
  * 在初始化皮肤皮会先设置宿主组件
@@ -323,7 +324,7 @@ Skin.prototype.render=function render( value )
         storage(this, 'render', old);
     }
     return old;
-}
+};
 
 /**
  * 设置一个皮肤模板
@@ -335,7 +336,7 @@ Skin.prototype.template=function template( value )
     var render = Skin.prototype.render.call(this);
     var result = render.template( value );
     return result === render ? this : result;
-}
+};
 
 /**
  * 为模板设置变量
@@ -348,7 +349,7 @@ Skin.prototype.variable=function variable(name,value)
     var render = Skin.prototype.render.call(this);
     var result = render.variable( name,value );
     return result === render ? this : result;
-}
+};
 
 /**
  * 创建一组子级元素
@@ -483,7 +484,7 @@ Skin.prototype.updateDisplayList=function updateDisplayList()
     {
         Internal["Layout.prototype.target"].call(layoutObject, this);
     }
-}
+};
 
 /**
  * 将皮肤对象转字符串
@@ -491,7 +492,7 @@ Skin.prototype.updateDisplayList=function updateDisplayList()
 Skin.prototype.toString=function toString()
 {
     return '[object Skin]';
-}
+};
 
 /**
  * 对象的表示形式
@@ -500,7 +501,7 @@ Skin.prototype.toString=function toString()
 Skin.prototype.valueOf=function valueOf()
 {
     return '[object Skin]';
-}
+};
 
 //private
 function __toString(skin, hash )
