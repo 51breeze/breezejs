@@ -14,10 +14,11 @@ function Console() {
 function toString(items)
 {
     var str=[];
-    for(var i=0; i<items.length; i++)if(items[i]!=null){
-        str.push( items[i].valueOf ? items[i].valueOf() : Object.prototype.valueOf.call(items[i]) );
+    for(var i=0; i<items.length; i++)
+    {
+      str.push(  items[i] !=null && typeof items[i] === "object" ? items[i].valueOf() : items[i] );
     }
-    return str.join(' ');
+    return str;
 }
 if( !$console )
 {
@@ -26,7 +27,7 @@ if( !$console )
 }
 var $call = Function.prototype.call;
 Console.log=function log(){
-    $call.apply($console.log, [$console].concat( [].slice.call(arguments,0) ) );
+    $call.apply($console.log, [$console].concat( toString( arguments ) ) );
 };
 Console.info =function info(){
     $call.apply($console.info, [$console].concat( [].slice.call(arguments,0) ) );

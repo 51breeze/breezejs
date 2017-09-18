@@ -68,7 +68,7 @@ var fix={
     ,fnHooks:{}
     ,getsizeval:function( prop )
     {
-        if ( System.isWindow(this) )
+        if ( Element.isWindow(this) )
         {
             return Math.max(
                 this['inner'+prop] || 0,
@@ -77,7 +77,7 @@ var fix={
                 this.document.documentElement['client'+prop] || 0
             );
 
-        } else if ( System.isDocument.call(this) )
+        } else if ( Element.isDocument.call(this) )
         {
             return Math.max(
                     this.body['scroll'+prop] || 0,
@@ -220,8 +220,7 @@ var selectorExpr = /^(?:#([\w-]+)|\:?(\w+.*?)|\.([\w-]+)|(\[[\w-]+.*?\]))$/;
 function isSelector( selector )
 {
     return typeof selector === "string" ? selectorExpr.test( selector ) : false;
-};
-
+}
 /**
  * 统一规范的样式名
  * @param name
@@ -241,8 +240,7 @@ function $getStyleName(name )
         return fix.cssPrefixName + name;
     }
     return name;
-};
-
+}
 /**
  * 选择元素
  * @param mixed selector CSS3选择器
@@ -258,7 +256,7 @@ var querySelector = typeof Sizzle === "function" ?  function(selector, context, 
         //如果选择器不是一个字符串
         if (typeof selector !== "string")
         {
-            results = System.isNodeElement(selector) || System.isWindow(selector) ? [selector] : [];
+            results = Element.isNodeElement(selector) || Element.isWindow(selector) ? [selector] : [];
         }else
         {
             var has = false;
@@ -287,7 +285,7 @@ var querySelector = typeof Sizzle === "function" ?  function(selector, context, 
         var ret=[];
         while( i<seed.length )if( Array.prototype.indexOf.call(results, seed[i]) >=0 )
         {
-            ret.push( seed[i] )
+            ret.push( seed[i] );
             i++;
         }
         return ret;
@@ -364,10 +362,14 @@ function $createElement(html , flag )
                 }
                 div.innerHTML = html;
                 for (var i = 0; i < level; i++)div = div.childNodes.item(0);
+                if( !div )
+                {
+                    throw new Error('Invalid html');
+                }
 
             }else
             {
-                div.innerHTML =  html;
+                div.innerHTML = html;
             }
 
             var len=div.childNodes.length;
@@ -385,11 +387,10 @@ function $createElement(html , flag )
             return div.parentNode.removeChild( div );
         }
 
-    }else if (System.isNodeElement(html) )
+    }else if (Element.isNodeElement(html) )
         return  html.parentNode ?$cloneNode(html,true) : html;
     throw new Error('createElement param invalid')
-};
-
+}
 var getAttrExp = /(\w+)(\s*=\s*([\"\'])([^\3]*?)[^\\]\3)?/g;
 var lrQuoteExp = /^[\'\"]|[\'\"]$/g;
 
@@ -425,8 +426,7 @@ function $matchAttr(strAttr)
         return strAttr;
     }
     return null;
-};
-
+}
 /**
  * 以小写的形式返回元素的节点名
  * @returns {string}
@@ -434,9 +434,7 @@ function $matchAttr(strAttr)
 function $getNodeName(elem )
 {
     return elem && typeof elem.nodeName=== "string" && elem.nodeName!='' ? elem.nodeName.toLowerCase() : '';
-};
-
-
+}
 /**
  * 合并元素属性。
  * 将 refTarget 对象的属性合并到 target 元素
@@ -446,7 +444,7 @@ function $getNodeName(elem )
  */
 function $mergeAttributes(target, oSource)
 {
-    var iselem=System.isNodeElement( target );
+    var iselem=Element.isNodeElement( target );
     if( System.isObject(oSource,true) )
     {
         for (var key in oSource)if (oSource[key] && oSource[key] != '')
@@ -467,8 +465,7 @@ function $mergeAttributes(target, oSource)
         }
     }
     return target;
-};
-
+}
 /**
  * 判断元素是否有Style
  * @returns {boolean}
@@ -476,9 +473,7 @@ function $mergeAttributes(target, oSource)
 function $hasStyle(elem )
 {
     return !( !elem || !elem.nodeType || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style );
-};
-
-
+}
 /**
  * 克隆节点元素
  * @param nodeElement
@@ -498,8 +493,7 @@ function $cloneNode(nodeElement , deep )
         return node;
     }
     return null;
-};
-
+}
 var storage=Internal.createSymbolStorage( Symbol('element') );
 
 /**
@@ -533,7 +527,7 @@ function Element(selector, context)
         if (System.isArray(selector))
         {
             result = Array.prototype.filter.call(selector, function (elem) {
-                return System.isNodeElement(elem) || System.isWindow(elem);
+                return Element.isNodeElement(elem) || Element.isWindow(elem);
             });
 
         } else if ( System.instanceOf(selector,Element) )
@@ -543,7 +537,7 @@ function Element(selector, context)
         } else if (typeof selector === "string")
         {
             result = selector.charAt(0) === '<' && selector.charAt(selector.length - 1) === '>' ? $createElement(selector) : querySelector(selector, context);
-        } else if ( System.isNodeElement(selector) || System.isWindow(selector) )
+        } else if ( Element.isNodeElement(selector) || Element.isWindow(selector) )
         {
             result = selector;
         }
@@ -612,7 +606,7 @@ Element.prototype.current=function current( elem )
         elem = elem && elem.length > 0 ? elem[0] : null;
         storage(this,'forEachCurrentItem',elem);
         storage(this,'forEachCurrentIndex',NaN);
-    }else if( System.isNodeElement(elem) || System.isWindow(elem) )
+    }else if( Element.isNodeElement(elem) || Element.isWindow(elem) )
     {
         storage(this,'forEachCurrentItem',elem);
         storage(this,'forEachCurrentIndex',NaN);
@@ -735,7 +729,7 @@ var rgbToHex = function (value)
           ].join('');
       }
       return value;
-}
+};
 
 /**
  * @private
@@ -994,7 +988,7 @@ accessor['scroll']={
     get:function(prop){
         var e = this.defaultView || this.parentWindow || this;
         var p= 'scroll'+prop;
-        return System.isWindow( e ) ? e[ prop.toLowerCase()==='top'?'pageYOffset':'pageXOffset'] || e.document.documentElement[p] || e.document.body[p] : e[p] ;
+        return Element.isWindow( e ) ? e[ prop.toLowerCase()==='top'?'pageYOffset':'pageXOffset'] || e.document.documentElement[p] || e.document.body[p] : e[p] ;
     },
     set:function(prop,newValue,obj){
         var e = this.defaultView || this.parentWindow || this;
@@ -1065,7 +1059,7 @@ Element.prototype.getBoundingRect=function getBoundingRect( force )
 {
     var value={ 'top': 0, 'left': 0 ,'right' : 0,'bottom':0,'width':0,'height':0};
     var elem= Element.prototype.current.call(this);
-    if( System.isWindow(elem) )
+    if( Element.isWindow(elem) )
     {
         value.left = elem.screenLeft || elem.screenX;
         value.top = elem.screenTop || elem.screenY;
@@ -1076,11 +1070,11 @@ Element.prototype.getBoundingRect=function getBoundingRect( force )
         return value;
     }
 
-    if( !System.isNodeElement( elem ) )
+    if( !Element.isNodeElement( elem ) )
         throw new Error('invalid elem. elem not is NodeElement');
 
     var doc =  elem.ownerDocument || elem, docElem=doc.documentElement;
-    Element.prototype.current.call(this, System.getWindow( doc ) );
+    Element.prototype.current.call(this, Element.getWindow( doc ) );
     var scrollTop = Element.prototype.scrollTop.call(this);
     var scrollLeft = Element.prototype.scrollLeft.call(this);
     Element.prototype.current.call(this, elem );
@@ -1342,7 +1336,7 @@ Element.prototype.children=function children( selector )
     var results=[];
     Element.prototype.forEach.call(this,function(element)
     {
-        if( !System.isFrame(element) && element.hasChildNodes() )
+        if( !Element.isFrame(element) && element.hasChildNodes() )
         {
             var child = Element.prototype.slice.call( element.childNodes );
             results =  is ? Element.prototype.concat.apply( results, Array.prototype.filter.call(child, selector ) ) :
@@ -1500,12 +1494,12 @@ Element.prototype.addChildAt=function addChildAt( childElemnet, index )
      {
          childElemnet =  Element.prototype.current.call(childElemnet);
      }
-     if( !System.isNodeElement( childElemnet ) )
+     if( !Element.isNodeElement( childElemnet ) )
      {
          throw new TypeError('is not Element in addChildAt');
      }
      var parent = Element.prototype.current.call(this);
-     if( !System.isHTMLElement( parent ) )
+     if( !Element.isHTMLElement( parent ) )
      {
         throw new Error('parent is null of child elemnet in addChildAt');
      }
@@ -1570,7 +1564,12 @@ Element.prototype.getChildIndex=function getChildIndex( childElemnet )
  */
 Element.prototype.removeChild=function removeChild( childElemnet )
 {
-    if( !System.isNodeElement(childElemnet) )
+    if( System.instanceOf(childElemnet,Element) )
+    {
+        childElemnet = Element.prototype.current.call(childElemnet);
+    }
+
+    if( !Element.isNodeElement(childElemnet) )
     {
         throw new TypeError('is not HTMLElement in removeChild');
     }
@@ -1613,13 +1612,13 @@ Element.prototype.removeChildAt=function removeChildAt( index )
  */
 Element.contains=function contains( child , parent )
 {
-    if( System.isNodeElement(child) && System.isNodeElement(parent) )
+    if( Element.isNodeElement(child) && Element.isNodeElement(parent) )
     {
         if('contains' in parent)return parent.contains( child ) && parent !== child;
         return !!(parent.compareDocumentPosition(child) & 16) && parent !== child ;
     }
     return querySelector( child, parent ).length > 0;
-}
+};
 
 /**
  * @private
@@ -1634,8 +1633,120 @@ var ishtmlobject = typeof HTMLElement==='object';
 Element.isHTMLElement=function isHTMLElement( elem )
 {
     if( !elem )return false;
-    return ishtmlobject ? elem instanceof HTMLElement : ( elem.nodeType === 1 && typeof elem.nodeName === "string" );
+    return ishtmlobject ? elem instanceof HTMLElement : ( (elem.nodeType === 1 || elem.nodeType === 11) && typeof elem.nodeName === "string" );
 };
+
+
+/**
+ * 判断是否为一个表单元素
+ * @returns {boolean}
+ */
+Element.isForm=function isForm(elem, exclude)
+{
+    if( elem )
+    {
+        var nodename = Element.getNodeName(elem);
+        switch ( nodename )
+        {
+            case 'select'   :
+            case 'input'    :
+            case 'textarea' :
+            case 'button'   :
+                return exclude && typeof exclude === 'string' ? exclude.toLowerCase() !== nodename : true;
+        }
+    }
+    return false;
+};
+
+/**
+ * 判断是否为一个节点类型元素
+ * document window 不属于节点类型元素
+ * @returns {boolean}
+ */
+var hasNode= typeof Node !== "undefined";
+Element.isNodeElement=function isNodeElement( elem )
+{
+    if( !elem ) return false;
+    return hasNode ? elem instanceof Node : elem.nodeType && typeof elem.nodeName === "string" &&
+    (typeof elem.tagName === "string" || elem.nodeName==="#document-fragment");
+};
+
+
+/**
+ * 判断是否为一个html容器元素。
+ * HTMLElement和document属于Html容器
+ * @param element
+ * @returns {boolean|*|boolean}
+ */
+Element.isHTMLContainer=function isHTMLContainer( elem )
+{
+    return elem && ( Element.isHTMLElement(elem) || Element.isDocument(elem) );
+};
+
+/**
+ * 判断是否为一个事件元素
+ * @param element
+ * @returns {boolean}
+ */
+Element.isEventElement=function isEventElement( elem )
+{
+    return elem && ( typeof elem.addEventListener === "function" || typeof elem.attachEvent=== "function" || typeof elem.onreadystatechange !== "undefined" );
+};
+
+/**
+ * 判断是否为窗口对象
+ * @param obj
+ * @returns {boolean}
+ */
+Element.isWindow=function isWindow( elem )
+{
+    return elem && elem === Element.getWindow(elem);
+};
+
+/**
+ * 决断是否为文档对象
+ * @returns {*|boolean}
+ */
+Element.isDocument=function isDocument( elem )
+{
+    return elem && elem.nodeType===9;
+};
+
+/**
+ * 判断是否为一个框架元素
+ * @returns {boolean}
+ */
+Element.isFrame=function isFrame( elem )
+{
+    var nodename = Element.getNodeName(elem);
+    return (nodename === 'iframe' || nodename === 'frame');
+};
+
+
+/**
+ * 获取元素所在的窗口对象
+ * @param elem
+ * @returns {window|null}
+ */
+Element.getWindow=function getWindow( elem )
+{
+    if( elem )
+    {
+        elem = elem.ownerDocument || elem;
+        return elem.window || elem.defaultView || elem.contentWindow || elem.parentWindow || window || null;
+    }
+    return null;
+};
+
+/**
+ * 以小写的形式返回元素的节点名
+ * @returns {string}
+ */
+Element.getNodeName = function getNodeName( elem )
+{
+    return elem && elem.nodeName && typeof elem.nodeName=== "string" ? elem.nodeName.toLowerCase() : '';
+};
+
 
 // fix style name add prefix
 if( System.env.platform( System.env.BROWSER_FIREFOX ) && System.env.version(4) )

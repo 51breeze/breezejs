@@ -265,6 +265,7 @@ var descriptor = {
             'toString':{'type':'String','id':'function','inherit':'Object','param':[]},
             'values':{'type':'Array','id':'function','inherit':'Object','param':[]},
             'keys':{'type':'Array','id':'function','inherit':'Object','param':[]},
+            'unique':{ 'id':'function','type':'Array'}
         },
     },
     'Math':{
@@ -352,7 +353,7 @@ var descriptor = {
             'trim': {type: 'String', id: 'function', param: ['String']},
             'uid': {type: 'String', id: 'function', param: []},
             'range': {type: 'Array', id: 'function', param: ['Number','Number']},
-            'getNodeName': {type: 'String', id: 'function', param: ['Object']},
+            'serialize':{type: 'String', id: 'function', param: ['Object']},
 
             //系统全局方法
             'decodeURI':{type:'String',id:'function',param:['String']},

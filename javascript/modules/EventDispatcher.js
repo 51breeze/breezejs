@@ -14,13 +14,15 @@ function EventDispatcher( target )
         if( target && System.instanceOf(target, EventDispatcher) )return target;
         return new EventDispatcher( target );
     }
-    if( target != null && !( System.isEventElement(target) || System.is(target, EventDispatcher) ) )
+    if( target != null && !( typeof target.addEventListener === "function" ||
+        typeof target.attachEvent=== "function" ||
+        typeof target.onreadystatechange !== "undefined" ||
+        System.instanceOf(target, EventDispatcher) ) )
     {
         target = null;
     }
     storage(this, true, {target:target||this, events:{}});
-};
-
+}
 System.EventDispatcher=EventDispatcher;
 EventDispatcher.prototype=Object.create( Object.prototype );
 EventDispatcher.prototype.constructor=EventDispatcher;
@@ -166,9 +168,7 @@ function addEventListener(target, listener )
         return a.priority=== b.priority ? 0 : (a.priority < b.priority ? 1 : -1);
     });
     return true;
-};
-
-
+}
 /**
  * 添加侦听器到元素中
  * @param string type 事件类型, 如果是一个'*'则表示删除所有的事件
@@ -215,8 +215,7 @@ function removeEventListener(target, type, listener , dispatcher )
         }
     }
     return events.length !== ret;
-};
-
+}
 /**
  * 调度指定侦听项
  * @param event
@@ -246,8 +245,7 @@ function dispatchEvent( e, currentTarget )
            return false;
     }
     return true;
-};
-
+}
 /**
  * 事件侦听器
  * @param type
@@ -266,7 +264,7 @@ function Listener(type,callback,useCapture,priority,reference,dispatcher)
     this.priority=priority>>0;
     this.reference=reference || null;
     this.dispatcher=dispatcher;
-};
+}
 Listener.prototype.constructor= Listener;
 Listener.prototype.useCapture=false;
 Listener.prototype.dispatcher=null;

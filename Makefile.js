@@ -79,6 +79,7 @@ function createDescription( stack , owner )
     desc.__stack__ = stack;
     desc['id'] =stack.keyword();
     desc['type'] = getType( stack.type() );
+    desc['origintype'] = desc['type'];
     desc['privilege'] =stack.qualifier() || "internal";
     desc['static'] = !!stack.static();
     desc['owner'] = owner;
@@ -199,35 +200,30 @@ function parseMetaType( describe, currentStack, metaTypeStack , config, project,
             if( item.bindable===true )return;
             if( item.id==='var' )
             {
-                var private_var = currentStack.__name__ = '@'+name;
+                var private_var = name;
                 var privilege = item.privilege;
                 var type = item.type;
-                describe[ private_var ]=item;
-                item.privilege = "private";
                 var setter = [
-                    'function(val){',
-                    'var old = this['+config.context.private+'].'+private_var,
-                    'if(old!==val){',
-                    'this['+config.context.private+'].'+private_var+'=val',
-                    'var event = new PropertyEvent(PropertyEvent.CHANGE)',
-                    'event.property = "'+name+'"',
-                    'event.oldValue = old',
-                    'event.newValue = val',
-                    'this.dispatchEvent(event)',
+                    'function(val){\n',
+                    'var old = this['+config.context.private+'].'+private_var,';\n',
+                    'if(old!==val){\n',
+                    'this['+config.context.private+'].'+private_var+'=val;\n',
+                    'var event = new PropertyEvent(PropertyEvent.CHANGE);\n',
+                    'event.property = "'+name+'";\n',
+                    'event.oldValue = old;\n',
+                    'event.newValue = val;\n',
+                    'this.dispatchEvent(event);\n',
                     '}',
                     '}',
                 ];
                 var getter = [
-                    'function(val){',
+                    'function(val){\n',
                     'return this['+config.context.private+'].'+private_var,
-                    '}',
+                    ';\n}',
                 ];
                 item = describe[ name ]={
-                    'id':'function', "privilege":privilege,"bindable":true,"type":type,
-                    "value":{
-                        "set":{'id':'function', "privilege": privilege,"type":type,"value":setter.join(";\n")},
-                        "get":{'id':'function', "privilege": privilege,"type":type,"value":getter.join(";\n")}
-                    }
+                    'id':'function', "privilege":privilege,"bindable":true,"type":type,'isAccessor':true,
+                    "value":'{"set":'+setter.join("")+',"get":'+getter.join("")+'}'
                }
             }
             item.bindable = true;
@@ -246,7 +242,7 @@ function mergeImportClass(target, scope)
     }
 }
 
-function getDeclareClassDescription( stack , isInternal )
+function getDeclareClassDescription( stack , isInternal, config, project , syntax )
 {
     var list = {'static':{},'proto':{},'import':{},'constructor':{},'attachContent':{} ,'use':{},'namespaces':{},
         'isInternal': isInternal,"privilege":"internal" };
@@ -420,7 +416,7 @@ function getPropertyDescription( stack , config , project , syntax )
                 {
                     if (value.keyword() === "class" || value.keyword() === "interface")
                     {
-                        Utils.merge(moduleClass, getDeclareClassDescription(value) );
+                        Utils.merge(moduleClass, getDeclareClassDescription(value, false, config, project, syntax ) );
 
                     } else if ( value.keyword() === "namespace" )
                     {
@@ -468,7 +464,7 @@ function getPropertyDescription( stack , config , project , syntax )
 
                 } else if (id === "class" || id === "interface")
                 {
-                    moduleClass.declared[item.name()] = getDeclareClassDescription(item, true);
+                    moduleClass.declared[item.name()] = getDeclareClassDescription(item, true, config, project, syntax );
 
                 } else if (item.name())
                 {
@@ -755,7 +751,7 @@ function loadFragmentModuleDescription( syntax, fragmentModule, config , project
     scope.fullclassname = fullclassname;
 
     //获取模块的描述
-    var description = getPropertyDescription( scope );
+    var description = getPropertyDescription( scope, config, project, syntax );
     description.isFragmentModule = true;
     description.uid= new Date().getTime();
     description.filename = file;

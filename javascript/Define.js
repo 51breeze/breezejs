@@ -63,7 +63,9 @@ function define(requires , callback )
     requires.push( getValueOfNS(pn+":internal") );
     requires.push( getValueOfNS(name+":protected") );
     requires.push( getValueOfNS(name+":private") );
-    if(fix)requires = requires.slice(0);
+    if(fix){
+        requires = requires.slice(0);
+    }
     return callback.apply( context, requires);
 }
 Internal.define = define;

@@ -15,6 +15,28 @@ System.Object = Object;
 Object.prototype = new $Object();
 Object.prototype.constructor=Object;
 
+Object.prototype.valueOf = function valueOf()
+{
+    if( this.constructor instanceof System.Class )
+    {
+        var objClass = this.constructor;
+        var p = objClass.__T__['package'];
+        return '[object '+(p ? p+'.' : '')+objClass.__T__.classname+"]";
+    }
+    return $Object.prototype.valueOf.call(this);
+};
+
+Object.prototype.toString = function toString()
+{
+    if( this.constructor instanceof System.Class )
+    {
+        var objClass = this.constructor;
+        var p = objClass.__T__['package'];
+        return '[object '+(p ? p+'.' : '')+objClass.__T__.classname+"]";
+    }
+    return $Object.prototype.toString.call(this);
+};
+
 /**
  * 定义属性描述
  */

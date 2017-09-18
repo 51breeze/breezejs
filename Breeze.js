@@ -16,6 +16,7 @@ const config = {
     'skin_file_suffix':'.html',
     'project_file_suffix':'.as',
     'browser':'enable',
+    'baseSkinClass':"breeze.core.Skin",
     'context':{
         "public":"_public",
         "protected":"_protected",

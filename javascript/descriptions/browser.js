@@ -130,11 +130,23 @@ var descriptor = {
         'id': 'class',
         'inherit':'EventDispatcher',
         'static':{
-          'querySelector':{type: 'Array', 'id': 'function', param:['String'] }
+          'querySelector':{type: 'Array', 'id': 'function', param:['String'] },
+          'createElement':{type: 'Object', 'id': 'function', param:['String'] },
+          'getNodeName': {type: 'String', id: 'function', param: ['Object']},
+          'getWindow': {type: 'Object', id: 'function', param: ['Object']},
+          'isFrame': {type: 'Boolean', id: 'function', param: ['Object']},
+          'isDocument': {type: 'Boolean', id: 'function', param: ['Object']},
+          'isWindow': {type: 'Boolean', id: 'function', param: ['Object']},
+          'isEventElement': {type: 'Boolean', id: 'function', param: ['Object']},
+          'isHTMLContainer': {type: 'Boolean', id: 'function', param: ['Object']},
+          'isNodeElement': {type: 'Boolean', id: 'function', param: ['Object']},
+          'isForm': {type: 'Boolean', id: 'function', param: ['Object']},
+          'isHTMLElement': {type: 'Boolean', id: 'function', param: ['Object']},
+          'contains': {type: 'Boolean', id: 'function', param: ['Object']},
         },
         'proto': {
             'forEach': {type: '*', 'id': 'function',param:['Function']},
-            'property': {type: 'String', 'id': 'function',param:[]},
+            'property': {type: 'String', 'id': 'function',param:['String','Object']},
             'html': {type: 'String', 'id': 'function',param:['String']},
             'length': {type: 'Number', 'id': 'const'},
             'slice': {type: 'Number', 'id': 'function', param:['Number'] },
@@ -146,8 +158,9 @@ var descriptor = {
             'bottom': {type: 'Number', 'id': 'function', param:[] },
             'left': {type: 'Number', 'id': 'function', param:[] },
             'current': {type: 'Object', 'id': 'function', param:[] },
-            'addChild': {type: 'Object', 'id': 'function', param:[] },
-            'addChildAt': {type: 'Object', 'id': 'function', param:[] },
+            'addChild': {type: 'Object', 'id': 'function', param:['Object'] },
+            'addChildAt': {type: 'Object', 'id': 'function', param:['Object','Number'] },
+            'removeChild':{type: 'Object', 'id': 'function', param:['Object'] },
         }
 
     },

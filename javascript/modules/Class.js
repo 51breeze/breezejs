@@ -52,7 +52,7 @@ function getProtoDescByNs(name, proto, ns)
     return desc;
 }
 
-function description(scope, refObject, name , thisArgument , ns)
+function description(scope, refObject, name , thisArgument , ns, setter)
 {
     var objClass = refObject.constructor;
     //表示获取一个类中的属性或者方法（静态属性或者静态方法）
@@ -69,6 +69,7 @@ function description(scope, refObject, name , thisArgument , ns)
         if( has.call(proto,name) && System.Array.prototype.indexOf.call(scope.__T__.uri, proto[ name ].ns ) >=0 )
         {
             desc = proto[ name ];
+            if( setter && desc.value && !has.call(desc.value,'set') )desc=null;
         }
 
         //自定义命名空间
@@ -84,7 +85,7 @@ function description(scope, refObject, name , thisArgument , ns)
                 desc = descNs.value[ name ];
             }
         }
-        return desc;
+        return desc || refObject[name];
     }
     return null;
 }
@@ -127,6 +128,7 @@ Class.prototype.__get__=function(target, propertyKey, receiver, ns)
     var desc = description(this,target,propertyKey,receiver,ns);
     if( !desc )
     {
+        if( desc === false )return undefined;
         //如果是一个静态属性的引用报错
         if( isstatic )
         {
@@ -170,11 +172,11 @@ Class.prototype.__set__=function (target, propertyKey, value, receiver, ns)
     }
 
     receiver = receiver || target;
-    var desc = description(this,target,propertyKey,receiver,ns);
+    var desc = description(this,target,propertyKey,receiver,ns, true);
     var isstatic = receiver instanceof Class;
     if( !desc )
     {
-        if( isstatic )
+        if( isstatic || desc === false )
         {
             throw new ReferenceError( '"'+propertyKey+'" is not exist');
         }
@@ -229,6 +231,7 @@ Class.prototype.__set__=function (target, propertyKey, value, receiver, ns)
 Class.prototype.__has__=function (target,name,ns)
 {
     var desc = description(this,target,name,undefined,ns);
+    if( desc === false )return false;
     if( desc )return !!desc;
     return !!target[name];
 };

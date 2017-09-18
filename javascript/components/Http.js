@@ -44,7 +44,7 @@ function done(event)
 {
     var xhr = this.__xhr__;
     var options = this.__options__;
-    if (xhr.readyState !== 4)return;
+    if (xhr.readyState !== 4 || xhr.status==0 )return;
     var match, result = null, headers = {};
     System.clearTimeout(this.__timeoutTimer__);
     this.__timeoutTimer__ = null;
@@ -72,9 +72,10 @@ function done(event)
             }
         }
     }
+
     var e = new HttpEvent( HttpEvent.SUCCESS );
     e.originalEvent = event;
-    e.data = result;
+    e.data = result || {};
     e.status = xhr.status;
     e.url = this.__url__;
     e.param = this.__param__;

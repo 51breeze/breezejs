@@ -114,7 +114,7 @@ import breeze.components.Component;
          */
         override protected function initialized():Boolean
         {
-            if (!super.initialized())
+            if( !super.initialized() )
             {
                 return false;
             }
@@ -137,8 +137,7 @@ import breeze.components.Component;
                 this.__skin__ = new Skin();
             }
             return this.__skin__;
-        };
-
+        }
         /**
          * 设置皮肤对象
          * @param skinObj
@@ -147,8 +146,7 @@ import breeze.components.Component;
         public function set skin(skinObj:Skin):void
         {
             this.__skin__ = skinObj;
-        };
-
+        }
         /**
          * @private
          */
@@ -160,8 +158,7 @@ import breeze.components.Component;
         public function get viewport():Object
         {
             return this.__viewport__;
-        };
-
+        }
         /**
          * @param Object obj
          * @returns {void}
@@ -169,8 +166,7 @@ import breeze.components.Component;
         public function set viewport(obj:Object):void
         {
             this.__viewport__ = obj;
-        };
-
+        }
         private var __render__:Render = null;
 
         /**
@@ -208,7 +204,6 @@ import breeze.components.Component;
             this.viewport.html( skin );
             this.initialized();
             return this;
-        };
-
+        }
     }
 }
