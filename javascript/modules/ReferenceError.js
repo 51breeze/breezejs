@@ -6,11 +6,11 @@
  * @constructor
  * @require Error,Object;
  */
-function ReferenceError( message , line, filename )
+function ReferenceError( message , filename,line )
 {
     this.name='ReferenceError';
-    Error.call(this, message , line, filename);
-};
+    Error.call(this, message , filename,line);
+}
 System.ReferenceError =ReferenceError;
 ReferenceError.prototype = Object.create( Error.prototype );
 ReferenceError.prototype.constructor=ReferenceError;

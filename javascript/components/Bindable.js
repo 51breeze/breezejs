@@ -20,7 +20,7 @@ function commitProperties(event)
     var binding = storage(this,'binding');
     var hash = storage(this,'hash');
     var bind =  binding[ property ];
-
+    
     if( bind )
     {
         var newValue = Reflect.get(event, 'newValue');
@@ -37,8 +37,7 @@ function commitProperties(event)
             }
         }
     }
-};
-
+}
 /**
  * 设置属性值
  * @param object
@@ -51,13 +50,14 @@ function setProperty(object, prop, newValue )
     {
         Bindable.prototype.property.call(object,prop,newValue);
 
-    }else if( System.isNodeElement(object) )
+    }else if( Element.isNodeElement(object) )
     {
         if( typeof object[ prop ] !== "undefined"  )object[ prop ] = newValue;
 
     }else if( object instanceof Element )
     {
         if( Element.prototype.hasProperty.call(object,prop) )Element.prototype.property.call(object,prop,newValue);
+
     }else if( Reflect.has( object, prop) )
     {
         Reflect.set( object, prop, newValue );
@@ -70,7 +70,7 @@ function getProperty(object, prop )
     {
         return Bindable.prototype.property.call(object,prop);
 
-    }else if( System.isNodeElement(object) )
+    }else if( Element.isNodeElement(object) )
     {
        return object[ prop ];
 
@@ -145,7 +145,17 @@ Bindable.prototype.bind=function bind(target, property, name, flag)
         //创建一个可派发事件的对象
         if( !item.dispatcher )
         {
-            dispatch = System.isEventElement(target) ? item.element = new Element(target) : target;
+            dispatch = target;
+            if( target instanceof Element ){
+
+                item.element = target;
+                dispatch = item.element;
+
+            }else if( Element.isNodeElement(target) )
+            {
+                item.element = new Element(target);
+                dispatch = item.element;
+            }
             if( dispatch === target && !System.instanceOf(target, EventDispatcher) )dispatch = null;
             if( dispatch )item.dispatcher = dispatch;
         }
@@ -162,7 +172,7 @@ Bindable.prototype.bind=function bind(target, property, name, flag)
                 {
                     this.property( item.binding[ property ] , newValue );
                 }
-            }
+            };
             //如果目标对象的属性发生变化
             Reflect.apply( Reflect.get(item.dispatcher,'addEventListener'), item.dispatcher, [PropertyEvent.CHANGE,item.handle,false,0,this]);
         }
@@ -183,7 +193,7 @@ Bindable.prototype.bind=function bind(target, property, name, flag)
         var value = Reflect.get(source, name);
         if( value )
         {
-            setProperty(item.element, property, Reflect.get(source, name));
+            setProperty(item.element, property, value );
         }
     }
     return this;

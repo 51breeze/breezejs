@@ -221,10 +221,10 @@ function parseMetaType( describe, currentStack, metaTypeStack , config, project,
                     'return this['+config.context.private+'].'+private_var,
                     ';\n}',
                 ];
-                item = describe[ name ]={
-                    'id':'function', "privilege":privilege,"bindable":true,"type":type,'isAccessor':true,
-                    "value":'{"set":'+setter.join("")+',"get":'+getter.join("")+'}'
-               }
+                describe[ name ]={
+                    'id':'function', "privilege":privilege,"bindable":true,"type":type,'isAccessor':true,'varToBindable':true,
+                    "value":{"set":setter.join(""),"get":getter.join("")}
+                }
             }
             item.bindable = true;
             break;

@@ -1902,7 +1902,6 @@ fix.cssHooks.height={
 //@internal Element.fix;
 Element.fix = fix;
 
-//@internal Element.createElement;
 Element.createElement = $createElement;
 
 System.Element = Element;

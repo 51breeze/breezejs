@@ -10,7 +10,7 @@ function PropertyEvent( type, bubbles,cancelable ){
     if( !(this instanceof PropertyEvent) )return new PropertyEvent(type, bubbles,cancelable);
     Event.call(this, type, bubbles,cancelable );
     return this;
-};
+}
 System.PropertyEvent=PropertyEvent;
 PropertyEvent.prototype=Object.create( Event.prototype );
 PropertyEvent.prototype.property=null;
@@ -33,7 +33,7 @@ Event.registerEvent(function ( type , target, originalEvent )
             var event =new PropertyEvent( type );
             var property = typeof originalEvent.propertyName === "string" ? originalEvent.propertyName : null;
             if( property===hash)return null;
-            if( !property && System.isForm(target,'button') )
+            if( !property && System.Element.isForm(target,'button') )
             {
                 property = 'value';
             }
